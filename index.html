@@ -101,7 +101,36 @@ input[type=text],input[type=number],input[type=date],select{
 .mleg{display:flex;gap:14px;font-size:12.5px;color:var(--mut);flex-wrap:wrap}
 .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}
 table{border-collapse:collapse;width:100%}
-.sports td{padding:5px 6px;border-bottom:1px solid var(--line);font-size:14px}
+.splist{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.spline{border:1px solid var(--line);border-radius:12px;padding:11px 13px;background:var(--bg);
+  display:flex;flex-direction:column;gap:10px}
+.sptop{display:flex;gap:10px;align-items:center}
+.sptop select{flex:1 1 auto;min-width:0}
+.spgrid{display:flex;flex-direction:column;gap:11px}
+.splabel{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:3px;
+  font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);font-weight:600}
+.splabel output{font-size:14.5px;font-weight:700;letter-spacing:0;text-transform:none;color:var(--ink);
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+.spfoot{display:flex;flex-wrap:wrap;gap:9px;align-items:center;padding-top:9px;border-top:1px solid var(--line)}
+.spfoot select{width:auto;min-width:0;flex:0 1 auto}
+.sphoras{display:flex;align-items:center;gap:5px}
+.sphoras input{width:70px}
+.spgasto{margin-left:auto;text-align:right;white-space:nowrap}
+.spgasto .sub{display:block;font-size:11.5px}
+.pill.nivel{background:var(--accent-soft);color:var(--accent)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:24px;margin:0;padding:0;
+  background:transparent;cursor:pointer;touch-action:pan-y}
+input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:3px;
+  background:linear-gradient(90deg,var(--accent) var(--pct,0%),var(--line) var(--pct,0%))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;
+  border-radius:50%;background:var(--accent);border:3px solid var(--card);margin-top:-7px;
+  box-shadow:0 1px 4px rgba(0,0,0,.28)}
+input[type=range]::-moz-range-track{height:6px;border-radius:3px;background:var(--line)}
+input[type=range]::-moz-range-progress{height:6px;border-radius:3px;background:var(--accent)}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border:3px solid var(--card);border-radius:50%;
+  background:var(--accent)}
+input[type=range]:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 3px var(--accent-soft)}
+input[type=range]:focus-visible::-moz-range-thumb{box-shadow:0 0 0 3px var(--accent-soft)}
 .rc{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--card);display:flex;flex-direction:column;gap:6px}
 .rc h3{font-size:15.5px}
 .tag{display:inline-block;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:1px 7px;font-size:11.5px;color:var(--mut);margin:1px 2px 1px 0}
@@ -189,22 +218,13 @@ body{padding-bottom:max(60px,calc(env(safe-area-inset-bottom) + 44px))}
   .frow{grid-template-columns:repeat(auto-fit,minmax(74px,1fr))}
 }
 @media (max-width:560px){
-  /* Cada desporto passa a bloco, para os campos não ficarem esmagados. */
-  .sports,.sports tbody{display:block;width:100%}
-  .sports tr{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
-  /* Sem min-width:0 os select impõem a largura da opção mais comprida
+  /* Sem min-width:0 um select impõe a largura da opção mais comprida
      ("Ciclismo de montanha (subida)") e nada mais cabe na linha. */
-  .sports td{display:block;border:none;padding:0;min-width:0}
-  .sports td select{width:100%;max-width:100%}
-  /* Linha 1: desporto e o botão de apagar. Linha 2: intensidade.
-     Linha 3: horas e período. Linha 4: o gasto, alinhado à direita. */
-  .sports td:nth-child(1){flex:1 1 60%;order:1}
-  .sports td:nth-child(6){flex:0 0 auto;order:2}
-  .sports td:nth-child(2){flex:1 1 100%;order:3}
-  .sports td:nth-child(3){flex:0 0 78px;order:4}
-  .sports td:nth-child(4){flex:1 1 90px;order:5}
-  .sports td:nth-child(5){flex:1 1 100%;order:6;text-align:right}
-  .sports td:nth-child(5) .sub{display:inline;margin-left:6px}
+  .spline select{min-width:0}
+  .spfoot{gap:8px}
+  .spfoot select{flex:1 1 130px}
+  .spgasto{flex:1 1 100%;margin-left:0;text-align:left;padding-top:2px}
+  .spgasto .sub{display:inline;margin-left:6px}
 }
 /* Ecrãs de toque: alvos de 44 px e campos a 16 px, que é o mínimo para o
    iOS não fazer zoom automático ao tocar num campo. */
@@ -218,7 +238,11 @@ body{padding-bottom:max(60px,calc(env(safe-area-inset-bottom) + 44px))}
   .shop input[type=checkbox]{width:22px;height:22px}
   .toggle input{width:20px;height:20px}
   textarea{min-height:140px}
-  .sports td select,.sports td input{min-height:42px}
+  .spline select,.spline input[type=number]{min-height:42px}
+  /* Alvo maior para o dedo agarrar o slider sem falhar. */
+  input[type=range]{height:34px}
+  input[type=range]::-webkit-slider-thumb{width:26px;height:26px;margin-top:-10px}
+  input[type=range]::-moz-range-thumb{width:22px;height:22px}
 }
 /* Tablet em vertical: duas colunas confortáveis em vez de três apertadas. */
 @media (min-width:700px) and (max-width:1024px){
@@ -290,26 +314,72 @@ html[data-orient="paisagem"][data-dispositivo="tablet"] .gdias{grid-template-col
    intenso. Onde a velocidade ou o terreno mandam mais do que o esforço sentido
    — ciclismo, corrida, caminhada — a dica indica o que cada nível representa. */
 const NIVEIS=[['leve','Leve'],['moderado','Moderado'],['intenso','Intenso']];
+
+/* Nos desportos em que a velocidade é que manda no esforço, o MET não se
+   escolhe por níveis: lê-se de uma curva velocidade → MET, interpolada entre
+   os pontos tabelados do Compendium. É isso que permite trocar os três níveis
+   fixos por um slider contínuo de distância e velocidade. */
+const CURVAS={
+  andar:      [[3,2.3],[4,2.9],[4.8,3.3],[5.6,4.3],[6.4,5.0],[7.2,7.0],[8,8.3]],
+  correr:     [[6.4,6.0],[8,8.3],[9.7,9.8],[11.3,11.0],[12.9,11.8],[14.5,12.8],[16.1,14.5],[17.5,16.0],[19.3,19.0]],
+  trail:      [[5,6.5],[7,8.5],[9,10.5],[11,12.5],[13,14.0],[15,16.0]],
+  estrada:    [[10,4.0],[16,6.8],[19,8.0],[22.5,10.0],[26,12.0],[31,15.8],[35,17.0]],
+  subida:     [[6,6.0],[9,8.0],[12,10.0],[15,12.0],[18,14.0],[22,16.0]],
+  btt:        [[8,5.5],[12,7.5],[16,9.0],[20,11.0],[24,13.0],[28,15.0]],
+  passeio:    [[8,3.5],[12,4.5],[16,6.8],[19,8.0],[22,9.5]],
+  nadar:      [[1.5,5.3],[2,6.5],[2.5,8.0],[3,9.5],[3.5,10.5],[4.5,11.8]],
+  remar:      [[4,4.0],[6,6.0],[8,8.5],[10,11.0],[12,12.5],[14,13.5]],
+  patinar:    [[6,4.8],[8,5.5],[12,7.0],[16,9.0],[20,11.0],[26,12.5]]
+};
+/* Interpolação linear, com os extremos fixos fora da tabela. */
+function metPorVelocidade(nome,v){
+  const c=CURVAS[nome]; if(!c) return 0;
+  if(v<=c[0][0]) return c[0][1];
+  if(v>=c[c.length-1][0]) return c[c.length-1][1];
+  for(let i=1;i<c.length;i++){
+    if(v<=c[i][0]){ const [v0,m0]=c[i-1], [v1,m1]=c[i];
+      return m0+(m1-m0)*(v-v0)/(v1-v0); }
+  }
+  return c[c.length-1][1];
+}
+/* O inverso: a que velocidade se atinge um dado MET. Serve para converter os
+   registos antigos (horas + nível) sem lhes mudar as calorias. */
+function velocidadeParaMet(dist,met){
+  const c=CURVAS[dist.curva];
+  let v=c[0][0];
+  if(met>=c[c.length-1][1]) v=c[c.length-1][0];
+  else if(met>c[0][1]){
+    for(let i=1;i<c.length;i++){
+      if(met<=c[i][1]){ const [v0,m0]=c[i-1], [v1,m1]=c[i];
+        v = m1===m0 ? v0 : v0+(v1-v0)*(met-m0)/(m1-m0); break; }
+    }
+  }
+  return Math.min(Math.max(v,dist.vmin),dist.vmax);
+}
+/* Definição da parte de distância: curva, limites do slider de velocidade,
+   distância máxima semanal de referência e a unidade em que se diz o ritmo. */
+function D(curva,vmin,vmax,vdef,vStep,maxSemana,ritmo){
+  return {curva,vmin,vmax,vdef,vStep,maxSemana,ritmo:ritmo||null}; }
 const CATS_SPORT=[['corrida','Corrida e caminhada'],['ciclismo','Ciclismo'],['agua','Água'],
   ['forca','Força e ginásio'],['corpo','Corpo e mente'],['bola','Bola'],['raquete','Raquete'],
   ['combate','Combate'],['natureza','Ar livre'],['danca','Dança']];
-function SP(id,nome,cat,mets,dicas){ return {id,nome,cat,mets,dicas:dicas||null}; }
+function SP(id,nome,cat,mets,dicas,dist){ return {id,nome,cat,mets,dicas:dicas||null,dist:dist||null}; }
 const SPORTS=[
-  SP('caminhada','Caminhada','corrida',[3.0,4.3,5.3],['~4 km/h','~5,5 km/h','~6,5 km/h, a bom passo']),
-  SP('corrida','Corrida','corrida',[8.3,10.0,12.8],['~8 km/h','~10-11 km/h','13+ km/h']),
-  SP('trail','Corrida em trilho (trail)','corrida',[9.0,11.0,13.0],['terreno fácil','a subir e descer','montanha técnica']),
+  SP('caminhada','Caminhada','corrida',[3.0,4.3,5.3],null, D('andar',3,8,5,0.1,100,'min/km')),
+  SP('corrida','Corrida','corrida',[8.3,10.0,12.8],null, D('correr',6,20,10,0.5,150,'min/km')),
+  SP('trail','Corrida em trilho (trail)','corrida',[9.0,11.0,13.0],null, D('trail',5,15,9,0.5,100,'min/km')),
   SP('intervalos','Treino por intervalos / séries','corrida',[9.0,12.0,15.0]),
   SP('escadas','Subir escadas / step','corrida',[4.0,8.8,11.0]),
 
-  SP('ciclismo','Ciclismo de estrada','ciclismo',[5.8,8.0,10.0],['~16 km/h','~19-22 km/h','22+ km/h']),
-  SP('ciclismoMontanha','Ciclismo de montanha (subida)','ciclismo',[7.0,9.5,12.0],['subida suave','subida constante','subida exigente']),
-  SP('btt','BTT / trilhos','ciclismo',[6.8,8.5,11.0],['caminhos planos','trilho ondulado','trilho técnico']),
-  SP('ciclismoPasseio','Bicicleta de passeio / cicloturismo','ciclismo',[4.0,5.8,7.0],['sem pressa','ritmo constante','com bagagem ou vento']),
+  SP('ciclismo','Ciclismo de estrada','ciclismo',[5.8,8.0,10.0],null, D('estrada',12,40,22,0.5,400)),
+  SP('ciclismoMontanha','Ciclismo de montanha (subida)','ciclismo',[7.0,9.5,12.0],null, D('subida',6,24,12,0.5,200)),
+  SP('btt','BTT / trilhos','ciclismo',[6.8,8.5,11.0],null, D('btt',8,28,16,0.5,200)),
+  SP('ciclismoPasseio','Bicicleta de passeio / cicloturismo','ciclismo',[4.0,5.8,7.0],null, D('passeio',8,22,14,0.5,200)),
   SP('spinning','Bicicleta estática / spinning','ciclismo',[5.5,8.5,11.0]),
 
-  SP('natacao','Natação','agua',[5.3,7.0,9.8],['sem parar, devagar','ritmo de treino','séries rápidas']),
+  SP('natacao','Natação','agua',[5.3,7.0,9.8],null, D('nadar',1.5,4.5,2.5,0.1,25,'min/100m')),
   SP('hidroginastica','Hidroginástica','agua',[3.5,4.5,5.5]),
-  SP('remo','Remo / canoagem','agua',[4.0,7.0,10.0]),
+  SP('remo','Remo / canoagem','agua',[4.0,7.0,10.0],null, D('remar',4,14,8,0.5,80,'min/500m')),
   SP('surf','Surf','agua',[3.0,5.0,6.5]),
 
   SP('musculacao','Musculação (pesos)','forca',[3.5,5.0,6.0],['séries longas e leves','treino normal','cargas altas, pouco descanso']),
@@ -341,7 +411,7 @@ const SPORTS=[
   SP('hiking','Caminhada de montanha','natureza',[5.3,6.5,8.0],['trilho plano','com subidas','com mochila e declive']),
   SP('escalada','Escalada','natureza',[5.8,7.5,11.0]),
   SP('esqui','Esqui / snowboard','natureza',[4.3,6.8,9.0]),
-  SP('patinagem','Patinagem / skate','natureza',[5.0,7.0,9.0]),
+  SP('patinagem','Patinagem / skate','natureza',[5.0,7.0,9.0],null, D('patinar',6,26,15,0.5,150)),
   SP('jardinagem','Jardinagem / trabalho no quintal','natureza',[2.8,3.8,5.0]),
 
   SP('danca','Dança','danca',[3.5,5.0,7.8],['de salão','moderna','muito ritmada']),
@@ -350,8 +420,68 @@ const SPORTS=[
 ];
 const SPORT={}; SPORTS.forEach(s=>{ SPORT[s.id]=s; });
 function nivelIndice(i){ const n=NIVEIS.findIndex(x=>x[0]===i); return n<0? 1 : n; }
-function metDe(s){ const sp=SPORT[s.s]; return sp? sp.mets[nivelIndice(s.i)] : 0; }
+function velocidade(s){ const sp=SPORT[s.s]; if(!sp||!sp.dist) return 0;
+  const v=parseFloat(s.v); return isFinite(v)&&v>0 ? Math.min(Math.max(v,sp.dist.vmin),sp.dist.vmax) : sp.dist.vdef; }
+/* Horas dentro do período escolhido: nos desportos de distância vêm de km ÷ velocidade. */
+function horasPeriodo(s){ const sp=SPORT[s.s]; if(!sp) return 0;
+  if(sp.dist){ const v=velocidade(s); return v>0? (parseFloat(s.km)||0)/v : 0; }
+  return parseFloat(s.h)||0; }
+function metDe(s){ const sp=SPORT[s.s]; if(!sp) return 0;
+  return sp.dist ? metPorVelocidade(sp.dist.curva, velocidade(s)) : sp.mets[nivelIndice(s.i)]; }
+/* Nos desportos de distância o nível deixa de se escolher: lê-se do MET. */
+function nivelPorMet(sp,met){ return met < (sp.mets[0]+sp.mets[1])/2 ? 0
+  : met < (sp.mets[1]+sp.mets[2])/2 ? 1 : 2; }
 function rotuloNivel(sp,idx){ return NIVEIS[idx][1]+(sp && sp.dicas? ' ('+sp.dicas[idx]+')' : ''); }
+/* Um registo válido para cada tipo de desporto. Os registos antigos de um
+   desporto de distância (horas + nível) convertem-se para a velocidade que dá
+   exatamente o mesmo MET, de modo que as calorias já calculadas não mudem. */
+function normalizaDesporto(s){
+  if(!s) return null;
+  const sp=SPORT[s.s]; if(!sp) return null;
+  const per=['dia','semana','mes'].indexOf(s.per)>=0 ? s.per : 'semana';
+  if(sp.dist){
+    let v=parseFloat(s.v), km=parseFloat(s.km), converter=false;
+    if(!(isFinite(v)&&v>0) || !isFinite(km)){ v=velocidadeParaMet(sp.dist, sp.mets[nivelIndice(s.i)]); converter=true; }
+    v=Math.min(Math.max(v,sp.dist.vmin),sp.dist.vmax);
+    /* A velocidade assenta num passo do slider antes de gerar a distância,
+       para as horas do registo antigo se manterem exatas. */
+    v=Math.round(Math.round(v/sp.dist.vStep)*sp.dist.vStep*100)/100;
+    if(converter) km=(parseFloat(s.h)||0)*v;
+    return {s:sp.id, per, v, km:Math.max(0,Math.round(km*10)/10)};
+  }
+  return {s:sp.id, per, h:Math.max(0,parseFloat(s.h)||0),
+    i:NIVEIS.some(n=>n[0]===s.i)? s.i : 'moderado'};
+}
+function normalizaMembro(m){
+  if(m && Array.isArray(m.desportos)) m.desportos=m.desportos.map(normalizaDesporto).filter(Boolean);
+  return m;
+}
+/* Faixa do slider de distância: depende do período, para não haver 400 km/dia. */
+function faixaDist(sp,per){
+  const sem=sp.dist.maxSemana;
+  const max = per==='dia'? Math.ceil(sem/3) : per==='mes'? Math.round(sem*4.5) : sem;
+  const step = max<=10? 0.25 : max<=60? 0.5 : max<=200? 1 : 5;
+  return {max,step};
+}
+function nPT(v,casas){ return (Math.round(v*Math.pow(10,casas))/Math.pow(10,casas))
+  .toFixed(casas).replace('.',','); }
+function mmss(min){ if(!isFinite(min)||min<=0) return '—';
+  let m=Math.floor(min), s=Math.round((min-m)*60); if(s===60){ m++; s=0; }
+  return m+':'+String(s).padStart(2,'0'); }
+function hmm(h){ const t=Math.round(h*60); if(!t) return '0 min';
+  const H=Math.floor(t/60), M=t%60; return H? H+' h'+(M? ' '+String(M).padStart(2,'0')+' min':'') : M+' min'; }
+function porLabel(per){ return per==='dia'?'dia': per==='mes'?'mês':'semana'; }
+/* Velocidade com o ritmo correspondente, que é como corredores e nadadores pensam. */
+function textoVelocidade(sp,v){
+  const casas = sp.dist.vStep<0.5 ? 1 : 1;
+  let t=nPT(v,casas)+' km/h';
+  const r=sp.dist.ritmo;
+  if(r && v>0){
+    const porUnidade = r==='min/100m'? 60/v/10 : r==='min/500m'? 60/v/2 : 60/v;
+    t+=' · '+mmss(porUnidade)+' '+r;
+  }
+  return t;
+}
 const DIETS = {
   equilibrada:{n:'Equilibrada',c:50,p:20,f:30},
   mediterranica:{n:'Mediterrânica',c:45,p:20,f:35},
@@ -487,6 +617,7 @@ function load(){
   try{ s=JSON.parse(localStorage.getItem(KEY)); }catch(e){}
   if(!s || !Array.isArray(s.members)) return blank();
   const b=blank();
+  s.members.forEach(normalizaMembro);
   return Object.assign(b, s, {ui:Object.assign(b.ui,s.ui||{}), meta:Object.assign(b.meta,s.meta||{})});
 }
 function writeLS(){
@@ -529,7 +660,8 @@ function esc(s){ return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&l
 function bmi(m){ const h=m.altura/100; return h>0? m.peso/(h*h) : 0; }
 function bmiClass(v){ return v<18.5?['Abaixo do peso','warn']: v<25?['Peso normal','ok']: v<30?['Excesso de peso','warn']:['Obesidade','bad']; }
 function bmr(m){ return m.sexo==='f' ? 10*m.peso+6.25*m.altura-5*m.idade-161 : 10*m.peso+6.25*m.altura-5*m.idade+5; }
-function sportWeeklyH(s){ return s.per==='dia'? s.h*7 : s.per==='mes'? s.h/4.345 : s.h; }
+function sportWeeklyH(s){ const h=horasPeriodo(s);
+  return s.per==='dia'? h*7 : s.per==='mes'? h/4.345 : h; }
 function sportsKcalDay(m){ return (m.desportos||[]).reduce((t,s)=> t + metDe(s)*m.peso*sportWeeklyH(s), 0)/7; }
 function commuteKcalDay(m){ return (COMMUTE[m.desloc]?.[1]||0)*m.peso*(5/7); }
 function tdee(m){ return bmr(m)*(BASE_ACT[m.atividade]?.[1]||1.2) + sportsKcalDay(m) + commuteKcalDay(m); }
@@ -610,7 +742,8 @@ function renderFamilia(){
 }
 
 /* ================= ATIVIDADE ================= */
-function addSport(mid){ const m=S.members.find(x=>x.id===mid); m.desportos.push({s:'caminhada',h:2,per:'semana',i:'moderado'}); save(); render(); }
+function addSport(mid){ const m=S.members.find(x=>x.id===mid);
+  m.desportos.push(normalizaDesporto({s:'caminhada',h:2,per:'semana',i:'moderado'})); save(); render(); }
 function opcoesDesporto(sel){
   return CATS_SPORT.map(([c,rot])=>{
     const lista=SPORTS.filter(s=>s.cat===c);
@@ -619,9 +752,103 @@ function opcoesDesporto(sel){
       `<option value="${s.id}" ${sel===s.id?'selected':''}>${s.nome}</option>`).join('')+`</optgroup>`;
   }).join('');
 }
-function updSport(mid,i,f,v){ const m=S.members.find(x=>x.id===mid); m.desportos[i][f]= f==='h'?parseFloat(v)||0:v; save(); render(); }
+function updSport(mid,i,f,val){
+  const m=S.members.find(x=>x.id===mid); if(!m) return;
+  const s=m.desportos[i]; if(!s) return;
+  if(f==='s'){
+    /* Ao trocar de desporto guardam-se as horas e convertem-se para a forma
+       que o novo desporto usa, para não se perder o que já estava escrito. */
+    const horas=horasPeriodo(s), novo=SPORT[val];
+    if(novo && novo.dist){ m.desportos[i]={s:val, per:s.per, v:novo.dist.vdef,
+      km:Math.round(Math.max(horas,0.25)*novo.dist.vdef*10)/10}; }
+    else { m.desportos[i]={s:val, per:s.per, h:Math.round(Math.max(horas,0.25)*10)/10,
+      i:NIVEIS.some(n=>n[0]===s.i)? s.i : 'moderado'}; }
+  } else if(f==='per'){
+    s.per=val;
+    const sp=SPORT[s.s];
+    if(sp && sp.dist) s.km=Math.min(parseFloat(s.km)||0, faixaDist(sp,val).max);
+  } else if(f==='h'||f==='km'||f==='v'){ s[f]=parseFloat(val)||0; }
+  else { s[f]=val; }
+  save(); render();
+}
+function pintaRange(el){ const mn=parseFloat(el.min), mx=parseFloat(el.max), v=parseFloat(el.value);
+  el.style.setProperty('--pct', (mx>mn? Math.round((v-mn)/(mx-mn)*100):0)+'%'); }
+/* Enquanto se arrasta não se redesenha a página — reescrevem-se só os números,
+   para o dedo não perder o slider e o valor mudar a acompanhar o movimento. */
+function slideSport(mid,i,campo,el){
+  const m=S.members.find(x=>x.id===mid); if(!m||!m.desportos[i]) return;
+  m.desportos[i][campo]=parseFloat(el.value)||0;
+  pintaRange(el);
+  atualizarAtividade();
+}
+function atualizarAtividade(){
+  const m=curM(); if(!m) return;
+  const põe=(id,txt)=>{ const el=document.getElementById(id); if(el) el.textContent=txt; };
+  (m.desportos||[]).forEach((s,i)=>{
+    const sp=SPORT[s.s]; if(!sp) return;
+    const met=metDe(s), kd=met*m.peso*sportWeeklyH(s)/7;
+    if(sp.dist){
+      põe('sp'+i+'-km', nPT(parseFloat(s.km)||0, faixaDist(sp,s.per).step<1?1:0)+' km');
+      põe('sp'+i+'-v', textoVelocidade(sp, velocidade(s)));
+      põe('sp'+i+'-t', hmm(horasPeriodo(s))+' por '+porLabel(s.per));
+      põe('sp'+i+'-nivel', NIVEIS[nivelPorMet(sp,met)][1]);
+    }
+    põe('sp'+i+'-kcal','~'+Math.round(kd)+' kcal/dia');
+    põe('sp'+i+'-met', nPT(met,1)+' MET · '+Math.round(met*m.peso)+' kcal/h');
+  });
+  põe('tot-desporto','+'+Math.round(sportsKcalDay(m)));
+  põe('tot-total', Math.round(tdee(m)));
+}
 function delSport(mid,i){ const m=S.members.find(x=>x.id===mid); m.desportos.splice(i,1); save(); render(); }
 
+function blocoDesporto(m,s,i){
+  const sp=SPORT[s.s], met=metDe(s);
+  const kd=Math.round(met*m.peso*sportWeeklyH(s)/7), kh=Math.round(met*m.peso);
+  const periodo=`<select onchange="updSport('${m.id}',${i},'per',this.value)" aria-label="Período">
+      <option value="dia" ${s.per==='dia'?'selected':''}>por dia</option>
+      <option value="semana" ${s.per==='semana'?'selected':''}>por semana</option>
+      <option value="mes" ${s.per==='mes'?'selected':''}>por mês</option></select>`;
+  const gasto=`<span class="kcal" id="sp${i}-kcal">~${kd} kcal/dia</span>
+    <span class="sub" id="sp${i}-met">${nPT(met,1)} MET · ${kh} kcal/h</span>`;
+  let miolo;
+  if(sp.dist){
+    const f=faixaDist(sp,s.per), km=parseFloat(s.km)||0, v=velocidade(s);
+    const pctKm=f.max>0? Math.round(km/f.max*100):0;
+    const pctV=Math.round((v-sp.dist.vmin)/(sp.dist.vmax-sp.dist.vmin)*100);
+    miolo=`<div class="spgrid">
+      <div>
+        <div class="splabel"><span>Distância por ${porLabel(s.per)}</span>
+          <output id="sp${i}-km">${nPT(km,f.step<1?1:0)} km</output></div>
+        <input type="range" min="0" max="${f.max}" step="${f.step}" value="${km}" style="--pct:${pctKm}%"
+          aria-label="Distância por ${porLabel(s.per)}, em quilómetros"
+          oninput="slideSport('${m.id}',${i},'km',this)" onchange="save()">
+      </div>
+      <div>
+        <div class="splabel"><span>Velocidade</span>
+          <output id="sp${i}-v">${textoVelocidade(sp,v)}</output></div>
+        <input type="range" min="${sp.dist.vmin}" max="${sp.dist.vmax}" step="${sp.dist.vStep}" value="${v}" style="--pct:${pctV}%"
+          aria-label="Velocidade média em quilómetros por hora"
+          oninput="slideSport('${m.id}',${i},'v',this)" onchange="save()">
+      </div>
+    </div>
+    <div class="spfoot">${periodo}
+      <span class="pill nivel" id="sp${i}-nivel">${NIVEIS[nivelPorMet(sp,met)][1]}</span>
+      <span class="sub" id="sp${i}-t">${hmm(horasPeriodo(s))} por ${porLabel(s.per)}</span>
+      <span class="spgasto">${gasto}</span></div>`;
+  } else {
+    miolo=`<div class="spfoot">
+      <select onchange="updSport('${m.id}',${i},'i',this.value)" aria-label="Intensidade">${NIVEIS.map(([k],ni)=>
+        `<option value="${k}" ${nivelIndice(s.i)===ni?'selected':''}>${rotuloNivel(sp,ni)}</option>`).join('')}</select>
+      <span class="sphoras"><input type="number" min="0" step="0.5" inputmode="decimal" value="${s.h}"
+        aria-label="Horas" onchange="updSport('${m.id}',${i},'h',this.value)"> <span class="sub">h</span></span>
+      ${periodo}<span class="spgasto">${gasto}</span></div>`;
+  }
+  return `<div class="spline">
+    <div class="sptop">
+      <select onchange="updSport('${m.id}',${i},'s',this.value)" aria-label="Desporto">${opcoesDesporto(s.s)}</select>
+      <button class="btn danger small" onclick="delSport('${m.id}',${i})" aria-label="Remover desporto">✕</button>
+    </div>${miolo}</div>`;
+}
 function renderAtividade(){
   if(!S.members.length) return noMembers();
   const m=curM();
@@ -643,26 +870,12 @@ function renderAtividade(){
       <div class="row" style="justify-content:space-between">
         <h2>Desporto praticado</h2>
         <button class="btn small" onclick="addSport('${m.id}')">+ Adicionar desporto</button></div>
-      ${m.desportos.length? `<table class="sports" style="margin-top:10px"><tbody>${m.desportos.map((s,i)=>{
-        const sp=SPORT[s.s]; const met=metDe(s);
-        const kd=Math.round(met*m.peso*sportWeeklyH(s)/7);
-        const kh=Math.round(met*m.peso);
-        return `<tr>
-          <td style="min-width:150px"><select onchange="updSport('${m.id}',${i},'s',this.value)">${opcoesDesporto(s.s)}</select></td>
-          <td style="min-width:130px"><select onchange="updSport('${m.id}',${i},'i',this.value)">${NIVEIS.map(([k],ni)=>
-            `<option value="${k}" ${nivelIndice(s.i)===ni?'selected':''}>${rotuloNivel(sp,ni)}</option>`).join('')}</select></td>
-          <td style="width:80px"><input type="number" min="0" step="0.5" inputmode="decimal" value="${s.h}" onchange="updSport('${m.id}',${i},'h',this.value)"></td>
-          <td><select onchange="updSport('${m.id}',${i},'per',this.value)">
-            <option value="dia" ${s.per==='dia'?'selected':''}>h / dia</option>
-            <option value="semana" ${s.per==='semana'?'selected':''}>h / semana</option>
-            <option value="mes" ${s.per==='mes'?'selected':''}>h / mês</option></select></td>
-          <td style="white-space:nowrap"><span class="kcal">~${kd} kcal/dia</span>
-            <span class="sub" style="display:block;font-size:11.5px">${met} MET · ${kh} kcal/h</span></td>
-          <td><button class="btn danger small" onclick="delSport('${m.id}',${i})">✕</button></td></tr>`;}).join('')}</tbody></table>`
+      ${m.desportos.length? `<div class="splist">${m.desportos.map((s,i)=>blocoDesporto(m,s,i)).join('')}</div>`
         : `<p class="sub" style="margin-top:8px">Sem desportos registados — adiciona os treinos para contarem no gasto calórico.</p>`}
-      <p class="sub" style="margin-top:10px">A intensidade mede-se pelo teste da conversa: <b>leve</b> se falas à vontade,
-        <b>moderado</b> se falas mas com a respiração acelerada, <b>intenso</b> se já não consegues manter a conversa.
-        O mesmo desporto pode gastar o dobro entre o nível leve e o intenso.</p>
+      <p class="sub" style="margin-top:12px">Na corrida, no ciclismo, na natação, no remo e na patinagem é a velocidade
+        que manda no esforço: indica-se a distância e o ritmo nos sliders, e as horas saem daí. Nos restantes escolhe-se
+        o nível pelo teste da conversa — <b>leve</b> se falas à vontade, <b>moderado</b> se falas com a respiração
+        acelerada, <b>intenso</b> se já não consegues manter a conversa.</p>
     </div>
     <div class="card" style="border-left:4px solid var(--energy)">
       <h2>Gasto energético estimado</h2>
@@ -670,8 +883,8 @@ function renderAtividade(){
         <div class="stat"><b>${Math.round(bmr(m))}</b><span>Basal</span></div>
         <div class="stat"><b>+${Math.round(bmr(m)*(BASE_ACT[m.atividade][1]-1))}</b><span>Dia-a-dia</span></div>
         <div class="stat"><b>+${cK}</b><span>Deslocações</span></div>
-        <div class="stat"><b>+${sK}</b><span>Desporto</span></div>
-        <div class="stat" style="background:var(--energy-soft)"><b style="color:var(--energy)">${Math.round(tdee(m))}</b><span>Total kcal/dia</span></div>
+        <div class="stat"><b id="tot-desporto">+${sK}</b><span>Desporto</span></div>
+        <div class="stat" style="background:var(--energy-soft)"><b id="tot-total" style="color:var(--energy)">${Math.round(tdee(m))}</b><span>Total kcal/dia</span></div>
       </div>
       <p class="sub" style="margin-top:10px">Estimativa por METs (esforço metabólico de cada desporto × peso × horas) sobre a fórmula de Mifflin-St Jeor.</p>
     </div>
@@ -1038,11 +1251,7 @@ function limparMembro(m){
     desloc: COMMUTE[m.desloc]? m.desloc:'nenhum',
     dieta: DIETS[m.dieta]? m.dieta:'equilibrada',
     objetivo: GOALS[m.objetivo]? m.objetivo:'manter',
-    desportos: Array.isArray(m.desportos)
-      ? m.desportos.filter(s=>s && SPORT[s.s])
-          .map(s=>({s:s.s, h:num(s.h,0), per:['dia','semana','mes'].includes(s.per)? s.per:'semana',
-                    i:NIVEIS.some(n=>n[0]===s.i)? s.i : 'moderado'}))
-      : []};
+    desportos: Array.isArray(m.desportos) ? m.desportos.map(normalizaDesporto).filter(Boolean) : []};
 }
 function lerPacote(txt){
   let p; try{ p=JSON.parse(txt); }catch(e){ return {erro:'O texto não é uma cópia válida (não foi possível interpretar o JSON).'}; }
