@@ -2,12 +2,20 @@
 <html lang="pt">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Gestão de alimentação e fitness para toda a família — perfis, calorias, macros por dieta, receitas, plano semanal com cheat days e lista de compras.">
 <meta name="color-scheme" content="light dark">
+<meta name="author" content="Família Fit">
 <meta name="theme-color" content="#F6F5F1" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#14181D" media="(prefers-color-scheme: dark)">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍽️</text></svg>">
+<meta name="format-detection" content="telephone=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Família Fit">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" href="icon-180.png">
 <title>Família Fit — Alimentação & Movimento</title>
 <style>
 :root{
@@ -112,8 +120,147 @@ table{border-collapse:collapse;width:100%}
 .empty{padding:40px;text-align:center;color:var(--mut)}
 .notice{background:var(--party-soft);border:1px solid var(--party);color:var(--party);border-radius:10px;padding:8px 14px;font-weight:600;font-size:13.5px}
 .secgap{margin-top:28px}
-@media (max-width:640px){ .hwrap{padding:10px 14px} main{padding:16px 12px} }
+.savest{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mut);white-space:nowrap;
+  background:none;border:none;cursor:pointer;padding:4px 2px;font-family:inherit}
+.savest:hover{color:var(--ink)}
+.savest .led{width:7px;height:7px;border-radius:50%;background:var(--ok);flex:none}
+.savest.pend .led{background:var(--warn)}
+.savest.err{color:var(--bad)} .savest.err .led{background:var(--bad)}
+.savest.none .led{background:var(--line)}
+textarea{width:100%;min-height:120px;background:var(--bg);border:1px solid var(--line);border-radius:8px;
+  padding:8px 10px;font:12.5px/1.5 ui-monospace,Consolas,monospace;color:inherit;resize:vertical}
+.toggle{display:flex;align-items:flex-start;gap:9px;cursor:pointer;padding:4px 0}
+.toggle input{margin-top:4px;flex:none}
+.filebtn{position:relative;overflow:hidden;display:inline-block}
+.filebtn input[type=file]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.kv{display:flex;justify-content:space-between;gap:14px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.kv:last-child{border-bottom:none}
+.kv b{font-variant-numeric:tabular-nums}
+.msg{border-radius:9px;padding:10px 14px;font-size:13.5px;font-weight:600;margin-bottom:16px}
+.msg.ok{background:color-mix(in srgb,var(--ok) 13%,transparent);color:var(--ok)}
+.msg.bad{background:color-mix(in srgb,var(--bad) 13%,transparent);color:var(--bad)}
 @media (prefers-reduced-motion: no-preference){ .card,.day,.rc{transition:box-shadow .15s} }
+
+/* ============ TOQUE, TELEMÓVEL E TABLET ============ */
+/* Reservas para Safari anterior ao 16.4, que não conhece color-mix():
+   a declaração simples fica antes e é usada quando a seguinte é ignorada. */
+.pill.ok{background:rgba(46,125,79,.14)}
+.pill.ok{background:color-mix(in srgb,var(--ok) 14%,transparent)}
+.pill.warn{background:rgba(176,127,20,.16)}
+.pill.warn{background:color-mix(in srgb,var(--warn) 16%,transparent)}
+.pill.bad{background:rgba(194,64,52,.14)}
+.pill.bad{background:color-mix(in srgb,var(--bad) 14%,transparent)}
+.msg.ok{background:rgba(46,125,79,.13)}
+.msg.ok{background:color-mix(in srgb,var(--ok) 13%,transparent)}
+.msg.bad{background:rgba(194,64,52,.13)}
+.msg.bad{background:color-mix(in srgb,var(--bad) 13%,transparent)}
+
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+button,select,input,label,.chip{touch-action:manipulation}
+button,.chip,.filebtn{-webkit-tap-highlight-color:transparent}
+button:active,.chip:active,.filebtn:active{opacity:.82}
+input[type=checkbox]{accent-color:var(--accent)}
+/* O select nativo do iOS ignora o desenho da página; uniformiza-se a seta. */
+select{-webkit-appearance:none;appearance:none;padding-right:28px;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'><path d='M1 1.6 6 6.4 11 1.6' fill='none' stroke='%238A929B' stroke-width='1.7' stroke-linecap='round'/></svg>");
+  background-repeat:no-repeat;background-position:right 9px center;background-size:11px 8px}
+/* Margens seguras do notch e da barra inferior do iPhone (viewport-fit=cover). */
+.hwrap{padding-left:max(20px,env(safe-area-inset-left));padding-right:max(20px,env(safe-area-inset-right))}
+main{padding-left:max(20px,env(safe-area-inset-left));padding-right:max(20px,env(safe-area-inset-right))}
+body{padding-bottom:max(60px,calc(env(safe-area-inset-bottom) + 44px))}
+
+@media (max-width:760px){
+  /* Seis separadores não cabem em linha: passam a faixa que desliza na horizontal. */
+  nav{order:3;width:100%;margin-left:0;flex-wrap:nowrap;overflow-x:auto;
+    -webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px}
+  nav::-webkit-scrollbar{display:none}
+  nav button{flex:none}
+  .hwrap{gap:10px}
+  .savest{margin-left:auto}
+}
+@media (max-width:640px){
+  .hwrap{padding:10px 14px}
+  main{padding:16px 12px}
+  .hwrap{padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env(safe-area-inset-right))}
+  main{padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}
+  h1{font-size:22px} h2{font-size:19px}
+  .card{padding:15px 16px}
+  .stat{flex:1 1 92px}
+  .frow{grid-template-columns:repeat(auto-fit,minmax(74px,1fr))}
+}
+@media (max-width:560px){
+  /* Cada desporto passa a bloco, para os campos não ficarem esmagados. */
+  .sports,.sports tbody{display:block;width:100%}
+  .sports tr{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+  .sports td{display:block;border:none;padding:0}
+  .sports td:nth-child(1){flex:1 1 100%}
+  .sports td:nth-child(2){flex:0 0 76px}
+  .sports td:nth-child(3){flex:1 1 128px}
+  .sports td:nth-child(4){flex:1 1 auto;text-align:right}
+  .sports td:nth-child(5){flex:0 0 auto}
+}
+/* Ecrãs de toque: alvos de 44 px e campos a 16 px, que é o mínimo para o
+   iOS não fazer zoom automático ao tocar num campo. */
+@media (hover:none) and (pointer:coarse){
+  input[type=text],input[type=number],input[type=date],select,textarea{font-size:16px}
+  .btn,nav button{min-height:44px}
+  .chip{min-height:42px;padding:7px 14px}
+  .btn.small{min-height:40px;padding:8px 13px}
+  .savest{min-height:40px}
+  .shop li{padding:11px 4px}
+  .shop input[type=checkbox]{width:22px;height:22px}
+  .toggle input{width:20px;height:20px}
+  textarea{min-height:140px}
+  .sports td select,.sports td input{min-height:42px}
+}
+/* Tablet em vertical: duas colunas confortáveis em vez de três apertadas. */
+@media (min-width:700px) and (max-width:1024px){
+  .g3{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+}
+
+/* ============ ORIENTAÇÃO ============ */
+/* Grelha dos dias do plano, para poder mudar com a orientação. */
+.gdias{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+
+/* Reserva sem JavaScript: qualquer ecrã muito baixo é um telemóvel deitado. */
+@media (orientation:landscape) and (max-height:460px){
+  header{position:static}
+  .brand small{display:none}
+  .hwrap{padding-top:7px;padding-bottom:7px}
+}
+
+/* O detetor de orientação marca <html> com data-orient e data-dispositivo,
+   o que permite distinguir um telemóvel deitado de um tablet deitado —
+   coisa que as media queries de largura, por si só, não conseguem. */
+
+/* Telemóvel deitado: a altura passa a ser o recurso escasso. O cabeçalho
+   deixa de ser fixo e encolhe, para a lista não ficar a espiar por uma frincha. */
+html[data-orient="paisagem"][data-dispositivo="telefone"] header{position:static}
+html[data-orient="paisagem"][data-dispositivo="telefone"] .hwrap{padding-top:6px;padding-bottom:6px;gap:8px}
+html[data-orient="paisagem"][data-dispositivo="telefone"] .brand small{display:none}
+html[data-orient="paisagem"][data-dispositivo="telefone"] h1{font-size:18px}
+html[data-orient="paisagem"][data-dispositivo="telefone"] nav button{min-height:38px;padding:6px 11px}
+html[data-orient="paisagem"][data-dispositivo="telefone"] main{padding-top:12px}
+html[data-orient="paisagem"][data-dispositivo="telefone"] .secgap{margin-top:18px}
+/* Ao deitar, a largura dá para duas colunas de cartões. */
+html[data-orient="paisagem"][data-dispositivo="telefone"] .g2,
+html[data-orient="paisagem"][data-dispositivo="telefone"] .g3,
+html[data-orient="paisagem"][data-dispositivo="telefone"] .gdias{grid-template-columns:repeat(auto-fill,minmax(272px,1fr))}
+
+/* Telemóvel de pé: uma coluna, sem cartões a partir em duas metades estreitas. */
+html[data-orient="retrato"][data-dispositivo="telefone"] .g2,
+html[data-orient="retrato"][data-dispositivo="telefone"] .g3,
+html[data-orient="retrato"][data-dispositivo="telefone"] .gdias{grid-template-columns:1fr}
+
+/* Tablet de pé: duas colunas largas e mais respiro nas margens. */
+html[data-orient="retrato"][data-dispositivo="tablet"] main{padding-left:24px;padding-right:24px}
+html[data-orient="retrato"][data-dispositivo="tablet"] .g3,
+html[data-orient="retrato"][data-dispositivo="tablet"] .gdias{grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}
+
+/* Tablet deitado: aproveita a largura toda, mais dias e receitas por linha. */
+html[data-orient="paisagem"][data-dispositivo="tablet"] main{max-width:1280px}
+html[data-orient="paisagem"][data-dispositivo="tablet"] .g3{grid-template-columns:repeat(auto-fill,minmax(268px,1fr))}
+html[data-orient="paisagem"][data-dispositivo="tablet"] .gdias{grid-template-columns:repeat(auto-fill,minmax(252px,1fr))}
 </style>
 </head>
 <body>
@@ -124,6 +271,7 @@ table{border-collapse:collapse;width:100%}
       <small>alimentação &amp; movimento</small>
     </div>
     <nav id="nav"></nav>
+    <button class="savest" id="savest" onclick="go('dados')" title="Ver dados e cópias de segurança"></button>
   </div>
 </header>
 <main id="main"></main>
@@ -200,13 +348,52 @@ const CATS = [
 const AVCOLORS = ['#2456A6','#C8641E','#2E7D4F','#7C5CB0','#C2477C','#B07F14','#0E7490','#8A5A44'];
 
 /* ================= ESTADO ================= */
-const KEY='familiaFitV1';
+const KEY='familiaFitV1', APPID='familia-fit', FORMATO=1;
+let saveErr='', msg=null;
+function blank(){ return {members:[],cheats:{},plans:{},bought:{},prefCuisine:'todas',
+  ui:{tab:'familia',mid:null,cuis:'todas',soComp:false}, week:mondayISO(new Date()),
+  meta:{gravadoEm:null,exportadoEm:null,semCopia:false,avisarAoSair:true}}; }
 let S = load();
 function load(){
-  try{ const s = JSON.parse(localStorage.getItem(KEY)); if(s && s.members) return s; }catch(e){}
-  return {members:[],cheats:{},plans:{},bought:{},prefCuisine:'todas',ui:{tab:'familia',mid:null,cuis:'todas',soComp:false},week:mondayISO(new Date())};
+  let s=null;
+  try{ s=JSON.parse(localStorage.getItem(KEY)); }catch(e){}
+  if(!s || !Array.isArray(s.members)) return blank();
+  const b=blank();
+  return Object.assign(b, s, {ui:Object.assign(b.ui,s.ui||{}), meta:Object.assign(b.meta,s.meta||{})});
 }
-function save(){ localStorage.setItem(KEY,JSON.stringify(S)); }
+function writeLS(){
+  try{ localStorage.setItem(KEY,JSON.stringify(S)); saveErr=''; }
+  catch(e){ saveErr = e.name==='QuotaExceededError'
+    ? 'Não há espaço para gravar mais dados neste browser. Exporta uma cópia e apaga semanas antigas.'
+    : 'O browser está a bloquear a gravação local. Em janela privada os dados perdem-se ao fechar — exporta uma cópia.'; }
+  paintSave();
+}
+/* save() = alteração de dados: grava e marca que ainda não há cópia exportada.
+   saveMeta() = alteração só de definições: grava sem mexer nesse estado. */
+function save(){ S.meta.gravadoEm=new Date().toISOString(); S.meta.semCopia=true; writeLS(); }
+function saveMeta(){ S.meta.gravadoEm=new Date().toISOString(); writeLS(); }
+function hhmm(isoS){ if(!isoS) return '—'; const d=new Date(isoS);
+  return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+function dataHora(isoS){ if(!isoS) return 'nunca'; const d=new Date(isoS);
+  return fmtShort(iso(d))+' às '+hhmm(isoS); }
+function paintSave(){
+  const el=document.getElementById('savest'); if(!el) return;
+  if(saveErr){ el.className='savest err'; el.innerHTML='<i class="led"></i> gravação bloqueada'; return; }
+  if(!S.members.length){ el.className='savest none'; el.innerHTML='<i class="led"></i> sem dados'; return; }
+  if(S.meta.semCopia){ el.className='savest pend'; el.innerHTML='<i class="led"></i> guardado '+hhmm(S.meta.gravadoEm)+' · sem cópia'; return; }
+  el.className='savest'; el.innerHTML='<i class="led"></i> guardado '+hhmm(S.meta.gravadoEm)+' · cópia feita';
+}
+/* Rede de segurança: o estado é gravado a cada alteração, mas também
+   periodicamente e sempre que o separador é escondido ou fechado. */
+setInterval(()=>{ if(S.members.length) writeLS(); }, 30000);
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden') writeLS(); });
+window.addEventListener('pagehide', writeLS);
+window.addEventListener('beforeunload', e=>{
+  writeLS();
+  if(!S.meta.avisarAoSair || !S.members.length || !S.meta.semCopia) return;
+  e.preventDefault(); e.returnValue='';
+  return '';
+});
 function uid(){ return 'm'+Math.random().toString(36).slice(2,9); }
 function esc(s){ return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
@@ -233,9 +420,9 @@ function fmtShort(isoD){ const d=new Date(isoD+'T12:00:00'); return d.getDate()+
 function isCheat(mid,date){ return (S.cheats[mid]||[]).includes(date); }
 
 /* ================= NAVEGAÇÃO ================= */
-const TABS=[['familia','👤 Família'],['atividade','🏃 Atividade'],['nutricao','🍽️ Nutrição'],['plano','📅 Plano semanal'],['compras','🛒 Compras']];
-function go(t){ S.ui.tab=t; save(); render(); }
-function pickM(id){ S.ui.mid=id; save(); render(); }
+const TABS=[['familia','👤 Família'],['atividade','🏃 Atividade'],['nutricao','🍽️ Nutrição'],['plano','📅 Plano semanal'],['compras','🛒 Compras'],['dados','⚙️ Dados']];
+function go(t){ S.ui.tab=t; msg=null; saveMeta(); render(); }
+function pickM(id){ S.ui.mid=id; saveMeta(); render(); }
 function curM(){ return S.members.find(m=>m.id===S.ui.mid) || S.members[0]; }
 function avColor(m){ return AVCOLORS[S.members.indexOf(m)%AVCOLORS.length]; }
 function avatar(m,sz){ const ini=(m.nome||'?').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
@@ -263,7 +450,9 @@ function upd(id,field,val,num){ const m=S.members.find(x=>x.id===id); if(!m) ret
 function renderFamilia(){
   if(!S.members.length) return `<div class="card empty"><h2>Bem-vindos! 👋</h2>
     <p class="sub" style="margin:8px 0 16px">Comecem por criar um perfil para cada membro da família.</p>
-    <button class="btn" onclick="addMember()">+ Criar primeiro perfil</button></div>`;
+    <div class="row" style="justify-content:center">
+      <button class="btn" onclick="addMember()">+ Criar primeiro perfil</button>
+      <button class="btn ghost" onclick="go('dados')">Restaurar uma cópia</button></div></div>`;
   return `<div class="row" style="justify-content:space-between;margin-bottom:16px">
       <div><h2>Perfis da família</h2><span class="sub">${S.members.length} membro${S.members.length>1?'s':''} · os dados guardam-se automaticamente neste dispositivo</span></div>
       <button class="btn" onclick="addMember()">+ Adicionar membro</button></div>
@@ -347,8 +536,8 @@ function renderAtividade(){
 }
 
 /* ================= NUTRIÇÃO ================= */
-function setCuis(v){ S.ui.cuis=v; save(); render(); }
-function toggleComp(){ S.ui.soComp=!S.ui.soComp; save(); render(); }
+function setCuis(v){ S.ui.cuis=v; saveMeta(); render(); }
+function toggleComp(){ S.ui.soComp=!S.ui.soComp; saveMeta(); render(); }
 
 function macroBar(pct){ return `<div class="mbar">
     <div style="width:${pct.c}%;background:var(--mc)"></div>
@@ -423,7 +612,7 @@ function renderNutricao(){
 }
 
 /* ================= PLANO SEMANAL ================= */
-function shiftWeek(n){ const d=new Date(S.week+'T12:00:00'); d.setDate(d.getDate()+7*n); S.week=mondayISO(d); save(); render(); }
+function shiftWeek(n){ const d=new Date(S.week+'T12:00:00'); d.setDate(d.getDate()+7*n); S.week=mondayISO(d); saveMeta(); render(); }
 function planWeek(){ if(!S.plans[S.week]) S.plans[S.week]={}; return S.plans[S.week]; }
 function planMeal(di,mk){ const w=planWeek(); if(!w[di]) w[di]={}; if(!w[di][mk]) w[di][mk]={r:'',m:S.members.map(x=>x.id)}; return w[di][mk]; }
 function setMeal(di,mk,rid){ planMeal(di,mk).r=rid; save(); render(); }
@@ -481,7 +670,7 @@ function renderPlano(){
       <button class="btn danger small" onclick="clearWeek()">Limpar</button>
     </div></div>
   <p class="sub" style="margin-bottom:14px">🎉 <b>Cheat days:</b> clica no nome de um membro na linha «Cheat day» para marcar um dia livre (aniversários, festas…) — esse membro sai das contas e da lista de compras nesse dia.</p>
-  <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(300px,1fr))">
+  <div class="grid gdias">
   ${dates.map((date,di)=>{
     const anyCheat=S.members.some(m=>isCheat(m.id,date));
     return `<div class="day ${anyCheat?'cheat-any':''}">
@@ -549,19 +738,332 @@ function renderCompras(){
   <p class="sub" style="margin-top:12px">Quantidades = receita por pessoa × nº de comensais em cada refeição (membros em cheat day não contam nesse dia).</p>`;
 }
 
+/* ================= ORIENTAÇÃO E TIPO DE ECRÃ =================
+   Marca <html> com data-orient (retrato/paisagem) e data-dispositivo
+   (telefone/tablet/desktop). O CSS agarra-se a estes atributos para
+   distinguir um telemóvel deitado de um tablet deitado, que têm larguras
+   parecidas mas necessidades opostas. */
+let ecra={orient:null,disp:null};
+function ehToque(){
+  try{ return matchMedia('(hover:none) and (pointer:coarse)').matches; }
+  catch(e){ return 'ontouchstart' in window || navigator.maxTouchPoints>0; }
+}
+function orientacao(){
+  try{
+    if(matchMedia('(orientation:portrait)').matches) return 'retrato';
+    if(matchMedia('(orientation:landscape)').matches) return 'paisagem';
+  }catch(e){}
+  return innerHeight>=innerWidth ? 'retrato' : 'paisagem';   // reserva para Safari antigo
+}
+function tipoDispositivo(){
+  if(!ehToque()) return 'desktop';
+  /* O lado menor não muda quando se roda, por isso classifica melhor do que a
+     largura: um iPhone deitado continua a ser um telemóvel. */
+  const menor=Math.min(innerWidth,innerHeight), maior=Math.max(innerWidth,innerHeight);
+  return (menor>=600 || maior>=1000) ? 'tablet' : 'telefone';
+}
+function nomeEcra(){
+  const d={telefone:'Telemóvel',tablet:'Tablet',desktop:'Computador'}[ecra.disp]||'—';
+  return ecra.disp==='desktop' ? d : d+' · '+(ecra.orient==='retrato'?'vertical':'horizontal');
+}
+function aplicarEcra(){
+  const o=orientacao(), d=tipoDispositivo();
+  const mudou = (o!==ecra.orient || d!==ecra.disp);
+  ecra={orient:o,disp:d};
+  const r=document.documentElement;
+  r.setAttribute('data-orient',o);
+  r.setAttribute('data-dispositivo',d);
+  const info=document.getElementById('ecraInfo');
+  if(info) info.textContent=nomeEcra();
+  return mudou;
+}
+/* Ao rodar, o iOS mantém a posição de scroll em pixéis: como a página fica com
+   outra altura, o utilizador aterra num ponto diferente do que estava a ler.
+   Guarda-se a posição relativa antes do reflow e repõe-se depois. */
+function aoRodar(prop){
+  if(!aplicarEcra()) return;
+  if(typeof prop!=='number') return;
+  requestAnimationFrame(()=>{
+    const alt=Math.max(1, document.documentElement.scrollHeight - innerHeight);
+    if(alt>1) window.scrollTo(0, Math.round(prop*alt));
+  });
+}
+function ligarOrientacao(){
+  const reagir=()=>{
+    const alt=Math.max(1, document.documentElement.scrollHeight - innerHeight);
+    const prop=alt>1 ? Math.min(1, scrollY/alt) : 0;
+    /* Duas passagens: o Safari só publica as medidas certas depois do reflow. */
+    requestAnimationFrame(()=>requestAnimationFrame(()=>aoRodar(prop)));
+    setTimeout(()=>aoRodar(prop), 320);
+  };
+  try{
+    const mq=matchMedia('(orientation:portrait)');
+    if(mq.addEventListener) mq.addEventListener('change',reagir);
+    else if(mq.addListener) mq.addListener(reagir);              // Safari 13 e anteriores
+  }catch(e){}
+  if(screen.orientation && screen.orientation.addEventListener)
+    screen.orientation.addEventListener('change',reagir);         // Android / Chrome
+  window.addEventListener('orientationchange',reagir);            // iOS Safari
+  let t=null;
+  const adiado=()=>{ clearTimeout(t); t=setTimeout(()=>aoRodar(),150); };
+  window.addEventListener('resize',adiado);
+  if(window.visualViewport) window.visualViewport.addEventListener('resize',adiado);
+}
+
+/* ================= DADOS: CÓPIA E RESTAURO ================= */
+function flash(kind,text){ msg={kind,text}; render(); }
+function pacote(){ return {app:APPID, formato:FORMATO, exportadoEm:new Date().toISOString(),
+  dados:{members:S.members, cheats:S.cheats, plans:S.plans, bought:S.bought,
+         prefCuisine:S.prefCuisine, week:S.week}}; }
+function textoCopia(){ return JSON.stringify(pacote(),null,2); }
+function marcarExportado(){ S.meta.exportadoEm=new Date().toISOString(); S.meta.semCopia=false; saveMeta(); }
+function nomeFicheiro(){ return 'familia-fit-'+iso(new Date())+'.json'; }
+
+function descarregar(){
+  if(!S.members.length) return flash('bad','Ainda não há dados para exportar.');
+  try{
+    const blob=new Blob([textoCopia()],{type:'application/json'});
+    const url=URL.createObjectURL(blob), a=document.createElement('a');
+    a.href=url; a.download=nomeFicheiro(); a.style.display='none';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),4000);
+    marcarExportado();
+    flash('ok','Ficheiro '+nomeFicheiro()+' criado — guarda-o na nuvem ou numa pasta de cópias, é com ele que '
+      +'recuperas tudo. Se o browser não mostrar nenhuma transferência, usa «Mostrar e copiar dados».');
+  }catch(e){
+    flash('bad','O browser não deixou descarregar o ficheiro. Usa «Mostrar e copiar dados» e cola o texto num ficheiro à parte.');
+  }
+}
+/* No iPhone e no Android a forma natural de guardar é a folha de partilha do
+   sistema (Ficheiros, iCloud, Drive, WhatsApp), não uma transferência. */
+function podePartilhar(){
+  try{ return !!(navigator.canShare && navigator.share
+    && navigator.canShare({files:[new File(['{}'],'t.json',{type:'application/json'})]})); }
+  catch(e){ return false; }
+}
+function partilhar(){
+  if(!S.members.length) return flash('bad','Ainda não há dados para exportar.');
+  const f=new File([textoCopia()], nomeFicheiro(), {type:'application/json'});
+  navigator.share({files:[f], title:'Cópia do Família Fit'}).then(()=>{
+    marcarExportado();
+    flash('ok','Cópia enviada para a app que escolheste. Guarda-a nos Ficheiros ou na nuvem para a poderes restaurar.');
+  }, e=>{
+    if(e && (e.name==='AbortError' || e.name==='NotAllowedError')) return;   // o utilizador cancelou
+    flash('bad','A partilha não ficou concluída. Usa «Transferir ficheiro» ou «Mostrar e copiar dados».');
+  });
+}
+/* O Safari do iOS só copia de um campo editável e com seleção explícita. */
+function copiarDaCaixa(ta){
+  const eraReadonly=ta.hasAttribute('readonly');
+  ta.removeAttribute('readonly');
+  ta.focus(); ta.setSelectionRange(0, ta.value.length);
+  let ok=false; try{ ok=document.execCommand('copy'); }catch(e){ ok=false; }
+  if(eraReadonly) ta.setAttribute('readonly','');
+  return ok;
+}
+function mostrarCopia(){
+  if(!S.members.length) return flash('bad','Ainda não há dados para exportar.');
+  const ta=document.getElementById('bkOut'); if(!ta) return;
+  ta.value=textoCopia();
+  const fim=()=>{ marcarExportado(); flash('ok','Dados copiados. Cola-os numa nota, email ou ficheiro de texto para os guardares.'); };
+  const manual=()=>flash('ok','Dados prontos na caixa abaixo — seleciona tudo e copia à mão para os guardares.');
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(ta.value).then(fim, ()=>{ copiarDaCaixa(ta)? fim() : manual(); });
+  } else {
+    copiarDaCaixa(ta)? fim() : manual();
+  }
+}
+function num(v,d){ const n=parseFloat(v); return isFinite(n)&&n>0? n : d; }
+function plural(n,um,muitos){ return n+' '+(n===1? um : muitos); }
+function limparMembro(m){
+  m=m||{};
+  return {id:String(m.id||uid()), nome:String(m.nome||'Sem nome').slice(0,60),
+    sexo: m.sexo==='f'?'f':'m', idade:num(m.idade,35), altura:num(m.altura,170), peso:num(m.peso,70),
+    atividade: BASE_ACT[m.atividade]? m.atividade:'sedentario',
+    desloc: COMMUTE[m.desloc]? m.desloc:'nenhum',
+    dieta: DIETS[m.dieta]? m.dieta:'equilibrada',
+    objetivo: GOALS[m.objetivo]? m.objetivo:'manter',
+    desportos: Array.isArray(m.desportos)
+      ? m.desportos.filter(s=>s&&SPORTS.some(x=>x[0]===s.s))
+          .map(s=>({s:s.s, h:num(s.h,0), per:['dia','semana','mes'].includes(s.per)? s.per:'semana'}))
+      : []};
+}
+function lerPacote(txt){
+  let p; try{ p=JSON.parse(txt); }catch(e){ return {erro:'O texto não é uma cópia válida (não foi possível interpretar o JSON).'}; }
+  if(p && p.app && p.app!==APPID) return {erro:'Este ficheiro é de outra aplicação, não do Família Fit.'};
+  const d = p && p.dados ? p.dados : p;
+  if(!d || !Array.isArray(d.members)) return {erro:'Este ficheiro não contém perfis do Família Fit.'};
+  return {d:{ members:d.members.map(limparMembro), cheats:d.cheats||{}, plans:d.plans||{},
+              bought:d.bought||{}, prefCuisine:CUIS[d.prefCuisine]?d.prefCuisine:'todas',
+              week:/^\d{4}-\d{2}-\d{2}$/.test(d.week||'')? d.week : mondayISO(new Date()) }};
+}
+function substituir(txt){
+  const {d,erro}=lerPacote(txt); if(erro) return flash('bad',erro);
+  if(S.members.length && !confirm('Substituir os dados atuais ('+S.members.length+' perfis) pelos da cópia ('
+    +d.members.length+' perfis)?\n\nOs dados que estão neste dispositivo perdem-se.')) return;
+  const antigo=S.meta;
+  S=Object.assign(blank(), d);
+  S.meta=Object.assign(S.meta,{avisarAoSair:antigo.avisarAoSair, exportadoEm:antigo.exportadoEm});
+  S.ui.tab='dados'; S.ui.mid=S.members[0]? S.members[0].id : null;
+  S.meta.semCopia=false; saveMeta();
+  flash('ok','Dados restaurados: '+plural(d.members.length,'perfil','perfis')+' e '
+    +plural(Object.keys(d.plans).length,'semana','semanas')+' de plano.');
+}
+function juntar(txt){
+  const {d,erro}=lerPacote(txt); if(erro) return flash('bad',erro);
+  const mapa={}; let novos=0, refeicoes=0;
+  d.members.forEach(im=>{
+    const igual=S.members.find(m=>m.id===im.id
+      || m.nome.trim().toLowerCase()===im.nome.trim().toLowerCase());
+    if(igual){ mapa[im.id]=igual.id; return; }
+    const nid = S.members.some(m=>m.id===im.id)? uid() : im.id;
+    mapa[im.id]=nid; S.members.push(Object.assign({},im,{id:nid})); novos++;
+  });
+  Object.keys(d.cheats).forEach(mid=>{
+    const alvo=mapa[mid]||mid; if(!S.cheats[alvo]) S.cheats[alvo]=[];
+    (d.cheats[mid]||[]).forEach(dia=>{ if(!S.cheats[alvo].includes(dia)) S.cheats[alvo].push(dia); });
+  });
+  Object.keys(d.plans).forEach(wk=>{
+    if(!S.plans[wk]) S.plans[wk]={};
+    Object.keys(d.plans[wk]).forEach(di=>{
+      if(!S.plans[wk][di]) S.plans[wk][di]={};
+      Object.keys(d.plans[wk][di]).forEach(mk=>{
+        if(S.plans[wk][di][mk] && S.plans[wk][di][mk].r) return;   // não mexe no que já está marcado
+        const ref=d.plans[wk][di][mk]||{};
+        S.plans[wk][di][mk]={r:ref.r||'', m:(ref.m||[]).map(x=>mapa[x]||x)};
+        if(ref.r) refeicoes++;
+      });
+    });
+  });
+  Object.keys(d.bought).forEach(wk=>{ S.bought[wk]=Object.assign({}, d.bought[wk], S.bought[wk]||{}); });
+  if(!S.ui.mid && S.members[0]) S.ui.mid=S.members[0].id;
+  save();
+  flash('ok','Cópia integrada: '+plural(novos,'perfil novo','perfis novos')+' e '
+    +plural(refeicoes,'refeição acrescentada','refeições acrescentadas')+'. Perfis com o mesmo nome foram '
+    +'tratados como a mesma pessoa e as refeições já marcadas ficaram intactas.');
+}
+function importarFicheiro(input,modo){
+  const f=input.files && input.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{ modo==='juntar'? juntar(String(r.result)) : substituir(String(r.result)); };
+  r.onerror=()=>flash('bad','Não foi possível ler o ficheiro «'+f.name+'».');
+  r.readAsText(f); input.value='';
+}
+function importarCaixa(modo){
+  const ta=document.getElementById('bkIn'); const txt=(ta&&ta.value||'').trim();
+  if(!txt) return flash('bad','Cola primeiro o texto da cópia na caixa.');
+  modo==='juntar'? juntar(txt) : substituir(txt);
+}
+function toggleAviso(v){ S.meta.avisarAoSair=v; saveMeta(); render(); }
+function apagarTudo(){
+  if(!confirm('Apagar TODOS os dados deste dispositivo — perfis, planos e compras?\n\nSó consegues recuperar se tiveres um ficheiro de cópia.')) return;
+  if(!confirm('Confirmas mesmo? Esta ação não pode ser anulada.')) return;
+  const avisar=S.meta.avisarAoSair;
+  try{ localStorage.removeItem(KEY); }catch(e){}
+  S=blank(); S.meta.avisarAoSair=avisar; S.ui.tab='dados'; saveMeta();
+  flash('ok','Dados apagados. Podes recomeçar ou restaurar uma cópia.');
+}
+function tamanho(){
+  const n=new Blob([JSON.stringify(S)]).size;
+  return n<1024? n+' B' : (n/1024).toFixed(1)+' kB';
+}
+function renderDados(){
+  const nSem=Object.keys(S.plans).filter(w=>Object.keys(S.plans[w]||{}).length).length;
+  return (msg? `<div class="msg ${msg.kind}">${esc(msg.text)}</div>`:'')+`
+  <h2>Dados e cópias de segurança</h2>
+  <p class="sub" style="margin-bottom:18px;max-width:70ch">Tudo o que escreves fica gravado automaticamente
+    neste browser, mas só neste. Para não perderes nada ao mudar de computador, limpar o histórico ou trocar de
+    telemóvel, exporta um ficheiro de cópia de vez em quando — é ele que devolve tudo ao estado em que estava.</p>
+
+  <div class="grid g2">
+    <div class="card">
+      <h3>Gravação automática</h3>
+      <div style="margin-top:10px">
+        <div class="kv"><span>Última gravação</span><b>${dataHora(S.meta.gravadoEm)}</b></div>
+        <div class="kv"><span>Última cópia exportada</span><b>${dataHora(S.meta.exportadoEm)}</b></div>
+        <div class="kv"><span>Perfis guardados</span><b>${S.members.length}</b></div>
+        <div class="kv"><span>Semanas com plano</span><b>${nSem}</b></div>
+        <div class="kv"><span>Espaço ocupado</span><b>${tamanho()}</b></div>
+        <div class="kv"><span>Ecrã detetado</span><b id="ecraInfo">${nomeEcra()}</b></div>
+      </div>
+      ${saveErr? `<div class="msg bad" style="margin:14px 0 0">${esc(saveErr)}</div>`
+        : `<p class="sub" style="margin-top:12px">Grava a cada alteração, de 30 em 30 segundos e sempre que sais do separador.</p>`}
+      <label class="toggle" style="margin-top:12px">
+        <input type="checkbox" ${S.meta.avisarAoSair?'checked':''} onchange="toggleAviso(this.checked)">
+        <span>Avisar ao fechar o separador quando houver alterações ainda sem cópia exportada
+          <span class="sub" style="display:block">O browser mostra a sua própria janela de confirmação, com o texto
+            que ele próprio define. O Safari do iPhone e do iPad ignora este tipo de aviso — aí a rede de segurança
+            é a gravação automática, que também corre ao mudar de app.</span></span>
+      </label>
+    </div>
+
+    <div class="card">
+      <h3>Guardar uma cópia</h3>
+      <p class="sub" style="margin:6px 0 12px">Gera um ficheiro <code>.json</code> com perfis, planos, cheat days e compras.</p>
+      <div class="row">
+        ${podePartilhar()? `<button class="btn" onclick="partilhar()">📤 Guardar ou enviar cópia</button>
+        <button class="btn ghost" onclick="descarregar()">⬇ Transferir</button>`
+        : `<button class="btn" onclick="descarregar()">⬇ Transferir ficheiro</button>`}
+        <button class="btn ghost" onclick="mostrarCopia()">📋 Mostrar e copiar dados</button>
+      </div>
+      <textarea id="bkOut" style="margin-top:12px" readonly placeholder="O texto da cópia aparece aqui quando carregas em «Mostrar e copiar dados» — útil se o browser bloquear transferências."></textarea>
+    </div>
+
+    <div class="card">
+      <h3>Restaurar uma cópia</h3>
+      <p class="sub" style="margin:6px 0 12px"><b>Substituir</b> troca tudo o que está aqui pelo conteúdo da cópia.
+        <b>Juntar</b> acrescenta os perfis e refeições que faltam, sem apagar o que já tens — é a opção para
+        combinar o que dois membros da família fizeram em dispositivos diferentes.</p>
+      <div class="row">
+        <span class="btn filebtn">Substituir por ficheiro…<input type="file" accept=".json,application/json" onchange="importarFicheiro(this,'substituir')"></span>
+        <span class="btn ghost filebtn">Juntar ficheiro…<input type="file" accept=".json,application/json" onchange="importarFicheiro(this,'juntar')"></span>
+      </div>
+      <textarea id="bkIn" style="margin-top:12px" placeholder="…ou cola aqui o texto de uma cópia e escolhe uma das opções abaixo."></textarea>
+      <div class="row" style="margin-top:10px">
+        <button class="btn small" onclick="importarCaixa('substituir')">Substituir com o texto colado</button>
+        <button class="btn ghost small" onclick="importarCaixa('juntar')">Juntar o texto colado</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Onde ficam os dados</h3>
+      <p class="sub" style="margin-top:6px">Ficam no armazenamento local deste browser. Nada é enviado para
+        servidores nem sincronizado entre dispositivos: o mesmo endereço aberto no telemóvel e no computador
+        tem conteúdos independentes. Limpar os dados de navegação, usar uma janela privada ou reinstalar o
+        browser apaga tudo — só o ficheiro de cópia sobrevive a isso.</p>
+      <p class="sub" style="margin-top:8px"><b>No iPhone e no iPad:</b> o Safari apaga os dados de sites que
+        não abres há algumas semanas. Instalar a app no ecrã principal (partilha → «Adicionar ao ecrã principal»)
+        dá-lhe armazenamento próprio e mais duradouro, mas a cópia exportada continua a ser a única garantia.</p>
+      <div class="row" style="margin-top:14px">
+        <button class="btn danger" onclick="apagarTudo()">Apagar todos os dados</button>
+      </div>
+    </div>
+  </div>`;
+}
+
 /* ================= RENDER ================= */
 function noMembers(){ return `<div class="card empty">Cria primeiro os perfis da família.<br><br><button class="btn" onclick="go('familia')">Ir para Família</button></div>`; }
 function render(){
   document.getElementById('nav').innerHTML = TABS.map(([k,v])=>
     `<button class="${S.ui.tab===k?'on':''}" onclick="go('${k}')">${v}</button>`).join('');
   const el=document.getElementById('main');
-  el.innerHTML = S.ui.tab==='familia'? renderFamilia()
-    : S.ui.tab==='atividade'? renderAtividade()
+  el.innerHTML = S.ui.tab==='atividade'? renderAtividade()
     : S.ui.tab==='nutricao'? renderNutricao()
     : S.ui.tab==='plano'? renderPlano()
-    : renderCompras();
+    : S.ui.tab==='compras'? renderCompras()
+    : S.ui.tab==='dados'? renderDados()
+    : renderFamilia();
+  paintSave();
 }
+aplicarEcra();
+ligarOrientacao();
 render();
+
+/* Instalável no ecrã principal e utilizável sem rede (útil para a lista de
+   compras no supermercado). Só corre em http/https — via file:// é ignorado. */
+if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
+  window.addEventListener('load',()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); });
+}
 </script>
 </body>
 </html>
