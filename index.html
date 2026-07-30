@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Gestão de alimentação e fitness para toda a família — perfis, calorias, macros por dieta, receitas, plano semanal com cheat days e lista de compras.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#F6F5F1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14181D" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍽️</text></svg>">
+<title>Família Fit — Alimentação & Movimento</title>
+<style>
+:root{
+  --bg:#F6F5F1; --card:#FFFFFF; --ink:#232930; --mut:#6A737D; --line:#E4E1D8;
+  --accent:#2456A6; --accent-soft:#E8EEF8; --energy:#C8641E; --energy-soft:#F8EDE2;
+  --party:#C2477C; --party-soft:#F9E9F1;
+  --ok:#2E7D4F; --warn:#B07F14; --bad:#C24034;
+  --mc:#C8862A; --mp:#2456A6; --mf:#7C5CB0;
+  --shadow:0 1px 3px rgba(35,41,48,.07),0 4px 14px rgba(35,41,48,.05);
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#14181D; --card:#1C2229; --ink:#E8EAED; --mut:#96A0AA; --line:#2A323B;
+    --accent:#7BA7E8; --accent-soft:#22304A; --energy:#E09550; --energy-soft:#3A2C1D;
+    --party:#E38AA8; --party-soft:#3D2430;
+    --ok:#5FBF8A; --warn:#D9B04A; --bad:#E07A6B;
+    --mc:#DCA84F; --mp:#7BA7E8; --mf:#A98BD8;
+    --shadow:0 1px 3px rgba(0,0,0,.4);
+  }
+}
+:root[data-theme="light"]{
+  --bg:#F6F5F1; --card:#FFFFFF; --ink:#232930; --mut:#6A737D; --line:#E4E1D8;
+  --accent:#2456A6; --accent-soft:#E8EEF8; --energy:#C8641E; --energy-soft:#F8EDE2;
+  --party:#C2477C; --party-soft:#F9E9F1;
+  --ok:#2E7D4F; --warn:#B07F14; --bad:#C24034;
+  --mc:#C8862A; --mp:#2456A6; --mf:#7C5CB0;
+  --shadow:0 1px 3px rgba(35,41,48,.07),0 4px 14px rgba(35,41,48,.05);
+}
+:root[data-theme="dark"]{
+  --bg:#14181D; --card:#1C2229; --ink:#E8EAED; --mut:#96A0AA; --line:#2A323B;
+  --accent:#7BA7E8; --accent-soft:#22304A; --energy:#E09550; --energy-soft:#3A2C1D;
+  --party:#E38AA8; --party-soft:#3D2430;
+  --ok:#5FBF8A; --warn:#D9B04A; --bad:#E07A6B;
+  --mc:#DCA84F; --mp:#7BA7E8; --mf:#A98BD8;
+  --shadow:0 1px 3px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 "Segoe UI",system-ui,-apple-system,sans-serif;padding-bottom:60px}
+h1,h2,h3,.display{font-family:Georgia,"Times New Roman",serif;font-weight:600;text-wrap:balance}
+h1{font-size:26px} h2{font-size:20px;margin-bottom:4px} h3{font-size:16px}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+header{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10}
+.hwrap{max-width:1100px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.brand{display:flex;flex-direction:column;line-height:1.2}
+.brand small{color:var(--mut);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase}
+nav{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
+nav button{background:none;border:none;padding:8px 14px;border-radius:999px;cursor:pointer;color:var(--mut);font-weight:600;font-size:14px}
+nav button:hover{color:var(--ink)}
+nav button.on{background:var(--accent-soft);color:var(--accent)}
+main{max-width:1100px;margin:0 auto;padding:24px 20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:18px 20px}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}
+.g3{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+.sub{color:var(--mut);font-size:13.5px}
+.lbl{display:block;font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--mut);font-weight:600;margin-bottom:3px}
+input[type=text],input[type=number],input[type=date],select{
+  width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 10px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.frow{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:10px;margin-top:10px}
+.btn{background:var(--accent);color:#fff;border:none;border-radius:9px;padding:9px 16px;font-weight:600;cursor:pointer}
+:root[data-theme="dark"] .btn{color:#10151b}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .btn{color:#10151b}}
+.btn.ghost{background:none;color:var(--accent);border:1px solid var(--accent)}
+.btn.small{padding:5px 11px;font-size:13px}
+.btn.danger{background:none;border:1px solid var(--line);color:var(--bad)}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:4px 12px;background:var(--bg);cursor:pointer;font-size:13.5px;font-weight:600}
+.chip.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.chip.party{border-color:var(--party);color:var(--party)}
+.chip.party.on{background:var(--party-soft)}
+.av{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;color:#fff;flex:none}
+.stat{display:flex;flex-direction:column;gap:2px;padding:10px 12px;background:var(--bg);border-radius:10px;min-width:100px}
+.stat b{font-size:20px;font-variant-numeric:tabular-nums}
+.stat span{font-size:11.5px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
+.pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700}
+.pill.ok{background:color-mix(in srgb,var(--ok) 14%,transparent);color:var(--ok)}
+.pill.warn{background:color-mix(in srgb,var(--warn) 16%,transparent);color:var(--warn)}
+.pill.bad{background:color-mix(in srgb,var(--bad) 14%,transparent);color:var(--bad)}
+.mbar{display:flex;height:14px;border-radius:7px;overflow:hidden;margin:8px 0 6px}
+.mbar div{height:100%}
+.mleg{display:flex;gap:14px;font-size:12.5px;color:var(--mut);flex-wrap:wrap}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}
+table{border-collapse:collapse;width:100%}
+.sports td{padding:5px 6px;border-bottom:1px solid var(--line);font-size:14px}
+.rc{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--card);display:flex;flex-direction:column;gap:6px}
+.rc h3{font-size:15.5px}
+.tag{display:inline-block;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:1px 7px;font-size:11.5px;color:var(--mut);margin:1px 2px 1px 0}
+.kcal{color:var(--energy);font-weight:700;font-variant-numeric:tabular-nums}
+.day{border:1px solid var(--line);border-radius:var(--r);background:var(--card);box-shadow:var(--shadow);overflow:hidden}
+.day.cheat-any{border-color:var(--party)}
+.dhead{padding:10px 14px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;gap:10px;background:var(--bg)}
+.dhead b{font-family:Georgia,serif;font-size:16px}
+.meal{padding:10px 14px;border-bottom:1px solid var(--line)}
+.meal:last-child{border-bottom:none}
+.mtitle{font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--mut);font-weight:700;margin-bottom:5px}
+.shop li{list-style:none;display:flex;align-items:center;gap:10px;padding:6px 4px;border-bottom:1px dashed var(--line)}
+.shop li.done span{text-decoration:line-through;color:var(--mut)}
+.shop .q{margin-left:auto;color:var(--mut);font-variant-numeric:tabular-nums;white-space:nowrap;font-size:13.5px}
+.cat-h{margin:18px 0 4px;font-family:Georgia,serif;font-size:15px;color:var(--accent)}
+.empty{padding:40px;text-align:center;color:var(--mut)}
+.notice{background:var(--party-soft);border:1px solid var(--party);color:var(--party);border-radius:10px;padding:8px 14px;font-weight:600;font-size:13.5px}
+.secgap{margin-top:28px}
+@media (max-width:640px){ .hwrap{padding:10px 14px} main{padding:16px 12px} }
+@media (prefers-reduced-motion: no-preference){ .card,.day,.rc{transition:box-shadow .15s} }
+</style>
+</head>
+<body>
+<header>
+  <div class="hwrap">
+    <div class="brand">
+      <h1>Família Fit</h1>
+      <small>alimentação &amp; movimento</small>
+    </div>
+    <nav id="nav"></nav>
+  </div>
+</header>
+<main id="main"></main>
+
+<script>
+/* ================= DADOS BASE ================= */
+const SPORTS = [
+  ['caminhada','Caminhada',4.0],['corrida','Corrida',9.8],['ciclismo','Ciclismo',7.5],
+  ['natacao','Natação',7.0],['musculacao','Musculação',5.0],['ginasio','Ginásio / cardio',6.0],
+  ['futebol','Futebol',8.0],['basquete','Basquetebol',7.5],['tenis','Ténis',7.3],
+  ['padel','Padel',6.5],['yoga','Yoga / Pilates',3.0],['danca','Dança',5.5],
+  ['artes','Artes marciais',9.0],['hiking','Caminhada de montanha',6.0],
+  ['remo','Remo',7.0],['volei','Voleibol',6.0],['surf','Surf',5.5],['escalada','Escalada',7.5]
+];
+const DIETS = {
+  equilibrada:{n:'Equilibrada',c:50,p:20,f:30},
+  mediterranica:{n:'Mediterrânica',c:45,p:20,f:35},
+  keto:{n:'Keto',c:5,p:25,f:70},
+  lowcarb:{n:'Low carb',c:20,p:35,f:45},
+  lowfat:{n:'Low fat',c:55,p:25,f:20},
+  paleo:{n:'Paleo',c:30,p:30,f:40},
+  vegetariana:{n:'Vegetariana',c:50,p:20,f:30}
+};
+const CUIS = {portuguesa:'Portuguesa',italiana:'Italiana',francesa:'Francesa',mediterranica:'Mediterrânica',asiatica:'Asiática'};
+const BASE_ACT = {sedentario:['Sedentário (escritório, pouco movimento)',1.2],leve:['Leve (em pé parte do dia)',1.35],moderado:['Moderado (trabalho ativo)',1.5],intenso:['Intenso (trabalho físico pesado)',1.65]};
+const COMMUTE = {nenhum:['Carro / transportes',0],pe30:['A pé (~30 min/dia)',1.75],pe60:['A pé (~1 h/dia)',3.5],bici:['Bicicleta (~30 min/dia)',3.4]}; // valor = MET·h efetivos/dia útil
+const GOALS = {perder:['Perder peso',-0.15],manter:['Manter peso',0],ganhar:['Ganhar massa',0.10]};
+
+/* Receitas: por pessoa. d = dietas compatíveis além da equilibrada. k kcal, c/p/f gramas. */
+function R(id,n,coz,d,k,c,p,f,i){return {id,n,coz,d,k,c,p,f,i}}
+const RECIPES = [
+R('bras','Bacalhau à Brás','portuguesa',['mediterranica'],520,38,32,26,[['Bacalhau desfiado',120,'g'],['Batata palha',60,'g'],['Ovo',2,'un'],['Cebola',0.5,'un'],['Azeitonas pretas',20,'g'],['Azeite',10,'ml'],['Salsa',5,'g']]),
+R('caldoverde','Caldo verde','portuguesa',['lowfat','mediterranica'],230,30,8,9,[['Couve galega',80,'g'],['Batata',150,'g'],['Chouriço',20,'g'],['Cebola',0.5,'un'],['Alho',1,'dente'],['Azeite',8,'ml']]),
+R('frangopiri','Frango grelhado com salada','portuguesa',['keto','lowcarb','paleo','lowfat','mediterranica'],380,8,42,20,[['Peito de frango',180,'g'],['Alface',60,'g'],['Tomate',1,'un'],['Limão',0.5,'un'],['Azeite',10,'ml']]),
+R('alentejana','Carne de porco à alentejana','portuguesa',[],560,35,38,28,[['Carne de porco',160,'g'],['Amêijoas',100,'g'],['Batata',150,'g'],['Pimento',0.5,'un'],['Alho',2,'dente'],['Coentros',5,'g'],['Azeite',10,'ml']]),
+R('sardinhas','Sardinhas assadas com pimentos','portuguesa',['keto','lowcarb','paleo','mediterranica'],360,7,30,24,[['Sardinhas',200,'g'],['Pimento',1,'un'],['Cebola',0.5,'un'],['Azeite',8,'ml']]),
+R('arrozmarisco','Arroz de marisco','portuguesa',['lowfat','mediterranica'],480,62,28,12,[['Arroz',80,'g'],['Camarão',80,'g'],['Amêijoas',60,'g'],['Tomate',1,'un'],['Cebola',0.5,'un'],['Coentros',5,'g'],['Azeite',8,'ml']]),
+R('sopalegumes','Sopa de legumes','portuguesa',['lowfat','lowcarb','vegetariana','mediterranica'],150,22,5,5,[['Cenoura',80,'g'],['Courgette',80,'g'],['Abóbora',100,'g'],['Cebola',0.5,'un'],['Azeite',5,'ml']]),
+R('polvo','Polvo à lagareiro','portuguesa',['mediterranica'],540,30,42,28,[['Polvo',200,'g'],['Batata',150,'g'],['Alho',2,'dente'],['Azeite',20,'ml'],['Salsa',5,'g']]),
+R('dourada','Dourada grelhada com legumes','portuguesa',['keto','lowcarb','paleo','lowfat','mediterranica'],350,10,38,18,[['Dourada',250,'g'],['Brócolos',100,'g'],['Cenoura',60,'g'],['Alho',1,'dente'],['Limão',0.5,'un'],['Azeite',10,'ml']]),
+R('bolonhesa','Esparguete à bolonhesa','italiana',[],560,65,30,18,[['Esparguete',80,'g'],['Carne picada de vaca',100,'g'],['Tomate pelado',150,'g'],['Cebola',0.5,'un'],['Cenoura',40,'g'],['Alho',1,'dente'],['Parmesão',10,'g'],['Azeite',8,'ml']]),
+R('caprese','Salada caprese com rúcula','italiana',['keto','lowcarb','vegetariana','mediterranica'],340,9,16,27,[['Mozzarella fresca',100,'g'],['Tomate',2,'un'],['Rúcula',40,'g'],['Manjericão',5,'g'],['Azeite',10,'ml']]),
+R('risotto','Risotto de cogumelos','italiana',['vegetariana'],480,62,12,20,[['Arroz arbóreo',80,'g'],['Cogumelos',120,'g'],['Cebola',0.5,'un'],['Vinho branco',40,'ml'],['Parmesão',15,'g'],['Manteiga',10,'g']]),
+R('courgetti','Esparguete de courgette, pesto e frango','italiana',['keto','lowcarb'],390,10,35,24,[['Courgette',200,'g'],['Peito de frango',140,'g'],['Pesto',25,'g'],['Tomate cereja',80,'g'],['Parmesão',10,'g']]),
+R('piccata','Frango piccata ao limão','italiana',['keto','lowcarb'],420,6,40,26,[['Peito de frango',170,'g'],['Limão',1,'un'],['Alcaparras',10,'g'],['Manteiga',15,'g'],['Salsa',5,'g'],['Azeite',5,'ml']]),
+R('pizza','Pizza margherita caseira','italiana',['vegetariana'],620,78,24,22,[['Farinha',100,'g'],['Fermento de padeiro',3,'g'],['Tomate pelado',80,'g'],['Mozzarella',80,'g'],['Manjericão',5,'g'],['Azeite',8,'ml']]),
+R('minestrone','Sopa minestrone','italiana',['lowfat','vegetariana','mediterranica'],260,40,10,6,[['Feijão branco',60,'g'],['Massa pequena',30,'g'],['Cenoura',50,'g'],['Aipo',30,'g'],['Tomate',1,'un'],['Courgette',60,'g'],['Azeite',5,'ml']]),
+R('ratatouille','Ratatouille','francesa',['keto','lowcarb','paleo','lowfat','vegetariana','mediterranica'],220,18,4,14,[['Beringela',100,'g'],['Courgette',100,'g'],['Pimento',0.5,'un'],['Tomate',2,'un'],['Cebola',0.5,'un'],['Alho',2,'dente'],['Ervas de Provença',2,'g'],['Azeite',12,'ml']]),
+R('salmaomanteiga','Salmão com manteiga de limão e espargos','francesa',['keto','lowcarb'],520,6,34,40,[['Salmão',170,'g'],['Espargos',120,'g'],['Manteiga',20,'g'],['Limão',0.5,'un'],['Endro',3,'g']]),
+R('nicoise','Salade niçoise','francesa',['lowcarb','mediterranica'],400,22,30,21,[['Atum em conserva',100,'g'],['Ovo',1,'un'],['Batata nova',100,'g'],['Feijão verde',80,'g'],['Azeitonas',20,'g'],['Tomate',1,'un'],['Azeite',8,'ml']]),
+R('omelete','Omelete de ervas com salada','francesa',['keto','lowcarb','vegetariana'],330,4,20,26,[['Ovo',3,'un'],['Manteiga',10,'g'],['Cebolinho',5,'g'],['Alface',50,'g'],['Azeite',5,'ml']]),
+R('provencal','Frango à provençal','francesa',['paleo','lowcarb','lowfat','mediterranica'],400,14,42,19,[['Coxas de frango',200,'g'],['Tomate',2,'un'],['Azeitonas',25,'g'],['Alho',2,'dente'],['Ervas de Provença',2,'g'],['Azeite',8,'ml']]),
+R('sopacebola','Sopa de cebola gratinada','francesa',['vegetariana'],350,35,14,17,[['Cebola',2,'un'],['Caldo de legumes',300,'ml'],['Pão rústico',40,'g'],['Queijo gruyère',30,'g'],['Manteiga',10,'g']]),
+R('grega','Salada grega','mediterranica',['keto','lowcarb','vegetariana','mediterranica'],360,14,12,28,[['Queijo feta',80,'g'],['Pepino',0.5,'un'],['Tomate',2,'un'],['Cebola roxa',0.25,'un'],['Azeitonas',30,'g'],['Orégãos',2,'g'],['Azeite',12,'ml']]),
+R('robalo','Robalo no forno com legumes','mediterranica',['keto','lowcarb','paleo','lowfat','mediterranica'],380,12,40,19,[['Robalo',250,'g'],['Courgette',100,'g'],['Pimento',0.5,'un'],['Tomate cereja',80,'g'],['Limão',0.5,'un'],['Azeite',10,'ml']]),
+R('humus','Húmus com pão pita e crudités','mediterranica',['vegetariana','lowfat','mediterranica'],410,55,14,15,[['Grão-de-bico cozido',120,'g'],['Tahini',15,'g'],['Limão',0.5,'un'],['Pão pita',1,'un'],['Cenoura',80,'g'],['Pepino',0.5,'un'],['Azeite',8,'ml']]),
+R('espetadas','Espetadas de frango com iogurte e limão','mediterranica',['lowcarb','lowfat','mediterranica'],420,18,45,18,[['Peito de frango',170,'g'],['Iogurte grego',60,'g'],['Limão',0.5,'un'],['Pimento',0.5,'un'],['Cebola',0.5,'un'],['Azeite',6,'ml']]),
+R('couscous','Couscous de legumes com hortelã','mediterranica',['vegetariana','lowfat','mediterranica'],430,70,12,11,[['Couscous',80,'g'],['Grão-de-bico cozido',60,'g'],['Cenoura',60,'g'],['Courgette',60,'g'],['Passas',20,'g'],['Hortelã',5,'g'],['Azeite',8,'ml']]),
+R('salteado','Salteado de frango com gengibre','asiatica',['lowcarb','lowfat'],400,20,40,17,[['Peito de frango',160,'g'],['Brócolos',100,'g'],['Pimento',0.5,'un'],['Cenoura',60,'g'],['Molho de soja',15,'ml'],['Gengibre',10,'g'],['Óleo de sésamo',8,'ml']]),
+R('caril','Caril de legumes com leite de coco','asiatica',['keto','lowcarb','vegetariana','paleo'],420,20,8,35,[['Leite de coco',150,'ml'],['Couve-flor',120,'g'],['Beringela',80,'g'],['Espinafres',50,'g'],['Caril em pó',8,'g'],['Cebola',0.5,'un'],['Óleo de coco',8,'ml']]),
+R('poke','Poke bowl de salmão','asiatica',[],520,58,30,18,[['Salmão fresco',120,'g'],['Arroz para sushi',80,'g'],['Abacate',0.5,'un'],['Pepino',0.5,'un'],['Edamame',50,'g'],['Molho de soja',15,'ml'],['Sementes de sésamo',5,'g']]),
+R('padthai','Pad thai de camarão','asiatica',[],540,65,28,18,[['Massa de arroz',80,'g'],['Camarão',100,'g'],['Ovo',1,'un'],['Rebentos de soja',60,'g'],['Amendoim',20,'g'],['Lima',0.5,'un'],['Molho de peixe',15,'ml']]),
+R('beefbroc','Vaca salteada com brócolos','asiatica',['keto','lowcarb','paleo'],430,12,38,26,[['Bife de vaca',160,'g'],['Brócolos',150,'g'],['Alho',2,'dente'],['Molho de soja',15,'ml'],['Gengibre',8,'g'],['Óleo de sésamo',10,'ml']]),
+R('noodles','Sopa asiática de noodles e frango','asiatica',['lowfat'],430,55,32,8,[['Noodles',70,'g'],['Peito de frango',120,'g'],['Caldo de galinha',400,'ml'],['Cogumelos shiitake',50,'g'],['Cebolinho',10,'g'],['Molho de soja',10,'ml']]),
+R('tofu','Tofu teriyaki com legumes','asiatica',['vegetariana','lowfat'],380,40,22,14,[['Tofu',150,'g'],['Molho teriyaki',20,'ml'],['Brócolos',100,'g'],['Cenoura',60,'g'],['Arroz',60,'g'],['Sementes de sésamo',5,'g']])
+];
+const CATS = [
+  ['Peixe & Marisco',/bacalhau|salm|sardinha|polvo|camar|atum|dourada|robalo|amêijoa|marisco|peixe/i],
+  ['Carne & Ovos',/frango|porco|vaca|picada|peru|chouriço|bife|coxas|ovo/i],
+  ['Frutas & Legumes',/cebola|alho\b|tomate|courgette|beringela|pimento|cenoura|batata|couve|alface|espinafre|brócolo|cogumelo|limão|lima|abacate|pepino|salsa|coentro|manjericão|azeitona|feijão verde|espargo|rúcula|abóbora|aipo|rebentos|gengibre|hortelã|cebolinho|endro|passas|edamame/i],
+  ['Laticínios',/leite\b|queijo|iogurte|manteiga|mozzarella|parmesão|feta|gruyère/i],
+  ['Mercearia & Outros',/./]
+];
+const AVCOLORS = ['#2456A6','#C8641E','#2E7D4F','#7C5CB0','#C2477C','#B07F14','#0E7490','#8A5A44'];
+
+/* ================= ESTADO ================= */
+const KEY='familiaFitV1';
+let S = load();
+function load(){
+  try{ const s = JSON.parse(localStorage.getItem(KEY)); if(s && s.members) return s; }catch(e){}
+  return {members:[],cheats:{},plans:{},bought:{},prefCuisine:'todas',ui:{tab:'familia',mid:null,cuis:'todas',soComp:false},week:mondayISO(new Date())};
+}
+function save(){ localStorage.setItem(KEY,JSON.stringify(S)); }
+function uid(){ return 'm'+Math.random().toString(36).slice(2,9); }
+function esc(s){ return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+/* ================= CÁLCULOS ================= */
+function bmi(m){ const h=m.altura/100; return h>0? m.peso/(h*h) : 0; }
+function bmiClass(v){ return v<18.5?['Abaixo do peso','warn']: v<25?['Peso normal','ok']: v<30?['Excesso de peso','warn']:['Obesidade','bad']; }
+function bmr(m){ return m.sexo==='f' ? 10*m.peso+6.25*m.altura-5*m.idade-161 : 10*m.peso+6.25*m.altura-5*m.idade+5; }
+function sportWeeklyH(s){ return s.per==='dia'? s.h*7 : s.per==='mes'? s.h/4.345 : s.h; }
+function sportsKcalDay(m){ return (m.desportos||[]).reduce((t,s)=>{ const sp=SPORTS.find(x=>x[0]===s.s); return t + (sp? sp[2]*m.peso*sportWeeklyH(s):0); },0)/7; }
+function commuteKcalDay(m){ return (COMMUTE[m.desloc]?.[1]||0)*m.peso*(5/7); }
+function tdee(m){ return bmr(m)*(BASE_ACT[m.atividade]?.[1]||1.2) + sportsKcalDay(m) + commuteKcalDay(m); }
+function targetKcal(m){ return tdee(m)*(1+(GOALS[m.objetivo]?.[1]||0)); }
+function macros(m){ const d=DIETS[m.dieta]||DIETS.equilibrada, k=targetKcal(m);
+  return {c:Math.round(k*d.c/100/4), p:Math.round(k*d.p/100/4), f:Math.round(k*d.f/100/9), pct:d}; }
+function compat(r,dieta){ return dieta==='equilibrada' || r.d.includes(dieta); }
+function compatAll(r,ms){ return ms.every(m=>compat(r,m.dieta)); }
+
+/* ================= DATAS ================= */
+function mondayISO(d){ d=new Date(d); const day=(d.getDay()+6)%7; d.setDate(d.getDate()-day); return iso(d); }
+function iso(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function weekDates(wk){ const out=[]; const d=new Date(wk+'T12:00:00'); for(let i=0;i<7;i++){ out.push(iso(d)); d.setDate(d.getDate()+1);} return out; }
+const DAYN=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+function fmtShort(isoD){ const d=new Date(isoD+'T12:00:00'); return d.getDate()+' '+['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][d.getMonth()]; }
+function isCheat(mid,date){ return (S.cheats[mid]||[]).includes(date); }
+
+/* ================= NAVEGAÇÃO ================= */
+const TABS=[['familia','👤 Família'],['atividade','🏃 Atividade'],['nutricao','🍽️ Nutrição'],['plano','📅 Plano semanal'],['compras','🛒 Compras']];
+function go(t){ S.ui.tab=t; save(); render(); }
+function pickM(id){ S.ui.mid=id; save(); render(); }
+function curM(){ return S.members.find(m=>m.id===S.ui.mid) || S.members[0]; }
+function avColor(m){ return AVCOLORS[S.members.indexOf(m)%AVCOLORS.length]; }
+function avatar(m,sz){ const ini=(m.nome||'?').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
+  return `<span class="av" style="background:${avColor(m)}${sz?`;width:${sz}px;height:${sz}px`:''}">${esc(ini)}</span>`; }
+function memberPicker(){ if(!S.members.length) return '';
+  const cur=curM();
+  return `<div class="row" style="margin-bottom:18px">${S.members.map(m=>
+    `<button class="chip ${m.id===cur.id?'on':''}" onclick="pickM('${m.id}')">${avatar(m)} ${esc(m.nome)}</button>`).join('')}</div>`; }
+
+/* ================= FAMÍLIA ================= */
+function addMember(){
+  const m={id:uid(),nome:'Novo membro',sexo:'m',idade:35,altura:172,peso:75,atividade:'sedentario',desloc:'nenhum',desportos:[],dieta:'equilibrada',objetivo:'manter'};
+  S.members.push(m); S.ui.mid=m.id; save(); render();
+}
+function delMember(id){
+  const m=S.members.find(x=>x.id===id);
+  if(!confirm(`Remover o perfil de ${m.nome}?`)) return;
+  S.members=S.members.filter(x=>x.id!==id); delete S.cheats[id];
+  Object.values(S.plans).forEach(w=>Object.values(w).forEach(d=>['a','j'].forEach(k=>{ if(d[k]) d[k].m=d[k].m.filter(x=>x!==id); })));
+  save(); render();
+}
+function upd(id,field,val,num){ const m=S.members.find(x=>x.id===id); if(!m) return;
+  m[field]=num?parseFloat(val)||0:val; save(); render(); }
+
+function renderFamilia(){
+  if(!S.members.length) return `<div class="card empty"><h2>Bem-vindos! 👋</h2>
+    <p class="sub" style="margin:8px 0 16px">Comecem por criar um perfil para cada membro da família.</p>
+    <button class="btn" onclick="addMember()">+ Criar primeiro perfil</button></div>`;
+  return `<div class="row" style="justify-content:space-between;margin-bottom:16px">
+      <div><h2>Perfis da família</h2><span class="sub">${S.members.length} membro${S.members.length>1?'s':''} · os dados guardam-se automaticamente neste dispositivo</span></div>
+      <button class="btn" onclick="addMember()">+ Adicionar membro</button></div>
+    <div class="grid g2">${S.members.map(m=>{
+      const v=bmi(m),[cls,tone]=bmiClass(v);
+      return `<div class="card">
+        <div class="row" style="justify-content:space-between">
+          <div class="row">${avatar(m,34)}
+            <input type="text" value="${esc(m.nome)}" style="width:170px;font-weight:600" onchange="upd('${m.id}','nome',this.value)"></div>
+          <button class="btn danger small" onclick="delMember('${m.id}')">Remover</button>
+        </div>
+        <div class="frow">
+          <div><label class="lbl">Sexo</label><select onchange="upd('${m.id}','sexo',this.value)">
+            <option value="m" ${m.sexo==='m'?'selected':''}>Masculino</option><option value="f" ${m.sexo==='f'?'selected':''}>Feminino</option></select></div>
+          <div><label class="lbl">Idade</label><input type="number" min="1" value="${m.idade}" onchange="upd('${m.id}','idade',this.value,1)"></div>
+          <div><label class="lbl">Altura cm</label><input type="number" min="50" value="${m.altura}" onchange="upd('${m.id}','altura',this.value,1)"></div>
+          <div><label class="lbl">Peso kg</label><input type="number" min="10" step="0.1" value="${m.peso}" onchange="upd('${m.id}','peso',this.value,1)"></div>
+        </div>
+        <div class="row" style="margin-top:14px">
+          <div class="stat"><b>${v.toFixed(1)}</b><span>IMC</span></div>
+          <div class="stat"><b>${Math.round(bmr(m))}</b><span>Metab. basal kcal</span></div>
+          <div class="stat"><b>${Math.round(tdee(m))}</b><span>Gasto diário kcal</span></div>
+        </div>
+        <div style="margin-top:10px"><span class="pill ${tone}">${cls}</span>
+          <span class="sub" style="margin-left:8px">${DIETS[m.dieta].n} · ${GOALS[m.objetivo][0]}</span></div>
+      </div>`;}).join('')}</div>`;
+}
+
+/* ================= ATIVIDADE ================= */
+function addSport(mid){ const m=S.members.find(x=>x.id===mid); m.desportos.push({s:'caminhada',h:2,per:'semana'}); save(); render(); }
+function updSport(mid,i,f,v){ const m=S.members.find(x=>x.id===mid); m.desportos[i][f]= f==='h'?parseFloat(v)||0:v; save(); render(); }
+function delSport(mid,i){ const m=S.members.find(x=>x.id===mid); m.desportos.splice(i,1); save(); render(); }
+
+function renderAtividade(){
+  if(!S.members.length) return noMembers();
+  const m=curM();
+  const sK=Math.round(sportsKcalDay(m)), cK=Math.round(commuteKcalDay(m));
+  return memberPicker()+`
+  <div class="grid" style="grid-template-columns:1fr;max-width:760px">
+    <div class="card">
+      <h2>Dia-a-dia de ${esc(m.nome)}</h2>
+      <div class="frow" style="grid-template-columns:1fr 1fr">
+        <div><label class="lbl">Nível de atividade diária</label>
+          <select onchange="upd('${m.id}','atividade',this.value)">${Object.entries(BASE_ACT).map(([k,v])=>
+            `<option value="${k}" ${m.atividade===k?'selected':''}>${v[0]}</option>`).join('')}</select></div>
+        <div><label class="lbl">Deslocação para o trabalho/escola</label>
+          <select onchange="upd('${m.id}','desloc',this.value)">${Object.entries(COMMUTE).map(([k,v])=>
+            `<option value="${k}" ${m.desloc===k?'selected':''}>${v[0]}</option>`).join('')}</select></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <h2>Desporto praticado</h2>
+        <button class="btn small" onclick="addSport('${m.id}')">+ Adicionar desporto</button></div>
+      ${m.desportos.length? `<table class="sports" style="margin-top:10px"><tbody>${m.desportos.map((s,i)=>{
+        const sp=SPORTS.find(x=>x[0]===s.s); const kd=Math.round(sp[2]*m.peso*sportWeeklyH(s)/7);
+        return `<tr>
+          <td style="min-width:160px"><select onchange="updSport('${m.id}',${i},'s',this.value)">${SPORTS.map(x=>
+            `<option value="${x[0]}" ${s.s===x[0]?'selected':''}>${x[1]}</option>`).join('')}</select></td>
+          <td style="width:80px"><input type="number" min="0" step="0.5" value="${s.h}" onchange="updSport('${m.id}',${i},'h',this.value)"></td>
+          <td><select onchange="updSport('${m.id}',${i},'per',this.value)">
+            <option value="dia" ${s.per==='dia'?'selected':''}>h / dia</option>
+            <option value="semana" ${s.per==='semana'?'selected':''}>h / semana</option>
+            <option value="mes" ${s.per==='mes'?'selected':''}>h / mês</option></select></td>
+          <td class="kcal" style="white-space:nowrap">~${kd} kcal/dia</td>
+          <td><button class="btn danger small" onclick="delSport('${m.id}',${i})">✕</button></td></tr>`;}).join('')}</tbody></table>`
+        : `<p class="sub" style="margin-top:8px">Sem desportos registados — adiciona os treinos para contarem no gasto calórico.</p>`}
+    </div>
+    <div class="card" style="border-left:4px solid var(--energy)">
+      <h2>Gasto energético estimado</h2>
+      <div class="row" style="margin-top:10px">
+        <div class="stat"><b>${Math.round(bmr(m))}</b><span>Basal</span></div>
+        <div class="stat"><b>+${Math.round(bmr(m)*(BASE_ACT[m.atividade][1]-1))}</b><span>Dia-a-dia</span></div>
+        <div class="stat"><b>+${cK}</b><span>Deslocações</span></div>
+        <div class="stat"><b>+${sK}</b><span>Desporto</span></div>
+        <div class="stat" style="background:var(--energy-soft)"><b style="color:var(--energy)">${Math.round(tdee(m))}</b><span>Total kcal/dia</span></div>
+      </div>
+      <p class="sub" style="margin-top:10px">Estimativa por METs (esforço metabólico de cada desporto × peso × horas) sobre a fórmula de Mifflin-St Jeor.</p>
+    </div>
+  </div>`;
+}
+
+/* ================= NUTRIÇÃO ================= */
+function setCuis(v){ S.ui.cuis=v; save(); render(); }
+function toggleComp(){ S.ui.soComp=!S.ui.soComp; save(); render(); }
+
+function macroBar(pct){ return `<div class="mbar">
+    <div style="width:${pct.c}%;background:var(--mc)"></div>
+    <div style="width:${pct.p}%;background:var(--mp)"></div>
+    <div style="width:${pct.f}%;background:var(--mf)"></div></div>
+  <div class="mleg"><span><i class="dot" style="background:var(--mc)"></i>Hidratos ${pct.c}%</span>
+    <span><i class="dot" style="background:var(--mp)"></i>Proteína ${pct.p}%</span>
+    <span><i class="dot" style="background:var(--mf)"></i>Gordura ${pct.f}%</span></div>`; }
+
+function recipeCard(r){
+  const comp=S.members.filter(m=>compat(r,m.dieta));
+  return `<div class="rc">
+    <div class="row" style="justify-content:space-between"><h3>${r.n}</h3><span class="kcal">${r.k} kcal</span></div>
+    <div><span class="tag">${CUIS[r.coz]}</span>${r.d.map(d=>`<span class="tag">${DIETS[d].n}</span>`).join('')}</div>
+    <div class="sub" style="font-variant-numeric:tabular-nums">H ${r.c} g · P ${r.p} g · G ${r.f} g</div>
+    <div class="sub">${r.i.map(x=>x[0]).join(', ')}</div>
+    ${S.members.length? `<div class="row" style="margin-top:2px"><span class="sub">Compatível:</span>
+      ${comp.length? comp.map(m=>avatar(m,22)).join('') : '<span class="sub">— só como refeição livre</span>'}</div>`:''}
+  </div>`;
+}
+
+function renderNutricao(){
+  if(!S.members.length) return noMembers();
+  const m=curM(), mk=macros(m), k=Math.round(targetKcal(m));
+  let list=RECIPES.filter(r=> S.ui.cuis==='todas'||r.coz===S.ui.cuis);
+  if(S.ui.soComp) list=list.filter(r=>compat(r,m.dieta));
+  const fam=RECIPES.filter(r=>compatAll(r,S.members));
+  return memberPicker()+`
+  <div class="grid g2" style="margin-bottom:24px">
+    <div class="card">
+      <h2>Plano de ${esc(m.nome)}</h2>
+      <div class="frow" style="grid-template-columns:1fr 1fr">
+        <div><label class="lbl">Objetivo</label><select onchange="upd('${m.id}','objetivo',this.value)">${Object.entries(GOALS).map(([kk,v])=>
+          `<option value="${kk}" ${m.objetivo===kk?'selected':''}>${v[0]}</option>`).join('')}</select></div>
+        <div><label class="lbl">Tipo de dieta</label><select onchange="upd('${m.id}','dieta',this.value)">${Object.entries(DIETS).map(([kk,v])=>
+          `<option value="${kk}" ${m.dieta===kk?'selected':''}>${v.n}</option>`).join('')}</select></div>
+      </div>
+      <div class="row" style="margin-top:14px">
+        <div class="stat" style="background:var(--accent-soft)"><b style="color:var(--accent)">${k}</b><span>Alvo kcal/dia</span></div>
+        <div class="stat"><b>${Math.round(tdee(m))}</b><span>Gasto kcal/dia</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Simulador de macros — ${DIETS[m.dieta].n}</h2>
+      ${macroBar(mk.pct)}
+      <div class="row" style="margin-top:12px">
+        <div class="stat"><b style="color:var(--mc)">${mk.c} g</b><span>Hidratos</span></div>
+        <div class="stat"><b style="color:var(--mp)">${mk.p} g</b><span>Proteína</span></div>
+        <div class="stat"><b style="color:var(--mf)">${mk.f} g</b><span>Gordura</span></div>
+      </div>
+      <p class="sub" style="margin-top:10px">Sugestão de distribuição: pequeno-almoço 25% · almoço 35% · jantar 30% · lanches 10%.</p>
+    </div>
+  </div>
+
+  <div class="card secgap" style="background:none;box-shadow:none;border:none;padding:0">
+    <div class="row" style="justify-content:space-between;margin-bottom:10px">
+      <div><h2>Sugestões de receitas</h2><span class="sub">filtradas para o perfil selecionado</span></div>
+      <div class="row">
+        <select style="width:auto" onchange="setCuis(this.value)"><option value="todas">Todas as cozinhas</option>
+          ${Object.entries(CUIS).map(([kk,v])=>`<option value="${kk}" ${S.ui.cuis===kk?'selected':''}>${v}</option>`).join('')}</select>
+        <button class="chip ${S.ui.soComp?'on':''}" onclick="toggleComp()">Só compatíveis com ${esc(m.nome)}</button>
+      </div>
+    </div>
+    <div class="grid g3">${list.map(recipeCard).join('')||'<p class="sub">Nenhuma receita para este filtro.</p>'}</div>
+  </div>
+
+  ${S.members.length>1? `<div class="secgap">
+    <h2>👨‍👩‍👧 Compatíveis com toda a família</h2>
+    <p class="sub" style="margin-bottom:10px">Receitas que servem as dietas de todos os ${S.members.length} membros — ideais para a mesma panela.</p>
+    <div class="grid g3">${fam.map(recipeCard).join('')||'<p class="sub">Nenhuma receita serve todas as dietas — considerem aproximar os planos.</p>'}</div>
+  </div>`:''}`;
+}
+
+/* ================= PLANO SEMANAL ================= */
+function shiftWeek(n){ const d=new Date(S.week+'T12:00:00'); d.setDate(d.getDate()+7*n); S.week=mondayISO(d); save(); render(); }
+function planWeek(){ if(!S.plans[S.week]) S.plans[S.week]={}; return S.plans[S.week]; }
+function planMeal(di,mk){ const w=planWeek(); if(!w[di]) w[di]={}; if(!w[di][mk]) w[di][mk]={r:'',m:S.members.map(x=>x.id)}; return w[di][mk]; }
+function setMeal(di,mk,rid){ planMeal(di,mk).r=rid; save(); render(); }
+function toggleEater(di,mk,mid){ const meal=planMeal(di,mk);
+  meal.m = meal.m.includes(mid)? meal.m.filter(x=>x!==mid) : [...meal.m,mid]; save(); render(); }
+function toggleCheat(mid,date){ if(!S.cheats[mid]) S.cheats[mid]=[];
+  const i=S.cheats[mid].indexOf(date); i>=0? S.cheats[mid].splice(i,1) : S.cheats[mid].push(date); save(); render(); }
+function clearWeek(){ if(confirm('Limpar todas as refeições desta semana?')){ delete S.plans[S.week]; delete S.bought[S.week]; save(); render(); } }
+function autoFill(){
+  const dates=weekDates(S.week); const used=new Set();
+  Object.values(planWeek()).forEach(d=>['a','j'].forEach(k=>d[k]?.r&&used.add(d[k].r)));
+  for(let di=0;di<7;di++) for(const mk of ['a','j']){
+    const meal=planMeal(di,mk); if(meal.r) continue;
+    const eaters=S.members.filter(m=>meal.m.includes(m.id)&&!isCheat(m.id,dates[di]));
+    if(!eaters.length) continue;
+    let pool=RECIPES.filter(r=>(S.prefCuisine==='todas'||r.coz===S.prefCuisine)&&compatAll(r,eaters));
+    if(!pool.length) pool=RECIPES.filter(r=>compatAll(r,eaters));
+    if(!pool.length) pool=RECIPES;
+    const fresh=pool.filter(r=>!used.has(r.id));
+    const pick=(fresh.length?fresh:pool)[Math.floor(Math.random()*(fresh.length?fresh.length:pool.length))];
+    meal.r=pick.id; used.add(pick.id);
+  }
+  save(); render();
+}
+function mealBlock(di,mk,label,date){
+  const meal=planWeek()[di]?.[mk]; const r=meal&&RECIPES.find(x=>x.id===meal.r);
+  const members=S.members;
+  return `<div class="meal">
+    <div class="mtitle">${label}</div>
+    <select onchange="setMeal(${di},'${mk}',this.value)">
+      <option value="">— escolher receita —</option>
+      ${RECIPES.map(x=>`<option value="${x.id}" ${r&&r.id===x.id?'selected':''}>${x.n} · ${x.k} kcal (${CUIS[x.coz]})</option>`).join('')}
+    </select>
+    ${r?`<div class="sub" style="margin-top:4px">H ${r.c} · P ${r.p} · G ${r.f} g/pessoa
+      ${!compatAll(r,members.filter(m=>(meal.m||[]).includes(m.id)&&!isCheat(m.id,date)))?' · <b style="color:var(--warn)">⚠ nem todos compatíveis</b>':''}</div>`:''}
+    <div class="row" style="margin-top:7px">${members.map(m=>{
+      const on=meal? meal.m.includes(m.id) : true, cheat=isCheat(m.id,date);
+      return `<button class="chip ${on&&!cheat?'on':''}" ${cheat?'style="opacity:.45" title="Cheat day"':''}
+        onclick="toggleEater(${di},'${mk}','${m.id}')">${avatar(m,20)} ${esc(m.nome.split(' ')[0])}${cheat?' 🎉':''}</button>`;}).join('')}
+    </div>
+  </div>`;
+}
+function renderPlano(){
+  if(!S.members.length) return noMembers();
+  const dates=weekDates(S.week);
+  return `<div class="row" style="justify-content:space-between;margin-bottom:14px">
+    <div><h2>Plano semanal</h2><span class="sub">${fmtShort(dates[0])} — ${fmtShort(dates[6])}</span></div>
+    <div class="row">
+      <button class="btn ghost small" onclick="shiftWeek(-1)">← Semana anterior</button>
+      <button class="btn ghost small" onclick="shiftWeek(1)">Semana seguinte →</button>
+      <select style="width:auto" onchange="S.prefCuisine=this.value;save()">
+        <option value="todas">Auto: todas as cozinhas</option>
+        ${Object.entries(CUIS).map(([k,v])=>`<option value="${k}" ${S.prefCuisine===k?'selected':''}>Auto: ${v}</option>`).join('')}</select>
+      <button class="btn small" onclick="autoFill()">✨ Preencher automaticamente</button>
+      <button class="btn danger small" onclick="clearWeek()">Limpar</button>
+    </div></div>
+  <p class="sub" style="margin-bottom:14px">🎉 <b>Cheat days:</b> clica no nome de um membro na linha «Cheat day» para marcar um dia livre (aniversários, festas…) — esse membro sai das contas e da lista de compras nesse dia.</p>
+  <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(300px,1fr))">
+  ${dates.map((date,di)=>{
+    const anyCheat=S.members.some(m=>isCheat(m.id,date));
+    return `<div class="day ${anyCheat?'cheat-any':''}">
+      <div class="dhead"><b>${DAYN[di]}</b><span class="sub">${fmtShort(date)}</span>
+        ${anyCheat?'<span class="pill" style="background:var(--party-soft);color:var(--party);margin-left:auto">🎉 dia especial</span>':''}</div>
+      <div class="meal" style="background:var(--bg)">
+        <div class="mtitle" style="color:var(--party)">Cheat day</div>
+        <div class="row">${S.members.map(m=>`<button class="chip party ${isCheat(m.id,date)?'on':''}"
+          onclick="toggleCheat('${m.id}','${date}')">${avatar(m,20)} ${esc(m.nome.split(' ')[0])}</button>`).join('')}</div>
+      </div>
+      ${mealBlock(di,'a','Almoço',date)}
+      ${mealBlock(di,'j','Jantar',date)}
+    </div>`;}).join('')}
+  </div>`;
+}
+
+/* ================= COMPRAS ================= */
+function shoppingItems(){
+  const dates=weekDates(S.week), w=S.plans[S.week]||{}, agg={};
+  let meals=0;
+  for(let di=0;di<7;di++) for(const mk of ['a','j']){
+    const meal=w[di]?.[mk]; if(!meal||!meal.r) continue;
+    const r=RECIPES.find(x=>x.id===meal.r); if(!r) continue;
+    const n=S.members.filter(m=>meal.m.includes(m.id)&&!isCheat(m.id,dates[di])).length;
+    if(!n) continue; meals++;
+    r.i.forEach(([nome,q,u])=>{ const key=nome+'|'+u;
+      if(!agg[key]) agg[key]={n:nome,u,q:0}; agg[key].q+=q*n; });
+  }
+  return {items:Object.values(agg),meals};
+}
+function toggleBought(key){ if(!S.bought[S.week]) S.bought[S.week]={};
+  S.bought[S.week][key]=!S.bought[S.week][key]; save(); render(); }
+function fmtQ(it){ const q=Math.round(it.q*100)/100;
+  if(it.u==='g'&&q>=1000) return (q/1000).toFixed(q%1000?1:0)+' kg';
+  if(it.u==='ml'&&q>=1000) return (q/1000).toFixed(q%1000?1:0)+' L';
+  return q+' '+it.u; }
+function copyList(){
+  const {items}=shoppingItems();
+  const txt='Lista de compras — semana de '+fmtShort(S.week)+'\n'+items.map(i=>`• ${i.n}: ${fmtQ(i)}`).join('\n');
+  navigator.clipboard.writeText(txt).then(()=>alert('Lista copiada! Cola-a numa mensagem ou nota.'));
+}
+function renderCompras(){
+  if(!S.members.length) return noMembers();
+  const {items,meals}=shoppingItems(); const dates=weekDates(S.week);
+  if(!items.length) return `<h2>Lista de compras</h2>
+    <p class="sub" style="margin:6px 0 16px">Semana de ${fmtShort(dates[0])} a ${fmtShort(dates[6])}</p>
+    <div class="card empty">Ainda não há receitas marcadas nesta semana.<br><br>
+    <button class="btn" onclick="go('plano')">Ir para o plano semanal</button></div>`;
+  const bought=S.bought[S.week]||{};
+  const grouped=CATS.map(([cat,re])=>[cat,[]]);
+  items.forEach(it=>{ for(const [i,[cat,re]] of CATS.entries()){ if(re.test(it.n)){ grouped[i][1].push(it); break; } } });
+  const done=items.filter(i=>bought[i.n+'|'+i.u]).length;
+  return `<div class="row" style="justify-content:space-between;margin-bottom:4px">
+    <div><h2>Lista de compras</h2>
+    <span class="sub">Semana de ${fmtShort(dates[0])} a ${fmtShort(dates[6])} · ${meals} refeições planeadas · ${done}/${items.length} comprados</span></div>
+    <button class="btn ghost small" onclick="copyList()">📋 Copiar lista</button></div>
+  <div class="card" style="max-width:640px">
+    ${grouped.filter(([,arr])=>arr.length).map(([cat,arr])=>`
+      <div class="cat-h">${cat}</div>
+      <ul class="shop">${arr.sort((a,b)=>a.n.localeCompare(b.n)).map(it=>{
+        const key=it.n+'|'+it.u, ok=bought[key];
+        return `<li class="${ok?'done':''}"><input type="checkbox" ${ok?'checked':''} onchange="toggleBought('${esc(key).replace(/'/g,"\\'")}')">
+          <span>${esc(it.n)}</span><span class="q">${fmtQ(it)}</span></li>`;}).join('')}</ul>`).join('')}
+  </div>
+  <p class="sub" style="margin-top:12px">Quantidades = receita por pessoa × nº de comensais em cada refeição (membros em cheat day não contam nesse dia).</p>`;
+}
+
+/* ================= RENDER ================= */
+function noMembers(){ return `<div class="card empty">Cria primeiro os perfis da família.<br><br><button class="btn" onclick="go('familia')">Ir para Família</button></div>`; }
+function render(){
+  document.getElementById('nav').innerHTML = TABS.map(([k,v])=>
+    `<button class="${S.ui.tab===k?'on':''}" onclick="go('${k}')">${v}</button>`).join('');
+  const el=document.getElementById('main');
+  el.innerHTML = S.ui.tab==='familia'? renderFamilia()
+    : S.ui.tab==='atividade'? renderAtividade()
+    : S.ui.tab==='nutricao'? renderNutricao()
+    : S.ui.tab==='plano'? renderPlano()
+    : renderCompras();
+}
+render();
+</script>
+</body>
+</html>
