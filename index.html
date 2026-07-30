@@ -131,6 +131,31 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border:3px solid var(
   background:var(--accent)}
 input[type=range]:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 3px var(--accent-soft)}
 input[type=range]:focus-visible::-moz-range-thumb{box-shadow:0 0 0 3px var(--accent-soft)}
+/* Sliders de macros com a cor do próprio macro. */
+.rgC::-webkit-slider-runnable-track{background:linear-gradient(90deg,var(--mc) var(--pct,0%),var(--line) var(--pct,0%))}
+.rgC::-webkit-slider-thumb{background:var(--mc)}
+.rgC::-moz-range-progress{background:var(--mc)} .rgC::-moz-range-thumb{background:var(--mc)}
+.rgP::-webkit-slider-runnable-track{background:linear-gradient(90deg,var(--mp) var(--pct,0%),var(--line) var(--pct,0%))}
+.rgP::-webkit-slider-thumb{background:var(--mp)}
+.rgP::-moz-range-progress{background:var(--mp)} .rgP::-moz-range-thumb{background:var(--mp)}
+.rgF::-webkit-slider-runnable-track{background:linear-gradient(90deg,var(--mf) var(--pct,0%),var(--line) var(--pct,0%))}
+.rgF::-webkit-slider-thumb{background:var(--mf)}
+.rgF::-moz-range-progress{background:var(--mf)} .rgF::-moz-range-thumb{background:var(--mf)}
+/* Gráficos: espelho, não controlo — nunca roubam o scroll nem o toque.
+   Cores SEMPRE por classe (var() em atributos SVG não é fiável). */
+.svgfx{display:block;width:100%;height:auto;pointer-events:none}
+.f-ok{fill:var(--ok)} .f-warn{fill:var(--warn)} .f-bad{fill:var(--bad)}
+.f-mut{fill:var(--mut)} .f-line{fill:var(--line)} .f-ink{fill:var(--ink)}
+.f-acc{fill:var(--accent)} .f-energy{fill:var(--energy)} .f-party{fill:var(--party)}
+.f-card{fill:var(--card)} .f-mc{fill:var(--mc)} .f-mp{fill:var(--mp)} .f-mf{fill:var(--mf)}
+.s-ok{stroke:var(--ok)} .s-line{stroke:var(--line)} .s-ink{stroke:var(--ink)}
+.s-acc{stroke:var(--accent)} .s-energy{stroke:var(--energy)} .s-mut{stroke:var(--mut)}
+.f-ok-txt{color:var(--ok)}
+.dt-ok{background:var(--ok)} .dt-warn{background:var(--warn)} .dt-bad{background:var(--bad)}
+.dt-line{background:var(--line)} .dt-party{background:var(--party)}
+.day{scroll-margin-top:130px}
+.shop label{display:flex;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer}
+@media (prefers-reduced-motion: no-preference){ #co-bar{transition:width .2s,background-color .2s} }
 .rc{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--card);display:flex;flex-direction:column;gap:6px}
 .rc h3{font-size:15.5px}
 .tag{display:inline-block;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:1px 7px;font-size:11.5px;color:var(--mut);margin:1px 2px 1px 0}
@@ -240,9 +265,11 @@ body{padding-bottom:max(60px,calc(env(safe-area-inset-bottom) + 44px))}
   textarea{min-height:140px}
   .spline select,.spline input[type=number]{min-height:42px}
   /* Alvo maior para o dedo agarrar o slider sem falhar. */
-  input[type=range]{height:34px}
+  input[type=range]{height:44px}
   input[type=range]::-webkit-slider-thumb{width:26px;height:26px;margin-top:-10px}
   input[type=range]::-moz-range-thumb{width:22px;height:22px}
+  .spgrid{gap:14px}
+  .splabel{margin-bottom:5px}
 }
 /* Tablet em vertical: duas colunas confortáveis em vez de três apertadas. */
 @media (min-width:700px) and (max-width:1024px){
@@ -266,6 +293,8 @@ body{padding-bottom:max(60px,calc(env(safe-area-inset-bottom) + 44px))}
 
 /* Telemóvel deitado: a altura passa a ser o recurso escasso. O cabeçalho
    deixa de ser fixo e encolhe, para a lista não ficar a espiar por uma frincha. */
+html[data-orient="paisagem"][data-dispositivo="telefone"] .svg-linha{height:80px}
+html[data-orient="paisagem"][data-dispositivo="telefone"] #pla-resumo{display:none}
 html[data-orient="paisagem"][data-dispositivo="telefone"] header{position:static}
 html[data-orient="paisagem"][data-dispositivo="telefone"] .hwrap{padding-top:6px;padding-bottom:6px;gap:8px}
 html[data-orient="paisagem"][data-dispositivo="telefone"] .brand small{display:none}
@@ -454,6 +483,8 @@ function normalizaDesporto(s){
 }
 function normalizaMembro(m){
   if(m && Array.isArray(m.desportos)) m.desportos=m.desportos.map(normalizaDesporto).filter(Boolean);
+  /* migração: deriva o objetivo contínuo do antigo — o alvo kcal não muda */
+  if(m && !Number.isFinite(m.objetivoPct)) m.objetivoPct=Math.round((GOALS[m.objetivo]?.[1]||0)*100);
   return m;
 }
 /* Faixa do slider de distância: depende do período, para não haver 400 km/dia. */
@@ -665,17 +696,74 @@ function sportWeeklyH(s){ const h=horasPeriodo(s);
 function sportsKcalDay(m){ return (m.desportos||[]).reduce((t,s)=> t + metDe(s)*m.peso*sportWeeklyH(s), 0)/7; }
 function commuteKcalDay(m){ return (COMMUTE[m.desloc]?.[1]||0)*m.peso*(5/7); }
 function tdee(m){ return bmr(m)*(BASE_ACT[m.atividade]?.[1]||1.2) + sportsKcalDay(m) + commuteKcalDay(m); }
-function targetKcal(m){ return tdee(m)*(1+(GOALS[m.objetivo]?.[1]||0)); }
-function macros(m){ const d=DIETS[m.dieta]||DIETS.equilibrada, k=targetKcal(m);
+function clampNum(v,a,b){ return Math.min(Math.max(v,a),b); }
+/* Objetivo em percentagem contínua do gasto (−25…+20). Para dados antigos,
+   deriva-se dos fatores de GOALS — perder=−15, manter=0, ganhar=+10 — pelo
+   que o alvo calórico migrado fica bit a bit igual ao anterior. */
+function objetivoPct(m){ return Number.isFinite(m.objetivoPct)? clampNum(Math.round(m.objetivoPct),-25,20)
+  : Math.round((GOALS[m.objetivo]?.[1]||0)*100); }
+function rotuloObjetivo(m){ const p=objetivoPct(m);
+  if(p===0) return 'Manter peso';
+  const sinal=(p>0?'+':'−')+Math.abs(p)+' %';
+  return (p<=-8? 'Perder peso (' : p>=5? 'Ganhar massa (' : 'Manter peso (')+sinal+')'; }
+function targetKcal(m){ return tdee(m)*(1+objetivoPct(m)/100); }
+/* A dieta lida SEMPRE por aqui: para presets devolve o objeto de DIETS
+   (gramas inalteradas); «personalizada» usa os macros do próprio membro. */
+function dietaDe(m){
+  if(m.dieta==='personalizada'){ const mc=m.macros;
+    const ok=mc && [mc.c,mc.p,mc.f].every(v=>Number.isFinite(v)&&v>=0) && Math.round(mc.c+mc.p+mc.f)===100;
+    return Object.assign({n:'Personalizada'}, ok? {c:mc.c,p:mc.p,f:mc.f} : {c:50,p:20,f:30}); }
+  return DIETS[m.dieta]||DIETS.equilibrada; }
+function macros(m){ const d=dietaDe(m), k=targetKcal(m);
   return {c:Math.round(k*d.c/100/4), p:Math.round(k*d.p/100/4), f:Math.round(k*d.f/100/9), pct:d}; }
-function compat(r,dieta){ return dieta==='equilibrada' || r.d.includes(dieta); }
+function compat(r,dieta){ return dieta==='equilibrada' || dieta==='personalizada' || r.d.includes(dieta); }
 function compatAll(r,ms){ return ms.every(m=>compat(r,m.dieta)); }
+function gastoPartes(m){ const b=bmr(m);
+  return {basal:b, dia:b*((BASE_ACT[m.atividade]?.[1]||1.2)-1), desloc:commuteKcalDay(m), desp:sportsKcalDay(m), total:tdee(m)}; }
+/* kg por semana implicados pelo objetivo (positivo = a perder), a 7700 kcal/kg. */
+function ritmoSemanal(m){ return (tdee(m)-targetKcal(m))*7/7700; }
+/* Projeção iterativa: o gasto recalcula-se com o peso de cada semana, pelo que
+   a curva achata à medida que o corpo muda — mais honesta do que uma reta. */
+function projecaoPeso(m,sem){ sem=sem||12; const out=[Math.round(m.peso*10)/10]; const c=Object.assign({},m);
+  for(let i=0;i<sem;i++){ c.peso=Math.max(30, c.peso+(targetKcal(c)-tdee(c))*7/7700); out.push(Math.round(c.peso*10)/10); }
+  return out; }
+/* Escala linear com clamp — o utilitário de todos os gráficos. */
+function sx(v,d0,d1,x0,x1){ if(d1===d0) return x0; const t=clampNum((v-d0)/(d1-d0),0,1); return x0+t*(x1-x0); }
+/* Reparte {c,p,f} por 100 inteiros pelo método do maior resto — determinístico,
+   a soma nunca dá 99 nem 101. */
+function normaliza100(o){
+  const brutos=['c','p','f'].map(k=>Math.max(0,parseFloat(o&&o[k])||0));
+  const soma=brutos[0]+brutos[1]+brutos[2]||1;
+  const exatos=brutos.map(v=>v/soma*100), base=exatos.map(v=>Math.floor(v));
+  let falta=100-(base[0]+base[1]+base[2]);
+  const ordem=[0,1,2].sort((a,b)=>(exatos[b]-base[b])-(exatos[a]-base[a]));
+  for(let i=0;i<falta;i++) base[ordem[i%3]]++;
+  return {c:base[0],p:base[1],f:base[2]};
+}
 
 /* ================= DATAS ================= */
 function mondayISO(d){ d=new Date(d); const day=(d.getDay()+6)%7; d.setDate(d.getDate()-day); return iso(d); }
 function iso(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function weekDates(wk){ const out=[]; const d=new Date(wk+'T12:00:00'); for(let i=0;i<7;i++){ out.push(iso(d)); d.setDate(d.getDate()+1);} return out; }
 const DAYN=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+/* kcal planeadas de um membro num dia da semana atual + estado qualitativo.
+   A MESMA função alimenta o gráfico do resumo e os pontos dos cartões-dia,
+   para os dois nunca divergirem. Dias incompletos nunca são julgados. */
+function kcalPlaneadasDia(m,di,dates){
+  if(isCheat(m.id,dates[di])) return {cheat:true,kcal:0,refs:0};
+  const w=S.plans[S.week]||{}; let kcal=0,refs=0;
+  MEALK.forEach(mk=>{ const meal=w[di]&&w[di][mk]; if(!meal||!meal.r||meal.m.indexOf(m.id)<0) return;
+    const r=RECIPES.find(x=>x.id===meal.r); if(!r) return; kcal+=r.k; refs++; });
+  return {cheat:false,kcal,refs};
+}
+function estadoDia(m,di,dates){
+  const d=kcalPlaneadasDia(m,di,dates);
+  if(d.cheat) return Object.assign({st:'cheat'},d);
+  if(!d.refs) return Object.assign({st:'vazio'},d);
+  if(d.refs<MEALK.length) return Object.assign({st:'incompleto'},d);
+  const alvo=targetKcal(m), dv=alvo>0? Math.abs(d.kcal-alvo)/alvo : 1;
+  return Object.assign({st: dv<=0.10?'ok': dv<=0.25?'warn':'bad'},d);
+}
 function fmtShort(isoD){ const d=new Date(isoD+'T12:00:00'); return d.getDate()+' '+['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][d.getMonth()]; }
 function isCheat(mid,date){ return (S.cheats[mid]||[]).includes(date); }
 
@@ -694,7 +782,7 @@ function memberPicker(){ if(!S.members.length) return '';
 
 /* ================= FAMÍLIA ================= */
 function addMember(){
-  const m={id:uid(),nome:'Novo membro',sexo:'m',idade:35,altura:172,peso:75,atividade:'sedentario',desloc:'nenhum',desportos:[],dieta:'equilibrada',objetivo:'manter'};
+  const m={id:uid(),nome:'Novo membro',sexo:'m',idade:35,altura:172,peso:75,atividade:'sedentario',desloc:'nenhum',desportos:[],dieta:'equilibrada',objetivo:'manter',objetivoPct:0};
   S.members.push(m); S.ui.mid=m.id; save(); render();
 }
 function delMember(id){
@@ -705,6 +793,11 @@ function delMember(id){
   save(); render();
 }
 function upd(id,field,val,num){ const m=S.members.find(x=>x.id===id); if(!m) return;
+  /* ao entrar na dieta personalizada, semeiam-se os macros com os da dieta
+     anterior — a barra de macros não salta */
+  if(field==='dieta' && val==='personalizada' && m.dieta!=='personalizada' && !m.macros){
+    const d=dietaDe(m); m.macros={c:d.c,p:d.p,f:d.f};
+  }
   m[field]=num?parseFloat(val)||0:val; save(); render(); }
 
 function renderFamilia(){
@@ -717,28 +810,89 @@ function renderFamilia(){
       <div><h2>Perfis da família</h2><span class="sub">${S.members.length} membro${S.members.length>1?'s':''} · os dados guardam-se automaticamente neste dispositivo</span></div>
       <button class="btn" onclick="addMember()">+ Adicionar membro</button></div>
     <div class="grid g2">${S.members.map(m=>{
-      const v=bmi(m),[cls,tone]=bmiClass(v);
+      const mid=m.id, v=bmi(m),[cls,tone]=bmiClass(v);
+      const h2=(m.altura/100)*(m.altura/100);
+      const zmin=Math.round(18.5*h2), zmax=Math.round(25*h2), dentro=m.peso>=zmin&&m.peso<=zmax;
+      const sl=(campo,rot,mn,mx,st,txt,aria)=>`<div>
+          <div class="splabel"><span>${rot}</span><output id="f-${mid}-o-${campo}" style="min-width:9ch;text-align:right">${txt}</output></div>
+          <input type="range" id="f-${mid}-r-${campo}" min="${mn}" max="${mx}" step="${st}" value="${clampNum(m[campo],mn,mx)}"
+            style="--pct:${Math.round((clampNum(m[campo],mn,mx)-mn)/(mx-mn)*100)}%" aria-label="${aria}"
+            oninput="slidePerfil('${mid}','${campo}',this)" onchange="save()"></div>`;
+      const imcX=x=>sx(x,15,40,8,332);
       return `<div class="card">
         <div class="row" style="justify-content:space-between">
           <div class="row">${avatar(m,34)}
-            <input type="text" value="${esc(m.nome)}" style="width:170px;font-weight:600" onchange="upd('${m.id}','nome',this.value)"></div>
-          <button class="btn danger small" onclick="delMember('${m.id}')">Remover</button>
+            <input type="text" value="${esc(m.nome)}" style="width:170px;font-weight:600" onchange="upd('${mid}','nome',this.value)"></div>
+          <button class="btn danger small" onclick="delMember('${mid}')">Remover</button>
         </div>
         <div class="frow">
-          <div><label class="lbl">Sexo</label><select onchange="upd('${m.id}','sexo',this.value)">
+          <div><label class="lbl">Sexo</label><select onchange="upd('${mid}','sexo',this.value)">
             <option value="m" ${m.sexo==='m'?'selected':''}>Masculino</option><option value="f" ${m.sexo==='f'?'selected':''}>Feminino</option></select></div>
-          <div><label class="lbl">Idade</label><input type="number" min="1" value="${m.idade}" onchange="upd('${m.id}','idade',this.value,1)"></div>
-          <div><label class="lbl">Altura cm</label><input type="number" min="50" value="${m.altura}" onchange="upd('${m.id}','altura',this.value,1)"></div>
-          <div><label class="lbl">Peso kg</label><input type="number" min="10" step="0.1" value="${m.peso}" onchange="upd('${m.id}','peso',this.value,1)"></div>
+          <div><label class="lbl">Idade</label><input type="number" id="in-${mid}-idade" min="1" value="${m.idade}" onchange="upd('${mid}','idade',this.value,1)"></div>
+          <div><label class="lbl">Altura cm</label><input type="number" id="in-${mid}-altura" min="50" value="${m.altura}" onchange="upd('${mid}','altura',this.value,1)"></div>
+          <div><label class="lbl">Peso kg</label><input type="number" id="in-${mid}-peso" min="10" step="0.1" value="${m.peso}" onchange="upd('${mid}','peso',this.value,1)"></div>
         </div>
-        <div class="row" style="margin-top:14px">
-          <div class="stat"><b>${v.toFixed(1)}</b><span>IMC</span></div>
-          <div class="stat"><b>${Math.round(bmr(m))}</b><span>Metab. basal kcal</span></div>
-          <div class="stat"><b>${Math.round(tdee(m))}</b><span>Gasto diário kcal</span></div>
+        <div class="spgrid" style="margin-top:14px">
+          ${sl('peso','Peso',30,160,0.5,nPT(m.peso,1)+' kg','Peso em quilogramas')}
+          ${sl('altura','Altura',100,220,1,Math.round(m.altura)+' cm','Altura em centímetros')}
+          ${sl('idade','Idade',4,90,1,Math.round(m.idade)+' anos','Idade em anos')}
         </div>
-        <div style="margin-top:10px"><span class="pill ${tone}">${cls}</span>
-          <span class="sub" style="margin-left:8px">${DIETS[m.dieta].n} · ${GOALS[m.objetivo][0]}</span></div>
+        <svg class="svgfx" viewBox="0 0 340 64" role="img" aria-label="Índice de massa corporal na escala de 15 a 40" style="margin-top:6px">
+          <clipPath id="clip-${mid}"><rect x="8" y="26" width="324" height="12" rx="6"/></clipPath>
+          <g clip-path="url(#clip-${mid})">
+            <rect x="${imcX(15)}" y="26" width="${(imcX(18.5)-imcX(15)).toFixed(1)}" height="12" class="f-warn" fill-opacity=".35"/>
+            <rect x="${imcX(18.5).toFixed(1)}" y="26" width="${(imcX(25)-imcX(18.5)).toFixed(1)}" height="12" class="f-ok" fill-opacity=".35"/>
+            <rect x="${imcX(25).toFixed(1)}" y="26" width="${(imcX(30)-imcX(25)).toFixed(1)}" height="12" class="f-bad" fill-opacity=".22"/>
+            <rect x="${imcX(30).toFixed(1)}" y="26" width="${(imcX(40)-imcX(30)).toFixed(1)}" height="12" class="f-bad" fill-opacity=".4"/>
+          </g>
+          ${[18.5,25,30].map(x=>`<line x1="${imcX(x).toFixed(1)}" y1="40" x2="${imcX(x).toFixed(1)}" y2="45" class="s-line"/>
+            <text x="${imcX(x).toFixed(1)}" y="57" font-size="10" text-anchor="middle" class="f-mut" style="font-variant-numeric:tabular-nums">${nPT(x,x===18.5?1:0)}</text>`).join('')}
+          <g id="f-${mid}-mk" transform="translate(${sx(v,15,40,8,332).toFixed(1)},0)">
+            <path d="M0 24 l-5 -7 h10 z" class="f-ink"/>
+            <text id="f-${mid}-imcv" y="13" text-anchor="middle" font-size="13" font-weight="700" style="font-variant-numeric:tabular-nums" class="f-ink">${nPT(v,1)}</text>
+          </g>
+        </svg>
+        <div style="min-height:1.6em"><span class="sub ${dentro?'f-ok-txt':''}" id="f-${mid}-zona">${dentro?'✓ ':''}Peso saudável para ${Math.round(m.altura)} cm: ${zmin}–${zmax} kg</span></div>
+        <div class="row" style="margin-top:10px">
+          <div class="stat"><b id="f-${mid}-imc">${nPT(v,1)}</b><span>IMC</span></div>
+          <div class="stat"><b id="f-${mid}-bmr">${Math.round(bmr(m))}</b><span>Basal kcal</span></div>
+          <div class="stat"><b id="f-${mid}-tdee">${Math.round(tdee(m))}</b><span>Gasto kcal</span></div>
+          <div class="stat" style="background:var(--accent-soft)"><b id="f-${mid}-alvo" style="color:var(--accent)">${Math.round(targetKcal(m))}</b><span>Alvo kcal</span></div>
+        </div>
+        <div class="row" style="margin-top:10px;min-height:34px;justify-content:space-between">
+          <div><span class="pill ${tone}" id="f-${mid}-cls">${cls}</span>
+            <span class="sub" style="margin-left:8px">${dietaDe(m).n} · ${rotuloObjetivo(m)}</span></div>
+          <button class="chip" onclick="pickM('${mid}');go('nutricao')">→ macros de ${esc(m.nome.split(' ')[0])}</button>
+        </div>
       </div>`;}).join('')}</div>`;
+}
+/* Arrasto dos sliders de perfil: estado + espelho no campo numérico (nunca o
+   focado) + atualização ao vivo de IMC, banda, basal, gasto e alvo do cartão. */
+function slidePerfil(mid,campo,el){
+  const m=S.members.find(x=>x.id===mid); if(!m) return;
+  m[campo]=parseFloat(el.value)||0; pintaRange(el);
+  const inp=document.getElementById('in-'+mid+'-'+campo);
+  if(inp && document.activeElement!==inp) inp.value=el.value;
+  aoVivo(()=>atualizarFamilia(mid));
+}
+function atualizarFamilia(mid){
+  const m=S.members.find(x=>x.id===mid); if(!m) return;
+  const v=bmi(m), [cls,tone]=bmiClass(v);
+  põe('f-'+mid+'-o-peso', nPT(m.peso,1)+' kg');
+  põe('f-'+mid+'-o-altura', Math.round(m.altura)+' cm');
+  põe('f-'+mid+'-o-idade', Math.round(m.idade)+' anos');
+  põe('f-'+mid+'-imc', nPT(v,1)); põe('f-'+mid+'-imcv', nPT(v,1));
+  põe('f-'+mid+'-bmr', Math.round(bmr(m)));
+  põe('f-'+mid+'-tdee', Math.round(tdee(m)));
+  põe('f-'+mid+'-alvo', Math.round(targetKcal(m)));
+  põeAttr('f-'+mid+'-mk','transform','translate('+sx(v,15,40,8,332).toFixed(1)+',0)');
+  const pill=document.getElementById('f-'+mid+'-cls');
+  if(pill){ pill.textContent=cls; pill.setAttribute('class','pill '+tone); }
+  const h2=(m.altura/100)*(m.altura/100);
+  const zmin=Math.round(18.5*h2), zmax=Math.round(25*h2), dentro=m.peso>=zmin&&m.peso<=zmax;
+  const zel=document.getElementById('f-'+mid+'-zona');
+  if(zel){ zel.textContent=(dentro?'✓ ':'')+'Peso saudável para '+Math.round(m.altura)+' cm: '+zmin+'–'+zmax+' kg';
+    zel.setAttribute('class', dentro?'sub f-ok-txt':'sub'); }
 }
 
 /* ================= ATIVIDADE ================= */
@@ -772,18 +926,22 @@ function updSport(mid,i,f,val){
   save(); render();
 }
 function pintaRange(el){ const mn=parseFloat(el.min), mx=parseFloat(el.max), v=parseFloat(el.value);
-  el.style.setProperty('--pct', (mx>mn? Math.round((v-mn)/(mx-mn)*100):0)+'%'); }
-/* Enquanto se arrasta não se redesenha a página — reescrevem-se só os números,
-   para o dedo não perder o slider e o valor mudar a acompanhar o movimento. */
+  el.style.setProperty('--pct', (mx>mn? Math.round((clampNum(v,mn,mx)-mn)/(mx-mn)*100):0)+'%'); }
+/* Contrato tátil de toda a app: oninput muta o estado e reescreve SÓ os alvos
+   com id (nunca render), onchange grava. O coalescedor prende as escritas de
+   DOM ao ritmo dos frames — em aparelhos lentos o input dispara mais depressa. */
+let _raf=0;
+function aoVivo(fn){ if(_raf) return; _raf=requestAnimationFrame(()=>{ _raf=0; fn(); }); }
+function põe(id,txt){ const el=document.getElementById(id); if(el) el.textContent=txt; }
+function põeAttr(id,attr,val){ const el=document.getElementById(id); if(el) el.setAttribute(attr,val); }
 function slideSport(mid,i,campo,el){
   const m=S.members.find(x=>x.id===mid); if(!m||!m.desportos[i]) return;
   m.desportos[i][campo]=parseFloat(el.value)||0;
   pintaRange(el);
-  atualizarAtividade();
+  aoVivo(atualizarAtividade);
 }
 function atualizarAtividade(){
   const m=curM(); if(!m) return;
-  const põe=(id,txt)=>{ const el=document.getElementById(id); if(el) el.textContent=txt; };
   (m.desportos||[]).forEach((s,i)=>{
     const sp=SPORT[s.s]; if(!sp) return;
     const met=metDe(s), kd=met*m.peso*sportWeeklyH(s)/7;
@@ -792,15 +950,85 @@ function atualizarAtividade(){
       põe('sp'+i+'-v', textoVelocidade(sp, velocidade(s)));
       põe('sp'+i+'-t', hmm(horasPeriodo(s))+' por '+porLabel(s.per));
       põe('sp'+i+'-nivel', NIVEIS[nivelPorMet(sp,met)][1]);
+      /* o ponto na curva move-se só com a velocidade (o MET não depende da distância) */
+      const d=sp.dist, y0=Math.floor(metPorVelocidade(d.curva,d.vmin))-0.5, y1=Math.ceil(metPorVelocidade(d.curva,d.vmax))+0.5;
+      const cx=sx(velocidade(s),d.vmin,d.vmax,36,330).toFixed(1);
+      const cy=sx(met,y0,y1,104,10).toFixed(1);
+      põeAttr('sp'+i+'-dot','cx',cx); põeAttr('sp'+i+'-dot','cy',cy);
+      const drop=document.getElementById('sp'+i+'-drop');
+      if(drop){ drop.setAttribute('x1',cx); drop.setAttribute('x2',cx);
+        drop.setAttribute('y1',cy); drop.setAttribute('y2','104'); }
     }
     põe('sp'+i+'-kcal','~'+Math.round(kd)+' kcal/dia');
     põe('sp'+i+'-met', nPT(met,1)+' MET · '+Math.round(met*m.peso)+' kcal/h');
   });
   põe('tot-desporto','+'+Math.round(sportsKcalDay(m)));
   põe('tot-total', Math.round(tdee(m)));
+  /* barra empilhada do gasto + linha do alvo — a mesma assinatura da Nutrição e do Plano */
+  const gp=gastoPartes(m), alvo=targetKcal(m);
+  const barra=document.getElementById('ga-basal');
+  if(barra){
+    const K=Math.max(gp.total,alvo)*1.05||1, w=x=>Math.max(0,x/K*100);
+    barra.style.width=w(gp.basal)+'%';
+    document.getElementById('ga-dia').style.width=w(gp.dia)+'%';
+    document.getElementById('ga-desloc').style.width=w(gp.desloc)+'%';
+    document.getElementById('ga-desp').style.width=w(gp.desp)+'%';
+    const X=w(alvo), linha=document.getElementById('ga-alvo'), txt=document.getElementById('ga-alvo-txt');
+    if(linha) linha.style.left=X+'%';
+    if(txt){ txt.style.left=X+'%'; txt.style.transform=X>78?'translateX(-100%)':'none';
+      txt.textContent='alvo '+Math.round(alvo); }
+    põe('ga-alvostat', Math.round(alvo));
+  }
 }
 function delSport(mid,i){ const m=S.members.find(x=>x.id===mid); m.desportos.splice(i,1); save(); render(); }
 
+/* Curva velocidade→MET com o ponto do slider. A interpolação da app é linear,
+   por isso a polyline pelos pontos tabelados É a curva exata, não uma amostra. */
+function curvaMetSvg(sp,s,i){
+  const d=sp.dist, c=CURVAS[d.curva];
+  const y0=Math.floor(metPorVelocidade(d.curva,d.vmin))-0.5, y1=Math.ceil(metPorVelocidade(d.curva,d.vmax))+0.5;
+  const X=v=>sx(v,d.vmin,d.vmax,36,330), Y=met=>sx(met,y0,y1,104,10);
+  const pts=[[d.vmin,metPorVelocidade(d.curva,d.vmin)]]
+    .concat(c.filter(p=>p[0]>d.vmin&&p[0]<d.vmax))
+    .concat([[d.vmax,metPorVelocidade(d.curva,d.vmax)]]);
+  const poly=pts.map(p=>X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1)).join(' ');
+  const area=poly+' '+X(d.vmax).toFixed(1)+',104 '+X(d.vmin).toFixed(1)+',104';
+  /* divisórias de nível derivadas dos mesmos limiares de nivelPorMet */
+  const v1=velocidadeParaMet(d,(sp.mets[0]+sp.mets[1])/2), v2=velocidadeParaMet(d,(sp.mets[1]+sp.mets[2])/2);
+  const zonas=[[d.vmin,v1,'leve'],[v1,v2,'moderado'],[v2,d.vmax,'intenso']];
+  const rotZonas=zonas.map(z=>{ const w=X(z[1])-X(z[0]);
+    return w>=44? `<text x="${((X(z[0])+X(z[1]))/2).toFixed(1)}" y="20" font-size="9.5" text-anchor="middle" class="f-mut">${z[2]}</text>`:''; }).join('');
+  const divisorias=[v1,v2].map(v=>`<line x1="${X(v).toFixed(1)}" y1="10" x2="${X(v).toFixed(1)}" y2="104" class="s-line" stroke-dasharray="2 4"/>`).join('');
+  const meio=Math.round((d.vmin+d.vmax)/2);
+  const ticksX=[d.vmin,meio,d.vmax].map(v=>`<text x="${X(v).toFixed(1)}" y="118" font-size="10" text-anchor="middle" class="f-mut" style="font-variant-numeric:tabular-nums">${nPT(v,0)}</text>`).join('');
+  const m1=Math.ceil(y0), m2=Math.floor(y1);
+  const ticksY=`<text x="30" y="${(Y(m1)+3.5).toFixed(1)}" font-size="10" text-anchor="end" class="f-mut">${m1}</text>
+    <text x="30" y="${(Y(m2)+3.5).toFixed(1)}" font-size="10" text-anchor="end" class="f-mut">${m2}</text>`;
+  const vA=velocidade(s), cx=X(vA).toFixed(1), cy=Y(metDe(s)).toFixed(1);
+  return `<svg class="svgfx svg-linha" viewBox="0 0 340 132" preserveAspectRatio="none" aria-hidden="true">
+    <line x1="36" y1="104" x2="330" y2="104" class="s-line"/>
+    <polygon points="${area}" class="f-acc" fill-opacity=".07"/>
+    <polyline points="${poly}" class="s-acc" fill="none" stroke-width="2" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+    ${divisorias}${rotZonas}${ticksX}${ticksY}
+    <text x="330" y="130" font-size="9.5" text-anchor="end" class="f-mut">km/h</text>
+    <text x="30" y="14" font-size="9.5" text-anchor="end" class="f-mut">MET</text>
+    <line id="sp${i}-drop" x1="${cx}" y1="${cy}" x2="${cx}" y2="104" class="s-energy" stroke-dasharray="3 3" opacity=".5"/>
+    <circle id="sp${i}-dot" cx="${cx}" cy="${cy}" r="5.5" style="fill:var(--energy);stroke:var(--card);stroke-width:2"/>
+  </svg>`;
+}
+/* Desportos por níveis: escala fixa 2–16 MET, comparável entre desportos —
+   vê-se que o «intenso» do ténis de mesa fica abaixo do «leve» da corrida. */
+function escalaMet3(sp,s){
+  const x=met=>sx(clampNum(met,2,16),2,16,12,328);
+  const ni=nivelIndice(s.i);
+  return `<svg class="svgfx" viewBox="0 0 340 40" aria-hidden="true">
+    <line x1="12" y1="22" x2="328" y2="22" class="s-line"/>
+    ${sp.mets.map((met,idx)=>`
+      <circle cx="${x(met).toFixed(1)}" cy="22" r="${idx===ni?6:4}" style="${idx===ni?'fill:var(--accent);stroke:var(--card);stroke-width:2':'fill:var(--card);stroke:var(--mut);stroke-width:1.5'}"/>
+      <text x="${x(met).toFixed(1)}" y="38" font-size="9.5" text-anchor="middle" class="${idx===ni?'f-ink':'f-mut'}" style="font-variant-numeric:tabular-nums"${idx===ni?' font-weight="700"':''}>${nPT(met,1)}</text>`).join('')}
+    <text x="328" y="10" font-size="9.5" text-anchor="end" class="f-mut">escala 2–16 MET</text>
+  </svg>`;
+}
 function blocoDesporto(m,s,i){
   const sp=SPORT[s.s], met=metDe(s);
   const kd=Math.round(met*m.peso*sportWeeklyH(s)/7), kh=Math.round(met*m.peso);
@@ -823,6 +1051,7 @@ function blocoDesporto(m,s,i){
           aria-label="Distância por ${porLabel(s.per)}, em quilómetros"
           oninput="slideSport('${m.id}',${i},'km',this)" onchange="save()">
       </div>
+      ${curvaMetSvg(sp,s,i)}
       <div>
         <div class="splabel"><span>Velocidade</span>
           <output id="sp${i}-v">${textoVelocidade(sp,v)}</output></div>
@@ -836,7 +1065,7 @@ function blocoDesporto(m,s,i){
       <span class="sub" id="sp${i}-t">${hmm(horasPeriodo(s))} por ${porLabel(s.per)}</span>
       <span class="spgasto">${gasto}</span></div>`;
   } else {
-    miolo=`<div class="spfoot">
+    miolo=`${escalaMet3(sp,s)}<div class="spfoot">
       <select onchange="updSport('${m.id}',${i},'i',this.value)" aria-label="Intensidade">${NIVEIS.map(([k],ni)=>
         `<option value="${k}" ${nivelIndice(s.i)===ni?'selected':''}>${rotuloNivel(sp,ni)}</option>`).join('')}</select>
       <span class="sphoras"><input type="number" min="0" step="0.5" inputmode="decimal" value="${s.h}"
@@ -877,17 +1106,38 @@ function renderAtividade(){
         o nível pelo teste da conversa — <b>leve</b> se falas à vontade, <b>moderado</b> se falas com a respiração
         acelerada, <b>intenso</b> se já não consegues manter a conversa.</p>
     </div>
-    <div class="card" style="border-left:4px solid var(--energy)">
+    ${(()=>{ const gp=gastoPartes(m), alvo=targetKcal(m);
+      const K=Math.max(gp.total,alvo)*1.05||1, w=x=>Math.max(0,x/K*100);
+      const X=w(alvo);
+      return `<div class="card" style="border-left:4px solid var(--energy)">
       <h2>Gasto energético estimado</h2>
-      <div class="row" style="margin-top:10px">
-        <div class="stat"><b>${Math.round(bmr(m))}</b><span>Basal</span></div>
-        <div class="stat"><b>+${Math.round(bmr(m)*(BASE_ACT[m.atividade][1]-1))}</b><span>Dia-a-dia</span></div>
+      <div style="position:relative;margin:30px 0 8px">
+        <span id="ga-alvo-txt" style="position:absolute;top:-20px;left:${X}%;${X>78?'transform:translateX(-100%);':''}font-size:11px;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap">alvo ${Math.round(alvo)}</span>
+        <div class="mbar" style="height:20px;margin:0">
+          <div id="ga-basal" style="background:var(--mut);opacity:.5;width:${w(gp.basal)}%"></div>
+          <div id="ga-dia" style="background:var(--accent);width:${w(gp.dia)}%"></div>
+          <div id="ga-desloc" style="background:var(--ok);width:${w(gp.desloc)}%"></div>
+          <div id="ga-desp" style="background:var(--energy);width:${w(gp.desp)}%"></div>
+        </div>
+        <div id="ga-alvo" style="position:absolute;top:-6px;bottom:-6px;width:0;border-left:2px dashed var(--ink);left:${X}%"></div>
+      </div>
+      <div class="mleg"><span><i class="dot" style="background:var(--mut);opacity:.5"></i>Basal</span>
+        <span><i class="dot" style="background:var(--accent)"></i>Dia-a-dia</span>
+        <span><i class="dot" style="background:var(--ok)"></i>Deslocações</span>
+        <span><i class="dot" style="background:var(--energy)"></i>Desporto</span></div>
+      <div class="row" style="margin-top:12px">
+        <div class="stat"><b>${Math.round(gp.basal)}</b><span>Basal</span></div>
+        <div class="stat"><b>+${Math.round(gp.dia)}</b><span>Dia-a-dia</span></div>
         <div class="stat"><b>+${cK}</b><span>Deslocações</span></div>
         <div class="stat"><b id="tot-desporto">+${sK}</b><span>Desporto</span></div>
-        <div class="stat" style="background:var(--energy-soft)"><b id="tot-total" style="color:var(--energy)">${Math.round(tdee(m))}</b><span>Total kcal/dia</span></div>
+        <div class="stat" style="background:var(--energy-soft)"><b id="tot-total" style="color:var(--energy)">${Math.round(gp.total)}</b><span>Total kcal/dia</span></div>
+        <div class="stat" style="background:var(--accent-soft)"><b id="ga-alvostat" style="color:var(--accent)">${Math.round(alvo)}</b><span>Alvo kcal/dia</span></div>
       </div>
-      <p class="sub" style="margin-top:10px">Estimativa por METs (esforço metabólico de cada desporto × peso × horas) sobre a fórmula de Mifflin-St Jeor.</p>
-    </div>
+      <div class="row" style="margin-top:12px;justify-content:space-between">
+        <p class="sub" style="margin:0">A distância entre o fim da barra e a linha tracejada é o défice (ou superavit) do plano alimentar. Estimativa por METs sobre a fórmula de Mifflin-St Jeor.</p>
+        <button class="chip" onclick="go('nutricao')">Ajustar alvo na Nutrição →</button>
+      </div>
+    </div>`; })()}
   </div>`;
 }
 
@@ -897,12 +1147,12 @@ function setMealF(v){ S.ui.mealF=v; saveMeta(); render(); }
 function toggleComp(){ S.ui.soComp=!S.ui.soComp; saveMeta(); render(); }
 
 function macroBar(pct){ return `<div class="mbar">
-    <div style="width:${pct.c}%;background:var(--mc)"></div>
-    <div style="width:${pct.p}%;background:var(--mp)"></div>
-    <div style="width:${pct.f}%;background:var(--mf)"></div></div>
-  <div class="mleg"><span><i class="dot" style="background:var(--mc)"></i>Hidratos ${pct.c}%</span>
-    <span><i class="dot" style="background:var(--mp)"></i>Proteína ${pct.p}%</span>
-    <span><i class="dot" style="background:var(--mf)"></i>Gordura ${pct.f}%</span></div>`; }
+    <div id="nu-bar-c" style="width:${pct.c}%;background:var(--mc)"></div>
+    <div id="nu-bar-p" style="width:${pct.p}%;background:var(--mp)"></div>
+    <div id="nu-bar-f" style="width:${pct.f}%;background:var(--mf)"></div></div>
+  <div class="mleg"><span><i class="dot" style="background:var(--mc)"></i><span id="nu-leg-c">Hidratos ${pct.c}%</span></span>
+    <span><i class="dot" style="background:var(--mp)"></i><span id="nu-leg-p">Proteína ${pct.p}%</span></span>
+    <span><i class="dot" style="background:var(--mf)"></i><span id="nu-leg-f">Gordura ${pct.f}%</span></span></div>`; }
 
 function recipeCard(r){
   const comp=S.members.filter(m=>compat(r,m.dieta));
@@ -917,6 +1167,150 @@ function recipeCard(r){
   </div>`;
 }
 
+function textoObjetivo(m){
+  const p=objetivoPct(m), delta=Math.round(Math.abs(targetKcal(m)-tdee(m)));
+  return (p>0?'+':'')+p+'% · '+(p<0? 'défice de '+delta+' kcal/dia' : p>0? 'superavit de '+delta+' kcal/dia' : 'manutenção');
+}
+function sincronizaObjetivo(m){ const p=objetivoPct(m);
+  m.objetivo = p<=-8? 'perder' : p>=5? 'ganhar' : 'manter'; }
+function slideObjetivo(mid,el){
+  const m=S.members.find(x=>x.id===mid); if(!m) return;
+  m.objetivoPct=clampNum(Math.round(parseFloat(el.value)||0),-25,20);
+  pintaRange(el);
+  aoVivo(atualizarNutricao);
+}
+function commitObjetivo(mid,el){
+  const m=S.members.find(x=>x.id===mid); if(!m) return;
+  sincronizaObjetivo(m); save();
+  const p=objetivoPct(m);
+  el.setAttribute('aria-valuetext',(p<0?'défice de ':p>0?'superavit de ':'')+Math.abs(p)
+    +' por cento, alvo '+Math.round(targetKcal(m))+' quilocalorias por dia');
+}
+function presetObjetivo(mid,p){
+  const m=S.members.find(x=>x.id===mid); if(!m) return;
+  m.objetivoPct=p; sincronizaObjetivo(m); save(); render();
+}
+/* Sliders C/P/F interligados: floats durante o gesto, maior-resto na pintura e
+   no commit — a soma é sempre 100 e os polegares irmãos não tremem ±1. */
+let macroLive=null;
+function slideMacro(mid,k,el){
+  const m=S.members.find(x=>x.id===mid); if(!m||m.dieta!=='personalizada') return;
+  if(!macroLive){ const d=dietaDe(m); macroLive={c:d.c,p:d.p,f:d.f}; }
+  const v=clampNum(parseFloat(el.value)||0,0,100);
+  const outros=['c','p','f'].filter(x=>x!==k);
+  const resto=100-v, a=macroLive[outros[0]], b=macroLive[outros[1]];
+  if(a+b<0.5){ macroLive[outros[0]]=resto/2; macroLive[outros[1]]=resto/2; }
+  else { macroLive[outros[0]]=resto*a/(a+b); macroLive[outros[1]]=resto-macroLive[outros[0]]; }
+  macroLive[k]=v;
+  m.macros=normaliza100(macroLive);
+  pintaRange(el);
+  outros.forEach(x=>{ const s=document.getElementById('nu-sl-'+x);
+    if(s){ s.value=m.macros[x]; pintaRange(s); } });   /* atribuir .value não dispara eventos — sem cascata */
+  aoVivo(atualizarNutricao);
+}
+function commitMacro(mid,el){
+  const m=S.members.find(x=>x.id===mid); if(!m) return;
+  macroLive=null; save();
+  if(el&&m.macros) el.setAttribute('aria-valuetext',
+    m.macros.c+' por cento de hidratos, '+m.macros.p+' de proteína, '+m.macros.f+' de gordura');
+}
+function presetMacro(mid,c,p,f){
+  const m=S.members.find(x=>x.id===mid); if(!m) return;
+  m.macros={c,p,f}; macroLive=null; save();
+  ['c','p','f'].forEach(k=>{ const s=document.getElementById('nu-sl-'+k);
+    if(s){ s.value=m.macros[k]; pintaRange(s); } });
+  atualizarNutricao();
+}
+const ABREV_REF={p:'PA',a:'Almoço',l:'Lanche',j:'Jantar'};
+function barraRefeicoes(k){
+  let x=4;
+  const segs=MEALS.map(([kk,rot,fr],idx)=>{
+    const w=fr*332;
+    const s=`<rect x="${x.toFixed(1)}" y="4" width="${(w-2).toFixed(1)}" height="14" rx="2" class="f-acc" fill-opacity="${[.85,.6,.4,.72][idx]}"/>
+      <text id="nu-meal-${kk}" x="${(x+w/2).toFixed(1)}" y="35" font-size="10" text-anchor="middle" class="f-mut" style="font-variant-numeric:tabular-nums">${ABREV_REF[kk]} ${Math.round(k*fr)}</text>`;
+    x+=w; return s;
+  }).join('');
+  return `<svg class="svgfx" viewBox="0 0 340 44" aria-hidden="true" style="margin-top:10px">${segs}</svg>`;
+}
+/* Projeção iterativa a 12 semanas. O domínio Y é fixo por render e dimensionado
+   para o pior caso do slider (−25%) — o eixo nunca reescala durante o arrasto. */
+function geomProjecao(m){
+  const meia=Math.max(2.5, Math.ceil(tdee(m)*0.25*7*12/7700));
+  const yMin=m.peso-meia, yMax=m.peso+meia;
+  return {yMin,yMax, X:i=>sx(i,0,12,40,330), Y:v=>sx(v,yMin,yMax,130,12)};
+}
+function cartaoProjecao(m){
+  const g=geomProjecao(m), proj=projecaoPeso(m,12), fim=proj[proj.length-1];
+  const h2=(m.altura/100)*(m.altura/100);
+  const zTop=clampNum(g.Y(25*h2),12,130), zBot=clampNum(g.Y(18.5*h2),12,130);
+  const pts=proj.map((v,i)=>g.X(i).toFixed(1)+','+clampNum(g.Y(v),12,130).toFixed(1)).join(' ');
+  const dentro=fim>=18.5*h2*1&&fim<=25*h2;
+  const sobe=fim>m.peso;
+  const yFim=clampNum(clampNum(g.Y(fim),12,130)+(sobe?16:-8),12,126);
+  const delta=Math.round((fim-m.peso)*10)/10;
+  return `<svg class="svgfx svg-linha" viewBox="0 0 340 160" preserveAspectRatio="none" role="img" style="margin-top:8px">
+    <title>Projeção de peso a doze semanas</title>
+    ${zBot>zTop+1? `<rect x="40" y="${zTop.toFixed(1)}" width="290" height="${(zBot-zTop).toFixed(1)}" class="f-ok" fill-opacity=".08"/>
+    <text x="44" y="${(zTop+11).toFixed(1)}" font-size="9.5" class="f-mut">zona de IMC saudável</text>`:''}
+    <line x1="40" y1="${g.Y(m.peso).toFixed(1)}" x2="330" y2="${g.Y(m.peso).toFixed(1)}" class="s-mut" stroke-dasharray="2 3"/>
+    <text x="40" y="${(g.Y(m.peso)-5).toFixed(1)}" font-size="10" class="f-mut" style="font-variant-numeric:tabular-nums">hoje ${nPT(m.peso,1)}</text>
+    ${[0,4,8,12].map(i=>`<text x="${g.X(i).toFixed(1)}" y="146" font-size="10" text-anchor="middle" class="f-mut">${i}</text>`).join('')}
+    <text x="330" y="158" font-size="9.5" text-anchor="end" class="f-mut">semanas</text>
+    <polyline id="nu-plinha" points="${pts}" class="s-acc" stroke-width="2.5" fill="none" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+    <circle id="nu-pdot" cx="330" cy="${clampNum(g.Y(fim),12,130).toFixed(1)}" r="4.5" class="${dentro?'f-ok':'f-acc'}"/>
+    <text id="nu-pfim" x="326" y="${yFim.toFixed(1)}" font-size="13" font-weight="700" text-anchor="end" class="f-ink" style="font-variant-numeric:tabular-nums">${nPT(fim,1)} kg</text>
+  </svg>
+  <div class="row" style="justify-content:space-between;margin-top:6px">
+    <b id="nu-pdelta" style="font-variant-numeric:tabular-nums">${delta===0?'peso estável':(delta>0?'+':'−')+nPT(Math.abs(delta),1)+' kg em 12 semanas'}</b>
+  </div>
+  <p class="sub" style="margin-top:6px">Estimativa: 7 700 kcal ≈ 1 kg, com o gasto recalculado semana a semana — não substitui aconselhamento médico ou nutricional.</p>`;
+}
+function atualizarProjecao(m){
+  const pl=document.getElementById('nu-plinha'); if(!pl) return;
+  const g=geomProjecao(m), proj=projecaoPeso(m,12), fim=proj[proj.length-1];
+  pl.setAttribute('points', proj.map((v,i)=>g.X(i).toFixed(1)+','+clampNum(g.Y(v),12,130).toFixed(1)).join(' '));
+  const h2=(m.altura/100)*(m.altura/100);
+  const dentro=fim>=18.5*h2&&fim<=25*h2, sobe=fim>m.peso;
+  const dot=document.getElementById('nu-pdot');
+  if(dot){ dot.setAttribute('cy',clampNum(g.Y(fim),12,130).toFixed(1));
+    dot.setAttribute('class',dentro?'f-ok':'f-acc'); }
+  const lbl=document.getElementById('nu-pfim');
+  if(lbl){ lbl.textContent=nPT(fim,1)+' kg';
+    lbl.setAttribute('y',clampNum(clampNum(g.Y(fim),12,130)+(sobe?16:-8),12,126).toFixed(1)); }
+  const delta=Math.round((fim-m.peso)*10)/10;
+  põe('nu-pdelta', delta===0?'peso estável':(delta>0?'+':'−')+nPT(Math.abs(delta),1)+' kg em 12 semanas');
+}
+function atualizarNutricao(){
+  const m=curM(); if(!m) return;
+  const alvo=targetKcal(m), gasto=tdee(m), p=objetivoPct(m), mk=macros(m);
+  põe('nu-obj', textoObjetivo(m));
+  põe('nu-alvo', Math.round(alvo)); põe('nu-gasto', Math.round(gasto));
+  const rp=document.getElementById('nu-ritmo');
+  if(rp){
+    if(alvo<bmr(m)){ rp.textContent='abaixo do basal — não recomendado'; rp.setAttribute('class','pill bad'); }
+    else { const kg=ritmoSemanal(m), a=Math.abs(kg);
+      rp.textContent=(a<0.005?'peso estável':(kg>0?'−':'+')+nPT(a,2)+' kg/semana');
+      rp.setAttribute('class','pill '+(a<=0.75?'ok':a<=1?'warn':'bad')); }
+  }
+  const av=document.getElementById('nu-aviso'); if(av) av.style.visibility=p<=-20?'visible':'hidden';
+  const d=mk.pct;
+  const bc=document.getElementById('nu-bar-c');
+  if(bc){ bc.style.width=d.c+'%';
+    document.getElementById('nu-bar-p').style.width=d.p+'%';
+    document.getElementById('nu-bar-f').style.width=d.f+'%';
+    põe('nu-leg-c','Hidratos '+d.c+'%'); põe('nu-leg-p','Proteína '+d.p+'%'); põe('nu-leg-f','Gordura '+d.f+'%'); }
+  põe('nu-g-c',mk.c+' g'); põe('nu-g-p',mk.p+' g'); põe('nu-g-f',mk.f+' g');
+  ['c','p','f'].forEach(kk=>{ const o=document.getElementById('nu-out-'+kk);
+    if(o) o.textContent=d[kk]+'% · '+mk[kk]+' g'; });
+  const gk=document.getElementById('nu-gkg');
+  if(gk){ const gkg=m.peso>0? mk.p/m.peso:0;
+    gk.textContent=nPT(gkg,1)+' g de proteína por kg de peso';
+    gk.setAttribute('class','pill '+(gkg>=1.2&&gkg<=2.2?'ok':'warn')); }
+  const da=document.getElementById('nu-diet-aviso');
+  if(da) da.style.visibility=(d.p<10||d.f<15)?'visible':'hidden';
+  MEALS.forEach(mm=>põe('nu-meal-'+mm[0], ABREV_REF[mm[0]]+' '+Math.round(alvo*mm[2])));
+  atualizarProjecao(m);
+}
 function renderNutricao(){
   if(!S.members.length) return noMembers();
   const m=curM(), mk=macros(m), k=Math.round(targetKcal(m));
@@ -924,31 +1318,66 @@ function renderNutricao(){
     && (S.ui.mealF==='todas'||r.mt.indexOf(S.ui.mealF)>=0));
   if(S.ui.soComp) list=list.filter(r=>compat(r,m.dieta));
   const fam=RECIPES.filter(r=>compatAll(r,S.members));
+  const pct=objetivoPct(m), d=mk.pct;
+  const gkg=m.peso>0? mk.p/m.peso:0;
   return memberPicker()+`
   <div class="grid g2" style="margin-bottom:24px">
     <div class="card">
       <h2>Plano de ${esc(m.nome)}</h2>
-      <div class="frow" style="grid-template-columns:1fr 1fr">
-        <div><label class="lbl">Objetivo</label><select onchange="upd('${m.id}','objetivo',this.value)">${Object.entries(GOALS).map(([kk,v])=>
-          `<option value="${kk}" ${m.objetivo===kk?'selected':''}>${v[0]}</option>`).join('')}</select></div>
-        <div><label class="lbl">Tipo de dieta</label><select onchange="upd('${m.id}','dieta',this.value)">${Object.entries(DIETS).map(([kk,v])=>
-          `<option value="${kk}" ${m.dieta===kk?'selected':''}>${v.n}</option>`).join('')}</select></div>
+      <div style="margin-top:10px">
+        <div class="splabel"><span>Objetivo</span><output id="nu-obj" style="min-width:22ch;text-align:right">${textoObjetivo(m)}</output></div>
+        <input type="range" id="nu-r-obj" min="-25" max="20" step="1" value="${pct}" style="--pct:${Math.round((pct+25)/45*100)}%"
+          aria-label="Objetivo calórico em percentagem do gasto diário"
+          oninput="slideObjetivo('${m.id}',this)" onchange="commitObjetivo('${m.id}',this)">
+        <div style="position:relative;height:15px;font-size:11px;color:var(--mut)">
+          <span style="position:absolute;left:${(10/45*100).toFixed(1)}%;transform:translateX(-50%)">perder −15</span>
+          <span style="position:absolute;left:${(25/45*100).toFixed(1)}%;transform:translateX(-50%)">0</span>
+          <span style="position:absolute;left:${(35/45*100).toFixed(1)}%;transform:translateX(-50%)">ganhar +10</span>
+        </div>
       </div>
+      <div class="row" style="margin-top:10px;min-height:34px">
+        <span class="pill ok" id="nu-ritmo"></span>
+        <button class="chip" onclick="presetObjetivo('${m.id}',-15)">Perder −15%</button>
+        <button class="chip" onclick="presetObjetivo('${m.id}',0)">Manter</button>
+        <button class="chip" onclick="presetObjetivo('${m.id}',10)">Ganhar +10%</button>
+      </div>
+      <p class="sub" id="nu-aviso" style="min-height:1.55em;visibility:hidden;color:var(--warn);margin-top:4px">défice agressivo — acompanha este plano com um profissional de saúde</p>
+      <div><label class="lbl">Tipo de dieta</label><select onchange="upd('${m.id}','dieta',this.value)">${Object.entries(DIETS).map(([kk,v])=>
+          `<option value="${kk}" ${m.dieta===kk?'selected':''}>${v.n}</option>`).join('')}<option value="personalizada" ${m.dieta==='personalizada'?'selected':''}>Personalizada…</option></select></div>
       <div class="row" style="margin-top:14px">
-        <div class="stat" style="background:var(--accent-soft)"><b style="color:var(--accent)">${k}</b><span>Alvo kcal/dia</span></div>
-        <div class="stat"><b>${Math.round(tdee(m))}</b><span>Gasto kcal/dia</span></div>
+        <div class="stat" style="background:var(--accent-soft)"><b id="nu-alvo" style="color:var(--accent)">${k}</b><span>Alvo kcal/dia</span></div>
+        <div class="stat"><b id="nu-gasto">${Math.round(tdee(m))}</b><span>Gasto kcal/dia</span></div>
       </div>
     </div>
     <div class="card">
-      <h2>Simulador de macros — ${DIETS[m.dieta].n}</h2>
-      ${macroBar(mk.pct)}
-      <div class="row" style="margin-top:12px">
-        <div class="stat"><b style="color:var(--mc)">${mk.c} g</b><span>Hidratos</span></div>
-        <div class="stat"><b style="color:var(--mp)">${mk.p} g</b><span>Proteína</span></div>
-        <div class="stat"><b style="color:var(--mf)">${mk.f} g</b><span>Gordura</span></div>
+      <h2>Simulador de macros — ${dietaDe(m).n}</h2>
+      ${m.dieta==='personalizada'? `
+      <div class="spgrid" style="margin:12px 0 6px">
+        ${[['c','Hidratos','rgC'],['p','Proteína','rgP'],['f','Gordura','rgF']].map(([kk,rot,cls])=>`
+        <div>
+          <div class="splabel"><span>${rot}</span><output id="nu-out-${kk}" style="min-width:11ch;text-align:right">${d[kk]}% · ${mk[kk]} g</output></div>
+          <input type="range" id="nu-sl-${kk}" class="${cls}" min="0" max="100" step="1" value="${d[kk]}" style="--pct:${d[kk]}%"
+            aria-label="Percentagem de ${rot.toLowerCase()} na dieta"
+            oninput="slideMacro('${m.id}','${kk}',this)" onchange="commitMacro('${m.id}',this)"></div>`).join('')}
       </div>
-      <p class="sub" style="margin-top:10px">Sugestão por refeição:
-        ${MEALS.map(([kk,rot,fr])=>`${rot.toLowerCase()} ${Math.round(k*fr)} kcal`).join(' · ')}.</p>
+      <div class="row" style="margin:4px 0 10px">${Object.entries(DIETS).map(([kk,v])=>
+        `<button class="chip" onclick="presetMacro('${m.id}',${v.c},${v.p},${v.f})">${v.n} ${v.c}/${v.p}/${v.f}</button>`).join('')}</div>`:''}
+      ${macroBar(d)}
+      <div class="row" style="margin-top:12px">
+        <div class="stat"><b id="nu-g-c" style="color:var(--mc)">${mk.c} g</b><span>Hidratos</span></div>
+        <div class="stat"><b id="nu-g-p" style="color:var(--mp)">${mk.p} g</b><span>Proteína</span></div>
+        <div class="stat"><b id="nu-g-f" style="color:var(--mf)">${mk.f} g</b><span>Gordura</span></div>
+      </div>
+      <div class="row" style="margin-top:10px;min-height:30px">
+        <span class="pill ${gkg>=1.2&&gkg<=2.2?'ok':'warn'}" id="nu-gkg">${nPT(gkg,1)} g de proteína por kg de peso</span>
+        <span class="pill warn" id="nu-diet-aviso" style="visibility:${d.p<10||d.f<15?'visible':'hidden'}">pouca proteína ou gordura — cuidado com a saciedade</span>
+      </div>
+      ${m.dieta==='personalizada'? '<p class="sub" style="margin-top:8px">Dieta personalizada — nas receitas e no plano, todas contam como compatíveis.</p>':''}
+      ${barraRefeicoes(k)}
+    </div>
+    <div class="card">
+      <h2>Projeção de peso — 12 semanas</h2>
+      ${cartaoProjecao(m)}
     </div>
   </div>
 
@@ -1024,6 +1453,55 @@ function mealBlock(di,mk,label,date){
     </div>
   </div>`;
 }
+function irParaDia(di){ const el=document.getElementById('dia-'+di);
+  if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); }
+/* Resumo «semana em números»: uma linha por membro, kcal planeadas por dia vs
+   a linha do alvo — a mesma assinatura tracejada da barra da Atividade. */
+function cartaoSemana(dates){
+  const INICIAIS=['S','T','Q','Q','S','S','D'];
+  return `<div class="card" id="pla-resumo" style="margin-bottom:16px">
+    <h2>Semana em números</h2>
+    ${S.members.map(m=>{
+      const alvo=targetKcal(m);
+      const dias=dates.map((_,di)=>estadoDia(m,di,dates));
+      const teto=Math.max(alvo*1.3, 1, ...dias.map(x=>x.kcal));
+      const yDe=k=>48-sx(k,0,teto,0,40);
+      const yAlvo=yDe(alvo);
+      const barras=dias.map((x,di)=>{
+        const bx=30+di*44;
+        if(x.st==='cheat') return `<rect x="${bx}" y="20" width="30" height="28" rx="3" class="f-party" fill-opacity=".35"/><circle cx="${bx+15}" cy="15" r="2.5" class="f-party"/>`;
+        if(x.st==='vazio') return `<rect x="${bx}" y="46" width="30" height="2" class="f-line"/>`;
+        const h=Math.max(2,sx(x.kcal,0,teto,0,40)), by=48-h;
+        if(x.st==='incompleto') return `<rect x="${bx}" y="${by.toFixed(1)}" width="30" height="${h.toFixed(1)}" rx="3" class="f-line" opacity=".6"/>
+          <text x="${bx+15}" y="${Math.max(8,by-4).toFixed(1)}" font-size="9.5" text-anchor="middle" class="f-mut">${x.refs}/4</text>`;
+        const cls=x.st==='ok'?'f-ok':x.st==='warn'?'f-warn':'f-bad';
+        const val=h>=18? `<text x="${bx+15}" y="${Math.max(8,by-4).toFixed(1)}" font-size="9.5" text-anchor="middle" class="f-ink" style="font-variant-numeric:tabular-nums">${x.kcal}</text>`:'';
+        return `<rect x="${bx}" y="${by.toFixed(1)}" width="30" height="${h.toFixed(1)}" rx="3" class="${cls}"/>`+val;
+      }).join('');
+      const taps=dates.map((_,di)=>`<rect x="${23+di*44}" y="0" width="44" height="64" fill="transparent"
+        style="pointer-events:all;touch-action:manipulation;cursor:pointer" onclick="irParaDia(${di})"><title>Ir para ${DAYN[di]}</title></rect>`).join('');
+      const iniciais=INICIAIS.map((c,di)=>`<text x="${45+di*44}" y="62" font-size="9.5" text-anchor="middle" class="f-mut">${c}</text>`).join('');
+      const completos=dias.filter(x=>x.st==='ok'||x.st==='warn'||x.st==='bad');
+      const media=completos.length? Math.round(completos.reduce((t,x)=>t+x.kcal,0)/completos.length):0;
+      const dvm=completos.length&&alvo>0? Math.abs(media-alvo)/alvo:0;
+      const tone=dvm<=0.10?'ok':dvm<=0.25?'warn':'bad';
+      const cheats=dates.map((_,di)=>dias[di].st==='cheat'? DAYN[di].slice(0,3)+'. 🎉':null).filter(Boolean);
+      return `<div style="margin-top:12px">
+        <div class="row" style="gap:8px">${avatar(m,22)}<b>${esc(m.nome.split(' ')[0])}</b>
+          ${completos.length? `<span class="pill ${tone}">média ${media} / alvo ${Math.round(alvo)}</span>`
+            : '<span class="sub">ainda sem dias completos</span>'}
+          ${cheats.length? `<span class="sub">${cheats.join(' · ')}</span>`:''}</div>
+        <svg class="svgfx" viewBox="0 0 340 64" role="img" aria-label="Calorias planeadas por dia para ${esc(m.nome)}" style="margin-top:4px;max-width:560px">
+          ${barras}
+          <line x1="24" y1="${yAlvo.toFixed(1)}" x2="330" y2="${yAlvo.toFixed(1)}" class="s-ink" stroke-dasharray="4 3" stroke-width="1.5" opacity=".8"/>
+          <text x="330" y="${(yAlvo-4).toFixed(1)}" font-size="10" text-anchor="end" class="f-ink" style="font-variant-numeric:tabular-nums">alvo ${Math.round(alvo)}</text>
+          ${iniciais}${taps}
+        </svg>
+      </div>`;
+    }).join('')}
+    <p class="sub" style="margin-top:10px">Toca numa coluna para saltar para o dia. Cinzento = dia incompleto (n/4 refeições planeadas), rosa = cheat day. Verde, amarelo e vermelho só em dias completos: até ±10%, até ±25% e além disso do alvo.</p>
+  </div>`;
+}
 function renderPlano(){
   if(!S.members.length) return noMembers();
   const dates=weekDates(S.week);
@@ -1039,12 +1517,19 @@ function renderPlano(){
       <button class="btn danger small" onclick="clearWeek()">Limpar</button>
     </div></div>
   <p class="sub" style="margin-bottom:14px">🎉 <b>Cheat days:</b> clica no nome de um membro na linha «Cheat day» para marcar um dia livre (aniversários, festas…) — esse membro sai das contas e da lista de compras nesse dia.</p>
+  ${cartaoSemana(dates)}
   <div class="grid gdias">
   ${dates.map((date,di)=>{
     const anyCheat=S.members.some(m=>isCheat(m.id,date));
-    return `<div class="day ${anyCheat?'cheat-any':''}">
+    const pontos=S.members.map(m=>{ const e=estadoDia(m,di,dates);
+      const cls=e.st==='cheat'?'dt-party': e.st==='vazio'||e.st==='incompleto'?'dt-line':'dt-'+e.st;
+      const tt=e.st==='cheat'? esc(m.nome.split(' ')[0])+': cheat day'
+        : esc(m.nome.split(' ')[0])+': '+e.kcal+' kcal ('+e.refs+'/4, alvo '+Math.round(targetKcal(m))+')';
+      return `<i class="dot ${cls}" title="${tt}"></i>`; }).join('');
+    return `<div class="day ${anyCheat?'cheat-any':''}" id="dia-${di}">
       <div class="dhead"><b>${DAYN[di]}</b><span class="sub">${fmtShort(date)}</span>
-        ${anyCheat?'<span class="pill" style="background:var(--party-soft);color:var(--party);margin-left:auto">🎉 dia especial</span>':''}</div>
+        <span style="margin-left:auto;display:inline-flex;align-items:center">${pontos}</span>
+        ${anyCheat?'<span class="pill" style="background:var(--party-soft);color:var(--party)">🎉</span>':''}</div>
       <div class="meal" style="background:var(--bg)">
         <div class="mtitle" style="color:var(--party)">Cheat day</div>
         <div class="row">${S.members.map(m=>`<button class="chip party ${isCheat(m.id,date)?'on':''}"
@@ -1069,8 +1554,33 @@ function shoppingItems(){
   }
   return {items:Object.values(agg),meals};
 }
-function toggleBought(key){ if(!S.bought[S.week]) S.bought[S.week]={};
-  S.bought[S.week][key]=!S.bought[S.week][key]; save(); render(); }
+/* Marcar um item não redesenha a lista: no supermercado, com o telemóvel numa
+   mão, o scroll e o foco ficam onde estavam. Se faltar algum id, cai no render
+   completo — nunca dessincroniza. */
+function toggleBought(key,el){ if(!S.bought[S.week]) S.bought[S.week]={};
+  S.bought[S.week][key]=!S.bought[S.week][key]; save();
+  const li=el&&el.closest? el.closest('li'):null;
+  if(!li||!document.getElementById('co-bar')){ render(); return; }
+  li.classList.toggle('done',!!S.bought[S.week][key]);
+  atualizarCompras();
+}
+function atualizarCompras(){
+  const bar=document.getElementById('co-bar'); if(!bar) return;
+  const {items}=shoppingItems(); const bought=S.bought[S.week]||{};
+  const done=items.filter(i=>bought[i.n+'|'+i.u]).length, total=items.length;
+  bar.style.width=(total? done/total*100:0)+'%';
+  bar.style.background=(done===total&&total)? 'var(--ok)':'var(--accent)';
+  const num=document.getElementById('co-num');
+  if(num){ if(done===total&&total){ num.textContent='tudo comprado ✓'; num.setAttribute('class','f-ok-txt'); }
+    else { num.textContent=done+'/'+total+' comprados'; num.removeAttribute('class'); } }
+  CATS.forEach((c,i)=>{ const el=document.getElementById('co-sec-'+i); if(!el) return;
+    const lis=[].slice.call(document.querySelectorAll('li[data-sec="'+i+'"]'));
+    const dn=lis.filter(li=>li.classList.contains('done')).length;
+    const completo=lis.length&&dn===lis.length;
+    el.textContent=(completo?'✓ ':'')+dn+'/'+lis.length;
+    el.setAttribute('class', completo?'sub f-ok-txt':'sub');
+  });
+}
 function fmtQ(it){ const q=Math.round(it.q*100)/100;
   if(it.u==='g'&&q>=1000) return (q/1000).toFixed(q%1000?1:0)+' kg';
   if(it.u==='ml'&&q>=1000) return (q/1000).toFixed(q%1000?1:0)+' L';
@@ -1091,17 +1601,24 @@ function renderCompras(){
   const grouped=CATS.map(([cat,re])=>[cat,[]]);
   items.forEach(it=>{ for(const [i,[cat,re]] of CATS.entries()){ if(re.test(it.n)){ grouped[i][1].push(it); break; } } });
   const done=items.filter(i=>bought[i.n+'|'+i.u]).length;
+  const completo=done===items.length&&items.length;
   return `<div class="row" style="justify-content:space-between;margin-bottom:4px">
     <div><h2>Lista de compras</h2>
-    <span class="sub">Semana de ${fmtShort(dates[0])} a ${fmtShort(dates[6])} · ${meals} refeições planeadas · ${done}/${items.length} comprados</span></div>
+    <span class="sub">Semana de ${fmtShort(dates[0])} a ${fmtShort(dates[6])} · ${meals} refeições planeadas ·
+      <span id="co-num" ${completo?'class="f-ok-txt"':''}>${completo?'tudo comprado ✓':done+'/'+items.length+' comprados'}</span></span></div>
     <button class="btn ghost small" onclick="copyList()">📋 Copiar lista</button></div>
+  <div class="mbar" style="height:10px;max-width:640px;margin:8px 0 14px">
+    <div id="co-bar" style="background:${completo?'var(--ok)':'var(--accent)'};width:${items.length? done/items.length*100:0}%"></div></div>
   <div class="card" style="max-width:640px">
-    ${grouped.filter(([,arr])=>arr.length).map(([cat,arr])=>`
-      <div class="cat-h">${cat}</div>
+    ${grouped.filter(([,arr])=>arr.length).map(([cat,arr])=>{
+      const iSec=CATS.findIndex(c=>c[0]===cat);
+      const dnSec=arr.filter(it=>bought[it.n+'|'+it.u]).length, okSec=dnSec===arr.length&&arr.length;
+      return `
+      <div class="cat-h">${cat} <span id="co-sec-${iSec}" class="sub ${okSec?'f-ok-txt':''}" style="float:right">${okSec?'✓ ':''}${dnSec}/${arr.length}</span></div>
       <ul class="shop">${arr.sort((a,b)=>a.n.localeCompare(b.n)).map(it=>{
         const key=it.n+'|'+it.u, ok=bought[key];
-        return `<li class="${ok?'done':''}"><input type="checkbox" ${ok?'checked':''} onchange="toggleBought('${esc(key).replace(/'/g,"\\'")}')">
-          <span>${esc(it.n)}</span><span class="q">${fmtQ(it)}</span></li>`;}).join('')}</ul>`).join('')}
+        return `<li class="${ok?'done':''}" data-sec="${iSec}"><label><input type="checkbox" ${ok?'checked':''} onchange="toggleBought('${esc(key).replace(/'/g,"\\'")}',this)">
+          <span>${esc(it.n)}</span><span class="q">${fmtQ(it)}</span></label></li>`;}).join('')}</ul>`;}).join('')}
   </div>
   <p class="sub" style="margin-top:12px">Quantidades = receita por pessoa × nº de comensais em cada refeição (membros em cheat day não contam nesse dia).</p>`;
 }
@@ -1245,13 +1762,23 @@ function num(v,d){ const n=parseFloat(v); return isFinite(n)&&n>0? n : d; }
 function plural(n,um,muitos){ return n+' '+(n===1? um : muitos); }
 function limparMembro(m){
   m=m||{};
-  return {id:String(m.id||uid()), nome:String(m.nome||'Sem nome').slice(0,60),
+  const dieta = m.dieta==='personalizada' ? 'personalizada' : (DIETS[m.dieta]? m.dieta:'equilibrada');
+  const objetivo = GOALS[m.objetivo]? m.objetivo:'manter';
+  /* objetivoPct NUNCA passa por num(): 0 e negativos são valores legítimos */
+  const pctBruto = parseFloat(m.objetivoPct);
+  const out = {id:String(m.id||uid()), nome:String(m.nome||'Sem nome').slice(0,60),
     sexo: m.sexo==='f'?'f':'m', idade:num(m.idade,35), altura:num(m.altura,170), peso:num(m.peso,70),
     atividade: BASE_ACT[m.atividade]? m.atividade:'sedentario',
     desloc: COMMUTE[m.desloc]? m.desloc:'nenhum',
-    dieta: DIETS[m.dieta]? m.dieta:'equilibrada',
-    objetivo: GOALS[m.objetivo]? m.objetivo:'manter',
+    dieta, objetivo,
+    objetivoPct: Number.isFinite(pctBruto)? clampNum(Math.round(pctBruto),-25,20) : Math.round((GOALS[objetivo][1])*100),
     desportos: Array.isArray(m.desportos) ? m.desportos.map(normalizaDesporto).filter(Boolean) : []};
+  if(dieta==='personalizada'){
+    const mc=m.macros||{};
+    const s=(parseFloat(mc.c)||0)+(parseFloat(mc.p)||0)+(parseFloat(mc.f)||0);
+    out.macros = s>0? normaliza100(mc) : {c:50,p:20,f:30};   /* validar pela soma: 0 g de hidratos é legítimo */
+  }
+  return out;
 }
 function lerPacote(txt){
   let p; try{ p=JSON.parse(txt); }catch(e){ return {erro:'O texto não é uma cópia válida (não foi possível interpretar o JSON).'}; }
@@ -1365,6 +1892,9 @@ function renderDados(){
     <div class="card">
       <h3>Guardar uma cópia</h3>
       <p class="sub" style="margin:6px 0 12px">Gera um ficheiro <code>.json</code> com perfis, planos, cheat days e compras.</p>
+      <p class="sub" style="margin:0 0 12px">Cópias novas abertas numa versão antiga da app (por exemplo, em cache
+        noutro telemóvel) mantêm tudo, mas arredondam o objetivo fino para Perder/Manter/Ganhar e leem a dieta
+        personalizada como Equilibrada. Atualiza a app em todos os dispositivos antes de juntar cópias.</p>
       <div class="row">
         ${podePartilhar()? `<button class="btn" onclick="partilhar()">📤 Guardar ou enviar cópia</button>
         <button class="btn ghost" onclick="descarregar()">⬇ Transferir</button>`
@@ -1418,6 +1948,8 @@ function render(){
     : S.ui.tab==='compras'? renderCompras()
     : S.ui.tab==='dados'? renderDados()
     : renderFamilia();
+  /* semeia os valores que só o atualizador escreve (pill de ritmo, etc.) */
+  if(S.ui.tab==='nutricao' && S.members.length) atualizarNutricao();
   paintSave();
 }
 aplicarEcra();
