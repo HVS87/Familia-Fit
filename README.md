@@ -10,11 +10,11 @@ Ferramenta web para gerir a **alimentação e a atividade física de toda a fam�
 
 **👤 Perfis** — um perfil por membro da família, com sexo, idade, altura e peso. Calcula o índice de massa corporal (com classificação), o metabolismo basal pela fórmula de Mifflin-St Jeor e o gasto energético diário total.
 
-**🏃 Atividade** — nível de atividade do dia-a-dia (de sedentário a trabalho físico pesado), forma de deslocação para o trabalho ou escola (a pé, bicicleta, transportes) e registo de desportos praticados. São 18 modalidades, com horas por dia, por semana ou por mês; as calorias gastas são estimadas por METs (esforço metabólico × peso × horas) e somadas ao gasto basal, com o detalhe de cada parcela visível.
+**🏃 Atividade** — nível de atividade do dia-a-dia (de sedentário a trabalho físico pesado), forma de deslocação para o trabalho ou escola (a pé, bicicleta, transportes) e registo de desportos praticados. São 43 modalidades agrupadas por família, cada uma com **três níveis de intensidade** e o MET correspondente: o ciclismo distingue estrada, montanha, BTT, passeio e estática; a corrida distingue ritmo, trilho e séries; e há pilates, calistenia, ioga, musculação, treino funcional e por aí adiante. As horas indicam-se por dia, semana ou mês, e as calorias são estimadas por METs (esforço metabólico × peso × horas) e somadas ao gasto basal, com o detalhe de cada parcela visível. Entre o nível leve e o intenso o mesmo desporto pode gastar quase o dobro.
 
-**🍽️ Nutrição** — objetivo de peso (perder, manter, ganhar) que ajusta o alvo calórico, e sete tipos de dieta: equilibrada, mediterrânica, keto, low carb, low fat, paleo e vegetariana. O simulador converte o alvo calórico em gramas de hidratos, proteína e gordura. Inclui 34 receitas filtráveis por cozinha (portuguesa, italiana, francesa, mediterrânica, asiática) e por compatibilidade com a dieta, mais uma secção dedicada às receitas que servem as dietas de **todos os membros ao mesmo tempo**.
+**🍽️ Nutrição** — objetivo de peso (perder, manter, ganhar) que ajusta o alvo calórico, e sete tipos de dieta: equilibrada, mediterrânica, keto, low carb, low fat, paleo e vegetariana. O simulador converte o alvo calórico em gramas de hidratos, proteína e gordura, e reparte-o pelas quatro refeições do dia. Inclui 84 receitas filtráveis por refeição, por cozinha (portuguesa, italiana, francesa, mediterrânica, asiática) e por compatibilidade com a dieta, mais uma secção dedicada às receitas que servem as dietas de **todos os membros ao mesmo tempo**. Todas as dietas têm pelo menos três opções em cada refeição.
 
-**📅 Plano semanal** — almoço e jantar para cada dia, escolhendo quem come cada refeição, com navegação entre semanas e preenchimento automático que só sugere receitas compatíveis com todos os comensais daquela refeição. Os **cheat days** marcam-se por pessoa e por dia: quem estiver de folga sai das contas e da lista de compras nesse dia.
+**📅 Plano semanal** — pequeno-almoço, almoço, lanche e jantar para cada dia, escolhendo quem come cada refeição, com navegação entre semanas e preenchimento automático que só sugere receitas do tipo certo e compatíveis com todos os comensais daquela refeição. Os **cheat days** marcam-se por pessoa e por dia: quem estiver de folga sai das contas e da lista de compras nesse dia.
 
 **🛒 Compras** — agrega os ingredientes de todas as receitas da semana, multiplicando a quantidade por pessoa pelo número de comensais, e agrupa-os por secção do supermercado. Tem caixas para ir marcando e um botão para copiar a lista.
 
@@ -70,7 +70,7 @@ O service worker usa a estratégia *rede primeiro, cache como reserva*: com liga
 | `sw.js` | Funcionamento sem rede |
 | `icon.svg`, `icon-180.png`, `icon-512.png` | Ícones (o de 180 px é o do iOS) |
 
-Os valores calóricos, os METs por modalidade e os macros das receitas são **estimativas** para orientar o planeamento. Não substituem o acompanhamento de um nutricionista ou médico, sobretudo em caso de condições de saúde, gravidez ou planos alimentares para crianças.
+Os valores calóricos, os METs por modalidade e os macros das receitas são **estimativas** para orientar o planeamento. Os METs seguem o *Compendium of Physical Activities*, e o gasto calcula-se por MET × peso × horas — a fórmula habitual, que ignora diferenças de eficiência, altitude ou temperatura. Nada disto substitui o acompanhamento de um nutricionista ou médico, sobretudo em caso de condições de saúde, gravidez ou planos alimentares para crianças.
 
 ## Licença
 
