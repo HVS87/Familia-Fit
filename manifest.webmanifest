@@ -1,0 +1,19 @@
+{
+  "name": "Família Fit — Alimentação & Movimento",
+  "short_name": "Família Fit",
+  "description": "Gestão de alimentação e atividade física para toda a família: perfis, calorias, macros, receitas, plano semanal e lista de compras.",
+  "lang": "pt",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#F6F5F1",
+  "theme_color": "#2456A6",
+  "categories": ["health", "food", "lifestyle"],
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon-180.png", "sizes": "180x180", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

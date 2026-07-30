@@ -1,0 +1,1225 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Gestão de alimentação e fitness para toda a família — perfis, calorias, macros por dieta, receitas, plano semanal com cheat days e lista de compras.">
+<meta name="color-scheme" content="light dark">
+<meta name="author" content="Família Fit">
+<meta name="theme-color" content="#F6F5F1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14181D" media="(prefers-color-scheme: dark)">
+<meta name="format-detection" content="telephone=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Família Fit">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Família Fit — Alimentação & Movimento</title>
+<style>
+:root{
+  --bg:#F6F5F1; --card:#FFFFFF; --ink:#232930; --mut:#6A737D; --line:#E4E1D8;
+  --accent:#2456A6; --accent-soft:#E8EEF8; --energy:#C8641E; --energy-soft:#F8EDE2;
+  --party:#C2477C; --party-soft:#F9E9F1;
+  --ok:#2E7D4F; --warn:#B07F14; --bad:#C24034;
+  --mc:#C8862A; --mp:#2456A6; --mf:#7C5CB0;
+  --shadow:0 1px 3px rgba(35,41,48,.07),0 4px 14px rgba(35,41,48,.05);
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#14181D; --card:#1C2229; --ink:#E8EAED; --mut:#96A0AA; --line:#2A323B;
+    --accent:#7BA7E8; --accent-soft:#22304A; --energy:#E09550; --energy-soft:#3A2C1D;
+    --party:#E38AA8; --party-soft:#3D2430;
+    --ok:#5FBF8A; --warn:#D9B04A; --bad:#E07A6B;
+    --mc:#DCA84F; --mp:#7BA7E8; --mf:#A98BD8;
+    --shadow:0 1px 3px rgba(0,0,0,.4);
+  }
+}
+:root[data-theme="light"]{
+  --bg:#F6F5F1; --card:#FFFFFF; --ink:#232930; --mut:#6A737D; --line:#E4E1D8;
+  --accent:#2456A6; --accent-soft:#E8EEF8; --energy:#C8641E; --energy-soft:#F8EDE2;
+  --party:#C2477C; --party-soft:#F9E9F1;
+  --ok:#2E7D4F; --warn:#B07F14; --bad:#C24034;
+  --mc:#C8862A; --mp:#2456A6; --mf:#7C5CB0;
+  --shadow:0 1px 3px rgba(35,41,48,.07),0 4px 14px rgba(35,41,48,.05);
+}
+:root[data-theme="dark"]{
+  --bg:#14181D; --card:#1C2229; --ink:#E8EAED; --mut:#96A0AA; --line:#2A323B;
+  --accent:#7BA7E8; --accent-soft:#22304A; --energy:#E09550; --energy-soft:#3A2C1D;
+  --party:#E38AA8; --party-soft:#3D2430;
+  --ok:#5FBF8A; --warn:#D9B04A; --bad:#E07A6B;
+  --mc:#DCA84F; --mp:#7BA7E8; --mf:#A98BD8;
+  --shadow:0 1px 3px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 "Segoe UI",system-ui,-apple-system,sans-serif;padding-bottom:60px}
+h1,h2,h3,.display{font-family:Georgia,"Times New Roman",serif;font-weight:600;text-wrap:balance}
+h1{font-size:26px} h2{font-size:20px;margin-bottom:4px} h3{font-size:16px}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+header{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10}
+.hwrap{max-width:1100px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.brand{display:flex;flex-direction:column;line-height:1.2}
+.brand small{color:var(--mut);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase}
+nav{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
+nav button{background:none;border:none;padding:8px 14px;border-radius:999px;cursor:pointer;color:var(--mut);font-weight:600;font-size:14px}
+nav button:hover{color:var(--ink)}
+nav button.on{background:var(--accent-soft);color:var(--accent)}
+main{max-width:1100px;margin:0 auto;padding:24px 20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:18px 20px}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}
+.g3{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+.sub{color:var(--mut);font-size:13.5px}
+.lbl{display:block;font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--mut);font-weight:600;margin-bottom:3px}
+input[type=text],input[type=number],input[type=date],select{
+  width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 10px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.frow{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:10px;margin-top:10px}
+.btn{background:var(--accent);color:#fff;border:none;border-radius:9px;padding:9px 16px;font-weight:600;cursor:pointer}
+:root[data-theme="dark"] .btn{color:#10151b}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .btn{color:#10151b}}
+.btn.ghost{background:none;color:var(--accent);border:1px solid var(--accent)}
+.btn.small{padding:5px 11px;font-size:13px}
+.btn.danger{background:none;border:1px solid var(--line);color:var(--bad)}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:4px 12px;background:var(--bg);cursor:pointer;font-size:13.5px;font-weight:600}
+.chip.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.chip.party{border-color:var(--party);color:var(--party)}
+.chip.party.on{background:var(--party-soft)}
+.av{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;color:#fff;flex:none}
+.stat{display:flex;flex-direction:column;gap:2px;padding:10px 12px;background:var(--bg);border-radius:10px;min-width:100px}
+.stat b{font-size:20px;font-variant-numeric:tabular-nums}
+.stat span{font-size:11.5px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
+.pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700}
+.pill.ok{background:color-mix(in srgb,var(--ok) 14%,transparent);color:var(--ok)}
+.pill.warn{background:color-mix(in srgb,var(--warn) 16%,transparent);color:var(--warn)}
+.pill.bad{background:color-mix(in srgb,var(--bad) 14%,transparent);color:var(--bad)}
+.mbar{display:flex;height:14px;border-radius:7px;overflow:hidden;margin:8px 0 6px}
+.mbar div{height:100%}
+.mleg{display:flex;gap:14px;font-size:12.5px;color:var(--mut);flex-wrap:wrap}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}
+table{border-collapse:collapse;width:100%}
+.sports td{padding:5px 6px;border-bottom:1px solid var(--line);font-size:14px}
+.rc{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--card);display:flex;flex-direction:column;gap:6px}
+.rc h3{font-size:15.5px}
+.tag{display:inline-block;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:1px 7px;font-size:11.5px;color:var(--mut);margin:1px 2px 1px 0}
+.kcal{color:var(--energy);font-weight:700;font-variant-numeric:tabular-nums}
+.day{border:1px solid var(--line);border-radius:var(--r);background:var(--card);box-shadow:var(--shadow);overflow:hidden}
+.day.cheat-any{border-color:var(--party)}
+.dhead{padding:10px 14px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;gap:10px;background:var(--bg)}
+.dhead b{font-family:Georgia,serif;font-size:16px}
+.meal{padding:10px 14px;border-bottom:1px solid var(--line)}
+.meal:last-child{border-bottom:none}
+.mtitle{font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--mut);font-weight:700;margin-bottom:5px}
+.shop li{list-style:none;display:flex;align-items:center;gap:10px;padding:6px 4px;border-bottom:1px dashed var(--line)}
+.shop li.done span{text-decoration:line-through;color:var(--mut)}
+.shop .q{margin-left:auto;color:var(--mut);font-variant-numeric:tabular-nums;white-space:nowrap;font-size:13.5px}
+.cat-h{margin:18px 0 4px;font-family:Georgia,serif;font-size:15px;color:var(--accent)}
+.empty{padding:40px;text-align:center;color:var(--mut)}
+.notice{background:var(--party-soft);border:1px solid var(--party);color:var(--party);border-radius:10px;padding:8px 14px;font-weight:600;font-size:13.5px}
+.secgap{margin-top:28px}
+.savest{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mut);white-space:nowrap;
+  background:none;border:none;cursor:pointer;padding:4px 2px;font-family:inherit}
+.savest:hover{color:var(--ink)}
+.savest .led{width:7px;height:7px;border-radius:50%;background:var(--ok);flex:none}
+.savest.pend .led{background:var(--warn)}
+.savest.err{color:var(--bad)} .savest.err .led{background:var(--bad)}
+.savest.none .led{background:var(--line)}
+textarea{width:100%;min-height:120px;background:var(--bg);border:1px solid var(--line);border-radius:8px;
+  padding:8px 10px;font:12.5px/1.5 ui-monospace,Consolas,monospace;color:inherit;resize:vertical}
+.toggle{display:flex;align-items:flex-start;gap:9px;cursor:pointer;padding:4px 0}
+.toggle input{margin-top:4px;flex:none}
+.filebtn{position:relative;overflow:hidden;display:inline-block}
+.filebtn input[type=file]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.kv{display:flex;justify-content:space-between;gap:14px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.kv:last-child{border-bottom:none}
+.kv b{font-variant-numeric:tabular-nums}
+.msg{border-radius:9px;padding:10px 14px;font-size:13.5px;font-weight:600;margin-bottom:16px}
+.msg.ok{background:color-mix(in srgb,var(--ok) 13%,transparent);color:var(--ok)}
+.msg.bad{background:color-mix(in srgb,var(--bad) 13%,transparent);color:var(--bad)}
+@media (prefers-reduced-motion: no-preference){ .card,.day,.rc{transition:box-shadow .15s} }
+
+/* ============ TOQUE, TELEMÓVEL E TABLET ============ */
+/* Reservas para Safari anterior ao 16.4, que não conhece color-mix():
+   a declaração simples fica antes e é usada quando a seguinte é ignorada. */
+.pill.ok{background:rgba(46,125,79,.14)}
+.pill.ok{background:color-mix(in srgb,var(--ok) 14%,transparent)}
+.pill.warn{background:rgba(176,127,20,.16)}
+.pill.warn{background:color-mix(in srgb,var(--warn) 16%,transparent)}
+.pill.bad{background:rgba(194,64,52,.14)}
+.pill.bad{background:color-mix(in srgb,var(--bad) 14%,transparent)}
+.msg.ok{background:rgba(46,125,79,.13)}
+.msg.ok{background:color-mix(in srgb,var(--ok) 13%,transparent)}
+.msg.bad{background:rgba(194,64,52,.13)}
+.msg.bad{background:color-mix(in srgb,var(--bad) 13%,transparent)}
+
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+button,select,input,label,.chip{touch-action:manipulation}
+button,.chip,.filebtn{-webkit-tap-highlight-color:transparent}
+button:active,.chip:active,.filebtn:active{opacity:.82}
+input[type=checkbox]{accent-color:var(--accent)}
+/* O select nativo do iOS ignora o desenho da página; uniformiza-se a seta. */
+select{-webkit-appearance:none;appearance:none;padding-right:28px;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'><path d='M1 1.6 6 6.4 11 1.6' fill='none' stroke='%238A929B' stroke-width='1.7' stroke-linecap='round'/></svg>");
+  background-repeat:no-repeat;background-position:right 9px center;background-size:11px 8px}
+/* Margens seguras do notch e da barra inferior do iPhone (viewport-fit=cover). */
+.hwrap{padding-left:max(20px,env(safe-area-inset-left));padding-right:max(20px,env(safe-area-inset-right))}
+main{padding-left:max(20px,env(safe-area-inset-left));padding-right:max(20px,env(safe-area-inset-right))}
+body{padding-bottom:max(60px,calc(env(safe-area-inset-bottom) + 44px))}
+
+@media (max-width:760px){
+  /* Seis separadores não cabem em linha: passam a faixa que desliza na horizontal. */
+  nav{order:3;width:100%;margin-left:0;flex-wrap:nowrap;overflow-x:auto;
+    -webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px}
+  nav::-webkit-scrollbar{display:none}
+  nav button{flex:none}
+  .hwrap{gap:10px}
+  .savest{margin-left:auto}
+}
+@media (max-width:640px){
+  .hwrap{padding:10px 14px}
+  main{padding:16px 12px}
+  .hwrap{padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env(safe-area-inset-right))}
+  main{padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}
+  h1{font-size:22px} h2{font-size:19px}
+  .card{padding:15px 16px}
+  .stat{flex:1 1 92px}
+  .frow{grid-template-columns:repeat(auto-fit,minmax(74px,1fr))}
+}
+@media (max-width:560px){
+  /* Cada desporto passa a bloco, para os campos não ficarem esmagados. */
+  .sports,.sports tbody{display:block;width:100%}
+  .sports tr{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+  /* Sem min-width:0 os select impõem a largura da opção mais comprida
+     ("Ciclismo de montanha (subida)") e nada mais cabe na linha. */
+  .sports td{display:block;border:none;padding:0;min-width:0}
+  .sports td select{width:100%;max-width:100%}
+  /* Linha 1: desporto e o botão de apagar. Linha 2: intensidade.
+     Linha 3: horas e período. Linha 4: o gasto, alinhado à direita. */
+  .sports td:nth-child(1){flex:1 1 60%;order:1}
+  .sports td:nth-child(6){flex:0 0 auto;order:2}
+  .sports td:nth-child(2){flex:1 1 100%;order:3}
+  .sports td:nth-child(3){flex:0 0 78px;order:4}
+  .sports td:nth-child(4){flex:1 1 90px;order:5}
+  .sports td:nth-child(5){flex:1 1 100%;order:6;text-align:right}
+  .sports td:nth-child(5) .sub{display:inline;margin-left:6px}
+}
+/* Ecrãs de toque: alvos de 44 px e campos a 16 px, que é o mínimo para o
+   iOS não fazer zoom automático ao tocar num campo. */
+@media (hover:none) and (pointer:coarse){
+  input[type=text],input[type=number],input[type=date],select,textarea{font-size:16px}
+  .btn,nav button{min-height:44px}
+  .chip{min-height:42px;padding:7px 14px}
+  .btn.small{min-height:40px;padding:8px 13px}
+  .savest{min-height:40px}
+  .shop li{padding:11px 4px}
+  .shop input[type=checkbox]{width:22px;height:22px}
+  .toggle input{width:20px;height:20px}
+  textarea{min-height:140px}
+  .sports td select,.sports td input{min-height:42px}
+}
+/* Tablet em vertical: duas colunas confortáveis em vez de três apertadas. */
+@media (min-width:700px) and (max-width:1024px){
+  .g3{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+}
+
+/* ============ ORIENTAÇÃO ============ */
+/* Grelha dos dias do plano, para poder mudar com a orientação. */
+.gdias{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+
+/* Reserva sem JavaScript: qualquer ecrã muito baixo é um telemóvel deitado. */
+@media (orientation:landscape) and (max-height:460px){
+  header{position:static}
+  .brand small{display:none}
+  .hwrap{padding-top:7px;padding-bottom:7px}
+}
+
+/* O detetor de orientação marca <html> com data-orient e data-dispositivo,
+   o que permite distinguir um telemóvel deitado de um tablet deitado —
+   coisa que as media queries de largura, por si só, não conseguem. */
+
+/* Telemóvel deitado: a altura passa a ser o recurso escasso. O cabeçalho
+   deixa de ser fixo e encolhe, para a lista não ficar a espiar por uma frincha. */
+html[data-orient="paisagem"][data-dispositivo="telefone"] header{position:static}
+html[data-orient="paisagem"][data-dispositivo="telefone"] .hwrap{padding-top:6px;padding-bottom:6px;gap:8px}
+html[data-orient="paisagem"][data-dispositivo="telefone"] .brand small{display:none}
+html[data-orient="paisagem"][data-dispositivo="telefone"] h1{font-size:18px}
+html[data-orient="paisagem"][data-dispositivo="telefone"] nav button{min-height:38px;padding:6px 11px}
+html[data-orient="paisagem"][data-dispositivo="telefone"] main{padding-top:12px}
+html[data-orient="paisagem"][data-dispositivo="telefone"] .secgap{margin-top:18px}
+/* Ao deitar, a largura dá para duas colunas de cartões. */
+html[data-orient="paisagem"][data-dispositivo="telefone"] .g2,
+html[data-orient="paisagem"][data-dispositivo="telefone"] .g3,
+html[data-orient="paisagem"][data-dispositivo="telefone"] .gdias{grid-template-columns:repeat(auto-fill,minmax(272px,1fr))}
+
+/* Telemóvel de pé: uma coluna, sem cartões a partir em duas metades estreitas. */
+html[data-orient="retrato"][data-dispositivo="telefone"] .g2,
+html[data-orient="retrato"][data-dispositivo="telefone"] .g3,
+html[data-orient="retrato"][data-dispositivo="telefone"] .gdias{grid-template-columns:1fr}
+
+/* Tablet de pé: duas colunas largas e mais respiro nas margens. */
+html[data-orient="retrato"][data-dispositivo="tablet"] main{padding-left:24px;padding-right:24px}
+html[data-orient="retrato"][data-dispositivo="tablet"] .g3,
+html[data-orient="retrato"][data-dispositivo="tablet"] .gdias{grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}
+
+/* Tablet deitado: aproveita a largura toda, mais dias e receitas por linha. */
+html[data-orient="paisagem"][data-dispositivo="tablet"] main{max-width:1280px}
+html[data-orient="paisagem"][data-dispositivo="tablet"] .g3{grid-template-columns:repeat(auto-fill,minmax(268px,1fr))}
+html[data-orient="paisagem"][data-dispositivo="tablet"] .gdias{grid-template-columns:repeat(auto-fill,minmax(252px,1fr))}
+</style>
+</head>
+<body>
+<header>
+  <div class="hwrap">
+    <div class="brand">
+      <h1>Família Fit</h1>
+      <small>alimentação &amp; movimento</small>
+    </div>
+    <nav id="nav"></nav>
+    <button class="savest" id="savest" onclick="go('dados')" title="Ver dados e cópias de segurança"></button>
+  </div>
+</header>
+<main id="main"></main>
+
+<script>
+/* ================= DADOS BASE ================= */
+/* Desportos com três níveis de intensidade. Os valores são METs (equivalentes
+   metabólicos) do Compendium of Physical Activities, na ordem leve / moderado /
+   intenso. Onde a velocidade ou o terreno mandam mais do que o esforço sentido
+   — ciclismo, corrida, caminhada — a dica indica o que cada nível representa. */
+const NIVEIS=[['leve','Leve'],['moderado','Moderado'],['intenso','Intenso']];
+const CATS_SPORT=[['corrida','Corrida e caminhada'],['ciclismo','Ciclismo'],['agua','Água'],
+  ['forca','Força e ginásio'],['corpo','Corpo e mente'],['bola','Bola'],['raquete','Raquete'],
+  ['combate','Combate'],['natureza','Ar livre'],['danca','Dança']];
+function SP(id,nome,cat,mets,dicas){ return {id,nome,cat,mets,dicas:dicas||null}; }
+const SPORTS=[
+  SP('caminhada','Caminhada','corrida',[3.0,4.3,5.3],['~4 km/h','~5,5 km/h','~6,5 km/h, a bom passo']),
+  SP('corrida','Corrida','corrida',[8.3,10.0,12.8],['~8 km/h','~10-11 km/h','13+ km/h']),
+  SP('trail','Corrida em trilho (trail)','corrida',[9.0,11.0,13.0],['terreno fácil','a subir e descer','montanha técnica']),
+  SP('intervalos','Treino por intervalos / séries','corrida',[9.0,12.0,15.0]),
+  SP('escadas','Subir escadas / step','corrida',[4.0,8.8,11.0]),
+
+  SP('ciclismo','Ciclismo de estrada','ciclismo',[5.8,8.0,10.0],['~16 km/h','~19-22 km/h','22+ km/h']),
+  SP('ciclismoMontanha','Ciclismo de montanha (subida)','ciclismo',[7.0,9.5,12.0],['subida suave','subida constante','subida exigente']),
+  SP('btt','BTT / trilhos','ciclismo',[6.8,8.5,11.0],['caminhos planos','trilho ondulado','trilho técnico']),
+  SP('ciclismoPasseio','Bicicleta de passeio / cicloturismo','ciclismo',[4.0,5.8,7.0],['sem pressa','ritmo constante','com bagagem ou vento']),
+  SP('spinning','Bicicleta estática / spinning','ciclismo',[5.5,8.5,11.0]),
+
+  SP('natacao','Natação','agua',[5.3,7.0,9.8],['sem parar, devagar','ritmo de treino','séries rápidas']),
+  SP('hidroginastica','Hidroginástica','agua',[3.5,4.5,5.5]),
+  SP('remo','Remo / canoagem','agua',[4.0,7.0,10.0]),
+  SP('surf','Surf','agua',[3.0,5.0,6.5]),
+
+  SP('musculacao','Musculação (pesos)','forca',[3.5,5.0,6.0],['séries longas e leves','treino normal','cargas altas, pouco descanso']),
+  SP('calistenia','Calistenia (peso do corpo)','forca',[3.8,5.5,8.0],['flexões e abdominais','circuito contínuo','barras e explosivo']),
+  SP('funcional','Treino funcional / CrossFit','forca',[6.0,8.0,12.0]),
+  SP('eliptica','Elíptica','forca',[4.5,5.5,7.0]),
+  SP('ginasio','Ginásio — cardio geral','forca',[4.5,6.0,8.0]),
+
+  SP('yoga','Ioga','corpo',[2.5,3.3,4.5],['hatha ou restaurativo','vinyasa','power ou ashtanga']),
+  SP('pilates','Pilates','corpo',[2.8,3.5,4.5],['solo, iniciação','solo, ritmo normal','reformer ou avançado']),
+  SP('taichi','Tai chi / qigong','corpo',[2.0,3.0,4.0]),
+  SP('alongamentos','Alongamentos / mobilidade','corpo',[2.0,2.5,3.0]),
+
+  SP('futebol','Futebol','bola',[6.0,8.0,10.0],['recreativo','jogo normal','competição']),
+  SP('futsal','Futsal','bola',[7.0,9.0,10.5]),
+  SP('basquete','Basquetebol','bola',[4.5,7.5,9.3],['lançamentos ao cesto','jogo normal','competição']),
+  SP('volei','Voleibol','bola',[3.0,4.5,8.0],['recreativo','jogo normal','praia ou competição']),
+  SP('andebol','Andebol','bola',[8.0,10.0,12.0]),
+
+  SP('tenis','Ténis','raquete',[5.0,7.3,8.0],['duplas','singulares','competição']),
+  SP('padel','Padel','raquete',[5.0,6.5,8.0]),
+  SP('badminton','Badminton','raquete',[4.5,5.5,7.0]),
+  SP('squash','Squash','raquete',[7.3,10.0,12.0]),
+  SP('pingpong','Ténis de mesa','raquete',[3.0,4.0,5.0]),
+
+  SP('artes','Artes marciais','combate',[5.3,8.0,10.3],['treino técnico','aula normal','combate']),
+  SP('boxe','Boxe / kickboxing','combate',[5.5,7.8,12.8],['saco e técnica','aula normal','sparring']),
+
+  SP('hiking','Caminhada de montanha','natureza',[5.3,6.5,8.0],['trilho plano','com subidas','com mochila e declive']),
+  SP('escalada','Escalada','natureza',[5.8,7.5,11.0]),
+  SP('esqui','Esqui / snowboard','natureza',[4.3,6.8,9.0]),
+  SP('patinagem','Patinagem / skate','natureza',[5.0,7.0,9.0]),
+  SP('jardinagem','Jardinagem / trabalho no quintal','natureza',[2.8,3.8,5.0]),
+
+  SP('danca','Dança','danca',[3.5,5.0,7.8],['de salão','moderna','muito ritmada']),
+  SP('zumba','Zumba / aeróbica','danca',[5.0,6.5,8.5]),
+  SP('ballet','Ballet / dança contemporânea','danca',[4.8,6.0,7.5])
+];
+const SPORT={}; SPORTS.forEach(s=>{ SPORT[s.id]=s; });
+function nivelIndice(i){ const n=NIVEIS.findIndex(x=>x[0]===i); return n<0? 1 : n; }
+function metDe(s){ const sp=SPORT[s.s]; return sp? sp.mets[nivelIndice(s.i)] : 0; }
+function rotuloNivel(sp,idx){ return NIVEIS[idx][1]+(sp && sp.dicas? ' ('+sp.dicas[idx]+')' : ''); }
+const DIETS = {
+  equilibrada:{n:'Equilibrada',c:50,p:20,f:30},
+  mediterranica:{n:'Mediterrânica',c:45,p:20,f:35},
+  keto:{n:'Keto',c:5,p:25,f:70},
+  lowcarb:{n:'Low carb',c:20,p:35,f:45},
+  lowfat:{n:'Low fat',c:55,p:25,f:20},
+  paleo:{n:'Paleo',c:30,p:30,f:40},
+  vegetariana:{n:'Vegetariana',c:50,p:20,f:30}
+};
+const CUIS = {portuguesa:'Portuguesa',italiana:'Italiana',francesa:'Francesa',mediterranica:'Mediterrânica',asiatica:'Asiática'};
+const BASE_ACT = {sedentario:['Sedentário (escritório, pouco movimento)',1.2],leve:['Leve (em pé parte do dia)',1.35],moderado:['Moderado (trabalho ativo)',1.5],intenso:['Intenso (trabalho físico pesado)',1.65]};
+const COMMUTE = {nenhum:['Carro / transportes',0],pe30:['A pé (~30 min/dia)',1.75],pe60:['A pé (~1 h/dia)',3.5],bici:['Bicicleta (~30 min/dia)',3.4]}; // valor = MET·h efetivos/dia útil
+const GOALS = {perder:['Perder peso',-0.15],manter:['Manter peso',0],ganhar:['Ganhar massa',0.10]};
+
+/* Refeições do dia, com a fatia sugerida do total calórico. */
+const MEALS=[['p','Pequeno-almoço',0.25],['a','Almoço',0.35],['l','Lanche',0.10],['j','Jantar',0.30]];
+const MEALK=MEALS.map(x=>x[0]);
+function nomeRefeicao(k){ const m=MEALS.find(x=>x[0]===k); return m? m[1] : k; }
+
+/* Receitas: por pessoa. d = dietas compatíveis além da equilibrada. k kcal,
+   c/p/f gramas. mt = refeições em que encaixa (por omissão, almoço e jantar). */
+function R(id,n,coz,d,k,c,p,f,i,mt){return {id,n,coz,d,k,c,p,f,i,mt:mt||['a','j']}}
+const RECIPES = [
+R('bras','Bacalhau à Brás','portuguesa',['mediterranica'],520,38,32,26,[['Bacalhau desfiado',120,'g'],['Batata palha',60,'g'],['Ovo',2,'un'],['Cebola',0.5,'un'],['Azeitonas pretas',20,'g'],['Azeite',10,'ml'],['Salsa',5,'g']]),
+R('caldoverde','Caldo verde','portuguesa',['lowfat','mediterranica'],230,30,8,9,[['Couve galega',80,'g'],['Batata',150,'g'],['Chouriço',20,'g'],['Cebola',0.5,'un'],['Alho',1,'dente'],['Azeite',8,'ml']]),
+R('frangopiri','Frango grelhado com salada','portuguesa',['keto','lowcarb','paleo','lowfat','mediterranica'],380,8,42,20,[['Peito de frango',180,'g'],['Alface',60,'g'],['Tomate',1,'un'],['Limão',0.5,'un'],['Azeite',10,'ml']]),
+R('alentejana','Carne de porco à alentejana','portuguesa',[],560,35,38,28,[['Carne de porco',160,'g'],['Amêijoas',100,'g'],['Batata',150,'g'],['Pimento',0.5,'un'],['Alho',2,'dente'],['Coentros',5,'g'],['Azeite',10,'ml']]),
+R('sardinhas','Sardinhas assadas com pimentos','portuguesa',['keto','lowcarb','paleo','mediterranica'],360,7,30,24,[['Sardinhas',200,'g'],['Pimento',1,'un'],['Cebola',0.5,'un'],['Azeite',8,'ml']]),
+R('arrozmarisco','Arroz de marisco','portuguesa',['lowfat','mediterranica'],480,62,28,12,[['Arroz',80,'g'],['Camarão',80,'g'],['Amêijoas',60,'g'],['Tomate',1,'un'],['Cebola',0.5,'un'],['Coentros',5,'g'],['Azeite',8,'ml']]),
+R('sopalegumes','Sopa de legumes','portuguesa',['lowfat','lowcarb','vegetariana','mediterranica'],150,22,5,5,[['Cenoura',80,'g'],['Courgette',80,'g'],['Abóbora',100,'g'],['Cebola',0.5,'un'],['Azeite',5,'ml']]),
+R('polvo','Polvo à lagareiro','portuguesa',['mediterranica'],540,30,42,28,[['Polvo',200,'g'],['Batata',150,'g'],['Alho',2,'dente'],['Azeite',20,'ml'],['Salsa',5,'g']]),
+R('dourada','Dourada grelhada com legumes','portuguesa',['keto','lowcarb','paleo','lowfat','mediterranica'],350,10,38,18,[['Dourada',250,'g'],['Brócolos',100,'g'],['Cenoura',60,'g'],['Alho',1,'dente'],['Limão',0.5,'un'],['Azeite',10,'ml']]),
+R('bolonhesa','Esparguete à bolonhesa','italiana',[],560,65,30,18,[['Esparguete',80,'g'],['Carne picada de vaca',100,'g'],['Tomate pelado',150,'g'],['Cebola',0.5,'un'],['Cenoura',40,'g'],['Alho',1,'dente'],['Parmesão',10,'g'],['Azeite',8,'ml']]),
+R('caprese','Salada caprese com rúcula','italiana',['keto','lowcarb','vegetariana','mediterranica'],340,9,16,27,[['Mozzarella fresca',100,'g'],['Tomate',2,'un'],['Rúcula',40,'g'],['Manjericão',5,'g'],['Azeite',10,'ml']]),
+R('risotto','Risotto de cogumelos','italiana',['vegetariana'],480,62,12,20,[['Arroz arbóreo',80,'g'],['Cogumelos',120,'g'],['Cebola',0.5,'un'],['Vinho branco',40,'ml'],['Parmesão',15,'g'],['Manteiga',10,'g']]),
+R('courgetti','Esparguete de courgette, pesto e frango','italiana',['keto','lowcarb'],390,10,35,24,[['Courgette',200,'g'],['Peito de frango',140,'g'],['Pesto',25,'g'],['Tomate cereja',80,'g'],['Parmesão',10,'g']]),
+R('piccata','Frango piccata ao limão','italiana',['keto','lowcarb'],420,6,40,26,[['Peito de frango',170,'g'],['Limão',1,'un'],['Alcaparras',10,'g'],['Manteiga',15,'g'],['Salsa',5,'g'],['Azeite',5,'ml']]),
+R('pizza','Pizza margherita caseira','italiana',['vegetariana'],620,78,24,22,[['Farinha',100,'g'],['Fermento de padeiro',3,'g'],['Tomate pelado',80,'g'],['Mozzarella',80,'g'],['Manjericão',5,'g'],['Azeite',8,'ml']]),
+R('minestrone','Sopa minestrone','italiana',['lowfat','vegetariana','mediterranica'],260,40,10,6,[['Feijão branco',60,'g'],['Massa pequena',30,'g'],['Cenoura',50,'g'],['Aipo',30,'g'],['Tomate',1,'un'],['Courgette',60,'g'],['Azeite',5,'ml']]),
+R('ratatouille','Ratatouille','francesa',['keto','lowcarb','paleo','lowfat','vegetariana','mediterranica'],220,18,4,14,[['Beringela',100,'g'],['Courgette',100,'g'],['Pimento',0.5,'un'],['Tomate',2,'un'],['Cebola',0.5,'un'],['Alho',2,'dente'],['Ervas de Provença',2,'g'],['Azeite',12,'ml']]),
+R('salmaomanteiga','Salmão com manteiga de limão e espargos','francesa',['keto','lowcarb'],520,6,34,40,[['Salmão',170,'g'],['Espargos',120,'g'],['Manteiga',20,'g'],['Limão',0.5,'un'],['Endro',3,'g']]),
+R('nicoise','Salade niçoise','francesa',['lowcarb','mediterranica'],400,22,30,21,[['Atum em conserva',100,'g'],['Ovo',1,'un'],['Batata nova',100,'g'],['Feijão verde',80,'g'],['Azeitonas',20,'g'],['Tomate',1,'un'],['Azeite',8,'ml']]),
+R('omelete','Omelete de ervas com salada','francesa',['keto','lowcarb','vegetariana'],330,4,20,26,[['Ovo',3,'un'],['Manteiga',10,'g'],['Cebolinho',5,'g'],['Alface',50,'g'],['Azeite',5,'ml']]),
+R('provencal','Frango à provençal','francesa',['paleo','lowcarb','lowfat','mediterranica'],400,14,42,19,[['Coxas de frango',200,'g'],['Tomate',2,'un'],['Azeitonas',25,'g'],['Alho',2,'dente'],['Ervas de Provença',2,'g'],['Azeite',8,'ml']]),
+R('sopacebola','Sopa de cebola gratinada','francesa',['vegetariana'],350,35,14,17,[['Cebola',2,'un'],['Caldo de legumes',300,'ml'],['Pão rústico',40,'g'],['Queijo gruyère',30,'g'],['Manteiga',10,'g']]),
+R('grega','Salada grega','mediterranica',['keto','lowcarb','vegetariana','mediterranica'],360,14,12,28,[['Queijo feta',80,'g'],['Pepino',0.5,'un'],['Tomate',2,'un'],['Cebola roxa',0.25,'un'],['Azeitonas',30,'g'],['Orégãos',2,'g'],['Azeite',12,'ml']]),
+R('robalo','Robalo no forno com legumes','mediterranica',['keto','lowcarb','paleo','lowfat','mediterranica'],380,12,40,19,[['Robalo',250,'g'],['Courgette',100,'g'],['Pimento',0.5,'un'],['Tomate cereja',80,'g'],['Limão',0.5,'un'],['Azeite',10,'ml']]),
+R('humus','Húmus com pão pita e crudités','mediterranica',['vegetariana','lowfat','mediterranica'],410,55,14,15,[['Grão-de-bico cozido',120,'g'],['Tahini',15,'g'],['Limão',0.5,'un'],['Pão pita',1,'un'],['Cenoura',80,'g'],['Pepino',0.5,'un'],['Azeite',8,'ml']]),
+R('espetadas','Espetadas de frango com iogurte e limão','mediterranica',['lowcarb','lowfat','mediterranica'],420,18,45,18,[['Peito de frango',170,'g'],['Iogurte grego',60,'g'],['Limão',0.5,'un'],['Pimento',0.5,'un'],['Cebola',0.5,'un'],['Azeite',6,'ml']]),
+R('couscous','Couscous de legumes com hortelã','mediterranica',['vegetariana','lowfat','mediterranica'],430,70,12,11,[['Couscous',80,'g'],['Grão-de-bico cozido',60,'g'],['Cenoura',60,'g'],['Courgette',60,'g'],['Passas',20,'g'],['Hortelã',5,'g'],['Azeite',8,'ml']]),
+R('salteado','Salteado de frango com gengibre','asiatica',['lowcarb','lowfat'],400,20,40,17,[['Peito de frango',160,'g'],['Brócolos',100,'g'],['Pimento',0.5,'un'],['Cenoura',60,'g'],['Molho de soja',15,'ml'],['Gengibre',10,'g'],['Óleo de sésamo',8,'ml']]),
+R('caril','Caril de legumes com leite de coco','asiatica',['keto','lowcarb','vegetariana','paleo'],420,20,8,35,[['Leite de coco',150,'ml'],['Couve-flor',120,'g'],['Beringela',80,'g'],['Espinafres',50,'g'],['Caril em pó',8,'g'],['Cebola',0.5,'un'],['Óleo de coco',8,'ml']]),
+R('poke','Poke bowl de salmão','asiatica',[],520,58,30,18,[['Salmão fresco',120,'g'],['Arroz para sushi',80,'g'],['Abacate',0.5,'un'],['Pepino',0.5,'un'],['Edamame',50,'g'],['Molho de soja',15,'ml'],['Sementes de sésamo',5,'g']]),
+R('padthai','Pad thai de camarão','asiatica',[],540,65,28,18,[['Massa de arroz',80,'g'],['Camarão',100,'g'],['Ovo',1,'un'],['Rebentos de soja',60,'g'],['Amendoim',20,'g'],['Lima',0.5,'un'],['Molho de peixe',15,'ml']]),
+R('beefbroc','Vaca salteada com brócolos','asiatica',['keto','lowcarb','paleo'],430,12,38,26,[['Bife de vaca',160,'g'],['Brócolos',150,'g'],['Alho',2,'dente'],['Molho de soja',15,'ml'],['Gengibre',8,'g'],['Óleo de sésamo',10,'ml']]),
+R('noodles','Sopa asiática de noodles e frango','asiatica',['lowfat'],430,55,32,8,[['Noodles',70,'g'],['Peito de frango',120,'g'],['Caldo de galinha',400,'ml'],['Cogumelos shiitake',50,'g'],['Cebolinho',10,'g'],['Molho de soja',10,'ml']]),
+R('tofu','Tofu teriyaki com legumes','asiatica',['vegetariana','lowfat'],380,40,22,14,[['Tofu',150,'g'],['Molho teriyaki',20,'ml'],['Brócolos',100,'g'],['Cenoura',60,'g'],['Arroz',60,'g'],['Sementes de sésamo',5,'g']]),
+
+/* ---------- Mais pratos principais ---------- */
+R('feijoada','Feijoada à portuguesa','portuguesa',[],620,48,38,30,[['Feijão encarnado',120,'g'],['Carne de porco',100,'g'],['Chouriço',30,'g'],['Couve',80,'g'],['Cenoura',60,'g'],['Cebola',0.5,'un'],['Azeite',8,'ml']]),
+R('pescadaforno','Filetes de pescada no forno com legumes','portuguesa',['lowfat','lowcarb','mediterranica'],320,14,38,12,[['Pescada',220,'g'],['Courgette',100,'g'],['Tomate',1,'un'],['Cebola',0.5,'un'],['Limão',0.5,'un'],['Azeite',8,'ml']]),
+R('rojoes','Rojões com grelos','portuguesa',['lowcarb','paleo'],520,16,42,32,[['Carne de porco',180,'g'],['Grelos',120,'g'],['Alho',2,'dente'],['Louro',1,'g'],['Azeite',10,'ml']]),
+R('acorda','Açorda de camarão','portuguesa',['mediterranica'],420,44,26,15,[['Pão alentejano',80,'g'],['Camarão',120,'g'],['Ovo',1,'un'],['Alho',2,'dente'],['Coentros',8,'g'],['Azeite',10,'ml']]),
+R('migas','Migas de espargos com ovo escalfado','portuguesa',['vegetariana','mediterranica'],380,38,18,18,[['Pão alentejano',70,'g'],['Espargos',150,'g'],['Ovo',1,'un'],['Alho',2,'dente'],['Azeite',12,'ml']]),
+R('espetadavaca','Espetada de vaca com pimentos','portuguesa',['keto','lowcarb','paleo'],450,10,44,26,[['Bife de vaca',180,'g'],['Pimento',1,'un'],['Cebola',0.5,'un'],['Louro',1,'g'],['Azeite',10,'ml']]),
+R('lasanhalegumes','Lasanha de legumes','italiana',['vegetariana'],540,58,24,23,[['Placas de lasanha',70,'g'],['Beringela',100,'g'],['Courgette',100,'g'],['Tomate pelado',150,'g'],['Mozzarella',70,'g'],['Parmesão',15,'g'],['Azeite',8,'ml']]),
+R('gnocchi','Gnocchi com tomate e manjericão','italiana',['vegetariana'],520,72,16,17,[['Gnocchi de batata',180,'g'],['Tomate pelado',150,'g'],['Manjericão',6,'g'],['Alho',1,'dente'],['Parmesão',15,'g'],['Azeite',10,'ml']]),
+R('saltimbocca','Saltimbocca de peru com salva','italiana',['keto','lowcarb'],400,5,44,23,[['Bifes de peru',180,'g'],['Presunto',25,'g'],['Salva',3,'g'],['Manteiga',12,'g'],['Azeite',5,'ml']]),
+R('espadarte','Espadarte grelhado com salsa verde','italiana',['keto','lowcarb','paleo','mediterranica'],390,6,40,23,[['Espadarte',200,'g'],['Salsa',10,'g'],['Alcaparras',10,'g'],['Alho',1,'dente'],['Limão',0.5,'un'],['Azeite',12,'ml']]),
+R('cassoulet','Cassoulet de feijão branco','francesa',[],580,52,36,24,[['Feijão branco',130,'g'],['Coxas de frango',150,'g'],['Chouriço',25,'g'],['Cenoura',60,'g'],['Cebola',0.5,'un'],['Tomate',1,'un'],['Azeite',8,'ml']]),
+R('quiche','Quiche de alho-francês','francesa',['vegetariana'],510,38,18,32,[['Massa quebrada',80,'g'],['Alho-francês',150,'g'],['Ovo',2,'un'],['Nata',80,'ml'],['Queijo gruyère',30,'g']]),
+R('coqauvin','Coq au vin','francesa',['lowcarb'],480,14,44,26,[['Coxas de frango',200,'g'],['Vinho tinto',100,'ml'],['Cogumelos',100,'g'],['Cenoura',80,'g'],['Cebola',0.5,'un'],['Manteiga',12,'g']]),
+R('sopapeixe','Sopa de peixe à francesa','francesa',['lowfat','mediterranica'],320,22,32,11,[['Pescada',180,'g'],['Tomate',2,'un'],['Batata',100,'g'],['Alho-francês',80,'g'],['Açafrão',0.5,'g'],['Azeite',8,'ml']]),
+R('tabule','Tabule de quinoa com legumes','mediterranica',['vegetariana','lowfat','mediterranica'],420,58,14,14,[['Quinoa',70,'g'],['Tomate',2,'un'],['Pepino',0.5,'un'],['Hortelã',8,'g'],['Salsa',8,'g'],['Limão',0.5,'un'],['Azeite',10,'ml']]),
+R('moussaka','Moussaka de beringela','mediterranica',[],560,34,32,32,[['Beringela',200,'g'],['Carne picada de vaca',120,'g'],['Tomate pelado',120,'g'],['Cebola',0.5,'un'],['Queijo feta',40,'g'],['Canela',1,'g'],['Azeite',12,'ml']]),
+R('salmaolentilhas','Salmão com lentilhas e endro','mediterranica',['mediterranica','lowfat'],520,38,40,24,[['Salmão',170,'g'],['Lentilhas',90,'g'],['Cenoura',60,'g'],['Endro',4,'g'],['Limão',0.5,'un'],['Azeite',10,'ml']]),
+R('frittata','Frittata de legumes','mediterranica',['keto','lowcarb','vegetariana','mediterranica'],340,10,22,24,[['Ovo',3,'un'],['Courgette',100,'g'],['Pimento',0.5,'un'],['Queijo feta',40,'g'],['Azeite',10,'ml']]),
+R('ramen','Ramen de miso com ovo','asiatica',[],520,64,26,16,[['Noodles',80,'g'],['Pasta de miso',25,'g'],['Ovo',1,'un'],['Cogumelos shiitake',60,'g'],['Rebentos de soja',60,'g'],['Cebolinho',10,'g'],['Óleo de sésamo',8,'ml']]),
+R('tikka','Caril de frango tikka com iogurte','asiatica',['lowcarb'],450,20,44,22,[['Peito de frango',180,'g'],['Iogurte natural',80,'g'],['Tomate pelado',100,'g'],['Caril em pó',8,'g'],['Gengibre',10,'g'],['Alho',2,'dente'],['Azeite',8,'ml']]),
+R('yakisoba','Yakisoba de legumes','asiatica',['vegetariana','lowfat'],440,66,14,13,[['Noodles',80,'g'],['Couve',80,'g'],['Cenoura',60,'g'],['Pimento',0.5,'un'],['Molho de soja',15,'ml'],['Gengibre',8,'g'],['Óleo de sésamo',8,'ml']]),
+R('atumcouveflor','Bowl de atum com arroz de couve-flor','asiatica',['keto','lowcarb','paleo'],400,14,38,22,[['Atum fresco',160,'g'],['Couve-flor',200,'g'],['Abacate',0.5,'un'],['Molho de soja',12,'ml'],['Sementes de sésamo',8,'g']]),
+
+/* ---------- Pequenos-almoços ---------- */
+R('aveia','Papas de aveia com fruta e canela','portuguesa',['lowfat','vegetariana'],390,58,14,11,[['Aveia em flocos',60,'g'],['Leite',200,'ml'],['Banana',1,'un'],['Canela',1,'g'],['Mel',10,'g']],['p']),
+R('torradasqueijo','Torradas de centeio com queijo fresco','portuguesa',['lowfat','vegetariana','mediterranica'],320,42,18,9,[['Pão de centeio',70,'g'],['Queijo fresco',80,'g'],['Tomate',1,'un'],['Azeite',5,'ml']],['p']),
+R('ovosmex','Ovos mexidos com espinafres','portuguesa',['keto','lowcarb','paleo','vegetariana'],310,5,22,23,[['Ovo',3,'un'],['Espinafres',60,'g'],['Manteiga',10,'g']],['p']),
+R('panquecas','Panquecas de banana e aveia','portuguesa',[],420,48,26,12,[['Ovo',2,'un'],['Banana',1,'un'],['Aveia em flocos',40,'g'],['Iogurte grego',80,'g'],['Fermento em pó',3,'g']],['p']),
+R('iogurtegranola','Iogurte grego com granola e frutos vermelhos','mediterranica',['vegetariana','mediterranica'],380,42,20,14,[['Iogurte grego',200,'g'],['Granola',40,'g'],['Frutos vermelhos',80,'g'],['Mel',10,'g']],['p']),
+R('abacatetorrada','Torrada de abacate com ovo escalfado','mediterranica',['lowcarb','vegetariana','mediterranica'],420,28,18,26,[['Pão integral',60,'g'],['Abacate',0.5,'un'],['Ovo',1,'un'],['Limão',0.25,'un'],['Azeite',5,'ml']],['p']),
+R('chia','Pudim de chia com leite de coco','mediterranica',['keto','lowcarb','paleo','vegetariana'],330,16,9,27,[['Sementes de chia',30,'g'],['Leite de coco',150,'ml'],['Frutos vermelhos',60,'g'],['Baunilha',1,'g']],['p','l']),
+R('bowlfruta','Bowl de fruta com sementes e coco','mediterranica',['paleo','vegetariana','mediterranica'],350,38,8,20,[['Manga',150,'g'],['Frutos vermelhos',80,'g'],['Sementes de abóbora',20,'g'],['Coco ralado',15,'g'],['Amêndoa',15,'g']],['p','l']),
+R('omeletequeijo','Omelete de queijo e ervas','francesa',['keto','lowcarb','vegetariana'],340,3,24,26,[['Ovo',3,'un'],['Queijo ralado',30,'g'],['Cebolinho',5,'g'],['Manteiga',10,'g']],['p']),
+R('crepesaveia','Crepes de aveia com banana','francesa',['lowfat','vegetariana'],400,60,16,10,[['Aveia em flocos',50,'g'],['Ovo',2,'un'],['Banana',1,'un'],['Leite',80,'ml'],['Canela',1,'g']],['p']),
+R('ovosbacon','Ovos com bacon e cogumelos','francesa',['keto','lowcarb','paleo'],430,4,26,35,[['Ovo',3,'un'],['Bacon',40,'g'],['Cogumelos',80,'g'],['Manteiga',8,'g']],['p']),
+R('ricotta','Tosta de ricotta com pêra e mel','italiana',['vegetariana'],390,50,16,13,[['Pão rústico',60,'g'],['Ricotta',90,'g'],['Pêra',1,'un'],['Mel',10,'g']],['p']),
+R('congee','Congee de arroz com ovo e cebolinho','asiatica',['lowfat'],330,52,14,6,[['Arroz',60,'g'],['Caldo de galinha',300,'ml'],['Ovo',1,'un'],['Cebolinho',10,'g'],['Molho de soja',8,'ml']],['p']),
+R('tofumex','Tofu mexido com cúrcuma e legumes','asiatica',['vegetariana','lowcarb'],300,14,22,18,[['Tofu',150,'g'],['Cúrcuma',2,'g'],['Espinafres',50,'g'],['Tomate cereja',60,'g'],['Óleo de sésamo',8,'ml']],['p']),
+
+/* ---------- Lanches ---------- */
+R('frutasecos','Fruta da estação com amêndoas','portuguesa',['paleo','vegetariana','lowfat','mediterranica'],220,26,6,11,[['Maçã',1,'un'],['Amêndoa',25,'g']],['l']),
+R('batido','Batido de banana, cacau e leite','portuguesa',['lowfat','vegetariana'],290,44,16,6,[['Leite',250,'ml'],['Banana',1,'un'],['Cacau em pó',10,'g'],['Mel',8,'g']],['l']),
+R('ovoscozidos','Ovos cozidos com flor de sal','portuguesa',['keto','lowcarb','paleo'],160,1,13,11,[['Ovo',2,'un'],['Flor de sal',1,'g']],['l']),
+R('tostaatum','Tosta de atum com tomate','portuguesa',['lowfat','mediterranica'],300,34,22,8,[['Pão integral',60,'g'],['Atum em conserva',80,'g'],['Tomate',1,'un'],['Azeite',5,'ml']],['l']),
+R('requeijao','Requeijão com pão de centeio e mel','portuguesa',['vegetariana','lowfat'],290,38,15,9,[['Pão de centeio',60,'g'],['Requeijão',80,'g'],['Mel',10,'g']],['l']),
+R('queijoazeitonas','Queijo fresco com azeitonas e orégãos','mediterranica',['keto','lowcarb','vegetariana','mediterranica'],190,4,14,13,[['Queijo fresco',100,'g'],['Azeitonas',25,'g'],['Orégãos',1,'g'],['Azeite',5,'ml']],['l']),
+R('humuspequeno','Húmus com palitos de legumes','mediterranica',['vegetariana','lowfat','mediterranica'],240,28,9,10,[['Grão-de-bico cozido',80,'g'],['Tahini',10,'g'],['Cenoura',80,'g'],['Pepino',0.5,'un'],['Azeite',5,'ml']],['l']),
+R('guacamole','Guacamole com bastonetes de aipo','mediterranica',['keto','lowcarb','paleo','vegetariana','mediterranica'],230,12,4,19,[['Abacate',1,'un'],['Lima',0.5,'un'],['Aipo',80,'g'],['Coentros',5,'g']],['l']),
+R('bruschetta','Bruschetta de tomate e manjericão','italiana',['vegetariana','lowfat','mediterranica'],260,36,7,10,[['Pão rústico',60,'g'],['Tomate',2,'un'],['Manjericão',5,'g'],['Alho',1,'dente'],['Azeite',8,'ml']],['l']),
+R('espetadinhas','Espetadas de tomate cereja e mozzarella','italiana',['keto','lowcarb','vegetariana','mediterranica'],210,7,12,15,[['Tomate cereja',120,'g'],['Mozzarella',80,'g'],['Manjericão',5,'g'],['Azeite',8,'ml']],['l']),
+R('frutossecos','Mistura de frutos secos e sementes','francesa',['keto','lowcarb','paleo','vegetariana'],280,10,9,24,[['Nozes',25,'g'],['Amêndoa',20,'g'],['Sementes de abóbora',15,'g']],['l']),
+R('iogurtecompota','Iogurte natural com frutos vermelhos','francesa',['vegetariana','lowfat'],230,32,12,6,[['Iogurte natural',200,'g'],['Frutos vermelhos',80,'g'],['Mel',10,'g']],['l']),
+R('edamame','Edamame com flor de sal','asiatica',['vegetariana','lowcarb','lowfat'],180,14,15,7,[['Edamame',150,'g'],['Flor de sal',2,'g']],['l']),
+R('pepinosesamo','Pepino marinado com sementes de sésamo','asiatica',['keto','lowcarb','paleo','vegetariana'],150,8,5,11,[['Pepino',1,'un'],['Sementes de sésamo',10,'g'],['Molho de soja',8,'ml'],['Óleo de sésamo',8,'ml']],['l'])
+];
+const CATS = [
+  ['Peixe & Marisco',/bacalhau|salm|sardinha|polvo|camar|atum|dourada|robalo|amêijoa|marisco|peixe|pescada|espadarte/i],
+  ['Carne & Ovos',/frango|porco|vaca|picada|peru|chouriço|bife|coxas|ovo|bacon|presunto/i],
+  ['Frutas & Legumes',/cebola|alho|tomate|courgette|beringela|pimento|cenoura|batata|couve|alface|espinafre|brócolo|cogumelo|limão|lima\b|abacate|pepino|salsa|coentro|manjericão|azeitona|feijão verde|espargo|rúcula|abóbora|aipo|rebentos|gengibre|hortelã|cebolinho|endro|passas|edamame|banana|maçã|pêra|manga|frutos vermelhos|grelos|salva|louro/i],
+  ['Laticínios',/leite\b|queijo|iogurte|manteiga|mozzarella|parmesão|feta|gruyère|ricotta|requeijão|nata/i],
+  ['Mercearia & Outros',/./]
+];
+const AVCOLORS = ['#2456A6','#C8641E','#2E7D4F','#7C5CB0','#C2477C','#B07F14','#0E7490','#8A5A44'];
+
+/* ================= ESTADO ================= */
+const KEY='familiaFitV1', APPID='familia-fit', FORMATO=1;
+let saveErr='', msg=null;
+function blank(){ return {members:[],cheats:{},plans:{},bought:{},prefCuisine:'todas',
+  ui:{tab:'familia',mid:null,cuis:'todas',soComp:false,mealF:'todas'}, week:mondayISO(new Date()),
+  meta:{gravadoEm:null,exportadoEm:null,semCopia:false,avisarAoSair:true}}; }
+let S = load();
+function load(){
+  let s=null;
+  try{ s=JSON.parse(localStorage.getItem(KEY)); }catch(e){}
+  if(!s || !Array.isArray(s.members)) return blank();
+  const b=blank();
+  return Object.assign(b, s, {ui:Object.assign(b.ui,s.ui||{}), meta:Object.assign(b.meta,s.meta||{})});
+}
+function writeLS(){
+  try{ localStorage.setItem(KEY,JSON.stringify(S)); saveErr=''; }
+  catch(e){ saveErr = e.name==='QuotaExceededError'
+    ? 'Não há espaço para gravar mais dados neste browser. Exporta uma cópia e apaga semanas antigas.'
+    : 'O browser está a bloquear a gravação local. Em janela privada os dados perdem-se ao fechar — exporta uma cópia.'; }
+  paintSave();
+}
+/* save() = alteração de dados: grava e marca que ainda não há cópia exportada.
+   saveMeta() = alteração só de definições: grava sem mexer nesse estado. */
+function save(){ S.meta.gravadoEm=new Date().toISOString(); S.meta.semCopia=true; writeLS(); }
+function saveMeta(){ S.meta.gravadoEm=new Date().toISOString(); writeLS(); }
+function hhmm(isoS){ if(!isoS) return '—'; const d=new Date(isoS);
+  return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+function dataHora(isoS){ if(!isoS) return 'nunca'; const d=new Date(isoS);
+  return fmtShort(iso(d))+' às '+hhmm(isoS); }
+function paintSave(){
+  const el=document.getElementById('savest'); if(!el) return;
+  if(saveErr){ el.className='savest err'; el.innerHTML='<i class="led"></i> gravação bloqueada'; return; }
+  if(!S.members.length){ el.className='savest none'; el.innerHTML='<i class="led"></i> sem dados'; return; }
+  if(S.meta.semCopia){ el.className='savest pend'; el.innerHTML='<i class="led"></i> guardado '+hhmm(S.meta.gravadoEm)+' · sem cópia'; return; }
+  el.className='savest'; el.innerHTML='<i class="led"></i> guardado '+hhmm(S.meta.gravadoEm)+' · cópia feita';
+}
+/* Rede de segurança: o estado é gravado a cada alteração, mas também
+   periodicamente e sempre que o separador é escondido ou fechado. */
+setInterval(()=>{ if(S.members.length) writeLS(); }, 30000);
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden') writeLS(); });
+window.addEventListener('pagehide', writeLS);
+window.addEventListener('beforeunload', e=>{
+  writeLS();
+  if(!S.meta.avisarAoSair || !S.members.length || !S.meta.semCopia) return;
+  e.preventDefault(); e.returnValue='';
+  return '';
+});
+function uid(){ return 'm'+Math.random().toString(36).slice(2,9); }
+function esc(s){ return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+/* ================= CÁLCULOS ================= */
+function bmi(m){ const h=m.altura/100; return h>0? m.peso/(h*h) : 0; }
+function bmiClass(v){ return v<18.5?['Abaixo do peso','warn']: v<25?['Peso normal','ok']: v<30?['Excesso de peso','warn']:['Obesidade','bad']; }
+function bmr(m){ return m.sexo==='f' ? 10*m.peso+6.25*m.altura-5*m.idade-161 : 10*m.peso+6.25*m.altura-5*m.idade+5; }
+function sportWeeklyH(s){ return s.per==='dia'? s.h*7 : s.per==='mes'? s.h/4.345 : s.h; }
+function sportsKcalDay(m){ return (m.desportos||[]).reduce((t,s)=> t + metDe(s)*m.peso*sportWeeklyH(s), 0)/7; }
+function commuteKcalDay(m){ return (COMMUTE[m.desloc]?.[1]||0)*m.peso*(5/7); }
+function tdee(m){ return bmr(m)*(BASE_ACT[m.atividade]?.[1]||1.2) + sportsKcalDay(m) + commuteKcalDay(m); }
+function targetKcal(m){ return tdee(m)*(1+(GOALS[m.objetivo]?.[1]||0)); }
+function macros(m){ const d=DIETS[m.dieta]||DIETS.equilibrada, k=targetKcal(m);
+  return {c:Math.round(k*d.c/100/4), p:Math.round(k*d.p/100/4), f:Math.round(k*d.f/100/9), pct:d}; }
+function compat(r,dieta){ return dieta==='equilibrada' || r.d.includes(dieta); }
+function compatAll(r,ms){ return ms.every(m=>compat(r,m.dieta)); }
+
+/* ================= DATAS ================= */
+function mondayISO(d){ d=new Date(d); const day=(d.getDay()+6)%7; d.setDate(d.getDate()-day); return iso(d); }
+function iso(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function weekDates(wk){ const out=[]; const d=new Date(wk+'T12:00:00'); for(let i=0;i<7;i++){ out.push(iso(d)); d.setDate(d.getDate()+1);} return out; }
+const DAYN=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+function fmtShort(isoD){ const d=new Date(isoD+'T12:00:00'); return d.getDate()+' '+['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][d.getMonth()]; }
+function isCheat(mid,date){ return (S.cheats[mid]||[]).includes(date); }
+
+/* ================= NAVEGAÇÃO ================= */
+const TABS=[['familia','👤 Família'],['atividade','🏃 Atividade'],['nutricao','🍽️ Nutrição'],['plano','📅 Plano semanal'],['compras','🛒 Compras'],['dados','⚙️ Dados']];
+function go(t){ S.ui.tab=t; msg=null; saveMeta(); render(); }
+function pickM(id){ S.ui.mid=id; saveMeta(); render(); }
+function curM(){ return S.members.find(m=>m.id===S.ui.mid) || S.members[0]; }
+function avColor(m){ return AVCOLORS[S.members.indexOf(m)%AVCOLORS.length]; }
+function avatar(m,sz){ const ini=(m.nome||'?').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
+  return `<span class="av" style="background:${avColor(m)}${sz?`;width:${sz}px;height:${sz}px`:''}">${esc(ini)}</span>`; }
+function memberPicker(){ if(!S.members.length) return '';
+  const cur=curM();
+  return `<div class="row" style="margin-bottom:18px">${S.members.map(m=>
+    `<button class="chip ${m.id===cur.id?'on':''}" onclick="pickM('${m.id}')">${avatar(m)} ${esc(m.nome)}</button>`).join('')}</div>`; }
+
+/* ================= FAMÍLIA ================= */
+function addMember(){
+  const m={id:uid(),nome:'Novo membro',sexo:'m',idade:35,altura:172,peso:75,atividade:'sedentario',desloc:'nenhum',desportos:[],dieta:'equilibrada',objetivo:'manter'};
+  S.members.push(m); S.ui.mid=m.id; save(); render();
+}
+function delMember(id){
+  const m=S.members.find(x=>x.id===id);
+  if(!confirm(`Remover o perfil de ${m.nome}?`)) return;
+  S.members=S.members.filter(x=>x.id!==id); delete S.cheats[id];
+  Object.values(S.plans).forEach(w=>Object.values(w).forEach(d=>MEALK.forEach(k=>{ if(d[k]) d[k].m=d[k].m.filter(x=>x!==id); })));
+  save(); render();
+}
+function upd(id,field,val,num){ const m=S.members.find(x=>x.id===id); if(!m) return;
+  m[field]=num?parseFloat(val)||0:val; save(); render(); }
+
+function renderFamilia(){
+  if(!S.members.length) return `<div class="card empty"><h2>Bem-vindos! 👋</h2>
+    <p class="sub" style="margin:8px 0 16px">Comecem por criar um perfil para cada membro da família.</p>
+    <div class="row" style="justify-content:center">
+      <button class="btn" onclick="addMember()">+ Criar primeiro perfil</button>
+      <button class="btn ghost" onclick="go('dados')">Restaurar uma cópia</button></div></div>`;
+  return `<div class="row" style="justify-content:space-between;margin-bottom:16px">
+      <div><h2>Perfis da família</h2><span class="sub">${S.members.length} membro${S.members.length>1?'s':''} · os dados guardam-se automaticamente neste dispositivo</span></div>
+      <button class="btn" onclick="addMember()">+ Adicionar membro</button></div>
+    <div class="grid g2">${S.members.map(m=>{
+      const v=bmi(m),[cls,tone]=bmiClass(v);
+      return `<div class="card">
+        <div class="row" style="justify-content:space-between">
+          <div class="row">${avatar(m,34)}
+            <input type="text" value="${esc(m.nome)}" style="width:170px;font-weight:600" onchange="upd('${m.id}','nome',this.value)"></div>
+          <button class="btn danger small" onclick="delMember('${m.id}')">Remover</button>
+        </div>
+        <div class="frow">
+          <div><label class="lbl">Sexo</label><select onchange="upd('${m.id}','sexo',this.value)">
+            <option value="m" ${m.sexo==='m'?'selected':''}>Masculino</option><option value="f" ${m.sexo==='f'?'selected':''}>Feminino</option></select></div>
+          <div><label class="lbl">Idade</label><input type="number" min="1" value="${m.idade}" onchange="upd('${m.id}','idade',this.value,1)"></div>
+          <div><label class="lbl">Altura cm</label><input type="number" min="50" value="${m.altura}" onchange="upd('${m.id}','altura',this.value,1)"></div>
+          <div><label class="lbl">Peso kg</label><input type="number" min="10" step="0.1" value="${m.peso}" onchange="upd('${m.id}','peso',this.value,1)"></div>
+        </div>
+        <div class="row" style="margin-top:14px">
+          <div class="stat"><b>${v.toFixed(1)}</b><span>IMC</span></div>
+          <div class="stat"><b>${Math.round(bmr(m))}</b><span>Metab. basal kcal</span></div>
+          <div class="stat"><b>${Math.round(tdee(m))}</b><span>Gasto diário kcal</span></div>
+        </div>
+        <div style="margin-top:10px"><span class="pill ${tone}">${cls}</span>
+          <span class="sub" style="margin-left:8px">${DIETS[m.dieta].n} · ${GOALS[m.objetivo][0]}</span></div>
+      </div>`;}).join('')}</div>`;
+}
+
+/* ================= ATIVIDADE ================= */
+function addSport(mid){ const m=S.members.find(x=>x.id===mid); m.desportos.push({s:'caminhada',h:2,per:'semana',i:'moderado'}); save(); render(); }
+function opcoesDesporto(sel){
+  return CATS_SPORT.map(([c,rot])=>{
+    const lista=SPORTS.filter(s=>s.cat===c);
+    if(!lista.length) return '';
+    return `<optgroup label="${rot}">`+lista.map(s=>
+      `<option value="${s.id}" ${sel===s.id?'selected':''}>${s.nome}</option>`).join('')+`</optgroup>`;
+  }).join('');
+}
+function updSport(mid,i,f,v){ const m=S.members.find(x=>x.id===mid); m.desportos[i][f]= f==='h'?parseFloat(v)||0:v; save(); render(); }
+function delSport(mid,i){ const m=S.members.find(x=>x.id===mid); m.desportos.splice(i,1); save(); render(); }
+
+function renderAtividade(){
+  if(!S.members.length) return noMembers();
+  const m=curM();
+  const sK=Math.round(sportsKcalDay(m)), cK=Math.round(commuteKcalDay(m));
+  return memberPicker()+`
+  <div class="grid" style="grid-template-columns:1fr;max-width:760px">
+    <div class="card">
+      <h2>Dia-a-dia de ${esc(m.nome)}</h2>
+      <div class="frow" style="grid-template-columns:1fr 1fr">
+        <div><label class="lbl">Nível de atividade diária</label>
+          <select onchange="upd('${m.id}','atividade',this.value)">${Object.entries(BASE_ACT).map(([k,v])=>
+            `<option value="${k}" ${m.atividade===k?'selected':''}>${v[0]}</option>`).join('')}</select></div>
+        <div><label class="lbl">Deslocação para o trabalho/escola</label>
+          <select onchange="upd('${m.id}','desloc',this.value)">${Object.entries(COMMUTE).map(([k,v])=>
+            `<option value="${k}" ${m.desloc===k?'selected':''}>${v[0]}</option>`).join('')}</select></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <h2>Desporto praticado</h2>
+        <button class="btn small" onclick="addSport('${m.id}')">+ Adicionar desporto</button></div>
+      ${m.desportos.length? `<table class="sports" style="margin-top:10px"><tbody>${m.desportos.map((s,i)=>{
+        const sp=SPORT[s.s]; const met=metDe(s);
+        const kd=Math.round(met*m.peso*sportWeeklyH(s)/7);
+        const kh=Math.round(met*m.peso);
+        return `<tr>
+          <td style="min-width:150px"><select onchange="updSport('${m.id}',${i},'s',this.value)">${opcoesDesporto(s.s)}</select></td>
+          <td style="min-width:130px"><select onchange="updSport('${m.id}',${i},'i',this.value)">${NIVEIS.map(([k],ni)=>
+            `<option value="${k}" ${nivelIndice(s.i)===ni?'selected':''}>${rotuloNivel(sp,ni)}</option>`).join('')}</select></td>
+          <td style="width:80px"><input type="number" min="0" step="0.5" inputmode="decimal" value="${s.h}" onchange="updSport('${m.id}',${i},'h',this.value)"></td>
+          <td><select onchange="updSport('${m.id}',${i},'per',this.value)">
+            <option value="dia" ${s.per==='dia'?'selected':''}>h / dia</option>
+            <option value="semana" ${s.per==='semana'?'selected':''}>h / semana</option>
+            <option value="mes" ${s.per==='mes'?'selected':''}>h / mês</option></select></td>
+          <td style="white-space:nowrap"><span class="kcal">~${kd} kcal/dia</span>
+            <span class="sub" style="display:block;font-size:11.5px">${met} MET · ${kh} kcal/h</span></td>
+          <td><button class="btn danger small" onclick="delSport('${m.id}',${i})">✕</button></td></tr>`;}).join('')}</tbody></table>`
+        : `<p class="sub" style="margin-top:8px">Sem desportos registados — adiciona os treinos para contarem no gasto calórico.</p>`}
+      <p class="sub" style="margin-top:10px">A intensidade mede-se pelo teste da conversa: <b>leve</b> se falas à vontade,
+        <b>moderado</b> se falas mas com a respiração acelerada, <b>intenso</b> se já não consegues manter a conversa.
+        O mesmo desporto pode gastar o dobro entre o nível leve e o intenso.</p>
+    </div>
+    <div class="card" style="border-left:4px solid var(--energy)">
+      <h2>Gasto energético estimado</h2>
+      <div class="row" style="margin-top:10px">
+        <div class="stat"><b>${Math.round(bmr(m))}</b><span>Basal</span></div>
+        <div class="stat"><b>+${Math.round(bmr(m)*(BASE_ACT[m.atividade][1]-1))}</b><span>Dia-a-dia</span></div>
+        <div class="stat"><b>+${cK}</b><span>Deslocações</span></div>
+        <div class="stat"><b>+${sK}</b><span>Desporto</span></div>
+        <div class="stat" style="background:var(--energy-soft)"><b style="color:var(--energy)">${Math.round(tdee(m))}</b><span>Total kcal/dia</span></div>
+      </div>
+      <p class="sub" style="margin-top:10px">Estimativa por METs (esforço metabólico de cada desporto × peso × horas) sobre a fórmula de Mifflin-St Jeor.</p>
+    </div>
+  </div>`;
+}
+
+/* ================= NUTRIÇÃO ================= */
+function setCuis(v){ S.ui.cuis=v; saveMeta(); render(); }
+function setMealF(v){ S.ui.mealF=v; saveMeta(); render(); }
+function toggleComp(){ S.ui.soComp=!S.ui.soComp; saveMeta(); render(); }
+
+function macroBar(pct){ return `<div class="mbar">
+    <div style="width:${pct.c}%;background:var(--mc)"></div>
+    <div style="width:${pct.p}%;background:var(--mp)"></div>
+    <div style="width:${pct.f}%;background:var(--mf)"></div></div>
+  <div class="mleg"><span><i class="dot" style="background:var(--mc)"></i>Hidratos ${pct.c}%</span>
+    <span><i class="dot" style="background:var(--mp)"></i>Proteína ${pct.p}%</span>
+    <span><i class="dot" style="background:var(--mf)"></i>Gordura ${pct.f}%</span></div>`; }
+
+function recipeCard(r){
+  const comp=S.members.filter(m=>compat(r,m.dieta));
+  return `<div class="rc">
+    <div class="row" style="justify-content:space-between"><h3>${r.n}</h3><span class="kcal">${r.k} kcal</span></div>
+    <div><span class="tag" style="border-color:var(--accent);color:var(--accent)">${r.mt.map(nomeRefeicao).join(' / ')}</span>
+      <span class="tag">${CUIS[r.coz]}</span>${r.d.map(d=>`<span class="tag">${DIETS[d].n}</span>`).join('')}</div>
+    <div class="sub" style="font-variant-numeric:tabular-nums">H ${r.c} g · P ${r.p} g · G ${r.f} g</div>
+    <div class="sub">${r.i.map(x=>x[0]).join(', ')}</div>
+    ${S.members.length? `<div class="row" style="margin-top:2px"><span class="sub">Compatível:</span>
+      ${comp.length? comp.map(m=>avatar(m,22)).join('') : '<span class="sub">— só como refeição livre</span>'}</div>`:''}
+  </div>`;
+}
+
+function renderNutricao(){
+  if(!S.members.length) return noMembers();
+  const m=curM(), mk=macros(m), k=Math.round(targetKcal(m));
+  let list=RECIPES.filter(r=> (S.ui.cuis==='todas'||r.coz===S.ui.cuis)
+    && (S.ui.mealF==='todas'||r.mt.indexOf(S.ui.mealF)>=0));
+  if(S.ui.soComp) list=list.filter(r=>compat(r,m.dieta));
+  const fam=RECIPES.filter(r=>compatAll(r,S.members));
+  return memberPicker()+`
+  <div class="grid g2" style="margin-bottom:24px">
+    <div class="card">
+      <h2>Plano de ${esc(m.nome)}</h2>
+      <div class="frow" style="grid-template-columns:1fr 1fr">
+        <div><label class="lbl">Objetivo</label><select onchange="upd('${m.id}','objetivo',this.value)">${Object.entries(GOALS).map(([kk,v])=>
+          `<option value="${kk}" ${m.objetivo===kk?'selected':''}>${v[0]}</option>`).join('')}</select></div>
+        <div><label class="lbl">Tipo de dieta</label><select onchange="upd('${m.id}','dieta',this.value)">${Object.entries(DIETS).map(([kk,v])=>
+          `<option value="${kk}" ${m.dieta===kk?'selected':''}>${v.n}</option>`).join('')}</select></div>
+      </div>
+      <div class="row" style="margin-top:14px">
+        <div class="stat" style="background:var(--accent-soft)"><b style="color:var(--accent)">${k}</b><span>Alvo kcal/dia</span></div>
+        <div class="stat"><b>${Math.round(tdee(m))}</b><span>Gasto kcal/dia</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Simulador de macros — ${DIETS[m.dieta].n}</h2>
+      ${macroBar(mk.pct)}
+      <div class="row" style="margin-top:12px">
+        <div class="stat"><b style="color:var(--mc)">${mk.c} g</b><span>Hidratos</span></div>
+        <div class="stat"><b style="color:var(--mp)">${mk.p} g</b><span>Proteína</span></div>
+        <div class="stat"><b style="color:var(--mf)">${mk.f} g</b><span>Gordura</span></div>
+      </div>
+      <p class="sub" style="margin-top:10px">Sugestão por refeição:
+        ${MEALS.map(([kk,rot,fr])=>`${rot.toLowerCase()} ${Math.round(k*fr)} kcal`).join(' · ')}.</p>
+    </div>
+  </div>
+
+  <div class="card secgap" style="background:none;box-shadow:none;border:none;padding:0">
+    <div class="row" style="justify-content:space-between;margin-bottom:10px">
+      <div><h2>Sugestões de receitas</h2><span class="sub">${list.length} de ${RECIPES.length} receitas</span></div>
+      <div class="row">
+        <select style="width:auto" onchange="setCuis(this.value)"><option value="todas">Todas as cozinhas</option>
+          ${Object.entries(CUIS).map(([kk,v])=>`<option value="${kk}" ${S.ui.cuis===kk?'selected':''}>${v}</option>`).join('')}</select>
+        <button class="chip ${S.ui.soComp?'on':''}" onclick="toggleComp()">Só compatíveis com ${esc(m.nome)}</button>
+      </div>
+    </div>
+    <div class="row" style="margin-bottom:12px">
+      <button class="chip ${S.ui.mealF==='todas'?'on':''}" onclick="setMealF('todas')">Todas as refeições</button>
+      ${MEALS.map(([kk,rot])=>`<button class="chip ${S.ui.mealF===kk?'on':''}" onclick="setMealF('${kk}')">${rot}</button>`).join('')}
+    </div>
+    <div class="grid g3">${list.map(recipeCard).join('')||'<p class="sub">Nenhuma receita para este filtro.</p>'}</div>
+  </div>
+
+  ${S.members.length>1? `<div class="secgap">
+    <h2>👨‍👩‍👧 Compatíveis com toda a família</h2>
+    <p class="sub" style="margin-bottom:10px">Receitas que servem as dietas de todos os ${S.members.length} membros — ideais para a mesma panela.</p>
+    <div class="grid g3">${fam.map(recipeCard).join('')||'<p class="sub">Nenhuma receita serve todas as dietas — considerem aproximar os planos.</p>'}</div>
+  </div>`:''}`;
+}
+
+/* ================= PLANO SEMANAL ================= */
+function shiftWeek(n){ const d=new Date(S.week+'T12:00:00'); d.setDate(d.getDate()+7*n); S.week=mondayISO(d); saveMeta(); render(); }
+function planWeek(){ if(!S.plans[S.week]) S.plans[S.week]={}; return S.plans[S.week]; }
+function planMeal(di,mk){ const w=planWeek(); if(!w[di]) w[di]={}; if(!w[di][mk]) w[di][mk]={r:'',m:S.members.map(x=>x.id)}; return w[di][mk]; }
+function setMeal(di,mk,rid){ planMeal(di,mk).r=rid; save(); render(); }
+function toggleEater(di,mk,mid){ const meal=planMeal(di,mk);
+  meal.m = meal.m.includes(mid)? meal.m.filter(x=>x!==mid) : [...meal.m,mid]; save(); render(); }
+function toggleCheat(mid,date){ if(!S.cheats[mid]) S.cheats[mid]=[];
+  const i=S.cheats[mid].indexOf(date); i>=0? S.cheats[mid].splice(i,1) : S.cheats[mid].push(date); save(); render(); }
+function clearWeek(){ if(confirm('Limpar todas as refeições desta semana?')){ delete S.plans[S.week]; delete S.bought[S.week]; save(); render(); } }
+function receitasDe(mk){ return RECIPES.filter(r=>r.mt.indexOf(mk)>=0); }
+function autoFill(){
+  const dates=weekDates(S.week); const used=new Set();
+  Object.values(planWeek()).forEach(d=>MEALK.forEach(k=>d[k]?.r&&used.add(d[k].r)));
+  for(let di=0;di<7;di++) for(const mk of MEALK){
+    const meal=planMeal(di,mk); if(meal.r) continue;
+    const eaters=S.members.filter(m=>meal.m.includes(m.id)&&!isCheat(m.id,dates[di]));
+    if(!eaters.length) continue;
+    const doTipo=receitasDe(mk);
+    /* Estreita-se o mais possível e vai-se alargando: cozinha preferida e dieta
+       de todos os comensais, depois só a dieta, depois qualquer coisa do tipo. */
+    let pool=doTipo.filter(r=>(S.prefCuisine==='todas'||r.coz===S.prefCuisine)&&compatAll(r,eaters));
+    if(!pool.length) pool=doTipo.filter(r=>compatAll(r,eaters));
+    if(!pool.length) pool=doTipo;
+    if(!pool.length) continue;
+    const fresh=pool.filter(r=>!used.has(r.id));
+    const alvo=fresh.length? fresh : pool;
+    meal.r=alvo[Math.floor(Math.random()*alvo.length)].id; used.add(meal.r);
+  }
+  save(); render();
+}
+function mealBlock(di,mk,label,date){
+  const meal=planWeek()[di]?.[mk]; const r=meal&&RECIPES.find(x=>x.id===meal.r);
+  const members=S.members;
+  return `<div class="meal">
+    <div class="mtitle">${label}</div>
+    <select onchange="setMeal(${di},'${mk}',this.value)">
+      <option value="">— escolher receita —</option>
+      ${receitasDe(mk).map(x=>`<option value="${x.id}" ${r&&r.id===x.id?'selected':''}>${x.n} · ${x.k} kcal (${CUIS[x.coz]})</option>`).join('')}
+    </select>
+    ${r?`<div class="sub" style="margin-top:4px">H ${r.c} · P ${r.p} · G ${r.f} g/pessoa
+      ${!compatAll(r,members.filter(m=>(meal.m||[]).includes(m.id)&&!isCheat(m.id,date)))?' · <b style="color:var(--warn)">⚠ nem todos compatíveis</b>':''}</div>`:''}
+    <div class="row" style="margin-top:7px">${members.map(m=>{
+      const on=meal? meal.m.includes(m.id) : true, cheat=isCheat(m.id,date);
+      return `<button class="chip ${on&&!cheat?'on':''}" ${cheat?'style="opacity:.45" title="Cheat day"':''}
+        onclick="toggleEater(${di},'${mk}','${m.id}')">${avatar(m,20)} ${esc(m.nome.split(' ')[0])}${cheat?' 🎉':''}</button>`;}).join('')}
+    </div>
+  </div>`;
+}
+function renderPlano(){
+  if(!S.members.length) return noMembers();
+  const dates=weekDates(S.week);
+  return `<div class="row" style="justify-content:space-between;margin-bottom:14px">
+    <div><h2>Plano semanal</h2><span class="sub">${fmtShort(dates[0])} — ${fmtShort(dates[6])}</span></div>
+    <div class="row">
+      <button class="btn ghost small" onclick="shiftWeek(-1)">← Semana anterior</button>
+      <button class="btn ghost small" onclick="shiftWeek(1)">Semana seguinte →</button>
+      <select style="width:auto" onchange="S.prefCuisine=this.value;save()">
+        <option value="todas">Auto: todas as cozinhas</option>
+        ${Object.entries(CUIS).map(([k,v])=>`<option value="${k}" ${S.prefCuisine===k?'selected':''}>Auto: ${v}</option>`).join('')}</select>
+      <button class="btn small" onclick="autoFill()">✨ Preencher automaticamente</button>
+      <button class="btn danger small" onclick="clearWeek()">Limpar</button>
+    </div></div>
+  <p class="sub" style="margin-bottom:14px">🎉 <b>Cheat days:</b> clica no nome de um membro na linha «Cheat day» para marcar um dia livre (aniversários, festas…) — esse membro sai das contas e da lista de compras nesse dia.</p>
+  <div class="grid gdias">
+  ${dates.map((date,di)=>{
+    const anyCheat=S.members.some(m=>isCheat(m.id,date));
+    return `<div class="day ${anyCheat?'cheat-any':''}">
+      <div class="dhead"><b>${DAYN[di]}</b><span class="sub">${fmtShort(date)}</span>
+        ${anyCheat?'<span class="pill" style="background:var(--party-soft);color:var(--party);margin-left:auto">🎉 dia especial</span>':''}</div>
+      <div class="meal" style="background:var(--bg)">
+        <div class="mtitle" style="color:var(--party)">Cheat day</div>
+        <div class="row">${S.members.map(m=>`<button class="chip party ${isCheat(m.id,date)?'on':''}"
+          onclick="toggleCheat('${m.id}','${date}')">${avatar(m,20)} ${esc(m.nome.split(' ')[0])}</button>`).join('')}</div>
+      </div>
+      ${MEALS.map(([k,rot])=>mealBlock(di,k,rot,date)).join('')}
+    </div>`;}).join('')}
+  </div>`;
+}
+
+/* ================= COMPRAS ================= */
+function shoppingItems(){
+  const dates=weekDates(S.week), w=S.plans[S.week]||{}, agg={};
+  let meals=0;
+  for(let di=0;di<7;di++) for(const mk of MEALK){
+    const meal=w[di]?.[mk]; if(!meal||!meal.r) continue;
+    const r=RECIPES.find(x=>x.id===meal.r); if(!r) continue;
+    const n=S.members.filter(m=>meal.m.includes(m.id)&&!isCheat(m.id,dates[di])).length;
+    if(!n) continue; meals++;
+    r.i.forEach(([nome,q,u])=>{ const key=nome+'|'+u;
+      if(!agg[key]) agg[key]={n:nome,u,q:0}; agg[key].q+=q*n; });
+  }
+  return {items:Object.values(agg),meals};
+}
+function toggleBought(key){ if(!S.bought[S.week]) S.bought[S.week]={};
+  S.bought[S.week][key]=!S.bought[S.week][key]; save(); render(); }
+function fmtQ(it){ const q=Math.round(it.q*100)/100;
+  if(it.u==='g'&&q>=1000) return (q/1000).toFixed(q%1000?1:0)+' kg';
+  if(it.u==='ml'&&q>=1000) return (q/1000).toFixed(q%1000?1:0)+' L';
+  return q+' '+it.u; }
+function copyList(){
+  const {items}=shoppingItems();
+  const txt='Lista de compras — semana de '+fmtShort(S.week)+'\n'+items.map(i=>`• ${i.n}: ${fmtQ(i)}`).join('\n');
+  navigator.clipboard.writeText(txt).then(()=>alert('Lista copiada! Cola-a numa mensagem ou nota.'));
+}
+function renderCompras(){
+  if(!S.members.length) return noMembers();
+  const {items,meals}=shoppingItems(); const dates=weekDates(S.week);
+  if(!items.length) return `<h2>Lista de compras</h2>
+    <p class="sub" style="margin:6px 0 16px">Semana de ${fmtShort(dates[0])} a ${fmtShort(dates[6])}</p>
+    <div class="card empty">Ainda não há receitas marcadas nesta semana.<br><br>
+    <button class="btn" onclick="go('plano')">Ir para o plano semanal</button></div>`;
+  const bought=S.bought[S.week]||{};
+  const grouped=CATS.map(([cat,re])=>[cat,[]]);
+  items.forEach(it=>{ for(const [i,[cat,re]] of CATS.entries()){ if(re.test(it.n)){ grouped[i][1].push(it); break; } } });
+  const done=items.filter(i=>bought[i.n+'|'+i.u]).length;
+  return `<div class="row" style="justify-content:space-between;margin-bottom:4px">
+    <div><h2>Lista de compras</h2>
+    <span class="sub">Semana de ${fmtShort(dates[0])} a ${fmtShort(dates[6])} · ${meals} refeições planeadas · ${done}/${items.length} comprados</span></div>
+    <button class="btn ghost small" onclick="copyList()">📋 Copiar lista</button></div>
+  <div class="card" style="max-width:640px">
+    ${grouped.filter(([,arr])=>arr.length).map(([cat,arr])=>`
+      <div class="cat-h">${cat}</div>
+      <ul class="shop">${arr.sort((a,b)=>a.n.localeCompare(b.n)).map(it=>{
+        const key=it.n+'|'+it.u, ok=bought[key];
+        return `<li class="${ok?'done':''}"><input type="checkbox" ${ok?'checked':''} onchange="toggleBought('${esc(key).replace(/'/g,"\\'")}')">
+          <span>${esc(it.n)}</span><span class="q">${fmtQ(it)}</span></li>`;}).join('')}</ul>`).join('')}
+  </div>
+  <p class="sub" style="margin-top:12px">Quantidades = receita por pessoa × nº de comensais em cada refeição (membros em cheat day não contam nesse dia).</p>`;
+}
+
+/* ================= ORIENTAÇÃO E TIPO DE ECRÃ =================
+   Marca <html> com data-orient (retrato/paisagem) e data-dispositivo
+   (telefone/tablet/desktop). O CSS agarra-se a estes atributos para
+   distinguir um telemóvel deitado de um tablet deitado, que têm larguras
+   parecidas mas necessidades opostas. */
+let ecra={orient:null,disp:null};
+function ehToque(){
+  try{ return matchMedia('(hover:none) and (pointer:coarse)').matches; }
+  catch(e){ return 'ontouchstart' in window || navigator.maxTouchPoints>0; }
+}
+function orientacao(){
+  try{
+    if(matchMedia('(orientation:portrait)').matches) return 'retrato';
+    if(matchMedia('(orientation:landscape)').matches) return 'paisagem';
+  }catch(e){}
+  return innerHeight>=innerWidth ? 'retrato' : 'paisagem';   // reserva para Safari antigo
+}
+function tipoDispositivo(){
+  if(!ehToque()) return 'desktop';
+  /* O lado menor não muda quando se roda, por isso classifica melhor do que a
+     largura: um iPhone deitado continua a ser um telemóvel. */
+  const menor=Math.min(innerWidth,innerHeight), maior=Math.max(innerWidth,innerHeight);
+  return (menor>=600 || maior>=1000) ? 'tablet' : 'telefone';
+}
+function nomeEcra(){
+  const d={telefone:'Telemóvel',tablet:'Tablet',desktop:'Computador'}[ecra.disp]||'—';
+  return ecra.disp==='desktop' ? d : d+' · '+(ecra.orient==='retrato'?'vertical':'horizontal');
+}
+function aplicarEcra(){
+  const o=orientacao(), d=tipoDispositivo();
+  const mudou = (o!==ecra.orient || d!==ecra.disp);
+  ecra={orient:o,disp:d};
+  const r=document.documentElement;
+  r.setAttribute('data-orient',o);
+  r.setAttribute('data-dispositivo',d);
+  const info=document.getElementById('ecraInfo');
+  if(info) info.textContent=nomeEcra();
+  return mudou;
+}
+/* Ao rodar, o iOS mantém a posição de scroll em pixéis: como a página fica com
+   outra altura, o utilizador aterra num ponto diferente do que estava a ler.
+   Guarda-se a posição relativa antes do reflow e repõe-se depois. */
+function aoRodar(prop){
+  if(!aplicarEcra()) return;
+  if(typeof prop!=='number') return;
+  requestAnimationFrame(()=>{
+    const alt=Math.max(1, document.documentElement.scrollHeight - innerHeight);
+    if(alt>1) window.scrollTo(0, Math.round(prop*alt));
+  });
+}
+function ligarOrientacao(){
+  const reagir=()=>{
+    const alt=Math.max(1, document.documentElement.scrollHeight - innerHeight);
+    const prop=alt>1 ? Math.min(1, scrollY/alt) : 0;
+    /* Duas passagens: o Safari só publica as medidas certas depois do reflow. */
+    requestAnimationFrame(()=>requestAnimationFrame(()=>aoRodar(prop)));
+    setTimeout(()=>aoRodar(prop), 320);
+  };
+  try{
+    const mq=matchMedia('(orientation:portrait)');
+    if(mq.addEventListener) mq.addEventListener('change',reagir);
+    else if(mq.addListener) mq.addListener(reagir);              // Safari 13 e anteriores
+  }catch(e){}
+  if(screen.orientation && screen.orientation.addEventListener)
+    screen.orientation.addEventListener('change',reagir);         // Android / Chrome
+  window.addEventListener('orientationchange',reagir);            // iOS Safari
+  let t=null;
+  const adiado=()=>{ clearTimeout(t); t=setTimeout(()=>aoRodar(),150); };
+  window.addEventListener('resize',adiado);
+  if(window.visualViewport) window.visualViewport.addEventListener('resize',adiado);
+}
+
+/* ================= DADOS: CÓPIA E RESTAURO ================= */
+function flash(kind,text){ msg={kind,text}; render(); }
+function pacote(){ return {app:APPID, formato:FORMATO, exportadoEm:new Date().toISOString(),
+  dados:{members:S.members, cheats:S.cheats, plans:S.plans, bought:S.bought,
+         prefCuisine:S.prefCuisine, week:S.week}}; }
+function textoCopia(){ return JSON.stringify(pacote(),null,2); }
+function marcarExportado(){ S.meta.exportadoEm=new Date().toISOString(); S.meta.semCopia=false; saveMeta(); }
+function nomeFicheiro(){ return 'familia-fit-'+iso(new Date())+'.json'; }
+
+function descarregar(){
+  if(!S.members.length) return flash('bad','Ainda não há dados para exportar.');
+  try{
+    const blob=new Blob([textoCopia()],{type:'application/json'});
+    const url=URL.createObjectURL(blob), a=document.createElement('a');
+    a.href=url; a.download=nomeFicheiro(); a.style.display='none';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),4000);
+    marcarExportado();
+    flash('ok','Ficheiro '+nomeFicheiro()+' criado — guarda-o na nuvem ou numa pasta de cópias, é com ele que '
+      +'recuperas tudo. Se o browser não mostrar nenhuma transferência, usa «Mostrar e copiar dados».');
+  }catch(e){
+    flash('bad','O browser não deixou descarregar o ficheiro. Usa «Mostrar e copiar dados» e cola o texto num ficheiro à parte.');
+  }
+}
+/* No iPhone e no Android a forma natural de guardar é a folha de partilha do
+   sistema (Ficheiros, iCloud, Drive, WhatsApp), não uma transferência. */
+function podePartilhar(){
+  try{ return !!(navigator.canShare && navigator.share
+    && navigator.canShare({files:[new File(['{}'],'t.json',{type:'application/json'})]})); }
+  catch(e){ return false; }
+}
+function partilhar(){
+  if(!S.members.length) return flash('bad','Ainda não há dados para exportar.');
+  const f=new File([textoCopia()], nomeFicheiro(), {type:'application/json'});
+  navigator.share({files:[f], title:'Cópia do Família Fit'}).then(()=>{
+    marcarExportado();
+    flash('ok','Cópia enviada para a app que escolheste. Guarda-a nos Ficheiros ou na nuvem para a poderes restaurar.');
+  }, e=>{
+    if(e && (e.name==='AbortError' || e.name==='NotAllowedError')) return;   // o utilizador cancelou
+    flash('bad','A partilha não ficou concluída. Usa «Transferir ficheiro» ou «Mostrar e copiar dados».');
+  });
+}
+/* O Safari do iOS só copia de um campo editável e com seleção explícita. */
+function copiarDaCaixa(ta){
+  const eraReadonly=ta.hasAttribute('readonly');
+  ta.removeAttribute('readonly');
+  ta.focus(); ta.setSelectionRange(0, ta.value.length);
+  let ok=false; try{ ok=document.execCommand('copy'); }catch(e){ ok=false; }
+  if(eraReadonly) ta.setAttribute('readonly','');
+  return ok;
+}
+function mostrarCopia(){
+  if(!S.members.length) return flash('bad','Ainda não há dados para exportar.');
+  const ta=document.getElementById('bkOut'); if(!ta) return;
+  ta.value=textoCopia();
+  const fim=()=>{ marcarExportado(); flash('ok','Dados copiados. Cola-os numa nota, email ou ficheiro de texto para os guardares.'); };
+  const manual=()=>flash('ok','Dados prontos na caixa abaixo — seleciona tudo e copia à mão para os guardares.');
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(ta.value).then(fim, ()=>{ copiarDaCaixa(ta)? fim() : manual(); });
+  } else {
+    copiarDaCaixa(ta)? fim() : manual();
+  }
+}
+function num(v,d){ const n=parseFloat(v); return isFinite(n)&&n>0? n : d; }
+function plural(n,um,muitos){ return n+' '+(n===1? um : muitos); }
+function limparMembro(m){
+  m=m||{};
+  return {id:String(m.id||uid()), nome:String(m.nome||'Sem nome').slice(0,60),
+    sexo: m.sexo==='f'?'f':'m', idade:num(m.idade,35), altura:num(m.altura,170), peso:num(m.peso,70),
+    atividade: BASE_ACT[m.atividade]? m.atividade:'sedentario',
+    desloc: COMMUTE[m.desloc]? m.desloc:'nenhum',
+    dieta: DIETS[m.dieta]? m.dieta:'equilibrada',
+    objetivo: GOALS[m.objetivo]? m.objetivo:'manter',
+    desportos: Array.isArray(m.desportos)
+      ? m.desportos.filter(s=>s && SPORT[s.s])
+          .map(s=>({s:s.s, h:num(s.h,0), per:['dia','semana','mes'].includes(s.per)? s.per:'semana',
+                    i:NIVEIS.some(n=>n[0]===s.i)? s.i : 'moderado'}))
+      : []};
+}
+function lerPacote(txt){
+  let p; try{ p=JSON.parse(txt); }catch(e){ return {erro:'O texto não é uma cópia válida (não foi possível interpretar o JSON).'}; }
+  if(p && p.app && p.app!==APPID) return {erro:'Este ficheiro é de outra aplicação, não do Família Fit.'};
+  const d = p && p.dados ? p.dados : p;
+  if(!d || !Array.isArray(d.members)) return {erro:'Este ficheiro não contém perfis do Família Fit.'};
+  return {d:{ members:d.members.map(limparMembro), cheats:d.cheats||{}, plans:d.plans||{},
+              bought:d.bought||{}, prefCuisine:CUIS[d.prefCuisine]?d.prefCuisine:'todas',
+              week:/^\d{4}-\d{2}-\d{2}$/.test(d.week||'')? d.week : mondayISO(new Date()) }};
+}
+function substituir(txt){
+  const {d,erro}=lerPacote(txt); if(erro) return flash('bad',erro);
+  if(S.members.length && !confirm('Substituir os dados atuais ('+S.members.length+' perfis) pelos da cópia ('
+    +d.members.length+' perfis)?\n\nOs dados que estão neste dispositivo perdem-se.')) return;
+  const antigo=S.meta;
+  S=Object.assign(blank(), d);
+  S.meta=Object.assign(S.meta,{avisarAoSair:antigo.avisarAoSair, exportadoEm:antigo.exportadoEm});
+  S.ui.tab='dados'; S.ui.mid=S.members[0]? S.members[0].id : null;
+  S.meta.semCopia=false; saveMeta();
+  flash('ok','Dados restaurados: '+plural(d.members.length,'perfil','perfis')+' e '
+    +plural(Object.keys(d.plans).length,'semana','semanas')+' de plano.');
+}
+function juntar(txt){
+  const {d,erro}=lerPacote(txt); if(erro) return flash('bad',erro);
+  const mapa={}; let novos=0, refeicoes=0;
+  d.members.forEach(im=>{
+    const igual=S.members.find(m=>m.id===im.id
+      || m.nome.trim().toLowerCase()===im.nome.trim().toLowerCase());
+    if(igual){ mapa[im.id]=igual.id; return; }
+    const nid = S.members.some(m=>m.id===im.id)? uid() : im.id;
+    mapa[im.id]=nid; S.members.push(Object.assign({},im,{id:nid})); novos++;
+  });
+  Object.keys(d.cheats).forEach(mid=>{
+    const alvo=mapa[mid]||mid; if(!S.cheats[alvo]) S.cheats[alvo]=[];
+    (d.cheats[mid]||[]).forEach(dia=>{ if(!S.cheats[alvo].includes(dia)) S.cheats[alvo].push(dia); });
+  });
+  Object.keys(d.plans).forEach(wk=>{
+    if(!S.plans[wk]) S.plans[wk]={};
+    Object.keys(d.plans[wk]).forEach(di=>{
+      if(!S.plans[wk][di]) S.plans[wk][di]={};
+      Object.keys(d.plans[wk][di]).forEach(mk=>{
+        if(S.plans[wk][di][mk] && S.plans[wk][di][mk].r) return;   // não mexe no que já está marcado
+        const ref=d.plans[wk][di][mk]||{};
+        S.plans[wk][di][mk]={r:ref.r||'', m:(ref.m||[]).map(x=>mapa[x]||x)};
+        if(ref.r) refeicoes++;
+      });
+    });
+  });
+  Object.keys(d.bought).forEach(wk=>{ S.bought[wk]=Object.assign({}, d.bought[wk], S.bought[wk]||{}); });
+  if(!S.ui.mid && S.members[0]) S.ui.mid=S.members[0].id;
+  save();
+  flash('ok','Cópia integrada: '+plural(novos,'perfil novo','perfis novos')+' e '
+    +plural(refeicoes,'refeição acrescentada','refeições acrescentadas')+'. Perfis com o mesmo nome foram '
+    +'tratados como a mesma pessoa e as refeições já marcadas ficaram intactas.');
+}
+function importarFicheiro(input,modo){
+  const f=input.files && input.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{ modo==='juntar'? juntar(String(r.result)) : substituir(String(r.result)); };
+  r.onerror=()=>flash('bad','Não foi possível ler o ficheiro «'+f.name+'».');
+  r.readAsText(f); input.value='';
+}
+function importarCaixa(modo){
+  const ta=document.getElementById('bkIn'); const txt=(ta&&ta.value||'').trim();
+  if(!txt) return flash('bad','Cola primeiro o texto da cópia na caixa.');
+  modo==='juntar'? juntar(txt) : substituir(txt);
+}
+function toggleAviso(v){ S.meta.avisarAoSair=v; saveMeta(); render(); }
+function apagarTudo(){
+  if(!confirm('Apagar TODOS os dados deste dispositivo — perfis, planos e compras?\n\nSó consegues recuperar se tiveres um ficheiro de cópia.')) return;
+  if(!confirm('Confirmas mesmo? Esta ação não pode ser anulada.')) return;
+  const avisar=S.meta.avisarAoSair;
+  try{ localStorage.removeItem(KEY); }catch(e){}
+  S=blank(); S.meta.avisarAoSair=avisar; S.ui.tab='dados'; saveMeta();
+  flash('ok','Dados apagados. Podes recomeçar ou restaurar uma cópia.');
+}
+function tamanho(){
+  const n=new Blob([JSON.stringify(S)]).size;
+  return n<1024? n+' B' : (n/1024).toFixed(1)+' kB';
+}
+function renderDados(){
+  const nSem=Object.keys(S.plans).filter(w=>Object.keys(S.plans[w]||{}).length).length;
+  return (msg? `<div class="msg ${msg.kind}">${esc(msg.text)}</div>`:'')+`
+  <h2>Dados e cópias de segurança</h2>
+  <p class="sub" style="margin-bottom:18px;max-width:70ch">Tudo o que escreves fica gravado automaticamente
+    neste browser, mas só neste. Para não perderes nada ao mudar de computador, limpar o histórico ou trocar de
+    telemóvel, exporta um ficheiro de cópia de vez em quando — é ele que devolve tudo ao estado em que estava.</p>
+
+  <div class="grid g2">
+    <div class="card">
+      <h3>Gravação automática</h3>
+      <div style="margin-top:10px">
+        <div class="kv"><span>Última gravação</span><b>${dataHora(S.meta.gravadoEm)}</b></div>
+        <div class="kv"><span>Última cópia exportada</span><b>${dataHora(S.meta.exportadoEm)}</b></div>
+        <div class="kv"><span>Perfis guardados</span><b>${S.members.length}</b></div>
+        <div class="kv"><span>Semanas com plano</span><b>${nSem}</b></div>
+        <div class="kv"><span>Espaço ocupado</span><b>${tamanho()}</b></div>
+        <div class="kv"><span>Ecrã detetado</span><b id="ecraInfo">${nomeEcra()}</b></div>
+      </div>
+      ${saveErr? `<div class="msg bad" style="margin:14px 0 0">${esc(saveErr)}</div>`
+        : `<p class="sub" style="margin-top:12px">Grava a cada alteração, de 30 em 30 segundos e sempre que sais do separador.</p>`}
+      <label class="toggle" style="margin-top:12px">
+        <input type="checkbox" ${S.meta.avisarAoSair?'checked':''} onchange="toggleAviso(this.checked)">
+        <span>Avisar ao fechar o separador quando houver alterações ainda sem cópia exportada
+          <span class="sub" style="display:block">O browser mostra a sua própria janela de confirmação, com o texto
+            que ele próprio define. O Safari do iPhone e do iPad ignora este tipo de aviso — aí a rede de segurança
+            é a gravação automática, que também corre ao mudar de app.</span></span>
+      </label>
+    </div>
+
+    <div class="card">
+      <h3>Guardar uma cópia</h3>
+      <p class="sub" style="margin:6px 0 12px">Gera um ficheiro <code>.json</code> com perfis, planos, cheat days e compras.</p>
+      <div class="row">
+        ${podePartilhar()? `<button class="btn" onclick="partilhar()">📤 Guardar ou enviar cópia</button>
+        <button class="btn ghost" onclick="descarregar()">⬇ Transferir</button>`
+        : `<button class="btn" onclick="descarregar()">⬇ Transferir ficheiro</button>`}
+        <button class="btn ghost" onclick="mostrarCopia()">📋 Mostrar e copiar dados</button>
+      </div>
+      <textarea id="bkOut" style="margin-top:12px" readonly placeholder="O texto da cópia aparece aqui quando carregas em «Mostrar e copiar dados» — útil se o browser bloquear transferências."></textarea>
+    </div>
+
+    <div class="card">
+      <h3>Restaurar uma cópia</h3>
+      <p class="sub" style="margin:6px 0 12px"><b>Substituir</b> troca tudo o que está aqui pelo conteúdo da cópia.
+        <b>Juntar</b> acrescenta os perfis e refeições que faltam, sem apagar o que já tens — é a opção para
+        combinar o que dois membros da família fizeram em dispositivos diferentes.</p>
+      <div class="row">
+        <span class="btn filebtn">Substituir por ficheiro…<input type="file" accept=".json,application/json" onchange="importarFicheiro(this,'substituir')"></span>
+        <span class="btn ghost filebtn">Juntar ficheiro…<input type="file" accept=".json,application/json" onchange="importarFicheiro(this,'juntar')"></span>
+      </div>
+      <textarea id="bkIn" style="margin-top:12px" placeholder="…ou cola aqui o texto de uma cópia e escolhe uma das opções abaixo."></textarea>
+      <div class="row" style="margin-top:10px">
+        <button class="btn small" onclick="importarCaixa('substituir')">Substituir com o texto colado</button>
+        <button class="btn ghost small" onclick="importarCaixa('juntar')">Juntar o texto colado</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Onde ficam os dados</h3>
+      <p class="sub" style="margin-top:6px">Ficam no armazenamento local deste browser. Nada é enviado para
+        servidores nem sincronizado entre dispositivos: o mesmo endereço aberto no telemóvel e no computador
+        tem conteúdos independentes. Limpar os dados de navegação, usar uma janela privada ou reinstalar o
+        browser apaga tudo — só o ficheiro de cópia sobrevive a isso.</p>
+      <p class="sub" style="margin-top:8px"><b>No iPhone e no iPad:</b> o Safari apaga os dados de sites que
+        não abres há algumas semanas. Instalar a app no ecrã principal (partilha → «Adicionar ao ecrã principal»)
+        dá-lhe armazenamento próprio e mais duradouro, mas a cópia exportada continua a ser a única garantia.</p>
+      <div class="row" style="margin-top:14px">
+        <button class="btn danger" onclick="apagarTudo()">Apagar todos os dados</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ================= RENDER ================= */
+function noMembers(){ return `<div class="card empty">Cria primeiro os perfis da família.<br><br><button class="btn" onclick="go('familia')">Ir para Família</button></div>`; }
+function render(){
+  document.getElementById('nav').innerHTML = TABS.map(([k,v])=>
+    `<button class="${S.ui.tab===k?'on':''}" onclick="go('${k}')">${v}</button>`).join('');
+  const el=document.getElementById('main');
+  el.innerHTML = S.ui.tab==='atividade'? renderAtividade()
+    : S.ui.tab==='nutricao'? renderNutricao()
+    : S.ui.tab==='plano'? renderPlano()
+    : S.ui.tab==='compras'? renderCompras()
+    : S.ui.tab==='dados'? renderDados()
+    : renderFamilia();
+  paintSave();
+}
+aplicarEcra();
+ligarOrientacao();
+render();
+
+/* Instalável no ecrã principal e utilizável sem rede (útil para a lista de
+   compras no supermercado). Só corre em http/https — via file:// é ignorado. */
+if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
+  window.addEventListener('load',()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); });
+}
+</script>
+</body>
+</html>
