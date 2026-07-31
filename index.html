@@ -526,6 +526,7 @@ function normalizaMembro(m){
   /* migração: deriva o objetivo contínuo do antigo — o alvo kcal não muda */
   if(m && !Number.isFinite(m.objetivoPct)) m.objetivoPct=Math.round((GOALS[m.objetivo]?.[1]||0)*100);
   else if(m) sincronizaObjetivo(m);   /* e mantém o campo legado coerente */
+  if(m) normalizaIdadeMeses(m);   /* corrige qualquer meses/idade que tenha ficado do lado errado da fronteira dos 2 anos */
   return m;
 }
 /* Faixa do slider de distância: depende do período, para não haver 400 km/dia. */
@@ -798,9 +799,23 @@ function bmiClass(v){ return v<18.5?['Abaixo do peso','warn']: v<25?['Peso norma
    Referências: IOM/DRI (2002/2005), Schofield (1985), IOM/NRC (2009),
    OMS (2020) e ACOG (Practice Bulletin 804/231). São valores de referência
    populacional, não prescrição — a app di-lo em cada ecrã onde importa. */
-const MESES_BEBE=[3,6,9,12,15,18,21,24];
 function idadeMeses(m){ return Number.isFinite(m.meses)? m.meses : (parseFloat(m.idade)||0)*12; }
 function idadeAnos(m){ return idadeMeses(m)/12; }
+/* Dois anos é o valor mínimo medido em anos; abaixo disso mede-se sempre em
+   meses (0-24). Esta função é o único sítio que decide a fronteira e mantém
+   m.meses/m.idade coerentes entre si — chamada em qualquer caminho que mude
+   a idade (edição direta, sliders, escolha de fase, importação), para a
+   representação nunca ficar presa no lado errado da fronteira. */
+function normalizaIdadeMeses(m){
+  if(Number.isFinite(m.meses)){
+    m.meses=clampNum(Math.round(m.meses),0,24);
+    if(m.meses>=24){ m.idade=2; delete m.meses; }
+    else m.idade=m.meses/12;
+  } else if((parseFloat(m.idade)||0)<2){
+    m.meses=clampNum(Math.round((parseFloat(m.idade)||0)*12),0,24);
+    m.idade=m.meses/12;
+  }
+}
 function gravida(m){ return m.sexo==='f' && !!m.gravida && idadeAnos(m)>=12; }
 function fetos(m){ return clampNum(Math.round(parseFloat(m.fetos)||1),1,3); }
 function trimestre(m){ return clampNum(Math.round(parseFloat(m.trimestre)||1),1,3); }
@@ -886,16 +901,18 @@ function permiteProjecao(m){ return permiteDefice(m); }
 function semPlanoAlimentar(m){ return idadeMeses(m)<6; }
 
 /* ===== NUTRIÇÃO DO BEBÉ =====
-   Peso para a idade das curvas de crescimento da OMS (2006), nos percentis 3,
-   15, 50, 85 e 97, em quilogramas. Entre os meses tabelados interpola-se. */
+   Peso para a idade, percentis 3/15/50/85/97, em quilogramas. Valores
+   transcritos das "Simplified field tables — Weight-for-age" oficiais da
+   OMS (WHO Child Growth Standards, 2006) — cdn.who.int/.../sft-wfa-boys-p-0-5.pdf
+   e .../sft-wfa-girls-p-0-5.pdf. Entre os meses tabelados interpola-se. */
 const WHO_MESES=[0,3,6,9,12,15,18,21,24];
 const WHO_PESO={
-  m:[[2.5,2.9,3.3,3.9,4.4],[5.0,5.7,6.4,7.2,7.9],[6.4,7.1,7.9,8.8,9.7],[7.1,8.0,8.9,9.9,10.9],
-     [7.7,8.6,9.6,10.8,11.8],[8.3,9.2,10.3,11.5,12.7],[8.8,9.8,10.9,12.2,13.5],
-     [9.2,10.3,11.5,12.9,14.3],[9.7,10.8,12.2,13.6,15.1]],
-  f:[[2.4,2.8,3.2,3.7,4.2],[4.6,5.2,5.8,6.6,7.3],[5.8,6.5,7.3,8.2,9.0],[6.5,7.3,8.2,9.3,10.2],
-     [7.0,7.9,8.9,10.1,11.1],[7.6,8.5,9.6,10.9,12.0],[8.1,9.1,10.2,11.6,12.8],
-     [8.6,9.6,10.9,12.3,13.7],[9.0,10.2,11.5,13.0,14.8]]
+  m:[[2.5,2.9,3.3,3.9,4.3],[5.1,5.6,6.4,7.2,7.9],[6.4,7.1,7.9,8.9,9.7],[7.2,7.9,8.9,10.0,10.9],
+     [7.8,8.6,9.6,10.8,11.8],[8.4,9.2,10.3,11.6,12.7],[8.9,9.7,10.9,12.3,13.5],
+     [9.3,10.3,11.5,13.0,14.3],[9.8,10.8,12.2,13.7,15.1]],
+  f:[[2.4,2.8,3.2,3.7,4.2],[4.6,5.1,5.8,6.7,7.4],[5.8,6.4,7.3,8.3,9.2],[6.6,7.3,8.2,9.3,10.4],
+     [7.1,7.9,8.9,10.2,11.3],[7.7,8.5,9.6,10.9,12.2],[8.2,9.0,10.2,11.6,13.0],
+     [8.7,9.6,10.9,12.4,13.8],[9.2,10.1,11.5,13.1,14.6]]
 };
 const PERCENTIS=[3,15,50,85,97];
 function pesosPercentis(sexo,meses){
@@ -929,22 +946,44 @@ function textoPercentil(m){
   if(q.acima) return 'acima do percentil 97';
   return 'percentil '+Math.round(q.p);
 }
-/* Doses diárias de referência para bebés e crianças pequenas.
-   Energia pelas equações da IOM; proteína, hidratos, gordura, água, ferro,
-   cálcio e vitamina D pelos valores de ingestão de referência (AI/RDA). */
+/* Doses diárias de referência para bebés e crianças pequenas. Fontes:
+   energia — IOM, "Dietary Reference Intakes for Energy, Carbohydrate,
+   Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids" (2002/
+   2005), equação de EER para lactentes/1-3 anos; proteína, hidratos,
+   gordura e água — mesmo relatório; ferro — IOM (2001), "...Iron...";
+   cálcio e vitamina D — IOM, "Dietary Reference Intakes for Calcium and
+   Vitamin D" (2011). A vitamina D SOBE de 10 para 15 µg (400→600 UI)
+   exatamente na transição de lactente (AI, 0-12 meses) para 1-3 anos
+   (RDA) — não é um valor único para toda a primeira infância. */
 function ddrBebe(m){
   const meses=idadeMeses(m), p=m.peso;
   const kcal=(89*p-100)+crescimentoKcal(m);
-  let prot,hc,gord,agua,ferro,calcio;
-  if(meses<7){ prot=1.52*p; hc=60; gord=31; agua=700; ferro=0.27; calcio=200; }
-  else if(meses<13){ prot=1.2*p; hc=95; gord=30; agua=800; ferro=11; calcio=260; }
-  else { prot=1.05*p; hc=130; gord=kcal*0.35/9; agua=1300; ferro=7; calcio=700; }
+  let prot,hc,gord,agua,ferro,calcio,vitD;
+  if(meses<7){ prot=1.52*p; hc=60; gord=31; agua=700; ferro=0.27; calcio=200; vitD=10; }
+  else if(meses<13){ prot=1.2*p; hc=95; gord=30; agua=800; ferro=11; calcio=260; vitD=10; }
+  else { prot=1.05*p; hc=130; gord=kcal*0.35/9; agua=1300; ferro=7; calcio=700; vitD=15; }
   return {kcal:Math.round(kcal), prot:Math.round(prot*10)/10, hc:Math.round(hc),
-    gord:Math.round(gord), agua, ferro, calcio, vitD:10};
+    gord:Math.round(gord), agua, ferro, calcio, vitD};
 }
-/* Leite: 67 kcal por 100 mL, valor médio do leite materno maduro e das
-   fórmulas de início preparadas conforme a embalagem. */
+/* Leite: 67 kcal por 100 mL — o padrão clássico de 20 kcal/oz (AAP), dentro
+   do intervalo regulatório do Codex Alimentarius CXS 72-1981 e do consenso
+   ESPGHAN (Koletzko et al., 2005) de 60-70 kcal/100 mL para fórmulas de
+   início; valor médio de referência, não um número exato — a composição
+   real varia por marca e, no leite materno, por fase da lactação. */
 const KCAL_100ML=67;
+/* Volume de referência em ml por kg e por dia: não é um patamar único, e
+   decresce com a idade à medida que entram os sólidos. Âncoras a partir de
+   HealthyChildren.org/AAP (150-180 ml/kg/dia nos primeiros 2 meses,
+   decrescendo) e de dados de ingestão real de leite materno (IABLE/
+   lacted.org: ~135 ml/kg/dia ao 1.º mês, ~126 aos 3, ~107 aos 6 meses).
+   Interpola-se entre âncoras; o aviso soa a 35% de desvio do valor central,
+   para não gerar falsos alarmes numa referência que já é aproximada. */
+const ANCORAS_MLKG=[[0,160],[1,150],[3,125],[6,108],[9,98],[12,90],[24,90]];
+function volumeRefMlKg(meses){
+  const a=ANCORAS_MLKG; let i=0; while(i<a.length-2 && meses>a[i+1][0]) i++;
+  const [m0,v0]=a[i], [m1,v1]=a[i+1], r=(m1>m0)?(meses-m0)/(m1-m0):0;
+  return v0+(v1-v0)*r;
+}
 const MODOS_LEITE={materno:'Leite materno',formula:'Fórmula',misto:'Misto',solidos:'Leite + sólidos'};
 function bebeCfg(m){
   const meses=idadeMeses(m);
@@ -973,8 +1012,7 @@ function leiteBebe(m){
   return {cfg:c, ddr, mlAlvo, mlPorTomada, mlTotal,
     kcalTotal:Math.round(mlTotal*KCAL_100ML/100),
     pctDDR: ddr.kcal>0? Math.round(mlTotal*KCAL_100ML/100/ddr.kcal*100) : 0,
-    mlPorKg: m.peso>0? Math.round(mlTotal/m.peso) : 0,
-    medidas: Math.round(mlPorTomada/30*10)/10 };
+    mlPorKg: m.peso>0? Math.round(mlTotal/m.peso) : 0 };
 }
 function horasTomadas(m){
   const c=bebeCfg(m), out=[];
@@ -1177,7 +1215,7 @@ const DICAS={
   desfazer:'Anula a última alteração aos dados. Guarda as últimas 30 e funciona também com Ctrl+Z; mudar de separador não conta como alteração.',
   bebePerc:'As curvas de peso para a idade da Organização Mundial de Saúde (2006), do percentil 3 ao 97. O ponto laranja é o teu bebé; a linha azul é a mediana. O percentil diz a posição entre bebés da mesma idade e sexo — não é uma nota.',
   bebeDdr:'As doses diárias de referência do escalão etário: energia pelas equações da IOM, proteína e hidratos pelas RDA, gordura e água pelas ingestões adequadas. São referências populacionais, não metas individuais.',
-  bebeLeite:'A conta parte de 67 kcal por 100 ml, o valor médio do leite materno maduro e das fórmulas de início. O volume por omissão sai das necessidades de energia; o intervalo habitual é 120 a 200 ml por quilo e por dia.',
+  bebeLeite:'A conta parte de 67 kcal por 100 ml — o valor clássico de 20 kcal/onça, dentro do intervalo de 60 a 70 kcal/100 ml do Codex Alimentarius para fórmulas de início e próximo do leite materno maduro. O volume por omissão sai das necessidades de energia; a referência de ml por quilo desce com a idade, à medida que entram os sólidos.',
   bebeHorario:'O intervalo e a hora da primeira tomada geram a grelha do dia. As zonas sombreadas são a noite — tomadas nesse período aparecem com a lua. Serve de apoio, não de relógio: sinais de fome mandam mais do que horários.',
   bebeRef:'A partir dos 6 meses a energia divide-se entre o leite e os sólidos. A repartição sugerida segue o padrão habitual da diversificação em Portugal: papa ou fruta a meio da manhã, sopa e prato ao almoço, e por aí em diante.'
 };
@@ -1214,9 +1252,11 @@ function upd(id,field,val,num){ const m=S.members.find(x=>x.id===id); if(!m) ret
     const d=dietaDe(m); m.macros={c:d.c,p:d.p,f:d.f};
   }
   m[field]=num?parseFloat(val)||0:val;
-  if(field==='meses'){ m.idade=(parseFloat(val)||0)/12;
+  if(field==='idade'||field==='meses'){
+    normalizaIdadeMeses(m);   /* decide meses vs anos e ajusta a fronteira dos 2 anos */
     /* mudar de idade repõe a fatia de leite e o volume nos padrões do escalão */
-    if(m.bebe){ delete m.bebe.pctLeite; m.bebe.ml=null; } }
+    if(m.bebe){ delete m.bebe.pctLeite; m.bebe.ml=null; }
+  }
   const rot={peso:'peso',altura:'altura',idade:'idade',dieta:'dieta',sexo:'sexo',nome:'nome',
     atividade:'nível de atividade',desloc:'deslocação',gravida:'gravidez',meses:'idade'}[field];
   save(rot? rot+' de '+m.nome : null); render(); }
@@ -1255,9 +1295,9 @@ function renderFamilia(){
             <option value="crianca" ${fase==='crianca'?'selected':''}>Criança (2–12)</option>
             <option value="adolescente" ${fase==='adolescente'?'selected':''}>Adolescente (13–18)</option>
             <option value="adulto" ${fase==='adulto'?'selected':''}>Adulto (19+)</option></select></div>
-          ${bebe? `<div><label class="lbl">Meses</label><select onchange="upd('${mid}','meses',this.value,1)">
-            ${MESES_BEBE.map(x=>`<option value="${x}" ${idadeMeses(m)===x?'selected':''}>${x} meses</option>`).join('')}</select></div>`
-          : `<div><label class="lbl">Idade</label><input type="number" id="in-${mid}-idade" min="1" value="${Math.round(m.idade)}" onchange="upd('${mid}','idade',this.value,1)"></div>`}
+          ${bebe? `<div><label class="lbl">Idade (meses)</label><input type="number" id="in-${mid}-idade" min="0" max="24" step="1"
+              value="${Math.round(idadeMeses(m))}" onchange="upd('${mid}','meses',this.value,1)"></div>`
+          : `<div><label class="lbl">Idade (anos)</label><input type="number" id="in-${mid}-idade" min="2" value="${Math.round(m.idade)}" onchange="upd('${mid}','idade',this.value,1)"></div>`}
           <div><label class="lbl">Altura cm</label><input type="number" id="in-${mid}-altura" min="30" value="${m.altura}" onchange="upd('${mid}','altura',this.value,1)"></div>
           <div><label class="lbl">Peso kg</label><input type="number" id="in-${mid}-peso" min="2" step="0.1" value="${m.peso}" onchange="upd('${mid}','peso',this.value,1)"></div>
         </div>
@@ -1277,8 +1317,18 @@ function renderFamilia(){
         <div class="spgrid" style="margin-top:14px">
           ${sl('peso','Peso',bebe?2:20,160,bebe?0.1:0.5,nPT(m.peso,1)+' kg','Peso em quilogramas')}
           ${sl('altura','Altura',bebe?40:90,220,1,Math.round(m.altura)+' cm','Altura em centímetros')}
-          ${bebe?'':sl('idade','Idade',2,90,1,Math.round(m.idade)+' anos','Idade em anos')}
+          <div>
+            <div class="splabel"><span>Idade</span><output id="f-${mid}-o-idade" style="min-width:9ch;text-align:right">${bebe? Math.round(idadeMeses(m))+' meses' : Math.round(m.idade)+' anos'}</output></div>
+            ${bebe
+              ? `<input type="range" id="f-${mid}-r-idade" min="0" max="24" step="1" value="${idadeMeses(m)}"
+                  style="--pct:${Math.round(idadeMeses(m)/24*100)}%" aria-label="Idade em meses"
+                  oninput="slideIdadeMeses('${mid}',this)" onchange="commitIdadeMeses('${mid}',this)">`
+              : `<input type="range" id="f-${mid}-r-idade" min="2" max="90" step="1" value="${clampNum(m.idade,2,90)}"
+                  style="--pct:${Math.round((clampNum(m.idade,2,90)-2)/88*100)}%" aria-label="Idade em anos"
+                  oninput="slidePerfil('${mid}','idade',this)" onchange="save()">`}
+          </div>
         </div>
+        <p class="sub" style="margin-top:2px">Dois anos é o valor mínimo medido em anos — abaixo disso, a idade mede-se sempre em meses.</p>
         <div class="splabel" style="margin:10px 0 0"><span>Índice de massa corporal ${dica('bandaImc')}</span></div>
         ${avisoFase(m)}
         <svg class="svgfx" viewBox="0 0 340 64" role="img" aria-label="Índice de massa corporal na escala de 15 a 40" style="margin-top:6px">
@@ -1324,6 +1374,7 @@ function setFase(mid,f){
     if(f==='adolescente' && !(a>=13&&a<19)) m.idade=15;
     if(f==='adulto' && a<19) m.idade=30;
   }
+  normalizaIdadeMeses(m);
   save(); render();
 }
 /* O aviso que acompanha cada fase. Não impede nada, mas também não deixa a
@@ -1352,12 +1403,32 @@ function slidePerfil(mid,campo,el){
   if(inp && document.activeElement!==inp) inp.value=el.value;
   aoVivo('fam:'+mid, ()=>atualizarFamilia(mid));
 }
+/* Slider de idade em meses (0-24): durante o gesto só se mexe em m.meses —
+   a troca de controlo (para o slider em anos) só acontece no commit, para o
+   dedo nunca perder o slider a meio do arrasto. */
+function slideIdadeMeses(mid,el){
+  const m=S.members.find(x=>x.id===mid); if(!m) return;
+  m.meses=clampNum(Math.round(parseFloat(el.value)||0),0,24);
+  m.idade=m.meses/12;
+  pintaRange(el);
+  const inp=document.getElementById('in-'+mid+'-idade');
+  if(inp && document.activeElement!==inp) inp.value=m.meses;
+  aoVivo('fam:'+mid, ()=>atualizarFamilia(mid));
+}
+/* Ao soltar, se o valor chegou aos 24 meses (dois anos), converte-se para a
+   representação em anos — dois anos é o valor mínimo medido em anos. */
+function commitIdadeMeses(mid,el){
+  const m=S.members.find(x=>x.id===mid); if(!m) return;
+  normalizaIdadeMeses(m);
+  if(m.bebe){ delete m.bebe.pctLeite; m.bebe.ml=null; }
+  save('idade de '+m.nome); render();
+}
 function atualizarFamilia(mid){
   const m=S.members.find(x=>x.id===mid); if(!m) return;
   const v=bmi(m), [cls,tone]=bmiClass(v);
   põe('f-'+mid+'-o-peso', nPT(m.peso,1)+' kg');
   põe('f-'+mid+'-o-altura', Math.round(m.altura)+' cm');
-  põe('f-'+mid+'-o-idade', Math.round(m.idade)+' anos');
+  põe('f-'+mid+'-o-idade', idadeAnos(m)<2? Math.round(idadeMeses(m))+' meses' : Math.round(m.idade)+' anos');
   põe('f-'+mid+'-imc', nPT(v,1)); põe('f-'+mid+'-imcv', nPT(v,1));
   põe('f-'+mid+'-bmr', Math.round(bmr(m)));
   põe('f-'+mid+'-tdee', Math.round(tdee(m)));
@@ -1948,7 +2019,6 @@ function atualizarBebe(mid){
   põe('bb-kcal', L.kcalTotal+' kcal');
   põe('bb-mlkg', L.mlPorKg+' ml/kg');
   põe('bb-cobertura', L.pctDDR+'%');
-  põe('bb-medidas', nPT(L.medidas,1));
   /* quando as tomadas ou a fatia de leite mudam, o volume por tomada volta a
      ser calculado — o slider dele tem de acompanhar, salvo se for o que está
      na mão do utilizador */
@@ -1959,8 +2029,8 @@ function atualizarBebe(mid){
   if(g) g.innerHTML=horasTomadas(m).map(h=>`<circle cx="${sx(h,0,24,20,328).toFixed(1)}" cy="25" r="5" style="fill:var(--accent);stroke:var(--card);stroke-width:1.5"/>`).join('');
   const lst=document.getElementById('bb-horas');
   if(lst) lst.innerHTML=listaHoras(m);
-  const av=document.getElementById('bb-aviso-vol');
-  if(av) av.style.visibility=(L.mlPorKg>200||L.mlPorKg<120)?'visible':'hidden';
+  const av=document.getElementById('bb-aviso-vol'), ref=volumeRefMlKg(idadeMeses(m));
+  if(av) av.style.visibility=(Math.abs(L.mlPorKg-ref)/ref>0.35)?'visible':'hidden';
 }
 function listaHoras(m){
   const L=leiteBebe(m);
@@ -1997,9 +2067,10 @@ function moduloBebe(m){
       <div class="kv"><span>Líquidos totais</span><b>${d.agua} ml</b></div>
       <div class="kv"><span>Ferro</span><b>${nPT(d.ferro,2).replace(',00','')} mg</b></div>
       <div class="kv"><span>Cálcio</span><b>${d.calcio} mg</b></div>
-      <div class="kv"><span>Vitamina D</span><b>${d.vitD} µg (400 UI)</b></div>
+      <div class="kv"><span>Vitamina D</span><b>${d.vitD} µg (${d.vitD===15?'600':'400'} UI)</b></div>
     </div>
-    <p class="sub" style="margin-top:10px">Energia pelas equações da IOM para lactentes; os restantes valores são ingestões de referência (AI e RDA) para o escalão etário. A vitamina D é habitualmente suplementada em Portugal desde os primeiros dias — confirma a dose com o pediatra.</p>
+    <p class="sub" style="margin-top:10px">Energia pela equação da IOM para lactentes e crianças pequenas; os restantes valores são ingestões de referência (AI e RDA) do Institute of Medicine para o escalão etário — sobem quando o bebé entra no escalão seguinte, o que é esperado e não um erro do gráfico.
+    Em Portugal, a Direção-Geral da Saúde (Norma n.º 004/2019) recomenda a suplementação de 400 UI/dia de vitamina D a todos os bebés saudáveis até aos 12 meses, independentemente do tipo de alimentação — confirma sempre a dose e a duração com o pediatra ou o enfermeiro de família.</p>
   </div>
 
   <div class="card">
@@ -2019,8 +2090,9 @@ function moduloBebe(m){
       <div class="stat"><b id="bb-mlkg">${L.mlPorKg} ml/kg</b><span>Por quilo</span></div>
       <div class="stat" style="background:var(--accent-soft)"><b id="bb-cobertura" style="color:var(--accent)">${L.pctDDR}%</b><span>Da energia diária</span></div>
     </div>
-    <p class="sub" id="bb-aviso-vol" style="min-height:1.5em;visibility:${(L.mlPorKg>200||L.mlPorKg<120)?'visible':'hidden'};color:var(--warn);margin-top:8px">Este volume sai do intervalo habitual de 120 a 200 ml por quilo e por dia — vale a pena confirmar em consulta.</p>
-    ${c.modo==='formula'||c.modo==='misto'? `<div class="msg warn-msg" style="margin-top:4px">Cerca de <b id="bb-medidas">${nPT(L.medidas,1)}</b> medidas rasas por tomada, na proporção mais comum de uma medida para 30 ml de água. <b>Segue sempre a tabela da embalagem da tua fórmula</b> e nunca alteres a diluição: mais concentrado sobrecarrega os rins, mais diluído não alimenta.</div>`:''}
+    <p class="sub" style="margin-top:8px">Referência aproximada para esta idade: cerca de ${Math.round(volumeRefMlKg(meses))} ml por quilo e por dia — o valor esperado desce à medida que entram os sólidos, não é um número fixo para o primeiro ano todo.</p>
+    <p class="sub" id="bb-aviso-vol" style="min-height:1.5em;visibility:${(Math.abs(L.mlPorKg-volumeRefMlKg(meses))/volumeRefMlKg(meses)>0.35)?'visible':'hidden'};color:var(--warn);margin-top:4px">Este volume afasta-se bastante da referência para esta idade — vale a pena confirmar em consulta.</p>
+    ${c.modo==='formula'||c.modo==='misto'? `<div class="msg warn-msg" style="margin-top:4px">Precisas de cerca de <b>${L.mlPorTomada} ml de água</b> por tomada. <b>Não convertemos isto em «medidas de pó»</b>: o peso de cada medida varia por marca e por fase (entre ~4,3 e ~5,4 g consoante o produto), pelo que um número calculado aqui podia levar a uma diluição errada com outra fórmula. <b>Segue sempre a tabela de reconstituição impressa na embalagem da tua fórmula</b> e nunca alteres a proporção indicada: mais concentrada sobrecarrega os rins, mais diluída não alimenta.</div>`:''}
     ${c.modo==='materno'? `<div class="msg warn-msg" style="margin-top:4px">Em aleitamento materno, a referência é a <b>procura do bebé</b>, não um volume medido. Os números acima servem só para dar uma ideia de grandeza — não são uma meta a atingir nem a limitar.</div>`:''}
   </div>
 
@@ -2056,6 +2128,7 @@ function moduloBebe(m){
       alergias, refluxo ou qualquer doença. A Organização Mundial de Saúde recomenda leite materno exclusivo até aos 6 meses e a sua continuação,
       com alimentos complementares, até aos 2 anos ou mais. Procura ajuda se o bebé não ganha peso, recusa as refeições, faz menos chichi do que
       é habitual ou está apático.</div>
+    <p class="sub" style="margin-top:12px">Fontes: peso para a idade — Organização Mundial de Saúde, <i>WHO Child Growth Standards</i> (2006). Doses de referência — Institute of Medicine / National Academies, <i>Dietary Reference Intakes</i> para energia, hidratos, proteína, gordura e água (2002/2005), ferro (2001) e cálcio e vitamina D (2011). Densidade energética do leite — Codex Alimentarius CXS 72-1981 e ESPGHAN (Koletzko <i>et al.</i>, 2005). Aleitamento — Estratégia Global da OMS/UNICEF para a Alimentação de Lactentes e Crianças Pequenas. Recomendações portuguesas — Direção-Geral da Saúde: Norma n.º 004/2019 (vitamina D), Programa Nacional de Saúde Infantil e Juvenil/Norma n.º 010/2013 (diversificação alimentar) e o manual <i>Alimentação Saudável dos 0 aos 6 anos</i> (PNPAS, 2020/2024) para sal, açúcar, mel e leite de vaca.</p>
   </div>`;
 }
 function renderNutricao(){
@@ -2561,6 +2634,10 @@ function limparMembro(m){
     fetos: clampNum(Math.round(parseFloat(m.fetos)||1),1,3),
     pesoPre: num(m.pesoPre,0)||undefined,
     desportos: Array.isArray(m.desportos) ? m.desportos.map(normalizaDesporto).filter(Boolean) : []};
+  /* idade:num(m.idade,35) acima não sabe nada de meses — sem isto, um bebé
+     importado com só "meses" ficava com idade=35 (o valor de recurso) em vez
+     de derivada dos meses, e um meses fora de [0,24] não convertia para anos. */
+  normalizaIdadeMeses(out);
   if(dieta==='personalizada'){
     const mc=m.macros||{};
     const s=(parseFloat(mc.c)||0)+(parseFloat(mc.p)||0)+(parseFloat(mc.f)||0);
