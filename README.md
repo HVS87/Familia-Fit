@@ -16,6 +16,14 @@ Cada modalidade tem a forma de registo que lhe assenta melhor. Nos dez desportos
 
 As calorias são estimadas por METs (esforço metabólico × peso × horas) e somadas ao gasto basal, com o detalhe de cada parcela visível e atualizado ao vivo enquanto se mexe nos sliders.
 
+**Fases da vida** — cada perfil declara a sua fase, e os cálculos mudam com ela. Bebés (de 3 em 3 meses até aos 24), crianças (2–12), adolescentes (13–18) e adultos usam a equação de metabolismo basal apropriada — Schofield abaixo dos 19 anos, Mifflin-St Jeor a partir daí — com a energia de crescimento somada à parte. A gravidez identifica-se com trimestre e número de fetos, usa o peso pré-gestacional como referência e acrescenta a energia do trimestre.
+
+Os macronutrientes deixam de ser os mesmos para todos: cada fase tem a sua faixa aceitável (AMDR), e uma dieta que saia dela — uma cetogénica para uma criança, por exemplo — é encostada aos limites com aviso visível, em vez de ser aplicada como se nada fosse. Num adulto não grávido a faixa é mostrada como referência e a escolha continua a ser dele. Também há proteína recomendada em gramas por quilo e mínimo absoluto de hidratos por fase.
+
+O esforço tem limites próprios: recomendações de volume por idade, teto de horas semanais de desporto organizado em idade pediátrica, limite de intensidade e lista de modalidades desaconselhadas na gravidez, com aviso quando o que está registado as contraria. Défice calórico e projeção de peso ficam indisponíveis em crianças, adolescentes e na gravidez, com a razão explicada. Numa gestação de trigémeos a app não apresenta estimativa nenhuma, porque não existe valor de referência publicado — e di-lo.
+
+Estes números são referências populacionais (Institute of Medicine, Schofield, Organização Mundial de Saúde, ACOG) para planeamento familiar. Não substituem consulta, e a app repete-o em cada ecrã onde isso importa. Abaixo dos 6 meses não gera plano alimentar.
+
 **🍽️ Nutrição** — objetivo de peso (perder, manter, ganhar) que ajusta o alvo calórico, e sete tipos de dieta: equilibrada, mediterrânica, keto, low carb, low fat, paleo e vegetariana. O simulador converte o alvo calórico em gramas de hidratos, proteína e gordura, e reparte-o pelas quatro refeições do dia. Inclui 84 receitas filtráveis por refeição, por cozinha (portuguesa, italiana, francesa, mediterrânica, asiática) e por compatibilidade com a dieta, mais uma secção dedicada às receitas que servem as dietas de **todos os membros ao mesmo tempo**. Todas as dietas têm pelo menos três opções em cada refeição.
 
 **📅 Plano semanal** — pequeno-almoço, almoço, lanche e jantar para cada dia, escolhendo quem come cada refeição, com navegação entre semanas e preenchimento automático que só sugere receitas do tipo certo e compatíveis com todos os comensais daquela refeição. Os **cheat days** marcam-se por pessoa e por dia: quem estiver de folga sai das contas e da lista de compras nesse dia.

@@ -205,6 +205,7 @@ textarea{width:100%;min-height:120px;background:var(--bg);border:1px solid var(-
 .pill.bad{background:rgba(194,64,52,.14)}
 .pill.bad{background:color-mix(in srgb,var(--bad) 14%,transparent)}
 .msg.ok{background:rgba(46,125,79,.13)}
+.msg.warn-msg{background:rgba(176,127,20,.13);color:var(--warn);font-weight:400;line-height:1.5}
 .msg.ok{background:color-mix(in srgb,var(--ok) 13%,transparent)}
 .msg.bad{background:rgba(194,64,52,.13)}
 .msg.bad{background:color-mix(in srgb,var(--bad) 13%,transparent)}
@@ -693,12 +694,103 @@ function esc(s){ return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&l
 /* ================= CÁLCULOS ================= */
 function bmi(m){ const h=m.altura/100; return h>0? m.peso/(h*h) : 0; }
 function bmiClass(v){ return v<18.5?['Abaixo do peso','warn']: v<25?['Peso normal','ok']: v<30?['Excesso de peso','warn']:['Obesidade','bad']; }
-function bmr(m){ return m.sexo==='f' ? 10*m.peso+6.25*m.altura-5*m.idade-161 : 10*m.peso+6.25*m.altura-5*m.idade+5; }
+
+/* ===== FASES DA VIDA =====
+   As fórmulas de adulto não servem para crianças nem para a gravidez. Cada
+   fase traz a sua equação, a sua faixa de macros e os seus limites de esforço.
+   Referências: IOM/DRI (2002/2005), Schofield (1985), IOM/NRC (2009),
+   OMS (2020) e ACOG (Practice Bulletin 804/231). São valores de referência
+   populacional, não prescrição — a app di-lo em cada ecrã onde importa. */
+const MESES_BEBE=[3,6,9,12,15,18,21,24];
+function idadeMeses(m){ return Number.isFinite(m.meses)? m.meses : (parseFloat(m.idade)||0)*12; }
+function idadeAnos(m){ return idadeMeses(m)/12; }
+function gravida(m){ return m.sexo==='f' && !!m.gravida && idadeAnos(m)>=12; }
+function fetos(m){ return clampNum(Math.round(parseFloat(m.fetos)||1),1,3); }
+function trimestre(m){ return clampNum(Math.round(parseFloat(m.trimestre)||1),1,3); }
+function faseDe(m){
+  const a=idadeAnos(m);
+  if(a<2) return 'bebe';
+  if(a<13) return 'crianca';
+  if(a<19) return 'adolescente';
+  return 'adulto';
+}
+const FASES={bebe:'Bebé',crianca:'Criança',adolescente:'Adolescente',adulto:'Adulto'};
+function nomeFase(m){ return gravida(m)? (FASES[faseDe(m)]+' · grávida') : FASES[faseDe(m)]; }
+/* O peso de referência da grávida é o pré-gestacional: é sobre ele que as
+   recomendações são construídas. O peso atual serve para acompanhar o ganho. */
+function pesoRef(m){ const p=parseFloat(m.pesoPre);
+  return gravida(m) && isFinite(p) && p>0 ? p : m.peso; }
+/* Metabolismo basal: Schofield abaixo dos 19 anos, Mifflin-St Jeor a partir
+   daí — os perfis adultos que já existiam mantêm o valor exato. */
+function bmr(m){
+  const a=idadeAnos(m), p=pesoRef(m), f=m.sexo==='f';
+  if(a<19){
+    if(a<3)  return f? 58.317*p-31.1 : 59.512*p-30.4;
+    if(a<10) return f? 20.315*p+485.9 : 22.706*p+504.3;
+    return   f? 13.384*p+692.6 : 17.686*p+658.2;
+  }
+  /* pesoRef é o peso do próprio, exceto na gravidez, onde é o pré-gestacional */
+  return f ? 10*p+6.25*m.altura-5*m.idade-161 : 10*p+6.25*m.altura-5*m.idade+5;
+}
+/* Energia de crescimento, que só existe enquanto o corpo está a crescer. */
+function crescimentoKcal(m){
+  const meses=idadeMeses(m), a=meses/12;
+  if(meses<4) return 175;
+  if(meses<7) return 56;
+  if(meses<13) return 22;
+  if(a<3) return 20;
+  if(a<9) return 20;
+  if(a<19) return 25;
+  return 0;
+}
+/* Incremento da gravidez (IOM/DRI): nada no 1.º trimestre, +340 no 2.º,
+   +452 no 3.º. Para gémeos não há DRI — usa-se um acréscimo declarado como
+   aproximação. Para trigémeos não existe valor defensável e a app recusa-se
+   a inventar um. */
+function gravidezKcal(m){
+  if(!gravida(m)) return 0;
+  const t=trimestre(m), n=fetos(m);
+  const base = t===1? 0 : t===2? 340 : 452;
+  if(n===1) return base;
+  if(n===2) return base===0? 0 : base+350;
+  return 0;   /* trigémeos: sem estimativa — ver avisoGravidez() */
+}
+function semEstimativa(m){ return gravida(m) && fetos(m)>=3; }
+function tdee(m){ return bmr(m)*(temChave(BASE_ACT,m.atividade)?BASE_ACT[m.atividade][1]:1.2)
+  + sportsKcalDay(m) + commuteKcalDay(m) + crescimentoKcal(m) + gravidezKcal(m); }
+/* Faixas de distribuição de macronutrientes aceitáveis (AMDR, IOM/DRI).
+   Abaixo dos 12 meses não estão definidas — não se aplicam percentagens. */
+function amdrDe(m){
+  const a=idadeAnos(m);
+  if(a<1) return null;
+  if(a<4)  return {c:[45,65],p:[5,20], f:[30,40]};
+  if(a<19) return {c:[45,65],p:[10,30],f:[25,35]};
+  return {c:[45,65],p:[10,35],f:[20,35]};
+}
+/* Proteína de referência em g por kg de peso e por dia. */
+function proteinaKg(m){
+  if(gravida(m)) return 1.1;
+  const meses=idadeMeses(m), a=meses/12;
+  if(meses<7) return 1.52;
+  if(meses<13) return 1.2;
+  if(a<4) return 1.05;
+  if(a<14) return 0.95;
+  if(a<19) return 0.85;
+  return 0.8;
+}
+/* Piso absoluto de hidratos (RDA), que manda acima da percentagem. */
+function hidratosMin(m){ if(idadeAnos(m)<1) return 0; return gravida(m)? 175 : 130; }
+/* Um défice calórico não é para crianças, adolescentes em crescimento nem
+   grávidas — o slider de objetivo fica limitado a manutenção ou acima. */
+function permiteDefice(m){ return faseDe(m)==='adulto' && !gravida(m); }
+function permiteProjecao(m){ return permiteDefice(m); }
+/* Abaixo dos 6 meses a alimentação é leite materno ou fórmula: a app não
+   gera plano nenhum. Entre os 6 e os 24 meses é apoio, não prescrição. */
+function semPlanoAlimentar(m){ return idadeMeses(m)<6; }
 function sportWeeklyH(s){ const h=horasPeriodo(s);
   return s.per==='dia'? h*7 : s.per==='mes'? h/4.345 : h; }
 function sportsKcalDay(m){ return (m.desportos||[]).reduce((t,s)=> t + metDe(s)*m.peso*sportWeeklyH(s), 0)/7; }
 function commuteKcalDay(m){ return (COMMUTE[m.desloc]?.[1]||0)*m.peso*(5/7); }
-function tdee(m){ return bmr(m)*(BASE_ACT[m.atividade]?.[1]||1.2) + sportsKcalDay(m) + commuteKcalDay(m); }
 function clampNum(v,a,b){ return Math.min(Math.max(v,a),b); }
 /* Validar com OBJ[chave] deixava passar nomes herdados do Object.prototype:
    uma dieta chamada "constructor" passava a lista branca e dava macros NaN. */
@@ -719,7 +811,10 @@ function rotuloObjetivo(m){ const p=objetivoPct(m);
   if(p===0) return 'Manter peso';
   const sinal=(p>0?'+':'−')+Math.abs(p)+' %';
   return (p<=-8? 'Perder peso (' : p>=5? 'Ganhar massa (' : 'Manter peso (')+sinal+')'; }
-function targetKcal(m){ return tdee(m)*(1+objetivoPct(m)/100); }
+function targetKcal(m){
+  let p=objetivoPct(m);
+  if(!permiteDefice(m) && p<0) p=0;   /* sem défice em crianças e na gravidez */
+  return tdee(m)*(1+p/100); }
 /* A dieta lida SEMPRE por aqui: para presets devolve o objeto de DIETS
    (gramas inalteradas); «personalizada» usa os macros do próprio membro. */
 function dietaDe(m){
@@ -727,12 +822,84 @@ function dietaDe(m){
     const ok=mc && [mc.c,mc.p,mc.f].every(v=>Number.isFinite(v)&&v>=0) && Math.round(mc.c+mc.p+mc.f)===100;
     return Object.assign({n:'Personalizada'}, ok? {c:mc.c,p:mc.p,f:mc.f} : {c:50,p:20,f:30}); }
   return temChave(DIETS,m.dieta)? DIETS[m.dieta] : DIETS.equilibrada; }
-function macros(m){ const d=dietaDe(m), k=targetKcal(m);
+/* A dieta escolhida é ajustada à faixa AMDR da fase antes de virar gramas:
+   uma dieta cetogénica a 5 % de hidratos não se aplica a uma criança de 7
+   anos, e em vez de a app fingir que sim, encosta à faixa e diz que o fez. */
+function exigeAmdr(m){ return faseDe(m)!=='adulto' || gravida(m); }
+function macrosAjustados(m){
+  const d=dietaDe(m), faixa=amdrDe(m);
+  /* Num adulto que não está grávido, a faixa é informação e a escolha é dele —
+     uma dieta cetogénica continua a ser cetogénica. Só se encosta à faixa onde
+     o plano é para outra pessoa em crescimento, ou para uma gravidez. */
+  if(!faixa || !exigeAmdr(m)) return {c:d.c,p:d.p,f:d.f,n:d.n,ajustado:false};
+  const c0=clampNum(d.c,faixa.c[0],faixa.c[1]);
+  const p0=clampNum(d.p,faixa.p[0],faixa.p[1]);
+  const f0=clampNum(d.f,faixa.f[0],faixa.f[1]);
+  const ajustado = c0!==d.c || p0!==d.p || f0!==d.f;
+  if(!ajustado) return {c:d.c,p:d.p,f:d.f,n:d.n,ajustado:false};
+  /* Encostar cada macro à faixa deixa a soma fora dos 100; a diferença é
+     distribuída pelos macros que ainda têm folga dentro da própria faixa,
+     em vez de reescalar tudo — assim o resultado continua dentro da faixa. */
+  const v={c:c0,p:p0,f:f0};
+  for(let it=0; it<12; it++){
+    const dif=100-(v.c+v.p+v.f);
+    if(Math.abs(dif)<0.005) break;
+    const folga=k=> dif>0 ? faixa[k][1]-v[k] : v[k]-faixa[k][0];
+    const total=['c','p','f'].reduce((t,k)=>t+Math.max(0,folga(k)),0);
+    if(total<=0) break;
+    ['c','p','f'].forEach(k=>{ const fl=Math.max(0,folga(k)); if(fl>0) v[k]+=dif*fl/total; });
+  }
+  const r=normaliza100(v);
+  return {c:r.c,p:r.p,f:r.f,n:d.n,ajustado:true};
+}
+function macros(m){ const d=macrosAjustados(m), k=targetKcal(m);
   return {c:Math.round(k*d.c/100/4), p:Math.round(k*d.p/100/4), f:Math.round(k*d.f/100/9), pct:d}; }
 function compat(r,dieta){ return dieta==='equilibrada' || dieta==='personalizada' || r.d.includes(dieta); }
 function compatAll(r,ms){ return ms.every(m=>compat(r,m.dieta)); }
+/* Limites e recomendações de esforço por fase. Não existe teto de MET
+   reconhecido para crianças, por isso não se inventa nenhum: o que se limita
+   é o que a evidência sustenta — a intensidade na gravidez, o volume semanal
+   em idade pediátrica e as modalidades de risco. */
+const RISCO_QUEDA=['esqui','patinagem','escalada','btt','ciclismoMontanha','ciclismo','ciclismoPasseio','surf','trail'];
+const RISCO_CONTACTO=['futebol','futsal','basquete','andebol','artes','boxe','volei'];
+function limitesEsforco(m){
+  const a=idadeAnos(m), meses=idadeMeses(m), g=gravida(m), fase=faseDe(m);
+  const out={fase, nivelMax:null, evitar:[], notas:[], recomendacao:''};
+  if(g){
+    out.nivelMax='moderado';
+    out.evitar=RISCO_QUEDA.concat(RISCO_CONTACTO).concat(['funcional']);
+    out.recomendacao='Pelo menos 150 minutos por semana de atividade moderada, repartidos por 3 ou mais dias.';
+    out.notas.push('Intensidade pelo teste da conversa: se não consegues falar, abranda.');
+    if(trimestre(m)>=2) out.notas.push('A partir do 2.º trimestre, evita exercícios deitada de costas.');
+    if(fetos(m)===2 && trimestre(m)===3) out.notas.push('Numa gestação gemelar, a partir das 28 semanas o exercício moderado passa a exigir aval médico.');
+    if(fetos(m)>=3) { out.nivelMax='leve';
+      out.notas.push('Numa gestação de trigémeos, o exercício moderado a vigoroso é desaconselhado — só com indicação da equipa que te segue.'); }
+    return out;
+  }
+  if(meses<12){ out.recomendacao='Várias vezes ao dia, brincadeira ativa no chão — nada de desporto estruturado.';
+    out.evitar=SPORTS.map(s=>s.id); return out; }
+  if(a<3){ out.recomendacao='Pelo menos 180 minutos por dia de atividade de qualquer intensidade, espalhados pelo dia.';
+    out.evitar=SPORTS.map(s=>s.id).filter(id=>['caminhada','danca','natacao'].indexOf(id)<0); return out; }
+  if(a<5){ out.recomendacao='Pelo menos 180 minutos por dia, dos quais 60 de atividade moderada a vigorosa.';
+    out.evitar=['boxe','musculacao','funcional','intervalos','squash']; return out; }
+  if(a<13){ out.recomendacao='Uma média de 60 minutos por dia de atividade moderada a vigorosa, com reforço muscular e ósseo em 3 ou mais dias por semana.';
+    out.evitar=['boxe'];
+    out.horasMax=Math.round(a);   /* horas de desporto organizado por semana ≤ idade */
+    out.notas.push('Como referência, as horas de desporto organizado por semana não deviam passar a idade em anos ('+Math.round(a)+' h), com 1 a 2 dias de descanso.');
+    out.notas.push('Treino de força só com supervisão e cargas leves: séries de 6 a 15 repetições, nunca levantamentos máximos.');
+    return out; }
+  if(a<19){ out.recomendacao='Uma média de 60 minutos por dia de atividade moderada a vigorosa, com reforço muscular e ósseo em 3 ou mais dias por semana.';
+    out.evitar=['boxe'];
+    out.notas.push('Levantamentos máximos só depois de completado o crescimento; até lá, técnica antes de carga.');
+    return out; }
+  out.recomendacao='150 a 300 minutos por semana de atividade moderada, ou 75 a 150 de atividade vigorosa, mais reforço muscular em 2 ou mais dias.';
+  return out;
+}
+function minutosSemana(m){ return (m.desportos||[]).reduce((t,s)=>t+sportWeeklyH(s)*60,0); }
 function gastoPartes(m){ const b=bmr(m);
-  return {basal:b, dia:b*((BASE_ACT[m.atividade]?.[1]||1.2)-1), desloc:commuteKcalDay(m), desp:sportsKcalDay(m), total:tdee(m)}; }
+  return {basal:b, dia:b*((temChave(BASE_ACT,m.atividade)?BASE_ACT[m.atividade][1]:1.2)-1),
+    desloc:commuteKcalDay(m), desp:sportsKcalDay(m),
+    extra:crescimentoKcal(m)+gravidezKcal(m), total:tdee(m)}; }
 /* kg por semana implicados pelo objetivo (positivo = a perder), a 7700 kcal/kg. */
 function ritmoSemanal(m){ return (tdee(m)-targetKcal(m))*7/7700; }
 /* Projeção iterativa: o gasto recalcula-se com o peso de cada semana, pelo que
@@ -824,6 +991,7 @@ function renderFamilia(){
       <button class="btn" onclick="addMember()">+ Adicionar membro</button></div>
     <div class="grid g2">${S.members.map(m=>{
       const mid=m.id, v=bmi(m),[cls,tone]=bmiClass(v);
+      const fase=faseDe(m), bebe=fase==='bebe';
       const h2=(m.altura/100)*(m.altura/100);
       const zmin=Math.round(18.5*h2), zmax=Math.round(25*h2), dentro=m.peso>=zmin&&m.peso<=zmax;
       const sl=(campo,rot,mn,mx,st,txt,aria)=>`<div>
@@ -841,15 +1009,36 @@ function renderFamilia(){
         <div class="frow">
           <div><label class="lbl">Sexo</label><select onchange="upd('${mid}','sexo',this.value)">
             <option value="m" ${m.sexo==='m'?'selected':''}>Masculino</option><option value="f" ${m.sexo==='f'?'selected':''}>Feminino</option></select></div>
-          <div><label class="lbl">Idade</label><input type="number" id="in-${mid}-idade" min="1" value="${m.idade}" onchange="upd('${mid}','idade',this.value,1)"></div>
-          <div><label class="lbl">Altura cm</label><input type="number" id="in-${mid}-altura" min="50" value="${m.altura}" onchange="upd('${mid}','altura',this.value,1)"></div>
-          <div><label class="lbl">Peso kg</label><input type="number" id="in-${mid}-peso" min="10" step="0.1" value="${m.peso}" onchange="upd('${mid}','peso',this.value,1)"></div>
+          <div><label class="lbl">Fase</label><select onchange="setFase('${mid}',this.value)">
+            <option value="bebe" ${bebe?'selected':''}>Bebé (até 2 anos)</option>
+            <option value="crianca" ${fase==='crianca'?'selected':''}>Criança (2–12)</option>
+            <option value="adolescente" ${fase==='adolescente'?'selected':''}>Adolescente (13–18)</option>
+            <option value="adulto" ${fase==='adulto'?'selected':''}>Adulto (19+)</option></select></div>
+          ${bebe? `<div><label class="lbl">Meses</label><select onchange="upd('${mid}','meses',this.value,1)">
+            ${MESES_BEBE.map(x=>`<option value="${x}" ${idadeMeses(m)===x?'selected':''}>${x} meses</option>`).join('')}</select></div>`
+          : `<div><label class="lbl">Idade</label><input type="number" id="in-${mid}-idade" min="1" value="${Math.round(m.idade)}" onchange="upd('${mid}','idade',this.value,1)"></div>`}
+          <div><label class="lbl">Altura cm</label><input type="number" id="in-${mid}-altura" min="30" value="${m.altura}" onchange="upd('${mid}','altura',this.value,1)"></div>
+          <div><label class="lbl">Peso kg</label><input type="number" id="in-${mid}-peso" min="2" step="0.1" value="${m.peso}" onchange="upd('${mid}','peso',this.value,1)"></div>
         </div>
+        ${m.sexo==='f' && idadeAnos(m)>=12 ? `
+        <label class="toggle" style="margin-top:8px">
+          <input type="checkbox" ${m.gravida?'checked':''} onchange="upd('${mid}','gravida',this.checked)">
+          <span>Grávida</span></label>
+        ${m.gravida? `<div class="frow">
+          <div><label class="lbl">Trimestre</label><select onchange="upd('${mid}','trimestre',this.value,1)">
+            ${[1,2,3].map(t=>`<option value="${t}" ${trimestre(m)===t?'selected':''}>${t}.º</option>`).join('')}</select></div>
+          <div><label class="lbl">Fetos</label><select onchange="upd('${mid}','fetos',this.value,1)">
+            <option value="1" ${fetos(m)===1?'selected':''}>1 — único</option>
+            <option value="2" ${fetos(m)===2?'selected':''}>2 — gémeos</option>
+            <option value="3" ${fetos(m)===3?'selected':''}>3 ou mais</option></select></div>
+          <div><label class="lbl">Peso pré kg</label><input type="number" min="30" step="0.1" value="${pesoRef(m)}" onchange="upd('${mid}','pesoPre',this.value,1)"></div>
+        </div>`:''}`:''}
         <div class="spgrid" style="margin-top:14px">
-          ${sl('peso','Peso',30,160,0.5,nPT(m.peso,1)+' kg','Peso em quilogramas')}
-          ${sl('altura','Altura',100,220,1,Math.round(m.altura)+' cm','Altura em centímetros')}
-          ${sl('idade','Idade',4,90,1,Math.round(m.idade)+' anos','Idade em anos')}
+          ${sl('peso','Peso',bebe?2:20,160,bebe?0.1:0.5,nPT(m.peso,1)+' kg','Peso em quilogramas')}
+          ${sl('altura','Altura',bebe?40:90,220,1,Math.round(m.altura)+' cm','Altura em centímetros')}
+          ${bebe?'':sl('idade','Idade',2,90,1,Math.round(m.idade)+' anos','Idade em anos')}
         </div>
+        ${avisoFase(m)}
         <svg class="svgfx" viewBox="0 0 340 64" role="img" aria-label="Índice de massa corporal na escala de 15 a 40" style="margin-top:6px">
           <clipPath id="clip-${mid}"><rect x="8" y="26" width="324" height="12" rx="6"/></clipPath>
           <g clip-path="url(#clip-${mid})">
@@ -866,19 +1055,51 @@ function renderFamilia(){
           <text id="f-${mid}-imcv" x="${clampNum(sx(v,15,40,8,332),22,318).toFixed(1)}" y="13" text-anchor="middle"
             font-size="13" font-weight="700" style="font-variant-numeric:tabular-nums" class="f-ink">${nPT(v,1)}</text>
         </svg>
-        <div style="min-height:1.6em"><span class="sub ${dentro?'f-ok-txt':''}" id="f-${mid}-zona">${dentro?'✓ ':''}Peso saudável para ${Math.round(m.altura)} cm: ${zmin}–${zmax} kg</span></div>
+        <div style="min-height:1.6em"><span class="sub ${fase==='adulto'&&dentro?'f-ok-txt':''}" id="f-${mid}-zona">${
+          fase==='adulto'? (dentro?'✓ ':'')+'Peso saudável para '+Math.round(m.altura)+' cm: '+zmin+'–'+zmax+' kg'
+          : 'Em idade de crescimento o IMC lê-se em percentil para a idade e o sexo, não por estes limites de adulto.'}</span></div>
         <div class="row" style="margin-top:10px">
           <div class="stat"><b id="f-${mid}-imc">${nPT(v,1)}</b><span>IMC</span></div>
           <div class="stat"><b id="f-${mid}-bmr">${Math.round(bmr(m))}</b><span>Basal kcal</span></div>
           <div class="stat"><b id="f-${mid}-tdee">${Math.round(tdee(m))}</b><span>Gasto kcal</span></div>
-          <div class="stat" style="background:var(--accent-soft)"><b id="f-${mid}-alvo" style="color:var(--accent)">${Math.round(targetKcal(m))}</b><span>Alvo kcal</span></div>
+          <div class="stat" style="background:var(--accent-soft)"><b id="f-${mid}-alvo" style="color:var(--accent)">${semEstimativa(m)?'—':Math.round(targetKcal(m))}</b><span>Alvo kcal</span></div>
         </div>
         <div class="row" style="margin-top:10px;min-height:34px;justify-content:space-between">
-          <div><span class="pill ${tone}" id="f-${mid}-cls">${cls}</span>
+          <div><span class="pill ${tone}" id="f-${mid}-cls">${fase==='adulto'?cls:nomeFase(m)}</span>
             <span class="sub" style="margin-left:8px">${dietaDe(m).n} · ${rotuloObjetivo(m)}</span></div>
           <button class="chip" onclick="pickM('${mid}');go('nutricao')">→ macros de ${esc(m.nome.split(' ')[0])}</button>
         </div>
       </div>`;}).join('')}</div>`;
+}
+/* A escolha da fase acerta a idade para dentro do escalão, para os cálculos
+   e os limites de esforço passarem logo a ser os certos. */
+function setFase(mid,f){
+  const m=S.members.find(x=>x.id===mid); if(!m) return;
+  if(f==='bebe'){ if(!Number.isFinite(m.meses)) m.meses=12; m.idade=m.meses/12; m.gravida=false; }
+  else { delete m.meses;
+    const a=idadeAnos(m);
+    if(f==='crianca' && !(a>=2&&a<13)) m.idade=8;
+    if(f==='adolescente' && !(a>=13&&a<19)) m.idade=15;
+    if(f==='adulto' && a<19) m.idade=30;
+  }
+  save(); render();
+}
+/* O aviso que acompanha cada fase. Não impede nada, mas também não deixa a
+   app fingir autoridade clínica que não tem. */
+function avisoFase(m){
+  const meses=idadeMeses(m), fase=faseDe(m), av=[];
+  if(gravida(m)){
+    av.push(fetos(m)>=3
+      ? '<b>Gestação de trigémeos ou mais:</b> não há valores de referência publicados para as necessidades energéticas, por isso a app não apresenta uma estimativa. O acompanhamento tem de ser da equipa de obstetrícia e nutrição.'
+      : fetos(m)===2
+        ? 'Numa gestação gemelar não existe recomendação oficial de energia: o acréscimo mostrado é uma aproximação e as necessidades reais costumam ser maiores. Confirma com quem te segue.'
+        : 'Os valores seguem as referências para gravidez de feto único e usam o peso pré-gestacional. Não substituem o acompanhamento obstétrico e nutricional.');
+  }
+  if(meses<6) av.push('<b>Até aos 6 meses</b> a alimentação é leite materno ou fórmula. A app não gera plano alimentar nesta idade — a orientação é do pediatra.');
+  else if(meses<24) av.push('Entre os 6 e os 24 meses o plano serve de apoio à diversificação alimentar, não de prescrição. Segue as indicações do pediatra ou do enfermeiro de família.');
+  else if(fase==='crianca'||fase==='adolescente') av.push('Em idade de crescimento os valores são referências populacionais e não dispensam o acompanhamento em consulta. Restringir calorias nesta fase pode comprometer o crescimento.');
+  if(!av.length) return '';
+  return `<div class="msg warn-msg" style="margin:12px 0 0">${av.join('<br><br>')}</div>`;
 }
 /* Arrasto dos sliders de perfil: estado + espelho no campo numérico (nunca o
    focado) + atualização ao vivo de IMC, banda, basal, gasto e alvo do cartão. */
@@ -898,17 +1119,20 @@ function atualizarFamilia(mid){
   põe('f-'+mid+'-imc', nPT(v,1)); põe('f-'+mid+'-imcv', nPT(v,1));
   põe('f-'+mid+'-bmr', Math.round(bmr(m)));
   põe('f-'+mid+'-tdee', Math.round(tdee(m)));
-  põe('f-'+mid+'-alvo', Math.round(targetKcal(m)));
   põeAttr('f-'+mid+'-mk','transform','translate('+sx(v,15,40,8,332).toFixed(1)+',0)');
   /* o texto anda à parte do triângulo, preso dentro do viewBox para não ser
      cortado nos extremos da escala */
   põeAttr('f-'+mid+'-imcv','x', clampNum(sx(v,15,40,8,332),22,318).toFixed(1));
+  const adulto=faseDe(m)==='adulto';
   const pill=document.getElementById('f-'+mid+'-cls');
-  if(pill){ pill.textContent=cls; pill.setAttribute('class','pill '+tone); }
+  /* As classes de IMC do adulto não se aplicam a crianças, cuja leitura é
+     por percentil para a idade e o sexo — mostra-se a fase em vez disso. */
+  if(pill){ pill.textContent=adulto?cls:nomeFase(m); pill.setAttribute('class','pill '+(adulto?tone:'')); }
+  põe('f-'+mid+'-alvo', semEstimativa(m)?'—':Math.round(targetKcal(m)));
   const h2=(m.altura/100)*(m.altura/100);
   const zmin=Math.round(18.5*h2), zmax=Math.round(25*h2), dentro=m.peso>=zmin&&m.peso<=zmax;
   const zel=document.getElementById('f-'+mid+'-zona');
-  if(zel){ zel.textContent=(dentro?'✓ ':'')+'Peso saudável para '+Math.round(m.altura)+' cm: '+zmin+'–'+zmax+' kg';
+  if(zel && adulto){ zel.textContent=(dentro?'✓ ':'')+'Peso saudável para '+Math.round(m.altura)+' cm: '+zmin+'–'+zmax+' kg';
     zel.setAttribute('class', dentro?'sub f-ok-txt':'sub'); }
 }
 
@@ -1108,6 +1332,36 @@ function blocoDesporto(m,s,i){
       <button class="btn danger small" onclick="delSport('${m.id}',${i})" aria-label="Remover desporto">✕</button>
     </div>${miolo}</div>`;
 }
+/* Recomendação e limites de esforço da fase, com o que está registado a ser
+   comparado com o que é recomendado — e a lista concreta do que evitar. */
+function cartaoEsforco(m){
+  const L=limitesEsforco(m), min=Math.round(minutosSemana(m));
+  const registados=(m.desportos||[]).map(s=>s.s);
+  const conflitos=registados.filter(id=>L.evitar.indexOf(id)>=0)
+    .map(id=>SPORT[id]&&SPORT[id].nome).filter(Boolean);
+  const acimaNivel=L.nivelMax? (m.desportos||[]).filter(s=>{
+    const sp=SPORT[s.s]; if(!sp) return false;
+    const idx=sp.dist? nivelPorMet(sp,metDe(s)) : nivelIndice(s.i);
+    return idx>NIVEIS.findIndex(n=>n[0]===L.nivelMax);
+  }).map(s=>SPORT[s.s].nome) : [];
+  const alvoSemana = L.fase==='adulto'&&!gravida(m)? 150 : gravida(m)? 150 : 420;
+  const pctA=Math.min(100, alvoSemana? min/alvoSemana*100 : 0);
+  return `<div class="card" style="margin-top:16px;border-left:4px solid var(--accent)">
+    <h3>Esforço recomendado — ${nomeFase(m)}</h3>
+    <p class="sub" style="margin-top:6px">${L.recomendacao}</p>
+    <div style="margin:12px 0 6px">
+      <div class="splabel"><span>Registado por semana</span><output style="min-width:12ch;text-align:right">${hmm(min/60)}</output></div>
+      <div class="mbar" style="height:10px"><div style="width:${pctA.toFixed(1)}%;background:var(--accent)"></div></div>
+      <p class="sub" style="margin-top:4px">Referência para esta fase: cerca de ${hmm(alvoSemana/60)} por semana de atividade moderada${L.fase!=='adulto'&&!gravida(m)?' a vigorosa':''}.</p>
+    </div>
+    ${L.horasMax&&min/60>L.horasMax? `<div class="msg warn-msg" style="margin:8px 0 0">O desporto organizado ultrapassa as ${L.horasMax} h por semana que se costumam apontar como teto nesta idade. Em crescimento, o excesso de volume está associado a lesões por sobreuso.</div>`:''}
+    ${gravida(m)&&min>300? `<div class="msg warn-msg" style="margin:8px 0 0">Mais de 300 minutos por semana na gravidez merece confirmação com quem te segue.</div>`:''}
+    ${conflitos.length? `<div class="msg warn-msg" style="margin:8px 0 0">Modalidades registadas desaconselhadas nesta fase: <b>${conflitos.join(', ')}</b>. ${gravida(m)?'Na gravidez evitam-se desportos de contacto, com risco de queda ou de trauma abdominal.':'Nesta idade estas modalidades não são as indicadas.'}</div>`:''}
+    ${acimaNivel.length? `<div class="msg warn-msg" style="margin:8px 0 0">Intensidade acima do recomendado em: <b>${acimaNivel.join(', ')}</b>. O limite sugerido nesta fase é «${L.nivelMax}».</div>`:''}
+    ${L.notas.length? `<ul class="sub" style="margin:10px 0 0;padding-left:18px">${L.notas.map(n=>`<li style="margin-bottom:4px">${n}</li>`).join('')}</ul>`:''}
+    ${idadeAnos(m)<19? `<p class="sub" style="margin-top:10px">Nota de cálculo: as calorias por METs foram medidas em adultos. Em crianças o custo relativo do mesmo movimento é diferente, pelo que estes valores servem de ordem de grandeza e não de medição.</p>`:''}
+  </div>`;
+}
 function renderAtividade(){
   if(!S.members.length) return noMembers();
   const m=curM();
@@ -1131,6 +1385,7 @@ function renderAtividade(){
         <button class="btn small" onclick="addSport('${m.id}')">+ Adicionar desporto</button></div>
       ${m.desportos.length? `<div class="splist">${m.desportos.map((s,i)=>blocoDesporto(m,s,i)).join('')}</div>`
         : `<p class="sub" style="margin-top:8px">Sem desportos registados — adiciona os treinos para contarem no gasto calórico.</p>`}
+      ${cartaoEsforco(m)}
       <p class="sub" style="margin-top:12px">Na corrida, no ciclismo, na natação, no remo e na patinagem é a velocidade
         que manda no esforço: indica-se a distância e o ritmo nos sliders, e as horas saem daí. Nos restantes escolhe-se
         o nível pelo teste da conversa — <b>leve</b> se falas à vontade, <b>moderado</b> se falas com a respiração
@@ -1345,6 +1600,36 @@ function atualizarNutricao(){
   MEALS.forEach(mm=>põe('nu-meal-'+mm[0], ABREV_REF[mm[0]]+' '+Math.round(alvo*mm[2])));
   atualizarProjecao(m);
 }
+/* O cartão que explica de onde vêm os números desta fase e o que a faixa
+   AMDR permite — é aqui que a criança e a grávida deixam de ser um adulto
+   pequeno nas contas. */
+function cartaoFase(m){
+  const faixa=amdrDe(m), aj=macrosAjustados(m), mk=macros(m);
+  const pkg=proteinaKg(m), pAlvo=Math.round(pkg*pesoRef(m));
+  const hMin=hidratosMin(m);
+  const barras=faixa? ['c','p','f'].map((k,i)=>{
+    const rot=['Hidratos','Proteína','Gordura'][i], cor=['--mc','--mp','--mf'][i];
+    const X=v=>sx(v,0,80,44,330);
+    return `<g>
+      <text x="40" y="${18+i*22}" font-size="10" text-anchor="end" class="f-mut">${rot}</text>
+      <rect x="${X(faixa[k][0]).toFixed(1)}" y="${9+i*22}" width="${(X(faixa[k][1])-X(faixa[k][0])).toFixed(1)}" height="11" rx="3" class="f-ok" fill-opacity=".22"/>
+      <circle cx="${X(aj[k]).toFixed(1)}" cy="${14.5+i*22}" r="5" style="fill:var(${cor});stroke:var(--card);stroke-width:2"/>
+      <text x="${X(faixa[k][1]).toFixed(1)}" y="${18+i*22}" dx="6" font-size="10" class="f-mut" style="font-variant-numeric:tabular-nums">${faixa[k][0]}–${faixa[k][1]}%</text>
+    </g>`; }).join('') : '';
+  return `<div class="card secgap">
+    <h2>O que muda nesta fase — ${nomeFase(m)}</h2>
+    <div class="kv"><span>Metabolismo basal por</span><b>${idadeAnos(m)<19?'Schofield (pediátrica)':'Mifflin-St Jeor'}</b></div>
+    ${crescimentoKcal(m)? `<div class="kv"><span>Energia de crescimento</span><b>+${crescimentoKcal(m)} kcal/dia</b></div>`:''}
+    ${gravida(m)&&!semEstimativa(m)? `<div class="kv"><span>Acréscimo da gravidez (${trimestre(m)}.º trimestre${fetos(m)===2?', gémeos':''})</span><b>+${gravidezKcal(m)} kcal/dia</b></div>`:''}
+    <div class="kv"><span>Proteína de referência</span><b>${nPT(pkg,2)} g/kg → ${pAlvo} g/dia</b></div>
+    ${hMin? `<div class="kv"><span>Mínimo de hidratos</span><b>${hMin} g/dia${mk.c<hMin?' — o plano atual fica abaixo':''}</b></div>`:''}
+    ${faixa? `<p class="sub" style="margin:14px 0 4px">Faixa aceitável de macronutrientes para esta fase, com o plano atual assinalado${exigeAmdr(m)?'':' — num adulto é referência, não limite'}:</p>
+    <svg class="svgfx" viewBox="0 0 340 76" role="img" aria-label="Faixas aceitáveis de macronutrientes">${barras}</svg>
+    ${aj.ajustado? `<div class="msg warn-msg" style="margin-top:10px">A dieta escolhida sai da faixa recomendada para esta fase, por isso as percentagens foram encostadas ao limite — ${aj.c} % de hidratos, ${aj.p} % de proteína e ${aj.f} % de gordura. Dietas de restrição de hidratos não são adequadas a crianças, adolescentes em crescimento nem à gravidez.</div>`:''}`
+    : `<p class="sub" style="margin-top:12px">Abaixo de 1 ano não estão definidas faixas de distribuição de macronutrientes: a referência é o leite materno ou a fórmula, e a diversificação alimentar segue a orientação do pediatra.</p>`}
+    <p class="sub" style="margin-top:12px">Referências: valores de ingestão dietética de referência do Institute of Medicine, equações de Schofield e orientações da Organização Mundial de Saúde. São referências populacionais para planeamento familiar — não substituem consulta.</p>
+  </div>`;
+}
 function renderNutricao(){
   if(!S.members.length) return noMembers();
   const m=curM(), mk=macros(m), k=Math.round(targetKcal(m));
@@ -1360,18 +1645,19 @@ function renderNutricao(){
       <h2>Plano de ${esc(m.nome)}</h2>
       <div style="margin-top:10px">
         <div class="splabel"><span>Objetivo</span><output id="nu-obj" style="min-width:22ch;text-align:right">${textoObjetivo(m)}</output></div>
-        <input type="range" id="nu-r-obj" min="-25" max="20" step="1" value="${pct}" style="--pct:${Math.round((pct+25)/45*100)}%"
+        <input type="range" id="nu-r-obj" min="${permiteDefice(m)?-25:0}" max="20" step="1" value="${clampNum(pct,permiteDefice(m)?-25:0,20)}" style="--pct:${Math.round((clampNum(pct,permiteDefice(m)?-25:0,20)-(permiteDefice(m)?-25:0))/(permiteDefice(m)?45:20)*100)}%"
           aria-label="Objetivo calórico em percentagem do gasto diário"
           oninput="slideObjetivo('${m.id}',this)" onchange="commitObjetivo('${m.id}',this)">
-        <div style="position:relative;height:15px;font-size:11px;color:var(--mut)">
+        ${permiteDefice(m)? `<div style="position:relative;height:15px;font-size:11px;color:var(--mut)">
           <span style="position:absolute;left:${(10/45*100).toFixed(1)}%;transform:translateX(-50%)">perder −15</span>
           <span style="position:absolute;left:${(25/45*100).toFixed(1)}%;transform:translateX(-50%)">0</span>
           <span style="position:absolute;left:${(35/45*100).toFixed(1)}%;transform:translateX(-50%)">ganhar +10</span>
-        </div>
+        </div>`
+        : `<p class="sub" style="margin-top:4px">${gravida(m)?'Na gravidez':'Em idade de crescimento'} não se planeia défice calórico — o slider começa na manutenção.</p>`}
       </div>
       <div class="row" style="margin-top:10px;min-height:34px">
         <span class="pill ok" id="nu-ritmo"></span>
-        <button class="chip" onclick="presetObjetivo('${m.id}',-15)">Perder −15%</button>
+        ${permiteDefice(m)? `<button class="chip" onclick="presetObjetivo('${m.id}',-15)">Perder −15%</button>`:''}
         <button class="chip" onclick="presetObjetivo('${m.id}',0)">Manter</button>
         <button class="chip" onclick="presetObjetivo('${m.id}',10)">Ganhar +10%</button>
       </div>
@@ -1409,11 +1695,18 @@ function renderNutricao(){
       ${m.dieta==='personalizada'? '<p class="sub" style="margin-top:8px">Dieta personalizada — nas receitas e no plano, todas contam como compatíveis.</p>':''}
       ${barraRefeicoes(targetKcal(m))}
     </div>
-    <div class="card">
+    ${permiteProjecao(m)? `<div class="card">
       <h2>Projeção de peso — 12 semanas</h2>
       ${cartaoProjecao(m)}
-    </div>
+    </div>` : `<div class="card">
+      <h2>Projeção de peso</h2>
+      <p class="sub" style="margin-top:8px">A regra das 7 700 kcal por quilo descreve a perda de gordura num adulto.
+        ${gravida(m)? 'Na gravidez o ganho de peso é esperado e tem tabelas próprias por índice de massa corporal — o acompanhamento é da equipa que te segue.'
+          : 'Numa criança ou adolescente o peso muda porque o corpo está a crescer, e projetá-lo desta forma daria um número sem significado.'}
+        Por isso a app não mostra aqui uma projeção.</p>
+    </div>`}
   </div>
+  ${cartaoFase(m)}
 
   <div class="card secgap" style="background:none;box-shadow:none;border:none;padding:0">
     <div class="row" style="justify-content:space-between;margin-bottom:10px">
@@ -1829,6 +2122,11 @@ function limparMembro(m){
     desloc: temChave(COMMUTE,m.desloc)? m.desloc:'nenhum',
     dieta, objetivo,
     objetivoPct: Number.isFinite(pctBruto)? clampNum(Math.round(pctBruto),-25,20) : Math.round((GOALS[objetivo][1])*100),
+    meses: Number.isFinite(parseFloat(m.meses))? clampNum(Math.round(parseFloat(m.meses)),0,24) : undefined,
+    gravida: !!m.gravida && (m.sexo==='f'),
+    trimestre: clampNum(Math.round(parseFloat(m.trimestre)||1),1,3),
+    fetos: clampNum(Math.round(parseFloat(m.fetos)||1),1,3),
+    pesoPre: num(m.pesoPre,0)||undefined,
     desportos: Array.isArray(m.desportos) ? m.desportos.map(normalizaDesporto).filter(Boolean) : []};
   if(dieta==='personalizada'){
     const mc=m.macros||{};
