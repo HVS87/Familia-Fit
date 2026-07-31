@@ -350,6 +350,7 @@ input[type=range]:focus-visible::-moz-range-thumb{box-shadow:0 0 0 3px var(--acc
 select.slot{margin-top:4px}
 .restr{gap:6px;flex-wrap:wrap}
 .restr .chip:disabled{opacity:.55;cursor:default}
+.busca{width:auto;min-width:230px;flex:1 1 230px;max-width:340px}
 .ed-lista{display:flex;flex-direction:column;gap:8px;margin-top:8px}
 .ed-linha{display:grid;grid-template-columns:minmax(0,1fr) 88px 34px 40px;gap:8px;align-items:center}
 .ed-linha input{text-align:right}
@@ -760,7 +761,10 @@ function nomeRefeicao(k){ const m=MEALS.find(x=>x[0]===k); return m? m[1] : k; }
    de brócolos. Onde a fibra não está declarada vale zero, o que torna o teste
    mais exigente, nunca mais permissivo. */
 function R(id,n,coz,d,k,c,p,f,i,mt,fib){return {id,n,coz,d,k,c,p,f,i,mt:mt||['a','j'],fib:fib||0}}
-function hcLiq(r){ return Math.max(0, r.c-(r.fib||0)); }
+/* Hidrato líquido: na convenção portuguesa (e europeia) os hidratos já vêm
+   sem a fibra, que se declara à parte — é o mesmo número que está num rótulo
+   e o mesmo que conta em keto. Não se subtrai nada duas vezes. */
+function hcLiq(r){ return Math.max(0, r.c); }
 /* Tetos de hidrato líquido por dose que sustentam a etiqueta. Uma refeição
    keto acima de 10 g de hidrato líquido gasta metade do dia de quem faz keto
    a sério (20-30 g/dia); low carb dá mais folga. */
@@ -829,6 +833,7 @@ R('atumcouveflor','Bowl de atum com arroz de couve-flor','asiatica',['keto','low
 R('aveia','Papas de aveia com fruta e canela','portuguesa',['lowfat','vegetariana'],390,58,14,11,[['Aveia em flocos',60,'g'],['Leite',200,'ml'],['Banana',1,'un'],['Canela',1,'g'],['Mel',10,'g']],['p']),
 R('torradasqueijo','Torradas de centeio com queijo fresco','portuguesa',['lowfat','vegetariana','mediterranica'],320,42,18,9,[['Pão de centeio',70,'g'],['Queijo fresco',80,'g'],['Tomate',1,'un'],['Azeite',5,'ml']],['p']),
 R('ovosmex','Ovos mexidos com espinafres','portuguesa',['keto','lowcarb','vegetariana'],310,5,22,23,[['Ovo',3,'un'],['Espinafres',60,'g'],['Manteiga',10,'g']],['p'],2),
+R('ovosabacate','Ovos escalfados com abacate e tomate','mediterranica',['keto','lowcarb','paleo'],360,6,16,28,[['Ovo',2,'un'],['Abacate',0.5,'un'],['Tomate',1,'un'],['Azeite',8,'ml'],['Limão',0.25,'un']],['p'],5),
 R('panquecas','Panquecas de banana e aveia','portuguesa',[],420,48,26,12,[['Ovo',2,'un'],['Banana',1,'un'],['Aveia em flocos',40,'g'],['Iogurte grego',80,'g'],['Fermento em pó',3,'g']],['p']),
 R('iogurtegranola','Iogurte grego com granola e frutos vermelhos','mediterranica',['vegetariana','mediterranica'],380,42,20,14,[['Iogurte grego',200,'g'],['Granola',40,'g'],['Frutos vermelhos',80,'g'],['Mel',10,'g']],['p']),
 R('abacatetorrada','Torrada de abacate com ovo escalfado','mediterranica',['lowcarb','vegetariana','mediterranica'],420,28,18,26,[['Pão integral',60,'g'],['Abacate',0.5,'un'],['Ovo',1,'un'],['Limão',0.25,'un'],['Azeite',5,'ml']],['p'],7),
@@ -1019,146 +1024,652 @@ R('ketobrocolosbacon','Brócolos salteados com bacon e amêndoa','americana',['k
 ];
 
 /* ================= COMPOSIÇÃO DOS INGREDIENTES =================
-   Valores por 100 g ou 100 ml de porção comestível crua, na linha das tabelas
-   de composição de alimentos (INSA, Tabela da Composição de Alimentos; USDA
-   FoodData Central para o que não é corrente em Portugal). `un` é o peso em
-   gramas de uma unidade — um ovo, um dente de alho, um tomate — sem o qual
-   «2 ovos» não se converte em nada.
+   Valores por 100 g ou 100 ml de parte edível. A fonte principal é a Tabela
+   da Composição de Alimentos do Instituto Nacional de Saúde Doutor Ricardo
+   Jorge (INSA/PortFIR, versão 7.1, 2026), descarregada da própria base e
+   transcrita campo a campo — energia, hidratos de carbono, proteína, lípidos
+   e fibra. Os ingredientes que a tabela portuguesa não cobre, por serem de
+   uso recente ou importado (quinoa, couscous, tortilhas, granola, pesto,
+   tahini, edamame, xarope de ácer, entre outros), ficam com valores do
+   FoodData Central do USDA e estão assinalados.
 
-   É daqui que saem os macros de uma receita escrita por quem usa a app. Duas
-   limitações que convém dizer em vez de esconder: são ingredientes crus, e a
-   cozedura muda o peso (a massa absorve água, a carne perde-a); e não há aqui
-   perdas nem ganhos de confeção. Para planear uma semana chega bem; para uma
-   prescrição clínica, não. */
+   Uma convenção importa e é a portuguesa: os hidratos de carbono são os
+   DISPONÍVEIS, sem a fibra, exatamente como num rótulo europeu, onde a fibra
+   se declara à parte. Por isso o hidrato que conta para keto e low carb é o
+   próprio valor, sem subtrair nada.
+
+   Campos: k kcal, c hidratos, p proteína, f gordura, fib fibra, un gramas de
+   uma unidade (um ovo, um dente de alho — 0 quando não se conta às unidades),
+   s a secção do supermercado (índice de CATS, −1 quando não vem do INSA), u a
+   unidade em que se mede.
+
+   Duas limitações ditas em voz alta: são ingredientes crus, e cozinhar muda o
+   peso (a massa absorve água, a carne perde-a); e não há aqui perdas nem
+   ganhos de confeção. Para planear uma semana chega bem; para uma prescrição
+   clínica, não. */
 const NUTRI={};
-function NI(nome,k,c,p,f,fib,un){ NUTRI[nome]={k,c,p,f,fib:fib||0,un:un||0}; }
+function NI(nome,k,c,p,f,fib,un,sec,u){
+  NUTRI[nome]={k,c,p,f,fib:fib||0,un:un||0,s:(sec===undefined?-1:sec),u:u||'g'};
+}
 
-/* --- Legumes, fruta e ervas frescas --- */
-NI('Abacate',160,8.5,2,15,6.7,140);   NI('Abóbora',26,6.5,1,0.1,0.5);
-NI('Aipo',16,3,0.7,0.2,1.6);          NI('Alface',15,2.9,1.4,0.2,1.3);
-NI('Alface romana',17,3.3,1.2,0.3,2.1); NI('Alho',149,33,6.4,0.5,2.1,3);
-NI('Alho-francês',61,14,1.5,0.3,1.8); NI('Alecrim',131,21,3.3,5.9,14);
-NI('Banana',89,23,1.1,0.3,2.6,120);   NI('Batata',77,17,2,0.1,2.2);
-NI('Batata nova',70,15.7,1.8,0.1,2);  NI('Beringela',25,6,1,0.2,3);
-NI('Brócolos',34,7,2.8,0.4,2.6);      NI('Castanhas',196,44,2,1.3,8);
-NI('Cebola',40,9.3,1.1,0.1,1.7,110);  NI('Cebola roxa',40,9.3,1.1,0.1,1.7,110);
-NI('Cebolinho',30,4.4,3.3,0.7,2.5);   NI('Cenoura',41,9.6,0.9,0.2,2.8);
-NI('Chalota',72,17,2.5,0.1,3.2,30);   NI('Coentros',23,3.7,2.1,0.5,2.8);
-NI('Cogumelos',22,3.3,3.1,0.3,1);     NI('Cogumelos portobello',22,3.9,2.1,0.4,1.3);
-NI('Cogumelos shiitake',34,6.8,2.2,0.5,2.5); NI('Courgette',17,3.1,1.2,0.3,1);
-NI('Couve',33,6,2.5,0.4,2.6);         NI('Couve galega',45,8,3.3,0.7,3.6);
-NI('Couve-flor',25,5,1.9,0.3,2);      NI('Endro',43,7,3.5,1.1,2.1);
-NI('Ervilhas',81,14.5,5.4,0.4,5.1);   NI('Espargos',20,3.9,2.2,0.1,2.1);
-NI('Espinafres',23,3.6,2.9,0.4,2.2);  NI('Favas',88,17.6,7.9,0.7,5.4);
-NI('Feijão verde',31,7,1.8,0.1,3.4);  NI('Figos',74,19,0.8,0.3,2.9);
-NI('Frutos vermelhos',45,10,1,0.4,3.5); NI('Gengibre',80,18,1.8,0.8,2);
-NI('Grelos',32,5.5,3.2,0.4,3.2);      NI('Hortelã',44,8,3.3,0.7,6.8);
-NI('Laranja',47,12,0.9,0.1,2.4,130);  NI('Lima',30,10.5,0.7,0.2,2.8,30);
-NI('Limão',29,9.3,1.1,0.3,2.8,50);    NI('Louro',313,75,7.6,8.4,26);
-NI('Maçã',52,14,0.3,0.2,2.4,150);     NI('Malagueta',40,9,1.9,0.4,1.5,5);
-NI('Manga',60,15,0.8,0.4,1.6);        NI('Manjericão',23,2.7,3.2,0.6,1.6);
-NI('Melão',34,8.2,0.8,0.2,0.9);       NI('Milho',86,19,3.3,1.4,2.7);
-NI('Nabo',28,6.4,0.9,0.1,1.8);        NI('Pepino',15,3.6,0.7,0.1,0.5,300);
-NI('Pêra',57,15,0.4,0.1,3.1,160);     NI('Pimento',26,6,1,0.3,2.1,150);
-NI('Rebentos de soja',30,5.9,3,0.2,1.8); NI('Repolho',25,5.8,1.3,0.1,2.5);
-NI('Rúcula',25,3.7,2.6,0.7,1.6);      NI('Salsa',36,6.3,3,0.8,3.3);
-NI('Salva',315,61,10.6,12.8,40);      NI('Tâmaras',282,75,2.5,0.4,8);
-NI('Tomate',18,3.9,0.9,0.2,1.2,120);  NI('Tomate cereja',18,3.9,0.9,0.2,1.2);
-NI('Azeitonas',145,3.8,1,15,3.3);     NI('Azeitonas pretas',115,6,0.8,11,3.2);
-NI('Alcaparras',23,4.9,2.4,0.9,3.2);  NI('Algas nori',35,5,6,0.3,0.3);
+/* ---- Ingredientes das receitas da biblioteca ---- */
+NI('Abacate',176,2.3,1.1,17.4,3,140,2);
+NI('Abóbora',11,1.7,0.3,0.2,0.7,0,2);
+NI('Aipo',15,1.5,1.1,0.1,2,0,2);
+NI('Alface',12,1.5,0.9,0,1.1,0,2);
+NI('Alface romana',12,1.5,0.9,0,1.1,0,2);
+NI('Alho',72,11.3,3.8,0.6,3,3,2);
+NI('Alho-francês',26,2.9,1.8,0.3,2.4,0,2);
+NI('Alecrim',131,7,3.3,5.9,14,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Banana',97,22.1,1.4,0,1.1,120,2);
+NI('Batata',90,19.2,2.5,0,1.6,0,2);
+NI('Batata nova',90,19.2,2.5,0,1.6,0,2);
+NI('Beringela',21,2.4,1.1,0.2,2.5,0,2);
+NI('Brócolos',32,1.5,3.4,0.8,2.6,0,2);
+NI('Castanhas',194,39.8,3.1,1.1,6.1,0,4);
+NI('Cebola',20,3.1,0.9,0.2,1.3,110,2);
+NI('Cebola roxa',20,3.1,0.9,0.2,1.3,110,2);
+NI('Cebolinho',30,2,3.3,0.7,2.5,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Cenoura',25,4.4,0.6,0,2.6,0,2);
+NI('Chalota',72,14,2.5,0.1,3.2,30,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Coentros',28,1.8,2.4,0.6,2.9,0,2);
+NI('Cogumelos',18,0.5,1.8,0.5,2.3,0,2);
+NI('Cogumelos portobello',23,1.5,3.2,0.2,1.2,0,2);
+NI('Cogumelos shiitake',34,4,2.2,0.5,2.5,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Courgette',19,2,1.6,0.3,1,0,2);
+NI('Couve',26,2.1,2.4,0.2,3.1,0,2);
+NI('Couve galega',32,3.1,2.4,0.4,3.1,0,2);
+NI('Couve-flor',34,3.3,3.7,0.2,1.9,0,2);
+NI('Endro',43,5,3.5,1.1,2.1,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Ervilhas',76,8.6,6.4,0.7,4.7,0,4);
+NI('Espargos',22,2.7,2.1,0,1.5,0,2);
+NI('Espinafres',27,0.8,2.6,0.9,2.6,0,2);
+NI('Favas',80,8.5,7.4,0.5,6.1,0,4);
+NI('Feijão verde',32,3.8,1.9,0.3,3,0,2);
+NI('Figos',79,16.3,0.9,0.5,2.3,0,2);
+NI('Frutos vermelhos',32,6,0.6,0.2,0.6,0,2);
+NI('Gengibre',82,15.8,1.8,0.8,2,0,4);
+NI('Grelos',29,2.3,2.4,0.5,2.6,0,2);
+NI('Hortelã',51,5.3,3.8,0.7,3.9,0,2);
+NI('Laranja',52,10.5,0.9,0.1,1.6,130,2);
+NI('Lima',31,1.7,0.7,0.2,2.8,30,2);
+NI('Limão',31,1.9,0.5,0.3,2.1,50,2);
+NI('Louro',313,49,7.6,8.4,26,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Maçã',57,12.2,0,0.5,1.4,150,2);
+NI('Malagueta',31,4.3,1.8,0.3,2,5,2);
+NI('Manga',59,11.7,0.5,0.3,2.9,0,2);
+NI('Manjericão',48,5.1,3.1,0.8,3.9,0,2);
+NI('Melão',39,7.9,0.8,0.3,0.7,0,2);
+NI('Milho',110,18.4,2.9,1.9,3.7,0,2);
+NI('Nabo',21,3,0.4,0.4,2,0,2);
+NI('Pepino',19,1.7,1.4,0.6,0.7,300,2);
+NI('Pêra',57,12.2,0.1,0.4,1.9,160,2);
+NI('Pimento',27,2.7,1.6,0.6,2,150,2);
+NI('Rebentos de soja',98,5.8,9.2,3.9,1.7,0,2);
+NI('Repolho',25,3,1.3,0.1,2.5,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Rúcula',29,2.2,2.6,0.7,1.6,0,2);
+NI('Salsa',20,0.4,3.1,0,2.9,0,2);
+NI('Salva',315,21,10.6,12.8,40,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Tâmaras',298,67.3,2.5,0.3,7.8,0,2);
+NI('Tomate',21,3.1,0.8,0.3,1.5,120,2);
+NI('Tomate cereja',30,4,1,0.8,1.6,0,2);
+NI('Azeitonas',164,0,1.3,16.8,4,0,2);
+NI('Azeitonas pretas',164,0,1.3,16.8,4,0,2);
+NI('Alcaparras',44,4.9,2.4,0.9,3.2,0,2);
+NI('Algas nori',35,5,6,0.3,0.3,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Peito de frango',108,0,24.1,1.2,0,0,1);
+NI('Coxas de frango',111,0,22,2.6,0,0,1);
+NI('Asas de frango',196,0,20.4,12.7,0,0,1);
+NI('Bife de vaca',122,0,20.9,4.3,0,0,1);
+NI('Carne de vaca',227,0,21.3,15.8,0,0,1);
+NI('Carne picada de vaca',142,0,20.2,6.8,0,0,1);
+NI('Carne de porco',152,0,21,7.5,0,0,1);
+NI('Bochechas de porco',239,0,18.1,18.5,0,0,1);
+NI('Bifes de peru',105,0,23.4,1.3,0,0,1);
+NI('Peru fatiado',85,2.6,13.8,1.9,1.2,0,1);
+NI('Fiambre',111,1.3,15.3,4.6,1.9,0,1);
+NI('Presunto',215,0,25,12.8,0,0,1);
+NI('Bacon',367,0,13.8,34.6,0,0,1);
+NI('Chouriço',409,0,24.5,34.5,0,0,1);
+NI('Borrego',124,0,19.7,5,0,0,1);
+NI('Costeletas de borrego',124,0,19.7,5,0,0,1);
+NI('Coelho',117,0,20.3,4,0,0,1);
+NI('Vitela',149,0.2,19.9,7.6,0,0,1);
+NI('Peito de pato',133,0,19.3,6.2,0,0,1);
+NI('Bresaola',150,0,32,2,0,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Ovo',143,0.5,12.6,10.1,0,55,1);
+NI('Bacalhau desfiado',80,0,19,0.4,0,0,0);
+NI('Bacalhau (posta)',80,0,19,0.4,0,0,0);
+NI('Pescada',83,0,17.6,1.4,0,0,0);
+NI('Dourada',167,0,19.7,9.8,0,0,0);
+NI('Robalo',106,0,18.5,3.5,0,0,0);
+NI('Salmão',262,0,16.2,21.9,0,0,0);
+NI('Salmão fresco',262,0,16.2,21.9,0,0,0);
+NI('Salmão fumado',180,0,22,10,0,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Sardinhas',158,0,18.9,9.1,0,0,0);
+NI('Sardinhas em conserva',189,0.8,26.3,9,0,0,0);
+NI('Atum fresco',138,0,30.7,1.7,0,0,0);
+NI('Atum em conserva',214,0,24.3,13,0,0,0);
+NI('Espadarte',97,0,17.8,2.9,0,0,0);
+NI('Cavala',202,0,20.3,13.4,0,0,0);
+NI('Carapau',105,0,19.7,2.9,0,0,0);
+NI('Truta',92,0,17.8,2.3,0,0,0);
+NI('Anchovas',191,0,25.2,10,0,0,0);
+NI('Camarão',77,0.3,17.6,0.6,0,0,0);
+NI('Amêijoas',65,2.6,11.7,0.9,0,0,0);
+NI('Mexilhões',70,2,12.1,1.5,0,0,0);
+NI('Lulas',71,0,15.8,0.9,0,0,0);
+NI('Polvo',73,0,15.6,1.2,0,0,0);
+NI('Leite',47,4.9,3.3,1.6,0,0,3);
+NI('Nata',335,3.1,1.8,35,0,0,3);
+NI('Manteiga',739,0.7,0.1,81.8,0,0,4);
+NI('Iogurte natural',54,5,4.2,1.8,0,0,3);
+NI('Iogurte grego',85,4.8,1.4,6.6,0,0,3);
+NI('Queijo fresco',156,2.7,9.2,11.9,0,0,3);
+NI('Requeijão',149,5.8,8,10.4,0,0,3);
+NI('Ricotta',246,3.8,11,20.6,0,0,3);
+NI('Mozzarella',256,1.3,18.7,19.5,0,0,3);
+NI('Mozzarella fresca',256,1.3,18.7,19.5,0,0,3);
+NI('Parmesão',406,0.1,37.7,27.8,0,0,3);
+NI('Queijo ralado',406,0.1,37.7,27.8,0,0,3);
+NI('Queijo feta',264,4,14,21,0,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Queijo gruyère',415,1.4,27.2,33.3,0,0,3);
+NI('Queijo cheddar',419,0.1,25.4,34.9,0,0,3);
+NI('Queijo manchego',390,2,26,31,0,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Queijo halloumi',320,2,22,25,0,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Queijo azul',372,0.2,22,31.5,0,0,3);
+NI('Queijo de cabra',382,2.5,21,30.5,0,0,3);
+NI('Queijo creme',263,6.9,9.3,22,0,0,3);
+NI('Arroz',347,78.1,6.7,0.4,2.1,0,4);
+NI('Arroz arbóreo',350,77,7,0.6,1.4,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Arroz para sushi',355,78,6.5,0.6,1,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Esparguete',360,71.1,12.1,1.9,5.1,0,4);
+NI('Massa curta',360,71.1,12.1,1.9,5.1,0,4);
+NI('Massa pequena',356,70,12.4,1.8,5.1,0,4);
+NI('Placas de lasanha',359,71.4,12,2.1,3.1,0,4);
+NI('Noodles',350,68,11,1.5,2.5,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Massa de arroz',360,78,6,0.6,1.6,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Gnocchi de batata',160,31,4,0.5,2,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Couscous',375,72,13,0.6,5,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Bulgur',342,58,12,1.3,18,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Quinoa',368,57,14,6,7,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Aveia em flocos',366,61.7,13.5,5.8,6.7,0,4);
+NI('Granola',450,57,9,17,7,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Farinha',349,73.7,8.5,1.5,3.3,0,4);
+NI('Farinha de amêndoa',600,9,21,52,11,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Massa quebrada',498,52.4,5.5,29.2,2,0,4);
+NI('Pão integral',232,39.9,7.6,3,7.4,0,4);
+NI('Pão de centeio',268,56.4,5.9,0.8,5.8,0,4);
+NI('Pão rústico',290,57.3,8.4,2.2,3.8,0,4);
+NI('Pão alentejano',290,57.3,8.4,2.2,3.8,0,4);
+NI('Pão de mistura',272,53.8,9,1.4,4.3,0,4);
+NI('Pão de forma',284,54.5,8.7,2.7,3.2,0,4);
+NI('Pão ralado',380,66,12,5,4,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Broa de milho',188,37.2,5.3,1.2,3.7,0,4);
+NI('Pão pita',275,53,9,1.2,2.2,60,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Pão de hambúrguer',280,48,9,4.5,2,60,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Bagel',275,51,11,1.5,2.3,90,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Tortilhas de milho',220,39,5.7,2.9,6,30,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Tortilhas de trigo',310,48,8,8,3,45,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Feijão branco',102,14.6,6.5,0.6,6.5,0,4);
+NI('Feijão encarnado',90,13.8,6.2,0.1,4,0,4);
+NI('Feijão preto',80,8.4,6.5,0.3,9,0,4);
+NI('Feijão-frade cozido',123,18.1,8.8,0.7,4.7,0,4);
+NI('Grão-de-bico cozido',119,15.1,6.8,2.1,6.2,0,4);
+NI('Lentilhas',115,16.7,9.1,0.3,4.4,0,4);
+NI('Tremoços',124,7.2,16,2.4,4.8,0,4);
+NI('Edamame',120,4,11,5,5,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Tofu',77,0.7,8.5,4.4,0.3,0,4);
+NI('Amêndoa',643,7.2,21.6,56,12,0,4);
+NI('Nozes',699,3.6,16.7,67.5,5.2,0,4);
+NI('Caju',613,19.4,19.6,50,3.3,0,4);
+NI('Pinhões',622,5,33.2,51.7,1.9,0,4);
+NI('Amendoim',589,10.1,25.4,47.7,8.8,0,4);
+NI('Manteiga de amendoim',590,14,25,50,6,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Sementes de abóbora',567,10,22,46.4,10.8,0,4);
+NI('Sementes de chia',456,4.6,14.4,34.4,35.1,0,4);
+NI('Sementes de linhaça',487,18.1,25,31,18,0,4);
+NI('Sementes de sésamo',620,6.4,22.1,55,5.5,0,4);
+NI('Tahini',595,12,17,54,9,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Coco ralado',648,6.4,5.6,62,21.1,0,4);
+NI('Azeite',899,0,0,99.9,0,0,4);
+NI('Óleo de coco',900,0,0,100,0,0,4);
+NI('Óleo de sésamo',884,0,0,100,0,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Batata palha',540,48,5,34,4,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Mel',314,78,0.5,0,0,0,4);
+NI('Xarope de ácer',260,67,0,0.1,0,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Marmelada',261,61.4,2.3,0.2,2,0,4);
+NI('Ketchup',119,26.9,1.7,0.3,1.1,0,4);
+NI('Maionese',657,0,4,71.2,0,0,4);
+NI('Mostarda',158,18.5,5.7,6.4,1.7,0,4);
+NI('Molho barbecue',170,40,0.8,0.6,0.7,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Molho picante',60,11,1,0.5,1,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Molho de soja',89,17.3,4.7,0,0.8,0,4);
+NI('Molho teriyaki',90,16,5,0,0.1,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Molho de peixe',35,4,5,0,0,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Pasta de miso',177,15.1,11.9,6.5,5.2,0,4);
+NI('Pesto',460,4,5,46,2,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Tomate pelado',24,4,1.2,0.2,1.3,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Tomate seco',258,44,14,3,12,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Passas',300,68.2,3,0.8,4.2,0,2);
+NI('Leite de coco',185,2.8,2,18.4,0,0,4);
+NI('Cacau em pó',358,11.1,19.6,23.4,12.1,0,4);
+NI('Caldo de galinha',5,0.2,0.3,0.3,0,0,4);
+NI('Caldo de legumes',4,0.2,0.4,0.2,0,0,4);
+NI('Vinagre de vinho',22,0.6,0.3,0,0,0,4);
+NI('Vinho branco',82,3,0.1,0,0,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Vinho tinto',85,3,0.1,0,0,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Fermento de padeiro',78,1,12.9,0.9,7.3,0,4);
+NI('Fermento em pó',156,34.4,4.7,0,0,0,4);
+NI('Baunilha',288,13,0.1,0.1,0,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Canela',315,55.5,3.9,3.2,24.4,0,4);
+NI('Açafrão',353,61.5,11.4,5.9,3.9,0,4);
+NI('Caril em pó',325,23,14,14,33,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Chili em pó',280,15,12,14,35,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Cominhos',375,33,18,22,11,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Cúrcuma',312,44.1,6.7,7,22.7,0,4);
+NI('Noz-moscada',525,28,6,36,21,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Orégãos',265,26.4,9,4.3,42.5,0,4);
+NI('Ervas de Provença',265,24,9,7,40,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Pimenta preta',250,39,10,3.3,25,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Pimentão-doce',358,35,14.8,13,20.9,0,4);
+NI('Flor de sal',0,0,0,0,0,0,-1);  // USDA, hidratos convertidos para disponiveis
 
-/* --- Carne, charcutaria e ovos --- */
-NI('Peito de frango',120,0,23,2.6,0); NI('Coxas de frango',175,0,18,11,0);
-NI('Asas de frango',200,0,18.3,14,0); NI('Bife de vaca',145,0,21.5,6.5,0);
-NI('Carne de vaca',180,0,20,11,0);    NI('Carne picada de vaca',215,0,19,15,0);
-NI('Carne de porco',165,0,20,9,0);    NI('Bochechas de porco',185,0,19,12,0);
-NI('Bifes de peru',110,0,23,1.5,0);   NI('Peru fatiado',105,1.5,18,3,0);
-NI('Fiambre',110,1.5,17,4,0);         NI('Presunto',240,0.5,30,13,0);
-NI('Bacon',380,0.5,14,36,0);          NI('Chouriço',350,2,20,29,0);
-NI('Borrego',230,0,19,17,0);          NI('Costeletas de borrego',265,0,18,21,0);
-NI('Coelho',140,0,21,6,0);            NI('Vitela',130,0,21,5,0);
-NI('Peito de pato',200,0,19,14,0);    NI('Bresaola',150,0.5,32,2,0);
-NI('Ovo',143,0.7,12.6,9.5,0,55);
-
-/* --- Peixe e marisco --- */
-NI('Bacalhau desfiado',105,0,23,1,0); NI('Bacalhau (posta)',105,0,23,1,0);
-NI('Pescada',80,0,17,1.2,0);          NI('Dourada',115,0,20,4,0);
-NI('Robalo',100,0,19,2.5,0);          NI('Salmão',200,0,20,13,0);
-NI('Salmão fresco',200,0,20,13,0);    NI('Salmão fumado',180,0,22,10,0);
-NI('Sardinhas',210,0,21,14,0);        NI('Sardinhas em conserva',220,0,24,14,0);
-NI('Atum fresco',130,0,24,4,0);       NI('Atum em conserva',115,0,25,1.5,0);
-NI('Espadarte',145,0,20,7,0);         NI('Cavala',205,0,19,14,0);
-NI('Carapau',120,0,20,4.5,0);         NI('Truta',140,0,20,6,0);
-NI('Anchovas',210,0,29,10,0);         NI('Camarão',85,0.2,18,1,0);
-NI('Amêijoas',75,2.5,13,1,0);         NI('Mexilhões',86,3.7,12,2.2,0);
-NI('Lulas',92,3,15.6,1.4,0);          NI('Polvo',82,2.2,15,1,0);
-
-/* --- Lacticínios --- */
-NI('Leite',46,4.7,3.2,1.6,0);         NI('Nata',290,3,2.2,30,0);
-NI('Manteiga',745,0.6,0.7,82,0);      NI('Iogurte natural',60,4.7,3.5,3.2,0);
-NI('Iogurte grego',97,4,9,5,0);       NI('Queijo fresco',105,2.5,12,5,0);
-NI('Requeijão',130,3.5,11,8,0);       NI('Ricotta',150,3,11,10,0);
-NI('Mozzarella',280,2.2,22,21,0);     NI('Mozzarella fresca',250,1.5,18,19,0);
-NI('Parmesão',400,3.2,36,27,0);       NI('Queijo ralado',400,3.2,36,27,0);
-NI('Queijo feta',264,4,14,21,0);      NI('Queijo gruyère',410,0.4,30,32,0);
-NI('Queijo cheddar',400,1.3,25,33,0); NI('Queijo manchego',390,2,26,31,0);
-NI('Queijo halloumi',320,2.2,22,25,0); NI('Queijo azul',350,2.3,21,29,0);
-NI('Queijo de cabra',290,2.5,19,22,0); NI('Queijo creme',340,4,6,34,0);
-
-/* --- Cereais, massas, pão e leguminosas --- */
-NI('Arroz',355,78,7,0.9,1.3);         NI('Arroz arbóreo',350,78,7,0.6,1.4);
-NI('Arroz para sushi',355,79,6.5,0.6,1); NI('Esparguete',360,72,12.5,1.5,3);
-NI('Massa curta',360,72,12.5,1.5,3);  NI('Massa pequena',360,72,12.5,1.5,3);
-NI('Placas de lasanha',360,72,12.5,1.5,3); NI('Noodles',350,71,11,1.5,2.5);
-NI('Massa de arroz',360,80,6,0.6,1.6); NI('Gnocchi de batata',160,33,4,0.5,2);
-NI('Couscous',375,77,13,0.6,5);       NI('Bulgur',342,76,12,1.3,18);
-NI('Quinoa',368,64,14,6,7);           NI('Aveia em flocos',380,60,13,7,10);
-NI('Granola',450,64,9,17,7);          NI('Farinha',350,73,10,1,3);
-NI('Farinha de amêndoa',600,20,21,52,11); NI('Massa quebrada',450,45,6,27,2);
-NI('Pão integral',245,41,9,3.5,6);    NI('Pão de centeio',250,46,8,2,6);
-NI('Pão rústico',265,52,8.5,1.5,3);   NI('Pão alentejano',260,52,8,1,3);
-NI('Pão de mistura',255,48,8.5,2,4);  NI('Pão de forma',265,47,8.5,3.5,3);
-NI('Pão ralado',380,70,12,5,4);       NI('Broa de milho',260,50,6.5,3,3.5);
-NI('Pão pita',275,55,9,1.2,2.2,60);   NI('Pão de hambúrguer',280,50,9,4.5,2,60);
-NI('Bagel',275,53,11,1.5,2.3,90);     NI('Tortilhas de milho',220,45,5.7,2.9,6,30);
-NI('Tortilhas de trigo',310,51,8,8,3,45);
-NI('Feijão branco',130,22,8.5,0.5,6.5); NI('Feijão encarnado',125,21,8.7,0.5,7);
-NI('Feijão preto',130,23,8.9,0.5,8.7); NI('Feijão-frade cozido',120,20,8,0.5,6);
-NI('Grão-de-bico cozido',164,27,8.9,2.6,7.6); NI('Lentilhas',115,20,9,0.4,8);
-NI('Tremoços',120,10,15,2.9,7);       NI('Edamame',120,9,11,5,5);
-NI('Tofu',120,2,13,7,1);
-
-/* --- Frutos secos, sementes e gorduras --- */
-NI('Amêndoa',580,22,21,50,12);        NI('Nozes',654,14,15,65,6.7);
-NI('Caju',553,30,18,44,3.3);          NI('Pinhões',673,13,14,68,3.7);
-NI('Amendoim',567,16,26,49,8.5);      NI('Manteiga de amendoim',590,20,25,50,6);
-NI('Sementes de abóbora',560,15,30,49,6); NI('Sementes de chia',486,42,17,31,34);
-NI('Sementes de linhaça',534,29,18,42,27); NI('Sementes de sésamo',573,23,18,50,12);
-NI('Tahini',595,21,17,54,9);          NI('Coco ralado',660,24,6.9,65,16);
-NI('Azeite',884,0,0,100,0);           NI('Óleo de coco',862,0,0,100,0);
-NI('Óleo de sésamo',884,0,0,100,0);   NI('Batata palha',540,52,5,34,4);
-
-/* --- Molhos, caldos, doces e temperos --- */
-NI('Mel',304,82,0.3,0,0.2);           NI('Xarope de ácer',260,67,0,0.1,0);
-NI('Marmelada',270,68,0.3,0.1,1.5);   NI('Ketchup',100,24,1.2,0.2,0.3);
-NI('Maionese',680,1.5,1,75,0);        NI('Mostarda',66,6,4,3.5,3);
-NI('Molho barbecue',170,41,0.8,0.6,0.7); NI('Molho picante',60,12,1,0.5,1);
-NI('Molho de soja',60,5.6,8,0.1,0.8); NI('Molho teriyaki',90,16,5,0,0.1);
-NI('Molho de peixe',35,3.6,5,0,0);    NI('Pasta de miso',200,26,12,6,5);
-NI('Pesto',460,6,5,46,2);             NI('Tomate pelado',24,5,1.2,0.2,1.3);
-NI('Tomate seco',258,56,14,3,12);     NI('Passas',299,79,3.1,0.5,3.7);
-NI('Leite de coco',190,3,2,19,0.5);   NI('Cacau em pó',228,58,20,14,33);
-NI('Caldo de galinha',8,0.5,1,0.2,0); NI('Caldo de legumes',6,1,0.3,0.1,0);
-NI('Vinagre de vinho',19,0.3,0,0,0);  NI('Vinho branco',82,2.6,0.1,0,0);
-NI('Vinho tinto',85,2.6,0.1,0,0);
-NI('Fermento de padeiro',105,18,8.4,1.9,6); NI('Fermento em pó',100,28,0,0,0);
-NI('Baunilha',288,13,0.1,0.1,0);      NI('Canela',247,81,4,1.2,53);
-NI('Açafrão',310,65,11,6,4);          NI('Caril em pó',325,56,14,14,33);
-NI('Chili em pó',280,50,12,14,35);    NI('Cominhos',375,44,18,22,11);
-NI('Cúrcuma',312,67,9.7,3.3,22);      NI('Noz-moscada',525,49,6,36,21);
-NI('Orégãos',265,69,9,4.3,42);        NI('Ervas de Provença',265,64,9,7,40);
-NI('Pimenta preta',250,64,10,3.3,25); NI('Pimentão-doce',282,54,14,13,35);
-NI('Flor de sal',0,0,0,0,0);
+/* ---- O resto da tabela portuguesa ----
+   Tudo o que o INSA publica e serve de ingrediente: peixe da nossa costa,
+   cortes de carne, os queijos com nome de terra, leguminosas, fruta, farinhas,
+   ervas e especiarias. Ficaram de fora os pratos já cozinhados, as variantes
+   de retalho do mesmo produto (o mesmo iogurte açucarado em oito versões), a
+   pastelaria e as bebidas — nenhum deles é um ingrediente com que se escreva
+   uma receita. */
+NI('Abrótea crua',70,0,17.2,0.1,0,0,0);
+NI('Acelga crua',23,2.7,1.8,0.2,1.6,0,2);
+NI('Açúcar amarelo',390,97.5,0,0,0,0,4);
+NI('Açúcar branco',397,99.3,0,0,0,0,4);
+NI('Agrião cru',29,0.4,3.4,0.9,3,0,2);
+NI('Alcachofra crua',51,6.8,3,0.2,5,0,2);
+NI('Alface roxa',12,1.5,0.9,0,1.1,0,2);
+NI('Alho em pó',310,52.3,17.6,1.2,10,0,2);
+NI('Alperce',48,8.5,0.8,0.1,2.1,0,2);
+NI('Ameixa branca',40,7.8,0.6,0.2,1.6,0,2);
+NI('Ameixa encarnada',41,7.4,0.8,0.2,1.9,0,2);
+NI('Ameixa rainha Cláudia',57,11.8,0.8,0.1,2.3,0,2);
+NI('Ameixa seca',198,37.8,2.9,0.3,15.6,0,2);
+NI('Amêndoa, miolo, torrada, sem pele',650,7.1,21.6,56.8,12.2,0,4);
+NI('Amendoim, miolo, torrado com sal',622,6,27.3,51,15,0,4);
+NI('Amendoim, miolo, torrado sem sal',622,6,27.3,51,15,0,4);
+NI('Amora silvestre',43,4.5,1.4,0.9,4.6,0,2);
+NI('Ananás',42,8.6,0.5,0,1.1,0,2);
+NI('Anona',82,16.8,1.7,0.4,2.4,0,2);
+NI('Arroz carolino branqueado cru',357,79.6,7.4,0.5,2.2,0,4);
+NI('Arroz integral cru',351,71.6,8.6,2.5,3.8,0,4);
+NI('Avelã, miolo',689,6,14,66.3,6.1,0,4);
+NI('Bacalhau, ovas cruas',104,0,21.7,1.9,0,0,0);
+NI('Bagas goji secas',303,51.8,11.2,2.8,12.8,0,2);
+NI('Banha de porco',896,0,0,99.5,0,0,4);
+NI('Batata doce crua',123,28.3,1,0,2.7,0,2);
+NI('Batata, fécula',345,85,0.5,0.3,0.1,0,4);
+NI('Beldroega crua',13,1,1,0,2.5,0,2);
+NI('Berbigão cru',59,2.7,10.5,0.7,0,0,0);
+NI('Besugo cru',102,0,19.5,2.7,0,0,0);
+NI('Beterraba (raiz) crua',23,3.5,1,0,2.6,0,2);
+NI('Búzio cru',82,2.3,17.8,0.2,0,0,0);
+NI('Cabrito, costeleta crua',120,0,23.9,2.7,0,0,1);
+NI('Cabrito, peito cru',116,0,20.5,3.8,0,0,1);
+NI('Cabrito, perna crua',113,0,19.3,4,0,0,1);
+NI('Cação cru',82,0,20,0.2,0,0,0);
+NI('Cachucho cru',80,0,18.3,0.7,0,0,0);
+NI('Canónigos crus',24,2,2,0.4,2.1,0,2);
+NI('Cantarilho (Redfish) cru',101,0,18.6,2.9,0,0,0);
+NI('Caracol, cru',85,2,16.1,1.4,0,0,0);
+NI('Carambola',40,7.1,0.5,0.3,1.7,0,2);
+NI('Cardamomo verde',335,49.5,10.8,6.2,19,0,4);
+NI('Carneiro, costeleta crua',151,0,20.8,7.5,0,0,1);
+NI('Carneiro, pá crua',195,0,20.5,12.6,0,0,1);
+NI('Carneiro, peito gordo, cru',396,0,16.8,36.5,0,0,1);
+NI('Carneiro, perna gorda, crua',276,0,19.1,22.2,0,0,1);
+NI('Carneiro, perna magra, crua',130,0,19.8,5.6,0,0,1);
+NI('Caseína',358,0,86.2,1.5,0,0,4);
+NI('Castanha de caju torrada e salgada',613,19.4,19.6,50,3.3,0,4);
+NI('Castanha do Brasil',690,2.6,9.6,66.7,20.5,0,4);
+NI('Castanha pilada',341,70,5.1,2,11.3,0,4);
+NI('Cavala em filetes, conserva em azeite',182,0,24,9.6,0,0,0);
+NI('Cavalo, bife de alcatra crua',116,0,21.1,3.5,0,0,1);
+NI('Cavalo, lombo ou pá cru',99,0,19.6,2.3,0,0,1);
+NI('Cebola doce, crua',25,4.9,0.8,0,1.1,0,2);
+NI('Cenoura baby crua',29,4.9,0.6,0.1,2.9,0,2);
+NI('Cerefólio fresco',80,12,4,1,3.3,0,2);
+NI('Cereja (4 variedades)',67,13.3,0.8,0.7,1.6,0,2);
+NI('Cherne cru',132,0,17.9,6.7,0,0,0);
+NI('Chicharro cru',105,0,19.7,2.9,0,0,0);
+NI('Chicória crua',14,0.9,1,0.1,2.6,0,2);
+NI('Choco cru',79,0,18.9,0.4,0,0,0);
+NI('Chocolate culinária, tablete',502,44,5.4,30.5,15,0,4);
+NI('Chocolate de leite, tablete',552,53.1,8,33.9,1.3,0,4);
+NI('Chocolate negro (aproximadamente 50% cacau)',530,52.6,5.2,31.7,7.2,0,4);
+NI('Chocolate, pó',469,63.8,4.2,20.3,7.3,0,4);
+NI('Chouriço de carne de porco, cru',476,0,20,44.1,0,0,1);
+NI('Chouriço de carne de porco, gordo, cru',544,0,15.4,53.6,0,0,1);
+NI('Chuchu',19,2.9,0.8,0.1,1.7,0,2);
+NI('Chucrute',15,1.1,1.3,0.3,1.1,0,2);
+NI('Clara de ovo de galinha, crua',47,0,11,0.3,0,0,1);
+NI('Clara de ovo de galinha, pasteurizada',46,1,10.5,0,0,0,1);
+NI('Clementina',53,11.1,0.8,0.2,1.7,0,2);
+NI('Codorniz carne sem pele, crua',119,0,22.1,3.4,0,0,1);
+NI('Codorniz com pele, crua',170,0,21.5,9.3,0,0,1);
+NI('Cogumelos enlatados, escorridos',17,0,2.1,0.4,2.7,0,2);
+NI('Cogumelos ostra (pleurotus)',27,2.7,2.4,0.2,2.3,0,2);
+NI('Corvina crua',94,0,20.4,1.4,0,0,0);
+NI('Couve-branca crua',28,3.5,1.4,0.4,2.4,0,2);
+NI('Couve-de-Bruxelas crua',50,4,3.5,1.4,3.8,0,2);
+NI('Couve-portuguesa crua',31,3.5,2.2,0.4,2.4,0,2);
+NI('Couve-roxa crua',30,3.9,2,0,3.3,0,2);
+NI('Cravinho',431,52,6,20,9.6,0,4);
+NI('Creme culinário',531,0,0,59,0,0,4);
+NI('Creme culinário líquido, 65% gordura, com sal',588,0,0,65.3,0,0,4);
+NI('Creme vegetal culinário, 75% gordura, sem sal',677,0.4,0.1,75,0,0,4);
+NI('Creme vegetal de soja para barrar',444,3.7,0.2,47.6,0,0,4);
+NI('Creme vegetal para barrar  72% gordura, 33% ácidos gordos polinsaturados',651,0.4,0.1,72.1,0,0,4);
+NI('Creme vegetal para barrar 35% gordura, com fitosteróis',328,3.2,0.1,35,0,0,4);
+NI('Creme vegetal para barrar 37% gordura',343,0.2,1.4,37.4,0,0,4);
+NI('Creme vegetal para barrar 58% gordura, com cálcio',525,0.5,0.3,58,0,0,4);
+NI('Creme vegetal para barrar 70% gordura, 53% ácidos gordos monoinsaturados',632,0.5,0.1,70,0,0,4);
+NI('Creme vegetal para barrar 70% gordura, com sal',632,0.3,0.1,70,0,0,4);
+NI('Cubo de carne de galinha para caldo',236,9,15.4,15.4,0,0,4);
+NI('Cubo de carne de vaca para caldo',183,8,19.8,8,0,0,4);
+NI('Dióspiro',65,14.8,0.6,0,1.5,0,2);
+NI('Endívia crua',19,1.2,1.8,0.4,1.8,0,2);
+NI('Enguia crua',303,0,13.4,27.7,0,0,0);
+NI('Ervilhas secas cruas',330,49.4,22.7,1.3,15,0,4);
+NI('Ervilhas, grão, congeladas cruas',68,7,5.3,0.5,7,0,4);
+NI('Ervilhas, vagens cruas',33,3.9,3.1,0.2,1.5,0,2);
+NI('Estragão fresco',55,6.3,3.4,1.1,2.9,0,2);
+NI('Faneca crua',82,0.1,19,0.6,0,0,0);
+NI('Farelo de trigo',293,24.9,16.2,5.3,40.2,0,4);
+NI('Farinha de alfarroba',368,85.6,3.2,0.3,5,0,2);
+NI('Farinha de aveia',363,57,14.5,7.3,5.7,0,4);
+NI('Farinha de centeio',370,77.3,7.8,1.2,9.4,0,4);
+NI('Farinha de centeio tipo 70',364,78.5,6.6,1.1,7,0,4);
+NI('Farinha de centeio tipo 85',375,76,9,1.3,11.7,0,4);
+NI('Farinha de cevada',330,64.4,8.8,2.5,7.6,0,4);
+NI('Farinha de espelta',339,61.8,14,2.3,7.4,0,4);
+NI('Farinha de milho tipo 70',359,75.3,8.3,2.2,2.6,0,4);
+NI('Farinha de pau (mandioca)',350,84.6,1.4,0.3,1.6,0,2);
+NI('Farinha de trigo com fermento',343,72.5,9.7,1.1,2.3,0,4);
+NI('Farinha de trigo integral',338,65.2,9.6,2.4,8.6,0,4);
+NI('Farinha de trigo tipo 150',352,73,9.1,1.8,3.7,0,4);
+NI('Farinha de trigo tipo 55',344,74.3,7.8,1.1,2.9,0,4);
+NI('Farinha de trigo tipo 65',341,67.6,13.6,1,3.5,0,4);
+NI('Favas secas cruas',301,32.8,25.8,1.3,27.6,0,4);
+NI('Feijão catarino, seco, cru',302,47.9,20.3,0.1,14,0,4);
+NI('Feijão frade, seco, cru',339,55.3,21.4,1.5,9.4,0,4);
+NI('Feijão manteiga, seco, cru',313,42.6,24,0.1,22.9,0,4);
+NI('Feijoa (polpa)',52,9.8,0.9,0.5,2.1,0,2);
+NI('Fermento seco de padeiro',228,3.2,38.3,2.5,19.7,0,4);
+NI('Fiambre de aves',83,2.7,13.8,1.6,1.6,0,1);
+NI('Fiambre, pá',112,1.3,14,5.1,2.3,0,1);
+NI('Fiambre, peito de frango',82,2.8,13.7,1.3,1.9,0,1);
+NI('Fiambre, perna',111,1.2,16.5,4.1,1.4,0,1);
+NI('Figo seco',276,58.2,2.8,1.5,9.5,0,2);
+NI('Fisális',68,11.7,1.8,0.6,4.2,0,2);
+NI('Flocos de arroz',379,83.4,7,1.5,2.1,0,4);
+NI('Flocos de centeio',352,69,12,2,5,0,4);
+NI('Flocos de cevada',324,64.4,8.3,2,7.6,0,4);
+NI('Folhas de rabanete cruas',39,3.9,3.5,0.5,2.6,0,2);
+NI('Framboesa',49,5.1,0.9,0.6,6.7,0,2);
+NI('Frango (1/4), perna com costa e pele, crua',195,0,19.1,13,0,0,1);
+NI('Frango inteiro com pele, cru',201,0,19.6,13.6,0,0,1);
+NI('Frango inteiro sem pele, cru',110,0,22.9,2,0,0,1);
+NI('Frango, peito com pele, cru',177,0,24.1,8.9,0,0,1);
+NI('Frango, pele crua',474,0,9.7,48.3,0,0,1);
+NI('Funcho fresco',32,2.6,2.8,0.4,3.3,0,2);
+NI('Galinha de angola com pele, crua',152,0,23.4,6.5,0,0,1);
+NI('Gamba crua',88,0,21.5,0.2,0,0,0);
+NI('Garoupa crua',95,0,20.5,1.4,0,0,0);
+NI('Gema de ovo de galinha, crua',342,0,16,30.9,0,0,1);
+NI('Gema de ovo de galinha, pasteurizada',294,1.3,15.3,25.2,0,0,1);
+NI('Gérmen de trigo',391,41.8,28.1,9.6,12.3,0,4);
+NI('Ginja',57,11.5,0.9,0.3,1.6,0,2);
+NI('Goiaba crua, polpa',41,5,0.8,0.5,5.3,0,2);
+NI('Goraz cru',100,0,18.8,2.7,0,0,0);
+NI('Grão-de-bico, seco, cru',327,33.5,19.4,6.8,27.2,0,4);
+NI('Grelos de couve crus',28,2.5,2.4,0.4,2.6,0,2);
+NI('Grilo doméstico, pó',506,0.1,58.3,28.9,6.2,0,0);
+NI('Groselha',52,5,1.1,0.5,8.2,0,2);
+NI('Imperador cru',80,0,19,0.4,0,0,0);
+NI('Inhame cru',114,25.7,1.5,0.3,1.3,0,2);
+NI('Iogurte grego magro natural',56,3.9,5.3,2,0,0,3);
+NI('Iogurte magro, natural',42,5.2,4.6,0.2,0,0,3);
+NI('Javali cru',108,0,19.5,3.4,0,0,1);
+NI('Lagosta crua',79,0.1,18.2,0.7,0,0,0);
+NI('Lagostim cru',89,0.2,20.9,0.5,0,0,0);
+NI('Lampreia crua',314,0.1,16.7,27.4,0,0,0);
+NI('Lapas cruas',66,0.6,14.3,0.7,0,0,0);
+NI('Lebre crua',113,0,21.6,3,0,0,1);
+NI('Leite achocolatado, UHT',65,9.7,3.4,1.3,0.4,0,3,'ml');
+NI('Leite de cabra cru',70,4.6,3.8,4,0,0,3,'ml');
+NI('Leite de ovelha cru',93,4.2,5.1,6.2,0,0,3,'ml');
+NI('Leite gordo especial, pasteurizado',62,4.8,3.1,3.4,0,0,3,'ml');
+NI('Leite gordo, pasteurizado',62,4.7,3,3.5,0,0,3,'ml');
+NI('Leite gordo, pó',495,38.7,26.8,25.9,0,0,3,'ml');
+NI('Leite gordo, UHT',62,4.7,3,3.5,0,0,3,'ml');
+NI('Leite magro de pastagem, UHT',33,4.9,3.1,0.1,0,0,3,'ml');
+NI('Leite magro, pó',359,52.7,35.1,0.9,0,0,3,'ml');
+NI('Leite magro, UHT',35,4.9,3.4,0.2,0,0,3,'ml');
+NI('Leite meio gordo de pastagem, UHT',46,5,3,1.5,0,0,3,'ml');
+NI('Leite meio gordo, pó',427,45.6,30.7,13.5,0,0,3,'ml');
+NI('Lentilhas vermelhas, secas, cruas',327,46.6,25.7,0.3,17.4,0,4);
+NI('Lentilhas, secas, cruas',321,47.6,25.2,0.7,11.8,0,4);
+NI('Lichia fresca',70,14.8,0.9,0.4,1.3,0,2);
+NI('Linguado cru',82,0,20.1,0.2,0,0,0);
+NI('Linguiça',437,0,21.5,39,0,0,1);
+NI('Maçã com casca',64,13.4,0.2,0.5,2.1,0,2);
+NI('Maçã sem casca',61,12.7,0.2,0.5,1.9,0,2);
+NI('Maionese caseira, com ovo e óleo de soja',644,0,3.9,69.8,0,0,4);
+NI('Mandioca crua',145,33.8,1,0.3,1.8,0,2);
+NI('Manjerona seca',320,42.5,12.7,7,18.1,0,4);
+NI('Manteiga sem sal',750,0.7,0.1,83,0,0,4);
+NI('Maracujá',52,5.7,2.6,0.4,3.3,0,2);
+NI('Margarina',740,0.4,0.1,82,0,0,4);
+NI('Margarina 3/4, de girassol',524,0.3,0.1,58,0,0,4);
+NI('Margarina culinária para folhados, com sal',772,0.4,0.1,85.5,0,0,4);
+NI('Margarina industrial para pastelaria, com sal',727,0.4,0.1,80.5,0,0,4);
+NI('Margarina vegetal culinária, 80% gordura, com sal',722,0.4,0.1,80,0,0,4);
+NI('Margarina vegetal culinária, com alho e sal',692,4.4,1,74.3,0.7,0,4);
+NI('Marmelo',53,9.3,0.3,0.2,6,0,2);
+NI('Maruca crua',70,0,17.2,0.1,0,0,0);
+NI('Massa com ovo crua',360,67.6,13.9,3.1,3,0,4);
+NI('Massa folhada, congelada',398,31.8,5,27.5,1.4,0,4);
+NI('Massa para pizza',289,52.5,7.8,4.8,2.1,0,4);
+NI('Medronho',150,31.4,1.2,0.6,6.4,0,2);
+NI('Mel de cana',311,77.4,0.3,0,0,0,4);
+NI('Melaço',269,66.6,0.6,0.1,0,0,4);
+NI('Melancia',32,7.3,0.6,0,0.4,0,2);
+NI('Meloa',39,8.2,1,0,0.7,0,2);
+NI('Milho, amido (pó)',364,90.2,0.4,0.2,0.1,0,4);
+NI('Milho, grão seco cru',368,70.3,9.3,4.9,2.9,0,4);
+NI('Millet, cru, seco',362,71.2,11.1,3.2,2,0,4);
+NI('Minarina (meia margarina)',380,0.4,0.9,41.6,0,0,4);
+NI('Mirtilo',43,6.4,0.5,0.6,3.1,0,2);
+NI('Molho branco com caldo de carne de vaca',115,6.8,1.1,9.2,0.3,0,4);
+NI('Molho de mostarda',444,18,2.6,40.2,0,0,4);
+NI('Molho de tomate',107,4.9,1.1,8.8,2,0,4);
+NI('Molho de vinagrete',648,0.2,0.2,71.8,0,0,4);
+NI('Molho para francesinha',74,4.8,1.1,2.6,0.2,0,4);
+NI('Molho verde',246,2.3,0.7,25.6,1.6,0,4);
+NI('Mortadela',379,1.7,18.3,33.2,0,0,1);
+NI('Múcua (fruto do embondeiro, baobab)',212,16.3,2.8,0.1,67.3,0,2);
+NI('Nabiça crua',17,1.2,2,0,2.3,0,2);
+NI('Nata maturada pasteurizada 30% gordura',306,2.7,1.9,32,0,0,3,'ml');
+NI('Nata para bater pasteurizada 34% gordura',323,2.1,2.2,34,0,0,3,'ml');
+NI('Nata pasteurizada 33% gordura',317,2.9,2,33,0,0,3,'ml');
+NI('Nata pasteurizada 36% gordura',340,1.9,2,36,0,0,3,'ml');
+NI('Nata pasteurizada para café, 15% gordura',153,2.4,2,15,0,0,3,'ml');
+NI('Nectarina',49,8.7,1.4,0.1,2.2,0,2);
+NI('Nêspera',51,10.2,0.4,0.4,2.1,0,2);
+NI('Noz macadâmia',752,5.1,8,76,8,0,4);
+NI('Noz pecan',729,5.4,9.4,72.6,8.3,0,4);
+NI('Óleo "Becel"',887,0,0,98.5,0,0,4,'ml');
+NI('Óleo alimentar',896,0,0,99.5,0,0,4,'ml');
+NI('Óleo de amendoim',887,0,0,98.5,0,0,4,'ml');
+NI('Óleo de girassol',896,0,0,99.5,0,0,4,'ml');
+NI('Óleo de linhaça',900,0,0,100,0,0,4,'ml');
+NI('Óleo de milho',896,0,0,99.5,0,0,4,'ml');
+NI('Óleo de palma',900,0,0,100,0,0,4,'ml');
+NI('Óleo de soja',887,0,0,98.5,0,0,4,'ml');
+NI('Ostra, crua',65,3.9,8.6,1.7,0,0,0);
+NI('Ovo de codorniz, cru',150,0.4,12.9,10.7,0,0,1);
+NI('Ovo de galinha líquido, pasteurizado',131,0,11.9,9.3,0,0,1);
+NI('Ovo de galinha, escalfado',150,0,13,10.9,0,0,1);
+NI('Ovo de galinha, estrelado',193,0,13.7,15.4,0,0,1);
+NI('Paio de lombo',288,0,29.2,19,0,0,1);
+NI('Paio de lombo entremeado',361,0,22.8,30,0,0,1);
+NI('Pão de centeio integral',229,41.3,7.7,2.1,7.1,0,4);
+NI('Pão de forma, de trigo com passas',291,58.3,8.3,2,3.5,0,4);
+NI('Pão de leite (trigo)',259,51.4,7.7,1.9,2.5,0,4);
+NI('Pão de trigo com redução de sal',248,51,7,1.2,2.8,0,4);
+NI('Pão de trigo integral com passas',247,44,7.4,2.6,9.1,0,4);
+NI('Pão de trigo integral com sementes de sésamo',256,43.2,7.7,4,8.2,0,4);
+NI('Pão de trigo integral com soja',233,38.2,9.4,2.8,8.6,0,4);
+NI('Papaia',45,9.1,0.6,0.1,2.3,0,2);
+NI('Pargo legítimo cru',79,0,19.4,0.2,0,0,0);
+NI('Pargo mulato cru',80,0,18.5,0.7,0,0,0);
+NI('Pasta de aves (paté), caseira',288,4.7,26.9,17.5,0.3,0,1);
+NI('Pastilha elástica',328,75.1,6.9,0,0,0,4);
+NI('Pato com pele, cru',394,0,12.3,38.3,0,0,1);
+NI('Peixe-espada-branco cru',117,0,20.3,4,0,0,0);
+NI('Peixe-espada-preto cru',88,0,15.7,2.8,0,0,0);
+NI('Percebes crus',59,0,13.6,0.5,0,0,0);
+NI('Perdiz crua',104,0,23,1.3,0,0,1);
+NI('Peru inteiro com pele, cru',137,0,20.5,6.1,0,0,1);
+NI('Peru, peito com pele, cru',134,0,23,4.7,0,0,1);
+NI('Peru, perna com pele, crua',149,0,18.9,8.1,0,0,1);
+NI('Pescada da África do Sul crua',81,0,17.2,1.3,0,0,0);
+NI('Pescada do Chile crua',86,0,18,1.5,0,0,0);
+NI('Pescada europeia crua',75,0,17,0.8,0,0,0);
+NI('Pescada, ovas cruas',83,0,14.3,2.9,0,0,0);
+NI('Pêssego (2 variedades)',50,10.6,0.8,0,1.2,0,2);
+NI('Picles de pepino',74,16.5,0.5,0.5,0.5,0,2);
+NI('Pimenta branca',306,48.3,10.4,2.1,26.2,0,4);
+NI('Pimenta moída',273,38.3,10.7,2.7,26.5,0,4);
+NI('Pistácio torrado e salgado',616,12.6,18,53,8.5,0,4);
+NI('Pistácio torrado, sem sal',616,12.6,18,53,8.5,0,4);
+NI('Pombo cru',232,0,20.3,16.7,0,0,1);
+NI('Porco, baço',107,0.4,17.8,3.8,0,0,1);
+NI('Porco, cabeça',355,0.3,14.3,32.9,0,0,1);
+NI('Porco, chispe',369,0.2,16.1,33.8,0,0,1);
+NI('Porco, costeleta gorda crua',355,0,17.3,31.8,0,0,1);
+NI('Porco, costeleta meio gorda crua',221,0,19.8,15.8,0,0,1);
+NI('Porco, entrecosto cru',190,0,19.6,12.4,0,0,1);
+NI('Porco, jarrete',140,0.1,21.4,6,0,0,1);
+NI('Porco, lombo cru',131,0,22.2,4.7,0,0,1);
+NI('Porco, toucinho entremeado fresco, cru',682,0,8.4,72,0,0,1);
+NI('Porco, toucinho entremeado ligeiramente salgado, cru',506,0,13.7,50.1,0,0,1);
+NI('Porco, toucinho entremeado magro',333,0.5,17.4,29.1,0,0,1);
+NI('Pota crua',75,0,16.3,1.1,0,0,0);
+NI('Proteína texturizada de soja',327,17.2,53,1.4,16.6,0,4);
+NI('Queijo Amarelo da Beira Baixa',361,1.5,20.5,30,0,0,3);
+NI('Queijo Brie',321,0,18.8,27.3,0,0,3);
+NI('Queijo Camembert',254,0.2,19.2,19.6,0,0,3);
+NI('Queijo creme para barrar, alto teor polinsaturados',263,6.9,9.3,22,0,0,3);
+NI('Queijo de Azeitão',339,2.6,19.5,27.5,0,0,3);
+NI('Queijo de cabra "Pure chèvre"',286,2,13,25,0,0,3);
+NI('Queijo de cabra atabafado, curado',313,2.7,18.2,24,0,0,3);
+NI('Queijo de cabra atabafado, fresco',202,2.5,13,15.4,0,0,3);
+NI('Queijo de Castelo Branco',356,1.8,20.8,29.2,0,0,3);
+NI('Queijo de Évora',405,2.1,23.8,32.9,0,0,3);
+NI('Queijo de mistura (vaca, cabra e ovelha)',329,2.4,19.6,26.7,0,0,3);
+NI('Queijo de Nisa',451,2.6,23.4,38,0,0,3);
+NI('Queijo de ovelha curado',401,2.4,22.8,33,0,0,3);
+NI('Queijo de ovelha, amanteigado',361,1.6,19.7,30.3,0,0,3);
+NI('Queijo de vaca curado',355,1.2,22.3,29,0,0,3);
+NI('Queijo de vaca curado, magro',208,2.4,27.1,10,0,0,3);
+NI('Queijo de vaca curado, meio gordo',280,1.7,23,20.1,0,0,3);
+NI('Queijo de vaca, amanteigado',343,1.7,20.2,28.3,0,0,3);
+NI('Queijo Emmental',384,0,28.9,29.7,0,0,3);
+NI('Queijo flamengo',349,0.8,22.7,28.3,0,0,3);
+NI('Queijo flamengo light (-50% gordura)',228,0,26.8,13.3,0,0,3);
+NI('Queijo fresco de cabra',182,2.1,12,13.8,0,0,3);
+NI('Queijo fresco de ovelha',204,3.9,11.3,15.6,0,0,3);
+NI('Queijo fresco magro',96,6.9,13,1.8,0,0,3);
+NI('Queijo fundido 40% gordura',326,0.2,22.5,25.7,0,0,3);
+NI('Queijo Gouda',380,0,25.3,30.6,0,0,3);
+NI('Queijo Mascarpone',458,0.3,7.6,47,0,0,3);
+NI('Queijo Mestiço de Tolosa',407,1.8,24.5,33,0,0,3);
+NI('Queijo Quark natural magro',60,4,10.3,0.3,0,0,3);
+NI('Queijo Quark natural meio gordo',125,3.9,8.1,8.5,0,0,3);
+NI('Queijo Raclette',354,0.4,25.5,27.8,0,0,3);
+NI('Queijo São Jorge',409,2.5,26.6,32.5,0,0,3);
+NI('Queijo Serpa',375,2.4,22,30.5,0,0,3);
+NI('Queijo Serra da Estrela',324,2,23.8,24,0,0,3);
+NI('Queijo Serra da Estrela, velho',389,0.2,25.5,31.5,0,0,3);
+NI('Quiabo cru',37,3.1,2.8,1,2,0,2);
+NI('Quivi, "Kiwi"',54,9.5,0.9,0.5,2.2,0,2);
+NI('Rabanada',294,31.3,4.7,16.6,0.5,0,4);
+NI('Rabanete cru',15,1.9,1,0.2,0.9,0,2);
+NI('Rábano cru',88,10.7,6,0.7,7.5,0,2);
+NI('Raia crua',58,0,14.1,0.2,0,0,0);
+NI('Rebentos de alfalfa crus',29,0.3,4,0.7,3,0,2);
+NI('Rebentos de bambu crus',14,1.2,0.9,0.2,1.8,0,2);
+NI('Rebentos de feijão mungo',21,2.1,2,0.2,1.4,0,2);
+NI('Requeijão de cabra',197,3.4,10.7,15.5,0,0,3);
+NI('Requeijão de mistura (ovelha e cabra)',136,3.7,7.8,10,0,0,3);
+NI('Romã',60,12,0.4,0.4,3.4,0,2);
+NI('Safio cru',109,0,17.7,4.2,0,0,0);
+NI('Salame',422,1.3,19.5,37.6,0,0,1);
+NI('Salicórnia fresca',14,1.1,0.7,0.2,2.5,0,2);
+NI('Salmonete cru',136,0.1,21.7,5.5,0,0,0);
+NI('Salpicão',412,0,20.5,36.7,0,0,1);
+NI('Salsicha fresca crua',210,0,15.5,16.4,0,0,1);
+NI('Salsicha tipo Frankfurt',178,2.4,9,14.7,0.1,0,1);
+NI('Sapateira crua',104,0,19.5,2.9,0,0,0);
+NI('Sarda crua',181,0,19,11.7,0,0,0);
+NI('Sardinha gorda crua',221,0,18.4,16.4,0,0,0);
+NI('Sardinha meio gorda conserva em água, sem espinha e sem pele',174,0,22,9.6,0,0,0);
+NI('Sardinha meio gorda conserva em azeite',202,0.8,22.7,12,0,0,0);
+NI('Sementes de cânhamo secas',424,2.4,29.5,27.9,22.7,0,4);
+NI('Sementes de coentro',358,16.2,12.4,17.8,41.9,0,4);
+NI('Sementes de girassol, cruas, secas, miolo',585,8.3,22.1,48.5,13.5,0,4);
+NI('Sementes de melão',590,9,28.5,47.7,10.8,0,4);
+NI('Sementes de mostarda',449,15.9,25.5,28.8,12.2,0,4);
+NI('Sementes de papoila',565,13.7,19.3,45.9,10,0,4);
+NI('Sêmola de milho',350,73.8,8.8,1.1,5,0,4);
+NI('Shortening para pastelaria',878,0,0,97.5,0,0,4);
+NI('Shortening para restaurante',900,0,0,100,0,0,4);
+NI('Soja, farinha com baixo teor de gordura',314,21.8,44,2.6,13.5,0,4);
+NI('Soja, grão seco, cru',407,18.3,32.8,19.3,14.3,0,4);
+NI('Solha crua',90,0,19,1.6,0,0,0);
+NI('Sultanas',304,69.4,2.7,0.4,4.2,0,2);
+NI('Tâmara fresca',147,33.2,1.2,0.1,3.8,0,2);
+NI('Tamarilho sem pele',34,4.6,2,0.3,2.3,0,2);
+NI('Tamarindo cru',242,54.9,2.3,0.3,5.1,0,4);
+NI('Tamboril cru',73,0,17.9,0.2,0,0,0);
+NI('Tângera',41,7.8,0.7,0.1,1.7,0,2);
+NI('Tangerina',44,8.7,0.7,0.1,1.7,0,2);
+NI('Tapioca',356,87.5,0.3,0.2,1.7,0,4);
+NI('Tomate concentrado',82,14.3,3.7,0.3,3.9,0,2);
+NI('Tomilho fresco',52,7.4,1.5,1.2,3,0,2);
+NI('Toranja',36,6,0.9,0.1,1.6,0,2);
+NI('Tosta de trigo',377,69.7,12.5,4.2,5.4,0,4);
+NI('Tosta de trigo integral',373,62.6,15.4,5.1,7.4,0,4);
+NI('Tosta de trigo sem sal',379,72.7,11.3,3.8,4.5,0,4);
+NI('Trigo Sarraceno (grão) cru',337,61.3,12.4,2.5,9.7,0,4);
+NI('Túbera (trufa) crua',77,14.5,3.3,0.3,1.5,0,2);
+NI('Uva branca (5 variedades)',78,17.3,0.3,0.5,0.8,0,2);
+NI('Uva de mesa (branca e tinta)',73,15.7,0.6,0.5,1,0,2);
+NI('Uva tinta (5 variedades)',83,18.6,0.3,0.5,0.9,0,2);
+NI('Vaca para assar crua',174,0,19.4,10.7,0,0,1);
+NI('Vaca para cozer ou estufar magra crua',175,0,21.7,9.8,0,0,1);
+NI('Vaca, cachaço cru',137,0.3,21.3,5.6,0,0,1);
+NI('Vaca, lombo magro cru',114,0,21,3.3,0,0,1);
+NI('Veado cru',112,0,20.6,3.3,0,0,1);
+NI('Vieira, crua',83,0,18.5,1,0,0,0);
+NI('Vitela, chambão cru',195,0.2,20.3,12.6,0,0,1);
+NI('Vitela, costeleta crua',121,0,20,4.5,0,0,1);
+NI('Vitela, lombo cru',148,0,19.9,7.6,0,0,1);
+NI('Vitela, pá crua',138,0.3,23.3,4.9,0,0,1);
+NI('Vitela, peito magro cru',147,0,19.6,7.6,0,0,1);
+NI('Wasabi, raiz crua',100,15.8,4.8,0.6,6.1,0,4);
 
 /* Parte edível. Compram-se 350 g de mexilhões e comem-se cerca de 100: o
    resto é concha. A lista de compras precisa do peso que se paga na peixaria,
@@ -1242,27 +1753,27 @@ const RESTR={}; RESTRICOES.forEach(([k,n,i])=>{ RESTR[k]={n,i}; });
    não a exceção — quem filtra por glúten está a proteger-se, e o lado seguro
    do erro é excluir de mais. */
 const ING_REGRAS=[
-  ['gluten',/pão|farinha|esparguete|massa|noodles|couscous|bulgur|granola|aveia|lasanha|gnocchi|bagel|pita|broa|tortilhas de trigo|cerveja|fermento de padeiro/i],
-  ['lacticinio',/queijo|iogurte|mozzarella|parmes|feta|gruy|ricotta|requeij|nata|halloumi|manchego|cheddar|manteiga|leite/i],
-  ['ovo',/^ovo|maionese/i],
-  ['peixe',/bacalhau|salm|sardinh|atum|dourada|robalo|pescada|espadarte|cavala|carapau|truta|anchova|peixe/i],
-  ['crustaceos',/camar|lagost|sapateira|gamba/i],
-  ['moluscos',/amêijoa|polvo|lulas|mexilh|choco|marisco|vieira/i],
-  ['frutosecos',/amêndoa|noz|nozes|caju|avel|pinh|pistá|castanha/i],
+  ['gluten',/pão|farinha|esparguete|massa|noodles|couscous|bulgur|granola|aveia|lasanha|gnocchi|bagel|pita|broa|tortilhas de trigo|cerveja|fermento de padeiro|trigo|centeio|cevada|espelta|farelo|gérmen|sêmola|tosta|gressino|seitan|rabanada/i],
+  ['lacticinio',/queijo|iogurte|mozzarella|parmes|feta|gruy|ricotta|requeij|nata|halloumi|manchego|cheddar|manteiga|leite|caseína|mascarpone|brie|camembert|emmental|gouda|raclette|roquefort|quark|kefir/i],
+  ['ovo',/^ovo|maionese|clara de ovo|gema de ovo/i],
+  ['peixe',/bacalhau|salm|sardinh|atum|dourada|robalo|pescada|espadarte|cavala|carapau|truta|anchova|peixe|abrótea|besugo|cação|cachucho|cantarilho|cherne|chicharro|corvina|enguia|faneca|garoupa|goraz|imperador|lampreia|linguado|maruca|pargo|raia|safio|salmonete|sarda\b|solha|tamboril|perca|tilápia|arenque|alabote|escamudo|paloco|red ?fish|peixe-espada|ovas/i],
+  ['crustaceos',/camar|lagost|sapateira|gamba|percebe|santola|navalheira|caranguejo/i],
+  ['moluscos',/amêijoa|polvo|lula|mexilh|choco|marisco|vieira|berbigão|búzio|lapas|ostra|pota|caracol|conquilha|amêijola/i],
+  ['frutosecos',/amêndoa|noz\b|nozes|caju|avel|pinhão|pinhões|pistá|castanha|macadâmia|pecan/i],
   ['amendoim',/amendoim/i],
   ['soja',/soja|tofu|edamame|miso|teriyaki/i],
   ['sesamo',/sésamo|tahini/i],
   ['aipo',/aipo/i],
   ['mostarda',/mostarda/i],
   ['tremoco',/tremoç/i],
-  ['carne',/frango|porco|vaca|picada|peru|chouri|bife|coxas|bacon|presunto|borrego|coelho|pato|vitela|bresaola|asas|fiambre|bochechas|linguiça|carne/i],
-  ['porco',/porco|chouri|bacon|presunto|fiambre|bochechas|linguiça/i],
-  ['alcool',/vinho|cerveja/i],
+  ['carne',/frango|porco|vaca|picada|peru|chouri|bife|coxas|bacon|presunto|borrego|coelho|pato|vitela|bresaola|asas|fiambre|bochechas|linguiça|carne|cabrito|carneiro|cavalo|codorniz|galinha|javali|lebre|perdiz|pombo|veado|paio|salame|salpicão|mortadela|salsicha|toucinho|banha|entrecosto|costeleta|lombo|chambão|cachaço|jarrete|chispe|grilo/i],
+  ['porco',/porco|chouri|bacon|presunto|fiambre|bochechas|linguiça|paio|salame|salpicão|mortadela|salsicha|toucinho|banha|entrecosto|javali/i],
+  ['alcool',/vinho|cerveja|licor|aguardente|madeira\b|porto\b|sidra/i],
   ['picante',/malagueta|piri-piri|chili|jalape|molho picante/i],
   /* Não é alergénio nem se mostra como filtro: existe só para o paleo, que
      exclui leguminosas por princípio. O feijão-verde fica de fora da regra
      porque se come a vagem inteira e a prática paleo aceita-o. */
-  ['leguminosa',/feij[ãa]o|grão-de-bico|lentilha|ervilha|fava|tremoç|soja|tofu|edamame|amendoim|miso/i]
+  ['leguminosa',/feij[ãa]o|grão-de-bico|lentilha|ervilha|fava|tremoç|soja|tofu|edamame|amendoim|miso|alfarroba|alfalfa|mungo/i]
 ];
 /* Nomes onde a expressão acerta pelo motivo errado. Uma noz-moscada não é uma
    noz, uma massa de arroz não tem trigo e um leite de coco não vem de vaca —
@@ -1277,7 +1788,26 @@ const ING_EXCECAO={
   'Pasta de miso':['soja','gluten','leguminosa'], 'Feijão verde':[],
   'Molho de soja':['soja','gluten','leguminosa'], 'Molho teriyaki':['soja','gluten','leguminosa'], 'Algas nori':[],
   'Carne de porco':['carne','porco'], 'Molho barbecue':[], 'Molho picante':['picante'],
-  'Chili em pó':['picante'], 'Vinagre de vinho':[], 'Vinagre balsâmico':[]
+  'Chili em pó':['picante'], 'Vinagre de vinho':[], 'Vinagre balsâmico':[], 'Vinagre':[],
+  /* nomes do INSA onde a expressão acertaria pelo motivo errado */
+  'Farinha de pau (mandioca)':[], 'Farinha de alfarroba':['leguminosa'],
+  'Farinha de aveia':['gluten'], 'Flocos de arroz':[], 'Massa de arroz':[],
+  'Milho, amido (pó)':[], 'Sêmola de milho':[], 'Tapioca':[], 'Trigo Sarraceno (grão) cru':[],
+  'Millet, cru, seco':[], 'Sementes de mostarda':['mostarda'], 'Molho de mostarda':['mostarda'],
+  'Castanha de caju torrada e salgada':['frutosecos'], 'Castanha do Brasil':['frutosecos'],
+  'Castanha cozida sem sal':[], 'Castanha pilada':[], 'Castanha, miolo':[],
+  'Leite de cabra cru':['lacticinio'], 'Leite de ovelha cru':['lacticinio'],
+  'Grilo doméstico, pó':[], 'Molho para francesinha':['gluten','lacticinio','alcool','carne','porco'],
+  'Molho branco com caldo de carne de vaca':['gluten','lacticinio','carne'],
+  'Óleo "Becel"':[], 'Óleo alimentar':[], 'Óleo de girassol':[], 'Óleo de milho':[],
+  'Óleo de palma':[], 'Óleo de linhaça':[], 'Óleo de amendoim':['amendoim','leguminosa'],
+  'Óleo de soja':['soja','leguminosa'], 'Soja, farinha com baixo teor de gordura':['soja','leguminosa'],
+  'Soja, grão seco, cru':['soja','leguminosa'], 'Proteína texturizada de soja':['soja','leguminosa'],
+  'Wasabi, raiz crua':['picante'], 'Caseína':['lacticinio'],
+  'Túbera (trufa) crua':[], 'Salicórnia fresca':[], 'Sementes de coentro':[],
+  'Sementes de girassol, cruas, secas, miolo':[], 'Sementes de papoila':[],
+  'Sementes de cânhamo secas':[], 'Sementes de melão':[], 'Picles de pepino':[],
+  'Pimenta branca':[], 'Pimenta moída':[]
 };
 const _atribIng=Object.create(null);
 function atributosIng(nome){
@@ -1410,10 +1940,13 @@ function avaliaReceita(r,membros,mk,comTeto){
    garante que um nome na despensa bate sempre certo, byte a byte, com um
    nome de ingrediente de receita: sem correspondência aproximada, sem
    "Azeite" a não bater com "azeite". */
+/* O catálogo é a tabela de composição inteira, não só o que as receitas da
+   biblioteca usam: quem escreve uma receita em casa precisa de escolher entre
+   tudo o que existe, e tudo o que existe tem composição para calcular. */
+let _catalogo=null;
 function catalogoIngredientes(){
-  const set=new Set();
-  RECIPES.forEach(r=>r.i.forEach(x=>set.add(x[0])));
-  return [...set].sort((a,b)=>a.localeCompare(b,'pt'));
+  if(!_catalogo) _catalogo=Object.keys(NUTRI).sort((a,b)=>a.localeCompare(b,'pt'));
+  return _catalogo;
 }
 /* A despensa guarda ingredientes e suplementos com a mesma chave — o nome —
    por isso o catálogo que a valida tem de conhecer os dois. Os suplementos
@@ -1443,7 +1976,7 @@ const KEY='familiaFitV1', APPID='familia-fit', FORMATO=1;
 let saveErr='', msg=null;
 function blank(){ return {members:[],cheats:{},plans:{},bought:{},prefCuisine:'todas',objetivos:[],despensa:{},
   receitas:[],
-  ui:{tab:'familia',mid:null,cuis:'todas',soComp:false,mealF:'todas',dietaF:'todas',editor:null,
+  ui:{tab:'familia',mid:null,cuis:'todas',soComp:false,mealF:'todas',dietaF:'todas',busca:'',editor:null,
       objForm:{membros:[],tipo:'perder',delta:5,semanas:12,split:50,desporto:null,banda:2},
       objExpandido:null, objAdj:null, celebrando:null, tourPasso:null, tourVisto:false,
       tema:'auto', paleta:'azulejo', colapsados:{},
@@ -2834,7 +3367,39 @@ function renderAtividade(){
 /* ================= NUTRIÇÃO ================= */
 function setCuis(v){ S.ui.cuis=(v==='todas'||temChave(CUIS,v))? v:'todas'; saveMeta(); render(); }
 function setDietaF(v){ S.ui.dietaF=(v==='todas'||temChave(DIETS,v))? v:'todas'; saveMeta(); render(); }
-function limparFiltros(){ S.ui.cuis='todas'; S.ui.dietaF='todas'; S.ui.mealF='todas'; saveMeta(); render(); }
+function limparFiltros(){ S.ui.cuis='todas'; S.ui.dietaF='todas'; S.ui.mealF='todas'; S.ui.busca=''; saveMeta(); render(); }
+/* Pesquisa por nome: sem acentos e sem maiúsculas dos dois lados, porque
+   ninguém escreve «Bacalhau à Brás» com o à certo numa caixa de pesquisa. E
+   procura também nos ingredientes — «quem tem couve na despensa» é uma
+   pergunta tão legítima como «onde está a receita do polvo». */
+function semAcentos(s){
+  return String(s||'').normalize? String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase()
+    : String(s||'').toLowerCase();
+}
+function correspondeBusca(r,q){
+  if(!q) return true;
+  if(semAcentos(r.n).indexOf(q)>=0) return true;
+  return r.i.some(x=>semAcentos(x[0]).indexOf(q)>=0);
+}
+/* A escrever não se redesenha a página: filtra-se a grelha que já está no
+   ecrã, para o cursor não saltar da caixa a cada tecla. */
+function setBusca(v,el){
+  S.ui.busca=String(v||'').slice(0,60);
+  saveMeta();
+  const q=semAcentos(S.ui.busca).trim();
+  const grelha=document.getElementById('rec-grelha');
+  if(!grelha){ render(); return; }
+  let visiveis=0;
+  grelha.querySelectorAll('.rc[data-rid]').forEach(c=>{
+    const r=RECIPES.find(x=>x.id===c.getAttribute('data-rid'));
+    const mostra=!!r && correspondeBusca(r,q);
+    c.style.display=mostra? '':'none';
+    if(mostra) visiveis++;
+  });
+  põe('rec-conta', visiveis+' de '+RECIPES.length+' receitas');
+  const vazio=document.getElementById('rec-vazio');
+  if(vazio) vazio.style.display=visiveis? 'none':'';
+}
 function setMealF(v){ S.ui.mealF=v; saveMeta(); render(); }
 function toggleComp(){ S.ui.soComp=!S.ui.soComp; saveMeta(); render(); }
 
@@ -2860,9 +3425,16 @@ function macroBar(pct){ return `<div class="mbar">
    Os ingredientes só podem sair do catálogo. Não é uma limitação por
    preguiça: é o que garante que o nome bate certo, byte a byte, com a
    despensa e com a lista de compras, e que existe composição para calcular. */
+/* A unidade de cada ingrediente vem primeiro do que as receitas da biblioteca
+   já usam — é o que garante que a lista de compras soma peras com peras — e
+   só depois da tabela de composição, para os ingredientes que ainda não
+   apareceram em receita nenhuma. */
 const UNID_ING={};
 RECIPES.forEach(r=>r.i.forEach(([n,q,u])=>{ if(!temChave(UNID_ING,n)) UNID_ING[n]=u; }));
-function unidadeDe(nome){ return temChave(UNID_ING,nome)? UNID_ING[nome] : 'g'; }
+function unidadeDe(nome){
+  if(temChave(UNID_ING,nome)) return UNID_ING[nome];
+  return (temChave(NUTRI,nome) && NUTRI[nome].u)? NUTRI[nome].u : 'g';
+}
 
 function limparReceita(x){
   x=x||{};
@@ -3103,7 +3675,7 @@ function recipeCard(r,n){
   const comp=S.members.filter(m=>compat(r,chaveDieta(m))&&!ingredientesVetados(r,m).length);
   const vetados=S.members.map(m=>({m,itens:ingredientesVetados(r,m)})).filter(x=>x.itens.length);
   const disp=disponibilidadeReceita(r);
-  return `<div class="rc">
+  return `<div class="rc" data-rid="${r.id}">
     <div class="row" style="justify-content:space-between"><h3>${esc(r.n)}</h3><span class="kcal">${r.k} kcal</span></div>
     <div><span class="tag" style="border-color:var(--accent);color:var(--accent)">${r.mt.map(nomeRefeicao).join(' / ')}</span>
       <span class="tag">${ICO_COZ[r.coz]||''} ${CUIS[r.coz]}</span>${r.dc.filter(d=>d!==r.coz).map(d=>`<span class="tag">${DIETS[d].n}</span>`).join('')}</div>
@@ -3695,11 +4267,13 @@ function renderReceitas(){
     && (S.ui.mealF==='todas'||r.mt.indexOf(S.ui.mealF)>=0));
   if(S.ui.dietaF!=='todas' && temChave(DIETS,S.ui.dietaF)) list=list.filter(r=>compat(r,S.ui.dietaF));
   if(S.ui.soComp && m) list=list.filter(r=>compat(r,chaveDieta(m))&&!ingredientesVetados(r,m).length);
+  const q=semAcentos(S.ui.busca||'').trim();
+  if(q) list=list.filter(r=>correspondeBusca(r,q));
   const fam=S.members.length? RECIPES.filter(r=>compatAll(r,S.members)) : [];
   const n=porcoesAtuais(), minhas=RECIPES.filter(r=>r.u).length;
   return (m?memberPicker():'')+cartaoEditor()+`
   <div class="row" style="justify-content:space-between;margin-bottom:10px;flex-wrap:wrap">
-    <div><h2>Receitas ${dica('receitasDisp')}</h2><span class="sub">${list.length} de ${RECIPES.length} receitas${minhas? ' · '+minhas+' da casa':''}</span></div>
+    <div><h2>Receitas ${dica('receitasDisp')}</h2><span class="sub" id="rec-conta">${list.length} de ${RECIPES.length} receitas${minhas? ' · '+minhas+' da casa':''}</span></div>
     <div class="row">
       ${S.ui.editor? '' : `<button class="btn small" onclick="abrirEditor(null)">+ Nova receita</button>`}
       ${m? `<button class="chip ${S.ui.soComp?'on':''}" onclick="toggleComp()">Só compatíveis com ${esc(m.nome)}</button>`:''}
@@ -3707,11 +4281,13 @@ function renderReceitas(){
     </div>
   </div>
   <div class="row" style="margin-bottom:12px">
+    <input type="search" id="rec-busca" class="busca" value="${esc(S.ui.busca||'')}" placeholder="🔎 Procurar por nome ou ingrediente…"
+      oninput="setBusca(this.value,this)" aria-label="Procurar receitas">
     <select style="width:auto" onchange="setCuis(this.value)"><option value="todas">Todas as cozinhas</option>
       ${Object.entries(CUIS).map(([kk,v])=>`<option value="${kk}" ${S.ui.cuis===kk?'selected':''}>${(ICO_COZ[kk]||'')+' '+v}</option>`).join('')}</select>
     <select style="width:auto" onchange="setDietaF(this.value)"><option value="todas">Todas as dietas</option>
       ${Object.entries(DIETS).map(([kk,v])=>`<option value="${kk}" ${S.ui.dietaF===kk?'selected':''}>${v.n}</option>`).join('')}</select>
-    ${(S.ui.cuis!=='todas'||S.ui.dietaF!=='todas'||S.ui.mealF!=='todas')? `<button class="chip" onclick="limparFiltros()">✕ Limpar filtros</button>`:''}
+    ${(S.ui.cuis!=='todas'||S.ui.dietaF!=='todas'||S.ui.mealF!=='todas'||(S.ui.busca||''))? `<button class="chip" onclick="limparFiltros()">✕ Limpar filtros</button>`:''}
   </div>
   <div class="row" style="margin-bottom:12px;align-items:center">
     <span class="sub">Quantidades para ${dica('porcoes')}</span>
@@ -3724,7 +4300,10 @@ function renderReceitas(){
     <button class="chip ${S.ui.mealF==='todas'?'on':''}" onclick="setMealF('todas')">Todas as refeições</button>
     ${MEALS.map(([kk,rot])=>`<button class="chip ${S.ui.mealF===kk?'on':''}" onclick="setMealF('${kk}')">${ICO_REF[kk]||''} ${rot}</button>`).join('')}
   </div>
-  ${list.length? `<div class="grid g3">${list.map(r=>recipeCard(r,n)).join('')}</div>`
+  ${list.length? `<div class="grid g3" id="rec-grelha">${list.map(r=>recipeCard(r,n)).join('')}</div>
+      <div id="rec-vazio" style="display:none">${estadoVazio('lupa','Nada com esse nome',
+        'Nenhuma das receitas visíveis tem esse texto no nome nem nos ingredientes. Apaga a pesquisa ou alarga os filtros.',
+        `<button class="btn ghost" onclick="limparFiltros()">Limpar filtros</button>`)}</div>`
     : estadoVazio('lupa','Nenhuma receita com estes filtros',
         'Nenhuma das '+RECIPES.length+' receitas corresponde à combinação de refeição, cozinha e dieta que escolheste. Alarga um dos filtros para voltares a ver sugestões.',
         `<button class="btn ghost" onclick="setCuis('todas')">Todas as cozinhas</button>
@@ -4467,6 +5046,10 @@ function renderPlano(){
 function gruposCompras(){ return CATS.map(c=>c[0]).concat(['Suplementos']); }
 function grupoDoItem(it){
   if(it.u==='dose') return CATS.length;
+  /* A secção do supermercado vem da classificação do próprio INSA sempre que
+     o ingrediente vem de lá: é mais fiável do que qualquer expressão sobre o
+     nome, e não confunde gnocchi com batatas. */
+  if(temChave(NUTRI,it.n) && NUTRI[it.n].s>=0 && NUTRI[it.n].s<CATS.length) return NUTRI[it.n].s;
   if(temChave(SEC_FIXA,it.n)){
     const i=CATS.findIndex(c=>c[0]===SEC_FIXA[it.n]);
     if(i>=0) return i;
