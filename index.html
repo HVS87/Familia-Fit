@@ -882,8 +882,107 @@ function hidratosMin(m){ if(idadeAnos(m)<1) return 0; return gravida(m)? 175 : 1
 function permiteDefice(m){ return faseDe(m)==='adulto' && !gravida(m); }
 function permiteProjecao(m){ return permiteDefice(m); }
 /* Abaixo dos 6 meses a alimentação é leite materno ou fórmula: a app não
-   gera plano nenhum. Entre os 6 e os 24 meses é apoio, não prescrição. */
+   gera plano de receitas. Entre os 6 e os 24 meses é apoio, não prescrição. */
 function semPlanoAlimentar(m){ return idadeMeses(m)<6; }
+
+/* ===== NUTRIÇÃO DO BEBÉ =====
+   Peso para a idade das curvas de crescimento da OMS (2006), nos percentis 3,
+   15, 50, 85 e 97, em quilogramas. Entre os meses tabelados interpola-se. */
+const WHO_MESES=[0,3,6,9,12,15,18,21,24];
+const WHO_PESO={
+  m:[[2.5,2.9,3.3,3.9,4.4],[5.0,5.7,6.4,7.2,7.9],[6.4,7.1,7.9,8.8,9.7],[7.1,8.0,8.9,9.9,10.9],
+     [7.7,8.6,9.6,10.8,11.8],[8.3,9.2,10.3,11.5,12.7],[8.8,9.8,10.9,12.2,13.5],
+     [9.2,10.3,11.5,12.9,14.3],[9.7,10.8,12.2,13.6,15.1]],
+  f:[[2.4,2.8,3.2,3.7,4.2],[4.6,5.2,5.8,6.6,7.3],[5.8,6.5,7.3,8.2,9.0],[6.5,7.3,8.2,9.3,10.2],
+     [7.0,7.9,8.9,10.1,11.1],[7.6,8.5,9.6,10.9,12.0],[8.1,9.1,10.2,11.6,12.8],
+     [8.6,9.6,10.9,12.3,13.7],[9.0,10.2,11.5,13.0,14.8]]
+};
+const PERCENTIS=[3,15,50,85,97];
+function pesosPercentis(sexo,meses){
+  const t=WHO_PESO[sexo==='f'?'f':'m'], x=clampNum(meses,0,24);
+  let i=0; while(i<WHO_MESES.length-2 && x>WHO_MESES[i+1]) i++;
+  const a=WHO_MESES[i], b=WHO_MESES[i+1], r=(b>a)?(x-a)/(b-a):0;
+  return t[i].map((v,k)=>v+(t[i+1][k]-v)*r);
+}
+function pesoNoPercentil(sexo,meses,p){
+  const v=pesosPercentis(sexo,meses);
+  if(p<=PERCENTIS[0]) return v[0];
+  if(p>=PERCENTIS[4]) return v[4];
+  for(let i=1;i<PERCENTIS.length;i++) if(p<=PERCENTIS[i]){
+    const r=(p-PERCENTIS[i-1])/(PERCENTIS[i]-PERCENTIS[i-1]);
+    return v[i-1]+(v[i]-v[i-1])*r; }
+  return v[4];
+}
+/* Percentil aproximado do peso atual, por interpolação entre as curvas. */
+function percentilDe(m){
+  const v=pesosPercentis(m.sexo,idadeMeses(m)), p=m.peso;
+  if(p<=v[0]) return {p:3,abaixo:true};
+  if(p>=v[4]) return {p:97,acima:true};
+  for(let i=1;i<v.length;i++) if(p<=v[i]){
+    const r=(v[i]-v[i-1])>0? (p-v[i-1])/(v[i]-v[i-1]) : 0;
+    return {p: PERCENTIS[i-1]+(PERCENTIS[i]-PERCENTIS[i-1])*r}; }
+  return {p:97};
+}
+function textoPercentil(m){
+  const q=percentilDe(m);
+  if(q.abaixo) return 'abaixo do percentil 3';
+  if(q.acima) return 'acima do percentil 97';
+  return 'percentil '+Math.round(q.p);
+}
+/* Doses diárias de referência para bebés e crianças pequenas.
+   Energia pelas equações da IOM; proteína, hidratos, gordura, água, ferro,
+   cálcio e vitamina D pelos valores de ingestão de referência (AI/RDA). */
+function ddrBebe(m){
+  const meses=idadeMeses(m), p=m.peso;
+  const kcal=(89*p-100)+crescimentoKcal(m);
+  let prot,hc,gord,agua,ferro,calcio;
+  if(meses<7){ prot=1.52*p; hc=60; gord=31; agua=700; ferro=0.27; calcio=200; }
+  else if(meses<13){ prot=1.2*p; hc=95; gord=30; agua=800; ferro=11; calcio=260; }
+  else { prot=1.05*p; hc=130; gord=kcal*0.35/9; agua=1300; ferro=7; calcio=700; }
+  return {kcal:Math.round(kcal), prot:Math.round(prot*10)/10, hc:Math.round(hc),
+    gord:Math.round(gord), agua, ferro, calcio, vitD:10};
+}
+/* Leite: 67 kcal por 100 mL, valor médio do leite materno maduro e das
+   fórmulas de início preparadas conforme a embalagem. */
+const KCAL_100ML=67;
+const MODOS_LEITE={materno:'Leite materno',formula:'Fórmula',misto:'Misto',solidos:'Leite + sólidos'};
+function bebeCfg(m){
+  const meses=idadeMeses(m);
+  const d=m.bebe||{};
+  const modo = MODOS_LEITE[d.modo]? d.modo : (meses<6?'materno':'solidos');
+  const tomadasPad = meses<1?8 : meses<3?7 : meses<6?6 : meses<9?5 : 4;
+  const pctPad = meses<6?100 : meses<9?70 : meses<13?55 : 35;
+  return {
+    modo,
+    tomadas: clampNum(Math.round(parseFloat(d.tomadas)||tomadasPad),1,12),
+    intervalo: clampNum(parseFloat(d.intervalo)||3,2,6),
+    inicio: clampNum(parseFloat(d.inicio)||7,0,11.5),
+    pctLeite: clampNum(Math.round(parseFloat(d.pctLeite)||pctPad),0,100),
+    ml: Number.isFinite(parseFloat(d.ml))? clampNum(Math.round(parseFloat(d.ml)),20,300) : null
+  };
+}
+/* Volume de leite: por omissão parte das 150 mL por kg e por dia, referência
+   habitual para lactentes de termo, ajustada pela fatia de energia que ainda
+   vem do leite quando já há sólidos. */
+function leiteBebe(m){
+  const c=bebeCfg(m), ddr=ddrBebe(m);
+  const kcalLeite=ddr.kcal*c.pctLeite/100;
+  const mlAlvo=Math.round(kcalLeite/KCAL_100ML*100);
+  const mlPorTomada = c.ml!=null? c.ml : Math.round(mlAlvo/c.tomadas/5)*5;
+  const mlTotal=mlPorTomada*c.tomadas;
+  return {cfg:c, ddr, mlAlvo, mlPorTomada, mlTotal,
+    kcalTotal:Math.round(mlTotal*KCAL_100ML/100),
+    pctDDR: ddr.kcal>0? Math.round(mlTotal*KCAL_100ML/100/ddr.kcal*100) : 0,
+    mlPorKg: m.peso>0? Math.round(mlTotal/m.peso) : 0,
+    medidas: Math.round(mlPorTomada/30*10)/10 };
+}
+function horasTomadas(m){
+  const c=bebeCfg(m), out=[];
+  for(let i=0;i<c.tomadas;i++) out.push((c.inicio + i*c.intervalo) % 24);
+  return out;
+}
+function hhmm24(h){ const t=Math.round(h*60), H=Math.floor(t/60)%24, M=t%60;
+  return String(H).padStart(2,'0')+':'+String(M).padStart(2,'0'); }
 function sportWeeklyH(s){ const h=horasPeriodo(s);
   return s.per==='dia'? h*7 : s.per==='mes'? h/4.345 : h; }
 function sportsKcalDay(m){ return (m.desportos||[]).reduce((t,s)=> t + metDe(s)*m.peso*sportWeeklyH(s), 0)/7; }
@@ -1075,7 +1174,12 @@ const DICAS={
   esforco:'O que é recomendado para esta idade ou estado, e o que convém evitar. Os valores vêm da Organização Mundial de Saúde e, na gravidez, das orientações de obstetrícia.',
   copias:'Os dados vivem só neste browser. O ficheiro de cópia é a única coisa que sobrevive a limpar o histórico, trocar de telemóvel ou reinstalar.',
   juntar:'«Substituir» troca tudo pelo conteúdo da cópia. «Juntar» acrescenta o que falta sem apagar nada — é a opção para combinar o que duas pessoas preencheram em dispositivos diferentes.',
-  desfazer:'Anula a última alteração aos dados. Guarda as últimas 30 e funciona também com Ctrl+Z; mudar de separador não conta como alteração.'
+  desfazer:'Anula a última alteração aos dados. Guarda as últimas 30 e funciona também com Ctrl+Z; mudar de separador não conta como alteração.',
+  bebePerc:'As curvas de peso para a idade da Organização Mundial de Saúde (2006), do percentil 3 ao 97. O ponto laranja é o teu bebé; a linha azul é a mediana. O percentil diz a posição entre bebés da mesma idade e sexo — não é uma nota.',
+  bebeDdr:'As doses diárias de referência do escalão etário: energia pelas equações da IOM, proteína e hidratos pelas RDA, gordura e água pelas ingestões adequadas. São referências populacionais, não metas individuais.',
+  bebeLeite:'A conta parte de 67 kcal por 100 ml, o valor médio do leite materno maduro e das fórmulas de início. O volume por omissão sai das necessidades de energia; o intervalo habitual é 120 a 200 ml por quilo e por dia.',
+  bebeHorario:'O intervalo e a hora da primeira tomada geram a grelha do dia. As zonas sombreadas são a noite — tomadas nesse período aparecem com a lua. Serve de apoio, não de relógio: sinais de fome mandam mais do que horários.',
+  bebeRef:'A partir dos 6 meses a energia divide-se entre o leite e os sólidos. A repartição sugerida segue o padrão habitual da diversificação em Portugal: papa ou fruta a meio da manhã, sopa e prato ao almoço, e por aí em diante.'
 };
 function dica(k,extra){ const t=DICAS[k]; if(!t) return '';
   return `<button type="button" class="dica ${extra||''}" data-dica="${esc(t)}" aria-label="Explicação">i</button>`; }
@@ -1110,6 +1214,9 @@ function upd(id,field,val,num){ const m=S.members.find(x=>x.id===id); if(!m) ret
     const d=dietaDe(m); m.macros={c:d.c,p:d.p,f:d.f};
   }
   m[field]=num?parseFloat(val)||0:val;
+  if(field==='meses'){ m.idade=(parseFloat(val)||0)/12;
+    /* mudar de idade repõe a fatia de leite e o volume nos padrões do escalão */
+    if(m.bebe){ delete m.bebe.pctLeite; m.bebe.ml=null; } }
   const rot={peso:'peso',altura:'altura',idade:'idade',dieta:'dieta',sexo:'sexo',nome:'nome',
     atividade:'nível de atividade',desloc:'deslocação',gravida:'gravidez',meses:'idade'}[field];
   save(rot? rot+' de '+m.nome : null); render(); }
@@ -1767,6 +1874,190 @@ function cartaoFase(m){
     <p class="sub" style="margin-top:12px">Referências: valores de ingestão dietética de referência do Institute of Medicine, equações de Schofield e orientações da Organização Mundial de Saúde. São referências populacionais para planeamento familiar — não substituem consulta.</p>
   </div>`;
 }
+/* ===== MÓDULO DO BEBÉ ===== */
+function updBebe(mid,campo,val){
+  const m=S.members.find(x=>x.id===mid); if(!m) return;
+  if(!m.bebe) m.bebe=bebeCfg(m);
+  m.bebe[campo] = campo==='modo'? val : parseFloat(val)||0;
+  if(campo==='tomadas'||campo==='pctLeite') m.bebe.ml=null;   /* volume volta a ser calculado */
+  save('alimentação de '+m.nome); render();
+}
+function slideBebe(mid,campo,el){
+  const m=S.members.find(x=>x.id===mid); if(!m) return;
+  if(!m.bebe) m.bebe=bebeCfg(m);
+  m.bebe[campo]=parseFloat(el.value)||0;
+  if(campo==='tomadas'||campo==='pctLeite') m.bebe.ml=null;
+  pintaRange(el);
+  aoVivo('bebe', ()=>atualizarBebe(mid));
+}
+function slidePeso(mid,el){
+  const m=S.members.find(x=>x.id===mid); if(!m) return;
+  m.peso=parseFloat(el.value)||0; pintaRange(el);
+  aoVivo('bebe', ()=>atualizarBebe(mid));
+}
+/* Curvas de peso da OMS com o bebé assinalado. */
+function graficoPercentil(m){
+  const sexo=m.sexo==='f'?'f':'m', meses=idadeMeses(m);
+  const X=x=>sx(x,0,24,34,330), Y=w=>sx(w,2,16,150,14);
+  const cores=['f-mut','f-mut','f-acc','f-mut','f-mut'];
+  const curvas=PERCENTIS.map((p,k)=>{
+    const pts=WHO_MESES.map((mm,i)=>X(mm).toFixed(1)+','+Y(WHO_PESO[sexo][i][k]).toFixed(1)).join(' ');
+    return `<polyline points="${pts}" fill="none" stroke-width="${k===2?2:1}" class="${k===2?'s-acc':'s-line'}"
+      ${k===2?'':'stroke-dasharray="3 3"'} vector-effect="non-scaling-stroke"/>
+      <text x="332" y="${(Y(WHO_PESO[sexo][8][k])+3).toFixed(1)}" font-size="9" class="${cores[k]}">P${p}</text>`;
+  }).join('');
+  const cx=X(meses), cy=Y(m.peso);
+  return `<svg class="svgfx" viewBox="0 0 348 168" role="img" aria-label="Peso para a idade nas curvas da Organização Mundial de Saúde">
+    ${[4,8,12,16].map(w=>`<line x1="34" y1="${Y(w).toFixed(1)}" x2="330" y2="${Y(w).toFixed(1)}" class="s-line" opacity=".4"/>
+      <text x="30" y="${(Y(w)+3.5).toFixed(1)}" font-size="9.5" text-anchor="end" class="f-mut">${w}</text>`).join('')}
+    ${[0,6,12,18,24].map(mm=>`<text x="${X(mm).toFixed(1)}" y="164" font-size="9.5" text-anchor="middle" class="f-mut">${mm}</text>`).join('')}
+    <text x="30" y="12" font-size="9" text-anchor="end" class="f-mut">kg</text>
+    <text x="330" y="164" font-size="9" text-anchor="end" class="f-mut">meses</text>
+    ${curvas}
+    <line id="bb-vl" x1="${cx.toFixed(1)}" y1="14" x2="${cx.toFixed(1)}" y2="150" class="s-energy" stroke-dasharray="2 3" opacity=".5"/>
+    <circle id="bb-dot" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="5.5" style="fill:var(--energy);stroke:var(--card);stroke-width:2"/>
+  </svg>`;
+}
+/* Linha do dia com as tomadas marcadas. */
+function graficoHorario(m){
+  const hs=horasTomadas(m), X=h=>sx(h,0,24,20,328);
+  return `<svg class="svgfx" viewBox="0 0 348 62" role="img" aria-label="Distribuição das tomadas ao longo do dia">
+    <rect x="20" y="18" width="308" height="14" rx="7" class="f-line" opacity=".5"/>
+    <rect x="${X(0).toFixed(1)}" y="18" width="${(X(6)-X(0)).toFixed(1)}" height="14" class="f-mut" opacity=".22"/>
+    <rect x="${X(22).toFixed(1)}" y="18" width="${(X(24)-X(22)).toFixed(1)}" height="14" class="f-mut" opacity=".22"/>
+    ${[0,6,12,18,24].map(h=>`<text x="${X(h).toFixed(1)}" y="50" font-size="9.5" text-anchor="middle" class="f-mut">${String(h).padStart(2,'0')}h</text>`).join('')}
+    <g id="bb-marcas">${hs.map(h=>`<circle cx="${X(h).toFixed(1)}" cy="25" r="5" style="fill:var(--accent);stroke:var(--card);stroke-width:1.5"/>`).join('')}</g>
+    <text x="20" y="12" font-size="9" class="f-mut">as zonas sombreadas são a noite</text>
+  </svg>`;
+}
+function atualizarBebe(mid){
+  const m=S.members.find(x=>x.id===mid); if(!m) return;
+  const L=leiteBebe(m), c=L.cfg, d=L.ddr, q=percentilDe(m);
+  põe('bb-o-peso', nPT(m.peso,2)+' kg');
+  põe('bb-percentil', textoPercentil(m));
+  const pp=document.getElementById('bb-percentil');
+  if(pp) pp.setAttribute('class','pill '+((q.abaixo||q.acima)?'warn':'ok'));
+  põeAttr('bb-dot','cx', sx(idadeMeses(m),0,24,34,330).toFixed(1));
+  põeAttr('bb-dot','cy', sx(m.peso,2,16,150,14).toFixed(1));
+  põe('bb-o-tomadas', c.tomadas+(c.tomadas===1?' tomada':' tomadas'));
+  põe('bb-o-ml', L.mlPorTomada+' ml por tomada');
+  põe('bb-o-intervalo', 'de '+nPT(c.intervalo,1).replace(',0','')+' em '+nPT(c.intervalo,1).replace(',0','')+' horas');
+  põe('bb-o-inicio', 'primeira às '+hhmm24(c.inicio));
+  põe('bb-o-pct', c.pctLeite+'% da energia');
+  põe('bb-total', L.mlTotal+' ml');
+  põe('bb-kcal', L.kcalTotal+' kcal');
+  põe('bb-mlkg', L.mlPorKg+' ml/kg');
+  põe('bb-cobertura', L.pctDDR+'%');
+  põe('bb-medidas', nPT(L.medidas,1));
+  /* quando as tomadas ou a fatia de leite mudam, o volume por tomada volta a
+     ser calculado — o slider dele tem de acompanhar, salvo se for o que está
+     na mão do utilizador */
+  const rml=document.getElementById('bb-r-ml');
+  if(rml && document.activeElement!==rml){ rml.value=L.mlPorTomada; pintaRange(rml); }
+  põe('bb-ddr-kcal', d.kcal); põe('bb-ddr-prot', nPT(d.prot,1)); põe('bb-ddr-hc', d.hc); põe('bb-ddr-gord', d.gord);
+  const g=document.getElementById('bb-marcas');
+  if(g) g.innerHTML=horasTomadas(m).map(h=>`<circle cx="${sx(h,0,24,20,328).toFixed(1)}" cy="25" r="5" style="fill:var(--accent);stroke:var(--card);stroke-width:1.5"/>`).join('');
+  const lst=document.getElementById('bb-horas');
+  if(lst) lst.innerHTML=listaHoras(m);
+  const av=document.getElementById('bb-aviso-vol');
+  if(av) av.style.visibility=(L.mlPorKg>200||L.mlPorKg<120)?'visible':'hidden';
+}
+function listaHoras(m){
+  const L=leiteBebe(m);
+  return horasTomadas(m).sort((a,b)=>a-b).map(h=>{
+    const noite=h<6||h>=22;
+    return `<span class="chip" style="cursor:default;${noite?'opacity:.6':''}">${hhmm24(h)} · ${L.mlPorTomada} ml${noite?' 🌙':''}</span>`;
+  }).join('');
+}
+function moduloBebe(m){
+  const L=leiteBebe(m), c=L.cfg, d=L.ddr, meses=idadeMeses(m), q=percentilDe(m);
+  const exclusivo=meses<6;
+  const sl=(campo,rot,mn,mx,st,val,txt,aria,fn)=>`<div>
+    <div class="splabel"><span>${rot}</span><output id="bb-o-${campo}" style="min-width:13ch;text-align:right">${txt}</output></div>
+    <input type="range" id="bb-r-${campo}" min="${mn}" max="${mx}" step="${st}" value="${val}"
+      style="--pct:${Math.round((clampNum(val,mn,mx)-mn)/(mx-mn)*100)}%" aria-label="${aria}"
+      oninput="${fn}" onchange="save()"></div>`;
+  return `
+  <div class="card" style="border-left:4px solid var(--accent)">
+    <h2>Alimentação do bebé — ${meses} meses ${dica('bebePerc')}</h2>
+    <p class="sub" style="margin-top:6px">Peso para a idade nas curvas da Organização Mundial de Saúde. Arrasta o peso para ver onde fica.</p>
+    <div class="row" style="margin:10px 0 6px"><span class="pill ${(q.abaixo||q.acima)?'warn':'ok'}" id="bb-percentil">${textoPercentil(m)}</span></div>
+    ${sl('peso','Peso',2,16,0.05,m.peso,nPT(m.peso,2)+' kg','Peso do bebé em quilogramas',`slidePeso('${m.id}',this)`)}
+    ${graficoPercentil(m)}
+    <p class="sub">O percentil é uma posição na distribuição, não uma nota: um bebé no percentil 15 pode estar perfeitamente bem. O que importa é a curva ao longo do tempo, e quem a lê é o pediatra ou o enfermeiro de família.</p>
+  </div>
+
+  <div class="card">
+    <h2>Doses diárias de referência ${dica('bebeDdr')}</h2>
+    <div style="margin-top:8px">
+      <div class="kv"><span>Energia</span><b><span id="bb-ddr-kcal">${d.kcal}</span> kcal</b></div>
+      <div class="kv"><span>Proteína</span><b><span id="bb-ddr-prot">${nPT(d.prot,1)}</span> g</b></div>
+      <div class="kv"><span>Hidratos de carbono</span><b><span id="bb-ddr-hc">${d.hc}</span> g</b></div>
+      <div class="kv"><span>Gordura</span><b><span id="bb-ddr-gord">${d.gord}</span> g</b></div>
+      <div class="kv"><span>Líquidos totais</span><b>${d.agua} ml</b></div>
+      <div class="kv"><span>Ferro</span><b>${nPT(d.ferro,2).replace(',00','')} mg</b></div>
+      <div class="kv"><span>Cálcio</span><b>${d.calcio} mg</b></div>
+      <div class="kv"><span>Vitamina D</span><b>${d.vitD} µg (400 UI)</b></div>
+    </div>
+    <p class="sub" style="margin-top:10px">Energia pelas equações da IOM para lactentes; os restantes valores são ingestões de referência (AI e RDA) para o escalão etário. A vitamina D é habitualmente suplementada em Portugal desde os primeiros dias — confirma a dose com o pediatra.</p>
+  </div>
+
+  <div class="card">
+    <h2>Leite ${dica('bebeLeite')}</h2>
+    <div class="row" style="margin:8px 0 12px">
+      ${Object.entries(MODOS_LEITE).map(([k,v])=>
+        `<button class="chip ${c.modo===k?'on':''}" onclick="updBebe('${m.id}','modo','${k}')">${v}</button>`).join('')}
+    </div>
+    <div class="spgrid">
+      ${exclusivo?'':sl('pctLeite','Energia que vem do leite',0,100,5,c.pctLeite,c.pctLeite+'% da energia','Percentagem da energia diária que vem do leite',`slideBebe('${m.id}','pctLeite',this)`)}
+      ${sl('tomadas','Tomadas por dia',1,12,1,c.tomadas,c.tomadas+(c.tomadas===1?' tomada':' tomadas'),'Número de tomadas por dia',`slideBebe('${m.id}','tomadas',this)`)}
+      ${sl('ml','Volume por tomada',20,300,5,L.mlPorTomada,L.mlPorTomada+' ml por tomada','Mililitros por tomada',`slideBebe('${m.id}','ml',this)`)}
+    </div>
+    <div class="row" style="margin-top:14px">
+      <div class="stat"><b id="bb-total">${L.mlTotal} ml</b><span>Total por dia</span></div>
+      <div class="stat"><b id="bb-kcal">${L.kcalTotal} kcal</b><span>Do leite</span></div>
+      <div class="stat"><b id="bb-mlkg">${L.mlPorKg} ml/kg</b><span>Por quilo</span></div>
+      <div class="stat" style="background:var(--accent-soft)"><b id="bb-cobertura" style="color:var(--accent)">${L.pctDDR}%</b><span>Da energia diária</span></div>
+    </div>
+    <p class="sub" id="bb-aviso-vol" style="min-height:1.5em;visibility:${(L.mlPorKg>200||L.mlPorKg<120)?'visible':'hidden'};color:var(--warn);margin-top:8px">Este volume sai do intervalo habitual de 120 a 200 ml por quilo e por dia — vale a pena confirmar em consulta.</p>
+    ${c.modo==='formula'||c.modo==='misto'? `<div class="msg warn-msg" style="margin-top:4px">Cerca de <b id="bb-medidas">${nPT(L.medidas,1)}</b> medidas rasas por tomada, na proporção mais comum de uma medida para 30 ml de água. <b>Segue sempre a tabela da embalagem da tua fórmula</b> e nunca alteres a diluição: mais concentrado sobrecarrega os rins, mais diluído não alimenta.</div>`:''}
+    ${c.modo==='materno'? `<div class="msg warn-msg" style="margin-top:4px">Em aleitamento materno, a referência é a <b>procura do bebé</b>, não um volume medido. Os números acima servem só para dar uma ideia de grandeza — não são uma meta a atingir nem a limitar.</div>`:''}
+  </div>
+
+  <div class="card">
+    <h2>Horário das tomadas ${dica('bebeHorario')}</h2>
+    <div class="spgrid" style="margin-top:10px">
+      ${sl('intervalo','Intervalo entre tomadas',2,6,0.5,c.intervalo,'de '+nPT(c.intervalo,1).replace(',0','')+' em '+nPT(c.intervalo,1).replace(',0','')+' horas','Horas entre tomadas',`slideBebe('${m.id}','intervalo',this)`)}
+      ${sl('inicio','Primeira tomada do dia',0,11.5,0.5,c.inicio,'primeira às '+hhmm24(c.inicio),'Hora da primeira tomada',`slideBebe('${m.id}','inicio',this)`)}
+    </div>
+    ${graficoHorario(m)}
+    <div class="row" id="bb-horas" style="margin-top:6px">${listaHoras(m)}</div>
+    <p class="sub" style="margin-top:10px">${exclusivo
+      ? 'Nos primeiros meses as mamadas são frequentes e irregulares, sobretudo à noite. Este horário é uma grelha de apoio para quem dá fórmula ou leite extraído — em aleitamento materno, o bebé é que marca o ritmo.'
+      : 'A partir da diversificação, as tomadas de leite vão dando lugar às refeições de sólidos. Mantém o leite como base do primeiro ano.'}</p>
+  </div>
+
+  ${meses>=6? `<div class="card">
+    <h2>Refeições ao longo do dia ${dica('bebeRef')}</h2>
+    <p class="sub" style="margin-top:6px">Repartição das ${d.kcal} kcal do dia: ${100-c.pctLeite}% em sólidos, o resto em leite.</p>
+    ${(()=>{ const kcalSol=d.kcal*(100-c.pctLeite)/100;
+      const refs = meses<9? [['Papa ou fruta a meio da manhã',0.35],['Sopa e prato ao almoço',0.65]]
+        : meses<13? [['Papa ou fruta a meio da manhã',0.25],['Sopa e prato ao almoço',0.40],['Sopa e prato ao jantar',0.35]]
+        : [['Pequeno-almoço',0.20],['Meio da manhã',0.10],['Almoço',0.30],['Lanche',0.15],['Jantar',0.25]];
+      return `<div style="margin-top:8px">${refs.map(([r,fr])=>
+        `<div class="kv"><span>${r}</span><b>${Math.round(kcalSol*fr)} kcal</b></div>`).join('')}
+        <div class="kv"><span>Leite (${c.tomadas} tomadas)</span><b>${L.kcalTotal} kcal</b></div></div>`; })()}
+    <p class="sub" style="margin-top:10px">Sem sal e sem açúcar adicionados durante todo o primeiro ano, e sem mel antes dos 12 meses. O leite de vaca não deve ser a bebida principal antes do ano.</p>
+  </div>`:''}
+
+  <div class="card">
+    <div class="msg warn-msg" style="margin:0">Esta ferramenta ajuda a organizar e a perceber ordens de grandeza. <b>Não é uma prescrição.</b>
+      A alimentação de um bebé segue as indicações do pediatra ou do enfermeiro de família, sobretudo se houver prematuridade, baixo peso,
+      alergias, refluxo ou qualquer doença. A Organização Mundial de Saúde recomenda leite materno exclusivo até aos 6 meses e a sua continuação,
+      com alimentos complementares, até aos 2 anos ou mais. Procura ajuda se o bebé não ganha peso, recusa as refeições, faz menos chichi do que
+      é habitual ou está apático.</div>
+  </div>`;
+}
 function renderNutricao(){
   if(!S.members.length) return noMembers();
   const m=curM(), mk=macros(m), k=Math.round(targetKcal(m));
@@ -1776,6 +2067,9 @@ function renderNutricao(){
   const fam=RECIPES.filter(r=>compatAll(r,S.members));
   const pct=objetivoPct(m), d=mk.pct;
   const gkg=m.peso>0? mk.p/m.peso:0;
+  /* Num bebé, o simulador de macros de adulto não diz nada de útil: o que
+     conta é o percentil, o leite e o horário das tomadas. */
+  if(faseDe(m)==='bebe') return memberPicker()+`<div class="grid g2">${moduloBebe(m)}</div>`;
   return memberPicker()+`
   <div class="grid g2" style="margin-bottom:24px">
     <div class="card">
@@ -2272,6 +2566,8 @@ function limparMembro(m){
     const s=(parseFloat(mc.c)||0)+(parseFloat(mc.p)||0)+(parseFloat(mc.f)||0);
     out.macros = s>0? normaliza100(mc) : {c:50,p:20,f:30};   /* validar pela soma: 0 g de hidratos é legítimo */
   }
+  /* a configuração do bebé passa pelo mesmo saneamento que usa em runtime */
+  if(m.bebe && typeof m.bebe==='object') out.bebe=bebeCfg(Object.assign({},out,{bebe:m.bebe}));
   return out;
 }
 function lerPacote(txt){
