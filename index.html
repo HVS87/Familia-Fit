@@ -466,7 +466,8 @@ function rotuloNivel(sp,idx){ return NIVEIS[idx][1]+(sp && sp.dicas? ' ('+sp.dic
    exatamente o mesmo MET, de modo que as calorias já calculadas não mudem. */
 function normalizaDesporto(s){
   if(!s) return null;
-  const sp=SPORT[s.s]; if(!sp) return null;
+  if(!temChave(SPORT,s.s)) return null;
+  const sp=SPORT[s.s];
   const per=['dia','semana','mes'].indexOf(s.per)>=0 ? s.per : 'semana';
   if(sp.dist){
     let v=parseFloat(s.v), km=parseFloat(s.km), converter=false;
@@ -485,6 +486,7 @@ function normalizaMembro(m){
   if(m && Array.isArray(m.desportos)) m.desportos=m.desportos.map(normalizaDesporto).filter(Boolean);
   /* migração: deriva o objetivo contínuo do antigo — o alvo kcal não muda */
   if(m && !Number.isFinite(m.objetivoPct)) m.objetivoPct=Math.round((GOALS[m.objetivo]?.[1]||0)*100);
+  else if(m) sincronizaObjetivo(m);   /* e mantém o campo legado coerente */
   return m;
 }
 /* Faixa do slider de distância: depende do período, para não haver 400 km/dia. */
@@ -648,6 +650,7 @@ function load(){
   try{ s=JSON.parse(localStorage.getItem(KEY)); }catch(e){}
   if(!s || !Array.isArray(s.members)) return blank();
   const b=blank();
+  if(!dataValida(s.week)) s.week=mondayISO(new Date());   /* semana corrompida não prende a app */
   s.members.forEach(normalizaMembro);
   return Object.assign(b, s, {ui:Object.assign(b.ui,s.ui||{}), meta:Object.assign(b.meta,s.meta||{})});
 }
@@ -697,6 +700,16 @@ function sportsKcalDay(m){ return (m.desportos||[]).reduce((t,s)=> t + metDe(s)*
 function commuteKcalDay(m){ return (COMMUTE[m.desloc]?.[1]||0)*m.peso*(5/7); }
 function tdee(m){ return bmr(m)*(BASE_ACT[m.atividade]?.[1]||1.2) + sportsKcalDay(m) + commuteKcalDay(m); }
 function clampNum(v,a,b){ return Math.min(Math.max(v,a),b); }
+/* Validar com OBJ[chave] deixava passar nomes herdados do Object.prototype:
+   uma dieta chamada "constructor" passava a lista branca e dava macros NaN. */
+function temChave(o,k){ return typeof k==='string' && Object.prototype.hasOwnProperty.call(o,k); }
+/* E o regex de data aceitava 2026-99-99, que gerava uma semana «NaN-NaN-NaN»
+   de onde não se saía. Só passa uma data que exista mesmo. */
+function dataValida(s){
+  if(typeof s!=='string' || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
+  const d=new Date(s+'T12:00:00');
+  return !isNaN(d.getTime()) && iso(d)===s;
+}
 /* Objetivo em percentagem contínua do gasto (−25…+20). Para dados antigos,
    deriva-se dos fatores de GOALS — perder=−15, manter=0, ganhar=+10 — pelo
    que o alvo calórico migrado fica bit a bit igual ao anterior. */
@@ -713,7 +726,7 @@ function dietaDe(m){
   if(m.dieta==='personalizada'){ const mc=m.macros;
     const ok=mc && [mc.c,mc.p,mc.f].every(v=>Number.isFinite(v)&&v>=0) && Math.round(mc.c+mc.p+mc.f)===100;
     return Object.assign({n:'Personalizada'}, ok? {c:mc.c,p:mc.p,f:mc.f} : {c:50,p:20,f:30}); }
-  return DIETS[m.dieta]||DIETS.equilibrada; }
+  return temChave(DIETS,m.dieta)? DIETS[m.dieta] : DIETS.equilibrada; }
 function macros(m){ const d=dietaDe(m), k=targetKcal(m);
   return {c:Math.round(k*d.c/100/4), p:Math.round(k*d.p/100/4), f:Math.round(k*d.f/100/9), pct:d}; }
 function compat(r,dieta){ return dieta==='equilibrada' || dieta==='personalizada' || r.d.includes(dieta); }
@@ -770,7 +783,7 @@ function isCheat(mid,date){ return (S.cheats[mid]||[]).includes(date); }
 /* ================= NAVEGAÇÃO ================= */
 const TABS=[['familia','👤 Família'],['atividade','🏃 Atividade'],['nutricao','🍽️ Nutrição'],['plano','📅 Plano semanal'],['compras','🛒 Compras'],['dados','⚙️ Dados']];
 function go(t){ S.ui.tab=t; msg=null; saveMeta(); render(); }
-function pickM(id){ S.ui.mid=id; saveMeta(); render(); }
+function pickM(id){ S.ui.mid=id; macroLive=null; saveMeta(); render(); }
 function curM(){ return S.members.find(m=>m.id===S.ui.mid) || S.members[0]; }
 function avColor(m){ return AVCOLORS[S.members.indexOf(m)%AVCOLORS.length]; }
 function avatar(m,sz){ const ini=(m.nome||'?').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
@@ -842,15 +855,16 @@ function renderFamilia(){
           <g clip-path="url(#clip-${mid})">
             <rect x="${imcX(15)}" y="26" width="${(imcX(18.5)-imcX(15)).toFixed(1)}" height="12" class="f-warn" fill-opacity=".35"/>
             <rect x="${imcX(18.5).toFixed(1)}" y="26" width="${(imcX(25)-imcX(18.5)).toFixed(1)}" height="12" class="f-ok" fill-opacity=".35"/>
-            <rect x="${imcX(25).toFixed(1)}" y="26" width="${(imcX(30)-imcX(25)).toFixed(1)}" height="12" class="f-bad" fill-opacity=".22"/>
+            <rect x="${imcX(25).toFixed(1)}" y="26" width="${(imcX(30)-imcX(25)).toFixed(1)}" height="12" class="f-warn" fill-opacity=".55"/>
             <rect x="${imcX(30).toFixed(1)}" y="26" width="${(imcX(40)-imcX(30)).toFixed(1)}" height="12" class="f-bad" fill-opacity=".4"/>
           </g>
           ${[18.5,25,30].map(x=>`<line x1="${imcX(x).toFixed(1)}" y1="40" x2="${imcX(x).toFixed(1)}" y2="45" class="s-line"/>
             <text x="${imcX(x).toFixed(1)}" y="57" font-size="10" text-anchor="middle" class="f-mut" style="font-variant-numeric:tabular-nums">${nPT(x,x===18.5?1:0)}</text>`).join('')}
           <g id="f-${mid}-mk" transform="translate(${sx(v,15,40,8,332).toFixed(1)},0)">
             <path d="M0 24 l-5 -7 h10 z" class="f-ink"/>
-            <text id="f-${mid}-imcv" y="13" text-anchor="middle" font-size="13" font-weight="700" style="font-variant-numeric:tabular-nums" class="f-ink">${nPT(v,1)}</text>
           </g>
+          <text id="f-${mid}-imcv" x="${clampNum(sx(v,15,40,8,332),22,318).toFixed(1)}" y="13" text-anchor="middle"
+            font-size="13" font-weight="700" style="font-variant-numeric:tabular-nums" class="f-ink">${nPT(v,1)}</text>
         </svg>
         <div style="min-height:1.6em"><span class="sub ${dentro?'f-ok-txt':''}" id="f-${mid}-zona">${dentro?'✓ ':''}Peso saudável para ${Math.round(m.altura)} cm: ${zmin}–${zmax} kg</span></div>
         <div class="row" style="margin-top:10px">
@@ -873,7 +887,7 @@ function slidePerfil(mid,campo,el){
   m[campo]=parseFloat(el.value)||0; pintaRange(el);
   const inp=document.getElementById('in-'+mid+'-'+campo);
   if(inp && document.activeElement!==inp) inp.value=el.value;
-  aoVivo(()=>atualizarFamilia(mid));
+  aoVivo('fam:'+mid, ()=>atualizarFamilia(mid));
 }
 function atualizarFamilia(mid){
   const m=S.members.find(x=>x.id===mid); if(!m) return;
@@ -886,6 +900,9 @@ function atualizarFamilia(mid){
   põe('f-'+mid+'-tdee', Math.round(tdee(m)));
   põe('f-'+mid+'-alvo', Math.round(targetKcal(m)));
   põeAttr('f-'+mid+'-mk','transform','translate('+sx(v,15,40,8,332).toFixed(1)+',0)');
+  /* o texto anda à parte do triângulo, preso dentro do viewBox para não ser
+     cortado nos extremos da escala */
+  põeAttr('f-'+mid+'-imcv','x', clampNum(sx(v,15,40,8,332),22,318).toFixed(1));
   const pill=document.getElementById('f-'+mid+'-cls');
   if(pill){ pill.textContent=cls; pill.setAttribute('class','pill '+tone); }
   const h2=(m.altura/100)*(m.altura/100);
@@ -930,15 +947,25 @@ function pintaRange(el){ const mn=parseFloat(el.min), mx=parseFloat(el.max), v=p
 /* Contrato tátil de toda a app: oninput muta o estado e reescreve SÓ os alvos
    com id (nunca render), onchange grava. O coalescedor prende as escritas de
    DOM ao ritmo dos frames — em aparelhos lentos o input dispara mais depressa. */
-let _raf=0;
-function aoVivo(fn){ if(_raf) return; _raf=requestAnimationFrame(()=>{ _raf=0; fn(); }); }
+/* Coalesce por chave: com dois dedos em cartões diferentes, guardar só o
+   último callback deixava um deles por pintar — aqui cada alvo tem a sua
+   entrada e todos correm no mesmo frame. */
+let _raf=0; const _pend={};
+function aoVivo(chave,fn){
+  _pend[chave]=fn;
+  if(_raf) return;
+  _raf=requestAnimationFrame(()=>{ _raf=0;
+    const fns=Object.keys(_pend).map(k=>{ const f=_pend[k]; delete _pend[k]; return f; });
+    fns.forEach(f=>f());
+  });
+}
 function põe(id,txt){ const el=document.getElementById(id); if(el) el.textContent=txt; }
 function põeAttr(id,attr,val){ const el=document.getElementById(id); if(el) el.setAttribute(attr,val); }
 function slideSport(mid,i,campo,el){
   const m=S.members.find(x=>x.id===mid); if(!m||!m.desportos[i]) return;
   m.desportos[i][campo]=parseFloat(el.value)||0;
   pintaRange(el);
-  aoVivo(atualizarAtividade);
+  aoVivo('atv', atualizarAtividade);
 }
 function atualizarAtividade(){
   const m=curM(); if(!m) return;
@@ -1000,7 +1027,10 @@ function curvaMetSvg(sp,s,i){
     return w>=44? `<text x="${((X(z[0])+X(z[1]))/2).toFixed(1)}" y="20" font-size="9.5" text-anchor="middle" class="f-mut">${z[2]}</text>`:''; }).join('');
   const divisorias=[v1,v2].map(v=>`<line x1="${X(v).toFixed(1)}" y1="10" x2="${X(v).toFixed(1)}" y2="104" class="s-line" stroke-dasharray="2 4"/>`).join('');
   const meio=Math.round((d.vmin+d.vmax)/2);
-  const ticksX=[d.vmin,meio,d.vmax].map(v=>`<text x="${X(v).toFixed(1)}" y="118" font-size="10" text-anchor="middle" class="f-mut" style="font-variant-numeric:tabular-nums">${nPT(v,0)}</text>`).join('');
+  /* a natação vai de 1,5 a 4,5 km/h: arredondar o rótulo a inteiro punha «2» e
+     «5» por baixo dos extremos reais */
+  const rotV=v=>nPT(v, Number.isInteger(v)?0:1);
+  const ticksX=[d.vmin,meio,d.vmax].map(v=>`<text x="${X(v).toFixed(1)}" y="118" font-size="10" text-anchor="middle" class="f-mut" style="font-variant-numeric:tabular-nums">${rotV(v)}</text>`).join('');
   const m1=Math.ceil(y0), m2=Math.floor(y1);
   const ticksY=`<text x="30" y="${(Y(m1)+3.5).toFixed(1)}" font-size="10" text-anchor="end" class="f-mut">${m1}</text>
     <text x="30" y="${(Y(m2)+3.5).toFixed(1)}" font-size="10" text-anchor="end" class="f-mut">${m2}</text>`;
@@ -1169,7 +1199,8 @@ function recipeCard(r){
 
 function textoObjetivo(m){
   const p=objetivoPct(m), delta=Math.round(Math.abs(targetKcal(m)-tdee(m)));
-  return (p>0?'+':'')+p+'% · '+(p<0? 'défice de '+delta+' kcal/dia' : p>0? 'superavit de '+delta+' kcal/dia' : 'manutenção');
+  const sinal=(p>0?'+':p<0?'−':'')+Math.abs(p)+'%';   /* menos tipográfico, como no resto da app */
+  return sinal+' · '+(p<0? 'défice de '+delta+' kcal/dia' : p>0? 'superavit de '+delta+' kcal/dia' : 'manutenção');
 }
 function sincronizaObjetivo(m){ const p=objetivoPct(m);
   m.objetivo = p<=-8? 'perder' : p>=5? 'ganhar' : 'manter'; }
@@ -1177,7 +1208,7 @@ function slideObjetivo(mid,el){
   const m=S.members.find(x=>x.id===mid); if(!m) return;
   m.objetivoPct=clampNum(Math.round(parseFloat(el.value)||0),-25,20);
   pintaRange(el);
-  aoVivo(atualizarNutricao);
+  aoVivo('nut', atualizarNutricao);
 }
 function commitObjetivo(mid,el){
   const m=S.members.find(x=>x.id===mid); if(!m) return;
@@ -1195,7 +1226,10 @@ function presetObjetivo(mid,p){
 let macroLive=null;
 function slideMacro(mid,k,el){
   const m=S.members.find(x=>x.id===mid); if(!m||m.dieta!=='personalizada') return;
-  if(!macroLive){ const d=dietaDe(m); macroLive={c:d.c,p:d.p,f:d.f}; }
+  /* O estado do gesto é carimbado com o membro: um arrasto que acaba no mesmo
+     valor não dispara change, e sem isto os macros desse membro contaminavam
+     o gesto seguinte noutro perfil. */
+  if(!macroLive || macroLive.mid!==mid){ const d=dietaDe(m); macroLive={mid,c:d.c,p:d.p,f:d.f}; }
   const v=clampNum(parseFloat(el.value)||0,0,100);
   const outros=['c','p','f'].filter(x=>x!==k);
   const resto=100-v, a=macroLive[outros[0]], b=macroLive[outros[1]];
@@ -1206,7 +1240,7 @@ function slideMacro(mid,k,el){
   pintaRange(el);
   outros.forEach(x=>{ const s=document.getElementById('nu-sl-'+x);
     if(s){ s.value=m.macros[x]; pintaRange(s); } });   /* atribuir .value não dispara eventos — sem cascata */
-  aoVivo(atualizarNutricao);
+  aoVivo('nut', atualizarNutricao);
 }
 function commitMacro(mid,el){
   const m=S.members.find(x=>x.id===mid); if(!m) return;
@@ -1373,7 +1407,7 @@ function renderNutricao(){
         <span class="pill warn" id="nu-diet-aviso" style="visibility:${d.p<10||d.f<15?'visible':'hidden'}">pouca proteína ou gordura — cuidado com a saciedade</span>
       </div>
       ${m.dieta==='personalizada'? '<p class="sub" style="margin-top:8px">Dieta personalizada — nas receitas e no plano, todas contam como compatíveis.</p>':''}
-      ${barraRefeicoes(k)}
+      ${barraRefeicoes(targetKcal(m))}
     </div>
     <div class="card">
       <h2>Projeção de peso — 12 semanas</h2>
@@ -1582,13 +1616,26 @@ function atualizarCompras(){
   });
 }
 function fmtQ(it){ const q=Math.round(it.q*100)/100;
-  if(it.u==='g'&&q>=1000) return (q/1000).toFixed(q%1000?1:0)+' kg';
-  if(it.u==='ml'&&q>=1000) return (q/1000).toFixed(q%1000?1:0)+' L';
-  return q+' '+it.u; }
+  if(it.u==='g'&&q>=1000) return nPT(q/1000, q%1000?1:0)+' kg';
+  if(it.u==='ml'&&q>=1000) return nPT(q/1000, q%1000?1:0)+' L';
+  return nPT(q, Number.isInteger(q)?0:(Number.isInteger(q*10)?1:2))+' '+it.u; }
+/* Sem a guarda, em http simples (rede local) navigator.clipboard é undefined e
+   o botão atirava um TypeError sem dizer nada a ninguém. */
 function copyList(){
   const {items}=shoppingItems();
   const txt='Lista de compras — semana de '+fmtShort(S.week)+'\n'+items.map(i=>`• ${i.n}: ${fmtQ(i)}`).join('\n');
-  navigator.clipboard.writeText(txt).then(()=>alert('Lista copiada! Cola-a numa mensagem ou nota.'));
+  const ok=()=>alert('Lista copiada! Cola-a numa mensagem ou nota.');
+  const manual=()=>{ const ta=document.getElementById('co-txt');
+    if(!ta){ alert('O browser não deixou copiar. Abre o separador Dados para exportares.'); return; }
+    ta.style.display='block'; ta.value=txt; ta.focus(); ta.select();
+    try{ ta.setSelectionRange(0,txt.length); }catch(e){}
+    let feito=false; try{ feito=document.execCommand('copy'); }catch(e){}
+    alert(feito? 'Lista copiada! Cola-a numa mensagem ou nota.'
+      : 'Seleciona o texto da caixa abaixo e copia à mão (Ctrl+C).');
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(ok, manual);
+  } else manual();
 }
 function renderCompras(){
   if(!S.members.length) return noMembers();
@@ -1604,7 +1651,7 @@ function renderCompras(){
   const completo=done===items.length&&items.length;
   return `<div class="row" style="justify-content:space-between;margin-bottom:4px">
     <div><h2>Lista de compras</h2>
-    <span class="sub">Semana de ${fmtShort(dates[0])} a ${fmtShort(dates[6])} · ${meals} refeições planeadas ·
+    <span class="sub">Semana de ${fmtShort(dates[0])} a ${fmtShort(dates[6])} · ${plural(meals,'refeição planeada','refeições planeadas')} ·
       <span id="co-num" ${completo?'class="f-ok-txt"':''}>${completo?'tudo comprado ✓':done+'/'+items.length+' comprados'}</span></span></div>
     <button class="btn ghost small" onclick="copyList()">📋 Copiar lista</button></div>
   <div class="mbar" style="height:10px;max-width:640px;margin:8px 0 14px">
@@ -1620,6 +1667,7 @@ function renderCompras(){
         return `<li class="${ok?'done':''}" data-sec="${iSec}"><label><input type="checkbox" ${ok?'checked':''} onchange="toggleBought('${esc(key).replace(/'/g,"\\'")}',this)">
           <span>${esc(it.n)}</span><span class="q">${fmtQ(it)}</span></label></li>`;}).join('')}</ul>`;}).join('')}
   </div>
+  <textarea id="co-txt" style="display:none;max-width:640px;margin-top:12px" readonly aria-label="Lista de compras em texto"></textarea>
   <p class="sub" style="margin-top:12px">Quantidades = receita por pessoa × nº de comensais em cada refeição (membros em cheat day não contam nesse dia).</p>`;
 }
 
@@ -1697,7 +1745,12 @@ function ligarOrientacao(){
 
 /* ================= DADOS: CÓPIA E RESTAURO ================= */
 function flash(kind,text){ msg={kind,text}; render(); }
-function pacote(){ return {app:APPID, formato:FORMATO, exportadoEm:new Date().toISOString(),
+function pacote(){
+  /* Um arrasto do objetivo que acabe onde começou não dispara change, e o
+     m.objetivo legado ficaria dessincronizado do objetivoPct. Sincroniza-se
+     aqui, para uma cópia nunca sair incoerente. */
+  S.members.forEach(sincronizaObjetivo);
+  return {app:APPID, formato:FORMATO, exportadoEm:new Date().toISOString(),
   dados:{members:S.members, cheats:S.cheats, plans:S.plans, bought:S.bought,
          prefCuisine:S.prefCuisine, week:S.week}}; }
 function textoCopia(){ return JSON.stringify(pacote(),null,2); }
@@ -1760,16 +1813,20 @@ function mostrarCopia(){
 }
 function num(v,d){ const n=parseFloat(v); return isFinite(n)&&n>0? n : d; }
 function plural(n,um,muitos){ return n+' '+(n===1? um : muitos); }
+/* Os ids são interpolados em atributos id= e em handlers inline, por isso um id
+   vindo de um ficheiro de cópia tem de ser tão validado como tudo o resto: um
+   apóstrofo partiria os onclick, e algo pior podia lá ser injetado. */
+function limparId(v){ const s=String(v==null?'':v); return /^[A-Za-z0-9_-]{1,32}$/.test(s)? s : uid(); }
 function limparMembro(m){
   m=m||{};
-  const dieta = m.dieta==='personalizada' ? 'personalizada' : (DIETS[m.dieta]? m.dieta:'equilibrada');
-  const objetivo = GOALS[m.objetivo]? m.objetivo:'manter';
+  const dieta = m.dieta==='personalizada' ? 'personalizada' : (temChave(DIETS,m.dieta)? m.dieta:'equilibrada');
+  const objetivo = temChave(GOALS,m.objetivo)? m.objetivo:'manter';
   /* objetivoPct NUNCA passa por num(): 0 e negativos são valores legítimos */
   const pctBruto = parseFloat(m.objetivoPct);
-  const out = {id:String(m.id||uid()), nome:String(m.nome||'Sem nome').slice(0,60),
+  const out = {id:limparId(m.id), nome:String(m.nome||'Sem nome').slice(0,60),
     sexo: m.sexo==='f'?'f':'m', idade:num(m.idade,35), altura:num(m.altura,170), peso:num(m.peso,70),
-    atividade: BASE_ACT[m.atividade]? m.atividade:'sedentario',
-    desloc: COMMUTE[m.desloc]? m.desloc:'nenhum',
+    atividade: temChave(BASE_ACT,m.atividade)? m.atividade:'sedentario',
+    desloc: temChave(COMMUTE,m.desloc)? m.desloc:'nenhum',
     dieta, objetivo,
     objetivoPct: Number.isFinite(pctBruto)? clampNum(Math.round(pctBruto),-25,20) : Math.round((GOALS[objetivo][1])*100),
     desportos: Array.isArray(m.desportos) ? m.desportos.map(normalizaDesporto).filter(Boolean) : []};
@@ -1785,9 +1842,50 @@ function lerPacote(txt){
   if(p && p.app && p.app!==APPID) return {erro:'Este ficheiro é de outra aplicação, não do Família Fit.'};
   const d = p && p.dados ? p.dados : p;
   if(!d || !Array.isArray(d.members)) return {erro:'Este ficheiro não contém perfis do Família Fit.'};
-  return {d:{ members:d.members.map(limparMembro), cheats:d.cheats||{}, plans:d.plans||{},
-              bought:d.bought||{}, prefCuisine:CUIS[d.prefCuisine]?d.prefCuisine:'todas',
-              week:/^\d{4}-\d{2}-\d{2}$/.test(d.week||'')? d.week : mondayISO(new Date()) }};
+  /* Os perfis eram validados à lupa mas os planos entravam em bruto: uma
+     refeição sem a lista de comensais rebentava o Plano e as Compras depois
+     de importar. Tudo o que vem do ficheiro é agora saneado em profundidade,
+     e os ids saneados são remapeados nos cheats e nos planos. */
+  const mapa={}, vistos={};
+  const members=d.members.map(mm=>{
+    const antigo=String(mm.id==null?'':mm.id);
+    const lm=limparMembro(mm);
+    if(vistos[lm.id]) lm.id=uid();
+    vistos[lm.id]=1; mapa[antigo]=lm.id;
+    return lm;
+  });
+  const idOk=x=>{ const n=mapa[String(x)]||String(x); return vistos[n]? n : null; };
+  const cheats={};
+  if(d.cheats && typeof d.cheats==='object') Object.keys(d.cheats).forEach(mid=>{
+    const alvo=idOk(mid); const arr=d.cheats[mid];
+    if(!alvo || !Array.isArray(arr)) return;
+    const dias=arr.filter(dataValida);
+    if(dias.length) cheats[alvo]=(cheats[alvo]||[]).concat(dias);
+  });
+  const plans={};
+  if(d.plans && typeof d.plans==='object') Object.keys(d.plans).forEach(wk=>{
+    if(!dataValida(wk)) return;
+    const dias=d.plans[wk]; if(!dias || typeof dias!=='object') return;
+    const od={};
+    Object.keys(dias).forEach(di=>{
+      if(!/^[0-6]$/.test(String(di))) return;
+      const refs=dias[di]; if(!refs || typeof refs!=='object') return;
+      const or={};
+      MEALK.forEach(mk=>{ const r=refs[mk]; if(!r || typeof r!=='object') return;
+        or[mk]={ r: RECIPES.some(x=>x.id===r.r)? String(r.r):'',
+                 m: Array.isArray(r.m)? r.m.map(idOk).filter(Boolean) : [] }; });
+      if(Object.keys(or).length) od[di]=or;
+    });
+    if(Object.keys(od).length) plans[wk]=od;
+  });
+  const bought={};
+  if(d.bought && typeof d.bought==='object') Object.keys(d.bought).forEach(wk=>{
+    const o=d.bought[wk]; if(!o || typeof o!=='object') return;
+    const oo={}; Object.keys(o).forEach(kk=>{ if(o[kk]) oo[kk]=true; }); bought[wk]=oo;
+  });
+  return {d:{ members, cheats, plans, bought,
+              prefCuisine:temChave(CUIS,d.prefCuisine)?d.prefCuisine:'todas',
+              week:dataValida(d.week)? mondayISO(new Date(d.week+'T12:00:00')) : mondayISO(new Date()) }};
 }
 function substituir(txt){
   const {d,erro}=lerPacote(txt); if(erro) return flash('bad',erro);
