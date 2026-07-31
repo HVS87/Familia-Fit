@@ -18,7 +18,13 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <title>Família Fit — Alimentação & Movimento</title>
 <style>
-:root{
+/* ===== TEMAS =====
+   O modo (claro/escuro) é resolvido em JavaScript e escrito em data-modo,
+   em vez de depender da media query. Assim as paletas precisam de metade
+   das regras: cada uma declara só as suas cores em claro e em escuro, sem
+   ter de repetir tudo por causa de prefers-color-scheme. O data-theme
+   antigo continua a funcionar como sinónimo, para não partir nada. */
+:root, html[data-modo="claro"]{
   --bg:#F6F5F1; --card:#FFFFFF; --ink:#232930; --mut:#6A737D; --line:#E4E1D8;
   --accent:#2456A6; --accent-soft:#E8EEF8; --energy:#C8641E; --energy-soft:#F8EDE2;
   --party:#C2477C; --party-soft:#F9E9F1;
@@ -27,31 +33,68 @@
   --shadow:0 1px 3px rgba(35,41,48,.07),0 4px 14px rgba(35,41,48,.05);
   --r:14px;
 }
-@media (prefers-color-scheme: dark){
-  :root{
-    --bg:#14181D; --card:#1C2229; --ink:#E8EAED; --mut:#96A0AA; --line:#2A323B;
-    --accent:#7BA7E8; --accent-soft:#22304A; --energy:#E09550; --energy-soft:#3A2C1D;
-    --party:#E38AA8; --party-soft:#3D2430;
-    --ok:#5FBF8A; --warn:#D9B04A; --bad:#E07A6B;
-    --mc:#DCA84F; --mp:#7BA7E8; --mf:#A98BD8;
-    --shadow:0 1px 3px rgba(0,0,0,.4);
-  }
-}
-:root[data-theme="light"]{
-  --bg:#F6F5F1; --card:#FFFFFF; --ink:#232930; --mut:#6A737D; --line:#E4E1D8;
-  --accent:#2456A6; --accent-soft:#E8EEF8; --energy:#C8641E; --energy-soft:#F8EDE2;
-  --party:#C2477C; --party-soft:#F9E9F1;
-  --ok:#2E7D4F; --warn:#B07F14; --bad:#C24034;
-  --mc:#C8862A; --mp:#2456A6; --mf:#7C5CB0;
-  --shadow:0 1px 3px rgba(35,41,48,.07),0 4px 14px rgba(35,41,48,.05);
-}
-:root[data-theme="dark"]{
+html[data-modo="escuro"], :root[data-theme="dark"]{
   --bg:#14181D; --card:#1C2229; --ink:#E8EAED; --mut:#96A0AA; --line:#2A323B;
   --accent:#7BA7E8; --accent-soft:#22304A; --energy:#E09550; --energy-soft:#3A2C1D;
   --party:#E38AA8; --party-soft:#3D2430;
   --ok:#5FBF8A; --warn:#D9B04A; --bad:#E07A6B;
   --mc:#DCA84F; --mp:#7BA7E8; --mf:#A98BD8;
   --shadow:0 1px 3px rgba(0,0,0,.4);
+}
+/* --- Alecrim: verdes de horta, neutros com um travo de azeitona --- */
+html[data-paleta="alecrim"]{
+  --bg:#F4F5F0; --card:#FFFFFF; --ink:#23291F; --mut:#69736A; --line:#E0E4D8;
+  --accent:#3F7A46; --accent-soft:#E7F0E6; --energy:#B5762A; --energy-soft:#F6EEE0;
+  --party:#A45E86; --party-soft:#F5E9F0; --mp:#3F7A46;
+}
+html[data-paleta="alecrim"][data-modo="escuro"]{
+  --bg:#151A15; --card:#1D241D; --ink:#E7EAE4; --mut:#98A497; --line:#2C352C;
+  --accent:#79C083; --accent-soft:#23331F; --energy:#D9A05C; --energy-soft:#352A1B;
+  --party:#D493B6; --party-soft:#372631; --mp:#79C083;
+}
+/* --- Figo: roxos e magentas, neutros levemente ameixa --- */
+html[data-paleta="figo"]{
+  --bg:#F6F3F6; --card:#FFFFFF; --ink:#28222C; --mut:#6F6874; --line:#E5DEE6;
+  --accent:#6B4396; --accent-soft:#EDE6F6; --energy:#C25B45; --energy-soft:#F8E9E5;
+  --party:#B23D74; --party-soft:#F8E6EE; --mp:#6B4396; --mf:#B23D74;
+}
+html[data-paleta="figo"][data-modo="escuro"]{
+  --bg:#17141A; --card:#211C25; --ink:#EAE5EC; --mut:#9F97A6; --line:#332C38;
+  --accent:#B392E0; --accent-soft:#2C2140; --energy:#E08A72; --energy-soft:#3A2823;
+  --party:#DE86AF; --party-soft:#3C2432; --mp:#B392E0; --mf:#DE86AF;
+}
+/* --- Maré: azuis-esverdeados de água, neutros frios --- */
+html[data-paleta="mare"]{
+  --bg:#F1F5F5; --card:#FFFFFF; --ink:#1F2A2C; --mut:#637375; --line:#DBE4E4;
+  --accent:#0F6E78; --accent-soft:#E0F0F1; --energy:#C2622C; --energy-soft:#F7ECE2;
+  --party:#9A4E8C; --party-soft:#F3E7F1; --mp:#0F6E78;
+}
+html[data-paleta="mare"][data-modo="escuro"]{
+  --bg:#101819; --card:#182123; --ink:#E3EBEC; --mut:#8FA1A3; --line:#263234;
+  --accent:#5FC2CC; --accent-soft:#123336; --energy:#DE9560; --energy-soft:#372A1F;
+  --party:#CE8CC2; --party-soft:#332431; --mp:#5FC2CC;
+}
+/* --- Brasa: laranjas e vermelhos quentes, neutros de barro --- */
+html[data-paleta="brasa"]{
+  --bg:#F7F3F0; --card:#FFFFFF; --ink:#2B2320; --mut:#75695F; --line:#E8DED6;
+  --accent:#B4501F; --accent-soft:#FAEAE0; --energy:#8A6A1C; --energy-soft:#F5F0DE;
+  --party:#B03F5C; --party-soft:#F9E7EA; --mp:#B4501F; --mc:#8A6A1C;
+}
+html[data-paleta="brasa"][data-modo="escuro"]{
+  --bg:#1A1512; --card:#241D19; --ink:#EDE6E1; --mut:#A6968A; --line:#352B25;
+  --accent:#E8895A; --accent-soft:#3B2418; --energy:#D4B45E; --energy-soft:#332C18;
+  --party:#DE8298; --party-soft:#3A242A; --mp:#E8895A; --mc:#D4B45E;
+}
+/* --- Tinta: monocromático de alto contraste, para quem quer sossego --- */
+html[data-paleta="tinta"]{
+  --bg:#F4F4F4; --card:#FFFFFF; --ink:#1A1A1A; --mut:#666666; --line:#DEDEDE;
+  --accent:#2B2B2B; --accent-soft:#E6E6E6; --energy:#5C5C5C; --energy-soft:#EDEDED;
+  --party:#7A7A7A; --party-soft:#EFEFEF; --mc:#8A8A8A; --mp:#2B2B2B; --mf:#5C5C5C;
+}
+html[data-paleta="tinta"][data-modo="escuro"]{
+  --bg:#121212; --card:#1C1C1C; --ink:#F0F0F0; --mut:#9A9A9A; --line:#2E2E2E;
+  --accent:#E4E4E4; --accent-soft:#2E2E2E; --energy:#B0B0B0; --energy-soft:#282828;
+  --party:#9A9A9A; --party-soft:#262626; --mc:#8A8A8A; --mp:#E4E4E4; --mf:#B0B0B0;
 }
 *{box-sizing:border-box;margin:0}
 /* overflow-x:clip (e não hidden) impede que uma bolha de explicação ponha a
@@ -63,8 +106,14 @@ h1,h2,h3,.display{font-family:Georgia,"Times New Roman",serif;font-weight:600;te
 h1{font-size:26px} h2{font-size:20px;margin-bottom:4px} h3{font-size:16px}
 button,input,select{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
-header{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10}
-.hwrap{max-width:1100px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+header{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10;
+  position:sticky;isolation:isolate}
+/* Aura: as cores dos membros da família esbatidas no topo do cabeçalho, para
+   a app ter a cara de quem a usa. O gradiente é montado em JS a partir das
+   cores escolhidas; sem membros, não aparece nada. */
+.aura{position:absolute;inset:0 0 auto 0;height:100%;pointer-events:none;z-index:-1;opacity:.5}
+html[data-modo="escuro"] .aura{opacity:.34}
+.hwrap{max-width:1100px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;position:relative}
 .brand{display:flex;flex-direction:column;line-height:1.2}
 .brand small{color:var(--mut);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase}
 nav{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
@@ -213,6 +262,54 @@ input[type=range]:focus-visible::-moz-range-thumb{box-shadow:0 0 0 3px var(--acc
   @keyframes tour-entra{ from{ opacity:0; transform:translate(-50%,12px);} }
 }
 .tour-destaque{border:2px solid var(--accent);background:linear-gradient(135deg,var(--accent-soft),transparent 70%)}
+/* Cartões colapsáveis: o título ganha um botão que dobra o corpo, e o estado
+   fica guardado por cartão — quem fecha a projeção de peso não a quer ver
+   aberta outra vez amanhã. */
+.card[data-col] > .card-cab{display:flex;align-items:center;gap:8px;cursor:pointer;
+  margin:-2px 0 0;user-select:none}
+.card[data-col] > .card-cab > :first-child{flex:1;min-width:0}
+.col-btn{background:none;border:none;color:var(--mut);cursor:pointer;padding:4px 6px;border-radius:8px;
+  font-size:13px;line-height:1;flex:none}
+.col-btn:hover{color:var(--accent);background:var(--bg)}
+.col-btn .chev{display:inline-block;transition:transform .18s}
+.card.col-fechado .col-btn .chev{transform:rotate(-90deg)}
+.card.col-fechado > .card-corpo{display:none}
+@media (prefers-reduced-motion: reduce){ .col-btn .chev{transition:none} }
+/* Estados vazios ilustrados. */
+.vazio{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;padding:30px 20px}
+.vazio svg{width:110px;height:auto;margin-bottom:6px;opacity:.9}
+.vazio h3{font-size:17px}
+.vazio p{color:var(--mut);font-size:13.5px;max-width:46ch;line-height:1.5}
+.vazio .row{margin-top:12px;justify-content:center}
+/* Seletor de tema. */
+.tema-grelha{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px;margin-top:10px}
+.tema-op{border:2px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--card);
+  cursor:pointer;text-align:left;font:inherit;color:inherit;display:flex;flex-direction:column;gap:8px}
+.tema-op:hover{border-color:var(--mut)}
+.tema-op.on{border-color:var(--accent)}
+.tema-amostra{display:flex;height:22px;border-radius:6px;overflow:hidden}
+.tema-amostra i{flex:1}
+.tema-nome{font-size:13.5px;font-weight:600}
+/* Avatar com emoji do membro. */
+.av{overflow:hidden}
+.av-emoji{display:inline-flex;align-items:center;justify-content:center;line-height:1}
+.emoji-grelha{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.emoji-op{border:1px solid var(--line);background:var(--bg);border-radius:9px;cursor:pointer;
+  padding:4px 7px;font-size:17px;line-height:1.2}
+.emoji-op.on{border-color:var(--accent);background:var(--accent-soft)}
+.cor-grelha{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.cor-op{width:26px;height:26px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0}
+.cor-op.on{border-color:var(--ink)}
+@media (hover:none) and (pointer:coarse){
+  .emoji-op{font-size:20px;padding:6px 9px} .cor-op{width:32px;height:32px}
+  /* o cabeçalho inteiro do cartão também dobra, por isso o botão é um atalho —
+     ainda assim fica com alvo confortável */
+  .col-btn{padding:11px 13px}
+}
+/* Resumo mensal narrado. */
+.narrativa{font-size:14.5px;line-height:1.65}
+.narrativa b{color:var(--ink)}
+.narrativa .destaque{color:var(--accent);font-weight:700}
 /* Objetivos: anel de progresso e celebração de conquista. */
 .anel{overflow:visible}
 .celebracao{position:relative;overflow:hidden;border-color:var(--party);background:var(--party-soft)}
@@ -469,6 +566,15 @@ function D(curva,vmin,vmax,vdef,vStep,maxSemana,ritmo){
 const CATS_SPORT=[['corrida','Corrida e caminhada'],['ciclismo','Ciclismo'],['agua','Água'],
   ['forca','Força e ginásio'],['corpo','Corpo e mente'],['bola','Bola'],['raquete','Raquete'],
   ['combate','Combate'],['natureza','Ar livre'],['danca','Dança']];
+/* Ícones por categoria, usados nos títulos de secção em toda a app. */
+const ICO_SPORT={corrida:'🏃',ciclismo:'🚴',agua:'🏊',forca:'🏋️',corpo:'🧘',bola:'⚽',
+  raquete:'🎾',combate:'🥊',natureza:'⛰️',danca:'💃'};
+const ICO_CAT={'Peixe & Marisco':'🐟','Carne & Ovos':'🥩','Frutas & Legumes':'🥦',
+  'Laticínios':'🥛','Mercearia & Outros':'🫙','Suplementos':'💊'};
+const ICO_REF={p:'🌅',a:'🍽️',l:'🍎',j:'🌙'};
+const ICO_COZ={portuguesa:'🇵🇹',italiana:'🍝',francesa:'🥐',mediterranica:'🫒',asiatica:'🍜'};
+const ICO_SUPL={proteico:'🥤',vitaminico:'💊',mineral:'🧂',composto:'🐟'};
+const ICO_FASE={bebe:'🍼',crianca:'🧒',adolescente:'🧑',adulto:'🧑‍🦱'};
 function SP(id,nome,cat,mets,dicas,dist){ return {id,nome,cat,mets,dicas:dicas||null,dist:dist||null}; }
 const SPORTS=[
   SP('caminhada','Caminhada','corrida',[3.0,4.3,5.3],null, D('andar',3,8,5,0.1,100,'min/km')),
@@ -753,7 +859,8 @@ let saveErr='', msg=null;
 function blank(){ return {members:[],cheats:{},plans:{},bought:{},prefCuisine:'todas',objetivos:[],despensa:{},
   ui:{tab:'familia',mid:null,cuis:'todas',soComp:false,mealF:'todas',
       objForm:{membros:[],tipo:'perder',delta:5,semanas:12,split:50,desporto:null,banda:2},
-      objExpandido:null, objAdj:null, celebrando:null, tourPasso:null, tourVisto:false},
+      objExpandido:null, objAdj:null, celebrando:null, tourPasso:null, tourVisto:false,
+      tema:'auto', paleta:'azulejo', colapsados:{}},
   week:mondayISO(new Date()),
   meta:{gravadoEm:null,exportadoEm:null,semCopia:false,avisarAoSair:true}}; }
 let S = load();
@@ -1382,18 +1489,137 @@ const DICAS={
   faltaComprar:'A lista completa acima tem tudo o que as receitas da semana precisam; esta mostra só o que ainda não está na despensa — é isto que vale a pena exportar ou levar ao supermercado.',
   suplementos:'Regista o que tomas e quantas doses por dia. Um batido de proteína é comida: as calorias e os macros entram no plano do dia. Os suplementos vão também para a despensa e para a lista de compras, com as doses de sete dias.',
   suplMacros:'Quanto dos macros do dia já vem dos suplementos, e quanto sobra para a comida. É este segundo número que interessa a quem vai cozinhar — se um batido dá 48 g de proteína, faltam menos 48 g no prato.',
-  suplMicros:'O que os suplementos dão de cada micronutriente, comparado com a dose diária de referência e com o limite superior tolerável do Institute of Medicine. Passar o limite deixa de ser inócuo — sobretudo em crianças e na gravidez.'
+  suplMicros:'O que os suplementos dão de cada micronutriente, comparado com a dose diária de referência e com o limite superior tolerável do Institute of Medicine. Passar o limite deixa de ser inócuo — sobretudo em crianças e na gravidez.',
+  aspeto:'Seis paletas, cada uma com modo claro e escuro. A paleta muda os acentos e o tom dos neutros; o modo é independente e pode seguir o sistema. As secções que fechares ficam fechadas — a app lembra-se de cada uma.',
+  resumoMes:'Um retrato dos últimos 30 dias escrito a partir do que registaste: refeições planeadas, dias completos, atividade, objetivos e evolução do peso de quem tem um objetivo a decorrer.'
 };
 function dica(k,extra){ const t=DICAS[k]; if(!t) return '';
   return `<button type="button" class="dica ${extra||''}" data-dica="${esc(t)}" aria-label="Explicação">i</button>`; }
 const TABS=[['familia','👤 Família'],['atividade','🏃 Atividade'],['nutricao','🍽️ Nutrição'],['receitas','🍳 Receitas'],
   ['objetivos','🎯 Objetivos'],['plano','📅 Plano semanal'],['despensa','🥫 Despensa'],['compras','🛒 Compras'],['dados','⚙️ Dados']];
+/* ===== TEMAS, AVATARES E CARTÕES COLAPSÁVEIS ===== */
+const PALETAS={
+  azulejo:{n:'Azulejo', d:'Azul de louça e terracota', c:['#2456A6','#C8641E','#C2477C']},
+  alecrim:{n:'Alecrim', d:'Verdes de horta', c:['#3F7A46','#B5762A','#A45E86']},
+  figo:{n:'Figo', d:'Roxos e magentas', c:['#6B4396','#C25B45','#B23D74']},
+  mare:{n:'Maré', d:'Azuis-esverdeados de água', c:['#0F6E78','#C2622C','#9A4E8C']},
+  brasa:{n:'Brasa', d:'Laranjas e vermelhos quentes', c:['#B4501F','#8A6A1C','#B03F5C']},
+  tinta:{n:'Tinta', d:'Monocromático, alto contraste', c:['#2B2B2B','#5C5C5C','#9A9A9A']}
+};
+const MODOS={auto:'Segue o sistema',claro:'Claro',escuro:'Escuro'};
+const EMOJIS_MEMBRO=['🙂','😀','😎','🧑','👩','👨','👧','👦','👶','🧒','👵','👴','🐣','🦊','🐼','🐨','🐯','🦁','🐸','🐙','🌻','🌵','⭐','🚀','⚽','🎸','📚','🍀'];
+function modoEfetivo(){
+  const t=S.ui.tema||'auto';
+  if(t==='claro'||t==='escuro') return t;
+  try{ return matchMedia('(prefers-color-scheme: dark)').matches? 'escuro':'claro'; }catch(e){ return 'claro'; }
+}
+function aplicarTema(){
+  const r=document.documentElement, modo=modoEfetivo();
+  const pal=temChave(PALETAS,S.ui.paleta)? S.ui.paleta : 'azulejo';
+  r.setAttribute('data-modo',modo);
+  r.setAttribute('data-paleta',pal);
+  /* a barra do browser no telemóvel acompanha o fundo real, e como o modo já
+     não vem da media query, as metas estáticas deixariam de bater certo */
+  const bg=getComputedStyle(r).getPropertyValue('--bg').trim();
+  document.querySelectorAll('meta[name="theme-color"]').forEach(m=>m.setAttribute('content',bg));
+}
+function setTema(t){ S.ui.tema=temChave(MODOS,t)? t:'auto'; saveMeta(); aplicarTema(); render(); }
+function setPaleta(p){ S.ui.paleta=temChave(PALETAS,p)? p:'azulejo'; saveMeta(); aplicarTema(); render(); }
+/* Aura do cabeçalho a partir das cores dos membros. */
+function pintaAura(){
+  let a=document.getElementById('aura');
+  const cores=S.members.slice(0,5).map(avColor);
+  if(!a){ a=document.createElement('div'); a.id='aura'; a.className='aura'; a.setAttribute('aria-hidden','true');
+    const h=document.querySelector('header'); if(h) h.insertBefore(a,h.firstChild); }
+  if(!cores.length){ a.style.background='none'; return; }
+  const paradas=cores.map((c,i)=>{
+    const x=cores.length===1? 50 : Math.round(i/(cores.length-1)*100);
+    return `radial-gradient(circle at ${x}% 0%, ${c}55, transparent 62%)`;
+  });
+  a.style.background=paradas.join(',');
+}
+/* Cartões colapsáveis: o template só marca data-col="chave"; a estrutura do
+   cabeçalho e o corpo dobrável são montados aqui, depois de cada render. */
+function montaColapsaveis(){
+  document.querySelectorAll('#main .card[data-col]').forEach(card=>{
+    const chave=card.getAttribute('data-col');
+    if(card.querySelector(':scope > .card-cab')) return;
+    const tit=card.querySelector(':scope > h2, :scope > h3');
+    if(!tit) return;
+    const cab=document.createElement('div'); cab.className='card-cab';
+    card.insertBefore(cab,tit); cab.appendChild(tit);
+    const corpo=document.createElement('div'); corpo.className='card-corpo';
+    while(cab.nextSibling) corpo.appendChild(cab.nextSibling);
+    card.appendChild(corpo);
+    const fechado=!!(S.ui.colapsados||{})[chave];
+    const b=document.createElement('button');
+    b.type='button'; b.className='col-btn';
+    b.setAttribute('aria-expanded', String(!fechado));
+    b.setAttribute('aria-label', fechado?'Abrir secção':'Fechar secção');
+    b.innerHTML='<span class="chev">▾</span>';
+    cab.appendChild(b);
+    if(fechado) card.classList.add('col-fechado');
+    const alterna=e=>{ e.preventDefault(); e.stopPropagation();
+      if(!S.ui.colapsados) S.ui.colapsados={};
+      const agora=!card.classList.contains('col-fechado');
+      card.classList.toggle('col-fechado',agora);
+      if(agora) S.ui.colapsados[chave]=true; else delete S.ui.colapsados[chave];
+      b.setAttribute('aria-expanded',String(!agora));
+      b.setAttribute('aria-label', agora?'Abrir secção':'Fechar secção');
+      saveMeta();
+    };
+    b.addEventListener('click',alterna);
+    /* clicar no título também dobra, mas não se o clique foi num explicador */
+    cab.addEventListener('click',e=>{ if(e.target.closest('.dica')||e.target.closest('.col-btn')) return; alterna(e); });
+  });
+}
+/* ---- estados vazios ilustrados ---- */
+const ILUS={
+  familia:`<path d="M34 74c0-11 9-20 20-20s20 9 20 20" fill="none"/><circle cx="54" cy="38" r="14" fill="none"/>
+    <path d="M78 74c0-8 5-15 13-17" fill="none"/><circle cx="88" cy="42" r="9" fill="none"/>
+    <path d="M8 74c0-8 5-15 13-17" fill="none"/><circle cx="20" cy="42" r="9" fill="none"/>`,
+  prato:`<circle cx="54" cy="46" r="30" fill="none"/><circle cx="54" cy="46" r="20" fill="none" opacity=".5"/>
+    <path d="M92 22v48M92 22c5 4 5 14 0 18" fill="none"/><path d="M16 22v14a5 5 0 0 0 10 0V22M21 36v34" fill="none"/>`,
+  cesto:`<path d="M20 38h68l-7 34a6 6 0 0 1-6 5H33a6 6 0 0 1-6-5z" fill="none"/>
+    <path d="M38 38l8-20M70 38l-8-20" fill="none"/><path d="M40 52v14M54 52v14M68 52v14" fill="none" opacity=".55"/>`,
+  alvo:`<circle cx="50" cy="48" r="28" fill="none"/><circle cx="50" cy="48" r="17" fill="none" opacity=".6"/>
+    <circle cx="50" cy="48" r="6" fill="none"/><path d="M50 48 92 14M92 14l-2 12 12-2z" fill="none"/>`,
+  calendario:`<rect x="16" y="24" width="76" height="58" rx="7" fill="none"/><path d="M16 42h76" fill="none"/>
+    <path d="M34 14v16M74 14v16" fill="none"/><path d="M32 56h10M50 56h10M68 56h10M32 70h10M50 70h10" fill="none" opacity=".55"/>`,
+  despensa:`<rect x="20" y="16" width="68" height="72" rx="6" fill="none"/><path d="M20 40h68M20 64h68" fill="none"/>
+    <rect x="30" y="22" width="12" height="14" rx="3" fill="none" opacity=".6"/>
+    <rect x="50" y="46" width="12" height="14" rx="3" fill="none" opacity=".6"/>
+    <rect x="66" y="70" width="12" height="12" rx="3" fill="none" opacity=".6"/>`,
+  trofeu:`<path d="M36 18h36v20a18 18 0 0 1-36 0z" fill="none"/><path d="M36 24H24a10 10 0 0 0 12 12M72 24h12a10 10 0 0 1-12 12" fill="none"/>
+    <path d="M54 56v14M40 82h28l-3-12H43z" fill="none"/>`,
+  lupa:`<circle cx="46" cy="42" r="24" fill="none"/><path d="M64 60l22 22" fill="none"/>
+    <path d="M36 42h20" fill="none" opacity=".5"/>`
+};
+function ilustracao(nome){
+  const d=ILUS[nome]||ILUS.lupa;
+  return `<svg viewBox="0 0 108 96" aria-hidden="true" fill="none" stroke="var(--accent)" stroke-width="3"
+    stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+}
+function estadoVazio(ilus,titulo,texto,botoes){
+  return `<div class="card"><div class="vazio">${ilustracao(ilus)}
+    <h3>${titulo}</h3><p>${texto}</p>
+    ${botoes? `<div class="row">${botoes}</div>`:''}</div></div>`;
+}
 function go(t){ S.ui.tab=t; msg=null; saveMeta(); render(); }
 function pickM(id){ S.ui.mid=id; macroLive=null; saveMeta(); render(); }
 function curM(){ return S.members.find(m=>m.id===S.ui.mid) || S.members[0]; }
-function avColor(m){ return AVCOLORS[S.members.indexOf(m)%AVCOLORS.length]; }
-function avatar(m,sz){ const ini=(m.nome||'?').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
-  return `<span class="av" style="background:${avColor(m)}${sz?`;width:${sz}px;height:${sz}px`:''}">${esc(ini)}</span>`; }
+/* Cor do membro: a escolhida, ou uma da paleta pela ordem de entrada. */
+function avColor(m){
+  if(m && typeof m.cor==='string' && /^#[0-9A-Fa-f]{6}$/.test(m.cor)) return m.cor;
+  const i=S.members.indexOf(m);
+  return AVCOLORS[(i<0?0:i)%AVCOLORS.length];
+}
+function avatar(m,sz){
+  const tam=sz||26;
+  if(m && m.emoji) return `<span class="av av-emoji" style="background:${avColor(m)}22;border:1.5px solid ${avColor(m)};width:${tam}px;height:${tam}px;font-size:${Math.round(tam*0.58)}px">${esc(m.emoji)}</span>`;
+  const ini=(m.nome||'?').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
+  return `<span class="av" style="background:${avColor(m)};width:${tam}px;height:${tam}px">${esc(ini)}</span>`;
+}
 function memberPicker(){ if(!S.members.length) return '';
   const cur=curM();
   return `<div class="row" style="margin-bottom:18px">${S.members.map(m=>
@@ -1427,6 +1653,95 @@ function upd(id,field,val,num){ const m=S.members.find(x=>x.id===id); if(!m) ret
     atividade:'nível de atividade',desloc:'deslocação',gravida:'gravidez',meses:'idade'}[field];
   save(rot? rot+' de '+m.nome : null); render(); }
 
+/* ===== RESUMO MENSAL NARRADO =====
+   Um retrato dos últimos 30 dias escrito em prosa, a partir do que está
+   registado. Só afirma o que os dados sustentam: a variação de peso, por
+   exemplo, só existe para quem tem um objetivo a decorrer, porque é aí que
+   há um peso inicial guardado — a app não tem histórico de pesagens. */
+function dadosMes(){
+  const hoje=new Date(), semanas=[];
+  for(let i=0;i<5;i++){ const d=new Date(hoje); d.setDate(d.getDate()-7*i); semanas.push(mondayISO(d)); }
+  let refs=0, diasCompletos=0, diasComAlgo=0, cheats=0;
+  const porReceita={};
+  semanas.forEach(wk=>{
+    const sem=S.plans[wk]; if(!sem) return;
+    for(let di=0;di<7;di++){
+      const dia=sem[di]; if(!dia) continue;
+      let n=0;
+      MEALK.forEach(mk=>{ const r=dia[mk]; if(r&&r.r){ n++; refs++;
+        porReceita[r.r]=(porReceita[r.r]||0)+1; } });
+      if(n) diasComAlgo++;
+      if(n===MEALK.length) diasCompletos++;
+    }
+  });
+  const limite=new Date(hoje); limite.setDate(limite.getDate()-30);
+  Object.values(S.cheats||{}).forEach(arr=>(arr||[]).forEach(d=>{
+    const dt=new Date(d+'T12:00:00'); if(dt>=limite&&dt<=hoje) cheats++; }));
+  const topo=Object.entries(porReceita).sort((a,b)=>b[1]-a[1]).slice(0,3)
+    .map(([id,n])=>{ const r=RECIPES.find(x=>x.id===id); return r? {nome:r.n,n}:null; }).filter(Boolean);
+  const concluidos=(S.objetivos||[]).filter(o=>o.concluido&&o.dataConclusao
+    && new Date(o.dataConclusao)>=limite);
+  const ativos=(S.objetivos||[]).filter(o=>!o.concluido);
+  return {refs,diasCompletos,diasComAlgo,cheats,topo,concluidos,ativos,semanas:semanas.length};
+}
+function narrativaMes(){
+  const d=dadosMes(), n=S.members.length, frases=[];
+  const nomes=S.members.map(m=>m.nome.split(' ')[0]);
+  const lista=a=>a.length<=1? (a[0]||'') : a.slice(0,-1).join(', ')+' e '+a[a.length-1];
+  frases.push(`Nas últimas cinco semanas a casa foi de <b>${lista(nomes)}</b>${n>1?', '+plural(n,'pessoa','pessoas')+' a planear juntas':''}.`);
+  if(d.refs){
+    frases.push(`Foram planeadas <span class="destaque">${plural(d.refs,'refeição','refeições')}</span> em ${plural(d.diasComAlgo,'dia','dias')}`
+      + (d.diasCompletos? `, ${plural(d.diasCompletos,'deles com o dia completo','deles com o dia completo')}.` : ', ainda nenhum com as quatro refeições preenchidas.'));
+  } else {
+    frases.push('Ainda não há refeições planeadas neste período — o plano semanal está à espera.');
+  }
+  if(d.topo.length){
+    frases.push(`À mesa repetiu-se sobretudo <b>${d.topo[0].nome}</b>`
+      + (d.topo.length>1? `, seguida de ${lista(d.topo.slice(1).map(t=>t.nome))}.` : '.'));
+  }
+  if(d.cheats) frases.push(`Houve ${plural(d.cheats,'dia livre','dias livres')} marcados — aniversários e festas contam-se, não se escondem.`);
+  /* atividade: soma dos minutos semanais registados, que é o que a app sabe */
+  const minutos=S.members.map(m=>({nome:m.nome.split(' ')[0], min:Math.round(minutosSemana(m))})).filter(x=>x.min>0);
+  if(minutos.length){
+    const total=minutos.reduce((t,x)=>t+x.min,0);
+    const mais=minutos.slice().sort((a,b)=>b.min-a.min)[0];
+    frases.push(`Em movimento, a família tem <span class="destaque">${hmm(total/60)} por semana</span> registados, com <b>${mais.nome}</b> à frente (${hmm(mais.min/60)}).`);
+  } else {
+    frases.push('Não há desporto registado — vale a pena inscrever o que já se faz, nem que seja a caminhada até ao trabalho.');
+  }
+  /* peso: só para quem tem objetivo, porque é o único sítio com peso inicial */
+  const evol=d.ativos.map(o=>{ const m=S.members.find(x=>x.id===o.membroId); if(!m) return null;
+    const dif=Math.round((m.peso-o.pesoInicial)*10)/10;
+    return {nome:m.nome.split(' ')[0], dif, tipo:o.tipo}; }).filter(Boolean);
+  evol.forEach(e=>{
+    if(Math.abs(e.dif)<0.2) frases.push(`<b>${e.nome}</b> está no mesmo peso desde que começou o objetivo.`);
+    else if((e.tipo==='perder'&&e.dif<0)||(e.tipo==='ganhar'&&e.dif>0))
+      frases.push(`<b>${e.nome}</b> vai no bom caminho: <span class="destaque">${e.dif>0?'+':'−'}${nPT(Math.abs(e.dif),1)} kg</span> desde o início do objetivo.`);
+    else frases.push(`<b>${e.nome}</b> está ${e.dif>0?'+':'−'}${nPT(Math.abs(e.dif),1)} kg face ao início — o rumo ainda não é o pretendido, e isso também é informação.`);
+  });
+  if(d.concluidos.length){
+    const q=d.concluidos.map(o=>{ const m=S.members.find(x=>x.id===o.membroId); return m? m.nome.split(' ')[0]:null; }).filter(Boolean);
+    frases.push(`🏆 ${plural(d.concluidos.length,'Um objetivo foi atingido','Objetivos atingidos')} neste período${q.length?', por '+lista(q):''}. Fica registado nas Conquistas.`);
+  }
+  const semDespensa=Object.keys(S.despensa||{}).length;
+  if(semDespensa) frases.push(`Na despensa há <b>${plural(semDespensa,'item marcado','itens marcados')}</b> como disponíveis, o que já poupa passos na lista de compras.`);
+  return frases.join(' ');
+}
+function cartaoResumoMes(){
+  if(!S.members.length) return '';
+  const d=dadosMes();
+  return `<div class="card secgap" data-col="fam-resumo" style="border-left:4px solid var(--accent)">
+    <h2>📖 O mês em palavras ${dica('resumoMes')}</h2>
+    <p class="narrativa" style="margin-top:8px">${narrativaMes()}</p>
+    <div class="row" style="margin-top:14px">
+      <div class="stat"><b>${d.refs}</b><span>Refeições planeadas</span></div>
+      <div class="stat"><b>${d.diasCompletos}</b><span>Dias completos</span></div>
+      <div class="stat"><b>${d.cheats}</b><span>Dias livres</span></div>
+      <div class="stat"><b>${d.ativos.length}</b><span>Objetivos ativos</span></div>
+      <div class="stat" style="background:var(--accent-soft)"><b style="color:var(--accent)">${d.concluidos.length}</b><span>Conquistas do mês</span></div>
+    </div>
+  </div>`;
+}
 function renderFamilia(){
   if(!S.members.length) return cartaoBoasVindas();
   return `<div class="row" style="justify-content:space-between;margin-bottom:16px">
@@ -1447,8 +1762,22 @@ function renderFamilia(){
         <div class="row" style="justify-content:space-between">
           <div class="row">${avatar(m,34)}
             <input type="text" value="${esc(m.nome)}" style="width:170px;font-weight:600" onchange="upd('${mid}','nome',this.value)"></div>
-          <button class="btn danger small" onclick="delMember('${mid}')">Remover</button>
+          <div class="row">
+            <button class="chip" onclick="toggleAvatarEditor('${mid}')" aria-expanded="${S.ui.avatarAberto===mid}">${ICO_FASE[fase]||'🎨'} Avatar</button>
+            <button class="btn danger small" onclick="delMember('${mid}')">Remover</button></div>
         </div>
+        ${S.ui.avatarAberto===mid? `<div style="border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:8px;background:var(--bg)">
+          <div class="splabel"><span>Emoji</span></div>
+          <div class="emoji-grelha">
+            <button class="emoji-op ${!m.emoji?'on':''}" onclick="setAvatar('${mid}','emoji','')" title="Iniciais do nome">Aa</button>
+            ${EMOJIS_MEMBRO.map(e=>`<button class="emoji-op ${m.emoji===e?'on':''}" onclick="setAvatar('${mid}','emoji','${e}')">${e}</button>`).join('')}
+          </div>
+          <div class="splabel" style="margin-top:10px"><span>Cor</span></div>
+          <div class="cor-grelha">${AVCOLORS.concat(PALETAS[S.ui.paleta||'azulejo'].c).filter((v,i,a)=>a.indexOf(v)===i)
+            .map(c=>`<button class="cor-op ${avColor(m).toLowerCase()===c.toLowerCase()?'on':''}" style="background:${c}"
+              onclick="setAvatar('${mid}','cor','${c}')" aria-label="Cor ${c}"></button>`).join('')}</div>
+          <p class="sub" style="margin-top:8px">A cor aparece no avatar, nos pontos do plano e na aura do cabeçalho.</p>
+        </div>`:''}
         <div class="frow">
           <div><label class="lbl">Sexo</label><select onchange="upd('${mid}','sexo',this.value)">
             <option value="m" ${m.sexo==='m'?'selected':''}>Masculino</option><option value="f" ${m.sexo==='f'?'selected':''}>Feminino</option></select></div>
@@ -1523,7 +1852,8 @@ function renderFamilia(){
             <span class="sub" style="margin-left:8px">${dietaDe(m).n} · ${rotuloObjetivo(m)}</span></div>
           <button class="chip" onclick="pickM('${mid}');go('nutricao')">→ macros de ${esc(m.nome.split(' ')[0])}</button>
         </div>
-      </div>`;}).join('')}</div>`;
+      </div>`;}).join('')}</div>
+    ${cartaoResumoMes()}`;
 }
 /* A escolha da fase acerta a idade para dentro do escalão, para os cálculos
    e os limites de esforço passarem logo a ser os certos. */
@@ -1618,7 +1948,7 @@ function opcoesDesporto(sel){
   return CATS_SPORT.map(([c,rot])=>{
     const lista=SPORTS.filter(s=>s.cat===c);
     if(!lista.length) return '';
-    return `<optgroup label="${rot}">`+lista.map(s=>
+    return `<optgroup label="${(ICO_SPORT[c]||'')+' '+rot}">`+lista.map(s=>
       `<option value="${s.id}" ${sel===s.id?'selected':''}>${s.nome}</option>`).join('')+`</optgroup>`;
   }).join('');
 }
@@ -1871,7 +2201,7 @@ function renderAtividade(){
     ${(()=>{ const gp=gastoPartes(m), alvo=targetKcal(m);
       const K=Math.max(gp.total,alvo)*1.05||1, w=x=>Math.max(0,x/K*100);
       const X=w(alvo);
-      return `<div class="card" style="border-left:4px solid var(--energy)">
+      return `<div class="card" style="border-left:4px solid var(--energy)" data-col="atv-gasto">
       <h2>Gasto energético estimado ${dica('barraGasto')}</h2>
       <div style="position:relative;margin:30px 0 8px">
         <span id="ga-alvo-txt" style="position:absolute;top:-20px;left:${X}%;${X>78?'transform:translateX(-100%);':''}font-size:11px;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap">alvo ${Math.round(alvo)}</span>
@@ -1922,7 +2252,7 @@ function recipeCard(r){
   return `<div class="rc">
     <div class="row" style="justify-content:space-between"><h3>${r.n}</h3><span class="kcal">${r.k} kcal</span></div>
     <div><span class="tag" style="border-color:var(--accent);color:var(--accent)">${r.mt.map(nomeRefeicao).join(' / ')}</span>
-      <span class="tag">${CUIS[r.coz]}</span>${r.d.map(d=>`<span class="tag">${DIETS[d].n}</span>`).join('')}</div>
+      <span class="tag">${ICO_COZ[r.coz]||''} ${CUIS[r.coz]}</span>${r.d.map(d=>`<span class="tag">${DIETS[d].n}</span>`).join('')}</div>
     <div class="sub" style="font-variant-numeric:tabular-nums">H ${r.c} g · P ${r.p} g · G ${r.f} g</div>
     <span class="pill ${disp.pronta?'ok':disp.tem?'warn':''}" style="align-self:flex-start">${disp.pronta?'Pronta a cozinhar':disp.tem+'/'+disp.total+' na despensa'}</span>
     <div class="ingr-lista">${listaIngredientesComEstado(r)}</div>
@@ -2163,7 +2493,7 @@ function avisosSupl(m){
 }
 function cartaoSuplementos(m){
   const lista=suplementosDe(m);
-  return `<div class="card">
+  return `<div class="card" data-col="nu-suplementos">
     <h2>Suplementos ${dica('suplementos')}</h2>
     <p class="sub" style="margin-top:6px">Uma alimentação variada cobre as necessidades da maioria das pessoas.
       Um suplemento faz sentido quando há uma falha concreta — confirmada em consulta ou análises — não por defeito.
@@ -2171,7 +2501,7 @@ function cartaoSuplementos(m){
     <div id="sup-resumo" style="margin-top:12px">${resumoSupl(m)}</div>
     ${Object.entries(CAT_SUPL).map(([cat,rot])=>{
       const doCat=SUPLEMENTOS.filter(s=>s.cat===cat);
-      return `<div class="cat-h">${rot}</div>
+      return `<div class="cat-h">${ICO_SUPL[cat]||''} ${rot}</div>
       <div class="spgrid" style="margin-bottom:6px">${doCat.map(sp=>{
         const d=dosesDe(m,sp.id);
         return `<div>
@@ -2330,7 +2660,7 @@ function moduloBebe(m){
     <p class="sub">O percentil é uma posição na distribuição, não uma nota: um bebé no percentil 15 pode estar perfeitamente bem. O que importa é a curva ao longo do tempo, e quem a lê é o pediatra ou o enfermeiro de família.</p>
   </div>
 
-  <div class="card">
+  <div class="card" data-col="bb-ddr">
     <h2>Doses diárias de referência ${dica('bebeDdr')}</h2>
     <div style="margin-top:8px">
       <div class="kv"><span>Energia</span><b><span id="bb-ddr-kcal">${d.kcal}</span> kcal</b></div>
@@ -2369,7 +2699,7 @@ function moduloBebe(m){
     ${c.modo==='materno'? `<div class="msg warn-msg" style="margin-top:4px">Em aleitamento materno, a referência é a <b>procura do bebé</b>, não um volume medido. Os números acima servem só para dar uma ideia de grandeza — não são uma meta a atingir nem a limitar.</div>`:''}
   </div>
 
-  <div class="card">
+  <div class="card" data-col="bb-horario">
     <h2>Horário das tomadas ${dica('bebeHorario')}</h2>
     <div class="spgrid" style="margin-top:10px">
       ${sl('intervalo','Intervalo entre tomadas',2,6,0.5,c.intervalo,'de '+nPT(c.intervalo,1).replace(',0','')+' em '+nPT(c.intervalo,1).replace(',0','')+' horas','Horas entre tomadas',`slideBebe('${m.id}','intervalo',this)`)}
@@ -2442,7 +2772,7 @@ function renderNutricao(){
         <div class="stat"><b id="nu-gasto">${Math.round(tdee(m))}</b><span>Gasto kcal/dia</span></div>
       </div>
     </div>
-    <div class="card">
+    <div class="card" data-col="nu-macros">
       <h2>Simulador de macros — ${dietaDe(m).n} ${dica('macros')}</h2>
       ${m.dieta==='personalizada'? `
       <div class="spgrid" style="margin:12px 0 6px">
@@ -2471,7 +2801,7 @@ function renderNutricao(){
       ${barraRefeicoes(targetKcal(m))}
     </div>
     ${cartaoSuplementos(m)}
-    ${permiteProjecao(m)? `<div class="card">
+    ${permiteProjecao(m)? `<div class="card" data-col="nu-projecao">
       <h2>Projeção de peso — 12 semanas ${dica('projecao')}</h2>
       ${cartaoProjecao(m)}
     </div>` : `<div class="card">
@@ -2500,16 +2830,20 @@ function renderReceitas(){
     <div><h2>Receitas ${dica('receitasDisp')}</h2><span class="sub">${list.length} de ${RECIPES.length} receitas</span></div>
     <div class="row">
       <select style="width:auto" onchange="setCuis(this.value)"><option value="todas">Todas as cozinhas</option>
-        ${Object.entries(CUIS).map(([kk,v])=>`<option value="${kk}" ${S.ui.cuis===kk?'selected':''}>${v}</option>`).join('')}</select>
+        ${Object.entries(CUIS).map(([kk,v])=>`<option value="${kk}" ${S.ui.cuis===kk?'selected':''}>${(ICO_COZ[kk]||'')+' '+v}</option>`).join('')}</select>
       ${m? `<button class="chip ${S.ui.soComp?'on':''}" onclick="toggleComp()">Só compatíveis com ${esc(m.nome)}</button>`:''}
       <button class="chip" onclick="go('despensa')">🥫 Ver despensa</button>
     </div>
   </div>
   <div class="row" style="margin-bottom:12px">
     <button class="chip ${S.ui.mealF==='todas'?'on':''}" onclick="setMealF('todas')">Todas as refeições</button>
-    ${MEALS.map(([kk,rot])=>`<button class="chip ${S.ui.mealF===kk?'on':''}" onclick="setMealF('${kk}')">${rot}</button>`).join('')}
+    ${MEALS.map(([kk,rot])=>`<button class="chip ${S.ui.mealF===kk?'on':''}" onclick="setMealF('${kk}')">${ICO_REF[kk]||''} ${rot}</button>`).join('')}
   </div>
-  <div class="grid g3">${list.map(recipeCard).join('')||'<p class="sub">Nenhuma receita para este filtro.</p>'}</div>
+  ${list.length? `<div class="grid g3">${list.map(recipeCard).join('')}</div>`
+    : estadoVazio('lupa','Nenhuma receita com estes filtros',
+        'Nenhuma das 84 receitas corresponde à combinação de refeição, cozinha e dieta que escolheste. Alarga um dos filtros para voltares a ver sugestões.',
+        `<button class="btn ghost" onclick="setCuis('todas')">Todas as cozinhas</button>
+         <button class="btn ghost" onclick="setMealF('todas')">Todas as refeições</button>`)}
 
   ${S.members.length>1? `<div class="secgap">
     <h2>👨‍👩‍👧 Compatíveis com toda a família</h2>
@@ -2900,7 +3234,8 @@ function renderObjetivos(){
     + formCriacaoHtml()
     + `<div class="secgap"><h2>Objetivos ativos</h2>`
     + (ativos.length? `<div class="grid g2" style="margin-top:10px">${ativos.map(cartaoObjetivo).join('')}</div>`
-       : `<p class="sub" style="margin-top:8px">Ainda não há objetivos ativos — cria um acima.</p>`)
+       : estadoVazio('alvo','Nenhum objetivo a decorrer',
+           'Um objetivo transforma «queria perder uns quilos» num plano com prazo: a app calcula o défice diário, reparte-o entre dieta e exercício, e mostra o progresso num anel.',''))
     + `</div>`
     + (concluidos.length? `<div class="secgap"><h2>🏆 Conquistas</h2>
         <div class="grid g2" style="margin-top:10px">${concluidos.map(cartaoConquista).join('')}</div></div>` : '');
@@ -2964,7 +3299,7 @@ function irParaDia(di){ const el=document.getElementById('dia-'+di);
    a linha do alvo — a mesma assinatura tracejada da barra da Atividade. */
 function cartaoSemana(dates){
   const INICIAIS=['S','T','Q','Q','S','S','D'];
-  return `<div class="card" id="pla-resumo" style="margin-bottom:16px">
+  return `<div class="card" id="pla-resumo" style="margin-bottom:16px" data-col="pla-resumo-card">
     <h2>Semana em números ${dica('semana')}</h2>
     ${S.members.map(m=>{
       const alvo=targetKcal(m);
@@ -3142,8 +3477,10 @@ function renderCompras(){
   const {items,meals}=shoppingItems(); const dates=weekDates(S.week);
   if(!items.length) return `<h2>Lista de compras</h2>
     <p class="sub" style="margin:6px 0 16px">Semana de ${fmtShort(dates[0])} a ${fmtShort(dates[6])}</p>
-    <div class="card empty">Ainda não há receitas marcadas nesta semana.<br><br>
-    <button class="btn" onclick="go('plano')">Ir para o plano semanal</button></div>`;
+    ${estadoVazio('cesto','O cesto está vazio',
+      'A lista de compras monta-se sozinha a partir das receitas marcadas no plano da semana, somando as quantidades por número de comensais. Marca algumas refeições e ela aparece aqui.',
+      `<button class="btn" onclick="go('plano')">Ir para o plano semanal</button>
+       <button class="btn ghost" onclick="go('receitas')">Ver receitas</button>`)}`;
   const bought=S.bought[S.week]||{};
   const grupos=gruposCompras();
   const grouped=grupos.map(cat=>[cat,[]]);
@@ -3162,7 +3499,7 @@ function renderCompras(){
       const iSec=grupos.indexOf(cat);
       const dnSec=arr.filter(it=>bought[it.n+'|'+it.u]).length, okSec=dnSec===arr.length&&arr.length;
       return `
-      <div class="cat-h">${cat} <span id="co-sec-${iSec}" class="sub ${okSec?'f-ok-txt':''}" style="float:right">${okSec?'✓ ':''}${dnSec}/${arr.length}</span></div>
+      <div class="cat-h">${ICO_CAT[cat]||''} ${cat} <span id="co-sec-${iSec}" class="sub ${okSec?'f-ok-txt':''}" style="float:right">${okSec?'✓ ':''}${dnSec}/${arr.length}</span></div>
       <ul class="shop">${arr.sort((a,b)=>a.n.localeCompare(b.n)).map(it=>{
         const key=it.n+'|'+it.u, ok=bought[key];
         return `<li class="${ok?'done':''}" data-sec="${iSec}"><label><input type="checkbox" ${ok?'checked':''} onchange="toggleBought('${esc(key).replace(/'/g,"\\'")}',this)">
@@ -3218,7 +3555,7 @@ function corpoFaltaComprar(items){
     : `<p class="sub" style="color:var(--ok);margin-top:8px">✓ Já tens tudo o que precisas em casa esta semana!</p>`}`;
 }
 function cartaoFaltaComprar(items){
-  return `<div class="card secgap" style="border-left:4px solid var(--accent)">
+  return `<div class="card secgap" style="border-left:4px solid var(--accent)" data-col="co-falta">
     <h2>O que falta comprar ${dica('faltaComprar')}</h2>
     <div id="falta-corpo">${corpoFaltaComprar(items)}</div>
   </div>`;
@@ -3271,7 +3608,7 @@ function renderDespensa(){
   <div class="card" style="max-width:640px">
     <div id="despensa-lista">
     ${grouped.filter(([,idx])=>idx.length).map(([cat,idx])=>`
-      <div class="cat-h">${cat}</div>
+      <div class="cat-h">${ICO_CAT[cat]||''} ${cat}</div>
       <ul class="shop">${idx.map(i=>{
         const nome=catalogo[i], ok=!!S.despensa[nome];
         return `<li class="${ok?'done':''}"><label><input type="checkbox" ${ok?'checked':''} onchange="toggleDespensaIdx(${i})">
@@ -3446,6 +3783,8 @@ function limparMembro(m){
     trimestre: clampNum(Math.round(parseFloat(m.trimestre)||1),1,3),
     fetos: clampNum(Math.round(parseFloat(m.fetos)||1),1,3),
     pesoPre: num(m.pesoPre,0)||undefined,
+    emoji: (typeof m.emoji==='string' && m.emoji.length>0 && m.emoji.length<=4)? m.emoji : undefined,
+    cor: (typeof m.cor==='string' && /^#[0-9A-Fa-f]{6}$/.test(m.cor))? m.cor : undefined,
     desportos: Array.isArray(m.desportos) ? m.desportos.map(normalizaDesporto).filter(Boolean) : [],
     suplementos: Array.isArray(m.suplementos)
       ? m.suplementos.filter(s=>s&&temChave(SUPL,s.s))
@@ -3623,6 +3962,37 @@ function tamanho(){
   const n=new Blob([JSON.stringify(S)]).size;
   return n<1024? n+' B' : (n/1024).toFixed(1)+' kB';
 }
+function cartaoAspeto(){
+  const modo=S.ui.tema||'auto', pal=S.ui.paleta||'azulejo';
+  const nFechados=Object.keys(S.ui.colapsados||{}).length;
+  return `<div class="card" data-col="dados-aspeto">
+    <h3>Aspeto ${dica('aspeto')}</h3>
+    <div class="splabel" style="margin-top:10px"><span>Modo</span></div>
+    <div class="row">${Object.entries(MODOS).map(([k,v])=>
+      `<button class="chip ${modo===k?'on':''}" onclick="setTema('${k}')">${k==='claro'?'☀️':k==='escuro'?'🌙':'🖥️'} ${v}</button>`).join('')}</div>
+    <div class="splabel" style="margin-top:14px"><span>Paleta</span></div>
+    <div class="tema-grelha">${Object.entries(PALETAS).map(([k,p])=>
+      `<button class="tema-op ${pal===k?'on':''}" onclick="setPaleta('${k}')" aria-pressed="${pal===k}">
+        <span class="tema-amostra">${p.c.map(c=>`<i style="background:${c}"></i>`).join('')}</span>
+        <span class="tema-nome">${p.n}${pal===k?' ✓':''}</span>
+        <span class="sub" style="font-size:12px">${p.d}</span>
+      </button>`).join('')}</div>
+    <p class="sub" style="margin-top:12px">A paleta muda os acentos e o tom dos neutros; o modo claro ou escuro
+      é independente e cada paleta tem os dois. «Segue o sistema» acompanha o que o telemóvel ou o computador
+      estiverem a usar, e muda sozinho ao anoitecer se o aparelho o fizer.</p>
+    ${nFechados? `<div class="row" style="margin-top:10px">
+      <span class="sub">${plural(nFechados,'secção fechada','secções fechadas')} nesta app</span>
+      <button class="btn ghost small" onclick="abrirTodasSeccoes()">Abrir todas</button></div>`:''}
+  </div>`;
+}
+function abrirTodasSeccoes(){ S.ui.colapsados={}; saveMeta(); render(); }
+function toggleAvatarEditor(mid){ S.ui.avatarAberto = S.ui.avatarAberto===mid? null : mid; saveMeta(); render(); }
+function setAvatar(mid,campo,val){
+  const m=S.members.find(x=>x.id===mid); if(!m) return;
+  if(campo==='emoji'){ if(val) m.emoji=val; else delete m.emoji; }
+  else if(/^#[0-9A-Fa-f]{6}$/.test(val)) m.cor=val;
+  save('avatar de '+m.nome); render();
+}
 function renderDados(){
   const nSem=Object.keys(S.plans).filter(w=>Object.keys(S.plans[w]||{}).length).length;
   return (msg? `<div class="msg ${msg.kind}">${esc(msg.text)}</div>`:'')+`
@@ -3683,6 +4053,8 @@ function renderDados(){
         <button class="btn ghost small" onclick="importarCaixa('juntar')">Juntar o texto colado</button>
       </div>
     </div>
+
+    ${cartaoAspeto()}
 
     <div class="card">
       <h3>Onde ficam os dados</h3>
@@ -3837,7 +4209,10 @@ function cartaoBoasVindas(){
 }
 
 /* ================= RENDER ================= */
-function noMembers(){ return `<div class="card empty">Cria primeiro os perfis da família.<br><br><button class="btn" onclick="go('familia')">Ir para Família</button></div>`; }
+function noMembers(){ return estadoVazio('familia','Ainda não há ninguém aqui',
+  'Este separador precisa de pelo menos um perfil para ter o que mostrar. Cria o primeiro — leva menos de um minuto — ou faz a visita guiada com uma família de exemplo.',
+  `<button class="btn" onclick="go('familia')">Ir para Família</button>
+   <button class="btn ghost" onclick="iniciarTour(true)">✨ Visita guiada</button>`); }
 function render(){
   /* Um arrasto muta o estado no oninput e só grava no change. Se esse change
      nunca chegar — mudou-se de separador a meio, o dedo saiu do slider — a
@@ -3859,6 +4234,7 @@ function render(){
     : renderFamilia();
   /* semeia os valores que só o atualizador escreve (pill de ritmo, etc.) */
   if(S.ui.tab==='nutricao' && S.members.length) atualizarNutricao();
+  montaColapsaveis(); pintaAura();
   paintSave(); pintaHist(); pintaTour();
 }
 /* Ctrl+Z / Ctrl+Shift+Z (ou ⌘ no Mac). Dentro de um campo de texto não se
@@ -3896,6 +4272,12 @@ document.addEventListener('click', e=>{
   if(d){ e.preventDefault(); posicionaDica(d); d.classList.toggle('on'); }
 });
 aplicarEcra();
+aplicarTema();
+/* Em modo automático, seguir o sistema quando ele muda a meio da sessão. */
+try{ const mq=matchMedia('(prefers-color-scheme: dark)');
+  const reagir=()=>{ if((S.ui.tema||'auto')==='auto'){ aplicarTema(); render(); } };
+  if(mq.addEventListener) mq.addEventListener('change',reagir); else if(mq.addListener) mq.addListener(reagir);
+}catch(e){}
 ligarOrientacao();
 /* O explicador do cabeçalho vive em HTML estático, fora dos templates — o
    texto vem do mesmo registo que todos os outros, para não haver duas cópias. */

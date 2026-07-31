@@ -10,6 +10,14 @@ Ferramenta web para gerir a **alimentação e a atividade física de toda a fam�
 
 A página de abertura tem uma **visita guiada** de 14 passos que percorre os nove separadores, com uma família de exemplo para se ver tudo a funcionar — perfis, desportos, receitas, plano e objetivos já preenchidos. Pode sair-se a qualquer momento, e o exemplo apaga-se no separador Dados. Quem preferir começar do zero cria o primeiro perfil ali ao lado; a visita fica sempre disponível em **Dados → Rever a visita guiada**.
 
+## Aspeto
+
+Seis paletas — **Azulejo** (azul de louça e terracota), **Alecrim** (verdes de horta), **Figo** (roxos e magentas), **Maré** (azuis-esverdeados), **Brasa** (laranjas quentes) e **Tinta** (monocromático de alto contraste) — cada uma com modo claro e escuro. A paleta muda os acentos e o tom dos neutros; o modo é independente e pode seguir o sistema, mudando sozinho ao anoitecer. Escolhe-se em **Dados → Aspeto**, e o contraste do texto foi verificado nas doze combinações.
+
+Cada membro tem **emoji e cor próprios**, que aparecem no avatar, nos pontos do plano semanal e numa **aura** esbatida no topo do cabeçalho — a app fica com a cara de quem a usa. As secções mais pesadas são **colapsáveis com memória**: o que se fecha fica fechado, cartão a cartão, e há um botão para reabrir tudo.
+
+O separador Família tem ainda **o mês em palavras**: um retrato dos últimos 30 dias escrito em prosa a partir do que está registado — refeições planeadas, dias completos, dias livres, atividade da família, evolução de quem tem objetivo a decorrer e conquistas do período. Só afirma o que os dados sustentam: sem desporto registado, di-lo; sem objetivo, não fala de variação de peso, porque não há histórico de pesagens.
+
 ## O que faz
 
 **👤 Perfis** — um perfil por membro da família, com sexo, idade, altura e peso. Calcula o índice de massa corporal (com classificação), o metabolismo basal pela fórmula de Mifflin-St Jeor e o gasto energético diário total.
