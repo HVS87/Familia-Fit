@@ -180,7 +180,7 @@ input[type=range]:focus-visible::-moz-range-thumb{box-shadow:0 0 0 3px var(--acc
 .f-ok{fill:var(--ok)} .f-warn{fill:var(--warn)} .f-bad{fill:var(--bad)}
 .f-mut{fill:var(--mut)} .f-line{fill:var(--line)} .f-ink{fill:var(--ink)}
 .f-acc{fill:var(--accent)} .f-energy{fill:var(--energy)} .f-party{fill:var(--party)}
-.f-card{fill:var(--card)} .f-mc{fill:var(--mc)} .f-mp{fill:var(--mp)} .f-mf{fill:var(--mf)}
+.f-mc{fill:var(--mc)} .f-mp{fill:var(--mp)} .f-mf{fill:var(--mf)}
 .s-ok{stroke:var(--ok)} .s-line{stroke:var(--line)} .s-ink{stroke:var(--ink)}
 .s-acc{stroke:var(--accent)} .s-energy{stroke:var(--energy)} .s-mut{stroke:var(--mut)}
 .s-warn{stroke:var(--warn)} .s-bad{stroke:var(--bad)}
@@ -193,6 +193,26 @@ input[type=range]:focus-visible::-moz-range-thumb{box-shadow:0 0 0 3px var(--acc
   #co-bar{transition:width .2s,background-color .2s}
   .anel-arco{transition:stroke-dashoffset .6s ease, stroke .3s ease}
 }
+/* Visita guiada: cartão fixo no fundo, fora do #main para sobreviver aos
+   redesenhos, e um halo à volta do elemento que está a ser explicado. */
+.tour-cartao{position:fixed;left:50%;transform:translateX(-50%);
+  bottom:max(14px,env(safe-area-inset-bottom));width:min(560px,calc(100vw - 24px));
+  background:var(--card);border:1px solid var(--accent);border-radius:14px;
+  box-shadow:0 8px 30px rgba(0,0,0,.3);padding:16px 18px;z-index:80}
+.tour-cartao h3{font-size:16.5px;margin-bottom:4px}
+.tour-cartao .sub{line-height:1.5}
+.tour-progresso{display:flex;gap:4px;margin:10px 0 12px}
+.tour-progresso i{flex:1;height:4px;border-radius:2px;background:var(--line)}
+.tour-progresso i.feito{background:var(--accent)}
+.tour-acoes{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.tour-acoes .btn{min-width:96px;justify-content:center}
+.tour-alvo{position:relative;z-index:70;outline:3px solid var(--accent);outline-offset:3px;border-radius:10px}
+@media (prefers-reduced-motion: no-preference){
+  .tour-alvo{transition:outline-color .2s}
+  .tour-cartao{animation:tour-entra .25s ease-out}
+  @keyframes tour-entra{ from{ opacity:0; transform:translate(-50%,12px);} }
+}
+.tour-destaque{border:2px solid var(--accent);background:linear-gradient(135deg,var(--accent-soft),transparent 70%)}
 /* Objetivos: anel de progresso e celebração de conquista. */
 .anel{overflow:visible}
 .celebracao{position:relative;overflow:hidden;border-color:var(--party);background:var(--party-soft)}
@@ -224,7 +244,6 @@ input[type=range]:focus-visible::-moz-range-thumb{box-shadow:0 0 0 3px var(--acc
 .shop .q{margin-left:auto;color:var(--mut);font-variant-numeric:tabular-nums;white-space:nowrap;font-size:13.5px}
 .cat-h{margin:18px 0 4px;font-family:Georgia,serif;font-size:15px;color:var(--accent)}
 .empty{padding:40px;text-align:center;color:var(--mut)}
-.notice{background:var(--party-soft);border:1px solid var(--party);color:var(--party);border-radius:10px;padding:8px 14px;font-weight:600;font-size:13.5px}
 .secgap{margin-top:28px}
 .savest{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mut);white-space:nowrap;
   background:none;border:none;cursor:pointer;padding:4px 2px;font-family:inherit}
@@ -387,7 +406,7 @@ html[data-orient="paisagem"][data-dispositivo="tablet"] .gdias{grid-template-col
     <div class="hist">
       <button id="btn-undo" onclick="desfazer()" aria-label="Desfazer" disabled>↶</button>
       <button id="btn-redo" onclick="refazer()" aria-label="Refazer" disabled>↷</button>
-      <button type="button" class="dica dica-e" data-dica="Anula a última alteração aos dados. Guarda as últimas 30 e funciona também com Ctrl+Z; mudar de separador não conta como alteração." aria-label="Explicação">i</button>
+      <button type="button" class="dica dica-e" id="dica-desfazer" aria-label="Explicação">i</button>
     </div>
     <button class="savest" id="savest" onclick="go('dados')" title="Ver dados e cópias de segurança"></button>
   </div>
@@ -727,7 +746,7 @@ let saveErr='', msg=null;
 function blank(){ return {members:[],cheats:{},plans:{},bought:{},prefCuisine:'todas',objetivos:[],despensa:{},
   ui:{tab:'familia',mid:null,cuis:'todas',soComp:false,mealF:'todas',
       objForm:{membros:[],tipo:'perder',delta:5,semanas:12,split:50,desporto:null,banda:2},
-      objExpandido:null, objAdj:null, celebrando:null},
+      objExpandido:null, objAdj:null, celebrando:null, tourPasso:null, tourVisto:false},
   week:mondayISO(new Date()),
   meta:{gravadoEm:null,exportadoEm:null,semCopia:false,avisarAoSair:true}}; }
 let S = load();
@@ -942,9 +961,6 @@ function hidratosMin(m){ if(idadeAnos(m)<1) return 0; return gravida(m)? 175 : 1
    grávidas — o slider de objetivo fica limitado a manutenção ou acima. */
 function permiteDefice(m){ return faseDe(m)==='adulto' && !gravida(m); }
 function permiteProjecao(m){ return permiteDefice(m); }
-/* Abaixo dos 6 meses a alimentação é leite materno ou fórmula: a app não
-   gera plano de receitas. Entre os 6 e os 24 meses é apoio, não prescrição. */
-function semPlanoAlimentar(m){ return idadeMeses(m)<6; }
 
 /* ===== NUTRIÇÃO DO BEBÉ =====
    Peso para a idade, percentis 3/15/50/85/97, em quilogramas. Valores
@@ -966,15 +982,6 @@ function pesosPercentis(sexo,meses){
   let i=0; while(i<WHO_MESES.length-2 && x>WHO_MESES[i+1]) i++;
   const a=WHO_MESES[i], b=WHO_MESES[i+1], r=(b>a)?(x-a)/(b-a):0;
   return t[i].map((v,k)=>v+(t[i+1][k]-v)*r);
-}
-function pesoNoPercentil(sexo,meses,p){
-  const v=pesosPercentis(sexo,meses);
-  if(p<=PERCENTIS[0]) return v[0];
-  if(p>=PERCENTIS[4]) return v[4];
-  for(let i=1;i<PERCENTIS.length;i++) if(p<=PERCENTIS[i]){
-    const r=(p-PERCENTIS[i-1])/(PERCENTIS[i]-PERCENTIS[i-1]);
-    return v[i-1]+(v[i]-v[i-1])*r; }
-  return v[4];
 }
 /* Percentil aproximado do peso atual, por interpolação entre as curvas. */
 function percentilDe(m){
@@ -1314,11 +1321,7 @@ function upd(id,field,val,num){ const m=S.members.find(x=>x.id===id); if(!m) ret
   save(rot? rot+' de '+m.nome : null); render(); }
 
 function renderFamilia(){
-  if(!S.members.length) return `<div class="card empty"><h2>Bem-vindos! 👋</h2>
-    <p class="sub" style="margin:8px 0 16px">Comecem por criar um perfil para cada membro da família.</p>
-    <div class="row" style="justify-content:center">
-      <button class="btn" onclick="addMember()">+ Criar primeiro perfil</button>
-      <button class="btn ghost" onclick="go('dados')">Restaurar uma cópia</button></div></div>`;
+  if(!S.members.length) return cartaoBoasVindas();
   return `<div class="row" style="justify-content:space-between;margin-bottom:16px">
       <div><h2>Perfis da família</h2><span class="sub">${S.members.length} membro${S.members.length>1?'s':''} · os dados guardam-se automaticamente neste dispositivo</span></div>
       <button class="btn" onclick="addMember()">+ Adicionar membro</button></div>
@@ -3447,15 +3450,157 @@ function renderDados(){
         não abres há algumas semanas. Instalar a app no ecrã principal (partilha → «Adicionar ao ecrã principal»)
         dá-lhe armazenamento próprio e mais duradouro, mas a cópia exportada continua a ser a única garantia.</p>
       <div class="row" style="margin-top:14px">
+        <button class="btn ghost" onclick="iniciarTour(false)">✨ Rever a visita guiada</button>
         <button class="btn danger" onclick="apagarTudo()">Apagar todos os dados</button>
       </div>
     </div>
   </div>`;
 }
 
+/* ================= VISITA GUIADA =================
+   Passa por todos os separadores e explica o que cada um faz. O cartão vive
+   fora do #main, por isso sobrevive aos redesenhos; o destaque é reposto
+   depois de cada render, porque o innerHTML destrói o elemento anterior. */
+const TOUR=[
+  {tab:'familia', sel:'main .card',
+   t:'Perfis da família',
+   d:'Cada pessoa tem aqui o seu perfil. Os sliders de peso, altura e idade mexem em direto no índice de massa corporal, no metabolismo basal e no gasto diário — e a fase da vida (bebé, criança, adolescente, adulto ou gravidez) escolhe as fórmulas certas para cada idade.'},
+  {tab:'familia', sel:'svg[aria-label*="massa corporal"]',
+   t:'Índice de massa corporal',
+   d:'A banda mostra onde o peso cai na escala da Organização Mundial de Saúde, com a zona saudável em verde. Em crianças não se aplicam estes limites de adulto — a app diz-o e usa o percentil em vez disso.'},
+  {tab:'atividade', sel:'.spline',
+   t:'Atividade — 43 desportos',
+   d:'Nos desportos em que a velocidade manda no esforço (corrida, ciclismo, natação, remo, patinagem) indicam-se distância e ritmo em sliders, e o ponto laranja percorre a curva de esforço em direto. Nos restantes escolhe-se a intensidade pelo teste da conversa.'},
+  {tab:'atividade', sel:'#ga-basal',
+   t:'De onde vem o gasto do dia',
+   d:'A barra reparte o gasto entre metabolismo basal, dia-a-dia, deslocações e desporto. A linha tracejada marca o alvo alimentar: a distância entre o fim da barra e a linha é o défice ou o excedente do plano.'},
+  {tab:'nutricao', sel:'#nu-r-obj',
+   t:'Nutrição — objetivo e macros',
+   d:'O objetivo é um slider contínuo de −25 % a +20 % do gasto, com o ritmo em quilos por semana e travão quando o alvo desce abaixo do metabolismo basal. A dieta escolhida vira gramas de hidratos, proteína e gordura, repartidas pelas quatro refeições.'},
+  {tab:'nutricao', sel:'#nu-plinha',
+   t:'Projeção de peso',
+   d:'Mostra para onde o peso caminha se o alvo se mantiver, recalculando o gasto a cada semana — por isso a curva achata. A faixa verde é a zona de índice de massa corporal saudável para a altura.'},
+  {tab:'receitas', sel:'.rc',
+   t:'Receitas ligadas à despensa',
+   d:'São 84 receitas, filtráveis por refeição, cozinha e compatibilidade com a dieta. Cada uma mostra os ingredientes com ✓ verde para o que já tens em casa e ✗ vermelho para o que falta — e diz «Pronta a cozinhar» quando não falta nada.'},
+  {tab:'despensa', sel:'#despensa-lista',
+   t:'A minha despensa',
+   d:'Marca aqui o que tens em casa. A lista vem dos ingredientes das próprias receitas, para os nomes baterem sempre certo. Comprar um item na lista de compras marca-o aqui automaticamente.'},
+  {tab:'objetivos', sel:'main .card',
+   t:'Objetivos com estratégia mista',
+   d:'Define quantos quilos e em quanto tempo: a app calcula o défice diário e reparte-o entre dieta e exercício num slider. Ao criar, aplica logo o objetivo à Nutrição e acrescenta as horas de treino ao desporto escolhido.'},
+  {tab:'objetivos', sel:'.anel',
+   t:'Anéis de progresso e conquistas',
+   d:'Cada objetivo tem um anel que compara o progresso real com o tempo já passado — fica amarelo ou vermelho se ficares para trás. Ao atingir a meta, a app celebra e guarda o objetivo nas Conquistas.'},
+  {tab:'plano', sel:'#pla-resumo',
+   t:'Plano semanal',
+   d:'Quatro refeições por dia, com quem come cada uma. O resumo mostra as calorias planeadas por dia contra o alvo de cada membro; cinzento é dia incompleto e rosa é cheat day. O preenchimento automático só sugere receitas compatíveis com todos os comensais.'},
+  {tab:'compras', sel:'#falta-corpo',
+   t:'Compras e o que falta',
+   d:'A lista agrega os ingredientes da semana pelo número de comensais. O cartão «O que falta comprar» tira o que já está na despensa e permite enviá-lo pelo menu de partilha do telemóvel — para o Keep, os Lembretes ou onde quiseres.'},
+  {tab:'dados', sel:'main .card',
+   t:'Cópias de segurança',
+   d:'Tudo fica gravado só neste browser, por isso o ficheiro de cópia é a única coisa que sobrevive a limpar o histórico ou trocar de telemóvel. Podes substituir tudo por uma cópia ou juntar duas, para combinar o que duas pessoas preencheram.'},
+  {tab:'familia', sel:'.hist',
+   t:'Desfazer e explicações',
+   d:'Qualquer alteração se desfaz com estes botões ou com Ctrl+Z — as últimas 30 ficam guardadas. E os pequenos «i» espalhados pela app explicam cada funcionalidade quando passas o rato ou lhes tocas. Já podes começar!'}
+];
+function tourAtivo(){ return Number.isFinite(S.ui.tourPasso); }
+function iniciarTour(comExemplo){
+  if(comExemplo && !S.members.length) semearFamiliaExemplo();
+  S.ui.tourPasso=0; saveMeta(); irParaPassoTour();
+}
+function fecharTour(){
+  S.ui.tourPasso=null; S.ui.tourVisto=true;
+  limpaDestaqueTour();
+  const c=document.getElementById('tour-cartao'); if(c) c.remove();
+  saveMeta(); render();
+}
+function tourAnterior(){ if(S.ui.tourPasso>0){ S.ui.tourPasso--; saveMeta(); irParaPassoTour(); } }
+function tourSeguinte(){
+  if(S.ui.tourPasso>=TOUR.length-1) return fecharTour();
+  S.ui.tourPasso++; saveMeta(); irParaPassoTour();
+}
+function irParaPassoTour(){
+  const p=TOUR[S.ui.tourPasso]; if(!p) return fecharTour();
+  S.ui.tab=p.tab; saveMeta(); render();   /* render repõe o cartão e o destaque */
+}
+function limpaDestaqueTour(){
+  document.querySelectorAll('.tour-alvo').forEach(e=>e.classList.remove('tour-alvo'));
+}
+function pintaTour(){
+  limpaDestaqueTour();
+  let c=document.getElementById('tour-cartao');
+  if(!tourAtivo()){ if(c) c.remove(); return; }
+  const p=TOUR[S.ui.tourPasso];
+  if(!c){ c=document.createElement('div'); c.id='tour-cartao'; c.className='tour-cartao';
+    c.setAttribute('role','dialog'); c.setAttribute('aria-label','Visita guiada'); document.body.appendChild(c); }
+  c.innerHTML=`<div class="row" style="justify-content:space-between;align-items:baseline">
+      <h3>${esc(p.t)}</h3><span class="sub">${S.ui.tourPasso+1} de ${TOUR.length}</span></div>
+    <p class="sub">${p.d}</p>
+    <div class="tour-progresso" aria-hidden="true">${TOUR.map((_,i)=>`<i class="${i<=S.ui.tourPasso?'feito':''}"></i>`).join('')}</div>
+    <div class="tour-acoes">
+      <button class="btn ghost small" onclick="fecharTour()">Sair</button>
+      <span style="flex:1"></span>
+      ${S.ui.tourPasso>0? '<button class="btn ghost" onclick="tourAnterior()">← Anterior</button>':''}
+      <button class="btn" onclick="tourSeguinte()">${S.ui.tourPasso>=TOUR.length-1?'Terminar':'Seguinte →'}</button>
+    </div>`;
+  /* o alvo pode não existir neste estado (sem membros, sem plano) — o passo
+     continua a fazer sentido pelo texto, só não há halo */
+  const alvo=p.sel? document.querySelector(p.sel) : null;
+  if(alvo){ alvo.classList.add('tour-alvo');
+    try{ alvo.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){ alvo.scrollIntoView(); } }
+}
+/* Família de exemplo para a visita ter conteúdo real por baixo. Só é oferecida
+   quando não há dados nenhuns, por isso nunca escreve por cima de nada. */
+function semearFamiliaExemplo(){
+  addMember(); Object.assign(S.members[0],{nome:'Ana',sexo:'f',idade:38,altura:166,peso:68,
+    atividade:'leve',desloc:'pe30',dieta:'mediterranica',objetivoPct:-12,
+    desportos:[normalizaDesporto({s:'corrida',km:18,v:9.5,per:'semana'}),
+               normalizaDesporto({s:'yoga',h:2,per:'semana',i:'leve'})]});
+  addMember(); Object.assign(S.members[1],{nome:'Bruno',sexo:'m',idade:41,altura:179,peso:86,
+    atividade:'sedentario',desloc:'nenhum',dieta:'lowcarb',objetivoPct:-15,
+    desportos:[normalizaDesporto({s:'ciclismo',km:60,v:22,per:'semana'})]});
+  addMember(); Object.assign(S.members[2],{nome:'Rita',sexo:'f',idade:9,altura:134,peso:30,
+    atividade:'moderado',desloc:'pe30',dieta:'equilibrada',
+    desportos:[normalizaDesporto({s:'natacao',km:2,v:2.2,per:'semana'})]});
+  S.members.forEach(normalizaMembro);
+  S.ui.mid=S.members[0].id;
+  ['Ovo','Azeite','Cebola','Alho','Tomate','Arroz','Batata','Leite'].forEach(n=>{
+    if(catalogoIngredientes().indexOf(n)>=0) S.despensa[n]=true; });
+  autoFill();   /* já grava */
+  S.objetivos.push({id:uid(), membroId:S.members[1].id, tipo:'perder',
+    pesoInicial:88, pesoAlvo:82, semanas:12, dataInicio:new Date(Date.now()-21*24*3600*1000).toISOString(),
+    splitDieta:60, desportoEscolhido:'ciclismo', bandaManter:2,
+    concluido:false, celebrado:false, dataConclusao:null});
+  save('família de exemplo');
+}
+function cartaoBoasVindas(){
+  return `<div class="card tour-destaque" style="text-align:center;padding:26px 22px">
+    <div style="font-size:34px" aria-hidden="true">🍽️</div>
+    <h2 style="margin-top:6px">Bem-vindos ao Família Fit</h2>
+    <p class="sub" style="max-width:62ch;margin:8px auto 0">Alimentação e atividade física de toda a família num só sítio:
+      perfis por fase da vida, 84 receitas ligadas à despensa, plano semanal, objetivos com estratégia e lista de compras.
+      Nada sai deste dispositivo.</p>
+    <div class="row" style="justify-content:center;margin-top:18px">
+      <button class="btn" onclick="iniciarTour(true)">✨ Fazer a visita guiada</button>
+      <button class="btn ghost" onclick="addMember()">+ Criar primeiro perfil</button>
+      <button class="btn ghost" onclick="go('dados')">Restaurar uma cópia</button>
+    </div>
+    <p class="sub" style="margin-top:12px">A visita percorre os ${TABS.length} separadores em ${TOUR.length} passos, com uma família
+      de exemplo para veres tudo a funcionar. Podes sair a qualquer momento e apagar o exemplo no separador Dados.</p>
+  </div>`;
+}
+
 /* ================= RENDER ================= */
 function noMembers(){ return `<div class="card empty">Cria primeiro os perfis da família.<br><br><button class="btn" onclick="go('familia')">Ir para Família</button></div>`; }
 function render(){
+  /* Um arrasto muta o estado no oninput e só grava no change. Se esse change
+     nunca chegar — mudou-se de separador a meio, o dedo saiu do slider — a
+     alteração ficava por confirmar e o desfazer seguinte saltava por cima
+     dela, repondo dois passos atrás. Redesenhar significa que o gesto
+     acabou, por isso é aqui que se compromete o que ficou pendente. */
+  if(estadoAnterior!==null && instantaneo()!==estadoAnterior) save();
   document.getElementById('nav').innerHTML = TABS.map(([k,v])=>
     `<button class="${S.ui.tab===k?'on':''}" onclick="go('${k}')">${v}</button>`).join('');
   const el=document.getElementById('main');
@@ -3470,7 +3615,7 @@ function render(){
     : renderFamilia();
   /* semeia os valores que só o atualizador escreve (pill de ritmo, etc.) */
   if(S.ui.tab==='nutricao' && S.members.length) atualizarNutricao();
-  paintSave(); pintaHist();
+  paintSave(); pintaHist(); pintaTour();
 }
 /* Ctrl+Z / Ctrl+Shift+Z (ou ⌘ no Mac). Dentro de um campo de texto não se
    intercepta nada — aí o desfazer que faz sentido é o do próprio campo. */
@@ -3508,6 +3653,10 @@ document.addEventListener('click', e=>{
 });
 aplicarEcra();
 ligarOrientacao();
+/* O explicador do cabeçalho vive em HTML estático, fora dos templates — o
+   texto vem do mesmo registo que todos os outros, para não haver duas cópias. */
+(function(){ const d=document.getElementById('dica-desfazer');
+  if(d) d.setAttribute('data-dica', DICAS.desfazer); })();
 estadoAnterior=instantaneo();   /* base do histórico: o estado tal como foi carregado */
 render();
 

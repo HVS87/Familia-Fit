@@ -6,6 +6,10 @@ Ferramenta web para gerir a **alimentação e a atividade física de toda a fam�
 
 ---
 
+## Começar
+
+A página de abertura tem uma **visita guiada** de 14 passos que percorre os nove separadores, com uma família de exemplo para se ver tudo a funcionar — perfis, desportos, receitas, plano e objetivos já preenchidos. Pode sair-se a qualquer momento, e o exemplo apaga-se no separador Dados. Quem preferir começar do zero cria o primeiro perfil ali ao lado; a visita fica sempre disponível em **Dados → Rever a visita guiada**.
+
 ## O que faz
 
 **👤 Perfis** — um perfil por membro da família, com sexo, idade, altura e peso. Calcula o índice de massa corporal (com classificação), o metabolismo basal pela fórmula de Mifflin-St Jeor e o gasto energético diário total.
