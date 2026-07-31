@@ -54,7 +54,11 @@
   --shadow:0 1px 3px rgba(0,0,0,.4);
 }
 *{box-sizing:border-box;margin:0}
-body{background:var(--bg);color:var(--ink);font:15px/1.55 "Segoe UI",system-ui,-apple-system,sans-serif;padding-bottom:60px}
+/* overflow-x:clip (e não hidden) impede que uma bolha de explicação ponha a
+   página a deslizar na horizontal, sem criar um contentor de scroll — o
+   cabeçalho fixo continua a colar-se ao topo. */
+body{background:var(--bg);color:var(--ink);font:15px/1.55 "Segoe UI",system-ui,-apple-system,sans-serif;
+  padding-bottom:60px;overflow-x:clip}
 h1,h2,h3,.display{font-family:Georgia,"Times New Roman",serif;font-weight:600;text-wrap:balance}
 h1{font-size:26px} h2{font-size:20px;margin-bottom:4px} h3{font-size:16px}
 button,input,select{font:inherit;color:inherit}
@@ -143,6 +147,35 @@ input[type=range]:focus-visible::-moz-range-thumb{box-shadow:0 0 0 3px var(--acc
 .rgF::-moz-range-progress{background:var(--mf)} .rgF::-moz-range-thumb{background:var(--mf)}
 /* Gráficos: espelho, não controlo — nunca roubam o scroll nem o toque.
    Cores SEMPRE por classe (var() em atributos SVG não é fiável). */
+/* Explicadores: bolha ancorada à esquerda do marcador (as dicas vivem sempre
+   no lado esquerdo dos cartões, por isso crescer para a direita não transborda).
+   Aparecem com o rato, com o teclado e — onde não há rato — ao toque. */
+.dica{position:relative;display:inline-flex;align-items:center;justify-content:center;
+  width:18px;height:18px;padding:0;margin-left:6px;border:1px solid var(--line);border-radius:50%;
+  background:var(--bg);color:var(--mut);font:700 11px/1 inherit;cursor:help;vertical-align:middle;flex:none}
+.dica:hover,.dica:focus-visible,.dica.on{border-color:var(--accent);color:var(--accent)}
+.dica::after{content:attr(data-dica);position:absolute;left:calc(-4px + var(--dx,0px));top:calc(100% + 8px);
+  width:max-content;max-width:min(270px,calc(100vw - 24px));
+  background:var(--ink);color:var(--card);padding:9px 12px;border-radius:9px;
+  font:400 12.5px/1.45 inherit;letter-spacing:0;text-transform:none;text-align:left;white-space:normal;
+  z-index:30;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.25);display:none}
+.dica::before{content:'';position:absolute;left:5px;top:calc(100% + 2px);
+  border:6px solid transparent;border-bottom-color:var(--ink);z-index:31;display:none}
+/* display em vez de visibility: uma bolha só escondida continuaria a contar
+   para a largura do documento e punha a página a deslizar na horizontal. */
+.dica:hover::after,.dica:hover::before,.dica:focus-visible::after,.dica:focus-visible::before,
+.dica.on::after,.dica.on::before{display:block}
+@media (hover:none) and (pointer:coarse){ .dica{width:30px;height:30px;font-size:14px;margin-left:8px} }
+/* Barra de desfazer */
+.hist{display:flex;gap:4px}
+.hist button{background:none;border:1px solid var(--line);border-radius:8px;color:var(--mut);
+  cursor:pointer;padding:5px 9px;font-size:14px;line-height:1;min-width:34px}
+.hist button:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+.hist button:disabled{opacity:.35;cursor:default}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:max(22px,env(safe-area-inset-bottom));
+  background:var(--ink);color:var(--card);padding:10px 16px;border-radius:999px;font-size:13.5px;
+  font-weight:600;z-index:60;box-shadow:0 4px 18px rgba(0,0,0,.28);max-width:90vw;text-align:center}
+@media (prefers-reduced-motion: no-preference){ #toast{transition:opacity .18s} }
 .svgfx{display:block;width:100%;height:auto;pointer-events:none}
 .f-ok{fill:var(--ok)} .f-warn{fill:var(--warn)} .f-bad{fill:var(--bad)}
 .f-mut{fill:var(--mut)} .f-line{fill:var(--line)} .f-ink{fill:var(--ink)}
@@ -332,6 +365,11 @@ html[data-orient="paisagem"][data-dispositivo="tablet"] .gdias{grid-template-col
       <small>alimentação &amp; movimento</small>
     </div>
     <nav id="nav"></nav>
+    <div class="hist">
+      <button id="btn-undo" onclick="desfazer()" aria-label="Desfazer" disabled>↶</button>
+      <button id="btn-redo" onclick="refazer()" aria-label="Refazer" disabled>↷</button>
+      <button type="button" class="dica dica-e" data-dica="Anula a última alteração aos dados. Guarda as últimas 30 e funciona também com Ctrl+Z; mudar de separador não conta como alteração." aria-label="Explicação">i</button>
+    </div>
     <button class="savest" id="savest" onclick="go('dados')" title="Ver dados e cópias de segurança"></button>
   </div>
 </header>
@@ -664,7 +702,66 @@ function writeLS(){
 }
 /* save() = alteração de dados: grava e marca que ainda não há cópia exportada.
    saveMeta() = alteração só de definições: grava sem mexer nesse estado. */
-function save(){ S.meta.gravadoEm=new Date().toISOString(); S.meta.semCopia=true; writeLS(); }
+/* ===== DESFAZER =====
+   O instantâneo guarda só os dados; a navegação e as preferências de ecrã
+   ficam de fora, para desfazer nunca saltar de separador sozinho. Como o
+   save() corre depois da alteração, o que se empilha é o estado anterior —
+   e num arrasto de slider isso é o estado de antes do gesto começar. */
+const UNDO_MAX=30;
+let pilhaUndo=[], pilhaRedo=[], estadoAnterior=null, ultimaDesc=null;
+function instantaneo(){ return JSON.stringify({members:S.members, cheats:S.cheats, plans:S.plans,
+  bought:S.bought, week:S.week, prefCuisine:S.prefCuisine}); }
+function aplicaInstantaneo(js){
+  const d=JSON.parse(js);
+  S.members=d.members; S.cheats=d.cheats; S.plans=d.plans; S.bought=d.bought;
+  S.week=d.week; S.prefCuisine=d.prefCuisine;
+  S.members.forEach(normalizaMembro);
+  if(!S.members.some(m=>m.id===S.ui.mid)) S.ui.mid=S.members[0]? S.members[0].id : null;
+  macroLive=null;
+  estadoAnterior=instantaneo();
+  S.meta.gravadoEm=new Date().toISOString(); S.meta.semCopia=true; writeLS(); render();
+}
+function desfazer(){
+  if(!pilhaUndo.length) return;
+  const e=pilhaUndo.pop();
+  pilhaRedo.push({js:instantaneo(), desc:e.desc});
+  const d=e.desc; aplicaInstantaneo(e.js);
+  toast('Desfeito'+(d? ': '+d : ''));
+}
+function refazer(){
+  if(!pilhaRedo.length) return;
+  const e=pilhaRedo.pop();
+  pilhaUndo.push({js:instantaneo(), desc:e.desc});
+  const d=e.desc; aplicaInstantaneo(e.js);
+  toast('Refeito'+(d? ': '+d : ''));
+}
+let _toastT=null;
+function toast(txt){
+  let el=document.getElementById('toast');
+  if(!el){ el=document.createElement('div'); el.id='toast'; document.body.appendChild(el); }
+  el.textContent=txt; el.style.opacity='1';
+  clearTimeout(_toastT);
+  _toastT=setTimeout(()=>{ el.style.opacity='0';
+    _toastT=setTimeout(()=>{ if(el.parentNode) el.parentNode.removeChild(el); },250); }, 2600);
+}
+function pintaHist(){
+  const u=document.getElementById('btn-undo'), r=document.getElementById('btn-redo');
+  if(u){ u.disabled=!pilhaUndo.length;
+    u.title=pilhaUndo.length? 'Desfazer'+(pilhaUndo[pilhaUndo.length-1].desc? ': '+pilhaUndo[pilhaUndo.length-1].desc:'')+' (Ctrl+Z)' : 'Nada para desfazer'; }
+  if(r){ r.disabled=!pilhaRedo.length;
+    r.title=pilhaRedo.length? 'Refazer (Ctrl+Shift+Z)' : 'Nada para refazer'; }
+}
+function save(desc){
+  const agora=instantaneo();
+  if(estadoAnterior!==null && estadoAnterior!==agora){
+    pilhaUndo.push({js:estadoAnterior, desc:desc||ultimaDesc||null});
+    if(pilhaUndo.length>UNDO_MAX) pilhaUndo.shift();
+    pilhaRedo=[];
+  }
+  ultimaDesc=null;
+  estadoAnterior=agora;
+  S.meta.gravadoEm=new Date().toISOString(); S.meta.semCopia=true; writeLS(); pintaHist();
+}
 function saveMeta(){ S.meta.gravadoEm=new Date().toISOString(); writeLS(); }
 function hhmm(isoS){ if(!isoS) return '—'; const d=new Date(isoS);
   return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
@@ -948,6 +1045,40 @@ function fmtShort(isoD){ const d=new Date(isoD+'T12:00:00'); return d.getDate()+
 function isCheat(mid,date){ return (S.cheats[mid]||[]).includes(date); }
 
 /* ================= NAVEGAÇÃO ================= */
+/* Explicadores. Ficam todos aqui para o texto ser escrito uma vez e revisto
+   de uma assentada, em vez de andar espalhado pelos templates. */
+const DICAS={
+  imc:'Peso a dividir pela altura ao quadrado. É uma medida de rastreio para adultos: não distingue músculo de gordura, por isso um atleta pode aparecer em «excesso de peso» sem o estar. Em crianças lê-se por percentil para a idade, não por estes limites.',
+  basal:'As calorias que o corpo gasta em repouso absoluto, só para se manter vivo. Calculado por Mifflin-St Jeor nos adultos e por Schofield abaixo dos 19 anos.',
+  gasto:'O gasto total do dia: o metabolismo basal multiplicado pelo nível de atividade, mais as deslocações, mais o desporto e, em quem está a crescer ou grávida, a energia dessa fase.',
+  alvo:'O gasto ajustado pelo objetivo. É deste número que saem as gramas de cada macronutriente e as calorias sugeridas por refeição — é ele que liga este separador à Nutrição e ao Plano.',
+  fase:'Bebé, criança, adolescente, adulto ou gravidez. A fase escolhe a equação de metabolismo, a faixa de macronutrientes aceitável e os limites de esforço recomendados.',
+  bandaImc:'A escala de índice de massa corporal com o valor atual assinalado. As zonas seguem os limites da Organização Mundial de Saúde para adultos.',
+  nivelAtiv:'Quanto te mexes fora do desporto: um trabalho de secretária gasta muito menos do que um trabalho em pé ou de carga. Multiplica o metabolismo basal entre 1,2 e 1,65.',
+  desloc:'A ida e volta do trabalho ou da escola conta como exercício se for a pé ou de bicicleta. Só conta nos cinco dias úteis.',
+  intensidade:'O esforço a que praticas. Mede-se pelo teste da conversa: leve se falas à vontade, moderado se falas com a respiração acelerada, intenso se já não consegues manter a conversa.',
+  curvaMet:'A relação entre a velocidade e o esforço nesta modalidade. O MET é quantas vezes gastas mais do que em repouso. O ponto laranja acompanha o slider de velocidade — a distância não o move, porque o esforço por hora depende do ritmo, não de quanto tempo o manténs.',
+  distancia:'A distância e a velocidade dão as horas de treino, que é como um corredor ou um ciclista pensa. Para a mesma distância, ir mais depressa demora menos tempo e gasta calorias parecidas.',
+  barraGasto:'De onde vem o gasto do dia, parcela a parcela. A linha tracejada marca o alvo alimentar: a distância entre o fim da barra e a linha é o défice ou o excedente do plano.',
+  objetivo:'Quanto queres comer acima ou abaixo do que gastas. Um défice de 15 % é um ritmo comum de perda; abaixo de −20 % a app avisa, e se o alvo cair abaixo do metabolismo basal avisa com mais força.',
+  ritmo:'A perda ou ganho de peso que o objetivo implica, a 7 700 kcal por quilo. Acima de 0,75 kg por semana passa a amarelo, acima de 1 kg a vermelho.',
+  dieta:'Cada dieta é uma repartição diferente de hidratos, proteína e gordura. A «Personalizada» abre três sliders ligados entre si, que somam sempre 100 %.',
+  macros:'Quanto do total calórico vem de cada macronutriente, e a tradução em gramas. Um grama de hidratos ou de proteína dá 4 kcal, um de gordura dá 9.',
+  amdr:'A faixa de distribuição de macronutrientes considerada aceitável nesta fase da vida. Em crianças e na gravidez, uma dieta que saia da faixa é encostada aos limites; num adulto é apenas referência.',
+  proteinaKg:'A proteína recomendada por quilo de peso muda com a idade: um bebé precisa de quase o dobro de um adulto, e na gravidez sobe para 1,1 g por quilo.',
+  projecao:'Para onde o peso caminha se mantiveres este alvo, com o gasto recalculado a cada semana — por isso a curva vai achatando. É uma estimativa, não uma promessa.',
+  refeicoes:'Como repartir o alvo do dia pelas quatro refeições: um quarto ao pequeno-almoço, um terço ao almoço, um décimo ao lanche e o resto ao jantar.',
+  cheat:'Um dia livre para aniversários e festas. Quem estiver marcado sai das contas desse dia e dos ingredientes da lista de compras.',
+  auto:'Preenche as refeições em falta escolhendo receitas do tipo certo, compatíveis com a dieta de todos os que comem cada refeição, e evitando repetir dentro da semana.',
+  semana:'As calorias planeadas por dia contra o alvo de cada membro. Cinzento é dia incompleto, rosa é cheat day — só os dias completos recebem verde, amarelo ou vermelho. Toca numa coluna para saltar para esse dia.',
+  compras:'A quantidade de cada receita multiplicada pelo número de pessoas que a comem, somada em toda a semana. Quem estiver em cheat day não conta nesse dia.',
+  esforco:'O que é recomendado para esta idade ou estado, e o que convém evitar. Os valores vêm da Organização Mundial de Saúde e, na gravidez, das orientações de obstetrícia.',
+  copias:'Os dados vivem só neste browser. O ficheiro de cópia é a única coisa que sobrevive a limpar o histórico, trocar de telemóvel ou reinstalar.',
+  juntar:'«Substituir» troca tudo pelo conteúdo da cópia. «Juntar» acrescenta o que falta sem apagar nada — é a opção para combinar o que duas pessoas preencheram em dispositivos diferentes.',
+  desfazer:'Anula a última alteração aos dados. Guarda as últimas 30 e funciona também com Ctrl+Z; mudar de separador não conta como alteração.'
+};
+function dica(k,extra){ const t=DICAS[k]; if(!t) return '';
+  return `<button type="button" class="dica ${extra||''}" data-dica="${esc(t)}" aria-label="Explicação">i</button>`; }
 const TABS=[['familia','👤 Família'],['atividade','🏃 Atividade'],['nutricao','🍽️ Nutrição'],['plano','📅 Plano semanal'],['compras','🛒 Compras'],['dados','⚙️ Dados']];
 function go(t){ S.ui.tab=t; msg=null; saveMeta(); render(); }
 function pickM(id){ S.ui.mid=id; macroLive=null; saveMeta(); render(); }
@@ -963,14 +1094,14 @@ function memberPicker(){ if(!S.members.length) return '';
 /* ================= FAMÍLIA ================= */
 function addMember(){
   const m={id:uid(),nome:'Novo membro',sexo:'m',idade:35,altura:172,peso:75,atividade:'sedentario',desloc:'nenhum',desportos:[],dieta:'equilibrada',objetivo:'manter',objetivoPct:0};
-  S.members.push(m); S.ui.mid=m.id; save(); render();
+  S.members.push(m); S.ui.mid=m.id; save('novo perfil'); render();
 }
 function delMember(id){
   const m=S.members.find(x=>x.id===id);
   if(!confirm(`Remover o perfil de ${m.nome}?`)) return;
   S.members=S.members.filter(x=>x.id!==id); delete S.cheats[id];
   Object.values(S.plans).forEach(w=>Object.values(w).forEach(d=>MEALK.forEach(k=>{ if(d[k]) d[k].m=d[k].m.filter(x=>x!==id); })));
-  save(); render();
+  save('remoção de '+m.nome); render();
 }
 function upd(id,field,val,num){ const m=S.members.find(x=>x.id===id); if(!m) return;
   /* ao entrar na dieta personalizada, semeiam-se os macros com os da dieta
@@ -978,7 +1109,10 @@ function upd(id,field,val,num){ const m=S.members.find(x=>x.id===id); if(!m) ret
   if(field==='dieta' && val==='personalizada' && m.dieta!=='personalizada' && !m.macros){
     const d=dietaDe(m); m.macros={c:d.c,p:d.p,f:d.f};
   }
-  m[field]=num?parseFloat(val)||0:val; save(); render(); }
+  m[field]=num?parseFloat(val)||0:val;
+  const rot={peso:'peso',altura:'altura',idade:'idade',dieta:'dieta',sexo:'sexo',nome:'nome',
+    atividade:'nível de atividade',desloc:'deslocação',gravida:'gravidez',meses:'idade'}[field];
+  save(rot? rot+' de '+m.nome : null); render(); }
 
 function renderFamilia(){
   if(!S.members.length) return `<div class="card empty"><h2>Bem-vindos! 👋</h2>
@@ -1009,7 +1143,7 @@ function renderFamilia(){
         <div class="frow">
           <div><label class="lbl">Sexo</label><select onchange="upd('${mid}','sexo',this.value)">
             <option value="m" ${m.sexo==='m'?'selected':''}>Masculino</option><option value="f" ${m.sexo==='f'?'selected':''}>Feminino</option></select></div>
-          <div><label class="lbl">Fase</label><select onchange="setFase('${mid}',this.value)">
+          <div><label class="lbl">Fase ${dica('fase')}</label><select onchange="setFase('${mid}',this.value)">
             <option value="bebe" ${bebe?'selected':''}>Bebé (até 2 anos)</option>
             <option value="crianca" ${fase==='crianca'?'selected':''}>Criança (2–12)</option>
             <option value="adolescente" ${fase==='adolescente'?'selected':''}>Adolescente (13–18)</option>
@@ -1038,6 +1172,7 @@ function renderFamilia(){
           ${sl('altura','Altura',bebe?40:90,220,1,Math.round(m.altura)+' cm','Altura em centímetros')}
           ${bebe?'':sl('idade','Idade',2,90,1,Math.round(m.idade)+' anos','Idade em anos')}
         </div>
+        <div class="splabel" style="margin:10px 0 0"><span>Índice de massa corporal ${dica('bandaImc')}</span></div>
         ${avisoFase(m)}
         <svg class="svgfx" viewBox="0 0 340 64" role="img" aria-label="Índice de massa corporal na escala de 15 a 40" style="margin-top:6px">
           <clipPath id="clip-${mid}"><rect x="8" y="26" width="324" height="12" rx="6"/></clipPath>
@@ -1059,10 +1194,10 @@ function renderFamilia(){
           fase==='adulto'? (dentro?'✓ ':'')+'Peso saudável para '+Math.round(m.altura)+' cm: '+zmin+'–'+zmax+' kg'
           : 'Em idade de crescimento o IMC lê-se em percentil para a idade e o sexo, não por estes limites de adulto.'}</span></div>
         <div class="row" style="margin-top:10px">
-          <div class="stat"><b id="f-${mid}-imc">${nPT(v,1)}</b><span>IMC</span></div>
-          <div class="stat"><b id="f-${mid}-bmr">${Math.round(bmr(m))}</b><span>Basal kcal</span></div>
-          <div class="stat"><b id="f-${mid}-tdee">${Math.round(tdee(m))}</b><span>Gasto kcal</span></div>
-          <div class="stat" style="background:var(--accent-soft)"><b id="f-${mid}-alvo" style="color:var(--accent)">${semEstimativa(m)?'—':Math.round(targetKcal(m))}</b><span>Alvo kcal</span></div>
+          <div class="stat"><b id="f-${mid}-imc">${nPT(v,1)}</b><span>IMC ${dica('imc')}</span></div>
+          <div class="stat"><b id="f-${mid}-bmr">${Math.round(bmr(m))}</b><span>Basal kcal ${dica('basal')}</span></div>
+          <div class="stat"><b id="f-${mid}-tdee">${Math.round(tdee(m))}</b><span>Gasto kcal ${dica('gasto')}</span></div>
+          <div class="stat" style="background:var(--accent-soft)"><b id="f-${mid}-alvo" style="color:var(--accent)">${semEstimativa(m)?'—':Math.round(targetKcal(m))}</b><span>Alvo kcal ${dica('alvo','dica-e')}</span></div>
         </div>
         <div class="row" style="margin-top:10px;min-height:34px;justify-content:space-between">
           <div><span class="pill ${tone}" id="f-${mid}-cls">${fase==='adulto'?cls:nomeFase(m)}</span>
@@ -1299,12 +1434,13 @@ function blocoDesporto(m,s,i){
     const pctV=Math.round((v-sp.dist.vmin)/(sp.dist.vmax-sp.dist.vmin)*100);
     miolo=`<div class="spgrid">
       <div>
-        <div class="splabel"><span>Distância por ${porLabel(s.per)}</span>
+        <div class="splabel"><span>Distância por ${porLabel(s.per)} ${dica('distancia')}</span>
           <output id="sp${i}-km">${nPT(km,f.step<1?1:0)} km</output></div>
         <input type="range" min="0" max="${f.max}" step="${f.step}" value="${km}" style="--pct:${pctKm}%"
           aria-label="Distância por ${porLabel(s.per)}, em quilómetros"
           oninput="slideSport('${m.id}',${i},'km',this)" onchange="save()">
       </div>
+      <div class="splabel" style="margin:2px 0 0"><span>Esforço em função da velocidade ${dica('curvaMet')}</span></div>
       ${curvaMetSvg(sp,s,i)}
       <div>
         <div class="splabel"><span>Velocidade</span>
@@ -1319,7 +1455,8 @@ function blocoDesporto(m,s,i){
       <span class="sub" id="sp${i}-t">${hmm(horasPeriodo(s))} por ${porLabel(s.per)}</span>
       <span class="spgasto">${gasto}</span></div>`;
   } else {
-    miolo=`${escalaMet3(sp,s)}<div class="spfoot">
+    miolo=`<div class="splabel" style="margin:2px 0 0"><span>Intensidade ${dica('intensidade')}</span></div>
+      ${escalaMet3(sp,s)}<div class="spfoot">
       <select onchange="updSport('${m.id}',${i},'i',this.value)" aria-label="Intensidade">${NIVEIS.map(([k],ni)=>
         `<option value="${k}" ${nivelIndice(s.i)===ni?'selected':''}>${rotuloNivel(sp,ni)}</option>`).join('')}</select>
       <span class="sphoras"><input type="number" min="0" step="0.5" inputmode="decimal" value="${s.h}"
@@ -1347,7 +1484,7 @@ function cartaoEsforco(m){
   const alvoSemana = L.fase==='adulto'&&!gravida(m)? 150 : gravida(m)? 150 : 420;
   const pctA=Math.min(100, alvoSemana? min/alvoSemana*100 : 0);
   return `<div class="card" style="margin-top:16px;border-left:4px solid var(--accent)">
-    <h3>Esforço recomendado — ${nomeFase(m)}</h3>
+    <h3>Esforço recomendado — ${nomeFase(m)} ${dica('esforco')}</h3>
     <p class="sub" style="margin-top:6px">${L.recomendacao}</p>
     <div style="margin:12px 0 6px">
       <div class="splabel"><span>Registado por semana</span><output style="min-width:12ch;text-align:right">${hmm(min/60)}</output></div>
@@ -1371,10 +1508,10 @@ function renderAtividade(){
     <div class="card">
       <h2>Dia-a-dia de ${esc(m.nome)}</h2>
       <div class="frow" style="grid-template-columns:1fr 1fr">
-        <div><label class="lbl">Nível de atividade diária</label>
+        <div><label class="lbl">Nível de atividade diária ${dica('nivelAtiv')}</label>
           <select onchange="upd('${m.id}','atividade',this.value)">${Object.entries(BASE_ACT).map(([k,v])=>
             `<option value="${k}" ${m.atividade===k?'selected':''}>${v[0]}</option>`).join('')}</select></div>
-        <div><label class="lbl">Deslocação para o trabalho/escola</label>
+        <div><label class="lbl">Deslocação para o trabalho/escola ${dica('desloc','dica-e')}</label>
           <select onchange="upd('${m.id}','desloc',this.value)">${Object.entries(COMMUTE).map(([k,v])=>
             `<option value="${k}" ${m.desloc===k?'selected':''}>${v[0]}</option>`).join('')}</select></div>
       </div>
@@ -1395,7 +1532,7 @@ function renderAtividade(){
       const K=Math.max(gp.total,alvo)*1.05||1, w=x=>Math.max(0,x/K*100);
       const X=w(alvo);
       return `<div class="card" style="border-left:4px solid var(--energy)">
-      <h2>Gasto energético estimado</h2>
+      <h2>Gasto energético estimado ${dica('barraGasto')}</h2>
       <div style="position:relative;margin:30px 0 8px">
         <span id="ga-alvo-txt" style="position:absolute;top:-20px;left:${X}%;${X>78?'transform:translateX(-100%);':''}font-size:11px;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap">alvo ${Math.round(alvo)}</span>
         <div class="mbar" style="height:20px;margin:0">
@@ -1617,11 +1754,11 @@ function cartaoFase(m){
       <text x="${X(faixa[k][1]).toFixed(1)}" y="${18+i*22}" dx="6" font-size="10" class="f-mut" style="font-variant-numeric:tabular-nums">${faixa[k][0]}–${faixa[k][1]}%</text>
     </g>`; }).join('') : '';
   return `<div class="card secgap">
-    <h2>O que muda nesta fase — ${nomeFase(m)}</h2>
+    <h2>O que muda nesta fase — ${nomeFase(m)} ${dica('amdr')}</h2>
     <div class="kv"><span>Metabolismo basal por</span><b>${idadeAnos(m)<19?'Schofield (pediátrica)':'Mifflin-St Jeor'}</b></div>
     ${crescimentoKcal(m)? `<div class="kv"><span>Energia de crescimento</span><b>+${crescimentoKcal(m)} kcal/dia</b></div>`:''}
     ${gravida(m)&&!semEstimativa(m)? `<div class="kv"><span>Acréscimo da gravidez (${trimestre(m)}.º trimestre${fetos(m)===2?', gémeos':''})</span><b>+${gravidezKcal(m)} kcal/dia</b></div>`:''}
-    <div class="kv"><span>Proteína de referência</span><b>${nPT(pkg,2)} g/kg → ${pAlvo} g/dia</b></div>
+    <div class="kv"><span>Proteína de referência ${dica('proteinaKg')}</span><b>${nPT(pkg,2)} g/kg → ${pAlvo} g/dia</b></div>
     ${hMin? `<div class="kv"><span>Mínimo de hidratos</span><b>${hMin} g/dia${mk.c<hMin?' — o plano atual fica abaixo':''}</b></div>`:''}
     ${faixa? `<p class="sub" style="margin:14px 0 4px">Faixa aceitável de macronutrientes para esta fase, com o plano atual assinalado${exigeAmdr(m)?'':' — num adulto é referência, não limite'}:</p>
     <svg class="svgfx" viewBox="0 0 340 76" role="img" aria-label="Faixas aceitáveis de macronutrientes">${barras}</svg>
@@ -1644,7 +1781,7 @@ function renderNutricao(){
     <div class="card">
       <h2>Plano de ${esc(m.nome)}</h2>
       <div style="margin-top:10px">
-        <div class="splabel"><span>Objetivo</span><output id="nu-obj" style="min-width:22ch;text-align:right">${textoObjetivo(m)}</output></div>
+        <div class="splabel"><span>Objetivo ${dica('objetivo')}</span><output id="nu-obj" style="min-width:22ch;text-align:right">${textoObjetivo(m)}</output></div>
         <input type="range" id="nu-r-obj" min="${permiteDefice(m)?-25:0}" max="20" step="1" value="${clampNum(pct,permiteDefice(m)?-25:0,20)}" style="--pct:${Math.round((clampNum(pct,permiteDefice(m)?-25:0,20)-(permiteDefice(m)?-25:0))/(permiteDefice(m)?45:20)*100)}%"
           aria-label="Objetivo calórico em percentagem do gasto diário"
           oninput="slideObjetivo('${m.id}',this)" onchange="commitObjetivo('${m.id}',this)">
@@ -1656,13 +1793,13 @@ function renderNutricao(){
         : `<p class="sub" style="margin-top:4px">${gravida(m)?'Na gravidez':'Em idade de crescimento'} não se planeia défice calórico — o slider começa na manutenção.</p>`}
       </div>
       <div class="row" style="margin-top:10px;min-height:34px">
-        <span class="pill ok" id="nu-ritmo"></span>
+        <span class="pill ok" id="nu-ritmo"></span>${dica('ritmo')}
         ${permiteDefice(m)? `<button class="chip" onclick="presetObjetivo('${m.id}',-15)">Perder −15%</button>`:''}
         <button class="chip" onclick="presetObjetivo('${m.id}',0)">Manter</button>
         <button class="chip" onclick="presetObjetivo('${m.id}',10)">Ganhar +10%</button>
       </div>
       <p class="sub" id="nu-aviso" style="min-height:1.55em;visibility:hidden;color:var(--warn);margin-top:4px">défice agressivo — acompanha este plano com um profissional de saúde</p>
-      <div><label class="lbl">Tipo de dieta</label><select onchange="upd('${m.id}','dieta',this.value)">${Object.entries(DIETS).map(([kk,v])=>
+      <div><label class="lbl">Tipo de dieta ${dica('dieta')}</label><select onchange="upd('${m.id}','dieta',this.value)">${Object.entries(DIETS).map(([kk,v])=>
           `<option value="${kk}" ${m.dieta===kk?'selected':''}>${v.n}</option>`).join('')}<option value="personalizada" ${m.dieta==='personalizada'?'selected':''}>Personalizada…</option></select></div>
       <div class="row" style="margin-top:14px">
         <div class="stat" style="background:var(--accent-soft)"><b id="nu-alvo" style="color:var(--accent)">${k}</b><span>Alvo kcal/dia</span></div>
@@ -1670,7 +1807,7 @@ function renderNutricao(){
       </div>
     </div>
     <div class="card">
-      <h2>Simulador de macros — ${dietaDe(m).n}</h2>
+      <h2>Simulador de macros — ${dietaDe(m).n} ${dica('macros')}</h2>
       ${m.dieta==='personalizada'? `
       <div class="spgrid" style="margin:12px 0 6px">
         ${[['c','Hidratos','rgC'],['p','Proteína','rgP'],['f','Gordura','rgF']].map(([kk,rot,cls])=>`
@@ -1693,10 +1830,11 @@ function renderNutricao(){
         <span class="pill warn" id="nu-diet-aviso" style="visibility:${d.p<10||d.f<15?'visible':'hidden'}">pouca proteína ou gordura — cuidado com a saciedade</span>
       </div>
       ${m.dieta==='personalizada'? '<p class="sub" style="margin-top:8px">Dieta personalizada — nas receitas e no plano, todas contam como compatíveis.</p>':''}
+      <div class="splabel" style="margin:10px 0 0"><span>Repartição pelo dia ${dica('refeicoes')}</span></div>
       ${barraRefeicoes(targetKcal(m))}
     </div>
     ${permiteProjecao(m)? `<div class="card">
-      <h2>Projeção de peso — 12 semanas</h2>
+      <h2>Projeção de peso — 12 semanas ${dica('projecao')}</h2>
       ${cartaoProjecao(m)}
     </div>` : `<div class="card">
       <h2>Projeção de peso</h2>
@@ -1735,12 +1873,13 @@ function renderNutricao(){
 function shiftWeek(n){ const d=new Date(S.week+'T12:00:00'); d.setDate(d.getDate()+7*n); S.week=mondayISO(d); saveMeta(); render(); }
 function planWeek(){ if(!S.plans[S.week]) S.plans[S.week]={}; return S.plans[S.week]; }
 function planMeal(di,mk){ const w=planWeek(); if(!w[di]) w[di]={}; if(!w[di][mk]) w[di][mk]={r:'',m:S.members.map(x=>x.id)}; return w[di][mk]; }
-function setMeal(di,mk,rid){ planMeal(di,mk).r=rid; save(); render(); }
+function setMeal(di,mk,rid){ planMeal(di,mk).r=rid; save('escolha de refeição'); render(); }
 function toggleEater(di,mk,mid){ const meal=planMeal(di,mk);
   meal.m = meal.m.includes(mid)? meal.m.filter(x=>x!==mid) : [...meal.m,mid]; save(); render(); }
 function toggleCheat(mid,date){ if(!S.cheats[mid]) S.cheats[mid]=[];
-  const i=S.cheats[mid].indexOf(date); i>=0? S.cheats[mid].splice(i,1) : S.cheats[mid].push(date); save(); render(); }
-function clearWeek(){ if(confirm('Limpar todas as refeições desta semana?')){ delete S.plans[S.week]; delete S.bought[S.week]; save(); render(); } }
+  const i=S.cheats[mid].indexOf(date); i>=0? S.cheats[mid].splice(i,1) : S.cheats[mid].push(date);
+  save('cheat day'); render(); }
+function clearWeek(){ if(confirm('Limpar todas as refeições desta semana?')){ delete S.plans[S.week]; delete S.bought[S.week]; save('limpeza da semana'); render(); } }
 function receitasDe(mk){ return RECIPES.filter(r=>r.mt.indexOf(mk)>=0); }
 function autoFill(){
   const dates=weekDates(S.week); const used=new Set();
@@ -1760,7 +1899,7 @@ function autoFill(){
     const alvo=fresh.length? fresh : pool;
     meal.r=alvo[Math.floor(Math.random()*alvo.length)].id; used.add(meal.r);
   }
-  save(); render();
+  save('preenchimento automático da semana'); render();
 }
 function mealBlock(di,mk,label,date){
   const meal=planWeek()[di]?.[mk]; const r=meal&&RECIPES.find(x=>x.id===meal.r);
@@ -1787,7 +1926,7 @@ function irParaDia(di){ const el=document.getElementById('dia-'+di);
 function cartaoSemana(dates){
   const INICIAIS=['S','T','Q','Q','S','S','D'];
   return `<div class="card" id="pla-resumo" style="margin-bottom:16px">
-    <h2>Semana em números</h2>
+    <h2>Semana em números ${dica('semana')}</h2>
     ${S.members.map(m=>{
       const alvo=targetKcal(m);
       const dias=dates.map((_,di)=>estadoDia(m,di,dates));
@@ -1840,10 +1979,10 @@ function renderPlano(){
       <select style="width:auto" onchange="S.prefCuisine=this.value;save()">
         <option value="todas">Auto: todas as cozinhas</option>
         ${Object.entries(CUIS).map(([k,v])=>`<option value="${k}" ${S.prefCuisine===k?'selected':''}>Auto: ${v}</option>`).join('')}</select>
-      <button class="btn small" onclick="autoFill()">✨ Preencher automaticamente</button>
+      <button class="btn small" onclick="autoFill()">✨ Preencher automaticamente</button>${dica('auto','dica-e')}
       <button class="btn danger small" onclick="clearWeek()">Limpar</button>
     </div></div>
-  <p class="sub" style="margin-bottom:14px">🎉 <b>Cheat days:</b> clica no nome de um membro na linha «Cheat day» para marcar um dia livre (aniversários, festas…) — esse membro sai das contas e da lista de compras nesse dia.</p>
+  <p class="sub" style="margin-bottom:14px">🎉 <b>Cheat days</b> ${dica('cheat')} clica no nome de um membro na linha «Cheat day» para marcar um dia livre (aniversários, festas…) — esse membro sai das contas e da lista de compras nesse dia.</p>
   ${cartaoSemana(dates)}
   <div class="grid gdias">
   ${dates.map((date,di)=>{
@@ -1943,7 +2082,7 @@ function renderCompras(){
   const done=items.filter(i=>bought[i.n+'|'+i.u]).length;
   const completo=done===items.length&&items.length;
   return `<div class="row" style="justify-content:space-between;margin-bottom:4px">
-    <div><h2>Lista de compras</h2>
+    <div><h2>Lista de compras ${dica('compras')}</h2>
     <span class="sub">Semana de ${fmtShort(dates[0])} a ${fmtShort(dates[6])} · ${plural(meals,'refeição planeada','refeições planeadas')} ·
       <span id="co-num" ${completo?'class="f-ok-txt"':''}>${completo?'tudo comprado ✓':done+'/'+items.length+' comprados'}</span></span></div>
     <button class="btn ghost small" onclick="copyList()">📋 Copiar lista</button></div>
@@ -2286,7 +2425,7 @@ function renderDados(){
     </div>
 
     <div class="card">
-      <h3>Guardar uma cópia</h3>
+      <h3>Guardar uma cópia ${dica('copias')}</h3>
       <p class="sub" style="margin:6px 0 12px">Gera um ficheiro <code>.json</code> com perfis, planos, cheat days e compras.</p>
       <p class="sub" style="margin:0 0 12px">Cópias novas abertas numa versão antiga da app (por exemplo, em cache
         noutro telemóvel) mantêm tudo, mas arredondam o objetivo fino para Perder/Manter/Ganhar e leem a dieta
@@ -2301,7 +2440,7 @@ function renderDados(){
     </div>
 
     <div class="card">
-      <h3>Restaurar uma cópia</h3>
+      <h3>Restaurar uma cópia ${dica('juntar')}</h3>
       <p class="sub" style="margin:6px 0 12px"><b>Substituir</b> troca tudo o que está aqui pelo conteúdo da cópia.
         <b>Juntar</b> acrescenta os perfis e refeições que faltam, sem apagar o que já tens — é a opção para
         combinar o que dois membros da família fizeram em dispositivos diferentes.</p>
@@ -2346,10 +2485,45 @@ function render(){
     : renderFamilia();
   /* semeia os valores que só o atualizador escreve (pill de ritmo, etc.) */
   if(S.ui.tab==='nutricao' && S.members.length) atualizarNutricao();
-  paintSave();
+  paintSave(); pintaHist();
 }
+/* Ctrl+Z / Ctrl+Shift+Z (ou ⌘ no Mac). Dentro de um campo de texto não se
+   intercepta nada — aí o desfazer que faz sentido é o do próprio campo. */
+document.addEventListener('keydown', e=>{
+  if(!(e.ctrlKey||e.metaKey) || e.altKey) return;
+  const t=e.target, tag=t&&t.tagName;
+  if(tag==='INPUT'&&['text','number','date'].indexOf(t.type)>=0) return;
+  if(tag==='TEXTAREA') return;
+  const k=(e.key||'').toLowerCase();
+  if(k==='z' && !e.shiftKey){ e.preventDefault(); desfazer(); }
+  else if((k==='z'&&e.shiftKey)||k==='y'){ e.preventDefault(); refazer(); }
+});
+/* A bolha nasce alinhada ao marcador; se isso a puser fora da janela, desliza
+   o necessário para caber. A seta fica onde está, a apontar ao marcador. */
+function posicionaDica(d){
+  d.style.setProperty('--dx','0px');
+  /* clientWidth e não innerWidth: este último inclui a barra de deslocação,
+     e a bolha acabava 13 px fora do que a página realmente mostra. */
+  const W=document.documentElement.clientWidth;
+  const r=d.getBoundingClientRect();
+  const larg=Math.min(270, W-24);
+  const esq=r.left-4;
+  let dx=0;
+  if(esq+larg > W-12) dx=(W-12)-(esq+larg);
+  if(esq+dx < 12) dx=12-esq;
+  d.style.setProperty('--dx', Math.round(dx)+'px');
+}
+document.addEventListener('mouseover', e=>{ const d=e.target.closest&&e.target.closest('.dica'); if(d) posicionaDica(d); });
+document.addEventListener('focusin', e=>{ const d=e.target.closest&&e.target.closest('.dica'); if(d) posicionaDica(d); });
+/* Ao toque não há hover: o marcador de explicação alterna com um toque. */
+document.addEventListener('click', e=>{
+  const d=e.target.closest && e.target.closest('.dica');
+  document.querySelectorAll('.dica.on').forEach(x=>{ if(x!==d) x.classList.remove('on'); });
+  if(d){ e.preventDefault(); posicionaDica(d); d.classList.toggle('on'); }
+});
 aplicarEcra();
 ligarOrientacao();
+estadoAnterior=instantaneo();   /* base do histórico: o estado tal como foi carregado */
 render();
 
 /* Instalável no ecrã principal e utilizável sem rede (útil para a lista de
