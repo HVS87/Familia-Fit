@@ -32,7 +32,15 @@ O leite tem a sua ferramenta: modo (materno, fórmula, misto, leite + sólidos),
 
 Todos os números deste módulo passaram por uma auditoria de fontes: cada valor foi confirmado (ou corrigido) contra o documento oficial de origem — OMS, Institute of Medicine, Codex Alimentarius/ESPGHAN e, para as recomendações portuguesas, normas da Direção-Geral da Saúde — em vez de se assumir que uma primeira estimativa estava certa.
 
-**🍽️ Nutrição** — objetivo de peso (perder, manter, ganhar) que ajusta o alvo calórico, e sete tipos de dieta: equilibrada, mediterrânica, keto, low carb, low fat, paleo e vegetariana. O simulador converte o alvo calórico em gramas de hidratos, proteína e gordura, e reparte-o pelas quatro refeições do dia. Inclui 84 receitas filtráveis por refeição, por cozinha (portuguesa, italiana, francesa, mediterrânica, asiática) e por compatibilidade com a dieta, mais uma secção dedicada às receitas que servem as dietas de **todos os membros ao mesmo tempo**. Todas as dietas têm pelo menos três opções em cada refeição.
+**🍽️ Nutrição** — objetivo de peso (perder, manter, ganhar) que ajusta o alvo calórico, e sete tipos de dieta: equilibrada, mediterrânica, keto, low carb, low fat, paleo e vegetariana. O simulador converte o alvo calórico em gramas de hidratos, proteína e gordura, e reparte-o pelas quatro refeições do dia.
+
+**🍳 Receitas** — separador próprio com as 84 receitas, filtráveis por refeição, por cozinha (portuguesa, italiana, francesa, mediterrânica, asiática) e por compatibilidade com a dieta de cada membro, mais a secção das receitas que servem as dietas de **todos ao mesmo tempo**. Cada receita mostra os ingredientes com o estado da despensa — ✓ verde para o que já tens em casa, ✗ vermelho para o que falta — e uma etiqueta-resumo que diz «Pronta a cozinhar» quando não falta nada.
+
+**🥫 A minha despensa** — inventário de ingredientes com pesquisa, agrupado por secção do supermercado. O catálogo deriva sempre das próprias receitas (nunca texto livre), pelo que um nome na despensa bate sempre certo com o das receitas. Marcar um item como comprado na lista de compras acrescenta-o automaticamente à despensa; desmarcar não o remove, porque um clique a mais no supermercado não significa que a prateleira ficou vazia.
+
+Nas Compras, além da lista completa da semana, há o cartão **«O que falta comprar»**: a lista da semana menos o que já está na despensa. É essa que se exporta — pelo menu de partilha do telemóvel (que permite escolher Google Keep, Apple Reminders/Lembretes ou qualquer outra app) ou por cópia para a área de transferência, com cada linha a começar por ☐ para servir de checklist. A app não escreve diretamente no Keep nem nos Lembretes — nenhuma página web o pode fazer sem contas e autorizações — mas o menu de partilha nativo leva lá a lista em dois toques.
+
+Todas as dietas têm pelo menos três opções em cada refeição.
 
 **🎯 Objetivos** — cria uma estratégia de peso para um ou vários membros: escolhe quem, quantos quilos e em quantas semanas (ou, para manter, durante quanto tempo e com que margem), e a app calcula o défice ou o excedente diário necessário e reparte-o entre a dieta e o exercício. Ao criar, isso é logo aplicado — o objetivo calórico da Nutrição muda e o desporto escolhido ganha as horas extra necessárias, num registo já existente ou num novo.
 

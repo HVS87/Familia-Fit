@@ -206,6 +206,11 @@ input[type=range]:focus-visible::-moz-range-thumb{box-shadow:0 0 0 3px var(--acc
 .rc{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--card);display:flex;flex-direction:column;gap:6px}
 .rc h3{font-size:15.5px}
 .tag{display:inline-block;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:1px 7px;font-size:11.5px;color:var(--mut);margin:1px 2px 1px 0}
+.ingr-lista{display:flex;flex-wrap:wrap;gap:5px 10px}
+.ingr{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--mut)}
+.ingr i{font-style:normal;font-weight:700;width:12px;text-align:center}
+.ingr.tem i{color:var(--ok)} .ingr.falta i{color:var(--bad)}
+.ingr.tem{color:var(--ink)}
 .kcal{color:var(--energy);font-weight:700;font-variant-numeric:tabular-nums}
 .day{border:1px solid var(--line);border-radius:var(--r);background:var(--card);box-shadow:var(--shadow);overflow:hidden}
 .day.cheat-any{border-color:var(--party)}
@@ -692,10 +697,34 @@ const CATS = [
 ];
 const AVCOLORS = ['#2456A6','#C8641E','#2E7D4F','#7C5CB0','#C2477C','#B07F14','#0E7490','#8A5A44'];
 
+/* ================= DESPENSA =================
+   O catálogo é sempre derivado das 84 receitas — nunca texto livre. Isso
+   garante que um nome na despensa bate sempre certo, byte a byte, com um
+   nome de ingrediente de receita: sem correspondência aproximada, sem
+   "Azeite" a não bater com "azeite". */
+function catalogoIngredientes(){
+  const set=new Set();
+  RECIPES.forEach(r=>r.i.forEach(x=>set.add(x[0])));
+  return [...set].sort((a,b)=>a.localeCompare(b,'pt'));
+}
+function temNaDespensa(nome){ return !!S.despensa[nome]; }
+function disponibilidadeReceita(r){
+  const total=r.i.length, tem=r.i.filter(x=>temNaDespensa(x[0])).length;
+  return {tem, total, pronta: total>0 && tem===total};
+}
+/* Lista de ingredientes com o estado da despensa — usada em qualquer sítio
+   que mostre uma receita, não só no separador Receitas. */
+function listaIngredientesComEstado(r){
+  return r.i.map(([nome,q,u])=>{
+    const tem=temNaDespensa(nome);
+    return `<span class="ingr ${tem?'tem':'falta'}"><i aria-hidden="true">${tem?'✓':'✗'}</i>${esc(nome)}</span>`;
+  }).join('');
+}
+
 /* ================= ESTADO ================= */
 const KEY='familiaFitV1', APPID='familia-fit', FORMATO=1;
 let saveErr='', msg=null;
-function blank(){ return {members:[],cheats:{},plans:{},bought:{},prefCuisine:'todas',objetivos:[],
+function blank(){ return {members:[],cheats:{},plans:{},bought:{},prefCuisine:'todas',objetivos:[],despensa:{},
   ui:{tab:'familia',mid:null,cuis:'todas',soComp:false,mealF:'todas',
       objForm:{membros:[],tipo:'perder',delta:5,semanas:12,split:50,desporto:null,banda:2},
       objExpandido:null, objAdj:null, celebrando:null},
@@ -728,11 +757,11 @@ function writeLS(){
 const UNDO_MAX=30;
 let pilhaUndo=[], pilhaRedo=[], estadoAnterior=null, ultimaDesc=null;
 function instantaneo(){ return JSON.stringify({members:S.members, cheats:S.cheats, plans:S.plans,
-  bought:S.bought, week:S.week, prefCuisine:S.prefCuisine, objetivos:S.objetivos}); }
+  bought:S.bought, week:S.week, prefCuisine:S.prefCuisine, objetivos:S.objetivos, despensa:S.despensa}); }
 function aplicaInstantaneo(js){
   const d=JSON.parse(js);
   S.members=d.members; S.cheats=d.cheats; S.plans=d.plans; S.bought=d.bought;
-  S.week=d.week; S.prefCuisine=d.prefCuisine; S.objetivos=d.objetivos||[];
+  S.week=d.week; S.prefCuisine=d.prefCuisine; S.objetivos=d.objetivos||[]; S.despensa=d.despensa||{};
   S.members.forEach(normalizaMembro);
   if(!S.members.some(m=>m.id===S.ui.mid)) S.ui.mid=S.members[0]? S.members[0].id : null;
   macroLive=null;
@@ -1236,11 +1265,15 @@ const DICAS={
   bebeHorario:'O intervalo e a hora da primeira tomada geram a grelha do dia. As zonas sombreadas são a noite — tomadas nesse período aparecem com a lua. Serve de apoio, não de relógio: sinais de fome mandam mais do que horários.',
   bebeRef:'A partir dos 6 meses a energia divide-se entre o leite e os sólidos. A repartição sugerida segue o padrão habitual da diversificação em Portugal: papa ou fruta a meio da manhã, sopa e prato ao almoço, e por aí em diante.',
   objCriar:'A partir de quantos quilos e de quanto tempo, a app calcula o défice ou o excedente diário necessário e reparte-o entre a dieta e o exercício. Ao criar, isso é logo aplicado ao objetivo da Nutrição e ao desporto escolhido — não fica só no papel.',
-  objEstrategia:'Quanto do ajuste diário vem de comer menos (ou mais) e quanto vem de gastar mais a fazer desporto. Mais dieta pede menos esforço físico extra; mais exercício permite comer com menos restrição para o mesmo ritmo.'
+  objEstrategia:'Quanto do ajuste diário vem de comer menos (ou mais) e quanto vem de gastar mais a fazer desporto. Mais dieta pede menos esforço físico extra; mais exercício permite comer com menos restrição para o mesmo ritmo.',
+  receitasDisp:'Cada receita mostra os ingredientes com o estado da tua despensa: um visto verde para o que já tens, uma cruz vermelha para o que falta. A etiqueta no topo resume tudo — «Pronta a cozinhar» quando não falta nada.',
+  despensa:'Os ingredientes que marcares aqui como disponíveis passam a contar em todas as receitas e na lista de compras. Vem sempre da lista de ingredientes das próprias receitas — nunca texto livre — para nunca haver um nome que não bate certo.',
+  faltaComprar:'A lista completa acima tem tudo o que as receitas da semana precisam; esta mostra só o que ainda não está na despensa — é isto que vale a pena exportar ou levar ao supermercado.'
 };
 function dica(k,extra){ const t=DICAS[k]; if(!t) return '';
   return `<button type="button" class="dica ${extra||''}" data-dica="${esc(t)}" aria-label="Explicação">i</button>`; }
-const TABS=[['familia','👤 Família'],['atividade','🏃 Atividade'],['nutricao','🍽️ Nutrição'],['objetivos','🎯 Objetivos'],['plano','📅 Plano semanal'],['compras','🛒 Compras'],['dados','⚙️ Dados']];
+const TABS=[['familia','👤 Família'],['atividade','🏃 Atividade'],['nutricao','🍽️ Nutrição'],['receitas','🍳 Receitas'],
+  ['objetivos','🎯 Objetivos'],['plano','📅 Plano semanal'],['despensa','🥫 Despensa'],['compras','🛒 Compras'],['dados','⚙️ Dados']];
 function go(t){ S.ui.tab=t; msg=null; saveMeta(); render(); }
 function pickM(id){ S.ui.mid=id; macroLive=null; saveMeta(); render(); }
 function curM(){ return S.members.find(m=>m.id===S.ui.mid) || S.members[0]; }
@@ -1775,12 +1808,14 @@ function macroBar(pct){ return `<div class="mbar">
 
 function recipeCard(r){
   const comp=S.members.filter(m=>compat(r,m.dieta));
+  const disp=disponibilidadeReceita(r);
   return `<div class="rc">
     <div class="row" style="justify-content:space-between"><h3>${r.n}</h3><span class="kcal">${r.k} kcal</span></div>
     <div><span class="tag" style="border-color:var(--accent);color:var(--accent)">${r.mt.map(nomeRefeicao).join(' / ')}</span>
       <span class="tag">${CUIS[r.coz]}</span>${r.d.map(d=>`<span class="tag">${DIETS[d].n}</span>`).join('')}</div>
     <div class="sub" style="font-variant-numeric:tabular-nums">H ${r.c} g · P ${r.p} g · G ${r.f} g</div>
-    <div class="sub">${r.i.map(x=>x[0]).join(', ')}</div>
+    <span class="pill ${disp.pronta?'ok':disp.tem?'warn':''}" style="align-self:flex-start">${disp.pronta?'Pronta a cozinhar':disp.tem+'/'+disp.total+' na despensa'}</span>
+    <div class="ingr-lista">${listaIngredientesComEstado(r)}</div>
     ${S.members.length? `<div class="row" style="margin-top:2px"><span class="sub">Compatível:</span>
       ${comp.length? comp.map(m=>avatar(m,22)).join('') : '<span class="sub">— só como refeição livre</span>'}</div>`:''}
   </div>`;
@@ -2153,10 +2188,6 @@ function moduloBebe(m){
 function renderNutricao(){
   if(!S.members.length) return noMembers();
   const m=curM(), mk=macros(m), k=Math.round(targetKcal(m));
-  let list=RECIPES.filter(r=> (S.ui.cuis==='todas'||r.coz===S.ui.cuis)
-    && (S.ui.mealF==='todas'||r.mt.indexOf(S.ui.mealF)>=0));
-  if(S.ui.soComp) list=list.filter(r=>compat(r,m.dieta));
-  const fam=RECIPES.filter(r=>compatAll(r,S.members));
   const pct=objetivoPct(m), d=mk.pct;
   const gkg=m.peso>0? mk.p/m.peso:0;
   /* Num bebé, o simulador de macros de adulto não diz nada de útil: o que
@@ -2231,22 +2262,33 @@ function renderNutricao(){
     </div>`}
   </div>
   ${cartaoFase(m)}
+  <div class="row" style="margin-top:16px">
+    <button class="btn ghost" onclick="go('receitas')">🍳 Ver receitas de ${esc(m.nome.split(' ')[0])} →</button>
+  </div>`;
+}
 
-  <div class="card secgap" style="background:none;box-shadow:none;border:none;padding:0">
-    <div class="row" style="justify-content:space-between;margin-bottom:10px">
-      <div><h2>Sugestões de receitas</h2><span class="sub">${list.length} de ${RECIPES.length} receitas</span></div>
-      <div class="row">
-        <select style="width:auto" onchange="setCuis(this.value)"><option value="todas">Todas as cozinhas</option>
-          ${Object.entries(CUIS).map(([kk,v])=>`<option value="${kk}" ${S.ui.cuis===kk?'selected':''}>${v}</option>`).join('')}</select>
-        <button class="chip ${S.ui.soComp?'on':''}" onclick="toggleComp()">Só compatíveis com ${esc(m.nome)}</button>
-      </div>
+/* ================= RECEITAS ================= */
+function renderReceitas(){
+  const m = S.members.length? curM() : null;
+  let list=RECIPES.filter(r=> (S.ui.cuis==='todas'||r.coz===S.ui.cuis)
+    && (S.ui.mealF==='todas'||r.mt.indexOf(S.ui.mealF)>=0));
+  if(S.ui.soComp && m) list=list.filter(r=>compat(r,m.dieta));
+  const fam=S.members.length? RECIPES.filter(r=>compatAll(r,S.members)) : [];
+  return (m?memberPicker():'')+`
+  <div class="row" style="justify-content:space-between;margin-bottom:10px;flex-wrap:wrap">
+    <div><h2>Receitas ${dica('receitasDisp')}</h2><span class="sub">${list.length} de ${RECIPES.length} receitas</span></div>
+    <div class="row">
+      <select style="width:auto" onchange="setCuis(this.value)"><option value="todas">Todas as cozinhas</option>
+        ${Object.entries(CUIS).map(([kk,v])=>`<option value="${kk}" ${S.ui.cuis===kk?'selected':''}>${v}</option>`).join('')}</select>
+      ${m? `<button class="chip ${S.ui.soComp?'on':''}" onclick="toggleComp()">Só compatíveis com ${esc(m.nome)}</button>`:''}
+      <button class="chip" onclick="go('despensa')">🥫 Ver despensa</button>
     </div>
-    <div class="row" style="margin-bottom:12px">
-      <button class="chip ${S.ui.mealF==='todas'?'on':''}" onclick="setMealF('todas')">Todas as refeições</button>
-      ${MEALS.map(([kk,rot])=>`<button class="chip ${S.ui.mealF===kk?'on':''}" onclick="setMealF('${kk}')">${rot}</button>`).join('')}
-    </div>
-    <div class="grid g3">${list.map(recipeCard).join('')||'<p class="sub">Nenhuma receita para este filtro.</p>'}</div>
   </div>
+  <div class="row" style="margin-bottom:12px">
+    <button class="chip ${S.ui.mealF==='todas'?'on':''}" onclick="setMealF('todas')">Todas as refeições</button>
+    ${MEALS.map(([kk,rot])=>`<button class="chip ${S.ui.mealF===kk?'on':''}" onclick="setMealF('${kk}')">${rot}</button>`).join('')}
+  </div>
+  <div class="grid g3">${list.map(recipeCard).join('')||'<p class="sub">Nenhuma receita para este filtro.</p>'}</div>
 
   ${S.members.length>1? `<div class="secgap">
     <h2>👨‍👩‍👧 Compatíveis com toda a família</h2>
@@ -2684,8 +2726,10 @@ function mealBlock(di,mk,label,date){
       <option value="">— escolher receita —</option>
       ${receitasDe(mk).map(x=>`<option value="${x.id}" ${r&&r.id===x.id?'selected':''}>${x.n} · ${x.k} kcal (${CUIS[x.coz]})</option>`).join('')}
     </select>
-    ${r?`<div class="sub" style="margin-top:4px">H ${r.c} · P ${r.p} · G ${r.f} g/pessoa
-      ${!compatAll(r,members.filter(m=>(meal.m||[]).includes(m.id)&&!isCheat(m.id,date)))?' · <b style="color:var(--warn)">⚠ nem todos compatíveis</b>':''}</div>`:''}
+    ${r?(()=>{ const disp=disponibilidadeReceita(r), falta=disp.total-disp.tem;
+      return `<div class="sub" style="margin-top:4px">H ${r.c} · P ${r.p} · G ${r.f} g/pessoa
+      ${!compatAll(r,members.filter(m=>(meal.m||[]).includes(m.id)&&!isCheat(m.id,date)))?' · <b style="color:var(--warn)">⚠ nem todos compatíveis</b>':''}
+      ${falta>0?' · <span style="color:var(--warn)">'+falta+' ingrediente'+(falta===1?'':'s')+' em falta</span>':' · <span style="color:var(--ok)">✓ tens tudo</span>'}</div>`; })():''}
     <div class="row" style="margin-top:7px">${members.map(m=>{
       const on=meal? meal.m.includes(m.id) : true, cheat=isCheat(m.id,date);
       return `<button class="chip ${on&&!cheat?'on':''}" ${cheat?'style="opacity:.45" title="Cheat day"':''}
@@ -2798,11 +2842,23 @@ function shoppingItems(){
    mão, o scroll e o foco ficam onde estavam. Se faltar algum id, cai no render
    completo — nunca dessincroniza. */
 function toggleBought(key,el){ if(!S.bought[S.week]) S.bought[S.week]={};
-  S.bought[S.week][key]=!S.bought[S.week][key]; save();
+  const novoEstado=!S.bought[S.week][key];
+  S.bought[S.week][key]=novoEstado;
+  /* comprar um ingrediente é o sinal mais natural de que ele passa a estar
+     em casa — a despensa atualiza-se sozinha. Desmarcar não o remove: pode
+     ter sido só um engano, não significa que a prateleira ficou vazia. */
+  if(novoEstado){ const nome=key.split('|')[0]; if(nome) S.despensa[nome]=true; }
+  save();
   const li=el&&el.closest? el.closest('li'):null;
   if(!li||!document.getElementById('co-bar')){ render(); return; }
-  li.classList.toggle('done',!!S.bought[S.week][key]);
+  li.classList.toggle('done',novoEstado);
   atualizarCompras();
+  if(novoEstado) atualizarFaltaComprar();   /* comprar pode ter tirado este item do que falta */
+}
+function atualizarFaltaComprar(){
+  const corpo=document.getElementById('falta-corpo'); if(!corpo) return;
+  const {items}=shoppingItems();
+  corpo.innerHTML=corpoFaltaComprar(items);
 }
 function atualizarCompras(){
   const bar=document.getElementById('co-bar'); if(!bar) return;
@@ -2874,7 +2930,115 @@ function renderCompras(){
           <span>${esc(it.n)}</span><span class="q">${fmtQ(it)}</span></label></li>`;}).join('')}</ul>`;}).join('')}
   </div>
   <textarea id="co-txt" style="display:none;max-width:640px;margin-top:12px" readonly aria-label="Lista de compras em texto"></textarea>
-  <p class="sub" style="margin-top:12px">Quantidades = receita por pessoa × nº de comensais em cada refeição (membros em cheat day não contam nesse dia).</p>`;
+  <p class="sub" style="margin-top:12px">Quantidades = receita por pessoa × nº de comensais em cada refeição (membros em cheat day não contam nesse dia).</p>
+  ${cartaoFaltaComprar(items)}`;
+}
+/* O que falta comprar de facto: a lista completa acima, menos o que já está
+   na despensa — é isto que se exporta, não a lista inteira. */
+function itensEmFalta(items){ return items.filter(it=>!temNaDespensa(it.n)); }
+function textoListaFalta(items){
+  const dates=weekDates(S.week), em=itensEmFalta(items);
+  const linhas=em.map(it=>'☐ '+it.n+' — '+fmtQ(it));
+  return 'Lista de compras — semana de '+fmtShort(dates[0])+' a '+fmtShort(dates[6])+'\n'
+    +(linhas.length? linhas.join('\n') : '(já tens tudo em casa)');
+}
+function partilharListaFalta(){
+  const {items}=shoppingItems(); const em=itensEmFalta(items);
+  if(!em.length) return flash('ok','Já tens em casa todos os ingredientes das receitas planeadas para esta semana.');
+  const txt=textoListaFalta(items);
+  if(navigator.share){ navigator.share({title:'Lista de compras',text:txt}).catch(()=>{}); }
+  else copiarListaFalta();
+}
+function copiarListaFalta(){
+  const {items}=shoppingItems(); const em=itensEmFalta(items);
+  if(!em.length) return flash('ok','Já tens em casa todos os ingredientes das receitas planeadas para esta semana.');
+  const txt=textoListaFalta(items);
+  const ok=()=>alert('Lista copiada! Cola-a no Keep, nos Lembretes ou onde precisares.');
+  const manual=()=>{ const ta=document.getElementById('falta-txt');
+    if(!ta){ alert('O browser não deixou copiar.'); return; }
+    ta.style.display='block'; ta.value=txt; ta.focus(); ta.select();
+    try{ ta.setSelectionRange(0,txt.length); }catch(e){}
+    let feito=false; try{ feito=document.execCommand('copy'); }catch(e){}
+    alert(feito? 'Lista copiada! Cola-a no Keep, nos Lembretes ou onde precisares.'
+      : 'Seleciona o texto da caixa abaixo e copia à mão (Ctrl+C).');
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(ok,manual);
+  else manual();
+}
+function corpoFaltaComprar(items){
+  const em=itensEmFalta(items), coberto=items.length-em.length;
+  return `<p class="sub" style="margin-top:6px">${plural(coberto,'ingrediente','ingredientes')} de ${items.length} já estão na tua despensa.</p>
+    ${em.length? `<ul class="shop" style="margin-top:8px">${em.sort((a,b)=>a.n.localeCompare(b.n)).map(it=>
+        `<li><span>${esc(it.n)}</span><span class="q">${fmtQ(it)}</span></li>`).join('')}</ul>
+      <div class="row" style="margin-top:12px">
+        <button class="btn" onclick="partilharListaFalta()">📤 Enviar lista</button>
+        <button class="btn ghost" onclick="copiarListaFalta()">📋 Copiar</button>
+      </div>
+      <textarea id="falta-txt" style="display:none;max-width:640px;margin-top:10px" readonly aria-label="Lista do que falta, em texto"></textarea>
+      <p class="sub" style="margin-top:10px">A app não tem acesso direto ao Keep nem aos Lembretes — «Enviar» abre o menu de partilha do telemóvel, onde escolhes a app; cada linha começa por ☐ para servir de lista a marcar. Marcar um ingrediente como comprado em cima já o acrescenta à despensa.</p>`
+    : `<p class="sub" style="color:var(--ok);margin-top:8px">✓ Já tens tudo o que precisas em casa esta semana!</p>`}`;
+}
+function cartaoFaltaComprar(items){
+  return `<div class="card secgap" style="border-left:4px solid var(--accent)">
+    <h2>O que falta comprar ${dica('faltaComprar')}</h2>
+    <div id="falta-corpo">${corpoFaltaComprar(items)}</div>
+  </div>`;
+}
+
+/* ================= DESPENSA =================
+   Toggle sempre por ÍNDICE no catálogo (nunca pelo nome dentro de um
+   onclick): o catálogo é uma função determinística das receitas, por isso
+   o mesmo índice aponta sempre para o mesmo ingrediente entre o render e o
+   clique — sem ter de escapar aspas nem confiar em nomes livres. */
+function toggleDespensaIdx(i){
+  const nome=catalogoIngredientes()[i]; if(!nome) return;
+  if(S.despensa[nome]) delete S.despensa[nome]; else S.despensa[nome]=true;
+  save('despensa: '+nome); render();
+}
+function marcarTodaDespensa(){
+  catalogoIngredientes().forEach(n=>S.despensa[n]=true);
+  save('despensa toda marcada'); render();
+}
+function limparDespensa(){
+  if(!confirm('Esvaziar a despensa? Todas as receitas voltam a mostrar os ingredientes como em falta.')) return;
+  S.despensa={}; save('despensa esvaziada'); render();
+}
+/* Filtro de texto sem re-render: mexer no #main destruiria a própria caixa
+   de pesquisa a meio da escrita. Só se escondem/mostram as linhas. */
+function filtrarDespensa(el){
+  const q=(el.value||'').toLowerCase().trim();
+  document.querySelectorAll('#despensa-lista li').forEach(li=>{
+    li.style.display = !q || li.textContent.toLowerCase().indexOf(q)>=0 ? '' : 'none';
+  });
+}
+function renderDespensa(){
+  const catalogo=catalogoIngredientes();
+  const tem=catalogo.filter(n=>S.despensa[n]).length;
+  const grouped=CATS.map(([cat])=>[cat,[]]);
+  catalogo.forEach((nome,i)=>{
+    for(const [gi,[cat,re]] of CATS.entries()){ if(re.test(nome)){ grouped[gi][1].push(i); break; } }
+  });
+  return `<div class="row" style="justify-content:space-between;margin-bottom:4px">
+    <div><h2>A minha despensa ${dica('despensa')}</h2>
+      <span class="sub">${tem} de ${catalogo.length} ingredientes marcados como disponíveis</span></div>
+    <div class="row">
+      <button class="btn ghost small" onclick="marcarTodaDespensa()">Marcar tudo</button>
+      <button class="btn danger small" onclick="limparDespensa()">Esvaziar</button>
+    </div></div>
+  <input type="text" placeholder="Procurar ingrediente…" style="max-width:340px;margin:10px 0 14px" aria-label="Procurar ingrediente na despensa" oninput="filtrarDespensa(this)">
+  <div class="card" style="max-width:640px">
+    <div id="despensa-lista">
+    ${grouped.filter(([,idx])=>idx.length).map(([cat,idx])=>`
+      <div class="cat-h">${cat}</div>
+      <ul class="shop">${idx.map(i=>{
+        const nome=catalogo[i], ok=!!S.despensa[nome];
+        return `<li class="${ok?'done':''}"><label><input type="checkbox" ${ok?'checked':''} onchange="toggleDespensaIdx(${i})">
+          <span>${esc(nome)}</span></label></li>`;
+      }).join('')}</ul>`).join('')}
+    </div>
+  </div>
+  <p class="sub" style="margin-top:12px">Marca o que já tens em casa: as receitas e a lista de compras passam a saber
+    o que falta comprar de verdade. Comprar um ingrediente na lista de compras marca-o aqui automaticamente.</p>`;
 }
 
 /* ================= ORIENTAÇÃO E TIPO DE ECRÃ =================
@@ -2958,7 +3122,7 @@ function pacote(){
   S.members.forEach(sincronizaObjetivo);
   return {app:APPID, formato:FORMATO, exportadoEm:new Date().toISOString(),
   dados:{members:S.members, cheats:S.cheats, plans:S.plans, bought:S.bought,
-         prefCuisine:S.prefCuisine, week:S.week, objetivos:S.objetivos}}; }
+         prefCuisine:S.prefCuisine, week:S.week, objetivos:S.objetivos, despensa:S.despensa}}; }
 function textoCopia(){ return JSON.stringify(pacote(),null,2); }
 function marcarExportado(){ S.meta.exportadoEm=new Date().toISOString(); S.meta.semCopia=false; saveMeta(); }
 function nomeFicheiro(){ return 'familia-fit-'+iso(new Date())+'.json'; }
@@ -3121,7 +3285,15 @@ function lerPacote(txt){
       dataConclusao: (o.dataConclusao && !isNaN(new Date(o.dataConclusao).getTime()))? o.dataConclusao : null
     });
   });
-  return {d:{ members, cheats, plans, bought, objetivos,
+  /* A despensa só aceita nomes que ainda existem no catálogo de ingredientes
+     das receitas — um nome de uma versão antiga ou de outra fonte nunca
+     corresponderia a nada, e ficaria ali como lixo sem função. */
+  const despensa={};
+  if(d.despensa && typeof d.despensa==='object'){
+    const catalogo=new Set(catalogoIngredientes());
+    Object.keys(d.despensa).forEach(k=>{ if(d.despensa[k] && catalogo.has(k)) despensa[k]=true; });
+  }
+  return {d:{ members, cheats, plans, bought, objetivos, despensa,
               prefCuisine:temChave(CUIS,d.prefCuisine)?d.prefCuisine:'todas',
               week:dataValida(d.week)? mondayISO(new Date(d.week+'T12:00:00')) : mondayISO(new Date()) }};
 }
@@ -3164,6 +3336,7 @@ function juntar(txt){
     });
   });
   Object.keys(d.bought).forEach(wk=>{ S.bought[wk]=Object.assign({}, d.bought[wk], S.bought[wk]||{}); });
+  Object.keys(d.despensa||{}).forEach(k=>{ if(d.despensa[k]) S.despensa[k]=true; });   /* união: ter numa cópia chega */
   let objetivosNovos=0;
   (d.objetivos||[]).forEach(o=>{
     const mid=mapa[o.membroId]||o.membroId;
@@ -3288,8 +3461,10 @@ function render(){
   const el=document.getElementById('main');
   el.innerHTML = S.ui.tab==='atividade'? renderAtividade()
     : S.ui.tab==='nutricao'? renderNutricao()
+    : S.ui.tab==='receitas'? renderReceitas()
     : S.ui.tab==='objetivos'? renderObjetivos()
     : S.ui.tab==='plano'? renderPlano()
+    : S.ui.tab==='despensa'? renderDespensa()
     : S.ui.tab==='compras'? renderCompras()
     : S.ui.tab==='dados'? renderDados()
     : renderFamilia();
