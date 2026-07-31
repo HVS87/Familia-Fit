@@ -726,6 +726,13 @@ function catalogoIngredientes(){
   RECIPES.forEach(r=>r.i.forEach(x=>set.add(x[0])));
   return [...set].sort((a,b)=>a.localeCompare(b,'pt'));
 }
+/* A despensa guarda ingredientes e suplementos com a mesma chave — o nome —
+   por isso o catálogo que a valida tem de conhecer os dois. Os suplementos
+   são declarados depois, daí a leitura preguiçosa. */
+function catalogoDespensa(){
+  const s=typeof SUPLEMENTOS!=='undefined'? SUPLEMENTOS.map(x=>x.nome) : [];
+  return catalogoIngredientes().concat(s);
+}
 function temNaDespensa(nome){ return !!S.despensa[nome]; }
 function disponibilidadeReceita(r){
   const total=r.i.length, tem=r.i.filter(x=>temNaDespensa(x[0])).length;
@@ -961,6 +968,103 @@ function hidratosMin(m){ if(idadeAnos(m)<1) return 0; return gravida(m)? 175 : 1
    grávidas — o slider de objetivo fica limitado a manutenção ou acima. */
 function permiteDefice(m){ return faseDe(m)==='adulto' && !gravida(m); }
 function permiteProjecao(m){ return permiteDefice(m); }
+
+/* ===== SUPLEMENTOS =====
+   Cada suplemento traz o que uma dose acrescenta: macros (que entram no
+   simulador, porque um batido de proteína é comida) e micronutrientes (que
+   se comparam com a dose de referência e com o limite superior tolerável).
+   Valores típicos de rótulos comerciais e das doses habituais — cada marca
+   tem os seus, e a app diz para confirmar na embalagem.
+   Micros: vitD µg, ferro mg, calcio mg, magnesio mg, b12 µg, folato µg,
+   vitC mg, zinco mg, omega3 mg de EPA+DHA. */
+const CAT_SUPL={proteico:'Proteicos',vitaminico:'Vitaminas',mineral:'Minerais',composto:'Compostos e outros'};
+function SUP(id,nome,cat,dose,macros,micros,nota){
+  return {id,nome,cat,dose,
+    kcal:macros[0]||0, c:macros[1]||0, p:macros[2]||0, f:macros[3]||0,
+    micros:micros||{}, nota:nota||null};
+}
+const SUPLEMENTOS=[
+  SUP('whey','Proteína whey','proteico','1 doseador (30 g)',[120,3,24,1.5],{}),
+  SUP('caseina','Proteína caseína','proteico','1 doseador (30 g)',[110,3,24,0.5],{}),
+  SUP('protVegetal','Proteína vegetal (ervilha ou soja)','proteico','1 doseador (30 g)',[115,4,22,2],{}),
+  SUP('ganhador','Hipercalórico (gainer)','proteico','1 dose (100 g)',[380,70,20,3],{},
+    'Muito denso em açúcares — pensado para quem não consegue comer o suficiente, não como reforço diário.'),
+  SUP('multivit','Multivitamínico','vitaminico','1 comprimido',[0,0,0,0],
+    {vitD:5,b12:2.5,folato:200,vitC:80,ferro:14,zinco:10}),
+  SUP('vitD1000','Vitamina D 1000 UI','vitaminico','1 comprimido',[0,0,0,0],{vitD:25}),
+  SUP('vitD400','Vitamina D 400 UI (gotas)','vitaminico','1 dose',[0,0,0,0],{vitD:10},
+    'A dose que a Norma 004/2019 da Direção-Geral da Saúde recomenda para bebés até aos 12 meses.'),
+  SUP('b12','Vitamina B12','vitaminico','1 comprimido',[0,0,0,0],{b12:1000},
+    'Relevante sobretudo em dietas vegetarianas ou vegan estritas.'),
+  SUP('vitC','Vitamina C','vitaminico','1 comprimido',[0,0,0,0],{vitC:500}),
+  SUP('folico','Ácido fólico 400 µg','vitaminico','1 comprimido',[0,0,0,0],{folato:400},
+    'Recomendado antes da conceção e no 1.º trimestre, para reduzir o risco de defeitos do tubo neural.'),
+  SUP('ferro','Ferro','mineral','1 comprimido',[0,0,0,0],{ferro:14}),
+  SUP('magnesio','Magnésio','mineral','1 comprimido',[0,0,0,0],{magnesio:300}),
+  SUP('calcio','Cálcio','mineral','1 comprimido',[0,0,0,0],{calcio:500}),
+  SUP('zinco','Zinco','mineral','1 comprimido',[0,0,0,0],{zinco:15}),
+  SUP('omega3','Ómega 3 (óleo de peixe)','composto','1 cápsula (1 g)',[9,0,0,1],{omega3:300}),
+  SUP('creatina','Creatina monohidratada','composto','1 dose (5 g)',[0,0,0,0],{}),
+  SUP('fibra','Fibra (psílio)','composto','1 dose (5 g)',[15,4,0,0],{})
+];
+const SUPL={}; SUPLEMENTOS.forEach(s=>{ SUPL[s.id]=s; });
+const MICROS=[['vitD','Vitamina D','µg'],['ferro','Ferro','mg'],['calcio','Cálcio','mg'],
+  ['magnesio','Magnésio','mg'],['b12','Vitamina B12','µg'],['folato','Folato','µg'],
+  ['vitC','Vitamina C','mg'],['zinco','Zinco','mg'],['omega3','Ómega 3 (EPA+DHA)','mg']];
+/* Doses de referência (RDA/AI) por fase, e limites superiores toleráveis (UL)
+   do Institute of Medicine. O UL é o que importa aqui: suplementar acima
+   dele deixa de ser inócuo, sobretudo em crianças e na gravidez. */
+function ddrMicro(m){
+  const a=idadeAnos(m), meses=idadeMeses(m), f=m.sexo==='f';
+  if(gravida(m)) return {vitD:15,ferro:27,calcio:1000,magnesio:350,b12:2.6,folato:600,vitC:85,zinco:11,omega3:null};
+  if(meses<7)  return {vitD:10,ferro:0.27,calcio:200,magnesio:30,b12:0.4,folato:65,vitC:40,zinco:2,omega3:null};
+  if(meses<13) return {vitD:10,ferro:11,calcio:260,magnesio:75,b12:0.5,folato:80,vitC:50,zinco:3,omega3:null};
+  if(a<4)  return {vitD:15,ferro:7,calcio:700,magnesio:80,b12:0.9,folato:150,vitC:15,zinco:3,omega3:null};
+  if(a<9)  return {vitD:15,ferro:10,calcio:1000,magnesio:130,b12:1.2,folato:200,vitC:25,zinco:5,omega3:null};
+  if(a<14) return {vitD:15,ferro:8,calcio:1300,magnesio:240,b12:1.8,folato:300,vitC:45,zinco:8,omega3:null};
+  if(a<19) return {vitD:15,ferro:f?15:11,calcio:1300,magnesio:f?360:410,b12:2.4,folato:400,vitC:f?65:75,zinco:f?9:11,omega3:null};
+  return {vitD:15,ferro:(f&&a<51)?18:8,calcio:1000,magnesio:f?310:400,b12:2.4,folato:400,vitC:f?75:90,zinco:f?8:11,omega3:null};
+}
+function ulMicro(m){
+  const a=idadeAnos(m), meses=idadeMeses(m);
+  if(gravida(m)) return {vitD:100,ferro:45,calcio:2500,magnesio:350,folato:1000,vitC:2000,zinco:40,b12:null,omega3:null};
+  if(meses<7)  return {vitD:25,ferro:40,calcio:1000,magnesio:null,folato:null,vitC:null,zinco:4,b12:null,omega3:null};
+  if(meses<13) return {vitD:38,ferro:40,calcio:1500,magnesio:null,folato:null,vitC:null,zinco:5,b12:null,omega3:null};
+  if(a<4)  return {vitD:63,ferro:40,calcio:2500,magnesio:65,folato:300,vitC:400,zinco:7,b12:null,omega3:null};
+  if(a<9)  return {vitD:75,ferro:40,calcio:2500,magnesio:110,folato:400,vitC:650,zinco:12,b12:null,omega3:null};
+  if(a<14) return {vitD:100,ferro:40,calcio:3000,magnesio:350,folato:600,vitC:1200,zinco:23,b12:null,omega3:null};
+  if(a<19) return {vitD:100,ferro:45,calcio:3000,magnesio:350,folato:800,vitC:1800,zinco:34,b12:null,omega3:null};
+  return {vitD:100,ferro:45,calcio:2500,magnesio:350,folato:1000,vitC:2000,zinco:40,b12:null,omega3:null};
+}
+function suplementosDe(m){
+  return (m.suplementos||[]).filter(s=>s&&temChave(SUPL,s.s)&&(parseFloat(s.doses)||0)>0);
+}
+/* O que os suplementos acrescentam por dia — macros e micronutrientes. */
+function totalSuplementos(m){
+  const t={kcal:0,c:0,p:0,f:0,micros:{}};
+  suplementosDe(m).forEach(s=>{
+    const sp=SUPL[s.s], d=parseFloat(s.doses)||0;
+    t.kcal+=sp.kcal*d; t.c+=sp.c*d; t.p+=sp.p*d; t.f+=sp.f*d;
+    Object.keys(sp.micros).forEach(k=>{ t.micros[k]=(t.micros[k]||0)+sp.micros[k]*d; });
+  });
+  return t;
+}
+/* Quanto de cada macro fica a cargo da comida, depois de descontar os
+   suplementos: é este o número que interessa a quem vai cozinhar. */
+function macrosRestantes(m){
+  const alvo=macros(m), sup=totalSuplementos(m);
+  return {c:Math.max(0,Math.round(alvo.c-sup.c)), p:Math.max(0,Math.round(alvo.p-sup.p)),
+    f:Math.max(0,Math.round(alvo.f-sup.f)), kcal:Math.max(0,Math.round(targetKcal(m)-sup.kcal))};
+}
+/* Micronutrientes acima do limite superior tolerável — o aviso que justifica
+   a existência desta tabela. */
+function excessosMicro(m){
+  const t=totalSuplementos(m).micros, ul=ulMicro(m), fora=[];
+  MICROS.forEach(([k,nome,un])=>{
+    if(ul[k]!=null && t[k]!=null && t[k]>ul[k]) fora.push({k,nome,un,valor:t[k],ul:ul[k]});
+  });
+  return fora;
+}
 
 /* ===== NUTRIÇÃO DO BEBÉ =====
    Peso para a idade, percentis 3/15/50/85/97, em quilogramas. Valores
@@ -1275,7 +1379,10 @@ const DICAS={
   objEstrategia:'Quanto do ajuste diário vem de comer menos (ou mais) e quanto vem de gastar mais a fazer desporto. Mais dieta pede menos esforço físico extra; mais exercício permite comer com menos restrição para o mesmo ritmo.',
   receitasDisp:'Cada receita mostra os ingredientes com o estado da tua despensa: um visto verde para o que já tens, uma cruz vermelha para o que falta. A etiqueta no topo resume tudo — «Pronta a cozinhar» quando não falta nada.',
   despensa:'Os ingredientes que marcares aqui como disponíveis passam a contar em todas as receitas e na lista de compras. Vem sempre da lista de ingredientes das próprias receitas — nunca texto livre — para nunca haver um nome que não bate certo.',
-  faltaComprar:'A lista completa acima tem tudo o que as receitas da semana precisam; esta mostra só o que ainda não está na despensa — é isto que vale a pena exportar ou levar ao supermercado.'
+  faltaComprar:'A lista completa acima tem tudo o que as receitas da semana precisam; esta mostra só o que ainda não está na despensa — é isto que vale a pena exportar ou levar ao supermercado.',
+  suplementos:'Regista o que tomas e quantas doses por dia. Um batido de proteína é comida: as calorias e os macros entram no plano do dia. Os suplementos vão também para a despensa e para a lista de compras, com as doses de sete dias.',
+  suplMacros:'Quanto dos macros do dia já vem dos suplementos, e quanto sobra para a comida. É este segundo número que interessa a quem vai cozinhar — se um batido dá 48 g de proteína, faltam menos 48 g no prato.',
+  suplMicros:'O que os suplementos dão de cada micronutriente, comparado com a dose diária de referência e com o limite superior tolerável do Institute of Medicine. Passar o limite deixa de ser inócuo — sobretudo em crianças e na gravidez.'
 };
 function dica(k,extra){ const t=DICAS[k]; if(!t) return '';
   return `<button type="button" class="dica ${extra||''}" data-dica="${esc(t)}" aria-label="Explicação">i</button>`; }
@@ -1975,6 +2082,115 @@ function atualizarNutricao(){
 /* O cartão que explica de onde vêm os números desta fase e o que a faixa
    AMDR permite — é aqui que a criança e a grávida deixam de ser um adulto
    pequeno nas contas. */
+/* ---- suplementos: interface ---- */
+function dosesDe(m,id){ const s=(m.suplementos||[]).find(x=>x.s===id); return s? (parseFloat(s.doses)||0) : 0; }
+function setDoses(mid,id,valor){
+  const m=S.members.find(x=>x.id===mid); if(!m) return;
+  if(!Array.isArray(m.suplementos)) m.suplementos=[];
+  const v=clampNum(Math.round((parseFloat(valor)||0)*2)/2,0,20);
+  const i=m.suplementos.findIndex(x=>x.s===id);
+  if(v<=0){ if(i>=0) m.suplementos.splice(i,1); }
+  else if(i>=0) m.suplementos[i].doses=v;
+  else m.suplementos.push({s:id,doses:v});
+  /* tomar um suplemento implica tê-lo em casa — a despensa acompanha */
+  if(v>0 && SUPL[id]) S.despensa[SUPL[id].nome]=true;
+  save('suplementos de '+m.nome); render();
+}
+function slideDoses(mid,id,el){
+  const m=S.members.find(x=>x.id===mid); if(!m) return;
+  if(!Array.isArray(m.suplementos)) m.suplementos=[];
+  const v=clampNum(parseFloat(el.value)||0,0,20);
+  const i=m.suplementos.findIndex(x=>x.s===id);
+  if(v<=0){ if(i>=0) m.suplementos.splice(i,1); }
+  else if(i>=0) m.suplementos[i].doses=v; else m.suplementos.push({s:id,doses:v});
+  pintaRange(el);
+  aoVivo('supl', ()=>{
+    põe('sup-o-'+id, v>0? nPT(v,1).replace(',0','')+(v===1?' dose/dia':' doses/dia') : 'não toma');
+    const bloco=document.getElementById('nu-supl-macros'); if(bloco) bloco.innerHTML=blocoSuplNosMacros(m);
+    const mic=document.getElementById('sup-micros'); if(mic) mic.innerHTML=tabelaMicros(m);
+    const res=document.getElementById('sup-resumo'); if(res) res.innerHTML=resumoSupl(m);
+  });
+}
+function blocoSuplNosMacros(m){
+  const sup=totalSuplementos(m);
+  if(!suplementosDe(m).length) return '';
+  const rest=macrosRestantes(m), alvo=macros(m);
+  return `<div style="margin-top:12px;border-top:1px solid var(--line);padding-top:10px">
+    <div class="splabel"><span>Dos suplementos ${dica('suplMacros')}</span>
+      <output style="min-width:10ch;text-align:right">${Math.round(sup.kcal)} kcal</output></div>
+    <div class="kv"><span>Hidratos</span><b>${Math.round(sup.c)} g de ${alvo.c} g → faltam ${rest.c} g na comida</b></div>
+    <div class="kv"><span>Proteína</span><b>${Math.round(sup.p)} g de ${alvo.p} g → faltam ${rest.p} g na comida</b></div>
+    <div class="kv"><span>Gordura</span><b>${Math.round(sup.f)} g de ${alvo.f} g → faltam ${rest.f} g na comida</b></div>
+    ${(sup.c>alvo.c||sup.p>alvo.p||sup.f>alvo.f)? '<p class="sub" style="color:var(--warn);margin-top:6px">Os suplementos já ultrapassam o alvo de pelo menos um macronutriente — vale a pena rever as doses.</p>':''}
+  </div>`;
+}
+function tabelaMicros(m){
+  const t=totalSuplementos(m).micros, ddr=ddrMicro(m), ul=ulMicro(m);
+  const linhas=MICROS.filter(([k])=>t[k]>0).map(([k,nome,un])=>{
+    const v=t[k], alvo=ddr[k], lim=ul[k];
+    const pct= alvo? Math.round(v/alvo*100) : null;
+    const excede = lim!=null && v>lim;
+    const tone = excede? 'bad' : (pct!=null&&pct>=100? 'ok':'');
+    return `<div class="kv"><span>${nome}</span><b>${nPT(v,v<10?1:0)} ${un}
+      ${pct!=null? `<span class="pill ${tone}" style="margin-left:6px">${pct}% da referência</span>`:''}
+      ${excede? `<span class="pill bad" style="margin-left:4px">acima do limite (${lim} ${un})</span>`:''}</b></div>`;
+  }).join('');
+  return linhas || '<p class="sub">Os suplementos escolhidos não declaram micronutrientes — só macros.</p>';
+}
+function resumoSupl(m){
+  const lista=suplementosDe(m);
+  if(!lista.length) return '<p class="sub">Sem suplementos registados.</p>';
+  const sup=totalSuplementos(m);
+  return `<div class="row" style="margin-bottom:8px">
+    <div class="stat"><b>${lista.length}</b><span>Suplementos</span></div>
+    <div class="stat"><b>${Math.round(sup.kcal)}</b><span>kcal/dia</span></div>
+    <div class="stat"><b>${Math.round(sup.p)} g</b><span>Proteína/dia</span></div>
+    <div class="stat"><b>${lista.reduce((t,s)=>t+s.doses*7,0)}</b><span>Doses/semana</span></div>
+  </div>`;
+}
+function avisosSupl(m){
+  const av=[], excessos=excessosMicro(m), fase=faseDe(m);
+  excessos.forEach(e=>av.push(`<b>${e.nome}:</b> ${nPT(e.valor,e.valor<10?1:0)} ${e.un} por dia está acima do limite superior tolerável para esta fase (${e.ul} ${e.un}). Acima deste valor a suplementação deixa de ser inócua — confirma as doses com quem te segue.`));
+  if(gravida(m)){
+    if(!dosesDe(m,'folico') && !dosesDe(m,'multivit'))
+      av.push('Na gravidez recomenda-se <b>ácido fólico</b> desde antes da conceção e durante o 1.º trimestre, para reduzir o risco de defeitos do tubo neural. Fala com quem te segue.');
+    av.push('Evita suplementos com <b>vitamina A na forma de retinol</b> em doses altas durante a gravidez, e confirma sempre o rótulo — o excesso é teratogénico.');
+  }
+  if(fase!=='adulto')
+    av.push('Em crianças e adolescentes, a suplementação só deve seguir indicação do pediatra ou do médico de família. Os limites superiores são muito mais baixos do que no adulto, e o ferro em excesso é uma das causas mais frequentes de intoxicação nesta idade.');
+  if(!av.length) return '';
+  return `<div class="msg warn-msg" style="margin-top:12px">${av.join('<br><br>')}</div>`;
+}
+function cartaoSuplementos(m){
+  const lista=suplementosDe(m);
+  return `<div class="card">
+    <h2>Suplementos ${dica('suplementos')}</h2>
+    <p class="sub" style="margin-top:6px">Uma alimentação variada cobre as necessidades da maioria das pessoas.
+      Um suplemento faz sentido quando há uma falha concreta — confirmada em consulta ou análises — não por defeito.
+      O que registares aqui entra nos macros do dia, na despensa e na lista de compras.</p>
+    <div id="sup-resumo" style="margin-top:12px">${resumoSupl(m)}</div>
+    ${Object.entries(CAT_SUPL).map(([cat,rot])=>{
+      const doCat=SUPLEMENTOS.filter(s=>s.cat===cat);
+      return `<div class="cat-h">${rot}</div>
+      <div class="spgrid" style="margin-bottom:6px">${doCat.map(sp=>{
+        const d=dosesDe(m,sp.id);
+        return `<div>
+          <div class="splabel"><span>${sp.nome}<span class="sub" style="display:block;text-transform:none;letter-spacing:0;font-weight:400">${sp.dose}${sp.kcal?' · '+sp.kcal+' kcal':''}${sp.p?' · '+sp.p+' g proteína':''}</span></span>
+            <output id="sup-o-${sp.id}" style="min-width:11ch;text-align:right">${d>0? nPT(d,1).replace(',0','')+(d===1?' dose/dia':' doses/dia'):'não toma'}</output></div>
+          <input type="range" min="0" max="6" step="0.5" value="${d}" style="--pct:${Math.round(d/6*100)}%"
+            aria-label="Doses por dia de ${esc(sp.nome)}"
+            oninput="slideDoses('${m.id}','${sp.id}',this)" onchange="setDoses('${m.id}','${sp.id}',this.value)">
+          ${sp.nota&&d>0? `<p class="sub" style="margin-top:2px">${sp.nota}</p>`:''}
+        </div>`;
+      }).join('')}</div>`;
+    }).join('')}
+    ${lista.length? `<div class="cat-h">Micronutrientes por dia ${dica('suplMicros')}</div>
+      <div id="sup-micros">${tabelaMicros(m)}</div>`:''}
+    <div id="sup-avisos">${avisosSupl(m)}</div>
+    <p class="sub" style="margin-top:10px">Valores típicos de rótulos comerciais — cada marca tem os seus, confirma na embalagem.
+      Referências de ingestão e limites superiores do Institute of Medicine.</p>
+  </div>`;
+}
 function cartaoFase(m){
   const faixa=amdrDe(m), aj=macrosAjustados(m), mk=macros(m);
   const pkg=proteinaKg(m), pAlvo=Math.round(pkg*pesoRef(m));
@@ -2250,9 +2466,11 @@ function renderNutricao(){
         <span class="pill warn" id="nu-diet-aviso" style="visibility:${d.p<10||d.f<15?'visible':'hidden'}">pouca proteína ou gordura — cuidado com a saciedade</span>
       </div>
       ${m.dieta==='personalizada'? '<p class="sub" style="margin-top:8px">Dieta personalizada — nas receitas e no plano, todas contam como compatíveis.</p>':''}
+      <div id="nu-supl-macros">${blocoSuplNosMacros(m)}</div>
       <div class="splabel" style="margin:10px 0 0"><span>Repartição pelo dia ${dica('refeicoes')}</span></div>
       ${barraRefeicoes(targetKcal(m))}
     </div>
+    ${cartaoSuplementos(m)}
     ${permiteProjecao(m)? `<div class="card">
       <h2>Projeção de peso — 12 semanas ${dica('projecao')}</h2>
       ${cartaoProjecao(m)}
@@ -2828,6 +3046,15 @@ function renderPlano(){
 }
 
 /* ================= COMPRAS ================= */
+/* Os grupos da lista: as secções de supermercado mais um grupo próprio para
+   os suplementos, que não se compram no mesmo corredor. O índice é partilhado
+   pelo render e pelo atualizador, para os contadores por secção baterem certo. */
+function gruposCompras(){ return CATS.map(c=>c[0]).concat(['Suplementos']); }
+function grupoDoItem(it){
+  if(it.u==='dose') return CATS.length;
+  for(const [i,[cat,re]] of CATS.entries()) if(re.test(it.n)) return i;
+  return CATS.length-1;
+}
 function shoppingItems(){
   const dates=weekDates(S.week), w=S.plans[S.week]||{}, agg={};
   let meals=0;
@@ -2839,6 +3066,14 @@ function shoppingItems(){
     r.i.forEach(([nome,q,u])=>{ const key=nome+'|'+u;
       if(!agg[key]) agg[key]={n:nome,u,q:0}; agg[key].q+=q*n; });
   }
+  /* Os suplementos consomem-se todos os dias, não por refeição planeada:
+     entram na lista pelas doses de sete dias, para a compra da semana
+     ficar completa. Um cheat day não suspende um multivitamínico. */
+  S.members.forEach(m=>suplementosDe(m).forEach(s=>{
+    const sp=SUPL[s.s], key=sp.nome+'|dose';
+    if(!agg[key]) agg[key]={n:sp.nome,u:'dose',q:0};
+    agg[key].q += (parseFloat(s.doses)||0)*7;
+  }));
   return {items:Object.values(agg),meals};
 }
 /* Marcar um item não redesenha a lista: no supermercado, com o telemóvel numa
@@ -2872,7 +3107,7 @@ function atualizarCompras(){
   const num=document.getElementById('co-num');
   if(num){ if(done===total&&total){ num.textContent='tudo comprado ✓'; num.setAttribute('class','f-ok-txt'); }
     else { num.textContent=done+'/'+total+' comprados'; num.removeAttribute('class'); } }
-  CATS.forEach((c,i)=>{ const el=document.getElementById('co-sec-'+i); if(!el) return;
+  gruposCompras().forEach((c,i)=>{ const el=document.getElementById('co-sec-'+i); if(!el) return;
     const lis=[].slice.call(document.querySelectorAll('li[data-sec="'+i+'"]'));
     const dn=lis.filter(li=>li.classList.contains('done')).length;
     const completo=lis.length&&dn===lis.length;
@@ -2910,8 +3145,9 @@ function renderCompras(){
     <div class="card empty">Ainda não há receitas marcadas nesta semana.<br><br>
     <button class="btn" onclick="go('plano')">Ir para o plano semanal</button></div>`;
   const bought=S.bought[S.week]||{};
-  const grouped=CATS.map(([cat,re])=>[cat,[]]);
-  items.forEach(it=>{ for(const [i,[cat,re]] of CATS.entries()){ if(re.test(it.n)){ grouped[i][1].push(it); break; } } });
+  const grupos=gruposCompras();
+  const grouped=grupos.map(cat=>[cat,[]]);
+  items.forEach(it=>{ grouped[grupoDoItem(it)][1].push(it); });
   const done=items.filter(i=>bought[i.n+'|'+i.u]).length;
   const completo=done===items.length&&items.length;
   return `<div class="row" style="justify-content:space-between;margin-bottom:4px">
@@ -2923,7 +3159,7 @@ function renderCompras(){
     <div id="co-bar" style="background:${completo?'var(--ok)':'var(--accent)'};width:${items.length? done/items.length*100:0}%"></div></div>
   <div class="card" style="max-width:640px">
     ${grouped.filter(([,arr])=>arr.length).map(([cat,arr])=>{
-      const iSec=CATS.findIndex(c=>c[0]===cat);
+      const iSec=grupos.indexOf(cat);
       const dnSec=arr.filter(it=>bought[it.n+'|'+it.u]).length, okSec=dnSec===arr.length&&arr.length;
       return `
       <div class="cat-h">${cat} <span id="co-sec-${iSec}" class="sub ${okSec?'f-ok-txt':''}" style="float:right">${okSec?'✓ ':''}${dnSec}/${arr.length}</span></div>
@@ -2994,12 +3230,12 @@ function cartaoFaltaComprar(items){
    o mesmo índice aponta sempre para o mesmo ingrediente entre o render e o
    clique — sem ter de escapar aspas nem confiar em nomes livres. */
 function toggleDespensaIdx(i){
-  const nome=catalogoIngredientes()[i]; if(!nome) return;
+  const nome=catalogoDespensa()[i]; if(!nome) return;
   if(S.despensa[nome]) delete S.despensa[nome]; else S.despensa[nome]=true;
   save('despensa: '+nome); render();
 }
 function marcarTodaDespensa(){
-  catalogoIngredientes().forEach(n=>S.despensa[n]=true);
+  catalogoDespensa().forEach(n=>S.despensa[n]=true);
   save('despensa toda marcada'); render();
 }
 function limparDespensa(){
@@ -3015,20 +3251,23 @@ function filtrarDespensa(el){
   });
 }
 function renderDespensa(){
-  const catalogo=catalogoIngredientes();
+  const catalogo=catalogoDespensa(), nIngr=catalogoIngredientes().length;
   const tem=catalogo.filter(n=>S.despensa[n]).length;
-  const grouped=CATS.map(([cat])=>[cat,[]]);
+  /* os suplementos ficam num grupo próprio no fim, em vez de espalhados
+     pelas secções de supermercado — não é lá que se compram */
+  const grouped=CATS.map(([cat])=>[cat,[]]).concat([['Suplementos',[]]]);
   catalogo.forEach((nome,i)=>{
+    if(i>=nIngr){ grouped[grouped.length-1][1].push(i); return; }
     for(const [gi,[cat,re]] of CATS.entries()){ if(re.test(nome)){ grouped[gi][1].push(i); break; } }
   });
   return `<div class="row" style="justify-content:space-between;margin-bottom:4px">
     <div><h2>A minha despensa ${dica('despensa')}</h2>
-      <span class="sub">${tem} de ${catalogo.length} ingredientes marcados como disponíveis</span></div>
+      <span class="sub">${tem} de ${catalogo.length} itens marcados como disponíveis</span></div>
     <div class="row">
       <button class="btn ghost small" onclick="marcarTodaDespensa()">Marcar tudo</button>
       <button class="btn danger small" onclick="limparDespensa()">Esvaziar</button>
     </div></div>
-  <input type="text" placeholder="Procurar ingrediente…" style="max-width:340px;margin:10px 0 14px" aria-label="Procurar ingrediente na despensa" oninput="filtrarDespensa(this)">
+  <input type="text" placeholder="Procurar ingrediente ou suplemento…" style="max-width:340px;margin:10px 0 14px" aria-label="Procurar na despensa" oninput="filtrarDespensa(this)">
   <div class="card" style="max-width:640px">
     <div id="despensa-lista">
     ${grouped.filter(([,idx])=>idx.length).map(([cat,idx])=>`
@@ -3207,7 +3446,12 @@ function limparMembro(m){
     trimestre: clampNum(Math.round(parseFloat(m.trimestre)||1),1,3),
     fetos: clampNum(Math.round(parseFloat(m.fetos)||1),1,3),
     pesoPre: num(m.pesoPre,0)||undefined,
-    desportos: Array.isArray(m.desportos) ? m.desportos.map(normalizaDesporto).filter(Boolean) : []};
+    desportos: Array.isArray(m.desportos) ? m.desportos.map(normalizaDesporto).filter(Boolean) : [],
+    suplementos: Array.isArray(m.suplementos)
+      ? m.suplementos.filter(s=>s&&temChave(SUPL,s.s))
+          .map(s=>({s:s.s, doses:clampNum(Math.round((parseFloat(s.doses)||0)*2)/2,0,20)}))
+          .filter(s=>s.doses>0)
+      : []};
   /* idade:num(m.idade,35) acima não sabe nada de meses — sem isto, um bebé
      importado com só "meses" ficava com idade=35 (o valor de recurso) em vez
      de derivada dos meses, e um meses fora de [0,24] não convertia para anos. */
@@ -3288,12 +3532,12 @@ function lerPacote(txt){
       dataConclusao: (o.dataConclusao && !isNaN(new Date(o.dataConclusao).getTime()))? o.dataConclusao : null
     });
   });
-  /* A despensa só aceita nomes que ainda existem no catálogo de ingredientes
-     das receitas — um nome de uma versão antiga ou de outra fonte nunca
-     corresponderia a nada, e ficaria ali como lixo sem função. */
+  /* A despensa só aceita nomes que ainda existem no catálogo (ingredientes
+     das receitas e suplementos) — um nome de uma versão antiga ou de outra
+     fonte nunca corresponderia a nada, e ficaria ali como lixo sem função. */
   const despensa={};
   if(d.despensa && typeof d.despensa==='object'){
-    const catalogo=new Set(catalogoIngredientes());
+    const catalogo=new Set(catalogoDespensa());
     Object.keys(d.despensa).forEach(k=>{ if(d.despensa[k] && catalogo.has(k)) despensa[k]=true; });
   }
   return {d:{ members, cheats, plans, bought, objetivos, despensa,
