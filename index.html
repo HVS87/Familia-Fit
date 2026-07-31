@@ -183,12 +183,26 @@ input[type=range]:focus-visible::-moz-range-thumb{box-shadow:0 0 0 3px var(--acc
 .f-card{fill:var(--card)} .f-mc{fill:var(--mc)} .f-mp{fill:var(--mp)} .f-mf{fill:var(--mf)}
 .s-ok{stroke:var(--ok)} .s-line{stroke:var(--line)} .s-ink{stroke:var(--ink)}
 .s-acc{stroke:var(--accent)} .s-energy{stroke:var(--energy)} .s-mut{stroke:var(--mut)}
+.s-warn{stroke:var(--warn)} .s-bad{stroke:var(--bad)}
 .f-ok-txt{color:var(--ok)}
 .dt-ok{background:var(--ok)} .dt-warn{background:var(--warn)} .dt-bad{background:var(--bad)}
 .dt-line{background:var(--line)} .dt-party{background:var(--party)}
 .day{scroll-margin-top:130px}
 .shop label{display:flex;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer}
-@media (prefers-reduced-motion: no-preference){ #co-bar{transition:width .2s,background-color .2s} }
+@media (prefers-reduced-motion: no-preference){
+  #co-bar{transition:width .2s,background-color .2s}
+  .anel-arco{transition:stroke-dashoffset .6s ease, stroke .3s ease}
+}
+/* Objetivos: anel de progresso e celebração de conquista. */
+.anel{overflow:visible}
+.celebracao{position:relative;overflow:hidden;border-color:var(--party);background:var(--party-soft)}
+.celebracao h2{color:var(--party)}
+.confete{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.confete span{position:absolute;left:calc(6% + (var(--i) * 16%));top:-24px;font-size:22px;opacity:.95}
+@media (prefers-reduced-motion: no-preference){
+  .confete span{animation:obj-cair 1.6s ease-in forwards;animation-delay:calc(var(--i) * .1s)}
+  @keyframes obj-cair{ to{ transform:translateY(150px) rotate(220deg); opacity:0; } }
+}
 .rc{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--card);display:flex;flex-direction:column;gap:6px}
 .rc h3{font-size:15.5px}
 .tag{display:inline-block;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:1px 7px;font-size:11.5px;color:var(--mut);margin:1px 2px 1px 0}
@@ -681,8 +695,11 @@ const AVCOLORS = ['#2456A6','#C8641E','#2E7D4F','#7C5CB0','#C2477C','#B07F14','#
 /* ================= ESTADO ================= */
 const KEY='familiaFitV1', APPID='familia-fit', FORMATO=1;
 let saveErr='', msg=null;
-function blank(){ return {members:[],cheats:{},plans:{},bought:{},prefCuisine:'todas',
-  ui:{tab:'familia',mid:null,cuis:'todas',soComp:false,mealF:'todas'}, week:mondayISO(new Date()),
+function blank(){ return {members:[],cheats:{},plans:{},bought:{},prefCuisine:'todas',objetivos:[],
+  ui:{tab:'familia',mid:null,cuis:'todas',soComp:false,mealF:'todas',
+      objForm:{membros:[],tipo:'perder',delta:5,semanas:12,split:50,desporto:null,banda:2},
+      objExpandido:null, objAdj:null, celebrando:null},
+  week:mondayISO(new Date()),
   meta:{gravadoEm:null,exportadoEm:null,semCopia:false,avisarAoSair:true}}; }
 let S = load();
 function load(){
@@ -711,11 +728,11 @@ function writeLS(){
 const UNDO_MAX=30;
 let pilhaUndo=[], pilhaRedo=[], estadoAnterior=null, ultimaDesc=null;
 function instantaneo(){ return JSON.stringify({members:S.members, cheats:S.cheats, plans:S.plans,
-  bought:S.bought, week:S.week, prefCuisine:S.prefCuisine}); }
+  bought:S.bought, week:S.week, prefCuisine:S.prefCuisine, objetivos:S.objetivos}); }
 function aplicaInstantaneo(js){
   const d=JSON.parse(js);
   S.members=d.members; S.cheats=d.cheats; S.plans=d.plans; S.bought=d.bought;
-  S.week=d.week; S.prefCuisine=d.prefCuisine;
+  S.week=d.week; S.prefCuisine=d.prefCuisine; S.objetivos=d.objetivos||[];
   S.members.forEach(normalizaMembro);
   if(!S.members.some(m=>m.id===S.ui.mid)) S.ui.mid=S.members[0]? S.members[0].id : null;
   macroLive=null;
@@ -1217,11 +1234,13 @@ const DICAS={
   bebeDdr:'As doses diárias de referência do escalão etário: energia pelas equações da IOM, proteína e hidratos pelas RDA, gordura e água pelas ingestões adequadas. São referências populacionais, não metas individuais.',
   bebeLeite:'A conta parte de 67 kcal por 100 ml — o valor clássico de 20 kcal/onça, dentro do intervalo de 60 a 70 kcal/100 ml do Codex Alimentarius para fórmulas de início e próximo do leite materno maduro. O volume por omissão sai das necessidades de energia; a referência de ml por quilo desce com a idade, à medida que entram os sólidos.',
   bebeHorario:'O intervalo e a hora da primeira tomada geram a grelha do dia. As zonas sombreadas são a noite — tomadas nesse período aparecem com a lua. Serve de apoio, não de relógio: sinais de fome mandam mais do que horários.',
-  bebeRef:'A partir dos 6 meses a energia divide-se entre o leite e os sólidos. A repartição sugerida segue o padrão habitual da diversificação em Portugal: papa ou fruta a meio da manhã, sopa e prato ao almoço, e por aí em diante.'
+  bebeRef:'A partir dos 6 meses a energia divide-se entre o leite e os sólidos. A repartição sugerida segue o padrão habitual da diversificação em Portugal: papa ou fruta a meio da manhã, sopa e prato ao almoço, e por aí em diante.',
+  objCriar:'A partir de quantos quilos e de quanto tempo, a app calcula o défice ou o excedente diário necessário e reparte-o entre a dieta e o exercício. Ao criar, isso é logo aplicado ao objetivo da Nutrição e ao desporto escolhido — não fica só no papel.',
+  objEstrategia:'Quanto do ajuste diário vem de comer menos (ou mais) e quanto vem de gastar mais a fazer desporto. Mais dieta pede menos esforço físico extra; mais exercício permite comer com menos restrição para o mesmo ritmo.'
 };
 function dica(k,extra){ const t=DICAS[k]; if(!t) return '';
   return `<button type="button" class="dica ${extra||''}" data-dica="${esc(t)}" aria-label="Explicação">i</button>`; }
-const TABS=[['familia','👤 Família'],['atividade','🏃 Atividade'],['nutricao','🍽️ Nutrição'],['plano','📅 Plano semanal'],['compras','🛒 Compras'],['dados','⚙️ Dados']];
+const TABS=[['familia','👤 Família'],['atividade','🏃 Atividade'],['nutricao','🍽️ Nutrição'],['objetivos','🎯 Objetivos'],['plano','📅 Plano semanal'],['compras','🛒 Compras'],['dados','⚙️ Dados']];
 function go(t){ S.ui.tab=t; msg=null; saveMeta(); render(); }
 function pickM(id){ S.ui.mid=id; macroLive=null; saveMeta(); render(); }
 function curM(){ return S.members.find(m=>m.id===S.ui.mid) || S.members[0]; }
@@ -2236,6 +2255,394 @@ function renderNutricao(){
   </div>`:''}`;
 }
 
+/* ================= OBJETIVOS =================
+   Estratégias de peso: um alvo concreto (quilos e prazo) repartido entre
+   dieta e exercício, aplicado diretamente ao objetivoPct e aos desportos do
+   membro — o objetivo não é um número isolado, é o mesmo motor da Nutrição
+   e da Atividade a apontar para uma meta. Progresso lido do peso atual do
+   membro desde a criação, sem precisar de um histórico à parte. */
+function membrosElegiveisObjetivo(){
+  return S.members.filter(m=>faseDe(m)!=='bebe' && !semEstimativa(m));
+}
+/* Quantas semanas faltam a partir de AGORA — não das semanas totais da
+   criação — para a estratégia se adaptar ao que já foi feito (ou não). */
+function semanasRestantesDe(o){
+  const decorridas=Math.max(0,(Date.now()-new Date(o.dataInicio).getTime())/(7*24*3600*1000));
+  return Math.max(0.5, o.semanas-decorridas);
+}
+function progressoObjetivo(o){
+  const m=S.members.find(x=>x.id===o.membroId);
+  if(!m) return {pct:0, atingido:false, semMembro:true, tone:'warn'};
+  const semanasDecorridas=Math.max(0,(Date.now()-new Date(o.dataInicio).getTime())/(7*24*3600*1000));
+  const pctTempo=clampNum(semanasDecorridas/Math.max(o.semanas,0.001)*100,0,100);
+  if(o.tipo==='manter'){
+    const bandaKg=o.pesoInicial*o.bandaManter/100;
+    const dentro=Math.abs(m.peso-o.pesoInicial)<=bandaKg;
+    const terminou=semanasDecorridas>=o.semanas;
+    return {pct:pctTempo, dentroBanda:dentro, atingido:terminou&&dentro, terminouFora:terminou&&!dentro,
+      semanasDecorridas, bandaKg, tone:dentro?'ok':'warn', pctTempo};
+  }
+  const total=Math.abs(o.pesoInicial-o.pesoAlvo);
+  const atingido = o.tipo==='perder'? m.peso<=o.pesoAlvo+0.05 : m.peso>=o.pesoAlvo-0.05;
+  if(total<0.05) return {pct:100, atingido:true, tone:'ok', pctTempo, semanasDecorridas};
+  const feito = o.tipo==='ganhar'? (m.peso-o.pesoInicial) : (o.pesoInicial-m.peso);
+  const pct=clampNum(feito/total*100,0,100);
+  /* pctTempo<1: objetivo acabado de criar, sem tempo real decorrido — mostra-se
+     "no bom caminho" em vez de julgar um ritmo que ainda não existe. */
+  const tone = atingido||pctTempo<1? 'ok' : pct>=pctTempo*0.85? 'ok' : pct>=pctTempo*0.5? 'warn' : 'bad';
+  return {pct, atingido, feito, total, kgRestante:o.pesoAlvo-m.peso, tone, pctTempo, semanasDecorridas};
+}
+/* MET de referência para um desporto ainda não registado: a velocidade por
+   omissão do catálogo, ou intensidade moderada. Se o membro já o pratica,
+   usa-se o MET real dele em vez de um valor genérico. */
+function metParaSugestao(m,sportId){
+  const sp=SPORT[sportId]; if(!sp) return 0;
+  const existente=(m.desportos||[]).find(s=>s.s===sportId);
+  if(existente) return metDe(existente);
+  return sp.dist? metPorVelocidade(sp.dist.curva,sp.dist.vdef) : sp.mets[1];
+}
+/* O cálculo puro da estratégia: quanto do ajuste diário vem da dieta e
+   quanto do exercício, e o que isso implica em objetivoPct e em minutos de
+   desporto extra. Usado tanto na criação como no reajuste de um objetivo
+   já existente — nunca diverge entre os dois. */
+function calcEstrategia(m,pesoAlvo,semanasRestantes,tipo,splitDieta,desportoId){
+  const kgRestante=pesoAlvo-m.peso;
+  const kcalTotal=Math.abs(kgRestante)*7700;
+  const dias=Math.max(1,semanasRestantes*7);
+  const deficitDiario=kcalTotal/dias;
+  const sinal=tipo==='ganhar'?1:-1;
+  const tdeeAtual=tdee(m);
+  let viaDieta=deficitDiario, viaExercicio=0, horasExtraSemana=0;
+  if(tipo==='perder'){
+    viaDieta=deficitDiario*splitDieta/100;
+    viaExercicio=deficitDiario*(100-splitDieta)/100;
+    const met=desportoId? metParaSugestao(m,desportoId) : 0;
+    horasExtraSemana = met>0? (viaExercicio*7)/(met*m.peso) : 0;
+  }
+  let objetivoPctSugerido = tipo==='manter'? 0 : Math.round(sinal*viaDieta/tdeeAtual*100);
+  objetivoPctSugerido = tipo==='manter'?0 : clampNum(objetivoPctSugerido, tipo==='perder'?-25:0, tipo==='ganhar'?20:0);
+  const targetKcalNovo=tdeeAtual*(1+objetivoPctSugerido/100);
+  const ritmoKgSemana=Math.abs(kgRestante)/Math.max(semanasRestantes,0.001);
+  return {kgRestante, deficitDiario, viaDieta, viaExercicio, horasExtraSemana, minutosExtraSemana:horasExtraSemana*60,
+    objetivoPctSugerido, abaixoBasal: targetKcalNovo<bmr(m), ritmoKgSemana,
+    toneRitmo: ritmoKgSemana<=0.75?'ok':ritmoKgSemana<=1?'warn':'bad', tdeeAtual, targetKcalNovo};
+}
+/* Acrescenta o exercício extra ao desporto escolhido — a um que já pratica
+   (soma às horas semanais existentes) ou, se não tiver nenhum, cria um
+   registo novo. Sempre em base semanal, para o cálculo não se perder entre
+   unidades diferentes. */
+function aplicarExercicio(m,sportId,horasExtraSemana){
+  if(!sportId || horasExtraSemana<=0.01) return;
+  const sp=SPORT[sportId]; if(!sp) return;
+  if(!Array.isArray(m.desportos)) m.desportos=[];
+  const entrada=m.desportos.find(s=>s.s===sportId);
+  if(entrada){
+    const semanaNova=sportWeeklyH(entrada)+horasExtraSemana;
+    entrada.per='semana';
+    if(sp.dist){ entrada.v=velocidade(entrada); entrada.km=Math.round(semanaNova*entrada.v*10)/10; }
+    else entrada.h=Math.round(semanaNova*10)/10;
+  } else if(sp.dist){
+    m.desportos.push(normalizaDesporto({s:sportId, km:Math.round(horasExtraSemana*sp.dist.vdef*10)/10, v:sp.dist.vdef, per:'semana'}));
+  } else {
+    m.desportos.push(normalizaDesporto({s:sportId, h:Math.round(horasExtraSemana*10)/10, i:'moderado', per:'semana'}));
+  }
+}
+function aplicarEstrategia(mid,calc,o){
+  const m=S.members.find(x=>x.id===mid); if(!m) return;
+  if(o.tipo==='manter'){ m.objetivoPct=0; sincronizaObjetivo(m); return; }
+  m.objetivoPct=calc.objetivoPctSugerido; sincronizaObjetivo(m);
+  if(o.tipo==='perder') aplicarExercicio(m,o.desportoEscolhido,calc.horasExtraSemana);
+}
+
+/* ---- formulário de criação (estado transitório em S.ui.objForm) ---- */
+function opcoesDesportoForm(){
+  const f=S.ui.objForm, uniao=new Set();
+  f.membros.forEach(mid=>{ const m=S.members.find(x=>x.id===mid); if(m) (m.desportos||[]).forEach(s=>uniao.add(s.s)); });
+  ['caminhada','corrida','ciclismo','natacao'].forEach(id=>uniao.add(id));
+  return [...uniao].filter(id=>SPORT[id]);
+}
+function toggleObjMembro(mid){
+  const arr=S.ui.objForm.membros, i=arr.indexOf(mid);
+  i>=0? arr.splice(i,1) : arr.push(mid);
+  if(!f_desportoValido()) S.ui.objForm.desporto=opcoesDesportoForm()[0]||null;
+  saveMeta(); render();
+}
+function f_desportoValido(){ return opcoesDesportoForm().indexOf(S.ui.objForm.desporto)>=0; }
+function setObjForm(campo,val){
+  S.ui.objForm[campo]= campo==='delta'||campo==='semanas'||campo==='split'||campo==='banda'? parseFloat(val)||0 : val;
+  if(campo==='membros'||campo==='tipo') { /* nada extra */ }
+  saveMeta(); render();
+}
+function slideObjForm(campo,el){
+  S.ui.objForm[campo]=parseFloat(el.value)||0; pintaRange(el);
+  aoVivo('objform', ()=>{
+    const f=S.ui.objForm;
+    põe('obj-o-delta', nPT(f.delta,1)+' kg');
+    põe('obj-o-semanas', f.semanas+(f.semanas===1?' semana':' semanas'));
+    põe('obj-o-banda', '±'+nPT(f.banda,1)+'%');
+    põe('obj-o-split', f.split+'% dieta · '+(100-f.split)+'% exercício');
+    const pv=document.getElementById('obj-preview'); if(pv) pv.innerHTML=gerarPreviewHtml();
+  });
+}
+function gerarPreviewHtml(){
+  const f=S.ui.objForm;
+  if(!f.membros.length) return '<p class="sub">Escolhe pelo menos um membro da família para veres a estratégia.</p>';
+  return f.membros.map(mid=>{
+    const m=S.members.find(x=>x.id===mid); if(!m) return '';
+    if(f.tipo==='perder' && !permiteDefice(m))
+      return `<div class="kv"><span>${esc(m.nome)}</span><b style="color:var(--warn)">sem défice nesta fase</b></div>`;
+    if(f.tipo==='manter')
+      return `<div class="kv"><span>${esc(m.nome)}</span><b>manter ${nPT(m.peso,1)} kg ± ${nPT(m.peso*f.banda/100,1)} kg</b></div>`;
+    const pesoAlvo = f.tipo==='ganhar'? Math.round((m.peso+f.delta)*10)/10 : Math.max(1,Math.round((m.peso-f.delta)*10)/10);
+    const calc=calcEstrategia(m,pesoAlvo,f.semanas,f.tipo,f.split,f.desporto);
+    return `<div class="kv"><span>${esc(m.nome)} · alvo ${nPT(pesoAlvo,1)} kg</span>
+      <b><span class="pill ${calc.toneRitmo}" style="margin-right:6px">${nPT(calc.ritmoKgSemana,2)} kg/sem</span>
+      ${calc.objetivoPctSugerido>0?'+':''}${calc.objetivoPctSugerido}%${f.tipo==='perder'&&calc.minutosExtraSemana>1?' · +'+Math.round(calc.minutosExtraSemana)+' min/sem':''}</b></div>
+      ${calc.abaixoBasal?'<div class="sub" style="color:var(--bad)">o alvo diário ficaria abaixo do metabolismo basal — reduz os quilos ou alarga o prazo</div>':''}`;
+  }).join('');
+}
+function criarObjetivo(){
+  const f=S.ui.objForm;
+  if(!f.membros.length) return flash('bad','Escolhe pelo menos um membro da família.');
+  let criados=0; const ignorados=[];
+  f.membros.forEach(mid=>{
+    const m=S.members.find(x=>x.id===mid); if(!m) return;
+    if(f.tipo==='perder' && !permiteDefice(m)){ ignorados.push(m.nome); return; }
+    const pesoAlvo = f.tipo==='ganhar'? Math.round((m.peso+f.delta)*10)/10
+      : f.tipo==='perder'? Math.max(1,Math.round((m.peso-f.delta)*10)/10) : m.peso;
+    const o={id:uid(), membroId:mid, tipo:f.tipo, pesoInicial:m.peso, pesoAlvo,
+      semanas:f.semanas, dataInicio:new Date().toISOString(),
+      splitDieta:f.split, desportoEscolhido:f.tipo==='perder'?f.desporto:null,
+      bandaManter:f.banda||2, concluido:false, celebrado:false, dataConclusao:null};
+    const calc=calcEstrategia(m,pesoAlvo,f.semanas,f.tipo,f.split,o.desportoEscolhido);
+    aplicarEstrategia(mid,calc,o);
+    S.objetivos.push(o); criados++;
+  });
+  if(!criados) return flash('bad','Não foi possível criar objetivo'+(ignorados.length>1?'s':'')+' para '
+    +ignorados.join(', ')+': em crescimento ou gravidez não se recomenda défice calórico.');
+  S.ui.objForm={membros:[],tipo:'perder',delta:5,semanas:12,split:50,desporto:f.desporto,banda:2};
+  save(plural(criados,'novo objetivo','novos objetivos'));
+  flash('ok', plural(criados,'Objetivo criado','Objetivos criados')
+    +(ignorados.length? '. Sem défice para '+ignorados.join(', ')+', por estarem em crescimento ou gravidez.':'.'));
+}
+function removerObjetivo(oid){
+  const o=S.objetivos.find(x=>x.id===oid); if(!o) return;
+  const m=S.members.find(x=>x.id===o.membroId);
+  if(!confirm('Remover este objetivo'+(m?' de '+m.nome:'')+'? A dieta e o desporto já aplicados mantêm-se como estão.')) return;
+  S.objetivos=S.objetivos.filter(x=>x.id!==oid);
+  if(S.ui.objExpandido===oid) S.ui.objExpandido=null;
+  save('remoção de objetivo'); render();
+}
+/* ---- reajuste de um objetivo já ativo (estado transitório em S.ui.objAdj) ---- */
+function toggleObjExpandido(oid){
+  if(S.ui.objExpandido===oid) S.ui.objExpandido=null;
+  else { const o=S.objetivos.find(x=>x.id===oid); S.ui.objExpandido=oid;
+    S.ui.objAdj = o? {split:o.splitDieta, desporto:o.desportoEscolhido} : {split:50,desporto:null}; }
+  saveMeta(); render();
+}
+function previewAjusteHtml(calc){
+  return `<div class="row" style="margin-top:6px">
+    <div class="stat"><b>${Math.round(calc.viaDieta)} kcal/dia</b><span>Via dieta</span></div>
+    <div class="stat"><b>${Math.round(calc.viaExercicio)} kcal/dia</b><span>Via exercício</span></div>
+    <div class="stat"><b>${Math.round(calc.minutosExtraSemana)} min/sem</b><span>Exercício extra</span></div>
+    <div class="stat" style="background:var(--accent-soft)"><b style="color:var(--accent)">${calc.objetivoPctSugerido>0?'+':''}${calc.objetivoPctSugerido}%</b><span>Novo objetivo</span></div>
+  </div>
+  <div class="row" style="margin-top:8px"><span class="pill ${calc.toneRitmo}">${nPT(calc.ritmoKgSemana,2)} kg/semana</span>
+    ${calc.abaixoBasal?'<span class="pill bad">alvo abaixo do basal</span>':''}</div>`;
+}
+function slideObjAdj(oid,campo,el){
+  if(!S.ui.objAdj) S.ui.objAdj={split:50,desporto:null};
+  S.ui.objAdj[campo]=parseFloat(el.value)||0; pintaRange(el);
+  aoVivo('objadj', ()=>{
+    const o=S.objetivos.find(x=>x.id===oid), m=o&&S.members.find(x=>x.id===o.membroId);
+    if(!o||!m) return;
+    const calc=calcEstrategia(m,o.pesoAlvo,semanasRestantesDe(o),o.tipo,S.ui.objAdj.split,S.ui.objAdj.desporto);
+    const el2=document.getElementById('obj-adj-preview-'+oid); if(el2) el2.innerHTML=previewAjusteHtml(calc);
+    põe('obj-adj-split-o-'+oid, S.ui.objAdj.split+'% dieta · '+(100-S.ui.objAdj.split)+'% exercício');
+  });
+}
+function setObjAdj(oid,campo,val){
+  if(!S.ui.objAdj) S.ui.objAdj={split:50,desporto:null};
+  S.ui.objAdj[campo]=campo==='split'? parseFloat(val)||0 : val;
+  saveMeta(); render();
+}
+function reajustarObjetivo(oid){
+  const o=S.objetivos.find(x=>x.id===oid); if(!o) return;
+  const m=S.members.find(x=>x.id===o.membroId); if(!m) return;
+  const adj=S.ui.objAdj||{split:o.splitDieta,desporto:o.desportoEscolhido};
+  o.splitDieta=clampNum(Math.round(adj.split),0,100); o.desportoEscolhido=adj.desporto;
+  const calc=calcEstrategia(m,o.pesoAlvo,semanasRestantesDe(o),o.tipo,o.splitDieta,o.desportoEscolhido);
+  aplicarEstrategia(o.membroId,calc,o);
+  S.ui.objExpandido=null;
+  save('ajuste de estratégia de '+m.nome);
+  flash('ok','Estratégia atualizada — a dieta e o exercício de '+m.nome+' foram ajustados.');
+}
+function painelAjuste(o,m){
+  if(o.tipo!=='perder') return `<div class="msg" style="margin-top:10px;background:var(--bg);color:var(--mut)">
+    Este tipo de objetivo não tem estratégia mista para ajustar. Para mudar o alvo ou o prazo, remove e cria um objetivo novo.</div>`;
+  const adj=S.ui.objAdj||{split:o.splitDieta,desporto:o.desportoEscolhido};
+  const calc=calcEstrategia(m,o.pesoAlvo,semanasRestantesDe(o),o.tipo,adj.split,adj.desporto);
+  const desportosMembro=(m.desportos||[]).map(s=>s.s);
+  const opcoes=[...new Set(desportosMembro.concat(['caminhada','corrida','ciclismo','natacao','musculacao','calistenia']))].filter(id=>SPORT[id]);
+  return `<div style="margin-top:14px;border-top:1px solid var(--line);padding-top:14px">
+    <div class="splabel"><span>Dieta ⟷ Exercício ${dica('objEstrategia')}</span>
+      <output id="obj-adj-split-o-${o.id}" style="min-width:16ch;text-align:right">${adj.split}% dieta · ${100-adj.split}% exercício</output></div>
+    <input type="range" min="0" max="100" step="5" value="${adj.split}" style="--pct:${adj.split}%"
+      aria-label="Percentagem do ajuste que vem da dieta" oninput="slideObjAdj('${o.id}','split',this)" onchange="saveMeta()">
+    <div class="row" style="margin:10px 0">
+      <button class="chip ${adj.split===80?'on':''}" onclick="setObjAdj('${o.id}','split',80)">Mais dieta</button>
+      <button class="chip ${adj.split===50?'on':''}" onclick="setObjAdj('${o.id}','split',50)">Equilibrado</button>
+      <button class="chip ${adj.split===20?'on':''}" onclick="setObjAdj('${o.id}','split',20)">Mais exercício</button>
+    </div>
+    <div class="splabel"><span>Desporto para o exercício extra</span></div>
+    <div class="row" style="margin:6px 0 10px">${opcoes.map(id=>
+      `<button class="chip ${adj.desporto===id?'on':''}" onclick="setObjAdj('${o.id}','desporto','${id}')">${SPORT[id].nome}</button>`).join('')}</div>
+    <div id="obj-adj-preview-${o.id}">${previewAjusteHtml(calc)}</div>
+    <button class="btn small" style="margin-top:10px" onclick="reajustarObjetivo('${o.id}')">Guardar novo equilíbrio</button>
+  </div>`;
+}
+
+/* ---- anel de progresso e cartões ---- */
+function anelSvg(pct,tone,tamanho,espessura){
+  tamanho=tamanho||84; espessura=espessura||9;
+  const r=(tamanho-espessura)/2, c=tamanho/2, circ=2*Math.PI*r;
+  const p=clampNum(pct,0,100), off=circ*(1-p/100);
+  const cls= tone==='ok'?'s-ok': tone==='warn'?'s-warn': tone==='bad'?'s-bad':'s-acc';
+  return `<svg class="svgfx anel" viewBox="0 0 ${tamanho} ${tamanho}" width="${tamanho}" height="${tamanho}"
+      role="img" aria-label="${Math.round(p)} por cento concluído" style="width:${tamanho}px;height:${tamanho}px;flex:none">
+    <circle cx="${c}" cy="${c}" r="${r}" class="s-line" stroke-width="${espessura}" fill="none"/>
+    <circle cx="${c}" cy="${c}" r="${r}" class="anel-arco ${cls}" stroke-width="${espessura}" fill="none"
+      stroke-linecap="round" stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"
+      transform="rotate(-90 ${c} ${c})"/>
+    <text x="${c}" y="${c+5}" text-anchor="middle" font-size="${Math.round(tamanho*0.22)}" font-weight="700"
+      class="f-ink" style="font-variant-numeric:tabular-nums">${Math.round(p)}%</text>
+  </svg>`;
+}
+function cartaoConquista(o){
+  const m=S.members.find(x=>x.id===o.membroId);
+  const texto = o.tipo==='perder'? '−'+nPT(Math.abs(o.pesoInicial-o.pesoAlvo),1)+' kg'
+    : o.tipo==='ganhar'? '+'+nPT(Math.abs(o.pesoAlvo-o.pesoInicial),1)+' kg' : 'manteve o peso';
+  return `<div class="card" style="display:flex;align-items:center;gap:14px">
+    <span style="font-size:28px" aria-hidden="true">🏆</span>
+    <div style="flex:1"><b>${m?esc(m.nome):'Membro removido'}</b> — ${texto}
+      <div class="sub">Concluído ${o.dataConclusao? fmtShort(iso(new Date(o.dataConclusao))) : ''}</div></div>
+    <button class="btn danger small" onclick="removerObjetivo('${o.id}')">Remover</button>
+  </div>`;
+}
+function cartaoObjetivo(o){
+  const m=S.members.find(x=>x.id===o.membroId); if(!m) return '';
+  const p=progressoObjetivo(o);
+  const restantes=Math.max(0,o.semanas-(p.semanasDecorridas||0));
+  const expandido=S.ui.objExpandido===o.id;
+  const rotuloTipo = o.tipo==='perder'?'Perder peso': o.tipo==='ganhar'?'Ganhar peso':'Manter peso';
+  return `<div class="card">
+    <div class="row" style="justify-content:space-between;align-items:flex-start;flex-wrap:nowrap">
+      <div class="row" style="gap:12px;align-items:center">
+        ${anelSvg(p.pct,p.tone)}
+        <div>
+          <div class="row" style="gap:8px">${avatar(m,26)}<b>${esc(m.nome)}</b></div>
+          <div class="sub">${rotuloTipo}${o.tipo==='manter'?'':' · '+nPT(o.pesoInicial,1)+' → '+nPT(o.pesoAlvo,1)+' kg'}</div>
+          ${o.tipo!=='manter'
+            ? `<div class="sub" style="font-variant-numeric:tabular-nums">peso atual ${nPT(m.peso,1)} kg${p.atingido?'':' · faltam '+nPT(Math.abs(p.kgRestante),1)+' kg'}</div>`
+            : `<div class="sub">dentro da banda: ${p.dentroBanda?'sim':'não, atenção'}</div>`}
+          <div class="sub">${restantes<=0.05?'prazo terminado':Math.ceil(restantes)+(Math.ceil(restantes)===1?' semana restante':' semanas restantes')}</div>
+        </div>
+      </div>
+      <button class="chip" onclick="toggleObjExpandido('${o.id}')" aria-expanded="${expandido}">${expandido?'Fechar':'Ajustar'}</button>
+    </div>
+    ${expandido? painelAjuste(o,m) : ''}
+    <div class="row" style="justify-content:flex-end;margin-top:10px">
+      <button class="btn danger small" onclick="removerObjetivo('${o.id}')">Remover objetivo</button>
+    </div>
+  </div>`;
+}
+function celebracaoHtml(o){
+  const m=S.members.find(x=>x.id===o.membroId);
+  const texto = o.tipo==='perder'? 'perdeu '+nPT(Math.abs(o.pesoInicial-o.pesoAlvo),1)+' kg'
+    : o.tipo==='ganhar'? 'ganhou '+nPT(Math.abs(o.pesoAlvo-o.pesoInicial),1)+' kg'
+    : 'manteve o peso durante '+Math.round(o.semanas)+' semanas';
+  return `<div class="card celebracao" role="status">
+    <div class="confete" aria-hidden="true">${['🎉','✨','🎊','⭐','🎉','✨'].map((e,i)=>`<span style="--i:${i}">${e}</span>`).join('')}</div>
+    <h2>Objetivo atingido! 🏆</h2>
+    <p class="sub" style="margin-top:6px">${m?esc(m.nome):'Este membro'} ${texto}.</p>
+    <button class="btn" onclick="fecharCelebracao()">Boa! Continuar</button>
+  </div>`;
+}
+function fecharCelebracao(){ S.ui.celebrando=null; saveMeta(); render(); }
+function formCriacaoHtml(){
+  const f=S.ui.objForm, elegiveis=membrosElegiveisObjetivo();
+  if(!elegiveis.length) return `<div class="card"><p class="sub">Ainda não há membros elegíveis para objetivos de peso —
+    bebés acompanham-se pelo percentil, no separador Nutrição, e gestações de trigémeos não têm alvo calórico estimado.</p></div>`;
+  const podePerder = f.membros.some(mid=>{ const m=S.members.find(x=>x.id===mid); return m&&permiteDefice(m); });
+  return `<div class="card">
+    <h2>Criar objetivo ${dica('objCriar')}</h2>
+    <div class="splabel" style="margin-top:8px"><span>Para quem</span></div>
+    <div class="row">${elegiveis.map(m=>`<button class="chip ${f.membros.includes(m.id)?'on':''}" onclick="toggleObjMembro('${m.id}')">${avatar(m,20)} ${esc(m.nome.split(' ')[0])}</button>`).join('')}</div>
+
+    <div class="splabel" style="margin-top:14px"><span>Tipo de objetivo</span></div>
+    <div class="row">
+      <button class="chip ${f.tipo==='perder'?'on':''}" onclick="setObjForm('tipo','perder')">Perder peso</button>
+      <button class="chip ${f.tipo==='manter'?'on':''}" onclick="setObjForm('tipo','manter')">Manter peso</button>
+      <button class="chip ${f.tipo==='ganhar'?'on':''}" onclick="setObjForm('tipo','ganhar')">Ganhar peso</button>
+    </div>
+    ${f.tipo==='perder'&&f.membros.length&&!podePerder?'<p class="sub" style="color:var(--warn);margin-top:6px">Nenhum dos membros escolhidos pode ter um objetivo de perda — em crescimento ou gravidez não se recomenda défice calórico.</p>':''}
+
+    ${f.tipo!=='manter'? `<div class="spgrid" style="margin-top:14px">
+      <div><div class="splabel"><span>Quantos quilos</span><output id="obj-o-delta" style="min-width:8ch;text-align:right">${nPT(f.delta,1)} kg</output></div>
+        <input type="range" min="0.5" max="30" step="0.5" value="${f.delta}" style="--pct:${Math.round((f.delta-0.5)/29.5*100)}%"
+          aria-label="Quantos quilos" oninput="slideObjForm('delta',this)" onchange="saveMeta()"></div>
+      <div><div class="splabel"><span>Prazo</span><output id="obj-o-semanas" style="min-width:10ch;text-align:right">${f.semanas} semanas</output></div>
+        <input type="range" min="2" max="52" step="1" value="${f.semanas}" style="--pct:${Math.round((f.semanas-2)/50*100)}%"
+          aria-label="Prazo em semanas" oninput="slideObjForm('semanas',this)" onchange="saveMeta()"></div>
+    </div>` : `<div class="spgrid" style="margin-top:14px">
+      <div><div class="splabel"><span>Durante quanto tempo</span><output id="obj-o-semanas" style="min-width:10ch;text-align:right">${f.semanas} semanas</output></div>
+        <input type="range" min="1" max="52" step="1" value="${f.semanas}" style="--pct:${Math.round((f.semanas-1)/51*100)}%"
+          aria-label="Duração em semanas" oninput="slideObjForm('semanas',this)" onchange="saveMeta()"></div>
+      <div><div class="splabel"><span>Margem tolerada</span><output id="obj-o-banda" style="min-width:6ch;text-align:right">±${nPT(f.banda,1)}%</output></div>
+        <input type="range" min="0.5" max="5" step="0.5" value="${f.banda}" style="--pct:${Math.round((f.banda-0.5)/4.5*100)}%"
+          aria-label="Margem de tolerância em percentagem" oninput="slideObjForm('banda',this)" onchange="saveMeta()"></div>
+    </div>`}
+
+    ${f.tipo==='perder'? `
+    <div class="splabel" style="margin-top:14px"><span>Estratégia mista ${dica('objEstrategia')}</span>
+      <output id="obj-o-split" style="min-width:16ch;text-align:right">${f.split}% dieta · ${100-f.split}% exercício</output></div>
+    <input type="range" min="0" max="100" step="5" value="${f.split}" style="--pct:${f.split}%"
+      aria-label="Percentagem do objetivo que vem da dieta" oninput="slideObjForm('split',this)" onchange="saveMeta()">
+    <div class="row" style="margin:8px 0">
+      <button class="chip ${f.split===80?'on':''}" onclick="setObjForm('split',80)">Mais dieta</button>
+      <button class="chip ${f.split===50?'on':''}" onclick="setObjForm('split',50)">Equilibrado</button>
+      <button class="chip ${f.split===20?'on':''}" onclick="setObjForm('split',20)">Mais exercício</button>
+    </div>
+    <div class="splabel"><span>Desporto para o exercício extra</span></div>
+    <div class="row" style="margin:6px 0">${opcoesDesportoForm().map(id=>
+      `<button class="chip ${f.desporto===id?'on':''}" onclick="setObjForm('desporto','${id}')">${SPORT[id].nome}</button>`).join('')}</div>`
+    : f.tipo==='ganhar'? `<p class="sub" style="margin-top:10px">Para orientar o ganho para massa muscular, considera reforçar treino de força — ${['musculacao','calistenia','funcional'].map(id=>SPORT[id].nome).join(', ')}.</p>` : ''}
+
+    <div id="obj-preview" style="margin-top:14px">${gerarPreviewHtml()}</div>
+    <button class="btn" style="margin-top:12px" onclick="criarObjetivo()">Criar objetivo${f.membros.length>1?'s':''}</button>
+  </div>`;
+}
+function renderObjetivos(){
+  if(!S.members.length) return noMembers();
+  S.objetivos.forEach(o=>{
+    if(o.concluido) return;
+    const p=progressoObjetivo(o);
+    if(p.atingido){ o.concluido=true; o.dataConclusao=new Date().toISOString();
+      if(!S.ui.celebrando) S.ui.celebrando=o.id; writeLS(); }
+  });
+  const ativos=S.objetivos.filter(o=>!o.concluido && S.members.some(m=>m.id===o.membroId));
+  const concluidos=S.objetivos.filter(o=>o.concluido).sort((a,b)=>new Date(b.dataConclusao||0)-new Date(a.dataConclusao||0));
+  const celebrarObj = S.ui.celebrando? S.objetivos.find(x=>x.id===S.ui.celebrando) : null;
+  return (celebrarObj? celebracaoHtml(celebrarObj) : '')
+    + formCriacaoHtml()
+    + `<div class="secgap"><h2>Objetivos ativos</h2>`
+    + (ativos.length? `<div class="grid g2" style="margin-top:10px">${ativos.map(cartaoObjetivo).join('')}</div>`
+       : `<p class="sub" style="margin-top:8px">Ainda não há objetivos ativos — cria um acima.</p>`)
+    + `</div>`
+    + (concluidos.length? `<div class="secgap"><h2>🏆 Conquistas</h2>
+        <div class="grid g2" style="margin-top:10px">${concluidos.map(cartaoConquista).join('')}</div></div>` : '');
+}
+
 /* ================= PLANO SEMANAL ================= */
 function shiftWeek(n){ const d=new Date(S.week+'T12:00:00'); d.setDate(d.getDate()+7*n); S.week=mondayISO(d); saveMeta(); render(); }
 function planWeek(){ if(!S.plans[S.week]) S.plans[S.week]={}; return S.plans[S.week]; }
@@ -2551,7 +2958,7 @@ function pacote(){
   S.members.forEach(sincronizaObjetivo);
   return {app:APPID, formato:FORMATO, exportadoEm:new Date().toISOString(),
   dados:{members:S.members, cheats:S.cheats, plans:S.plans, bought:S.bought,
-         prefCuisine:S.prefCuisine, week:S.week}}; }
+         prefCuisine:S.prefCuisine, week:S.week, objetivos:S.objetivos}}; }
 function textoCopia(){ return JSON.stringify(pacote(),null,2); }
 function marcarExportado(){ S.meta.exportadoEm=new Date().toISOString(); S.meta.semCopia=false; saveMeta(); }
 function nomeFicheiro(){ return 'familia-fit-'+iso(new Date())+'.json'; }
@@ -2693,7 +3100,28 @@ function lerPacote(txt){
     const o=d.bought[wk]; if(!o || typeof o!=='object') return;
     const oo={}; Object.keys(o).forEach(kk=>{ if(o[kk]) oo[kk]=true; }); bought[wk]=oo;
   });
-  return {d:{ members, cheats, plans, bought,
+  const objetivos=[], vistosObj={};
+  if(Array.isArray(d.objetivos)) d.objetivos.forEach(o=>{
+    if(!o || typeof o!=='object') return;
+    const mid=idOk(o.membroId); if(!mid) return;
+    const pesoInicial=num(o.pesoInicial,0), pesoAlvo=num(o.pesoAlvo,0);
+    if(!pesoInicial || !pesoAlvo) return;
+    const dt=new Date(o.dataInicio);
+    let id=limparId(o.id); if(vistosObj[id]) id=uid(); vistosObj[id]=1;
+    objetivos.push({
+      id, membroId:mid,
+      tipo: ['perder','manter','ganhar'].indexOf(o.tipo)>=0? o.tipo : 'perder',
+      pesoInicial, pesoAlvo,
+      semanas: clampNum(Math.round(parseFloat(o.semanas)||12),1,104),
+      dataInicio: !isNaN(dt.getTime())? o.dataInicio : new Date().toISOString(),
+      splitDieta: Number.isFinite(parseFloat(o.splitDieta))? clampNum(Math.round(parseFloat(o.splitDieta)),0,100) : 50,
+      desportoEscolhido: temChave(SPORT,o.desportoEscolhido)? o.desportoEscolhido : null,
+      bandaManter: clampNum(parseFloat(o.bandaManter)||2,0.5,10),
+      concluido: !!o.concluido, celebrado: !!o.celebrado,
+      dataConclusao: (o.dataConclusao && !isNaN(new Date(o.dataConclusao).getTime()))? o.dataConclusao : null
+    });
+  });
+  return {d:{ members, cheats, plans, bought, objetivos,
               prefCuisine:temChave(CUIS,d.prefCuisine)?d.prefCuisine:'todas',
               week:dataValida(d.week)? mondayISO(new Date(d.week+'T12:00:00')) : mondayISO(new Date()) }};
 }
@@ -2736,11 +3164,19 @@ function juntar(txt){
     });
   });
   Object.keys(d.bought).forEach(wk=>{ S.bought[wk]=Object.assign({}, d.bought[wk], S.bought[wk]||{}); });
+  let objetivosNovos=0;
+  (d.objetivos||[]).forEach(o=>{
+    const mid=mapa[o.membroId]||o.membroId;
+    if(!S.members.some(m=>m.id===mid)) return;   // o membro pode não ter sido trazido (nome repetido descartado, etc.)
+    if(S.objetivos.some(x=>x.id===o.id)) return;   // já existe — não duplica
+    S.objetivos.push(Object.assign({},o,{membroId:mid})); objetivosNovos++;
+  });
   if(!S.ui.mid && S.members[0]) S.ui.mid=S.members[0].id;
   save();
-  flash('ok','Cópia integrada: '+plural(novos,'perfil novo','perfis novos')+' e '
-    +plural(refeicoes,'refeição acrescentada','refeições acrescentadas')+'. Perfis com o mesmo nome foram '
-    +'tratados como a mesma pessoa e as refeições já marcadas ficaram intactas.');
+  flash('ok','Cópia integrada: '+plural(novos,'perfil novo','perfis novos')+', '
+    +plural(refeicoes,'refeição acrescentada','refeições acrescentadas')+' e '
+    +plural(objetivosNovos,'objetivo novo','objetivos novos')+'. Perfis com o mesmo nome foram '
+    +'tratados como a mesma pessoa e as refeições e objetivos já existentes ficaram intactos.');
 }
 function importarFicheiro(input,modo){
   const f=input.files && input.files[0]; if(!f) return;
@@ -2852,6 +3288,7 @@ function render(){
   const el=document.getElementById('main');
   el.innerHTML = S.ui.tab==='atividade'? renderAtividade()
     : S.ui.tab==='nutricao'? renderNutricao()
+    : S.ui.tab==='objetivos'? renderObjetivos()
     : S.ui.tab==='plano'? renderPlano()
     : S.ui.tab==='compras'? renderCompras()
     : S.ui.tab==='dados'? renderDados()
