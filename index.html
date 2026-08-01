@@ -405,6 +405,16 @@ ol.passos li span{color:var(--mut);font-size:14px;margin-top:2px}
    quem quer comer não pode congelar por engano, e vice-versa. */
 /* A barra da cobertura fala por três larguras, mas cada troço tem legenda com
    número: quem não distingue as cores lê na mesma «22 na despensa». */
+/* Os filtros cumulativos vivem num bloco que se fecha: são muitos alvos, e
+   quem não filtra por dieta nenhuma não tem de os ver todos os dias. */
+.filtros{border:1px solid var(--line);border-radius:var(--r-sm);padding:8px 12px;
+  margin-bottom:12px;background:var(--card)}
+.filtros>summary{cursor:pointer;font:600 13px/1.4 var(--fonte-ui);color:var(--ink);
+  list-style:none;display:flex;align-items:center;gap:8px;min-height:32px}
+.filtros>summary::-webkit-details-marker{display:none}
+.filtros>summary::before{content:"▸";color:var(--mut);transition:transform .15s}
+.filtros[open]>summary::before{transform:rotate(90deg)}
+@media (prefers-reduced-motion: reduce){ .filtros>summary::before{transition:none} }
 /* A régua dos meses e a linha do tempo: dois gráficos pequenos que vivem
    dentro de texto, e por isso alinham pela linha de base e não estiram. */
 /* Barras horizontais com o valor sempre à direita: a barra dá a proporção de
@@ -1233,8 +1243,12 @@ const ICO_SPORT={corrida:'🏃',ciclismo:'🚴',agua:'🏊',forca:'🏋️',corp
 const ICO_CAT={'Peixe & Marisco':'🐟','Carne & Ovos':'🥩','Frutas & Legumes':'🥦',
   'Laticínios':'🥛','Mercearia & Outros':'🫙','Suplementos':'💊'};
 const ICO_REF={p:'🌅',a:'🍽️',l:'🍎',j:'🌙',ac:'🍚'};
+/* Os ícones são pratos e ingredientes, não bandeiras — a portuguesa é a
+   exceção porque é a cozinha da casa. O feijão vale pela feijoada, que é o
+   prato nacional brasileiro, e a salsicha pelas cozinhas do centro da Europa
+   que não têm separador próprio. */
 const ICO_COZ={portuguesa:'🇵🇹',italiana:'🍝',francesa:'🥐',mediterranica:'🫒',asiatica:'🍜',
-  espanhola:'🥘',mexicana:'🌮',americana:'🍔',brasileira:'🇧🇷',africana:'🌍'};
+  espanhola:'🥘',mexicana:'🌮',americana:'🍔',brasileira:'🫘',africana:'🌍',outras:'🌭'};
 const ICO_SUPL={proteico:'🥤',vitaminico:'💊',mineral:'🧂',composto:'🐟'};
 const ICO_FASE={bebe:'🍼',crianca:'🧒',adolescente:'🧑',adulto:'🧑‍🦱'};
 function SP(id,nome,cat,mets,dicas,dist){ return {id,nome,cat,mets,dicas:dicas||null,dist:dist||null}; }
@@ -1396,6 +1410,12 @@ function migraRegistos(s){
   s.pausas = limparPausas(s.pausas, ids);
   s.diario = limparDiario(s.diario, ids);
   s.cozPref = limparCozPref(s.cozPref);
+  /* Os dois filtros eram uma escolha só e passaram a listas. Uma cópia antiga
+     traz uma string, e uma string tem .indexOf — passaria sem dar erro e
+     filtraria por letras em vez de por dietas. */
+  s.ui = s.ui || {};
+  if(!Array.isArray(s.ui.dietaF)) s.ui.dietaF = temChave(DIETAS_FILTRAVEIS,s.ui.dietaF)? [s.ui.dietaF] : [];
+  if(!Array.isArray(s.ui.alergF)) s.ui.alergF = ehAlergenio(s.ui.alergF)? [s.ui.alergF] : [];
   s.validades = limparValidades(s.validades);
   s.veredictos = limparVeredictos(s.veredictos, ids);
   s.brigada = limparBrigada(s.brigada, ids);
@@ -1632,9 +1652,12 @@ const DIETS = {
      à mão — uma receita com manteiga perde a vegan e mantém a vegetariana. */
   vegan:{n:'Vegan',c:52,p:18,f:30}
 };
+/* «Outras» não é um caixote do lixo: é o lugar honesto para as cozinhas que a
+   casa cozinha de vez em quando e que não justificam separador próprio — a
+   alemã, a britânica, a do norte da Europa. Fica no fim da lista de propósito. */
 const CUIS = {portuguesa:'Portuguesa',mediterranica:'Mediterrânica',espanhola:'Espanhola',italiana:'Italiana',
   francesa:'Francesa',mexicana:'Mexicana',americana:'Norte-americana',asiatica:'Asiática',
-  brasileira:'Brasileira',africana:'Africana'};
+  brasileira:'Brasileira',africana:'Africana',outras:'Outras'};
 const BASE_ACT = {sedentario:['Sedentário (escritório, pouco movimento)',1.2],leve:['Leve (em pé parte do dia)',1.35],moderado:['Moderado (trabalho ativo)',1.5],intenso:['Intenso (trabalho físico pesado)',1.65]};
 const COMMUTE = {nenhum:['Carro / transportes',0],pe30:['A pé (~30 min/dia)',1.75],pe60:['A pé (~1 h/dia)',3.5],bici:['Bicicleta (~30 min/dia)',3.4]}; // valor = MET·h efetivos/dia útil
 const GOALS = {perder:['Perder peso',-0.15],manter:['Manter peso',0],ganhar:['Ganhar massa',0.10]};
@@ -2137,6 +2160,8 @@ R('aclcogumelos','Cogumelos salteados com alho e salsa','mediterranica',['medite
 R('aclsalmista','Salada mista de alface, tomate e cebola','portuguesa',['mediterranica'],0,0,0,0,[['Alface',100,'g'],['Tomate',1,'un'],['Cebola',0.25,'un'],['Azeite',8,'ml'],['Vinagre de vinho',5,'ml']],['ac']),
 R('aclsaltomate','Salada de tomate com orégãos','mediterranica',['mediterranica'],0,0,0,0,[['Tomate',1.5,'un'],['Cebola roxa',0.25,'un'],['Orégãos',3,'g'],['Azeite',8,'ml'],['Vinagre de vinho',5,'ml']],['ac']),
 R('aclcouveroxa','Salada de couve-roxa e cenoura','mediterranica',['mediterranica'],0,0,0,0,[['Couve-roxa crua',100,'g'],['Cenoura',50,'g'],['Azeite',8,'ml'],['Vinagre de vinho',8,'ml'],['Limão',0.25,'un']],['ac']),
+/* ---- Outras cozinhas ---- */
+R('currywurst','Currywurst','outras',[],493,20,25,34,[['Salsicha fresca crua',150,'g'],['Ketchup',45,'g'],['Polpa de tomate',20,'g'],['Caril em pó',4,'g'],['Pimentão-doce',2,'g'],['Açúcar amarelo',4,'g'],['Vinagre de vinho',5,'ml'],['Cebola',0.25,'un'],['Óleo alimentar',8,'ml']],['a','j'],2,['pp']),
 ];
 /* ================= PASSOS: RECEITAS NOVAS ================= */
 P('ovoscebolinho',[['Bater','Bate os ovos com a nata, uma pitada de sal e pimenta moída na hora. Não batas demais: quer-se homogéneo, não espumoso.'],
@@ -3355,6 +3380,11 @@ P('bololaranja',[['Preparar','Raspa a laranja antes de a espremer — depois de 
  ['Farinha','Farinha e fermento peneirados, envolvidos com movimentos largos e poucos — bater agora deixa o bolo rijo.'],
  ['Forno','Forma untada e polvilhada, forno a 180 °C. Não abras a porta na primeira meia hora.',40],
  ['Calda','Se gostares húmido, rega ainda quente com sumo de laranja e açúcar levados ao lume.',5]]);
+P('currywurst',[['Molho','Cebola picada fina a suar no óleo, sem ganhar cor. Junta o ketchup, a polpa de tomate, o açúcar e o vinagre.',6],
+ ['Apurar','Metade do caril e o pimentão-doce ao molho, em lume brando, até engrossar e o crua do tomate desaparecer.',10],
+ ['Salsicha','Salsicha inteira na frigideira ou na grelha, a dourar de todos os lados. Só depois de cozinhada é que se corta.',10],
+ ['Cortar','Corta em rodelas de dedo, já fora do lume — cortar antes deixa sair a gordura toda e a salsicha fica seca.'],
+ ['Servir','Molho quente por cima e o resto do caril polvilhado à última hora, para se sentir o pó. Batata frita ou pão ao lado.']]);
 
 
 /* ================= COMPOSIÇÃO DOS INGREDIENTES =================
@@ -4324,23 +4354,115 @@ function atributosIng(nome){
    de aritmética — mas a vegetariana é verificada contra os ingredientes: uma
    receita com carne perde a etiqueta mesmo que a tenha escrita. */
 const GORD_TETO_LOWFAT=0.30;
+/* ================= VALIDAÇÃO AUTOMÁTICA DAS DIETAS =================
+   Nenhuma etiqueta de dieta é aceite como declaração. Todas se verificam em
+   três eixos, e uma receita só fica com a etiqueta se passar nos três:
+
+   1. INGREDIENTES — o que a dieta exclui, lido dos atributos de cada
+      ingrediente (que por sua vez saem do catálogo, não de texto livre).
+   2. NÚMEROS — o teto por receita é metade da dose diária da dieta, partindo
+      do princípio de que um dia tem pelo menos duas refeições. Onde a app é
+      mais apertada do que esse teto, fica a mais apertada: o teto é um limite
+      máximo do que se pode aceitar, não uma obrigação de aceitar tudo o que
+      lá caiba.
+   3. MODO DE PREPARAÇÃO — o que os passos dizem que se faz ao prato. Um peito
+      de frango é low fat; o mesmo peito frito em óleo abundante não é, e os
+      ingredientes sozinhos nunca poderiam dizer isso.
+
+   Kosher e halal são um caso à parte e a app é explícita sobre os seus
+   limites: consegue excluir o que é claramente incompatível — porco, marisco,
+   peixe sem barbatanas e escamas, álcool, carne com lacticínio no mesmo prato
+   — mas NÃO consegue verificar o abate nem a certificação, que é o que
+   verdadeiramente determina se um alimento é kosher ou halal. A etiqueta diz
+   «compatível à partida», e a app repete-o onde isso importa. */
+const DOSE_DIARIA={
+  /* keto clínico: 20 g de hidratos líquidos por dia */
+  keto:{campo:'hc', dia:20},
+  /* low carb: 100 g por dia, o valor conservador do intervalo habitual */
+  lowcarb:{campo:'hc', dia:100},
+};
+function tetoPorReceita(k){ const d=DOSE_DIARIA[k]; return d? d.dia/2 : null; }
+/* A app é mais apertada do que o teto em ambos os casos, e é de propósito:
+   uma etiqueta que aceite tudo o que cabe no limite deixa de distinguir nada. */
+const HC_TETO_EFETIVO={ keto:Math.min(HC_TETO.keto, tetoPorReceita('keto')),
+                        lowcarb:Math.min(HC_TETO.lowcarb, tetoPorReceita('lowcarb')) };
 const DIETA_VETA={ vegetariana:['carne','peixe','crustaceos','moluscos'],
                    vegan:['carne','peixe','crustaceos','moluscos','lacticinio','ovo','mel'],
-                   paleo:['gluten','lacticinio','leguminosa','cereal'] };
+                   paleo:['gluten','lacticinio','leguminosa','cereal'],
+                   /* porco e álcool saem por atributo; o resto verifica-se
+                      pelos nomes, mais abaixo */
+                   kosher:['porco','crustaceos','moluscos'],
+                   halal:['porco','alcool'] };
+/* Peixe sem barbatanas nem escamas: fora do kosher. É a regra que mais se erra
+   numa lista portuguesa, porque apanha o tamboril, a raia, o safio e a enguia,
+   que ninguém associa a marisco. */
+const RE_PEIXE_SEM_ESCAMA=/enguia|raia\b|tamboril|caç[ãa]o|safio|lampreia|peixe-espada|congro|moreia|esturj/i;
+/* Animais terrestres fora do kosher para lá do porco. */
+const RE_CARNE_NAO_KOSHER=/coelho|lebre|cavalo|javali|camelo|avestruz/i;
+/* Carnívoros e aves de rapina: fora do halal. */
+const RE_CARNE_NAO_HALAL=/javali|cavalo/i;
+/* Ultraprocessados e açúcar de adição: fora do paleo, que é uma dieta de
+   alimentos inteiros e não apenas de ausência de cereais. */
+const RE_NAO_PALEO=/ketchup|maionese|molho barbecue|molho ingl|molho teriyaki|molho de soja|refrigerante|salsicha|chouri|farinheira|alheira|fiambre|mortadela|salame|bacon|nuggets|panados|margarina|shortening|xarope|açúcar|acucar|bolacha|chocolate|gelatina|caldo de|cubo de|creme vegetal/i;
+/* O que os passos dizem sobre a confeção. Fritar por imersão muda o prato de
+   forma que nenhum ingrediente denuncia: o óleo que entra não está na lista. */
+const RE_FRITURA=/fritadeira|fritar em óleo|óleo abundante|por imersão|em imersão|airfryer não|banho de óleo|fritura profunda/i;
+/* As três que saem de uma conta e nunca de uma declaração. */
 const DIETAS_NUM=['keto','lowcarb','lowfat'];
+/* O que se pode filtrar nas receitas: as dietas com macros próprios, mais as
+   duas que são quadros religiosos de exclusão e não repartições de energia —
+   por isso não entram no simulador de macros, só no filtro. */
+const DIETAS_FILTRAVEIS=Object.assign({}, DIETS, {
+  kosher:{n:'Kosher', nota:'compatível à partida'},
+  halal:{n:'Halal', nota:'compatível à partida'}
+});
+/* Um nome legível para qualquer chave de dieta, venha do simulador de macros
+   ou dos quadros de exclusão. Sem isto, uma etiqueta nova rebenta o cartão da
+   receita com um «não consigo ler .n de undefined». */
+function nomeDieta(k){
+  const d=DIETAS_FILTRAVEIS[k];
+  return d? d.n : (temChave(CUIS,k)? CUIS[k] : k);
+}
+function textoDaPreparacao(r){
+  const passos=(typeof PASSOS!=='undefined' && PASSOS[r.id]) || [];
+  return (r.n||'')+' '+passos.map(p=>(p[0]||'')+' '+(p[1]||'')).join(' ');
+}
+/* Carne e lacticínio no mesmo prato: a regra mais conhecida do kashrut, e a
+   única que se lê da composição em vez do abate. */
+function misturaCarneLeite(r){
+  return r.at.indexOf('carne')>=0 && r.at.indexOf('lacticinio')>=0;
+}
+function nomesDosIngredientes(r){ return (r.i||[]).map(x=>x[0]).join(' · '); }
 function dietasDaReceita(r){
-  /* Vegetariana, vegan e paleo derivam-se SÓ dos ingredientes — nem sequer se
-     aceita a declaração, porque a declaração pode mentir e os ingredientes
-     não. Sobra a mediterrânica, que é um estilo e não uma exclusão, e por
-     isso continua a ser declarada em cada receita. */
-  const DERIVADAS=['vegetariana','vegan','paleo'];
+  const nomes=nomesDosIngredientes(r);
+  const prep=textoDaPreparacao(r);
+  /* Mediterrânica é o único estilo que continua declarado — é um critério de
+     composição e de padrão alimentar, não uma exclusão que se leia de uma
+     lista. Mesmo essa perde a etiqueta se o prato for frito por imersão. */
+  const DERIVADAS=['vegetariana','vegan','paleo','kosher','halal'];
   const d=r.d.filter(x=>DIETAS_NUM.indexOf(x)<0 && DERIVADAS.indexOf(x)<0
     && !(DIETA_VETA[x]||[]).some(t=>r.at.indexOf(t)>=0));
-  DERIVADAS.forEach(x=>{ if(!DIETA_VETA[x].some(t=>r.at.indexOf(t)>=0)) d.push(x); });
-  if(hcLiq(r)<=HC_TETO.keto) d.push('keto');
-  if(hcLiq(r)<=HC_TETO.lowcarb) d.push('lowcarb');
-  if(r.f*9<=r.k*GORD_TETO_LOWFAT) d.push('lowfat');
-  return d;
+  if(d.indexOf('mediterranica')>=0 && RE_FRITURA.test(prep))
+    d.splice(d.indexOf('mediterranica'),1);
+  const semVeto=k=>!(DIETA_VETA[k]||[]).some(t=>r.at.indexOf(t)>=0);
+  if(semVeto('vegetariana')) d.push('vegetariana');
+  if(semVeto('vegan')) d.push('vegan');
+  /* paleo: sem os vetos de sempre, e também sem ultraprocessados nem açúcar */
+  if(semVeto('paleo') && !RE_NAO_PALEO.test(nomes)) d.push('paleo');
+  /* kosher: sem porco nem marisco, sem peixe sem escamas, sem carne de animal
+     não kosher, e sem carne e leite no mesmo prato */
+  if(semVeto('kosher') && !RE_PEIXE_SEM_ESCAMA.test(nomes)
+     && !RE_CARNE_NAO_KOSHER.test(nomes) && !misturaCarneLeite(r)) d.push('kosher');
+  /* halal: sem porco, sem álcool (mesmo o que «evapora» na confeção) e sem
+     carne de animal não halal. A fritura não tem aqui nada que se lhe diga —
+     o que conta é o que entra no prato, não a temperatura a que entra. */
+  if(semVeto('halal') && !RE_CARNE_NAO_HALAL.test(nomes)) d.push('halal');
+  if(hcLiq(r)<=HC_TETO_EFETIVO.keto) d.push('keto');
+  if(hcLiq(r)<=HC_TETO_EFETIVO.lowcarb) d.push('lowcarb');
+  /* low fat é uma razão e não uma dose diária, por isso aplica-se direto à
+     receita; a fritura por imersão tira-a mesmo quando a conta ainda dava */
+  if(r.f*9<=r.k*GORD_TETO_LOWFAT && !RE_FRITURA.test(prep)) d.push('lowfat');
+  return d.filter((v,i,a)=>a.indexOf(v)===i);
 }
 /* Os macros de cada receita são recalculados a partir dos ingredientes, com a
    mesma função que serve as receitas escritas por quem usa a app. Os números
@@ -4542,10 +4664,10 @@ function blank(){ return {members:[],cheats:{},plans:{},bought:{},prefCuisine:'t
   /* preferências de cozinha da casa: repetir pratos na semana, cozinhar em
      dobro, seguir a época e preparar de véspera — o que muda como se sugere */
   cozPref:{repetir:false, dobro:false, sazonal:false, prep:true, cartaoEpoca:true},
-  ui:{tab:'familia',mid:null,cuis:'todas',soComp:false,mealF:'todas',dietaF:'todas',busca:'',editor:null,
+  ui:{tab:'familia',mid:null,cuis:'todas',soComp:false,mealF:'todas',dietaF:[],busca:'',editor:null,
       objForm:{membros:[],tipo:'perder',delta:5,semanas:12,split:50,desporto:null,banda:2},
       objExpandido:null, objAdj:null, celebrando:null, tourPasso:null, tourVisto:false,
-      tema:'auto', paleta:'azulejo', colapsados:{}, alergF:'', alergDesp:'',
+      tema:'auto', paleta:'azulejo', colapsados:{}, alergF:[], alergDesp:'',
       recLimite:48, recTodas:false,
       sug:{membros:null,ref:'a',teto:true,cuis:'todas',verFora:false}, porcoes:null,
       histAtiv:null, histRef:null, janelaPeso:'mes', linhasPeso:{ativ:false,kcal:false},
@@ -5565,6 +5687,8 @@ const DICAS={
   dobro:'Cozinhar a dobrar dá para dois dias. Dobra o PRATO — as quantidades dele sobem já na lista de compras, e o dia que só aquece não volta a comprá-lo. Os acompanhamentos ficam de fora da conta porque se fazem frescos em cada dia: ninguém reaquece uma salada. O prazo de guardar e a forma de reaquecer vêm por baixo, e são diferentes de prato para prato.',
   foodprep:'Preparação de ingredientes, não pratos feitos: descascar, picar, demolhar, lavar, marinar, porcionar. Cada tarefa diz que dias serve e quanto tempo leva, com as quantidades já somadas de toda a semana. Enquanto estiver ligado, as receitas que aproveitam uma preparação já planeada têm vantagem nas sugestões — é assim que uma tarde de domingo poupa cinco jantares à pressa.',
   genero:'Um gaspacho e uma feijoada não apetecem no mesmo dia. A app lê o género do prato do nome e dos ingredientes e pesa-o na sugestão: no verão os pratos frios ganham vantagem, sobretudo ao almoço; fora dele, os quentes.',
+  filtrosCumulativos:'As dietas e os alergénios marcam-se todos ao mesmo tempo, e somam-se em vez de se substituírem: marcar «vegetariana» e «sem glúten» mostra as receitas que são as duas coisas, não as que são uma ou outra. É quase sempre assim que a pergunta se faz numa casa real — a dieta de um e a alergia de outro à mesma mesa. Kosher e halal entram aqui como quadros de exclusão: a app afasta o que é claramente incompatível, mas não pode verificar abate nem certificação, e di-lo em vez de fingir que pode.',
+  dietaAuto:'Nenhuma etiqueta de dieta é aceite como declaração — todas se verificam em três eixos e só ficam se passarem nos três. Pelos ingredientes, com os atributos que saem do catálogo. Pelos números, com um teto por receita de metade da dose diária da dieta, partindo do princípio de que um dia tem pelo menos duas refeições. E pelo modo de preparação, que é o eixo que os ingredientes nunca conseguiriam dar: um peito de frango é low fat, o mesmo peito frito por imersão não é, e o óleo que entra não aparece em lista nenhuma.',
   sons:'Três apontamentos sonoros gerados na hora com WebAudio, a mesma técnica do alarme dos temporizadores: nenhum ficheiro, nenhuma rede, e funciona offline. Desligado por defeito. Calam-se quando o separador está escondido e nunca tocam num erro — o som aqui serve para celebrar, não para repreender.',
   pesoTalao:'O total previsto do talão é um número opaco: 47 € não diz onde cortar. Estas barras mostram os itens que mais pesam no custo desta lista, com a secção do supermercado ao lado. Ver que o salmão e o queijo são metade do talão transforma o número numa decisão. Só entram os itens que já têm preço no teu talão — os outros ficam de fora e a app diz quantos são.',
   regresso:'Voltar depois de férias ou de uma gripe e encontrar tudo vazio ou falhado é o momento em que se desiste de uma app destas. A pausa declarada — que congela a sequência sem a partir — já existia, mas escondida num chip que só encontrava quem já tinha voltado. Agora é oferecida no próprio regresso, com as semanas em falta já apontadas, e a app não faz juízo nenhum sobre a ausência.',
@@ -7613,7 +7737,7 @@ function abrirPesquisa(){ S.ui.pesqAberta=true; S.ui.pesqQ='';
 function fecharPesquisa(){ S.ui.pesqAberta=false; saveMeta(); render(); }
 function setPesqQ(v){ S.ui.pesqQ=v; pintaPesquisa(); }
 function irReceita(id){ fecharPesquisa(); const r=RECIPES.find(x=>x.id===id); if(!r) return;
-  S.ui.busca=r.n; S.ui.mealF=ehAcompanhamento(r)?'ac':'todas'; S.ui.cuis='todas'; S.ui.dietaF='todas';
+  S.ui.busca=r.n; S.ui.mealF=ehAcompanhamento(r)?'ac':'todas'; S.ui.cuis='todas'; S.ui.dietaF=[];
   S.ui.soEpoca=false; go('receitas'); }
 function irIngrediente(n){ fecharPesquisa(); S.ui.mercVista='despensa'; go('mercearia');
   setTimeout(()=>{ const el=document.querySelector('#despensa-lista'); if(el) scrollSuave(el); },0);
@@ -10239,10 +10363,32 @@ function renderAtividade(){
 /* Mudar de filtro recomeça a contagem do lote: se se estava na terceira
    fornada de peixe e se salta para vegan, o utilizador quer o princípio. */
 function setCuis(v){ S.ui.cuis=(v==='todas'||temChave(CUIS,v))? v:'todas'; S.ui.recLimite=LOTE_RECEITAS; saveMeta(); render(); }
-function setDietaF(v){ S.ui.dietaF=(v==='todas'||temChave(DIETS,v))? v:'todas'; S.ui.recLimite=LOTE_RECEITAS; saveMeta(); render(); }
-function setAlergF(v){ S.ui.alergF=ehAlergenio(v)? v:''; S.ui.recLimite=LOTE_RECEITAS; saveMeta(); render(); }
-function limparFiltros(){ S.ui.cuis='todas'; S.ui.dietaF='todas'; S.ui.mealF='todas'; S.ui.busca='';
-  S.ui.alergF=''; S.ui.recLimite=LOTE_RECEITAS; saveMeta(); render(); }
+/* ===== FILTROS CUMULATIVOS =====
+   Uma dieta raramente anda sozinha: quem procura vegetariano E sem glúten, ou
+   halal E low carb, tinha de escolher um e conferir o outro a olho. Os dois
+   filtros passam a ser listas, e uma receita só sobrevive se cumprir TODAS as
+   condições marcadas — que é o que «cumulativo» quer dizer. */
+function dietasFiltro(){ return Array.isArray(S.ui.dietaF)? S.ui.dietaF : []; }
+function alergsFiltro(){ return Array.isArray(S.ui.alergF)? S.ui.alergF : []; }
+function toggleDietaF(v){
+  if(!temChave(DIETAS_FILTRAVEIS,v)) return;
+  const l=dietasFiltro(), i=l.indexOf(v);
+  i>=0? l.splice(i,1) : l.push(v);
+  S.ui.dietaF=l; S.ui.recLimite=LOTE_RECEITAS; saveMeta(); render();
+}
+function toggleAlergF(v){
+  if(!ehAlergenio(v)) return;
+  const l=alergsFiltro(), i=l.indexOf(v);
+  i>=0? l.splice(i,1) : l.push(v);
+  S.ui.alergF=l; S.ui.recLimite=LOTE_RECEITAS; saveMeta(); render();
+}
+function haFiltros(){
+  return S.ui.cuis!=='todas' || S.ui.mealF!=='todas' || !!(S.ui.busca||'')
+    || dietasFiltro().length || alergsFiltro().length || !!S.ui.catF || S.ui.soEpoca || S.ui.soComp;
+}
+function limparFiltros(){ S.ui.cuis='todas'; S.ui.dietaF=[]; S.ui.mealF='todas'; S.ui.busca='';
+  S.ui.alergF=[]; S.ui.catF=''; S.ui.soEpoca=false; S.ui.soComp=false;
+  S.ui.recLimite=LOTE_RECEITAS; saveMeta(); render(); }
 /* Pesquisa por nome: sem acentos e sem maiúsculas dos dois lados, porque
    ninguém escreve «Bacalhau à Brás» com o à certo numa caixa de pesquisa. E
    procura também nos ingredientes — «quem tem couve na despensa» é uma
@@ -10503,7 +10649,7 @@ function painelMacrosEditor(){
   const at=[]; e.i.forEach(l=>atributosIng(l[0]).forEach(t=>{ if(at.indexOf(t)<0) at.push(t); }));
   const provisoria={c:Math.round(m.c),p:Math.round(m.p),f:Math.round(m.f),fib:Math.round(m.fib),k:m.k,d:[],at};
   const liq=hcLiq(provisoria);
-  const dietas=dietasDaReceita(provisoria).map(d=>DIETS[d]? DIETS[d].n : d);
+  const dietas=dietasDaReceita(provisoria).map(nomeDieta);
   const pct=m.k>0? {c:Math.round(m.c*4/m.k*100), p:Math.round(m.p*4/m.k*100), f:Math.round(m.f*9/m.k*100)} : {c:0,p:0,f:0};
   return `<div class="row" style="justify-content:space-between;align-items:baseline">
       <b>Por dose</b><span class="kcal">${m.k} kcal</span></div>
@@ -10638,7 +10784,7 @@ function recipeCard(r,n){
       onkeydown="if((event.key==='Enter'||event.key===' ')&&!event.target.closest('button,select,a,summary,details')){event.preventDefault();abrirFicha('${r.id}',${n||1});}">
     <div class="row" style="justify-content:space-between"><h3>${esc(r.n)}</h3><span class="kcal">${r.k} kcal</span></div>
     <div><span class="tag" style="border-color:var(--accent);color:var(--accent)">${r.mt.map(nomeRefeicao).join(' / ')}</span>
-      <span class="tag">${ICO_COZ[r.coz]||''} ${cozinhasDe(r).map(k=>CUIS[k]).join(' · ')}</span>${selosCategoria(r)}${r.dc.filter(d=>d!==r.coz).map(d=>`<span class="tag">${DIETS[d].n}</span>`).join('')}${selosEpoca(r)}${seloGenero(r)}${seloSaborNovo(r,S.members)}</div>
+      <span class="tag">${ICO_COZ[r.coz]||''} ${cozinhasDe(r).map(k=>CUIS[k]).join(' · ')}</span>${selosCategoria(r)}${r.dc.filter(d=>d!==r.coz).map(d=>`<span class="tag">${esc(nomeDieta(d))}</span>`).join('')}${selosEpoca(r)}${seloGenero(r)}${seloSaborNovo(r,S.members)}</div>
     <div class="sub" style="font-variant-numeric:tabular-nums">H ${r.c} g · P ${r.p} g · G ${r.f} g${
       (function(){ const c=custoReceita(r,n||1); return c.com? ' · ~'+nPT(c.total,2)+' €'+(c.sem?'*':'') : ''; })()}</div>
     <span class="pill ${disp.pronta?'ok':disp.tem?'warn':''}" style="align-self:flex-start">${disp.pronta?'Pronta a cozinhar':disp.tem+'/'+disp.total+' na despensa'}</span>
@@ -11823,8 +11969,12 @@ function renderReceitas(){
      presunto é português e espanhol, e tem de aparecer nas duas listas */
   let list=RECIPES.filter(r=> (S.ui.cuis==='todas'||ehDaCozinha(r,S.ui.cuis))
     && (S.ui.mealF==='todas'? !ehAcompanhamento(r) : r.mt.indexOf(S.ui.mealF)>=0));
-  if(S.ui.dietaF!=='todas' && temChave(DIETS,S.ui.dietaF)) list=list.filter(r=>compat(r,S.ui.dietaF));
-  if(S.ui.alergF && ehAlergenio(S.ui.alergF)) list=list.filter(r=>r.at.indexOf(S.ui.alergF)<0);
+  /* cumulativos: a receita tem de cumprir todas as dietas marcadas e estar
+     livre de todos os alergénios marcados ao mesmo tempo */
+  const dF=dietasFiltro().filter(k=>temChave(DIETAS_FILTRAVEIS,k));
+  if(dF.length) list=list.filter(r=>dF.every(k=>(r.dc||[]).indexOf(k)>=0));
+  const aF=alergsFiltro().filter(ehAlergenio);
+  if(aF.length) list=list.filter(r=>aF.every(k=>r.at.indexOf(k)<0));
   if(S.ui.soComp && m) list=list.filter(r=>compat(r,chaveDieta(m))&&!ingredientesVetados(r,m).length);
   if(S.ui.soEpoca) list=list.filter(receitaDaEpoca);
   if(S.ui.catF && temChave(CATEG,S.ui.catF)) list=list.filter(r=>temCategoria(r,S.ui.catF));
@@ -11850,12 +12000,27 @@ function renderReceitas(){
       oninput="setBusca(this.value,this)" aria-label="Procurar receitas">
     <select style="width:auto" aria-label="Filtrar por cozinha" onchange="setCuis(this.value)"><option value="todas">Todas as cozinhas</option>
       ${Object.entries(CUIS).map(([kk,v])=>`<option value="${kk}" ${S.ui.cuis===kk?'selected':''}>${(ICO_COZ[kk]||'')+' '+v}</option>`).join('')}</select>
-    <select style="width:auto" aria-label="Filtrar por dieta" onchange="setDietaF(this.value)"><option value="todas">Todas as dietas</option>
-      ${Object.entries(DIETS).map(([kk,v])=>`<option value="${kk}" ${S.ui.dietaF===kk?'selected':''}>${v.n}</option>`).join('')}</select>
-    <select style="width:auto" aria-label="Filtrar receitas sem um alergénio" onchange="setAlergF(this.value)"><option value="">🚨 Sem alergénio…</option>
-      ${ALERGENIOS.map(([kk,nome,ico])=>`<option value="${kk}" ${S.ui.alergF===kk?'selected':''}>sem ${nome.toLowerCase()}</option>`).join('')}</select>
-    ${(S.ui.cuis!=='todas'||S.ui.dietaF!=='todas'||S.ui.mealF!=='todas'||(S.ui.busca||'')||(S.ui.alergF||''))? `<button class="chip" onclick="limparFiltros()">✕ Limpar filtros</button>`:''}
+    ${haFiltros()? `<button class="chip" onclick="limparFiltros()">✕ Limpar filtros</button>`:''}
   </div>
+  <details class="filtros" ${dietasFiltro().length||alergsFiltro().length? 'open':''}>
+    <summary>Dietas e alergénios ${dietasFiltro().length||alergsFiltro().length
+      ? '<span class="pill">'+(dietasFiltro().length+alergsFiltro().length)+'</span>' : ''} ${dica('filtrosCumulativos')}</summary>
+    <div class="splabel" style="margin-top:8px"><span>Dietas — marca as que quiseres ao mesmo tempo</span></div>
+    <div class="row">${Object.entries(DIETAS_FILTRAVEIS).map(([kk,v])=>{
+      const on=dietasFiltro().indexOf(kk)>=0;
+      return `<button class="chip ${on?'on':''}" onclick="toggleDietaF('${kk}')" aria-pressed="${on}">
+        ${on?'✓ ':''}${esc(v.n)}</button>`;}).join('')}</div>
+    <div class="splabel" style="margin-top:10px"><span>Sem estes alergénios — também cumulativo</span></div>
+    <div class="row">${ALERGENIOS.map(([kk,nome])=>{
+      const on=alergsFiltro().indexOf(kk)>=0;
+      return `<button class="chip ${on?'on':''}" onclick="toggleAlergF('${kk}')" aria-pressed="${on}">
+        ${on?'✓ ':''}${RESTR[kk].i} sem ${esc(nome.toLowerCase())}</button>`;}).join('')}</div>
+    ${dietasFiltro().indexOf('kosher')>=0||dietasFiltro().indexOf('halal')>=0? `
+      <p class="sub" style="margin-top:8px"><b>Kosher e halal:</b> a app exclui o que é claramente incompatível —
+      porco, marisco, peixe sem barbatanas e escamas, álcool, carne e leite no mesmo prato — mas
+      <b>não consegue verificar o abate nem a certificação</b>, que é o que verdadeiramente determina se um
+      alimento é kosher ou halal. A etiqueta diz «compatível à partida»; o rótulo e o talho é que mandam.</p>`:''}
+  </details>
   <div class="row" style="margin-bottom:12px;align-items:center">
     <span class="sub">Quantidades para ${dica('porcoes')}</span>
     <select style="width:auto" aria-label="Número de pessoas para as quantidades" onchange="setPorcoes(this.value)">
@@ -12642,7 +12807,7 @@ function cartaoSugestao(r,membros,mk){
   const n=membros.length||1, disp=disponibilidadeReceita(r), falta=disp.total-disp.tem;
   return `<div class="rc">
     <div class="row" style="justify-content:space-between"><h3>${esc(r.n)}</h3><span class="kcal">${r.k} kcal</span></div>
-    <div><span class="tag">${ICO_COZ[r.coz]||''} ${CUIS[r.coz]}</span>${r.dc.filter(d=>d!==r.coz).map(d=>`<span class="tag">${DIETS[d].n}</span>`).join('')}</div>
+    <div><span class="tag">${ICO_COZ[r.coz]||''} ${CUIS[r.coz]}</span>${r.dc.filter(d=>d!==r.coz).map(d=>`<span class="tag">${esc(nomeDieta(d))}</span>`).join('')}</div>
     <div class="sub" style="font-variant-numeric:tabular-nums">H ${r.c} g · P ${r.p} g · G ${r.f} g por dose</div>
     ${notaDoses(r,membros,mk)}
     <span class="pill ${disp.pronta?'ok':disp.tem?'warn':''}" style="align-self:flex-start">${disp.pronta?'Pronta a cozinhar':falta+' ingrediente'+(falta===1?'':'s')+' em falta'}</span>
