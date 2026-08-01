@@ -34,7 +34,7 @@
   --bg:#F6F5F1; --card:#FFFFFF; --ink:#232930; --mut:#646C76; --line:#E4E1D8;
   --accent:#2456A6; --accent-soft:#E8EEF8; --energy:#AA541A; --energy-soft:#F8EDE2;
   --party:#BC4578; --party-soft:#FCF2F7;
-  --ok:#2C774B; --warn:#86610F; --bad:#B83D31;
+  --ok:#297047; --warn:#7F5C0E; --bad:#AD392E;
   --mc:#8E6020; --mp:#2456A6; --mf:#7C5CB0;
   /* A tinta que assenta POR CIMA do acento. Em claro o acento é escuro e pede
      branco; em escuro é claro e pede tinta escura. Sem este token, a regra do
@@ -53,6 +53,11 @@
      --elev a folha que flutua. Derivam da tinta e do fundo, por isso vestem
      as seis paletas sem uma regra que seja por paleta. */
   --hh:58px; --r-sm:10px; --inset:var(--bg); --elev:var(--card);
+  /* Sem isto, o browser desenha o que não está estilizado — links, barras de
+     deslocamento, campos nativos — com os tons do modo do SISTEMA, que pode
+     ser o oposto do modo escolhido na app. Era o que punha links azuis-claros
+     de modo escuro sobre o fundo claro da paleta Brasa. */
+  color-scheme:light;
 }
 @supports (background:color-mix(in srgb,red 50%,blue)){
   :root{ --inset:color-mix(in srgb,var(--ink) 4%,var(--bg));
@@ -66,6 +71,7 @@ html[data-modo="escuro"], :root[data-theme="dark"]{
   --mc:#DCA84F; --mp:#7BA7E8; --mf:#A98BD8;
   --on-accent:#10151B;
   --shadow:0 1px 3px rgba(0,0,0,.4);
+  color-scheme:dark;
 }
 /* --- Alecrim: verdes de horta, neutros com um travo de azeitona --- */
 html[data-paleta="alecrim"]{
@@ -134,6 +140,10 @@ h2{font-size:21px;letter-spacing:-.006em;margin-bottom:4px}
 h3{font-size:16.5px}
 .brand h1 em{font-style:italic;color:var(--accent)}
 button,input,select{font:inherit;color:inherit}
+/* Os links da app são atalhos entre separadores, não hiperligações externas:
+   vestem o acento da paleta em vez do azul do browser. */
+a{color:var(--accent);text-underline-offset:2px}
+a:hover{color:var(--ink)}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
 header{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10;
   position:sticky;isolation:isolate}
@@ -480,10 +490,10 @@ select.slot{margin-top:4px}
 /* 9% e não 14%: o chip assenta em --bg (que já é quente nalgumas paletas) e
    não no branco do cartão, e a 14% o texto vermelho sobre tinta vermelha
    descia abaixo dos 4,5:1 na paleta Brasa. */
-.chip.perigo{background:color-mix(in srgb,var(--bad) 9%,transparent);border-color:var(--bad);color:var(--bad)}
+.chip.perigo{background:color-mix(in srgb,var(--bad) 9%,var(--bg));border-color:var(--bad);color:var(--bad)}
 .card-alergia{border:1px solid var(--line);border-left:3px solid var(--bad);border-radius:10px;padding:10px 12px;background:var(--bg)}
 .f-bad-txt{color:var(--bad)}
-.alerta{background:color-mix(in srgb,var(--bad) 12%,transparent);border:1px solid var(--bad);border-radius:8px;
+.alerta{background:color-mix(in srgb,var(--bad) 12%,var(--card));border:1px solid var(--bad);border-radius:8px;
   padding:6px 9px;font-size:12.5px;font-weight:600;color:var(--bad);display:flex;gap:6px;align-items:flex-start}
 .tag.alerg{border-color:var(--bad);padding:0 4px;margin-left:3px}
 .busca{width:auto;min-width:230px;flex:1 1 230px;max-width:340px}
@@ -559,16 +569,16 @@ textarea{width:100%;min-height:120px;background:var(--inset);border:1px solid va
 /* Reservas para Safari anterior ao 16.4, que não conhece color-mix():
    a declaração simples fica antes e é usada quando a seguinte é ignorada. */
 .pill.ok{background:rgba(44,119,75,.14)}
-.pill.ok{background:color-mix(in srgb,var(--ok) 14%,transparent)}
+.pill.ok{background:color-mix(in srgb,var(--ok) 12%,var(--card))}
 .pill.warn{background:rgba(134,97,15,.16)}
-.pill.warn{background:color-mix(in srgb,var(--warn) 16%,transparent)}
+.pill.warn{background:color-mix(in srgb,var(--warn) 12%,var(--card))}
 .pill.bad{background:rgba(184,61,49,.14)}
-.pill.bad{background:color-mix(in srgb,var(--bad) 14%,transparent)}
+.pill.bad{background:color-mix(in srgb,var(--bad) 12%,var(--card))}
 .msg.ok{background:rgba(44,119,75,.13)}
 .msg.warn-msg{background:rgba(134,97,15,.13);color:var(--warn);font-weight:400;line-height:1.5}
-.msg.ok{background:color-mix(in srgb,var(--ok) 13%,transparent)}
+.msg.ok{background:color-mix(in srgb,var(--ok) 12%,var(--card))}
 .msg.bad{background:rgba(194,64,52,.13)}
-.msg.bad{background:color-mix(in srgb,var(--bad) 13%,transparent)}
+.msg.bad{background:color-mix(in srgb,var(--bad) 12%,var(--card))}
 
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 button,select,input,label,.chip{touch-action:manipulation}
@@ -622,6 +632,11 @@ body{padding-bottom:max(60px,calc(env(safe-area-inset-bottom) + 44px))}
   .savest{min-height:40px}
   .shop li{padding:12px 6px;min-height:48px}
   .shop input[type=checkbox]{width:24px;height:24px}
+  /* As pastilhas que são botões (itens por comprar, alerta do dia) nasceram
+     como etiquetas e ficaram com altura de etiqueta — no dedo precisam de
+     alvo a sério. */
+  .pill.hoje-pend,.pill.dia-alerta{min-height:40px;padding:9px 14px;font-size:13px;
+    display:inline-flex;align-items:center}
   .toggle input{width:20px;height:20px}
   textarea{min-height:140px}
   .spline select,.spline input[type=number]{min-height:42px}
@@ -918,16 +933,14 @@ const MEALK=MEALS.map(x=>x[0]);
 function nomeRefeicao(k){ if(k==='ac') return 'Acompanhamento';
   const m=MEALS.find(x=>x[0]===k); return m? m[1] : k; }
 
-/* Receitas: por dose (uma pessoa). d = dietas compatíveis além da equilibrada.
-   k kcal, c/p/f gramas. mt = refeições em que encaixa (por omissão, almoço e
-   jantar). fib = fibra em gramas, opcional.
+/* Receitas: por dose (uma pessoa). d = dietas declaradas (hoje só a
+   mediterrânica; as outras derivam-se). mt = refeições em que encaixa, ou
+   ['ac'] se for acompanhamento.
 
-   A fibra existe por uma razão concreta: em keto e low carb conta-se o hidrato
-   líquido (total menos fibra), que é o que a prática clínica e os rótulos
-   europeus usam. Sem ela, um pudim de chia — 16 g de hidratos dos quais 12 g
-   de fibra — parecia proibido e uma tigela de arroz doce parecia igual a uma
-   de brócolos. Onde a fibra não está declarada vale zero, o que torna o teste
-   mais exigente, nunca mais permissivo. */
+   Os números k, c, p, f e fib estão escritos aqui por motivos históricos —
+   eram estimativas à mão — mas são recalculados no arranque a partir da
+   composição dos ingredientes, que é a única fonte de verdade. Só sobrevivem
+   como recurso se algum ingrediente perder a composição. */
 function R(id,n,coz,d,k,c,p,f,i,mt,fib){return {id,n,coz,d,k,c,p,f,i,mt:mt||['a','j'],fib:fib||0}}
 /* Hidrato líquido: na convenção portuguesa (e europeia) os hidratos já vêm
    sem a fibra, que se declara à parte — é o mesmo número que está num rótulo
@@ -2185,10 +2198,18 @@ function chaveDieta(m){
   if(!m) return 'equilibrada';
   return m.dieta==='personalizada'? 'personalizada' : (temChave(DIETS,m.dieta)? m.dieta : 'equilibrada');
 }
+/* Chamada milhares de vezes por render (cada receita × cada membro), e o
+   resultado só depende da dieta e das exclusões da pessoa. A chave da cache
+   guarda exatamente essas entradas, por isso nunca fica velha — não é preciso
+   invalidar nada quando o estado muda. */
+const _restrCache=Object.create(null);
 function restricoesDe(m){
+  const chave=(m&&m.id||'')+'|'+chaveDieta(m)+'|'+((m&&Array.isArray(m.restricoes))? m.restricoes.join(','):'');
+  const guardado=_restrCache[chave];
+  if(guardado) return guardado;
   const base=Array.isArray(m.restricoes)? m.restricoes.filter(k=>temChave(RESTR,k)) : [];
   const dieta=DIETA_VETA[chaveDieta(m)]||[];
-  return base.concat(dieta.filter(t=>base.indexOf(t)<0));
+  return _restrCache[chave]=base.concat(dieta.filter(t=>base.indexOf(t)<0));
 }
 function ingredientesVetados(r,m){
   const veta=restricoesDe(m); if(!veta.length) return [];
@@ -2292,13 +2313,13 @@ function avaliaReceita(r,membros,mk,comTeto){
 
 
 /* ================= DESPENSA =================
-   O catálogo é sempre derivado das 84 receitas — nunca texto livre. Isso
-   garante que um nome na despensa bate sempre certo, byte a byte, com um
-   nome de ingrediente de receita: sem correspondência aproximada, sem
-   "Azeite" a não bater com "azeite". */
-/* O catálogo é a tabela de composição inteira, não só o que as receitas da
-   biblioteca usam: quem escreve uma receita em casa precisa de escolher entre
-   tudo o que existe, e tudo o que existe tem composição para calcular. */
+   O catálogo é a tabela de composição inteira — nunca texto livre. É isso que
+   garante que um nome na despensa bate sempre certo, byte a byte, com o nome
+   de um ingrediente de receita: sem correspondência aproximada, sem "Azeite"
+   a não bater com "azeite". E é a tabela toda, não só o que as receitas da
+   biblioteca usam, porque quem escreve uma receita em casa precisa de
+   escolher entre tudo o que existe — e tudo o que existe tem composição para
+   se calcular. */
 let _catalogo=null;
 function catalogoIngredientes(){
   if(!_catalogo) _catalogo=Object.keys(NUTRI).sort((a,b)=>a.localeCompare(b,'pt'));
@@ -2336,6 +2357,7 @@ function blank(){ return {members:[],cheats:{},plans:{},bought:{},prefCuisine:'t
       objForm:{membros:[],tipo:'perder',delta:5,semanas:12,split:50,desporto:null,banda:2},
       objExpandido:null, objAdj:null, celebrando:null, tourPasso:null, tourVisto:false,
       tema:'auto', paleta:'azulejo', colapsados:{}, alergF:'', alergDesp:'',
+      recLimite:48, recTodas:false,
       sug:{membros:null,ref:'a',teto:true,cuis:'todas',verFora:false}, porcoes:null},
   week:mondayISO(new Date()),
   meta:{gravadoEm:null,exportadoEm:null,semCopia:false,avisarAoSair:true}}; }
@@ -3385,7 +3407,7 @@ function renderFamilia(){
       return `<div class="card">
         <div class="row" style="justify-content:space-between">
           <div class="row">${avatar(m,34)}
-            <input type="text" value="${esc(m.nome)}" style="width:170px;font-weight:600" onchange="upd('${mid}','nome',this.value)"></div>
+            <input type="text" value="${esc(m.nome)}" style="width:170px;font-weight:600" aria-label="Nome do membro" onchange="upd('${mid}','nome',this.value)"></div>
           <div class="row">
             <button class="chip" onclick="toggleAvatarEditor('${mid}')" aria-expanded="${S.ui.avatarAberto===mid}">${ICO_FASE[fase]||'🎨'} Avatar</button>
             <button class="btn danger small" onclick="delMember('${mid}')">Remover</button></div>
@@ -3403,18 +3425,18 @@ function renderFamilia(){
           <p class="sub" style="margin-top:8px">A cor aparece no avatar, nos pontos do plano e na aura do cabeçalho.</p>
         </div>`:''}
         <div class="frow">
-          <div><label class="lbl">Sexo</label><select onchange="upd('${mid}','sexo',this.value)">
+          <div><label class="lbl">Sexo</label><select aria-label="Sexo" onchange="upd('${mid}','sexo',this.value)">
             <option value="m" ${m.sexo==='m'?'selected':''}>Masculino</option><option value="f" ${m.sexo==='f'?'selected':''}>Feminino</option></select></div>
-          <div><label class="lbl">Fase ${dica('fase')}</label><select onchange="setFase('${mid}',this.value)">
+          <div><label class="lbl">Fase ${dica('fase')}</label><select aria-label="Fase da vida" onchange="setFase('${mid}',this.value)">
             <option value="bebe" ${bebe?'selected':''}>Bebé (até 2 anos)</option>
             <option value="crianca" ${fase==='crianca'?'selected':''}>Criança (2–12)</option>
             <option value="adolescente" ${fase==='adolescente'?'selected':''}>Adolescente (13–18)</option>
             <option value="adulto" ${fase==='adulto'?'selected':''}>Adulto (19+)</option></select></div>
           ${bebe? `<div><label class="lbl">Idade (meses)</label><input type="number" id="in-${mid}-idade" min="0" max="24" step="1"
               value="${Math.round(idadeMeses(m))}" onchange="upd('${mid}','meses',this.value,1)"></div>`
-          : `<div><label class="lbl">Idade (anos)</label><input type="number" id="in-${mid}-idade" min="2" value="${Math.round(m.idade)}" onchange="upd('${mid}','idade',this.value,1)"></div>`}
-          <div><label class="lbl">Altura cm</label><input type="number" id="in-${mid}-altura" min="30" value="${m.altura}" onchange="upd('${mid}','altura',this.value,1)"></div>
-          <div><label class="lbl">Peso kg</label><input type="number" id="in-${mid}-peso" min="2" step="0.1" value="${m.peso}" onchange="upd('${mid}','peso',this.value,1)"></div>
+          : `<div><label class="lbl">Idade (anos)</label><input type="number" id="in-${mid}-idade" min="2" value="${Math.round(m.idade)}" aria-label="Idade em anos" onchange="upd('${mid}','idade',this.value,1)"></div>`}
+          <div><label class="lbl">Altura cm</label><input type="number" id="in-${mid}-altura" min="30" value="${m.altura}" aria-label="Altura em centímetros" onchange="upd('${mid}','altura',this.value,1)"></div>
+          <div><label class="lbl">Peso kg</label><input type="number" id="in-${mid}-peso" min="2" step="0.1" value="${m.peso}" aria-label="Peso em quilogramas" onchange="upd('${mid}','peso',this.value,1)"></div>
         </div>
         ${m.sexo==='f' && idadeAnos(m)>=12 ? `
         <label class="toggle" style="margin-top:8px">
@@ -3806,10 +3828,10 @@ function renderAtividade(){
       <h2>Dia-a-dia de ${esc(m.nome)}</h2>
       <div class="frow" style="grid-template-columns:1fr 1fr">
         <div><label class="lbl">Nível de atividade diária ${dica('nivelAtiv')}</label>
-          <select onchange="upd('${m.id}','atividade',this.value)">${Object.entries(BASE_ACT).map(([k,v])=>
+          <select aria-label="Nível de atividade diária" onchange="upd('${m.id}','atividade',this.value)">${Object.entries(BASE_ACT).map(([k,v])=>
             `<option value="${k}" ${m.atividade===k?'selected':''}>${v[0]}</option>`).join('')}</select></div>
         <div><label class="lbl">Deslocação para o trabalho/escola ${dica('desloc','dica-e')}</label>
-          <select onchange="upd('${m.id}','desloc',this.value)">${Object.entries(COMMUTE).map(([k,v])=>
+          <select aria-label="Deslocação para o trabalho ou escola" onchange="upd('${m.id}','desloc',this.value)">${Object.entries(COMMUTE).map(([k,v])=>
             `<option value="${k}" ${m.desloc===k?'selected':''}>${v[0]}</option>`).join('')}</select></div>
       </div>
     </div>
@@ -3861,10 +3883,13 @@ function renderAtividade(){
 }
 
 /* ================= NUTRIÇÃO ================= */
-function setCuis(v){ S.ui.cuis=(v==='todas'||temChave(CUIS,v))? v:'todas'; saveMeta(); render(); }
-function setDietaF(v){ S.ui.dietaF=(v==='todas'||temChave(DIETS,v))? v:'todas'; saveMeta(); render(); }
-function setAlergF(v){ S.ui.alergF=ehAlergenio(v)? v:''; saveMeta(); render(); }
-function limparFiltros(){ S.ui.cuis='todas'; S.ui.dietaF='todas'; S.ui.mealF='todas'; S.ui.busca=''; S.ui.alergF=''; saveMeta(); render(); }
+/* Mudar de filtro recomeça a contagem do lote: se se estava na terceira
+   fornada de peixe e se salta para vegan, o utilizador quer o princípio. */
+function setCuis(v){ S.ui.cuis=(v==='todas'||temChave(CUIS,v))? v:'todas'; S.ui.recLimite=LOTE_RECEITAS; saveMeta(); render(); }
+function setDietaF(v){ S.ui.dietaF=(v==='todas'||temChave(DIETS,v))? v:'todas'; S.ui.recLimite=LOTE_RECEITAS; saveMeta(); render(); }
+function setAlergF(v){ S.ui.alergF=ehAlergenio(v)? v:''; S.ui.recLimite=LOTE_RECEITAS; saveMeta(); render(); }
+function limparFiltros(){ S.ui.cuis='todas'; S.ui.dietaF='todas'; S.ui.mealF='todas'; S.ui.busca='';
+  S.ui.alergF=''; S.ui.recLimite=LOTE_RECEITAS; saveMeta(); render(); }
 /* Pesquisa por nome: sem acentos e sem maiúsculas dos dois lados, porque
    ninguém escreve «Bacalhau à Brás» com o à certo numa caixa de pesquisa. E
    procura também nos ingredientes — «quem tem couve na despensa» é uma
@@ -3878,12 +3903,27 @@ function correspondeBusca(r,q){
   if(semAcentos(r.n).indexOf(q)>=0) return true;
   return r.i.some(x=>semAcentos(x[0]).indexOf(q)>=0);
 }
+/* Trezentas e tal receitas de uma vez são um quarto de segundo de trabalho
+   para mostrar cartões que ninguém percorre até ao fim. Mostram-se aos lotes,
+   e o lote cresce a pedido. Com pesquisa ativa não há limite: quem procura
+   quer ver tudo o que corresponde, e a busca já estreita a lista. */
+const LOTE_RECEITAS=48;
+function maisReceitas(){ S.ui.recLimite=(S.ui.recLimite||LOTE_RECEITAS)+LOTE_RECEITAS; saveMeta(); render(); }
 /* A escrever não se redesenha a página: filtra-se a grelha que já está no
-   ecrã, para o cursor não saltar da caixa a cada tecla. */
+   ecrã, para o cursor não saltar da caixa a cada tecla. Só há um redesenho —
+   o da primeira tecla, quando é preciso trazer as receitas que o lote deixou
+   de fora — e mesmo esse repõe o foco e a posição do cursor. */
 function setBusca(v,el){
   S.ui.busca=String(v||'').slice(0,60);
   saveMeta();
   const q=semAcentos(S.ui.busca).trim();
+  if(!!q !== !!S.ui.recTodas){
+    const pos=el? el.selectionStart : null;
+    render();
+    const novo=document.getElementById('rec-busca');
+    if(novo){ novo.focus(); if(pos!=null){ try{ novo.setSelectionRange(pos,pos); }catch(e){} } }
+    return;
+  }
   const grelha=document.getElementById('rec-grelha');
   if(!grelha){ render(); return; }
   let visiveis=0;
@@ -3897,7 +3937,7 @@ function setBusca(v,el){
   const vazio=document.getElementById('rec-vazio');
   if(vazio) vazio.style.display=visiveis? 'none':'';
 }
-function setMealF(v){ S.ui.mealF=(v==='todas'||v==='ac'||MEALK.indexOf(v)>=0)? v:'todas'; saveMeta(); render(); }
+function setMealF(v){ S.ui.mealF=(v==='todas'||v==='ac'||MEALK.indexOf(v)>=0)? v:'todas'; S.ui.recLimite=LOTE_RECEITAS; saveMeta(); render(); }
 function toggleComp(){ S.ui.soComp=!S.ui.soComp; saveMeta(); render(); }
 
 function macroBar(pct){ return `<div class="mbar">
@@ -4069,15 +4109,13 @@ function painelMacrosEditor(){
   const e=edCfg(); if(!e) return '';
   const m=macrosDeIngredientes(e.i,e.doses);
   const total=macrosDeIngredientes(e.i,1);
-  const liq=Math.max(0,m.c-m.fib);
-  const dietas=[];
-  if(liq<=HC_TETO.keto) dietas.push('Keto');
-  if(liq<=HC_TETO.lowcarb) dietas.push('Low carb');
-  if(m.f*9<=m.k*GORD_TETO_LOWFAT) dietas.push('Low fat');
+  /* As etiquetas passam pela MESMA função que decide as da biblioteca. Ter
+     duas contas paralelas dava previsões que não batiam certo com o que a
+     receita mostrava depois de guardada. */
   const at=[]; e.i.forEach(l=>atributosIng(l[0]).forEach(t=>{ if(at.indexOf(t)<0) at.push(t); }));
-  if(!DIETA_VETA.vegetariana.some(t=>at.indexOf(t)>=0)) dietas.push('Vegetariana');
-  if(!DIETA_VETA.vegan.some(t=>at.indexOf(t)>=0)) dietas.push('Vegan');
-  if(!DIETA_VETA.paleo.some(t=>at.indexOf(t)>=0)) dietas.push('Paleo');
+  const provisoria={c:Math.round(m.c),p:Math.round(m.p),f:Math.round(m.f),fib:Math.round(m.fib),k:m.k,d:[],at};
+  const liq=hcLiq(provisoria);
+  const dietas=dietasDaReceita(provisoria).map(d=>DIETS[d]? DIETS[d].n : d);
   const pct=m.k>0? {c:Math.round(m.c*4/m.k*100), p:Math.round(m.p*4/m.k*100), f:Math.round(m.f*9/m.k*100)} : {c:0,p:0,f:0};
   return `<div class="row" style="justify-content:space-between;align-items:baseline">
       <b>Por dose</b><span class="kcal">${m.k} kcal</span></div>
@@ -4730,7 +4768,7 @@ function renderNutricao(){
         <button class="chip" onclick="presetObjetivo('${m.id}',10)">Ganhar +10%</button>
       </div>
       <p class="sub" id="nu-aviso" style="min-height:1.55em;visibility:hidden;color:var(--warn);margin-top:4px">défice agressivo — acompanha este plano com um profissional de saúde</p>
-      <div><label class="lbl">Tipo de dieta ${dica('vegan')}</label><select onchange="upd('${m.id}','dieta',this.value)">${Object.entries(DIETS).map(([kk,v])=>
+      <div><label class="lbl">Tipo de dieta ${dica('vegan')}</label><select aria-label="Tipo de dieta" onchange="upd('${m.id}','dieta',this.value)">${Object.entries(DIETS).map(([kk,v])=>
           `<option value="${kk}" ${m.dieta===kk?'selected':''}>${v.n}</option>`).join('')}<option value="personalizada" ${m.dieta==='personalizada'?'selected':''}>Personalizada…</option></select></div>
       ${blocoRestricoes(m)}
       <div class="row" style="margin-top:14px">
@@ -4798,6 +4836,9 @@ function renderReceitas(){
   if(q) list=list.filter(r=>correspondeBusca(r,q));
   const fam=S.members.length? RECIPES.filter(r=>compatAll(r,S.members)) : [];
   const n=porcoesAtuais(), minhas=RECIPES.filter(r=>r.u).length;
+  /* com pesquisa ativa mostra-se tudo o que corresponde; sem ela, por lotes */
+  S.ui.recTodas=!!q;
+  const mostradas=q? list : list.slice(0,S.ui.recLimite||LOTE_RECEITAS);
   return (m?memberPicker():'')+cartaoEditor()+`
   <div class="row" style="justify-content:space-between;margin-bottom:10px;flex-wrap:wrap">
     <div><h2>Receitas ${dica('receitasDisp')}</h2><span class="sub" id="rec-conta">${list.length} de ${RECIPES.length} receitas${minhas? ' · '+minhas+' da casa':''}</span></div>
@@ -4810,17 +4851,17 @@ function renderReceitas(){
   <div class="row" style="margin-bottom:12px">
     <input type="search" id="rec-busca" class="busca" value="${esc(S.ui.busca||'')}" placeholder="🔎 Procurar por nome ou ingrediente…"
       oninput="setBusca(this.value,this)" aria-label="Procurar receitas">
-    <select style="width:auto" onchange="setCuis(this.value)"><option value="todas">Todas as cozinhas</option>
+    <select style="width:auto" aria-label="Filtrar por cozinha" onchange="setCuis(this.value)"><option value="todas">Todas as cozinhas</option>
       ${Object.entries(CUIS).map(([kk,v])=>`<option value="${kk}" ${S.ui.cuis===kk?'selected':''}>${(ICO_COZ[kk]||'')+' '+v}</option>`).join('')}</select>
-    <select style="width:auto" onchange="setDietaF(this.value)"><option value="todas">Todas as dietas</option>
+    <select style="width:auto" aria-label="Filtrar por dieta" onchange="setDietaF(this.value)"><option value="todas">Todas as dietas</option>
       ${Object.entries(DIETS).map(([kk,v])=>`<option value="${kk}" ${S.ui.dietaF===kk?'selected':''}>${v.n}</option>`).join('')}</select>
-    <select style="width:auto" onchange="setAlergF(this.value)"><option value="">🚨 Sem alergénio…</option>
+    <select style="width:auto" aria-label="Filtrar receitas sem um alergénio" onchange="setAlergF(this.value)"><option value="">🚨 Sem alergénio…</option>
       ${ALERGENIOS.map(([kk,nome,ico])=>`<option value="${kk}" ${S.ui.alergF===kk?'selected':''}>sem ${nome.toLowerCase()}</option>`).join('')}</select>
     ${(S.ui.cuis!=='todas'||S.ui.dietaF!=='todas'||S.ui.mealF!=='todas'||(S.ui.busca||'')||(S.ui.alergF||''))? `<button class="chip" onclick="limparFiltros()">✕ Limpar filtros</button>`:''}
   </div>
   <div class="row" style="margin-bottom:12px;align-items:center">
     <span class="sub">Quantidades para ${dica('porcoes')}</span>
-    <select style="width:auto" onchange="setPorcoes(this.value)">
+    <select style="width:auto" aria-label="Número de pessoas para as quantidades" onchange="setPorcoes(this.value)">
       ${[1,2,3,4,5,6,7,8,10,12].map(v=>`<option value="${v}" ${n===v?'selected':''}>${v} pessoa${v===1?'':'s'}</option>`).join('')}
     </select>
     ${S.members.length&&n!==S.members.length? `<button class="chip" onclick="setPorcoes(${S.members.length})">Repor: a família (${S.members.length})</button>`:''}
@@ -4830,7 +4871,10 @@ function renderReceitas(){
     ${MEALS.map(([kk,rot])=>`<button class="chip ${S.ui.mealF===kk?'on':''}" onclick="setMealF('${kk}')">${ICO_REF[kk]||''} ${rot}</button>`).join('')}
     <button class="chip ${S.ui.mealF==='ac'?'on':''}" onclick="setMealF('ac')">${ICO_REF.ac} Acompanhamentos</button>
   </div>
-  ${list.length? `<div class="grid g3" id="rec-grelha">${list.map(r=>recipeCard(r,n)).join('')}</div>
+  ${list.length? `<div class="grid g3" id="rec-grelha">${mostradas.map(r=>recipeCard(r,n)).join('')}</div>
+      ${list.length>mostradas.length? `<div class="row" style="justify-content:center;margin-top:16px">
+        <button class="btn ghost" onclick="maisReceitas()">Mostrar mais ${Math.min(LOTE_RECEITAS,list.length-mostradas.length)}
+          <span class="sub">· ${mostradas.length} de ${list.length}</span></button></div>`:''}
       <div id="rec-vazio" style="display:none">${estadoVazio('lupa','Nada com esse nome',
         'Nenhuma das receitas visíveis tem esse texto no nome nem nos ingredientes. Apaga a pesquisa ou alarga os filtros.',
         `<button class="btn ghost" onclick="limparFiltros()">Limpar filtros</button>`)}</div>`
@@ -4841,8 +4885,8 @@ function renderReceitas(){
 
   ${S.members.length>1? `<div class="secgap">
     <h2>Compatíveis com toda a família</h2>
-    <p class="sub" style="margin-bottom:10px">Receitas que servem as dietas e as exclusões de todos os ${S.members.length} membros — ideais para a mesma panela. Para escolher quem se senta à mesa e planear a semana, vai ao <a href="#" onclick="go('plano');return false">Plano</a>.</p>
-    <div class="grid g3">${fam.map(r=>recipeCard(r,n)).join('')||'<p class="sub">Nenhuma receita serve todas as dietas — considerem aproximar os planos.</p>'}</div>
+    <p class="sub" style="margin-bottom:10px">${fam.length? '<b>'+fam.length+'</b> receitas servem':'Nenhuma receita serve'} as dietas e as exclusões de todos os ${S.members.length} membros — ideais para a mesma panela.${fam.length>12? ' Ficam aqui doze; para as ver todas e escolher quem se senta à mesa, vai ao ':' Para escolher quem se senta à mesa e planear a semana, vai ao '}<a href="#" onclick="go('plano');return false">Plano</a>.</p>
+    <div class="grid g3">${fam.slice(0,12).map(r=>recipeCard(r,n)).join('')||'<p class="sub">Considerem aproximar os planos alimentares — ou usem as sugestões do Plano, que dizem exatamente o que está a excluir cada receita.</p>'}</div>
   </div>`:''}`;
 }
 
@@ -5366,7 +5410,7 @@ function planearSugestao(rid,valor,el){
 }
 function seletorSlot(r,mk){
   const w=S.plans[S.week]||{};
-  return `<select class="slot" onchange="planearSugestao('${r.id}',this.value,this)">
+  return `<select class="slot" aria-label="Planear ${esc(r.n)} num dia da semana" onchange="planearSugestao('${r.id}',this.value,this)">
     <option value="">📅 Planear em…</option>
     ${DAYN.map((d,di)=>{ const ocupado=w[di]&&w[di][mk]&&w[di][mk].r;
       return `<option value="${di}|${mk}">${d}${ocupado?' (ocupado)':''}</option>`; }).join('')}
@@ -5422,7 +5466,7 @@ function cartaoSugestoes(){
       ${MEALS.map(([kk,rot])=>`<button class="chip ${s.ref===kk?'on':''}" onclick="setSugRef('${kk}')">${ICO_REF[kk]||''} ${rot}</button>`).join('')}
     </div>
     <div class="row" style="margin-top:8px">
-      <select style="width:auto" onchange="setSugCuis(this.value)"><option value="todas">Todas as cozinhas</option>
+      <select style="width:auto" aria-label="Cozinha das sugestões" onchange="setSugCuis(this.value)"><option value="todas">Todas as cozinhas</option>
         ${Object.entries(CUIS).map(([kk,v])=>`<option value="${kk}" ${s.cuis===kk?'selected':''}>${(ICO_COZ[kk]||'')+' '+v}</option>`).join('')}</select>
       <button class="chip ${s.teto?'on':''}" onclick="toggleSugTeto()">🎯 Respeitar o teto de calorias</button>
     </div>
@@ -5462,7 +5506,7 @@ function blocoReceitaPlaneada(r,comem,mk,ac){
 /* A lista não esconde nada: separa o que serve esta mesa do que não serve, e
    diz porquê em cada linha. Esconder seria decidir pela pessoa.
 
-   Mas 28 refeições × 227 receitas são mais de seis mil elementos numa página
+   Mas 28 refeições × quase trezentas receitas são milhares de elementos numa página
    que se redesenha inteira a cada toque — e num telemóvel isso sente-se. Por
    isso a lista só é construída quando alguém vai mesmo abrir aquele seletor:
    o fecho é preenchido no foco, antes de o menu nativo aparecer, e os três
@@ -5498,14 +5542,16 @@ function mealBlock(di,mk,label,date){
   return `<div class="meal" id="meal-${di}-${mk}">
     <div class="mtitle">${label}</div>
     ${r? avisoAlergia(r,comem,true) : ''}${ac? avisoAlergia(ac,comem,true) : ''}
-    <select class="sel-receita ${r?'cheio':''}" data-di="${di}" data-mk="${mk}" data-tipo="r" onfocus="encheSelect(this)" onmousedown="encheSelect(this)"
+    <select class="sel-receita ${r?'cheio':''}" data-di="${di}" data-mk="${mk}" data-tipo="r"
+      aria-label="Receita de ${label.toLowerCase()} de ${DAYN[di].toLowerCase()}"
+      onfocus="encheSelect(this)" onmousedown="encheSelect(this)"
       ontouchstart="encheSelect(this)" onchange="setMeal(${di},'${mk}',this.value)">
       <option value="">— escolher receita —</option>
       ${r? `<option value="${r.id}" selected>${esc(r.n)} · ${r.k} kcal</option>`:''}
     </select>
     ${r&&(mk==='a'||mk==='j')? `<select class="acomp" data-di="${di}" data-mk="${mk}" data-tipo="ac" onfocus="encheSelect(this)"
       onmousedown="encheSelect(this)" ontouchstart="encheSelect(this)" onchange="setAcomp(${di},'${mk}',this.value)"
-      aria-label="Acompanhamento">
+      aria-label="Acompanhamento do ${label.toLowerCase()} de ${DAYN[di].toLowerCase()}">
       <option value="">🍚 — sem acompanhamento —</option>
       ${ac? `<option value="${ac.id}" selected>🍚 ${esc(ac.n)} · ${ac.k} kcal</option>`:''}
     </select>`:''}
@@ -5587,7 +5633,7 @@ function renderPlano(){
     <div class="row">
       <button class="btn ghost small" onclick="shiftWeek(-1)">← Semana anterior</button>
       <button class="btn ghost small" onclick="shiftWeek(1)">Semana seguinte →</button>
-      <select style="width:auto" onchange="S.prefCuisine=this.value;save()">
+      <select style="width:auto" aria-label="Cozinha preferida no preenchimento automático" onchange="S.prefCuisine=this.value;save()">
         <option value="todas">Auto: todas as cozinhas</option>
         ${Object.entries(CUIS).map(([k,v])=>`<option value="${k}" ${S.prefCuisine===k?'selected':''}>Auto: ${v}</option>`).join('')}</select>
       <button class="btn small" onclick="autoFill()">✨ Preencher automaticamente</button>${dica('auto','dica-e')}
@@ -5869,7 +5915,7 @@ function renderDespensa(){
     </div></div>
   <div class="row" style="margin:10px 0 14px">
     <input type="text" placeholder="Procurar ingrediente ou suplemento…" class="busca" aria-label="Procurar na despensa" oninput="filtrarDespensa(this)">
-    <select style="width:auto" onchange="setAlergDesp(this.value)"><option value="">🚨 Ver por alergénio…</option>
+    <select style="width:auto" aria-label="Ver ingredientes com um alergénio" onchange="setAlergDesp(this.value)"><option value="">🚨 Ver por alergénio…</option>
       ${ALERGENIOS.map(([kk,nome])=>`<option value="${kk}" ${filtro===kk?'selected':''}>só com ${nome.toLowerCase()}</option>`).join('')}</select>
     ${filtro? `<button class="chip" onclick="setAlergDesp('')">✕ ${esc(RESTR[filtro].n)}</button>`:''}
   </div>
@@ -6051,8 +6097,15 @@ function limparMembro(m){
   const objetivo = temChave(GOALS,m.objetivo)? m.objetivo:'manter';
   /* objetivoPct NUNCA passa por num(): 0 e negativos são valores legítimos */
   const pctBruto = parseFloat(m.objetivoPct);
+  /* Os sliders limitam o que se escreve na app, mas um ficheiro importado não
+     passa por eles: sem estes limites, um peso de mil milhões de quilos entra
+     e leva atrás o índice de massa corporal, o metabolismo e a escala de
+     todos os gráficos. As faixas são as mesmas dos sliders. */
   const out = {id:limparId(m.id), nome:String(m.nome||'Sem nome').slice(0,60),
-    sexo: m.sexo==='f'?'f':'m', idade:num(m.idade,35), altura:num(m.altura,170), peso:num(m.peso,70),
+    sexo: m.sexo==='f'?'f':'m',
+    idade:clampNum(num(m.idade,35),0,120),
+    altura:clampNum(num(m.altura,170),30,250),
+    peso:clampNum(num(m.peso,70),1,400),
     atividade: temChave(BASE_ACT,m.atividade)? m.atividade:'sedentario',
     desloc: temChave(COMMUTE,m.desloc)? m.desloc:'nenhum',
     dieta, objetivo,
@@ -6061,7 +6114,7 @@ function limparMembro(m){
     gravida: !!m.gravida && (m.sexo==='f'),
     trimestre: clampNum(Math.round(parseFloat(m.trimestre)||1),1,3),
     fetos: clampNum(Math.round(parseFloat(m.fetos)||1),1,3),
-    pesoPre: num(m.pesoPre,0)||undefined,
+    pesoPre: num(m.pesoPre,0)? clampNum(num(m.pesoPre,0),1,400) : undefined,
     restricoes: Array.isArray(m.restricoes)
       ? m.restricoes.filter((k,i,a)=>temChave(RESTR,k)&&a.indexOf(k)===i) : [],
     emoji: (typeof m.emoji==='string' && m.emoji.length>0 && m.emoji.length<=4)? m.emoji : undefined,
@@ -6345,8 +6398,10 @@ function renderDados(){
         <b>Juntar</b> acrescenta os perfis e refeições que faltam, sem apagar o que já tens — é a opção para
         combinar o que dois membros da família fizeram em dispositivos diferentes.</p>
       <div class="row">
-        <span class="btn filebtn">Substituir por ficheiro…<input type="file" accept=".json,application/json" onchange="importarFicheiro(this,'substituir')"></span>
-        <span class="btn ghost filebtn">Juntar ficheiro…<input type="file" accept=".json,application/json" onchange="importarFicheiro(this,'juntar')"></span>
+        <span class="btn filebtn">Substituir por ficheiro…<input type="file" accept=".json,application/json"
+          aria-label="Escolher ficheiro de cópia para substituir os dados atuais" onchange="importarFicheiro(this,'substituir')"></span>
+        <span class="btn ghost filebtn">Juntar ficheiro…<input type="file" accept=".json,application/json"
+          aria-label="Escolher ficheiro de cópia para juntar aos dados atuais" onchange="importarFicheiro(this,'juntar')"></span>
       </div>
       <textarea id="bkIn" style="margin-top:12px" placeholder="…ou cola aqui o texto de uma cópia e escolhe uma das opções abaixo."></textarea>
       <div class="row" style="margin-top:10px">
@@ -6529,7 +6584,7 @@ function cartaoBoasVindas(){
     <div style="font-size:34px" aria-hidden="true">🍽️</div>
     <h2 style="margin-top:6px">Bem-vindos ao Família Fit</h2>
     <p class="sub" style="max-width:62ch;margin:8px auto 0">Alimentação e atividade física de toda a família num só sítio:
-      perfis por fase da vida, 84 receitas ligadas à despensa, plano semanal, objetivos com estratégia e lista de compras.
+      perfis por fase da vida, ${RECIPES.length} receitas ligadas à despensa, plano semanal, objetivos com estratégia e lista de compras.
       Nada sai deste dispositivo.</p>
     <div class="row" style="justify-content:center;margin-top:18px">
       <button class="btn" onclick="iniciarTour(true)">✨ Fazer a visita guiada</button>

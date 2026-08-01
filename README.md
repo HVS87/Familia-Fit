@@ -8,7 +8,7 @@ Ferramenta web para gerir a **alimentação e a atividade física de toda a fam�
 
 ## Começar
 
-A página de abertura tem uma **visita guiada** de 22 passos que percorre os nove separadores e todas as funcionalidades — perfis e alergias, avatares, o mês em palavras, desportos, macros, suplementos, a biblioteca de receitas e o editor, a despensa, os objetivos, as sugestões por mesa, os acompanhamentos, as compras e os temas — com uma família de exemplo para se ver tudo a funcionar. Pode sair-se a qualquer momento, e o exemplo apaga-se no separador Dados. Quem preferir começar do zero cria o primeiro perfil ali ao lado; a visita fica sempre disponível em **Dados → Rever a visita guiada**.
+A página de abertura tem uma **visita guiada** de 23 passos que percorre os nove separadores e todas as funcionalidades — perfis e alergias, avatares, o mês em palavras, desportos, macros, suplementos, a biblioteca de receitas e o editor, a despensa, os objetivos, as sugestões por mesa, os acompanhamentos, as compras e os temas — com uma família de exemplo para se ver tudo a funcionar. Pode sair-se a qualquer momento, e o exemplo apaga-se no separador Dados. Quem preferir começar do zero cria o primeiro perfil ali ao lado; a visita fica sempre disponível em **Dados → Rever a visita guiada**.
 
 ## Aspeto
 
