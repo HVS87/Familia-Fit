@@ -405,6 +405,13 @@ ol.passos li span{color:var(--mut);font-size:14px;margin-top:2px}
    quem quer comer não pode congelar por engano, e vice-versa. */
 /* A barra da cobertura fala por três larguras, mas cada troço tem legenda com
    número: quem não distingue as cores lê na mesma «22 na despensa». */
+/* As listas do ACOG: texto corrido não serve para o que é uma lista de
+   verificação, e os sinais de alarme distinguem-se por marca e não só por cor. */
+.lista-acog{margin:8px 0 0;padding-left:20px;font-size:13.5px;line-height:1.6}
+.lista-acog li{margin-bottom:3px}
+.lista-acog.alarme li::marker{content:"⚠ ";color:var(--bad)}
+#atv-gravidez details>summary{cursor:pointer;min-height:32px;display:flex;align-items:center;
+  gap:6px;font-size:13.5px;padding:4px 0}
 /* Os filtros cumulativos vivem num bloco que se fecha: são muitos alvos, e
    quem não filtra por dieta nenhuma não tem de os ver todos os dias. */
 .filtros{border:1px solid var(--line);border-radius:var(--r-sm);padding:8px 12px;
@@ -4865,12 +4872,88 @@ function normalizaIdadeMeses(m){
 function gravida(m){ return m.sexo==='f' && !!m.gravida && idadeAnos(m)>=12; }
 function fetos(m){ return clampNum(Math.round(parseFloat(m.fetos)||1),1,3); }
 function trimestre(m){ return clampNum(Math.round(parseFloat(m.trimestre)||1),1,3); }
+function posparto(m){ return m.sexo==='f' && !!m.posparto && !gravida(m) && idadeAnos(m)>=12; }
+function semanasPosParto(m){ return clampNum(Math.round(parseFloat(m.semanasPos)||0),0,104); }
+function tipoParto(m){ return m.parto==='cesariana'? 'cesariana' : 'vaginal'; }
 function faseDe(m){
   const a=idadeAnos(m);
   if(a<2) return 'bebe';
   if(a<13) return 'crianca';
   if(a<19) return 'adolescente';
   return 'adulto';
+}
+/* ================= EXERCÍCIO NA GRAVIDEZ E NO PÓS-PARTO =================
+   Tudo o que se segue vem do «Physical Activity and Exercise During Pregnancy
+   and the Postpartum Period» — ACOG Committee Opinion n.º 804 (2020, reafirmado
+   2021), do American College of Obstetricians and Gynecologists. Não há aqui um
+   único número nem uma única modalidade que a app tenha decidido por si.
+
+   A app faz três coisas e nenhuma delas é decidir: repete a recomendação
+   geral, assinala as modalidades que a orientação desaconselha e mostra os
+   sinais de alarme e as contraindicações que obrigam a parar e a falar com
+   quem segue a gravidez. Nada disto substitui essa conversa, e a app di-lo em
+   cada ecrã onde o assunto aparece — porque uma contraindicação absoluta não
+   se lê de um perfil, lê-se de uma consulta. */
+const ACOG_MIN_SEMANA=150;   /* minutos de intensidade moderada por semana */
+/* Modalidades que a orientação desaconselha, com o motivo. Duas famílias
+   distintas: risco de contacto/queda e risco fisiológico. */
+const DESPORTO_GRAVIDEZ={
+  futebol:'desporto de contacto', futsal:'desporto de contacto',
+  basquete:'desporto de contacto', andebol:'desporto de contacto',
+  boxe:'desporto de contacto', artes:'desporto de contacto',
+  esqui:'risco de queda', patinagem:'risco de queda',
+  escalada:'risco de queda', surf:'risco de queda',
+  btt:'risco de queda', ciclismoMontanha:'risco de queda',
+  trail:'risco de queda em piso irregular',
+  squash:'mudanças de direção bruscas e risco de queda',
+  intervalos:'intensidade muito alta — só com indicação de quem segue a gravidez'
+};
+/* O que a orientação nomeia como seguro para quem já se movimentava e para
+   quem começa agora. */
+const DESPORTO_GRAVIDEZ_OK=['caminhada','spinning','natacao','hidroginastica','yoga','pilates',
+  'alongamentos','musculacao','calistenia','danca','eliptica','taichi','jardinagem','pingpong'];
+/* Contraindicações absolutas ao exercício aeróbio na gravidez. Não se detetam
+   de um perfil: quem as tem sabe-o da consulta, e é por isso que estão aqui
+   como texto e não como um filtro automático. */
+const ACOG_CONTRA=[
+  'Doença cardíaca com repercussão hemodinâmica',
+  'Doença pulmonar restritiva',
+  'Incompetência cervical ou cerclage',
+  'Gestação múltipla com risco de parto pré-termo',
+  'Hemorragia persistente no 2.º ou 3.º trimestre',
+  'Placenta prévia depois das 26 semanas',
+  'Trabalho de parto pré-termo nesta gravidez',
+  'Rotura de membranas',
+  'Pré-eclâmpsia ou hipertensão induzida pela gravidez',
+  'Anemia grave'
+];
+/* Sinais para parar imediatamente e procurar apoio médico. */
+const ACOG_ALARME=[
+  'Hemorragia vaginal', 'Dor abdominal', 'Contrações dolorosas regulares',
+  'Perda de líquido amniótico', 'Falta de ar antes do esforço', 'Tonturas',
+  'Dor de cabeça', 'Dor no peito', 'Fraqueza muscular que afete o equilíbrio',
+  'Dor ou inchaço na barriga da perna'
+];
+/* Precauções que não são modalidades: valem para qualquer exercício. */
+const ACOG_PRECAUCOES=[
+  'Evitar estar de barriga para cima durante muito tempo a partir do 2.º trimestre.',
+  'Beber água antes, durante e depois, e evitar o sobreaquecimento.',
+  'Nada de mergulho com garrafa, queda livre, nem ioga ou pilates em sala quente.',
+  'Acima dos 1 800 m de altitude, só para quem já está aclimatada.',
+  'A intensidade mede-se pela conversa: deve conseguir falar enquanto se exercita.'
+];
+function avisoDesportoGravidez(sid){ return DESPORTO_GRAVIDEZ[sid]||null; }
+/* No pós-parto a orientação não dá um calendário fixo: diz que se retoma
+   gradualmente «assim que for clinicamente seguro», e que isso depende do tipo
+   de parto e de ter havido ou não complicações. A app repete exatamente isso e
+   não inventa uma semana a partir da qual se pode correr. */
+function notaPosParto(m){
+  const s=semanasPosParto(m), ces=tipoParto(m)==='cesariana';
+  if(s<6) return ces
+    ? 'Cesariana há menos de seis semanas: a retoma faz-se com indicação médica, e a orientação do ACOG é explícita em ligá-la ao tipo de parto e às complicações que tenha havido. Caminhar devagar e os exercícios do pavimento pélvico são o que costuma vir primeiro — mas quem decide é a consulta.'
+    : 'Menos de seis semanas depois do parto: a orientação do ACOG é retomar gradualmente assim que for clinicamente seguro. Caminhar e os exercícios do pavimento pélvico são o começo habitual; a consulta de revisão do puerpério é o sítio onde isto se decide.';
+  return 'A partir daqui a orientação é a mesma dos adultos em geral — pelo menos '+ACOG_MIN_SEMANA
+    +' minutos por semana de intensidade moderada —, retomada de forma gradual. O treino do pavimento pélvico mantém-se recomendado, e qualquer perda de urina, peso ou dor pélvica deve ser falada na consulta em vez de tolerada.';
 }
 const FASES={bebe:'Bebé',crianca:'Criança',adolescente:'Adolescente',adulto:'Adulto'};
 function nomeFase(m){ return gravida(m)? (FASES[faseDe(m)]+' · grávida') : FASES[faseDe(m)]; }
@@ -5687,6 +5770,8 @@ const DICAS={
   dobro:'Cozinhar a dobrar dá para dois dias. Dobra o PRATO — as quantidades dele sobem já na lista de compras, e o dia que só aquece não volta a comprá-lo. Os acompanhamentos ficam de fora da conta porque se fazem frescos em cada dia: ninguém reaquece uma salada. O prazo de guardar e a forma de reaquecer vêm por baixo, e são diferentes de prato para prato.',
   foodprep:'Preparação de ingredientes, não pratos feitos: descascar, picar, demolhar, lavar, marinar, porcionar. Cada tarefa diz que dias serve e quanto tempo leva, com as quantidades já somadas de toda a semana. Enquanto estiver ligado, as receitas que aproveitam uma preparação já planeada têm vantagem nas sugestões — é assim que uma tarde de domingo poupa cinco jantares à pressa.',
   genero:'Um gaspacho e uma feijoada não apetecem no mesmo dia. A app lê o género do prato do nome e dos ingredientes e pesa-o na sugestão: no verão os pratos frios ganham vantagem, sobretudo ao almoço; fora dele, os quentes.',
+  acog:'Tudo o que este cartão diz vem do Committee Opinion n.º 804 do American College of Obstetricians and Gynecologists (2020) — a recomendação de 150 minutos por semana, as modalidades seguras, as que se desaconselham e porquê, as contraindicações absolutas e os sinais para parar. Nem um número nem uma modalidade foram decididos pela app. E nada disto substitui a consulta: há contraindicações que só uma consulta identifica, e são elas que mandam. No pós-parto a orientação não dá um calendário fixo — diz que se retoma gradualmente assim que for clinicamente seguro, conforme o tipo de parto e as complicações que tenha havido — e é isso que a app repete, em vez de inventar uma semana a partir da qual se pode correr.',
+  pediatra:'A alimentação de crianças e, sobretudo, de bebés não se decide por uma tabela. Os valores que a app usa são referências populacionais de fontes oficiais, para planeamento familiar — não são prescrições, não conhecem o percentil, a história clínica, as alergias em investigação nem o ritmo de crescimento desta criança. Tudo o que aqui aparece deve ser validado com o pediatra que a segue, e a introdução de alimentos novos em particular.',
   filtrosCumulativos:'As dietas e os alergénios marcam-se todos ao mesmo tempo, e somam-se em vez de se substituírem: marcar «vegetariana» e «sem glúten» mostra as receitas que são as duas coisas, não as que são uma ou outra. É quase sempre assim que a pergunta se faz numa casa real — a dieta de um e a alergia de outro à mesma mesa. Kosher e halal entram aqui como quadros de exclusão: a app afasta o que é claramente incompatível, mas não pode verificar abate nem certificação, e di-lo em vez de fingir que pode.',
   dietaAuto:'Nenhuma etiqueta de dieta é aceite como declaração — todas se verificam em três eixos e só ficam se passarem nos três. Pelos ingredientes, com os atributos que saem do catálogo. Pelos números, com um teto por receita de metade da dose diária da dieta, partindo do princípio de que um dia tem pelo menos duas refeições. E pelo modo de preparação, que é o eixo que os ingredientes nunca conseguiriam dar: um peito de frango é low fat, o mesmo peito frito por imersão não é, e o óleo que entra não aparece em lista nenhuma.',
   sons:'Três apontamentos sonoros gerados na hora com WebAudio, a mesma técnica do alarme dos temporizadores: nenhum ficheiro, nenhuma rede, e funciona offline. Desligado por defeito. Calam-se quando o separador está escondido e nunca tocam num erro — o som aqui serve para celebrar, não para repreender.',
@@ -9347,7 +9432,19 @@ function renderFamilia(){
             <option value="2" ${fetos(m)===2?'selected':''}>2 — gémeos</option>
             <option value="3" ${fetos(m)===3?'selected':''}>3 ou mais</option></select></div>
           <div><label class="lbl">Peso pré kg</label><input type="number" min="30" step="0.1" value="${pesoRef(m)}" onchange="upd('${mid}','pesoPre',this.value,1)"></div>
-        </div>`:''}`:''}
+        </div>`:''}
+        ${!m.gravida? `<label class="toggle" style="margin-top:8px">
+          <input type="checkbox" ${m.posparto?'checked':''} onchange="upd('${mid}','posparto',this.checked)">
+          <span>No pós-parto</span></label>
+        ${m.posparto? `<div class="frow">
+          <div><label class="lbl">Semanas desde o parto</label>
+            <input type="number" min="0" max="104" step="1" value="${semanasPosParto(m)}" onchange="upd('${mid}','semanasPos',this.value,1)"></div>
+          <div><label class="lbl">Tipo de parto</label><select onchange="upd('${mid}','parto',this.value,1)">
+            <option value="vaginal" ${tipoParto(m)==='vaginal'?'selected':''}>Vaginal</option>
+            <option value="cesariana" ${tipoParto(m)==='cesariana'?'selected':''}>Cesariana</option></select></div>
+        </div>
+        <p class="sub" style="margin-top:4px">Serve só para o separador Atividade adaptar o que mostra — a retoma
+          decide-se na consulta de revisão do puerpério, não aqui.</p>`:''}`:''}`:''}
         <div class="spgrid" style="margin-top:14px">
           ${sl('peso','Peso de hoje',bebe?2:20,160,bebe?0.1:0.5,nPT(m.peso,1)+' kg','Peso em quilogramas')}
         </div>
@@ -10278,13 +10375,83 @@ function cartaoProximosTreinos(m){
   </div>`;
 }
 
+/* O cartão que acompanha a gravidez e o pós-parto no separador Atividade.
+   Tudo o que aqui está é do ACOG 804; a app limita-se a organizá-lo e a
+   assinalar, no plano de quem está grávida, o que a orientação desaconselha. */
+function cartaoGravidezAtiv(m){
+  const g=gravida(m), pp=posparto(m);
+  if(!g && !pp) return '';
+  const marcados=(m.desportos||[]).map(s=>s.s);
+  const problemas=g? marcados.filter(sid=>avisoDesportoGravidez(sid)) : [];
+  const sugeridos=DESPORTO_GRAVIDEZ_OK.filter(sid=>temChave(SPORT,sid) && marcados.indexOf(sid)<0).slice(0,8);
+  const totalMin=Math.round((m.desportos||[]).reduce((t,s)=>t+sportWeeklyH(s)*60,0));
+  return `<div class="card card--capa" id="atv-gravidez" data-col="atv-gravidez" style="margin-bottom:16px">
+    <span class="lbl">${g? 'Gravidez · '+trimestre(m)+'.º trimestre' : 'Pós-parto · '+plural(semanasPosParto(m),'semana','semanas')}</span>
+    <h2 style="margin-top:2px">${g? 'Mexer-se na gravidez' : 'Voltar a mexer-se depois do parto'} ${dica('acog')}</h2>
+
+    <div class="alerta forte" style="margin:10px 0"><span aria-hidden="true">⚕️</span><span><b>Isto não substitui a tua consulta.</b>
+      Nada nesta página vale contra o que disser quem segue ${g? 'a tua gravidez' : 'o teu pós-parto'} — há
+      contraindicações que só uma consulta pode identificar, e são elas que mandam.</span></div>
+
+    ${pp? `<p class="sub">${esc(notaPosParto(m))}</p>` : `
+    <div class="row" style="margin-top:10px">
+      <div class="stat" style="background:var(--accent-soft)"><b style="color:var(--accent)">${ACOG_MIN_SEMANA}</b><span>min/semana recomendados</span></div>
+      <div class="stat"><b class="${totalMin>=ACOG_MIN_SEMANA?'f-ok-txt':''}">${totalMin}</b><span>min no teu plano</span></div>
+      <div class="stat"><b>${plural(fetos(m),'feto','fetos')}</b><span>nesta gravidez</span></div>
+    </div>
+    <p class="sub" style="margin-top:8px">A recomendação do ACOG é de pelo menos <b>${ACOG_MIN_SEMANA} minutos por semana</b>
+      de atividade aeróbia de intensidade moderada, repartidos pela semana. Quem já fazia exercício vigoroso antes
+      da gravidez pode em regra continuar — mas essa é uma conversa para ter na consulta, não uma conclusão a tirar daqui.</p>`}
+
+    ${problemas.length? `<div class="alerta" style="margin-top:12px"><span aria-hidden="true">⚠️</span><span>
+      No teu plano há ${plural(problemas.length,'modalidade que a orientação desaconselha','modalidades que a orientação desaconselha')} na gravidez:
+      ${problemas.map(sid=>'<b>'+esc(SPORT[sid].nome)+'</b> ('+esc(DESPORTO_GRAVIDEZ[sid])+')').join(' · ')}.</span></div>`:''}
+
+    ${g&&sugeridos.length? `<div class="splabel" style="margin-top:14px"><span>Modalidades que a orientação nomeia como seguras</span></div>
+      <div class="row" style="margin-top:4px">${sugeridos.map(sid=>
+        `<button class="chip" onclick="addDesportoSugerido('${m.id}','${sid}')">${ICO_SPORT[SPORT[sid].cat]||''} ${esc(SPORT[sid].nome)}</button>`).join('')}</div>
+      <p class="sub" style="margin-top:4px">Um toque acrescenta ao plano. Caminhar, bicicleta estática, natação, hidroginástica,
+        ioga e pilates adaptados, e treino de força com pesos ou elásticos são as que a orientação nomeia.</p>`:''}
+
+    ${g? `<details data-col="atv-acog-evitar" style="margin-top:14px"><summary><b>O que a orientação desaconselha</b></summary>
+      <ul class="lista-acog">${Object.keys(DESPORTO_GRAVIDEZ).filter(k=>temChave(SPORT,k))
+        .map(k=>`<li><b>${esc(SPORT[k].nome)}</b> — ${esc(DESPORTO_GRAVIDEZ[k])}</li>`).join('')}</ul>
+      <p class="sub">E ainda, fora das modalidades listadas na app: mergulho com garrafa, queda livre, e ioga ou pilates em sala quente.</p>
+      <div class="splabel" style="margin-top:10px"><span>Precauções que valem para qualquer exercício</span></div>
+      <ul class="lista-acog">${ACOG_PRECAUCOES.map(p=>`<li>${esc(p)}</li>`).join('')}</ul>
+    </details>
+
+    <details style="margin-top:8px"><summary><b>Contraindicações absolutas ao exercício aeróbio</b></summary>
+      <p class="sub">Se alguma destas se aplicar, o exercício aeróbio está contraindicado — e quem o determina é a consulta, não esta app.</p>
+      <ul class="lista-acog">${ACOG_CONTRA.map(c=>`<li>${esc(c)}</li>`).join('')}</ul>
+    </details>`:''}
+
+    <details style="margin-top:8px" open><summary><b>Parar e procurar apoio médico se aparecer</b></summary>
+      <ul class="lista-acog alarme">${ACOG_ALARME.map(a=>`<li>${esc(a)}</li>`).join('')}</ul>
+    </details>
+
+    <p class="sub" style="margin-top:12px"><i>Fonte: American College of Obstetricians and Gynecologists,
+      <b>Committee Opinion n.º 804 — Physical Activity and Exercise During Pregnancy and the Postpartum Period</b> (2020).
+      Os valores e as listas são os do documento; a organização é da app.</i></p>
+  </div>`;
+}
+function addDesportoSugerido(mid,sid){
+  const m=S.members.find(x=>x.id===mid); if(!m||!temChave(SPORT,sid)) return;
+  if(!Array.isArray(m.desportos)) m.desportos=[];
+  if(m.desportos.some(s=>s.s===sid)) return flash('warn','Essa modalidade já está no plano.');
+  m.desportos.push(normalizaDesporto({s:sid, h:1.5, per:'semana', i:'moderado'}));
+  save('modalidade acrescentada ao plano');
+  flash('ok', SPORT[sid].nome+' entrou no plano, com 1h30 por semana em intensidade moderada. Ajusta como quiseres.',
+    {rot:'Anular', fn:'desfazer()'});
+  render();
+}
 function renderAtividade(){
   if(!S.members.length) return noMembers();
   if(S.ui.histAtiv) return renderHistAtiv();
   const m=curM();
   const temPlano=(m.desportos||[]).length>0;
   const sK=Math.round(sportsKcalDay(m)), cK=Math.round(commuteKcalDay(m));
-  return memberPicker()+cartaoValidacaoAtiv(m)+`
+  return memberPicker()+cartaoValidacaoAtiv(m)+cartaoGravidezAtiv(m)+`
   <div class="grid" style="grid-template-columns:1fr;max-width:760px">
     ${temPlano? cartaoRegistarAtiv(m,true) : ''}
     ${temPlano? cartaoProximosTreinos(m) : ''}
@@ -11867,6 +12034,30 @@ function linhaRegRef(m,r){
   </div>`;
 }
 
+/* ===== O AVISO DO PEDIATRA =====
+   Os valores que a app usa em crianças são referências populacionais de fontes
+   oficiais — servem para planear uma semana em casa, não para prescrever. Não
+   conhecem o percentil desta criança, a história clínica, as alergias em
+   investigação nem o ritmo de crescimento. Num bebé a distância entre uma
+   referência e uma decisão é ainda maior, e por isso o aviso é mais forte e
+   não se deixa fechar. */
+function avisoPediatra(m){
+  const fase=faseDe(m);
+  if(fase!=='bebe' && fase!=='crianca' && fase!=='adolescente') return '';
+  const bebe=fase==='bebe';
+  return `<div class="alerta ${bebe?'forte':''}" style="margin-bottom:14px" data-col="nu-pediatra">
+    <span aria-hidden="true">🩺</span>
+    <span>${bebe
+      ? `<b>Valida tudo isto com o pediatra ${esc(m.nome.split(' ')[0])}.</b> Num bebé, a introdução de alimentos,
+         as quantidades de leite e o ritmo das tomadas decidem-se em consulta e mudam de criança para criança.
+         Os números desta app são referências de população saudável (OMS e Institute of Medicine) para ajudar a
+         planear — não conhecem o percentil, a história clínica nem as alergias em investigação desta criança.`
+      : `<b>As opções de ${esc(m.nome.split(' ')[0])} devem ser validadas com o pediatra.</b> Em idade de
+         crescimento, os valores da app são referências populacionais para planeamento familiar: não substituem
+         a avaliação de quem acompanha a criança, e um plano de restrição calórica nesta idade é sempre uma
+         decisão clínica.`} ${dica('pediatra')}</span>
+  </div>`;
+}
 function renderNutricao(){
   if(!S.members.length) return noMembers();
   if(S.ui.histRef) return renderHistRef();
@@ -11875,9 +12066,9 @@ function renderNutricao(){
   const gkg=m.peso>0? mk.p/m.peso:0;
   /* Num bebé, o simulador de macros de adulto não diz nada de útil: o que
      conta é o percentil, o leite e o horário das tomadas. */
-  if(faseDe(m)==='bebe') return memberPicker()+`<div class="grid g2">${moduloBebe(m)}</div>`;
+  if(faseDe(m)==='bebe') return memberPicker()+avisoPediatra(m)+`<div class="grid g2">${moduloBebe(m)}</div>`;
   const definido=temPlanoNut(m);
-  return memberPicker()+cartaoValidacaoRef(m)
+  return memberPicker()+avisoPediatra(m)+cartaoValidacaoRef(m)
     +(definido? `<div style="margin-bottom:16px">${cartaoRegistarRef(m,true)}</div>` : '')+`
   <div class="grid g2" style="margin-bottom:24px">
     <div class="card ${definido?'':'card--capa'}" data-col="nu-plano">
