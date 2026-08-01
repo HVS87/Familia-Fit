@@ -414,6 +414,11 @@ ol.passos li span{color:var(--mut);font-size:14px;margin-top:2px}
    estado. A ampulheta faz o trabalho para quem não distingue a cor. */
 .pill.jejum{background:color-mix(in srgb,var(--mut) 12%,var(--card));color:var(--mut);
   border:1px solid color-mix(in srgb,var(--mut) 35%,transparent);font-size:11.5px}
+/* A fonte de cada número, quando não é a portuguesa. Distingue-se pela sigla
+   e não pela cor: a cor é só para agrupar de relance. */
+.tag.fonte-insa{border-color:var(--ok);color:var(--ok)}
+.tag.fonte-ue{border-color:var(--accent);color:var(--accent)}
+.tag.fonte-fda{border-color:var(--mut);color:var(--mut)}
 /* Uma receita que se pode cozinhar já distingue-se por uma barra à esquerda e
    pelo fundo — nunca só pela cor: a etiqueta «Pronta a cozinhar» continua lá,
    e é ela que carrega a informação para quem não distingue os verdes. */
@@ -3543,8 +3548,162 @@ P('currywurst',[['Molho','Cebola picada fina a suar no óleo, sem ganhar cor. Ju
    ganhos de confeção. Para planear uma semana chega bem; para uma prescrição
    clínica, não. */
 const NUTRI={};
+/* ================= PROVENIÊNCIA E PRIORIDADE DAS FONTES =================
+   Três tabelas oficiais cobrem a mesma comida com números diferentes, e a
+   diferença não é ruído: a convenção europeia declara hidratos DISPONÍVEIS
+   (sem fibra) e a norte-americana declara hidratos POR DIFERENÇA (com fibra
+   dentro). Somar as duas sem converter dá erros de dezenas de gramas.
+
+   A ordem de prioridade é a que uma casa portuguesa deve ter:
+     1. INSA  — Tabela da Composição de Alimentos (PortFIR). É a nossa, e é a
+                que conhece o carapau, a couve galega e o queijo da Serra.
+     2. UE    — bases europeias harmonizadas (EuroFIR/EFSA), mesma convenção
+                de hidratos disponíveis, para o que o INSA não cobre.
+     3. FDA   — USDA FoodData Central, convertido para a convenção europeia.
+                É o último porque é o que mais precisa de conversão.
+
+   Cada ingrediente guarda a fonte de onde veio. Quando o mesmo nome existe em
+   mais do que uma, fica o da fonte mais prioritária — e a app consegue dizer
+   qual foi, em vez de apresentar um número sem origem. */
+const FONTES={
+  insa:{n:'INSA', p:1, d:'Tabela da Composição de Alimentos, INSA/PortFIR v7.1 (2026)'},
+  ue:  {n:'UE',   p:2, d:'Bases europeias harmonizadas (EuroFIR/EFSA), hidratos disponíveis'},
+  fda: {n:'FDA',  p:3, d:'USDA FoodData Central, convertido para hidratos disponíveis'},
+};
+/* A fonte que está a ser usada quando as declarações correm. Cada bloco de
+   NI() declara a sua antes de começar, e assim não é preciso repetir a origem
+   em 647 linhas — nem arriscar esquecê-la numa. */
+let _fonteAtual='insa';
+function fonte(f){ _fonteAtual=temChave(FONTES,f)? f : 'insa'; }
+/* O catálogo oculto: tudo o que a app conhece mas que não anda à frente de
+   ninguém até ser preciso. Quando se acrescenta um ingrediente que não está
+   nas receitas, é aqui que a composição se vai buscar. */
+const NUTRI_EXTRA={};
+let _emExtra=false;
+function extra(v){ _emExtra=!!v; }
 function NI(nome,k,c,p,f,fib,un,sec,u){
-  NUTRI[nome]={k,c,p,f,fib:fib||0,un:un||0,s:(sec===undefined?-1:sec),u:u||'g'};
+  const alvo=_emExtra? NUTRI_EXTRA : NUTRI;
+  const novo={k,c,p,f,fib:fib||0,un:un||0,s:(sec===undefined?-1:sec),u:u||'g',fonte:_fonteAtual};
+  const jaLa=alvo[nome];
+  /* Prioridade: um valor do INSA nunca é substituído por um do USDA, mesmo
+     que o do USDA seja declarado depois. Sem isto, a ordem das linhas no
+     ficheiro decidia a composição — e a ordem das linhas não é um critério. */
+  if(jaLa && FONTES[jaLa.fonte].p <= FONTES[novo.fonte].p) return;
+  alvo[nome]=novo;
+}
+/* A composição de um ingrediente, venha do catálogo visível ou do oculto. É
+   por aqui que passa quem acrescenta um ingrediente novo à despensa ou a uma
+   receita da casa. */
+function composicaoDe(nome){
+  if(temChave(NUTRI,nome)) return NUTRI[nome];
+  if(temChave(NUTRI_EXTRA,nome)) return NUTRI_EXTRA[nome];
+  return null;
+}
+function fonteDe(nome){
+  const c=composicaoDe(nome);
+  return c? (FONTES[c.fonte]||FONTES.insa) : null;
+}
+/* Promove um ingrediente do catálogo oculto para o visível. Acontece quando
+   alguém o usa numa receita da casa ou o marca na despensa: a partir daí faz
+   parte do catálogo desta casa e passa a aparecer nas listas. */
+function promoveIngrediente(nome){
+  if(temChave(NUTRI,nome)) return true;
+  if(!temChave(NUTRI_EXTRA,nome)) return false;
+  NUTRI[nome]=NUTRI_EXTRA[nome];
+  invalidaCatalogos();   /* os catálogos são preguiçosos e agora estão velhos */
+  return true;
+}
+/* ===== CARREGAR UMA TABELA OFICIAL =====
+   A app traz o que consegue trazer, mas as tabelas completas do INSA, das
+   bases europeias e do USDA têm dezenas de milhares de linhas e vivem em
+   ficheiros que se descarregam. Isto lê um desses ficheiros e junta-o ao
+   catálogo oculto, respeitando a mesma prioridade de sempre.
+
+   Formato aceite: JSON com uma lista de objetos, ou CSV com cabeçalho. As
+   colunas mínimas são o nome e a energia; hidratos, proteína, gordura e fibra
+   entram se lá estiverem. A conversão de hidratos por diferença para hidratos
+   disponíveis faz-se aqui, e só para a fonte que a declara assim. */
+const COLUNAS={
+  nome:/^(nome|name|alimento|food|descri|desc)/i,
+  k:/^(energia|energy|kcal|calorias)/i,
+  c:/^(hidratos|carbo|carbs?|hc)/i,
+  p:/^(prote)/i,
+  f:/^(gordura|fat|lip)/i,
+  fib:/^(fibra|fiber|fibre)/i,
+};
+function lerCSV(txt){
+  const linhas=txt.split(/\r?\n/).filter(l=>l.trim());
+  if(linhas.length<2) return [];
+  /* separador: o que aparecer mais no cabeçalho, entre ; e , e tab */
+  const cab=linhas[0];
+  const sep=[';',',','\t'].reduce((a,b)=>(cab.split(b).length>cab.split(a).length? b:a), ';');
+  const cols=cab.split(sep).map(s=>s.trim().replace(/^"|"$/g,''));
+  return linhas.slice(1).map(l=>{
+    const v=l.split(sep).map(s=>s.trim().replace(/^"|"$/g,''));
+    const o={}; cols.forEach((c,i)=>{ o[c]=v[i]; }); return o;
+  });
+}
+function numPT(v){
+  if(v===undefined||v===null) return NaN;
+  return parseFloat(String(v).replace(/\s/g,'').replace(',','.'));
+}
+function carregarTabela(txt,fonteId,converterHC){
+  if(!temChave(FONTES,fonteId)) return {erro:'Fonte desconhecida.'};
+  let linhas;
+  try{
+    const t=txt.trim();
+    if(t[0]==='['||t[0]==='{'){
+      const j=JSON.parse(t);
+      linhas=Array.isArray(j)? j : (Array.isArray(j.dados)? j.dados : Array.isArray(j.foods)? j.foods : null);
+      if(!linhas) return {erro:'O JSON não tem uma lista de alimentos que eu reconheça.'};
+    } else linhas=lerCSV(t);
+  }catch(e){ return {erro:'Não consegui ler o ficheiro: '+e.message}; }
+  if(!linhas.length) return {erro:'O ficheiro não tem linhas de dados.'};
+  /* mapeia as colunas do ficheiro para os campos que a app usa */
+  const chaves=Object.keys(linhas[0]);
+  const mapa={};
+  Object.keys(COLUNAS).forEach(campo=>{
+    const c=chaves.find(x=>COLUNAS[campo].test(x.trim()));
+    if(c) mapa[campo]=c;
+  });
+  if(!mapa.nome||!mapa.k) return {erro:'Não encontrei as colunas do nome e da energia. Encontrei: '+chaves.slice(0,8).join(', ')};
+  const antes=Object.keys(NUTRI_EXTRA).length;
+  let lidos=0, ignorados=0;
+  const fonteAnterior=_fonteAtual;
+  extra(true); fonte(fonteId);
+  linhas.slice(0,20000).forEach(l=>{
+    const nome=String(l[mapa.nome]||'').trim().slice(0,120);
+    const k=numPT(l[mapa.k]);
+    if(!nome||!isFinite(k)||k<0||k>950){ ignorados++; return; }
+    let c=mapa.c? numPT(l[mapa.c]) : 0;
+    const p=mapa.p? numPT(l[mapa.p]) : 0;
+    const f=mapa.f? numPT(l[mapa.f]) : 0;
+    const fib=mapa.fib? numPT(l[mapa.fib]) : 0;
+    const vf=isFinite(fib)&&fib>=0? fib : 0;
+    /* hidratos por diferença (convenção norte-americana) para disponíveis */
+    if(converterHC && isFinite(c)) c=Math.max(0, c-vf);
+    if(!isFinite(c)||c<0||c>100||!isFinite(p)||p<0||p>100||!isFinite(f)||f<0||f>100){ ignorados++; return; }
+    NI(nome,k,c,p,f,vf,0,-1);
+    lidos++;
+  });
+  extra(false); fonte(fonteAnterior);
+  invalidaCatalogos();
+  return {lidos, ignorados, novos:Object.keys(NUTRI_EXTRA).length-antes};
+}
+function importarTabela(input,fonteId){
+  const f=input.files && input.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{
+    const res=carregarTabela(String(r.result), fonteId, fonteId==='fda');
+    if(res.erro) return flash('bad',res.erro);
+    flash('ok', plural(res.lidos,'alimento lido','alimentos lidos')+' da tabela '+FONTES[fonteId].n
+      +': '+plural(res.novos,'entrou no catálogo','entraram no catálogo')
+      +(res.ignorados? ', '+res.ignorados+' ignorados por valores inválidos':'')
+      +'. Onde já havia um valor de fonte mais prioritária, esse ficou.');
+    render();
+  };
+  r.onerror=()=>flash('bad','Não foi possível ler o ficheiro.');
+  r.readAsText(f); input.value='';
 }
 
 /* ---- Ingredientes das receitas da biblioteca ---- */
@@ -4218,6 +4377,142 @@ NI('Vitela, pá crua',138,0.3,23.3,4.9,0,0,1);
 NI('Vitela, peito magro cru',147,0,19.6,7.6,0,0,1);
 NI('Wasabi, raiz crua',100,15.8,4.8,0.6,6.1,0,4);
 
+/* Estes vieram do USDA e estão declarados no meio dos do INSA porque a lista
+   está ordenada por nome e não por origem. Marcá-los aqui é mais honesto do
+   que reordenar a tabela toda: o que interessa é a app saber dizer de onde
+   veio cada número, e não o sítio onde a linha está escrita. */
+['Alecrim','Cebolinho','Chalota','Cogumelos shiitake','Endro','Louro','Repolho','Salva',
+ 'Algas nori','Bresaola','Salmão fumado','Colorau','Queijo feta','Queijo manchego',
+ 'Queijo halloumi','Arroz arbóreo','Arroz para sushi','Noodles','Massa de arroz',
+ 'Gnocchi de batata','Couscous','Bulgur','Quinoa','Granola','Farinha de amêndoa',
+ 'Pão ralado','Pão pita','Pão de hambúrguer','Bagel','Tortilhas de milho','Tortilhas de trigo',
+ 'Edamame','Manteiga de amendoim','Tahini','Óleo de sésamo','Batata palha','Xarope de ácer',
+ 'Molho barbecue','Molho picante','Molho teriyaki','Molho de peixe','Pesto','Tomate pelado',
+ 'Tomate seco','Vinho branco','Vinho tinto','Baunilha','Caril em pó','Chili em pó','Cominhos',
+ 'Noz-moscada','Ervas de Provença','Pimenta preta','Pimentão-doce','Flor de sal'
+].forEach(n=>{ if(temChave(NUTRI,n)) NUTRI[n].fonte='fda'; });
+
+/* ================= CATÁLOGO OCULTO =================
+   O que a app conhece mas não mostra até ser preciso. Serve para quando se
+   acrescenta à despensa ou a uma receita da casa um ingrediente que não anda
+   em receita nenhuma da biblioteca: em vez de ficar sem composição, a app vai
+   buscá-la aqui.
+
+   Cada entrada traz a fonte, e a regra de prioridade do NI() garante que um
+   valor do INSA não é substituído por um do USDA — mesmo que este seja
+   declarado depois. */
+extra(true);
+fonte('insa');
+/* Peixe e marisco que o INSA cobre e que ainda não entrava em receita nenhuma */
+NI('Atum em conserva ao natural',116,0,26,1.2,0,0,0);
+NI('Bacalhau demolhado cru',102,0,23.1,0.7,0,0,0);
+NI('Bacalhau salgado seco',322,0,75.5,2.4,0,0,0);
+NI('Sardinha em conserva em tomate',186,1.2,19.6,11.4,0,0,0);
+NI('Salmão fumado a frio',180,0,23.4,9.4,0,0,0);
+NI('Delícias do mar (surimi)',95,10.6,10.2,1.4,0,0,0);
+NI('Ovas de bacalhau demolhadas',114,0,20.6,3.5,0,0,0);
+NI('Perceves cozidos',80,0,17.1,1.1,0,0,0);
+NI('Camarão cozido descascado',99,0,21.5,1,0,0,0);
+NI('Mexilhão cozido',114,4.2,16.8,3.1,0,0,0);
+/* Carnes e enchidos correntes */
+NI('Peru, bife da perna cru',114,0,22.8,2.4,0,0,1);
+NI('Frango, coxa sem pele crua',119,0,19.8,4.3,0,0,1);
+NI('Porco, febras magras cruas',131,0,21.9,4.6,0,0,1);
+NI('Vaca, alcatra crua',131,0,21.8,4.7,0,0,1);
+NI('Vaca, acém cru',160,0,20.2,8.7,0,0,1);
+NI('Borrego, perna crua',151,0,19.6,8.1,0,0,1);
+NI('Cabrito, cabeça crua',119,0,18.4,4.9,0,0,1);
+NI('Presunto de porco preto',322,0,30.4,22.2,0,0,1);
+NI('Morcela de arroz',298,14.6,10.1,22.7,0.6,0,1);
+NI('Chouriço de sangue',335,3.5,12.4,30.5,0,0,1);
+/* Laticínios e ovos */
+NI('Iogurte grego natural',115,3.9,5.6,8.7,0,0,3);
+NI('Iogurte de aroma',88,13.8,3.3,2.3,0,0,3);
+NI('Leite meio gordo, UHT',46,4.8,3.2,1.6,0,0,3);
+NI('Leite sem lactose meio gordo',47,4.8,3.3,1.6,0,0,3);
+NI('Queijo de barrar light',175,4.2,10.5,12.8,0,0,3);
+NI('Queijo parmesão ralado',402,0,35.8,28.6,0,0,3);
+NI('Manteiga com sal',737,0.6,0.7,81.6,0,0,4);
+NI('Manteiga magra',400,1.2,3.5,41.6,0,0,4);
+NI('Ovo de galinha cozido',150,0.4,13.1,10.7,0,55,1);
+NI('Ovo de pata cru',185,1,12.8,14.2,0,70,1);
+/* Hortícolas e fruta que a época e as receitas da casa costumam pedir */
+NI('Aipo-rábano cru',31,3.5,1.5,0.3,4.1,0,2);
+NI('Alho-porro cru',33,4.6,1.7,0.4,2.6,0,2);
+NI('Batata assada com pele',110,22.1,2.5,0.2,1.9,0,2);
+NI('Batata cozida sem pele',87,18.9,2,0.1,1.4,0,2);
+NI('Beringela assada',33,3.5,1.1,1.5,3.1,0,2);
+NI('Cenoura cozida',31,5.1,0.7,0.3,2.6,0,2);
+NI('Couve lombarda crua',26,2.8,2,0.4,2.9,0,2);
+NI('Ervilhas congeladas',72,8.1,5.4,0.8,5.1,0,2);
+NI('Espinafres congelados',24,0.5,3.1,0.6,2.7,0,2);
+NI('Feijão-verde congelado',26,2.6,1.9,0.2,3.1,0,2);
+NI('Nabiças cozidas',18,0.5,2,0.3,2.5,0,2);
+NI('Pimento assado em conserva',24,3.1,1,0.3,1.8,0,2);
+NI('Rabanete branco cru',15,1.9,0.9,0.1,1.5,0,2);
+NI('Tomate chucha',19,2.6,0.9,0.3,1.3,90,2);
+NI('Abacaxi',49,10.6,0.4,0.2,1.2,0,2);
+NI('Cereja',63,13.4,1,0.3,1.3,0,2);
+NI('Damasco seco',232,50.3,3.4,0.6,7.3,0,2);
+NI('Laranja sumo natural',42,9.1,0.7,0.1,0.2,0,2,'ml');
+NI('Melancia sem casca',32,7.3,0.6,0,0.4,0,2);
+NI('Pêssego em calda',73,17.5,0.4,0.1,1,0,4);
+NI('Uva passa',301,66.5,2.5,0.6,4.2,0,4);
+/* Leguminosas, cereais e mercearia */
+NI('Feijão preto cozido',114,13.4,8.1,0.6,7.9,0,4);
+NI('Feijão encarnado cozido',118,14.1,8.4,0.6,7.4,0,4);
+NI('Grão-de-bico cozido',139,17.1,8.4,2.9,6.4,0,4);
+NI('Lentilhas cozidas',105,12.9,8.8,0.5,5.1,0,4);
+NI('Favas cozidas',85,9.2,7.4,0.6,5.8,0,4);
+NI('Arroz integral cru',344,71.5,7.9,2.4,3.5,0,4);
+NI('Arroz integral cozido',124,25.8,2.8,0.9,1.3,0,4);
+NI('Massa integral crua',337,62.4,13.2,2.5,8.4,0,4);
+NI('Massa cozida',144,29.9,4.7,0.6,1.8,0,4);
+NI('Aveia em flocos',372,58.7,13.5,7,9.7,0,4);
+NI('Farinha integral de trigo',321,58.9,11.9,2.2,10.7,0,4);
+NI('Farinha de centeio',324,64.1,8.3,1.6,11.7,0,4);
+NI('Pão de mistura',245,47.1,7.8,1.4,4.7,0,4);
+NI('Pão integral',228,41.2,8.6,2.3,6.6,0,4);
+NI('Pão de centeio',231,43.7,6.9,1.5,6.5,0,4);
+NI('Tosta integral',390,63.4,12.4,7.2,9.4,0,4);
+NI('Bolacha de água e sal',419,71.9,10.2,10.4,3.1,0,4);
+NI('Mel',313,77.3,0.4,0,0,0,4);
+NI('Compota de fruta',256,63.1,0.4,0.1,1,0,4);
+NI('Chocolate de culinária',516,54.2,5.2,30.6,7.5,0,4);
+NI('Cacau em pó sem açúcar',343,11.5,20.4,21.7,33.2,0,4);
+NI('Natas para culinária 18%',188,3.4,2.5,18,0,0,3);
+NI('Maionese ligeira',290,7.5,1,28.1,0,0,4);
+NI('Mostarda de Dijon',143,2.5,7.5,10.2,4.5,0,4);
+/* O que a UE harmoniza e o INSA não cobre com este nome */
+fonte('ue');
+NI('Bebida de aveia',45,6.6,0.9,1.4,0.8,0,3,'ml');
+NI('Bebida de soja sem açúcar',33,0.7,3.3,1.8,0.6,0,3,'ml');
+NI('Bebida de amêndoa sem açúcar',14,0.2,0.5,1.2,0.4,0,3,'ml');
+NI('Iogurte de soja natural',49,1.5,4,2.4,0.8,0,3);
+NI('Tofu firme',144,1.2,15.8,8.7,1.2,0,4);
+NI('Tempeh',192,7.6,20.3,10.8,4.8,0,4);
+NI('Seitan',141,4.2,25.4,1.9,0.6,0,4);
+NI('Proteína de ervilha em pó',380,4,80,5,4,0,4);
+NI('Levedura nutricional',345,15,45,5,25,0,4);
+NI('Sementes de linhaça',534,1.6,18.3,42.2,27.3,0,4);
+NI('Sementes de chia',486,7.7,16.5,30.7,34.4,0,4);
+/* Do USDA, para o que nem o INSA nem as bases europeias cobrem */
+fonte('fda');
+NI('Manteiga de caju',587,25.7,17.6,49.4,2,0,4);
+NI('Manteiga de amêndoa',614,10.5,21,55.5,10.3,0,4);
+NI('Xarope de agave',310,76.4,0.1,0.5,0.2,0,4);
+NI('Eritritol',20,0,0,0,0,0,4);
+NI('Adoçante de stévia',0,0,0,0,0,0,4);
+NI('Farinha de coco',443,21.3,18.4,13.3,38.5,0,4);
+NI('Psílio em pó',200,4,1.5,0.5,80,0,4);
+NI('Kimchi',15,1.6,1.1,0.5,1.6,0,2);
+NI('Missô branco',199,26.5,11.7,6,5.4,0,4);
+NI('Molho sriracha',93,19,1.9,0.9,2.2,0,4);
+NI('Leite de coco light',73,2.8,0.7,6.8,0.6,0,4,'ml');
+NI('Farinha de grão-de-bico',387,49.6,22.4,6.7,10.8,0,4);
+extra(false);
+fonte('insa');
+
 /* Parte edível. Compram-se 350 g de mexilhões e comem-se cerca de 100: o
    resto é concha. A lista de compras precisa do peso que se paga na peixaria,
    os macros precisam do peso que entra no prato, e é só aqui que os dois se
@@ -4234,7 +4529,7 @@ const PC_EDIVEL={
    sabe — e quem chama tem de dizer isso a quem está a escrever a receita, em
    vez de somar zero e apresentar um total que parece completo. */
 function gramasDe(nome,q,u){
-  const n=NUTRI[nome]; if(!n) return null;
+  const n=composicaoDe(nome); if(!n) return null;
   const quant=parseFloat(q)||0;
   const pc=temChave(PC_EDIVEL,nome)? PC_EDIVEL[nome] : 1;
   if(u==='g'||u==='ml') return quant*pc;
@@ -4244,7 +4539,7 @@ function macrosDeIngredientes(lista,doses){
   const d=Math.max(1,parseFloat(doses)||1);
   let k=0,c=0,p=0,f=0,fib=0; const semDados=[];
   (lista||[]).forEach(x=>{
-    const nome=x[0], g=gramasDe(nome,x[1],x[2]), n=NUTRI[nome];
+    const nome=x[0], g=gramasDe(nome,x[1],x[2]), n=composicaoDe(nome);
     if(g===null||!n){ semDados.push(nome); return; }
     k+=n.k*g/100; c+=n.c*g/100; p+=n.p*g/100; f+=n.f*g/100; fib+=n.fib*g/100;
   });
@@ -4768,6 +5063,20 @@ function catalogoDespensa(){
   const s=typeof SUPLEMENTOS!=='undefined'? SUPLEMENTOS.map(x=>x.nome) : [];
   return catalogoIngredientes().concat(s);
 }
+/* O catálogo completo — visível mais oculto. É o que se oferece a quem está a
+   escolher um ingrediente para uma receita da casa ou para a despensa: não faz
+   sentido esconder um alimento que a app conhece só porque nenhuma receita da
+   biblioteca o usa. */
+let _catCompleto=null;
+function catalogoCompleto(){
+  if(!_catCompleto){
+    const s=typeof SUPLEMENTOS!=='undefined'? SUPLEMENTOS.map(x=>x.nome) : [];
+    _catCompleto=[...new Set(Object.keys(NUTRI).concat(Object.keys(NUTRI_EXTRA)).concat(s))]
+      .sort((a,b)=>a.localeCompare(b,'pt'));
+  }
+  return _catCompleto;
+}
+function invalidaCatalogos(){ _catalogo=null; _catCompleto=null; _unidIng=null; }
 function temNaDespensa(nome){ return !!S.despensa[nome]; }
 function disponibilidadeReceita(r){
   const total=r.i.length, tem=r.i.filter(x=>temNaDespensa(x[0])).length;
@@ -6059,6 +6368,7 @@ const DICAS={
   variantes:'Sete tacos e cinco burritos ocupavam sete e cinco lugares na grelha, como se fossem doze pratos diferentes. São o mesmo prato com recheios diferentes, e o que a casa decide é «hoje é taco?» e não «qual dos sete tacos?». As variantes passam a partilhar um cartão, que mostra a que melhor serve os gostos desta mesa — pelo saldo de favoritas e não-gostas, depois por quem já se pode cozinhar com o que há em casa — e as outras ficam a um toque na ficha. O agrupamento é uma tabela explícita e não uma regra sobre os nomes: uma sopa de legumes e uma vichyssoise começam ambas por «Sopa» e não são variantes uma da outra. Numa pesquisa não se agrupa nada, porque quem escreve «taco de camarão» quer aquele taco.',
   gostos:'Diferente do veredicto, que é sobre uma refeição que aconteceu: isto é a preferência estável de cada pessoa sobre o prato, e não muda com o jantar de ontem. Pesa nas sugestões automáticas — o que alguém não gosta pesa mais a descer do que um gosto a subir, porque um prato que alguém detesta serve pior a mesa do que um prato de que mais um gosta — e é o que decide qual das variantes de um prato aparece primeiro. A estrela aparece quando toda a gente que pode comer o prato o marcou como favorito, e são pelo menos duas pessoas: quem não o pode comer por alergia ou dieta não conta nem a favor nem contra, porque não lhe foi dada a hipótese.',
   acog:'Tudo o que este cartão diz vem do Committee Opinion n.º 804 do American College of Obstetricians and Gynecologists (2020) — a recomendação de 150 minutos por semana, as modalidades seguras, as que se desaconselham e porquê, as contraindicações absolutas e os sinais para parar. Nem um número nem uma modalidade foram decididos pela app. E nada disto substitui a consulta: há contraindicações que só uma consulta identifica, e são elas que mandam. No pós-parto a orientação não dá um calendário fixo — diz que se retoma gradualmente assim que for clinicamente seguro, conforme o tipo de parto e as complicações que tenha havido — e é isso que a app repete, em vez de inventar uma semana a partir da qual se pode correr.',
+  tabelas:'Três tabelas oficiais cobrem a mesma comida com números diferentes, e a diferença não é ruído: a convenção europeia declara hidratos disponíveis, sem fibra, e a norte-americana declara-os por diferença, com a fibra lá dentro. Somar as duas sem converter dá erros de dezenas de gramas. A prioridade é a que faz sentido numa casa portuguesa — INSA primeiro, porque é a que conhece o carapau, a couve galega e o queijo da Serra; depois a UE, com a mesma convenção; e só por último a FDA, que é a que mais precisa de conversão. Um valor do INSA nunca é substituído por um do USDA, mesmo que este seja carregado depois: a ordem por que as coisas chegam não é um critério.',
   jejum:'Duas coisas diferentes com o mesmo nome. O jejum intermitente comprime a janela em que se come sem mudar o total do dia — é um horário, não um défice, e o alvo de calorias não desce por causa dele. Um jejum pontual de 24 horas ou mais é outra coisa: é um dia sem comida, com um défice do tamanho do gasto desse dia, e a partir de certa duração deixa de ser uma escolha alimentar e passa a ser um assunto clínico. A app trata os dois de forma diferente e diz porquê. Não fica disponível para crianças, adolescentes, grávidas nem no pós-parto recente — não é a app a decidir por ninguém, é a app a não oferecer uma ferramenta que nesses casos não tem indicação.',
   jejumIM:'Comprimir a janela em que se come. As calorias do dia não mudam: o que muda é caberem em menos horas, e repartir o mesmo total por menos refeições é a parte difícil — é aí que vale a pena olhar aos macros. As refeições que ficarem fora da janela aparecem assinaladas no plano semanal, e o protocolo escolhe-se num slider entre 12:12 e OMAD, com os pontos habituais marcados.',
   jejumPontual:'Um jejum com data marcada, de 12 horas a oito dias. Os dias que cobre por inteiro ficam com alvo zero; os dias em que começa e acaba são parciais e a app conta-os proporcionalmente — arredondar um dia de jejum são duas mil calorias de erro. Acima de 72 horas há uma confirmação explícita de que existe acompanhamento médico, porque a partir daí isto é um procedimento clínico e não uma escolha alimentar.',
@@ -11206,7 +11516,8 @@ function unidIng(){
 function unidadeDe(nome){
   const t=unidIng();
   if(temChave(t,nome)) return t[nome];
-  return (temChave(NUTRI,nome) && NUTRI[nome].u)? NUTRI[nome].u : 'g';
+  const c=composicaoDe(nome);
+  return (c && c.u)? c.u : 'g';
 }
 
 function limparReceita(x){
@@ -11334,7 +11645,10 @@ function edDelIng(idx){ const e=edCfg(); if(!e) return; e.i.splice(idx,1); saveM
 function edSetIng(idx,campo,valor){
   const e=edCfg(); if(!e||!e.i[idx]) return;
   if(campo==='nome'){
-    if(catalogoIngredientes().indexOf(valor)<0) return;
+    /* o catálogo completo inclui o oculto: escolher um ingrediente de lá
+       promove-o, e a partir daí faz parte do catálogo desta casa */
+    if(catalogoCompleto().indexOf(valor)<0) return;
+    promoveIngrediente(valor);
     e.i[idx][0]=valor; e.i[idx][2]=unidadeDe(valor);
     saveMeta(); render(); return;
   }
@@ -11450,7 +11764,7 @@ function painelMacrosEditor(){
 }
 function cartaoEditor(){
   const e=edCfg(); if(!e) return '';
-  const cat=catalogoIngredientes();
+  const cat=catalogoCompleto();
   const erro=edValido();
   return `<div class="card" id="editor" style="margin-bottom:16px;border-color:var(--accent)">
     <div class="row" style="justify-content:space-between">
@@ -14775,7 +15089,8 @@ function grupoDoItem(it){
   /* A secção do supermercado vem da classificação do próprio INSA sempre que
      o ingrediente vem de lá: é mais fiável do que qualquer expressão sobre o
      nome, e não confunde gnocchi com batatas. */
-  if(temChave(NUTRI,it.n) && NUTRI[it.n].s>=0 && NUTRI[it.n].s<CATS.length) return NUTRI[it.n].s;
+  const comp=composicaoDe(it.n);
+  if(comp && comp.s>=0 && comp.s<CATS.length) return comp.s;
   if(temChave(SEC_FIXA,it.n)){
     const i=CATS.findIndex(c=>c[0]===SEC_FIXA[it.n]);
     if(i>=0) return i;
@@ -15254,7 +15569,9 @@ function renderDespensa(){
         const rot = un==='g'? '€/kg' : un==='ml'? '€/L' : '€/'+un;
         const val=validadeDe(nome), dv=val? diasAteValidade(nome) : null;
         return `<li class="${ok?'done':''}"><label><input type="checkbox" ${ok?'checked':''} onchange="toggleDespensaIdx(${i})">
-          <span>${esc(nome)}${al.length? ' '+al.map(t=>`<span class="tag alerg" title="${esc(RESTR[t].n)}">${RESTR[t].i}</span>`).join(''):''}${
+          <span>${esc(nome)}${(function(){ const f=fonteDe(nome);
+            return f&&f.n!=='INSA'? ` <span class="tag fonte-${f.n.toLowerCase()}" title="${esc(f.d)}">${f.n}</span>`:''; })()}${
+            al.length? ' '+al.map(t=>`<span class="tag alerg" title="${esc(RESTR[t].n)}">${RESTR[t].i}</span>`).join(''):''}${
             daEpoca(nome)? ' <span class="tag epoca">🌱</span>':''}${
             val&&!S.ui.validades? ` <span class="tag ${classeValidade(dv)}" title="Validade: ${rotuloData(val)}">${rotuloValidade(dv)}</span>`:''}</span></label>${
           S.ui.precos? `<span class="preco"><input type="number" min="0" step="0.01" inputmode="decimal"
@@ -15819,6 +16136,43 @@ function tamanho(){
   const n=new Blob([JSON.stringify(S)]).size;
   return n<1024? n+' B' : (n/1024).toFixed(1)+' kB';
 }
+/* O cartão das tabelas de composição: mostra de onde vêm os números que a app
+   já tem, e deixa carregar os ficheiros oficiais completos. */
+function cartaoTabelas(){
+  const conta={insa:0, ue:0, fda:0};
+  Object.keys(NUTRI).forEach(n=>{ const f=NUTRI[n].fonte||'insa'; if(conta[f]!==undefined) conta[f]++; });
+  const contaX={insa:0, ue:0, fda:0};
+  Object.keys(NUTRI_EXTRA).forEach(n=>{ const f=NUTRI_EXTRA[n].fonte||'insa'; if(contaX[f]!==undefined) contaX[f]++; });
+  const totalX=Object.keys(NUTRI_EXTRA).length;
+  return `<div class="card" data-col="dados-tabelas">
+    <h3>Tabelas de composição ${dica('tabelas')}</h3>
+    <p class="sub" style="margin-top:6px">Os macros de cada receita saem daqui. Quando o mesmo alimento existe em
+      mais do que uma tabela, fica o da fonte mais prioritária — e a prioridade é a que faz sentido numa casa
+      portuguesa: <b>INSA primeiro, depois a UE, e só por último a FDA</b>.</p>
+    <div style="margin-top:10px">${Object.entries(FONTES).map(([k,f])=>`
+      <div class="vere-linha">
+        <span class="vere-quem"><span class="tag fonte-${k}">${f.n}</span>
+          <span class="sub">${esc(f.d)}</span></span>
+        <span class="sub">${conta[k]} no catálogo${contaX[k]? ' · '+contaX[k]+' em reserva':''}</span>
+      </div>`).join('')}</div>
+    <p class="sub" style="margin-top:10px"><b>${Object.keys(NUTRI).length} ingredientes</b> à vista e
+      <b>${totalX}</b> no catálogo oculto — que a app usa quando se acrescenta um ingrediente que não anda em
+      receita nenhuma. Ao ser escolhido, passa a fazer parte do catálogo desta casa.</p>
+    <div class="splabel" style="margin-top:14px"><span>Carregar uma tabela oficial</span></div>
+    <p class="sub">As tabelas completas têm dezenas de milhares de linhas e vivem em ficheiros que se descarregam
+      — não cabem escritas à mão nem se devem inventar. Descarrega o ficheiro da fonte e carrega-o aqui:
+      aceita <b>CSV</b> com cabeçalho ou <b>JSON</b> com uma lista, e reconhece sozinho as colunas do nome,
+      energia, hidratos, proteína, gordura e fibra. Na tabela da FDA a conversão de hidratos por diferença para
+      hidratos disponíveis é feita no carregamento.</p>
+    <div class="row" style="margin-top:10px">${Object.entries(FONTES).map(([k,f])=>`
+      <label class="btn ghost small" style="cursor:pointer">📥 Carregar ${f.n}
+        <input type="file" accept=".csv,.json,.txt,text/csv,application/json" style="display:none"
+          onchange="importarTabela(this,'${k}')"></label>`).join('')}</div>
+    <p class="sub" style="margin-top:8px"><i>O que se carrega fica no catálogo oculto desta sessão e não é
+      gravado na cópia de segurança — as tabelas são públicas e ocupam mais do que todos os teus dados juntos.
+      Vale a pena voltar a carregá-las se limpares o browser.</i></p>
+  </div>`;
+}
 function cartaoAspeto(){
   const modo=S.ui.tema||'auto', pal=S.ui.paleta||'azulejo';
   const nFechados=Object.keys(S.ui.colapsados||{}).length;
@@ -15958,6 +16312,7 @@ function renderDados(){
       </div>
     </div>
 
+    ${cartaoTabelas()}
     ${cartaoAspeto()}
     ${cartaoFestas()}
 
