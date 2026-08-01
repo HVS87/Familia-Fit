@@ -262,6 +262,20 @@ html[data-densidade="cerrado"] .spline{padding:10px 12px}
 .lugar.on{border-color:var(--accent);background:var(--accent-soft);color:var(--ink)}
 .lugar .lg-vst{height:14px;color:var(--ok)}
 .lugar.off .lg-vst{visibility:hidden}
+/* A dose é um alvo próprio por baixo do lugar: quem quer corrigir meia dose
+   não pode desligar a pessoa por engano, e vice-versa. */
+/* Uma linha por pessoa no fecho da mesa: o nome à esquerda, as opções à
+   direita, e a quebrar para baixo no telemóvel em vez de espremer os alvos. */
+.vere-linha{display:flex;align-items:center;justify-content:space-between;gap:8px;
+  flex-wrap:wrap;margin-top:8px}
+.vere-quem{display:inline-flex;align-items:center;gap:6px;font:600 13px/1 var(--fonte-ui)}
+.lugar-grupo{display:flex;flex-direction:column;gap:2px}
+.lugar-grupo .lugar{min-height:70px}
+.lg-dose{min-height:26px;border:1px solid var(--line);border-radius:var(--r-sm);
+  background:var(--card);cursor:pointer;font:600 10.5px/1 var(--fonte-ui);color:var(--mut);
+  padding:6px 4px;text-align:center;font-variant-numeric:tabular-nums}
+button.lg-dose:hover{border-color:var(--accent);color:var(--accent)}
+span.lg-dose{cursor:default;background:transparent;border-color:transparent}
 
 /* ===== BOTÃO DE REGISTO SEMPRE À MÃO ===== */
 .fab{position:fixed;right:max(14px,env(safe-area-inset-right));z-index:39;
@@ -356,6 +370,28 @@ ol.passos li span{color:var(--mut);font-size:14px;margin-top:2px}
 .sobra-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--ok);
   border-radius:999px;padding:4px 12px;background:color-mix(in srgb,var(--ok) 10%,var(--card));
   cursor:pointer;font-size:13px;font-weight:600;color:var(--ink)}
+/* A sobra e a ação de a congelar andam juntas mas são dois alvos distintos:
+   quem quer comer não pode congelar por engano, e vice-versa. */
+/* A barra da cobertura fala por três larguras, mas cada troço tem legenda com
+   número: quem não distingue as cores lê na mesma «22 na despensa». */
+.barra-cobertura{display:flex;height:12px;border-radius:999px;overflow:hidden;
+  background:var(--line);margin-top:4px}
+.barra-cobertura .cob{display:block;height:100%}
+.cob-tem{background:var(--ok)} .cob-lista{background:var(--accent)} .cob-falta{background:var(--warn)}
+/* As validades falam por cor E por palavra: «faltam 2 dias» diz o mesmo que o
+   amarelo, e quem não distingue as duas cores continua a saber o que importa. */
+.tag.val-fora{border-color:var(--bad);color:var(--bad)}
+.tag.val-perto{border-color:var(--warn);color:var(--warn)}
+.tag.val-ok{border-color:var(--line);color:var(--mut)}
+.sub.val-fora{color:var(--bad)} .sub.val-perto{color:var(--warn)}
+.sobra-grupo{display:inline-flex;align-items:stretch;gap:2px}
+.sobra-grupo .sobra-chip{border-top-right-radius:6px;border-bottom-right-radius:6px}
+.sobra-acao{display:inline-flex;align-items:center;justify-content:center;min-width:34px;
+  border:1px solid var(--line);border-left:0;border-radius:6px 999px 999px 6px;
+  background:var(--card);cursor:pointer;font-size:14px;color:var(--ink)}
+.sobra-acao:hover{background:var(--accent-soft);border-color:var(--accent)}
+.sobra-acao.inativo{cursor:default;opacity:.35}
+.sobra-acao.inativo:hover{background:var(--card);border-color:var(--line)}
 
 /* ===== CRACHÁS DE PENDENTES ===== */
 nav button{position:relative}
@@ -1222,6 +1258,10 @@ function migraRegistos(s){
   s.pausas = limparPausas(s.pausas, ids);
   s.diario = limparDiario(s.diario, ids);
   s.cozPref = limparCozPref(s.cozPref);
+  s.validades = limparValidades(s.validades);
+  s.veredictos = limparVeredictos(s.veredictos, ids);
+  s.brigada = limparBrigada(s.brigada, ids);
+  s.desperdicio = limparDesperdicio(s.desperdicio);
   /* convidados de datas passadas saem sozinhos do plano */
   limparConvidadosEm(s);
   if(!s.meta.desdeRegisto || !dataValida(s.meta.desdeRegisto)) s.meta.desdeRegisto=iso(new Date());
@@ -1242,6 +1282,66 @@ function limparPrecos(o){
     out[k]={v:Math.round(v*100)/100};
   });
   return out;
+}
+/* A validade é a data impressa na embalagem, escrita à mão por quem arrumou a
+   compra. Aceita-se passado (é precisamente o que interessa assinalar) mas não
+   um futuro absurdo: mais de cinco anos é gralha de quem escreveu o ano. */
+function limparValidades(o){
+  const out={};
+  if(!o||typeof o!=='object') return out;
+  const limite=iso(new Date(Date.now()+5*365*24*3600*1000));
+  Object.keys(o).slice(0,2000).forEach(k=>{
+    if(!temChave(NUTRI,k) && !(typeof SUPLEMENTOS!=='undefined' && SUPLEMENTOS.some(s=>s.nome===k))) return;
+    const d=String(o[k]&&o[k].d!==undefined? o[k].d : o[k]);
+    if(!dataValida(d) || d>limite) return;
+    out[k]={d};
+  });
+  return out;
+}
+/* Um veredicto é de uma pessoa sobre um prato num dia. A chave tripla impede
+   que a mesma pessoa vote duas vezes na mesma refeição, e o mais recente é o
+   que fica — mudar de ideias é legítimo. */
+const VEREDICTOS=['rep','ok','nao'];
+function limparVeredictos(a,ids){
+  if(!Array.isArray(a)) return [];
+  const vistos={}, hoje=iso(new Date());
+  return a.slice(-600).reverse().map(v=>{ if(!v||typeof v!=='object') return null;
+    if(!dataValida(v.d) || v.d>hoje) return null;
+    if(VEREDICTOS.indexOf(v.v)<0) return null;
+    if(MEALK.indexOf(v.mk)<0) return null;
+    const mid=String(v.mid||''); if(ids && ids.indexOf(mid)<0) return null;
+    if(!String(v.r||'')) return null;
+    const k=v.d+'|'+v.mk+'|'+mid; if(vistos[k]) return null; vistos[k]=1;
+    return {d:v.d, mk:v.mk, r:String(v.r), mid, v:v.v};
+  }).filter(Boolean).reverse();
+}
+/* Quem cozinhou e quem ajudou. Vários por refeição — cozinhar a quatro mãos é
+   o caso normal numa casa, não a exceção. */
+const PAPEIS_BRIGADA=['cozinhou','ajudou'];
+function limparBrigada(a,ids){
+  if(!Array.isArray(a)) return [];
+  const vistos={}, hoje=iso(new Date());
+  return a.slice(-800).map(b=>{ if(!b||typeof b!=='object') return null;
+    if(!dataValida(b.d) || b.d>hoje) return null;
+    if(PAPEIS_BRIGADA.indexOf(b.papel)<0) return null;
+    const mid=String(b.mid||''); if(ids && ids.indexOf(mid)<0) return null;
+    const r=String(b.r||''); if(!r) return null;
+    const k=b.d+'|'+r+'|'+mid; if(vistos[k]) return null; vistos[k]=1;
+    return {d:b.d, r, mid, papel:b.papel};
+  }).filter(Boolean);
+}
+/* O destino de uma sobra que chegou ao fim do prazo. Só 'lixo' conta como
+   desperdício; os outros dois existem para a pergunta ter resposta honesta. */
+const DESTINOS_SOBRA=['comeu','cong','lixo'];
+function limparDesperdicio(a){
+  if(!Array.isArray(a)) return [];
+  const hoje=iso(new Date());
+  return a.slice(-400).map(x=>{ if(!x||typeof x!=='object') return null;
+    if(!dataValida(x.d) || x.d>hoje) return null;
+    if(DESTINOS_SOBRA.indexOf(x.destino)<0) return null;
+    const r=String(x.r||''); if(!r) return null;
+    return {d:x.d, r, doses:clampNum(parseFloat(x.doses)||0,0,12), destino:x.destino};
+  }).filter(Boolean);
 }
 function limparFestas(a){
   if(!Array.isArray(a)) return [];
@@ -1277,8 +1377,15 @@ function limparDiario(a,ids){
   }).filter(Boolean).slice(-200);
 }
 function limparCasa(c){
-  if(!c||typeof c!=='object') return {nome:'',lema:''};
-  return {nome:String(c.nome||'').slice(0,40), lema:String(c.lema||'').slice(0,90)};
+  if(!c||typeof c!=='object') return {nome:'',lema:'',orcamento:0,vezPtr:0};
+  const orc=parseFloat(c.orcamento);
+  const out={nome:String(c.nome||'').slice(0,40), lema:String(c.lema||'').slice(0,90),
+    orcamento: isFinite(orc)&&orc>0? Math.min(9999,Math.round(orc*100)/100) : 0,
+    vezPtr: clampNum(Math.round(parseFloat(c.vezPtr)||0),0,99)};
+  /* o último vencedor da votação só serve para desempatar a seguinte */
+  if(c.ultimoEspecial && typeof c.ultimoEspecial==='string' && c.ultimoEspecial.length<=32)
+    out.ultimoEspecial=c.ultimoEspecial;
+  return out;
 }
 /* Convidados são de uma refeição e de um dia: passada a data, saem. */
 function limparConvidadosEm(s){
@@ -4287,7 +4394,13 @@ function blank(){ return {members:[],cheats:{},plans:{},bought:{},prefCuisine:'t
   /* sobras: o tacho que dá para dois dias. precos: o que o talão disse, para
      a app estimar custos sem inventar um único cêntimo. festas: as datas da
      casa que não são aniversários. */
-  sobras:[], precos:{}, festas:[], casa:{nome:'',lema:''}, pausas:[], diario:[],
+  sobras:[], precos:{}, festas:[], casa:{nome:'',lema:'',orcamento:0,vezPtr:0}, pausas:[], diario:[],
+  /* validades: a data que vem escrita na embalagem, escrita à mão por quem
+     arruma a compra. A app nunca inventa um prazo — limita-se a ordenar o que
+     está mais perto de acabar. veredictos: a voz da mesa sobre um prato, que
+     é diferente de o ter comido. brigada: quem pôs as mãos na massa.
+     desperdicio: o que foi para o lixo, para haver espelho e não amnésia. */
+  validades:{}, veredictos:[], brigada:[], desperdicio:[],
   /* preferências de cozinha da casa: repetir pratos na semana, cozinhar em
      dobro, seguir a época e preparar de véspera — o que muda como se sugere */
   cozPref:{repetir:false, dobro:false, sazonal:false, prep:true, cartaoEpoca:true},
@@ -4302,7 +4415,11 @@ function blank(){ return {members:[],cheats:{},plans:{},bought:{},prefCuisine:'t
       densidade:'folgado', sazonal:false, anim:true, folha:null, mercado:false, modal:null,
       cozinha:null, precos:false, soEpoca:false, convAberto:null,
       mercVista:'compras', capaAberta:false, fecho:null, passosFeitos:false,
-      pesqAberta:false, pesqQ:'', semPalpite:[], ficha:null, catF:''},
+      pesqAberta:false, pesqQ:'', semPalpite:[], ficha:null, catF:'',
+      /* validades e sons são interruptores da casa; ultimaAbertura serve o
+         cartão de regresso; votacao e ajudante são estados de gesto, que não
+         sobrevivem a nada nem precisam de sobreviver. */
+      validades:false, sons:false, ultimaAbertura:null, votacao:null, ajudante:null},
   week:mondayISO(new Date()),
   meta:{gravadoEm:null,exportadoEm:null,semCopia:false,avisarAoSair:true,desdeRegisto:null}}; }
 let S = load();
@@ -4337,7 +4454,8 @@ let pilhaUndo=[], pilhaRedo=[], estadoAnterior=null, ultimaDesc=null;
 function instantaneo(){ return JSON.stringify({members:S.members, cheats:S.cheats, plans:S.plans,
   bought:S.bought, week:S.week, prefCuisine:S.prefCuisine, objetivos:S.objetivos, despensa:S.despensa,
   receitas:S.receitas, medicoes:S.medicoes, regAtiv:S.regAtiv, regRef:S.regRef,
-  sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa, pausas:S.pausas, diario:S.diario, cozPref:S.cozPref}); }
+  sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa, pausas:S.pausas, diario:S.diario, cozPref:S.cozPref,
+  validades:S.validades, veredictos:S.veredictos, brigada:S.brigada, desperdicio:S.desperdicio}); }
 function aplicaInstantaneo(js){
   const d=JSON.parse(js);
   S.members=d.members; S.cheats=d.cheats; S.plans=d.plans; S.bought=d.bought;
@@ -4353,6 +4471,10 @@ function aplicaInstantaneo(js){
   S.pausas=Array.isArray(d.pausas)? d.pausas : [];
   S.diario=Array.isArray(d.diario)? d.diario : [];
   S.cozPref=limparCozPref(d.cozPref);
+  S.validades=d.validades&&typeof d.validades==='object'? d.validades : {};
+  S.veredictos=Array.isArray(d.veredictos)? d.veredictos : [];
+  S.brigada=Array.isArray(d.brigada)? d.brigada : [];
+  S.desperdicio=Array.isArray(d.desperdicio)? d.desperdicio : [];
   sincronizaReceitas();
   S.members.forEach(normalizaMembro);
   if(!S.members.some(m=>m.id===S.ui.mid)) S.ui.mid=S.members[0]? S.members[0].id : null;
@@ -5028,11 +5150,12 @@ function kcalRegRef(r){
   return (rec.k+somaAc(acs,'k'))*(parseFloat(r.dose)||1);
 }
 function macrosRegRef(r){
-  const rec=RECIPES.find(x=>x.id===r.r); if(!rec) return {k:0,c:0,p:0,f:0};
+  const rec=RECIPES.find(x=>x.id===r.r); if(!rec) return {k:0,c:0,p:0,f:0,fib:0};
   const acs=(r.ac||[]).map(id=>RECIPES.find(x=>x.id===id)).filter(Boolean);
   const dose=parseFloat(r.dose)||1;
   return {k:(rec.k+somaAc(acs,'k'))*dose, c:(rec.c+somaAc(acs,'c'))*dose,
-          p:(rec.p+somaAc(acs,'p'))*dose, f:(rec.f+somaAc(acs,'f'))*dose};
+          p:(rec.p+somaAc(acs,'p'))*dose, f:(rec.f+somaAc(acs,'f'))*dose,
+          fib:((rec.fib||0)+somaAc(acs,'fib'))*dose};
 }
 /* Gasto real de um dia: o basal e o dia-a-dia não se registam (são o que o
    corpo faz de qualquer maneira), o desporto é o que ficou registado — não o
@@ -5044,7 +5167,79 @@ function gastoRealDia(m,d){
 }
 function ingeridoRealDia(mid,d){
   return regRefDe(mid).filter(r=>r.d===d&&r.estado==='feita')
-    .reduce((t,r)=>{ const x=macrosRegRef(r); return {k:t.k+x.k,c:t.c+x.c,p:t.p+x.p,f:t.f+x.f}; },{k:0,c:0,p:0,f:0});
+    .reduce((t,r)=>{ const x=macrosRegRef(r);
+      return {k:t.k+x.k,c:t.c+x.c,p:t.p+x.p,f:t.f+x.f,fib:t.fib+(x.fib||0)}; },{k:0,c:0,p:0,f:0,fib:0});
+}
+/* ================= FIBRA =================
+   O valor estava em todos os 646 ingredientes desde o princípio, vindo do
+   INSA, e nunca era somado ao dia — calculava-se receita a receita e ficava
+   por ali. A referência é a Ingestão Adequada da EFSA (2010, Dietary
+   Reference Values for carbohydrates and dietary fibre): 25 g por dia para
+   adultos. Para crianças a EFSA não dá um número fixo — dá 2 g por MJ de
+   energia — e é isso que se aplica, a partir do alvo energético da criança.
+   Abaixo de um ano não há valor de referência nenhum, e a app não inventa um:
+   mostra o número sem veredicto. */
+const FIBRA_ADULTO=25, FIBRA_G_POR_MJ=2, KCAL_POR_MJ=239.006;
+function alvoFibra(m){
+  if(!m) return null;
+  const fase=faseDe(m);
+  if(fase==='bebe') return null;             /* sem referência EFSA abaixo de 1 ano */
+  if(fase==='adulto' || fase==='idoso') return FIBRA_ADULTO;
+  const kcal=alvoDoDia(m,hojeISO());
+  if(!(kcal>0)) return null;
+  return Math.round(FIBRA_G_POR_MJ*kcal/KCAL_POR_MJ);
+}
+/* A fibra julga-se à média da semana, não ao dia: um dia de sopa e leguminosas
+   e outro de bife não são um problema — a média é que conta. */
+function fibraMedia(mid,dias){
+  const h=hojeISO(); let soma=0, n=0;
+  for(let i=0;i<(dias||7);i++){ const d=addDias(h,-i);
+    if(!regRefDe(mid).some(r=>r.d===d&&r.estado==='feita')) continue;
+    soma+=ingeridoRealDia(mid,d).fib; n++;
+  }
+  return n? {media:soma/n, dias:n} : null;
+}
+/* ================= HORTOFRUTÍCOLAS =================
+   A OMS recomenda pelo menos 400 g de fruta e hortícolas por dia — e exclui
+   expressamente batata e outras raízes ricas em amido dessa conta. É a
+   exclusão que mais se erra, e a que mais muda o número numa casa portuguesa. */
+const OMS_HORTOFRUTICOLAS=400;
+const AMILACEAS=/batata|mandioca|inhame|farinha de pau|tapioca|milho, grão|batata doce/i;
+function gramasHortofruticolas(r){
+  if(!r||!r.i) return 0;
+  return r.i.reduce((t,x)=>{
+    const nome=x[0];
+    if(AMILACEAS.test(nome)) return t;
+    if(grupoDoItem({n:nome})!==2) return t;
+    return t+(gramasDe(nome,x[1],x[2])||0);
+  },0);
+}
+function hortofruticolasDia(mid,d){
+  return regRefDe(mid).filter(r=>r.d===d&&r.estado==='feita').reduce((t,r)=>{
+    const rec=RECIPES.find(x=>x.id===r.r); if(!rec) return t;
+    const acs=(r.ac||[]).map(id=>RECIPES.find(x=>x.id===id)).filter(Boolean);
+    const dose=parseFloat(r.dose)||1;
+    /* os acompanhamentos repartem entre si a mesma fatia do prato — contar
+       cada um por inteiro dava a uma refeição o triplo dos legumes que tem */
+    const lado=acs.reduce((s,a)=>s+gramasHortofruticolas(a),0)*fatiaAc(acs);
+    return t+(gramasHortofruticolas(rec)+lado)*dose;
+  },0);
+}
+/* Quantas plantas diferentes entraram na casa esta semana. Não há aqui número
+   oficial nenhum e a app não finge que há: é uma medida de variedade, e a
+   variedade lê-se melhor a subir do que contra uma meta. */
+function plantasDaSemana(mid,dias){
+  const h=hojeISO(), vistos={};
+  for(let i=0;i<(dias||7);i++){ const d=addDias(h,-i);
+    regRefDe(mid).filter(r=>r.d===d&&r.estado==='feita').forEach(r=>{
+      const recs=[RECIPES.find(x=>x.id===r.r)].concat((r.ac||[]).map(id=>RECIPES.find(x=>x.id===id))).filter(Boolean);
+      recs.forEach(rec=>(rec.i||[]).forEach(x=>{
+        const g=grupoDoItem({n:x[0]});
+        if(g===2 || /feijão|grão-de-bico|lentilha|ervilha|fava|quinoa|aveia|amêndoa|noz|caju|semente|arroz integral/i.test(x[0])) vistos[x[0]]=1;
+      }));
+    });
+  }
+  return Object.keys(vistos);
 }
 /* Alvo do dia: o plano ajustado ao que se gastou a mais (ou a menos) do que o
    plano previa para aquele dia. Quem corre 10 km que não estavam marcados
@@ -5212,6 +5407,18 @@ const DICAS={
   dobro:'Cozinhar a dobrar dá para dois dias. Dobra o PRATO — as quantidades dele sobem já na lista de compras, e o dia que só aquece não volta a comprá-lo. Os acompanhamentos ficam de fora da conta porque se fazem frescos em cada dia: ninguém reaquece uma salada. O prazo de guardar e a forma de reaquecer vêm por baixo, e são diferentes de prato para prato.',
   foodprep:'Preparação de ingredientes, não pratos feitos: descascar, picar, demolhar, lavar, marinar, porcionar. Cada tarefa diz que dias serve e quanto tempo leva, com as quantidades já somadas de toda a semana. Enquanto estiver ligado, as receitas que aproveitam uma preparação já planeada têm vantagem nas sugestões — é assim que uma tarde de domingo poupa cinco jantares à pressa.',
   genero:'Um gaspacho e uma feijoada não apetecem no mesmo dia. A app lê o género do prato do nome e dos ingredientes e pesa-o na sugestão: no verão os pratos frios ganham vantagem, sobretudo ao almoço; fora dele, os quentes.',
+  votacao:'O jantar especial de sábado deixa de ser escolha de um adulto. Os candidatos já passaram pelo crivo de toda a mesa — alergias, dietas e teto de calorias — por isso a escolha é real e não fingida. Passa-se o telemóvel de mão em mão: cada um toca no seu avatar e depois no prato. Em caso de empate ganha quem não venceu da última vez, senão o mesmo prato ganharia sempre.',
+  vez:'Uma rotativa entre quem cá vive, uma semana para cada um. Diferente da votação, que é uma decisão coletiva pontual: isto é turno garantido, e turno é justiça que as crianças percebem — quem tem a vez na próxima semana tem uma razão para abrir a app e namorar as receitas. Bebés ficam de fora, e a vez troca-se com um toque, porque trocas de vez acontecem em todas as casas.',
+  veredicto:'Os pratos favoritos que a app já conhecia eram implícitos — deduzidos da frequência com que se repetem. Isto é a voz explícita da mesa, incluindo a dos miúdos, que raramente decidem o que se repete. «Repetir em breve» dá vantagem à receita nas sugestões automáticas; «não é para nós» arrefece-a durante oito semanas, mas nunca a esconde dos filtros — um «não» de há dois meses não é uma proibição.',
+  brigada:'A app sabia o que se comeu, mas não quem pôs as mãos na massa. Marcar quem cozinhou e quem ajudou reparte o mérito (e a carga) entre adultos, e dá às crianças um papel com nome. Vários por refeição, porque cozinhar a quatro mãos é o caso normal numa casa, não a exceção.',
+  equilibrio:'A app julga cada refeição contra um teto do dia, mas o equilíbrio de uma casa faz-se à semana. Esta linha soma as calorias planeadas dos sete dias e compara-as com a soma dos sete alvos — já com o ajuste do que se gasta em atividade. É por isso que um cheat day, um aniversário ou um jantar fora não estragam nada: vê-se o resto da semana a compensá-los.',
+  cobertura:'Cruza os ingredientes que a semana planeada pede com o que está na despensa e com o que já está na lista de compras. Responde à pergunta de domingo à noite — dá para cozinhar a semana ou é preciso ir às compras primeiro? — sem abrir três separadores.',
+  orcamento:'Um teto em euros para a comida da semana, definido por ti. A app soma o custo das refeições confirmadas com os preços do teu talão e mostra sempre quantos ingredientes ficaram sem preço, para o total nunca fingir ser exato. Acima de 85% do teto, as sugestões automáticas passam a pesar também o custo por dose.',
+  congelador:'A tabela de conservação sempre soube quantos dias cada família de prato aguenta congelada — até agora esse número era só uma linha de texto. Com o botão de congelar passa a ser o relógio da sobra: o prato sai do prazo do frigorífico e entra no do congelador, contado a partir do dia em que lá foi. Os pratos que não congelam bem, como os de ovo, não têm o botão. Descongelar devolve a sobra ao frigorífico com dois dias — comida descongelada não recupera o prazo que tinha.',
+  validades:'A data que vem impressa na embalagem, escrita por ti. A app não a calcula nem a adivinha: só ordena o que está mais perto de acabar e o põe à frente, no «Hoje» e na Mercearia. Nas sugestões de receitas, quem usa o que está a acabar ganha vantagem — é a forma mais direta de não deitar comida fora.',
+  desperdicio:'Quando uma sobra passa o prazo, a app pergunta uma vez o que lhe aconteceu: comeu-se, congelou-se ou foi para o lixo. Só a terceira conta como desperdício. Serve para haver espelho em vez de amnésia — ao fim de um mês vê-se quanto foi para o lixo e em que dias, e isso muda mais comportamentos do que qualquer aviso.',
+  fibra:'A fibra de cada ingrediente vem da tabela do INSA e sempre esteve na app — o que passou a haver é a soma ao dia. A referência é a Ingestão Adequada da EFSA: 25 g por dia num adulto e 2 g por cada MJ de energia numa criança, que é como a EFSA a define nessas idades. Julga-se à média da semana, porque um dia de sopa e outro de bife não são um problema. Abaixo de um ano não há referência e a app não inventa nenhuma.',
+  hortofruticolas:'A OMS recomenda pelo menos 400 g de fruta e hortícolas por dia. A batata, a batata-doce, a mandioca e o inhame não contam para esses 400 g — é a própria recomendação que exclui as raízes ricas em amido, e é o erro que mais se faz nesta conta. As gramas saem do peso real dos ingredientes de cada receita registada, já com a dose.',
   conserva:'Quanto tempo a comida aguenta no frigorífico e como se reaquece, por família de prato — o arroz é o que tem menos folga, as sopas e os cozidos os que têm mais. São prazos genéricos e conservadores para sobras refrigeradas a 4 °C ou menos: servem de referência, não substituem o cheiro, o aspeto e o bom senso.',
   descobertas:'Detetores que correm sobre os teus registos das últimas oito semanas — o jantar que nunca se cumpre, o dia com mais treinos ignorados, o prato que domina. Cada sinal só aparece se passar um mínimo de amostra, vem com os números à vista e traz um gesto ao lado. Sem sinais fiáveis, a app di-lo em vez de inventar um.',
   leque:'A tendência das pesagens das últimas oito semanas prolongada num intervalo, nunca numa data única: a largura vem da dispersão real da tua balança. Precisa de seis pesagens ao longo de quatro semanas, e nunca aparece em bebés, crianças ou gravidez — nessas fases o peso muda porque o corpo está a crescer.',
@@ -5617,10 +5824,30 @@ function montaMembrosFixos(){
 const DIAS_SOBRA=3;
 /* O prazo não é igual para todos os pratos: o arroz é o que tem menos folga, a
    sopa é o que tem mais. Cada sobra vive o prazo do seu prato. */
-function sobrasVivas(){
+/* Uma sobra congelada deixa de contar os dias do frigorífico e passa a contar
+   os do congelador, a partir da data em que lá entrou. É a mesma sobra, com
+   outro relógio. */
+function baseSobra(s){ return s && s.est==='cong' ? (s.dc||s.d) : s.d; }
+function prazoDaSobra(s){
+  if(!s) return DIAS_SOBRA;
+  const r=RECIPES.find(x=>x.id===s.r), c=conservacaoDe(r);
+  if(s.est==='cong') return c? c.cong : 60;
+  /* o que veio do congelador não recupera o prazo que tinha antes de lá ir */
+  if(s.desc) return Math.min(DIAS_DESCONGELADO, c? c.frigo : DIAS_SOBRA);
+  return c? c.frigo : DIAS_SOBRA;
+}
+function diasRestantesSobra(s){ return prazoDaSobra(s)-diasEntre(baseSobra(s), hojeISO()); }
+function sobrasVivas(est){
+  const h=hojeISO(), e=est||'frigo';
+  return (S.sobras||[]).filter(s=>s.doses>0 && (s.est||'frigo')===e
+      && baseSobra(s)<=h && diasEntre(baseSobra(s),h)<=prazoDaSobra(s))
+    .sort((a,b)=> diasRestantesSobra(a)-diasRestantesSobra(b));
+}
+/* As que já passaram o prazo não desaparecem em silêncio: ficam à espera de
+   resposta no diário de desperdício. */
+function sobrasVencidas(){
   const h=hojeISO();
-  return (S.sobras||[]).filter(s=>s.doses>0 && s.d<=h && diasEntre(s.d,h)<=prazoSobra(s.r))
-    .sort((a,b)=> (prazoSobra(a.r)-diasEntre(a.d,h))-(prazoSobra(b.r)-diasEntre(b.d,h)));
+  return (S.sobras||[]).filter(s=>s.doses>0 && baseSobra(s)<=h && diasEntre(baseSobra(s),h)>prazoDaSobra(s));
 }
 function limparSobra(x,lookup){
   lookup = lookup || (id=>RECIPES.find(r=>r.id===id));
@@ -5629,18 +5856,54 @@ function limparSobra(x,lookup){
   if(!lookup(x.r)) return null;
   const ac=[]; (Array.isArray(x.ac)? x.ac:[]).forEach(id=>{ const r=lookup(id);
     if(r && ehAcompanhamento(r) && ac.indexOf(id)<0 && ac.length<MAX_AC) ac.push(id); });
-  return {id:limparId(x.id), d:x.d, r:x.r, ac, doses:clampNum(parseFloat(x.doses)||0,0,12),
-    mk: MEALK.indexOf(x.mk)>=0? x.mk : 'j'};
+  const est = x.est==='cong'? 'cong' : 'frigo';
+  const dc = est==='cong' && dataValida(x.dc) && x.dc<=iso(new Date()) && x.dc>=x.d ? x.dc : undefined;
+  const s={id:limparId(x.id), d:x.d, r:x.r, ac, doses:clampNum(parseFloat(x.doses)||0,0,12),
+    mk: MEALK.indexOf(x.mk)>=0? x.mk : 'j', est};
+  if(dc) s.dc=dc; else if(est==='cong') s.dc=x.d;
+  if(x.desc && est==='frigo') s.desc=1;
+  return s;
 }
 function limparSobraCru(x){ return limparSobra(x); }
 function guardarSobra(d,mk,rid,ac,doses){
   const s=limparSobra({id:uid(), d, mk, r:rid, ac, doses});
   if(!s || !(s.doses>0)) return null;
   if(!Array.isArray(S.sobras)) S.sobras=[];
-  /* a mesma receita no mesmo dia junta-se, em vez de criar duas entradas */
-  const igual=S.sobras.find(x=>x.d===d && x.r===rid);
+  /* a mesma receita no mesmo dia junta-se, em vez de criar duas entradas — mas
+     só dentro do mesmo sítio: o que está no congelador não se soma ao que está
+     no frigorífico, porque não têm o mesmo prazo nem o mesmo relógio */
+  const igual=S.sobras.find(x=>x.d===d && x.r===rid && (x.est||'frigo')==='frigo');
   if(igual){ igual.doses=Math.min(12, igual.doses+s.doses); return igual; }
   S.sobras.push(s); return s;
+}
+/* ===== O CONGELADOR =====
+   A tabela de conservação sempre soube quantos dias cada família de prato
+   aguenta congelada; até agora esse número era só um rodapé de texto. Com o
+   botão, passa a ser o relógio da sobra — e quem cozinha a dobrar deixa de
+   ver o tacho morrer ao terceiro dia. */
+function podeCongelar(rid){
+  const r=RECIPES.find(x=>x.id===rid), c=conservacaoDe(r);
+  return !!(c && c.cong>0);
+}
+function congelarSobra(id){
+  const s=(S.sobras||[]).find(x=>x.id===id); if(!s) return;
+  if(!podeCongelar(s.r)){ flash('erro','Este prato não congela bem — vale mais comê-lo.'); return; }
+  s.est='cong'; s.dc=hojeISO();
+  save('sobra congelada');
+  const rec=RECIPES.find(x=>x.id===s.r), c=conservacaoDe(rec);
+  flash('ok',(rec?rec.n:'A sobra')+' foi para o congelador — aguenta lá '+c.cong+' dias.');
+  render();
+}
+/* Descongelar devolve a sobra ao frigorífico com o relógio a zero e dois dias
+   de prazo: comida descongelada não recupera o prazo que tinha antes. */
+const DIAS_DESCONGELADO=2;
+function descongelarSobra(id){
+  const s=(S.sobras||[]).find(x=>x.id===id); if(!s) return;
+  s.est='frigo'; s.d=hojeISO(); delete s.dc; s.desc=1;
+  save('sobra descongelada');
+  const rec=RECIPES.find(x=>x.id===s.r);
+  flash('ok',(rec?rec.n:'A sobra')+' passou para o frigorífico — come-se nos próximos '+DIAS_DESCONGELADO+' dias.');
+  render();
 }
 function consumirSobra(id,doses){
   const s=(S.sobras||[]).find(x=>x.id===id); if(!s) return false;
@@ -5667,18 +5930,74 @@ function comerSobra(mid,id){
   flash('ok',(rec?rec.n:'Sobra')+' registada ao '+nomeRefeicao(mk).toLowerCase()+' — sem cozinhar nem comprar nada.');
   render();
 }
-function perguntarSobra(d,mk,rid,ac){
-  S.ui.folha={tipo:'sobra', d, mk, r:rid, ac:ac||[], doses:1};
+/* O fecho da mesa: o que sobrou, o que a casa achou e quem cozinhou. As três
+   perguntas que só fazem sentido logo a seguir a comer — e que, feitas noutro
+   sítio qualquer, ninguém iria responder. */
+function perguntarSobra(d,mk,rid,ac,quem){
+  S.ui.folha={tipo:'sobra', d, mk, r:rid, ac:ac||[], doses:1,
+    quem: quem||[], vere:{}, brig:{}};
   saveMeta(); render();
 }
 function setSobraDoses(v){ const f=folhaMesa(); if(!f) return; f.doses=clampNum(parseFloat(v)||0,0,12); saveMeta(); render(); }
-function guardarFolhaSobra(){
+/* Cada pessoa dá o seu veredicto tocando no próprio avatar. Tocar outra vez no
+   mesmo tira o voto — mudar de ideias é legítimo, e um voto que não se pode
+   retirar deixa de ser um voto. */
+function setVeredicto(mid,v){
   const f=folhaMesa(); if(!f) return;
-  if(f.doses>0){ guardarSobra(f.d,f.mk,f.r,f.ac,f.doses);
-    S.ui.folha=null; save('sobra guardada');
-    flash('ok', nPT(f.doses,2).replace(',00','')+' dose'+(f.doses===1?'':'s')+' no frigorífico — a app lembra-se durante '+DIAS_SOBRA+' dias.');
-  } else { S.ui.folha=null; saveMeta(); }
+  if(!f.vere) f.vere={};
+  f.vere[mid]= f.vere[mid]===v? null : v;
+  saveMeta(); render();
+}
+function setBrigada(mid,papel){
+  const f=folhaMesa(); if(!f) return;
+  if(!f.brig) f.brig={};
+  f.brig[mid]= f.brig[mid]===papel? null : papel;
+  saveMeta(); render();
+}
+/* Grava as três respostas de uma vez. O veredicto e a brigada gravam-se mesmo
+   quando não sobrou nada — são independentes do tacho. */
+function guardarFecho(f){
+  if(!Array.isArray(S.veredictos)) S.veredictos=[];
+  if(!Array.isArray(S.brigada)) S.brigada=[];
+  let nv=0, nb=0;
+  Object.keys(f.vere||{}).forEach(mid=>{
+    const v=f.vere[mid]; if(!v) return;
+    S.veredictos=S.veredictos.filter(x=>!(x.d===f.d&&x.mk===f.mk&&x.mid===mid));
+    S.veredictos.push({d:f.d, mk:f.mk, r:f.r, mid, v}); nv++;
+  });
+  Object.keys(f.brig||{}).forEach(mid=>{
+    const p=f.brig[mid]; if(!p) return;
+    S.brigada=S.brigada.filter(x=>!(x.d===f.d&&x.r===f.r&&x.mid===mid));
+    S.brigada.push({d:f.d, r:f.r, mid, papel:p}); nb++;
+  });
+  return {nv, nb};
+}
+function guardarFolhaSobra(onde){
+  const f=folhaMesa(); if(!f) return;
+  const conta=guardarFecho(f);
+  const partes=[];
+  if(f.doses>0){
+    const s=guardarSobra(f.d,f.mk,f.r,f.ac,f.doses);
+    const cong = onde==='cong' && s && podeCongelar(f.r);
+    if(cong){ s.est='cong'; s.dc=hojeISO(); }
+    const rec=RECIPES.find(x=>x.id===f.r), c=conservacaoDe(rec);
+    partes.push(nPT(f.doses,2).replace(',00','')+' dose'+(f.doses===1?'':'s')
+      +(cong? ' no congelador — aguentam lá '+c.cong+' dias.'
+            : ' no frigorífico — a app lembra-se durante '+(c? c.frigo : DIAS_SOBRA)+' dias.'));
+  }
+  if(conta.nv) partes.push(plural(conta.nv,'veredicto guardado','veredictos guardados')+' — as sugestões passam a saber.');
+  if(conta.nb) partes.push(plural(conta.nb,'pessoa na brigada','pessoas na brigada')+'.');
+  S.ui.folha=null;
+  if(partes.length){ save('fecho da mesa'); flash('ok', partes.join(' ')); }
+  else saveMeta();
   render();
+}
+/* Quem comeu esta refeição: o veredicto é de quem esteve à mesa, não da casa
+   toda. Cai no registo do dia, que é a verdade sobre o que aconteceu. */
+function quemComeu(f){
+  const ids=(f.quem&&f.quem.length)? f.quem
+    : (S.regRef||[]).filter(r=>r.d===f.d&&r.mk===f.mk&&r.estado==='feita').map(r=>r.mid);
+  return S.members.filter(m=>ids.indexOf(m.id)>=0);
 }
 function folhaSobraHtml(f){
   const rec=RECIPES.find(x=>x.id===f.r);
@@ -5687,15 +6006,41 @@ function folhaSobraHtml(f){
     <div class="folha" role="dialog" aria-modal="true" aria-labelledby="fs-t">
       <div class="folha-pega" aria-hidden="true"></div>
       <span class="lbl">${nomeRefeicao(f.mk)} · ${rotuloData(f.d)}</span>
-      <h2 id="fs-t" style="margin-top:2px">Sobrou?</h2>
-      <p class="sub" style="margin-top:4px">${esc(rec?rec.n:'')} — o que sobrar fica no frigorífico durante ${DIAS_SOBRA} dias, com os macros já sabidos, e aparece nas sugestões de amanhã.</p>
-      <div class="row" style="margin-top:12px">
+      <h2 id="fs-t" style="margin-top:2px">Como correu?</h2>
+      <p class="sub" style="margin-top:4px">${esc(rec?rec.n:'')} — três perguntas rápidas, todas opcionais.</p>
+
+      <div class="splabel" style="margin-top:14px"><span>Sobrou? ${dica('sobras')}</span></div>
+      <p class="sub">${(function(){ const c=conservacaoDe(rec); return c
+        ? 'No frigorífico aguenta '+plural(c.frigo,'dia','dias')+(c.cong? '; no congelador, '+c.cong+'.' : ' — e este prato não congela bem.')
+        : ''; })()}</p>
+      <div class="row" style="margin-top:6px">
         ${[0,0.5,1,2].map(x=>`<button class="chip ${f.doses===x?'on':''}" onclick="setSobraDoses(${x})">${x===0?'Não sobrou':x===0.5?'Meia dose':plural(x,'dose','doses')}</button>`).join('')}
       </div>
-      ${f.doses>0? `<p class="sub" style="margin-top:10px">${Math.round(m.k*f.doses)} kcal guardadas · come-se com um toque no cartão «Hoje».</p>`:''}
-      <div class="row" style="margin-top:14px;justify-content:flex-end">
+      ${f.doses>0? `<p class="sub" style="margin-top:6px">${Math.round(m.k*f.doses)} kcal guardadas · come-se com um toque no cartão «Hoje».</p>`:''}
+
+      ${(function(){ const quem=quemComeu(f); return quem.length? `
+      <div class="splabel" style="margin-top:16px"><span>Repete-se? ${dica('veredicto')}</span></div>
+      <p class="sub">Cada um toca no seu. O que a casa pede para repetir sobe nas sugestões; o que não é para nós arrefece ${SEMANAS_ARREFECER} semanas.</p>
+      ${quem.map(mm=>`<div class="vere-linha">
+        <span class="vere-quem">${avatar(mm,22)} ${esc(mm.nome.split(' ')[0])}</span>
+        <span class="row">${[['rep','😍','Repetir em breve'],['ok','🙂','Está bem'],['nao','😐','Não é para nós']].map(([v,ico,rot])=>
+          `<button class="chip ${(f.vere||{})[mm.id]===v?'on':''}" onclick="setVeredicto('${mm.id}','${v}')"
+            aria-pressed="${(f.vere||{})[mm.id]===v}" title="${rot}">${ico} ${rot}</button>`).join('')}</span>
+      </div>`).join('')}
+
+      <div class="splabel" style="margin-top:16px"><span>Quem fez o jantar? ${dica('brigada')}</span></div>
+      <p class="sub">A app sabe o que se comeu, mas não quem pôs as mãos na massa.</p>
+      ${S.members.map(mm=>`<div class="vere-linha">
+        <span class="vere-quem">${avatar(mm,22)} ${esc(mm.nome.split(' ')[0])}</span>
+        <span class="row">${[['cozinhou','👨‍🍳','Cozinhou'],['ajudou','🥄','Ajudou']].map(([p,ico,rot])=>
+          `<button class="chip ${(f.brig||{})[mm.id]===p?'on':''}" onclick="setBrigada('${mm.id}','${p}')"
+            aria-pressed="${(f.brig||{})[mm.id]===p}">${ico} ${rot}</button>`).join('')}</span>
+      </div>`).join('')}` : ''; })()}
+
+      <div class="row" style="margin-top:16px;justify-content:flex-end">
         <button class="btn ghost small" onclick="fecharFolha()">Agora não</button>
-        <button class="btn" onclick="guardarFolhaSobra()">${f.doses>0?'Guardar no frigorífico':'Não sobrou'}</button>
+        ${f.doses>0 && podeCongelar(f.r)? `<button class="btn ghost" onclick="guardarFolhaSobra('cong')">🧊 Congelar</button>`:''}
+        <button class="btn" onclick="guardarFolhaSobra('frigo')">${f.doses>0?'Guardar no frigorífico':'Guardar'}</button>
       </div>
     </div></div>`;
 }
@@ -5852,6 +6197,40 @@ function setPreco(nome,v){
   const val=parseFloat(String(v).replace(',','.'));
   if(!isFinite(val)||val<=0||val>10000){ delete S.precos[nome]; return; }
   S.precos[nome]={v:Math.round(val*100)/100};
+}
+/* ===== VALIDADES =====
+   O prazo não é calculado: é copiado da embalagem por quem arrumou a compra.
+   A app só ordena e assinala — nunca decide por conta própria que um alimento
+   está estragado, porque não tem como saber. */
+function validadeDe(nome){ const v=(S.validades||{})[nome]; return v&&v.d? v.d : null; }
+function setValidade(nome,d){
+  if(!S.validades||typeof S.validades!=='object') S.validades={};
+  const s=String(d||'').trim();
+  if(!dataValida(s)){ delete S.validades[nome]; return; }
+  S.validades[nome]={d:s};
+}
+/* diasEntre já vem com sinal: negativo quando a data ficou para trás. */
+function diasAteValidade(nome){
+  const v=validadeDe(nome); if(!v) return null;
+  return diasEntre(hojeISO(), v);
+}
+function classeValidade(dias){
+  if(dias===null) return '';
+  return dias<0? 'val-fora' : dias<=2? 'val-fora' : dias<=5? 'val-perto' : 'val-ok';
+}
+function rotuloValidade(dias){
+  if(dias===null) return '';
+  return dias<0? 'passou' : dias===0? 'hoje' : dias===1? 'amanhã' : 'faltam '+dias+' dias';
+}
+/* Só interessa o que está mesmo em casa: uma validade escrita para um
+   ingrediente que já se gastou não tem de aparecer a ninguém. */
+function comerPrimeiro(limite){
+  const lim = limite===undefined? 7 : limite;
+  return Object.keys(S.validades||{})
+    .filter(n=>S.despensa&&S.despensa[n])
+    .map(n=>({n, d:validadeDe(n), dias:diasAteValidade(n)}))
+    .filter(x=>x.dias!==null && x.dias<=lim)
+    .sort((a,b)=>a.dias-b.dias);
 }
 /* Custo de uma lista de ingredientes escalada. Devolve o que sabe e quantos
    itens não têm preço — um total sem essa nota seria uma mentira arredondada. */
@@ -6391,7 +6770,8 @@ function cartaoFecho(){
          <div class="row" style="margin-top:10px"><button class="btn small" onclick="abrirPesagens()">⚖ Registar pesagens</button></div>`
       : f.passo===2? `<p class="sub">Um jantar que apeteça, para sábado da semana que vem. Sai das receitas da casa e do que mais se comeu.</p>
          <div class="row" style="margin-top:10px">${casa.map(r=>`<button class="chip ${f.especial===r.id?'on':''}"
-           onclick="setFechoCampo('especial','${r.id}');render()">${esc(r.n)}</button>`).join('')||'<span class="sub">Ainda sem histórico para sugerir.</span>'}</div>`
+           onclick="setFechoCampo('especial','${r.id}');render()">${esc(r.n)}</button>`).join('')||'<span class="sub">Ainda sem histórico para sugerir.</span>'}</div>
+         ${S.members.length>1? blocoVotacao(f,casa) : ''}`
       : f.passo===3? `<p class="sub">Preencher a semana que vem com sugestões que servem toda a gente — dietas, alergias e teto de calorias já contam.</p>
          <div class="row" style="margin-top:10px">
            <button class="btn small" onclick="shiftWeek(1);autoFill()">✨ Preencher a semana seguinte</button>
@@ -6408,6 +6788,120 @@ function cartaoFecho(){
         : `<button class="btn" onclick="passoFecho(1)">Seguinte →</button>`}
     </div>
   </div>`;
+}
+/* ===== VOTAÇÃO DO JANTAR ESPECIAL =====
+   O jantar especial já existia mas escolhia-o um adulto. Passar o telemóvel de
+   mão em mão transforma o fecho de domingo num momento de família — e a
+   escolha é real, porque os candidatos já passaram pelo crivo das alergias,
+   das dietas e do teto de calorias da mesa toda. */
+/* Candidatos: pratos que se comem ao jantar, que não são acompanhamento e que
+   servem a mesa toda. Um melão com presunto pode ser o snack favorito da casa
+   e continuar a não ser um jantar especial. */
+function candidatosVotacao(casa){
+  return casa.filter(r=>(r.mt||[]).indexOf('j')>=0 && !ehAcompanhamento(r)
+    && avaliaReceita(r, S.members, 'j', false).ok).slice(0,4);
+}
+function blocoVotacao(f,casa){
+  const v=S.ui.votacao;
+  if(!v){
+    return `<div class="row" style="margin-top:10px">
+      <button class="btn ghost small" onclick="abrirVotacao()">🗳 Pôr à votação</button>
+      <span class="sub">Passa o telemóvel: cada um toca no seu avatar e no prato.</span></div>`;
+  }
+  const cands=v.cands.map(id=>RECIPES.find(r=>r.id===id)).filter(Boolean);
+  const votos={}; Object.keys(v.votos||{}).forEach(mid=>{ const r=v.votos[mid];
+    (votos[r]=votos[r]||[]).push(mid); });
+  const faltam=S.members.filter(m=>!(v.votos||{})[m.id]);
+  return `<div style="margin-top:12px;border-top:1px solid var(--line);padding-top:10px">
+    <div class="splabel"><span>Votação ${dica('votacao')}</span>
+      <output>${Object.keys(v.votos||{}).length} de ${S.members.length}</output></div>
+    ${v.quem? `<p class="sub" style="margin-top:6px">É a vez de <b>${esc((S.members.find(m=>m.id===v.quem)||{}).nome||'')}</b> — toca no prato.</p>
+      <div class="row" style="margin-top:6px">${cands.map(r=>
+        `<button class="chip" onclick="votar('${r.id}')">${esc(r.n)}</button>`).join('')}</div>`
+    : `<p class="sub" style="margin-top:6px">${faltam.length? 'Quem vota agora?' : 'Votaram todos.'}</p>
+      <div class="row" style="margin-top:6px">${faltam.map(m=>
+        `<button class="chip" onclick="vezDeVotar('${m.id}')">${avatar(m,20)} ${esc(m.nome.split(' ')[0])}</button>`).join('')}</div>`}
+    ${Object.keys(votos).length? `<div style="margin-top:10px">${cands.map(r=>{
+      const q=votos[r.id]||[];
+      return q.length? `<div class="vere-linha"><span class="vere-quem">${esc(r.n)}</span>
+        <span class="row">${q.map(mid=>{ const m=S.members.find(x=>x.id===mid); return m? avatar(m,20):''; }).join('')}
+        <b>${q.length}</b></span></div>` : '';
+    }).join('')}</div>`:''}
+    <div class="row" style="margin-top:10px">
+      ${!faltam.length? `<button class="btn small" onclick="apurarVotacao()">Apurar e marcar</button>`:''}
+      <button class="btn ghost small" onclick="fecharVotacao()">Cancelar</button>
+    </div>
+  </div>`;
+}
+function abrirVotacao(){
+  const favs=S.members.flatMap(m=>pratosFavoritos(m.id,2)).map(x=>x.r);
+  /* Primeiro o que é da casa e o que se repete; se não chegar para uma escolha
+     a sério, completa-se com o que o próprio motor de sugestões daria — um
+     boletim com um nome só não é uma votação. */
+  let pool=RECIPES.filter(r=>r.u).concat(favs).filter((v,i,a)=>a.indexOf(v)===i);
+  let cands=candidatosVotacao(pool);
+  if(cands.length<4){
+    const extra=RECIPES.filter(r=>!r.u && cands.indexOf(r)<0)
+      .filter(r=>(r.mt||[]).indexOf('j')>=0 && !ehAcompanhamento(r)
+        && avaliaReceita(r, S.members, 'j', false).ok)
+      .sort((a,b)=>(receitaDaEpoca(b)?1:0)-(receitaDaEpoca(a)?1:0)
+        || pesoVeredicto(b)-pesoVeredicto(a)
+        || a.n.localeCompare(b.n,'pt'));
+    cands=cands.concat(extra.slice(0,4-cands.length));
+  }
+  if(cands.length<2) return flash('warn','Ainda não há pratos de jantar que sirvam a mesa toda — vale a pena rever as alergias e as dietas.');
+  S.ui.votacao={cands:cands.map(r=>r.id), votos:{}, quem:null};
+  saveMeta(); render();
+}
+function vezDeVotar(mid){ if(!S.ui.votacao) return; S.ui.votacao.quem=mid; saveMeta(); render(); }
+function votar(rid){
+  const v=S.ui.votacao; if(!v||!v.quem) return;
+  v.votos[v.quem]=rid; v.quem=null;
+  saveMeta(); render();
+}
+function fecharVotacao(){ S.ui.votacao=null; saveMeta(); render(); }
+/* Em empate ganha quem não venceu da última vez: sem isso, o mesmo prato
+   ganharia sempre que houvesse o mesmo número de votos, e a votação deixava
+   de ser uma votação. */
+function apurarVotacao(){
+  const v=S.ui.votacao; if(!v) return;
+  const cont={}; Object.values(v.votos||{}).forEach(r=>{ cont[r]=(cont[r]||0)+1; });
+  const pares=Object.entries(cont).sort((a,b)=>b[1]-a[1]);
+  if(!pares.length) return flash('warn','Ainda ninguém votou.');
+  const maxV=pares[0][1];
+  const empatados=pares.filter(p=>p[1]===maxV).map(p=>p[0]);
+  const ultimo=(S.casa||{}).ultimoEspecial;
+  const vencedor = empatados.length>1
+    ? (empatados.find(id=>id!==ultimo) || empatados[0])
+    : empatados[0];
+  setFechoCampo('especial', vencedor);
+  if(!S.casa||typeof S.casa!=='object') S.casa={nome:'',lema:'',orcamento:0,vezPtr:0};
+  S.casa.ultimoEspecial=vencedor;
+  S.ui.votacao=null;
+  const rec=RECIPES.find(r=>r.id===vencedor);
+  save('votação do jantar especial');
+  flash('ok','Ganhou '+(rec?rec.n:'o prato')+' com '+plural(maxV,'voto','votos')
+    +(empatados.length>1? ' — em empate, ganhou quem não venceu da última vez.' : '.'));
+  render();
+}
+/* ===== A VEZ DE ESCOLHER =====
+   Diferente da votação, que é uma decisão coletiva pontual: isto é um turno
+   garantido, e turno é justiça que as crianças percebem. Bebés e convidados
+   ficam de fora — não escolhem jantares. */
+function quemEscolheEstaSemana(){
+  const eleg=S.members.filter(m=>faseDe(m)!=='bebe');
+  if(eleg.length<2) return null;
+  const semanas=Math.round(diasEntre(mondayISO(new Date(S.meta.desdeRegisto||hojeISO())), S.week)/7);
+  const ptr=((S.casa||{}).vezPtr||0)+ (isFinite(semanas)? semanas : 0);
+  return eleg[((ptr%eleg.length)+eleg.length)%eleg.length];
+}
+function passarAVez(){
+  if(!S.casa||typeof S.casa!=='object') S.casa={nome:'',lema:'',orcamento:0,vezPtr:0};
+  S.casa.vezPtr=((S.casa.vezPtr||0)+1)%99;
+  save('trocar a vez de escolher');
+  const m=quemEscolheEstaSemana();
+  flash('ok', m? 'Agora é a vez de '+esc(m.nome.split(' ')[0])+'.' : 'Vez trocada.');
+  render();
 }
 function cartaoDiario(){
   const d=(S.diario||[]).slice().reverse().slice(0,8);
@@ -6606,6 +7100,23 @@ function descobertas(m){
   /* 5. cumprir mais está a mexer no peso? — só como associação */
   const cmp=comparaSemanas(m);
   if(cmp) out.push({tipo:'compara', peso:0.4, texto:cmp.texto, accao:'Ver o histórico', fn:"abrirHistRef('"+m.id+"')", nota:cmp.nota});
+  /* 6. o que foi para o lixo — é da casa, não da pessoa, mas é aqui que se lê */
+  const desp=resumoDesperdicio(30);
+  if(desp && desp.n>=2){
+    out.push({tipo:'desperdicio', peso:0.55,
+      texto:'Este mês '+plural(desp.n,'sobra foi para o lixo','sobras foram para o lixo')
+        +(desp.euros>0? ', cerca de '+nPT(desp.euros,2)+' €':'')
+        +(desp.topDia? ' — quase sempre '+(desp.topDia[0]==='Sáb'||desp.topDia[0]==='Dom'?'ao ':'à ')+desp.topDia[0].toLowerCase()+'.':'.'),
+      accao:'Cozinhar a dobrar com congelador', fn:"go('plano')",
+      nota: desp.semPreco? plural(desp.semPreco,'sobra ficou de fora da conta por não ter preços','sobras ficaram de fora da conta por não terem preços')+'.' : null});
+  }
+  /* 7. fibra abaixo da referência da EFSA, à média da semana */
+  const fm=fibraMedia(m.id,7), alvoF=alvoFibra(m);
+  if(fm && fm.dias>=4 && alvoF && fm.media<alvoF*0.8){
+    out.push({tipo:'fibra', peso:0.6,
+      texto:'A fibra ficou nos '+nPT(fm.media,1)+' g por dia, abaixo dos '+alvoF+' g da referência da EFSA.',
+      accao:'Ver receitas com leguminosas', fn:"go('receitas')"});
+  }
   return out.sort((a,b)=>b.peso-a.peso).slice(0,4);
 }
 /* Semanas lado a lado: divide as últimas semanas pela mediana de aderência e
@@ -6987,6 +7498,41 @@ function encaixaNoPrep(r,tarefas){
   (r.i||[]).forEach(l=>PREPS.forEach(p=>{ if(p.re.test(l[0]) && chaves.has(p.k+'|'+l[0])) n++; }));
   return n;
 }
+/* Uma receita que gasta o que está prestes a acabar vale mais do que uma que
+   manda comprar coisa nova. Quanto mais perto da data, mais peso — e quem já
+   passou pesa como se fosse hoje, porque é agora ou nunca. */
+function usaOQueVaiAcabar(r){
+  const urgentes=comerPrimeiro(5); if(!urgentes.length) return 0;
+  let peso=0;
+  (r.i||[]).forEach(l=>{ const u=urgentes.find(x=>x.n===l[0]);
+    if(u) peso += u.dias<=1? 1.5 : u.dias<=3? 1 : 0.5; });
+  return Math.min(3, peso);
+}
+/* A voz da mesa: o que a casa pediu para repetir sobe, o que disse que não é
+   para nós arrefece durante oito semanas — sem nunca desaparecer dos filtros,
+   porque um «não» de há dois meses não é uma proibição. */
+/* O custo só entra na balança quando a casa definiu um teto e a semana já lhe
+   está encostada. Uma receita barata sobe, uma cara desce — mas nunca ao ponto
+   de vencer uma alergia ou uma dieta, que são filtros e não pesos. */
+function orcamentoApertado(){
+  const orc=orcamentoSemanal(); if(!orc) return false;
+  const c=custoDaSemana(weekDates(S.week));
+  return c.total>=orc*0.85;
+}
+function pesoCusto(r){
+  const c=custoReceita(r,1);
+  if(!c || c.com===0) return 0;   /* sem preços não há juízo a fazer */
+  return c.total<=2? 1 : c.total<=3.5? 0.5 : c.total>=6? -1 : 0;
+}
+const SEMANAS_ARREFECER=8;
+function pesoVeredicto(r){
+  const lim=addDias(hojeISO(), -SEMANAS_ARREFECER*7);
+  let bom=0, mau=0;
+  (S.veredictos||[]).forEach(v=>{ if(v.r!==r.id || v.d<lim) return;
+    if(v.v==='rep') bom++; else if(v.v==='nao') mau++; });
+  if(!bom && !mau) return 0;
+  return Math.max(-3, Math.min(2, bom*0.7 - mau*1.2));
+}
 
 /* ================= REPETIR RECEITAS NA SEMANA =================
    Cozinhar uma vez e comer duas é como muitas casas funcionam. Quando a opção
@@ -7118,6 +7664,32 @@ function toggleLugar(mid){
   i>=0? f.sel.splice(i,1) : f.sel.push(mid);
   saveMeta(); render();
 }
+/* A meia dose do miúdo corrige-se aqui, dentro do gesto que já se estava a
+   fazer. Antes era preciso registar a mesa, ir ao histórico, abrir o registo,
+   arrastar um slider e gravar — seis interações para meia dose de sopa.
+   O ciclo é um alvo próprio, separado do botão da pessoa. */
+const DOSES_CICLO=[0.5,0.75,1,1.25,1.5,2];
+function cicloDose(mid,el){
+  const f=folhaMesa(); if(!f) return;
+  if(!f.doses) f.doses={};
+  const m=S.members.find(x=>x.id===mid);
+  const dia=(S.plans[mondayISO(f.d)]||{})[diaSemana(f.d)]||{};
+  const rec=RECIPES.find(x=>x.id===(dia[f.mk]||{}).r);
+  const atual = f.doses[mid]!==undefined? f.doses[mid] : (m&&rec? doseSugerida(m,rec,f.mk) : 1);
+  /* arranca no valor mais próximo do sugerido, para o primeiro toque não dar
+     um salto que ninguém pediu */
+  let i=DOSES_CICLO.reduce((melhor,v,idx)=>
+    Math.abs(v-atual)<Math.abs(DOSES_CICLO[melhor]-atual)? idx : melhor, 0);
+  i=(i+1)%DOSES_CICLO.length;
+  f.doses[mid]=DOSES_CICLO[i];
+  /* contrato de live update: muta estado e reescreve por id, sem re-render */
+  if(el) el.textContent=nPT(DOSES_CICLO[i],2).replace(',00','')+'× dose';
+  saveMeta();
+}
+function doseNaFolha(f,m,rec){
+  if(f.doses && f.doses[m.id]!==undefined) return f.doses[m.id];
+  return rec? doseSugerida(m,rec,f.mk) : 1;
+}
 function guardarFolhaMesa(){
   const f=folhaMesa(); if(!f) return;
   if(!f.sel.length){ return flash('warn','Toca em quem comeu — ou fecha a folha.'); }
@@ -7126,17 +7698,17 @@ function guardarFolhaMesa(){
   const rec=RECIPES.find(x=>x.id===meal.r);
   const porMembro={};
   f.sel.forEach(mid=>{ const m=S.members.find(x=>x.id===mid);
-    porMembro[mid]={dose: m&&rec? doseSugerida(m,rec,f.mk) : 1}; });
+    porMembro[mid]={dose: m? doseNaFolha(f,m,rec) : 1}; });
   const mids=f.sel.filter(mid=>!(S.regRef||[]).some(r=>r.mid===mid&&r.d===f.d&&r.mk===f.mk));
   if(!mids.length){ S.ui.folha=null; saveMeta(); return render(); }
   registarRefeicao({d:f.d, mk:f.mk, r:meal.r, ac:acIds(meal), dose:1, porMembro}, mids, 'feita');
   carimboAlvo='ref:'+f.d+':'+f.mk;
   save('refeição registada à mesa');
-  /* o passo seguinte natural é o tacho: pergunta-se se sobrou, em vez de
-     obrigar a ir procurar onde se aponta isso */
+  /* o passo seguinte natural é o fecho da mesa: sobrou, repete-se e quem
+     cozinhou — as três perguntas que só se respondem logo a seguir a comer */
   const podeSobrar=(f.mk==='a'||f.mk==='j') && !(S.sobras||[]).some(s=>s.d===f.d && s.r===meal.r);
-  if(podeSobrar) perguntarSobra(f.d, f.mk, meal.r, acIds(meal));
-  else { S.ui.folha=null; render(); }
+  perguntarSobra(f.d, f.mk, meal.r, acIds(meal), mids);
+  if(!podeSobrar) folhaMesa().doses=0;
   flash('ok', plural(mids.length,'pessoa registada','pessoas registadas')+' — '+esc(rec?rec.n:'refeição')+'.');
 }
 function outraCoisaNaFolha(mid){
@@ -7159,17 +7731,20 @@ function folhaMesaHtml(f){
       <div class="folha-pega" aria-hidden="true"></div>
       <span class="lbl">${nomeRefeicao(f.mk)} · ${rotuloData(f.d)}</span>
       <h2 id="fm-t" style="margin-top:2px">${esc(rec?rec.n:'Refeição')}</h2>
-      <p class="sub" style="margin-top:4px">${acs.length? 'com '+acs.map(x=>esc(x.n)).join(' + ')+' · ':''}${rec? rec.k+somaAc(acs,'k') : 0} kcal por dose. Toca em quem comeu; toque longo para «comeu outra coisa».</p>
+      <p class="sub" style="margin-top:4px">${acs.length? 'com '+acs.map(x=>esc(x.n)).join(' + ')+' · ':''}${rec? rec.k+somaAc(acs,'k') : 0} kcal por dose. Toca em quem comeu; toca na dose para a corrigir; toque longo para «comeu outra coisa».</p>
       <div class="lugares">${comem.map(m=>{
         const feito=jaFeitos.indexOf(m.id)>=0;
         const on=f.sel.indexOf(m.id)>=0;
-        const dose=rec? doseSugerida(m,rec,f.mk) : 1;
-        return `<button class="lugar ${on?'on':'off'}" ${feito?'disabled style="opacity:.5"':''}
+        const dose=doseNaFolha(f,m,rec);
+        return `<span class="lugar-grupo"><button class="lugar ${on?'on':'off'}" ${feito?'disabled style="opacity:.5"':''}
           onclick="toggleLugar('${m.id}')" oncontextmenu="event.preventDefault();outraCoisaNaFolha('${m.id}')"
           aria-pressed="${on}" aria-label="${esc(m.nome)}${feito?' — já registado':''}">
           ${avatar(m,30)}<span>${esc(m.nome.split(' ')[0])}</span>
-          <span class="sub" style="font-size:10.5px">${feito? 'já registado' : nPT(dose,2).replace(',00','')+'× dose'}</span>
-          <span class="lg-vst">${on? '✓' : ''}</span></button>`;}).join('')}</div>
+          <span class="lg-vst">${on? '✓' : ''}</span></button>
+          ${feito? `<span class="lg-dose sub">já registado</span>`
+            : `<button class="lg-dose" id="dose-${m.id}" onclick="cicloDose('${m.id}',this)"
+                aria-label="Dose de ${esc(m.nome)} — tocar para mudar">${nPT(dose,2).replace(',00','')}× dose</button>`}
+        </span>`;}).join('')}</div>
       <div class="row" style="margin-top:14px;justify-content:space-between">
         <button class="btn ghost small" onclick="fecharFolha()">Fechar</button>
         <div class="row">
@@ -7643,23 +8218,113 @@ function irHojePlano(){
 /* O que está no frigorífico e o que sai de casa amanhã: as duas tarefas
    domésticas que o plano nunca soube dizer. */
 function blocoSobrasHoje(){
-  const s=sobrasVivas(); if(!s.length) return '';
-  const h=hojeISO();
+  const s=sobrasVivas();
+  if(!s.length) return '';
   return `<div style="margin-top:10px;border-top:1px solid var(--line);padding-top:10px">
     <div class="splabel"><span>No frigorífico ${dica('sobras')}</span></div>
-    <div class="row" style="margin-top:6px">${s.map(x=>{
-      const rec=RECIPES.find(y=>y.id===x.r); if(!rec) return '';
-      const dias=prazoSobra(x.r)-diasEntre(x.d,h);
-      const m=macrosSobra(x), c=conservacaoDe(rec);
-      return `<button class="sobra-chip" onclick="comerSobra(S.ui.mid||S.members[0].id,'${x.id}')"
-        title="${esc(rec.n)}, de ${rotuloData(x.d)} — ${Math.round(m.k)} kcal por dose. ${esc(c.reaq)}"
-        aria-label="Comer ${esc(rec.n)} que sobrou de ${rotuloData(x.d)}">
-        ${ICO_GENERO[c.genero]||'🥡'} ${esc(rec.n)} · ${nPT(x.doses,2).replace(',00','')}×
-        <span class="sub" style="color:${dias<=1?'var(--warn)':'var(--mut)'}">${dias<=0?'come hoje':dias===1?'último dia':dias+' dias'}</span></button>`;
-    }).join('')}</div>
+    <div class="row" style="margin-top:6px">${s.map(x=>chipSobra(x)).join('')}</div>
     ${(function(){ const proxima=s[0], rec=proxima&&RECIPES.find(y=>y.id===proxima.r);
       return rec? `<p class="sub" style="margin-top:6px">${esc(conservacaoDe(rec).reaq)}</p>`:''; })()}
     <p class="sub" style="margin-top:6px">Um toque regista a sobra como refeição de hoje — sem cozinhar, sem comprar e com os macros já sabidos. Os prazos são por prato: o arroz é o que tem menos folga, a sopa o que tem mais.</p>
+  </div>`;
+}
+/* O congelador é o eletrodoméstico central de quem cozinha a dobrar, e a
+   tabela de conservação sempre soube quantos dias cada prato lá aguenta. */
+function blocoCongeladorHoje(){
+  const s=sobrasVivas('cong'); if(!s.length) return '';
+  return `<div style="margin-top:10px;border-top:1px solid var(--line);padding-top:10px">
+    <div class="splabel"><span>No congelador ${dica('congelador')}</span>
+      <output>${plural(s.length,'prato','pratos')}</output></div>
+    <div class="row" style="margin-top:6px">${s.map(x=>chipSobra(x)).join('')}</div>
+    <p class="sub" style="margin-top:6px">«Descongelar» devolve o prato ao frigorífico com ${DIAS_DESCONGELADO} dias de prazo —
+      comida descongelada não recupera o prazo que tinha antes de lá ir.</p>
+  </div>`;
+}
+function chipSobra(x){
+  const rec=RECIPES.find(y=>y.id===x.r); if(!rec) return '';
+  const dias=diasRestantesSobra(x);
+  const m=macrosSobra(x), c=conservacaoDe(rec), cong=x.est==='cong';
+  const doses=nPT(x.doses,2).replace(',00','');
+  const restante=cong
+    ? (dias<=7? dias+' dias' : Math.round(dias/7)+' semanas')
+    : (dias<=0?'come hoje':dias===1?'último dia':dias+' dias');
+  return `<span class="sobra-grupo">
+    <button class="sobra-chip" onclick="${cong
+        ? `descongelarSobra('${x.id}')`
+        : `comerSobra(S.ui.mid||S.members[0].id,'${x.id}')`}"
+      title="${esc(rec.n)}, de ${rotuloData(baseSobra(x))} — ${Math.round(m.k)} kcal por dose. ${esc(cong? 'Descongelar para comer nos próximos dias.' : c.reaq)}"
+      aria-label="${cong? 'Descongelar' : 'Comer'} ${esc(rec.n)} que sobrou de ${rotuloData(x.d)}">
+      ${cong? '🧊' : (ICO_GENERO[c.genero]||'🥡')} ${esc(rec.n)} · ${doses}×
+      <span class="sub" style="color:${!cong&&dias<=1?'var(--warn)':'var(--mut)'}">${restante}</span></button>
+    ${!cong && podeCongelar(x.r)
+      ? `<button class="sobra-acao" onclick="congelarSobra('${x.id}')"
+          title="Congelar — aguenta ${c.cong} dias no congelador"
+          aria-label="Congelar ${esc(rec.n)}">🧊</button>`
+      : !cong? `<span class="sobra-acao inativo" title="Este prato não congela bem" aria-hidden="true">✕</span>` : ''}
+  </span>`;
+}
+/* ===== DIÁRIO DE DESPERDÍCIO =====
+   Antes, uma sobra que passava o prazo era filtrada em silêncio e evaporava-se
+   do estado. Não se corrige o que não se vê: agora a app pergunta uma vez o
+   que lhe aconteceu, e só a resposta «lixo» conta como desperdício. */
+function blocoSobrasVencidas(){
+  const l=sobrasVencidas(); if(!l.length) return '';
+  const x=l[0], rec=RECIPES.find(y=>y.id===x.r); if(!rec) return '';
+  return `<div style="margin-top:10px;border-top:1px solid var(--line);padding-top:10px">
+    <div class="splabel"><span>Uma pergunta rápida ${dica('desperdicio')}</span></div>
+    <p class="sub" style="margin-top:6px"><b>${esc(rec.n)}</b>, de ${rotuloData(x.d)}
+      (${nPT(x.doses,2).replace(',00','')}×): passou o prazo. O que lhe aconteceu?</p>
+    <div class="row" style="margin-top:8px">
+      <button class="chip" onclick="destinoSobra('${x.id}','comeu')">Comeu-se</button>
+      <button class="chip" onclick="destinoSobra('${x.id}','cong')">Foi congelada</button>
+      <button class="chip" onclick="destinoSobra('${x.id}','lixo')">Foi para o lixo</button>
+    </div>
+    ${l.length>1? `<p class="sub" style="margin-top:6px">Há mais ${plural(l.length-1,'sobra à espera de resposta','sobras à espera de resposta')}.</p>`:''}
+  </div>`;
+}
+function destinoSobra(id,destino){
+  const s=(S.sobras||[]).find(x=>x.id===id); if(!s) return;
+  if(!Array.isArray(S.desperdicio)) S.desperdicio=[];
+  S.desperdicio.push({d:hojeISO(), r:s.r, doses:s.doses, destino});
+  S.sobras=S.sobras.filter(x=>x.id!==id);
+  const rec=RECIPES.find(x=>x.id===s.r);
+  save('destino da sobra');
+  flash(destino==='lixo'?'warn':'ok', destino==='lixo'
+    ? 'Anotado. '+(rec?rec.n:'A sobra')+' foi para o lixo — fica no diário de desperdício, sem sermão.'
+    : 'Anotado, obrigado. '+(rec?rec.n:'A sobra')+' não se perdeu.');
+  render();
+}
+/* O espelho: o que foi para o lixo nos últimos 30 dias, em doses e — quando há
+   preços — em euros. O padrão do dia da semana é o que mais muda hábitos. */
+function resumoDesperdicio(dias){
+  const h=hojeISO(), lim=addDias(h,-(dias||30));
+  const lixo=(S.desperdicio||[]).filter(x=>x.destino==='lixo' && x.d>=lim);
+  if(!lixo.length) return null;
+  let euros=0, semPreco=0;
+  const porDia={}, porReceita={};
+  lixo.forEach(x=>{
+    const rec=RECIPES.find(y=>y.id===x.r);
+    const c=rec? custoReceita(rec,1) : null;
+    if(c && c.sem===0) euros+=c.total*x.doses; else semPreco++;
+    const ds=nomeDiaCurto(x.d); porDia[ds]=(porDia[ds]||0)+1;
+    if(rec) porReceita[rec.n]=(porReceita[rec.n]||0)+1;
+  });
+  const topDia=Object.entries(porDia).sort((a,b)=>b[1]-a[1])[0];
+  const topRec=Object.entries(porReceita).sort((a,b)=>b[1]-a[1])[0];
+  return {n:lixo.length, doses:lixo.reduce((t,x)=>t+x.doses,0), euros, semPreco,
+    topDia: topDia&&topDia[1]>=2? topDia : null, topRec: topRec&&topRec[1]>=2? topRec : null};
+}
+/* O que está prestes a acabar. A ordem é a única coisa que a app decide aqui;
+   a data veio da embalagem e o julgamento é de quem abre o frigorífico. */
+function blocoComerPrimeiro(){
+  const l=comerPrimeiro(5); if(!l.length) return '';
+  return `<div style="margin-top:10px;border-top:1px solid var(--line);padding-top:10px">
+    <div class="splabel"><span>Comer primeiro ${dica('validades')}</span>
+      <output>${plural(l.length,'item','itens')}</output></div>
+    <div class="row" style="margin-top:6px">${l.slice(0,6).map(x=>
+      `<span class="tag ${classeValidade(x.dias)}" title="Validade: ${rotuloData(x.d)}">${esc(x.n)} · ${rotuloValidade(x.dias)}</span>`).join('')}</div>
+    <p class="sub" style="margin-top:6px">Datas escritas por ti a partir das embalagens.
+      As sugestões de receitas dão vantagem a quem use estes ingredientes.</p>
   </div>`;
 }
 function blocoMarmitasHoje(){
@@ -7726,6 +8391,9 @@ function cartaoHoje(){
       <span class="sub">${plural(fecho.total,'coisa por confirmar','coisas por confirmar')} — um toque fecha o dia. Desfaz-se num passo.</span>
     </div>`:''}
     ${blocoSobrasHoje()}
+    ${blocoCongeladorHoje()}
+    ${blocoSobrasVencidas()}
+    ${blocoComerPrimeiro()}
     ${blocoMarmitasHoje()}
     ${blocoFestas()}
     ${(function(){ const mem=memoriaDoDia();
@@ -10018,6 +10686,54 @@ function resumoRef(m,dias){
     media: comDados? Math.round(k/comDados) : 0, mediaAlvo: comDados? Math.round(alvo/comDados) : 0,
     c:Math.round(c), p:Math.round(p), f:Math.round(fg)};
 }
+/* ---- Fibra e hortofrutícolas ----
+   Dois números que a app sempre teve nos ingredientes e nunca somava. As duas
+   referências são oficiais e estão citadas à vista: a EFSA para a fibra, a OMS
+   para os 400 g. O julgamento é semanal de propósito — um dia de sopa e outro
+   de bife não são um problema, a média é que conta. */
+function cartaoFibra(m){
+  const alvoF=alvoFibra(m), fm=fibraMedia(m.id,7);
+  const h=hojeISO();
+  let hfSoma=0, hfDias=0;
+  for(let i=0;i<7;i++){ const d=addDias(h,-i);
+    if(!regRefDe(m.id).some(r=>r.d===d&&r.estado==='feita')) continue;
+    hfSoma+=hortofruticolasDia(m.id,d); hfDias++; }
+  const hfMedia=hfDias? hfSoma/hfDias : 0;
+  const plantas=plantasDaSemana(m.id,7);
+  if(!fm && !hfDias) return '';
+  const fPct=alvoF? Math.min(100, fm.media/alvoF*100) : 0;
+  const hPct=Math.min(100, hfMedia/OMS_HORTOFRUTICOLAS*100);
+  const fOk=alvoF && fm && fm.media>=alvoF, hOk=hfMedia>=OMS_HORTOFRUTICOLAS;
+  return `<div class="card" data-col="nu-fibra" style="margin-top:16px">
+    <h2>Fibra e hortofrutícolas — média de 7 dias ${dica('fibra')}</h2>
+    ${fm? `<div style="margin-top:12px">
+      <div class="splabel"><span>Fibra ${alvoF? '· referência '+alvoF+' g/dia':''}</span>
+        <output>${nPT(fm.media,1)} g/dia</output></div>
+      <div class="mbar" style="height:12px"><div style="width:${fPct.toFixed(1)}%;background:${fOk?'var(--ok)':'var(--warn)'}"></div></div>
+      <p class="sub" style="margin-top:6px">${alvoF
+        ? (fOk? '✓ Acima da referência, na média dos '+plural(fm.dias,'dia com registo','dias com registo')+'.'
+              : '↑ Faltam '+nPT(Math.max(0,alvoF-fm.media),1)+' g por dia para lá chegar. Leguminosas, sopa, fruta com casca e pão escuro são o caminho mais curto.')
+        : 'Sem referência oficial para esta idade — fica o número, sem veredicto.'}</p>
+    </div>`:''}
+    ${hfDias? `<div style="margin-top:14px">
+      <div class="splabel"><span>Fruta e hortícolas · recomendação ${OMS_HORTOFRUTICOLAS} g/dia</span>
+        <output>${Math.round(hfMedia)} g/dia</output></div>
+      <div class="mbar" style="height:12px"><div style="width:${hPct.toFixed(1)}%;background:${hOk?'var(--ok)':'var(--warn)'}"></div></div>
+      <p class="sub" style="margin-top:6px">${hOk? '✓ Acima dos '+OMS_HORTOFRUTICOLAS+' g.' : '↑ Faltam '+Math.round(OMS_HORTOFRUTICOLAS-hfMedia)+' g por dia.'}
+        A batata e outras raízes ricas em amido não entram nesta conta — é a própria OMS que as exclui.</p>
+    </div>`:''}
+    ${plantas.length? `<div style="margin-top:14px">
+      <div class="splabel"><span>Plantas diferentes esta semana</span><output>${plantas.length}</output></div>
+      <div class="row" style="margin-top:6px">${plantas.slice(0,14).map(p=>`<span class="tag">${esc(p)}</span>`).join('')}
+        ${plantas.length>14? `<span class="sub">+${plantas.length-14}</span>`:''}</div>
+      <p class="sub" style="margin-top:6px">Contagem de variedade, sem meta oficial por trás: legumes, fruta, leguminosas,
+        frutos de casca rija e sementes que passaram pela mesa. Serve para ver se sobe, não para dar nota.</p>
+    </div>`:''}
+    <p class="sub" style="margin-top:12px"><i>Fibra: Ingestão Adequada da EFSA (2010) — 25 g/dia no adulto,
+      2 g por MJ na criança. Fruta e hortícolas: recomendação da OMS de pelo menos 400 g/dia.
+      São referências de população saudável, não conselho clínico.</i></p>
+  </div>`;
+}
 function cartaoGraficoRef(m){
   if(!regRefDe(m.id).length) return `<div class="card" data-col="nu-historico">
     <h2>Alimentação passada</h2>
@@ -10211,6 +10927,7 @@ function renderNutricao(){
     </div>`}
   </div>
   ${definido? cartaoGraficoRef(m) : ''}
+  ${definido? cartaoFibra(m) : ''}
   ${definido? `<div class="grid g2" style="margin-top:16px">${cartaoDescobertas(m)}${cartaoPassaporte(m)}</div>` : ''}
   ${cartaoFase(m)}
   <div class="row" style="margin-top:16px">
@@ -10984,7 +11701,12 @@ function sugestoes(){
   const alvo=membros.filter(contaTeto).map(m=>targetKcal(m)*fatiaRefeicao(mk));
   const medio=alvo.length? alvo.reduce((t,x)=>t+x,0)/alvo.length : 0;
   const prep=querPrep()? planoFoodPrep() : [];
-  const bonus=r=>(receitaDaEpoca(r)?2:0)+pesoGenero(r,mk)+Math.min(2,encaixaNoPrep(r,prep)*0.5);
+  /* Com o orçamento apertado, o custo por dose entra na balança. Só quando há
+     teto definido e só a partir dos 85% — abaixo disso, mandar poupar seria
+     resolver um problema que a casa não tem. */
+  const aperta=orcamentoApertado();
+  const bonus=r=>(receitaDaEpoca(r)?2:0)+pesoGenero(r,mk)+Math.min(2,encaixaNoPrep(r,prep)*0.5)
+    +usaOQueVaiAcabar(r)+pesoVeredicto(r)+(aperta? pesoCusto(r) : 0);
   ok.sort((a,b)=>{
     const da=disponibilidadeReceita(a), db=disponibilidadeReceita(b);
     if(da.pronta!==db.pronta) return da.pronta? -1:1;
@@ -11301,6 +12023,127 @@ function reguaDias(dates){
 }
 /* Resumo «semana em números»: uma linha por membro, kcal planeadas por dia vs
    a linha do alvo — a mesma assinatura tracejada da barra da Atividade. */
+/* ================= EQUILÍBRIO DA SEMANA =================
+   A app sempre julgou cada refeição contra um teto diário, mas o equilíbrio de
+   uma casa faz-se à semana: é isso que tira o peso a um cheat day, a um
+   aniversário ou a um jantar fora. O único total semanal que existia era o do
+   desporto — este é o da comida planeada. */
+function equilibrioSemana(m,dates){
+  let planeado=0, alvo=0, diasComPlano=0, cheats=0;
+  dates.forEach((date,di)=>{
+    const e=estadoDia(m,di,dates);
+    if(e.st==='cheat'){ cheats++; alvo+=alvoDoDia(m,date); return; }
+    alvo+=alvoDoDia(m,date);
+    if(e.refs){ planeado+=e.kcal; diasComPlano++; }
+  });
+  return {planeado, alvo, diasComPlano, cheats,
+    desvio: alvo>0? (planeado-alvo)/alvo : 0};
+}
+/* Quanto custa a semana em tinta, contra o teto que a casa definiu. Herda a
+   honestidade do talão previsto: diz sempre quantos itens ficaram sem preço. */
+function custoDaSemana(dates){
+  let total=0, sem=0, com=0;
+  dates.forEach((date,di)=>{
+    MEALK.forEach(mk=>{
+      const meal=(planWeek()[di]||{})[mk]; if(!meal||!meal.r) return;
+      const rec=RECIPES.find(x=>x.id===meal.r); if(!rec) return;
+      const comem=S.members.filter(x=>(meal.m||[]).includes(x.id)&&!isCheat(x.id,date)).length;
+      if(!comem) return;
+      const c=custoReceita(rec,comem);
+      if(c){ total+=c.total; sem+=c.sem; com+=c.com; }
+    });
+  });
+  return {total, sem, com};
+}
+function orcamentoSemanal(){ const o=parseFloat((S.casa||{}).orcamento); return isFinite(o)&&o>0? o : 0; }
+/* A conversa que a despensa, o plano e a lista já têm entre si nos cálculos,
+   posta à vista: dá para cozinhar a semana ou é preciso ir às compras? */
+function coberturaDespensa(dates){
+  const precisa={};
+  dates.forEach((date,di)=>{
+    MEALK.forEach(mk=>{
+      const meal=(planWeek()[di]||{})[mk]; if(!meal||!meal.r) return;
+      const rec=RECIPES.find(x=>x.id===meal.r); if(!rec) return;
+      if(!S.members.some(x=>(meal.m||[]).includes(x.id)&&!isCheat(x.id,date))) return;
+      (rec.i||[]).forEach(l=>{ precisa[l[0]]=1; });
+      acompsDe(meal).forEach(a=>(a.i||[]).forEach(l=>{ precisa[l[0]]=1; }));
+    });
+  });
+  const nomes=Object.keys(precisa);
+  if(!nomes.length) return null;
+  const naLista=new Set(shoppingItems().items.map(x=>x.n));
+  let tem=0, lista=0, falta=0;
+  nomes.forEach(n=>{ if(temNaDespensa(n)) tem++; else if(naLista.has(n)) lista++; else falta++; });
+  return {total:nomes.length, tem, lista, falta};
+}
+function cartaoEquilibrio(dates){
+  const orc=orcamentoSemanal();
+  const cob=coberturaDespensa(dates);
+  const temPlano=S.members.some(m=>equilibrioSemana(m,dates).diasComPlano>0);
+  if(!temPlano) return '';
+  const custo=custoDaSemana(dates);
+  return `<div class="card" id="pla-equilibrio" style="margin-bottom:16px" data-col="pla-equilibrio">
+    <h2>Equilíbrio da semana ${dica('equilibrio')}</h2>
+    <p class="sub" style="margin-top:4px">O equilíbrio faz-se à semana, não ao dia — é por isso que um cheat day não estraga nada.</p>
+    ${(function(){ const q=quemEscolheEstaSemana(); return q? `
+      <div class="row" style="margin-top:10px;padding:8px 10px;border:1px dashed var(--line);border-radius:var(--r-sm)">
+        ${avatar(q,24)}<span>Esta semana é a vez de <b>${esc(q.nome.split(' ')[0])}</b> escolher um jantar ${dica('vez')}</span>
+        <button class="chip" style="margin-left:auto" onclick="passarAVez()">Trocar a vez</button>
+      </div>`:''; })()}
+    ${S.members.map(m=>{
+      const e=equilibrioSemana(m,dates);
+      if(!e.diasComPlano) return '';
+      const pct=e.alvo>0? Math.min(140, e.planeado/e.alvo*100) : 0;
+      const dv=Math.round(e.desvio*100);
+      const tone=Math.abs(dv)<=8?'ok':Math.abs(dv)<=18?'warn':'bad';
+      return `<div style="margin-top:12px">
+        <div class="splabel"><span>${avatar(m,20)} ${esc(m.nome.split(' ')[0])}
+          ${e.cheats? `<span class="sub">· ${plural(e.cheats,'cheat day','cheat days')}</span>`:''}</span>
+          <output id="eq-out-${m.id}">${Math.round(e.planeado)} de ${Math.round(e.alvo)} kcal</output></div>
+        <div class="mbar" style="height:12px"><div id="eq-bar-${m.id}" style="width:${Math.min(100,pct).toFixed(1)}%;background:var(--${tone==='ok'?'ok':tone==='warn'?'warn':'bad'})"></div></div>
+        <p class="sub" style="margin-top:4px">${e.diasComPlano<7? plural(7-e.diasComPlano,'dia ainda por planear','dias ainda por planear')+' · ' : ''}${
+          dv===0? 'em cima do alvo da semana.' : dv>0? '+'+dv+'% acima do alvo da semana.' : dv+'% abaixo do alvo da semana.'}</p>
+      </div>`;
+    }).join('')}
+    ${cob? `<div style="margin-top:16px;border-top:1px solid var(--line);padding-top:12px">
+      <div class="splabel"><span>A despensa cobre a semana? ${dica('cobertura')}</span>
+        <output>${cob.tem} de ${cob.total} ingredientes</output></div>
+      <div class="barra-cobertura" role="img" aria-label="${cob.tem} ingredientes na despensa, ${cob.lista} na lista de compras, ${cob.falta} em falta">
+        ${cob.tem? `<span class="cob cob-tem" style="width:${(cob.tem/cob.total*100).toFixed(1)}%"></span>`:''}
+        ${cob.lista? `<span class="cob cob-lista" style="width:${(cob.lista/cob.total*100).toFixed(1)}%"></span>`:''}
+        ${cob.falta? `<span class="cob cob-falta" style="width:${(cob.falta/cob.total*100).toFixed(1)}%"></span>`:''}
+      </div>
+      <div class="mleg" style="margin-top:6px">
+        <span><i class="dot" style="background:var(--ok)"></i>${cob.tem} na despensa</span>
+        <span><i class="dot" style="background:var(--accent)"></i>${cob.lista} na lista</span>
+        ${cob.falta? `<span><i class="dot" style="background:var(--warn)"></i>${cob.falta} sem sítio</span>`:''}
+      </div>
+      ${cob.falta? `<div class="row" style="margin-top:8px">
+        <button class="btn ghost small" onclick="go('mercearia')">Ver o que falta na lista →</button></div>`:''}
+    </div>`:''}
+    <div style="margin-top:16px;border-top:1px solid var(--line);padding-top:12px">
+      <div class="splabel"><span>Orçamento da semana ${dica('orcamento')}</span>
+        <output>${custo.total>0? nPT(custo.total,2)+' €' : 'sem preços'}</output></div>
+      ${orc? `<div class="mbar" style="height:12px;margin-top:4px"><div style="width:${Math.min(100,custo.total/orc*100).toFixed(1)}%;background:var(--${custo.total>orc?'bad':custo.total>orc*0.85?'warn':'ok'})"></div></div>
+        <p class="sub" style="margin-top:4px">${nPT(custo.total,2)} € de ${nPT(orc,2)} €.
+          ${custo.total>orc? 'Já passou o teto.' : custo.total>orc*0.85? 'Perto do teto — as sugestões passam a pesar o custo por dose.' : ''}
+          ${custo.sem? plural(custo.sem,'ingrediente sem preço','ingredientes sem preço')+' — a conta é por baixo. <button class="chip" onclick="irPorPrecos()">Pôr preços</button>' : ''}</p>`
+      : `<p class="sub" style="margin-top:4px">Sem teto definido. ${custo.sem? plural(custo.sem,'ingrediente sem preço','ingredientes sem preço')+'. ':''}
+          <button class="chip" onclick="pedirOrcamento()">Definir um orçamento semanal</button></p>`}
+    </div>
+  </div>`;
+}
+function pedirOrcamento(){
+  const v=prompt('Orçamento semanal para a comida, em euros (deixa vazio para tirar):',
+    orcamentoSemanal()||'');
+  if(v===null) return;
+  if(!S.casa||typeof S.casa!=='object') S.casa={nome:'',lema:'',orcamento:0,vezPtr:0};
+  const n=parseFloat(String(v).replace(',','.'));
+  S.casa.orcamento = isFinite(n)&&n>0? Math.min(9999,Math.round(n*100)/100) : 0;
+  save('orçamento da semana');
+  flash('ok', S.casa.orcamento? 'Orçamento de '+nPT(S.casa.orcamento,2)+' € por semana. Acima de 85% do teto, as sugestões passam a pesar o custo.' : 'Orçamento removido.');
+  render();
+}
 function cartaoSemana(dates){
   const INICIAIS=['S','T','Q','Q','S','S','D'];
   return `<div class="card card--capa" id="pla-resumo" style="margin-bottom:16px" data-col="pla-resumo-card">
@@ -11654,6 +12497,7 @@ function renderPlano(){
   ${cartaoLote()}
   ${cartaoPartilhaRef()}
   ${cartaoSugestoes()}
+  ${cartaoEquilibrio(dates)}
   ${cartaoSemana(dates)}
   ${reguaDias(dates)}
   <div class="grid gdias">
@@ -11920,6 +12764,8 @@ function setAlergDesp(v){ S.ui.alergDesp=ehAlergenio(v)? v:''; saveMeta(); rende
 function togglePrecos(){ S.ui.precos=!S.ui.precos; saveMeta(); render(); }
 function irPorPrecos(){ S.ui.precos=true; go('despensa'); }
 function guardarPreco(nome,v){ setPreco(nome,v); save('preço de '+nome); }
+function guardarValidade(nome,v){ setValidade(nome,v); save('validade de '+nome); render(); }
+function toggleValidades(){ S.ui.validades=!S.ui.validades; saveMeta(); render(); }
 /* Os alergénios que os membros da casa têm marcados: são estes que valem a
    pena assinalar em cada ingrediente da despensa, e não os catorze todos. */
 function alergiasDaCasa(){
@@ -12044,6 +12890,7 @@ function renderDespensa(){
       <span class="sub">${tem} de ${catalogo.length} itens marcados como disponíveis</span></div>
     <div class="row">
       <button class="chip ${S.ui.precos?'on':''}" onclick="togglePrecos()" aria-pressed="${!!S.ui.precos}">💶 Preços</button>
+      <button class="chip ${S.ui.validades?'on':''}" onclick="toggleValidades()" aria-pressed="${!!S.ui.validades}">📅 Validades</button>
       <button class="btn ghost small" onclick="marcarTodaDespensa()">Marcar tudo</button>
       <button class="btn danger small" onclick="limparDespensa()">Esvaziar</button>
     </div></div>
@@ -12052,6 +12899,14 @@ function renderDespensa(){
     <p class="sub" style="margin-top:4px">Escreve o preço a que costumas comprar cada coisa — €/kg para o que se pesa, €/L para o que se mede, €/unidade para o resto. A app usa-os para estimar o custo de cada receita, da semana e da lista de compras. <b>Nunca inventa um preço</b>: o que não estiver aqui aparece como «faltam N».
       ${(function(){ const n=Object.keys(S.precos||{}).length;
         return n? '<br>Já tens '+plural(n,'preço guardado','preços guardados')+'.' : ''; })()}</p>
+  </div>`:''}
+  ${S.ui.validades? `<div class="card" style="max-width:640px;margin-bottom:12px">
+    <h3>Validades ${dica('validades')}</h3>
+    <p class="sub" style="margin-top:4px">Escreve a data que vem impressa na embalagem. <b>A app nunca inventa um prazo</b> —
+      limita-se a pôr à frente o que está mais perto de acabar, no cartão «Hoje» e na Mercearia, e a dar vantagem
+      nas sugestões às receitas que o usem.
+      ${(function(){ const n=Object.keys(S.validades||{}).length;
+        return n? '<br>Já tens '+plural(n,'validade escrita','validades escritas')+'.' : ''; })()}</p>
   </div>`:''}
   <div class="row" style="margin:10px 0 14px">
     <input type="text" placeholder="Procurar ingrediente ou suplemento…" class="busca" aria-label="Procurar na despensa" oninput="filtrarDespensa(this)">
@@ -12072,12 +12927,18 @@ function renderDespensa(){
         const al=atributosIng(nome).filter(t=>daCasa.indexOf(t)>=0);
         const p=precoDe(nome), un=unidadeDe(nome);
         const rot = un==='g'? '€/kg' : un==='ml'? '€/L' : '€/'+un;
+        const val=validadeDe(nome), dv=val? diasAteValidade(nome) : null;
         return `<li class="${ok?'done':''}"><label><input type="checkbox" ${ok?'checked':''} onchange="toggleDespensaIdx(${i})">
           <span>${esc(nome)}${al.length? ' '+al.map(t=>`<span class="tag alerg" title="${esc(RESTR[t].n)}">${RESTR[t].i}</span>`).join(''):''}${
-            daEpoca(nome)? ' <span class="tag epoca">🌱</span>':''}</span></label>${
+            daEpoca(nome)? ' <span class="tag epoca">🌱</span>':''}${
+            val&&!S.ui.validades? ` <span class="tag ${classeValidade(dv)}" title="Validade: ${rotuloData(val)}">${rotuloValidade(dv)}</span>`:''}</span></label>${
           S.ui.precos? `<span class="preco"><input type="number" min="0" step="0.01" inputmode="decimal"
             value="${p? p.v : ''}" placeholder="—" aria-label="Preço de ${esc(nome)} em ${rot}"
-            onchange="guardarPreco('${esc(nome).replace(/'/g,'&#39;')}',this.value)"><span class="sub">${rot}</span></span>`:''}</li>`;
+            onchange="guardarPreco('${esc(nome).replace(/'/g,'&#39;')}',this.value)"><span class="sub">${rot}</span></span>`:''}${
+          S.ui.validades? `<span class="preco"><input type="date" max="${iso(new Date(Date.now()+5*365*24*3600*1000))}"
+            value="${val||''}" aria-label="Validade de ${esc(nome)}"
+            onchange="guardarValidade('${esc(nome).replace(/'/g,'&#39;')}',this.value)">${
+            dv!==null? `<span class="sub ${classeValidade(dv)}">${rotuloValidade(dv)}</span>`:''}</span>`:''}</li>`;
       }).join('')}</ul>`).join('')}
     </div>
   </div>
@@ -12173,7 +13034,8 @@ function pacote(){
   dados:{members:S.members, cheats:S.cheats, plans:S.plans, bought:S.bought,
          prefCuisine:S.prefCuisine, week:S.week, objetivos:S.objetivos, despensa:S.despensa,
          receitas:S.receitas, medicoes:S.medicoes, regAtiv:S.regAtiv, regRef:S.regRef,
-         sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa, pausas:S.pausas, diario:S.diario, cozPref:S.cozPref}}; }
+         sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa, pausas:S.pausas, diario:S.diario, cozPref:S.cozPref,
+         validades:S.validades, veredictos:S.veredictos, brigada:S.brigada, desperdicio:S.desperdicio}}; }
 function textoCopia(){ return JSON.stringify(pacote(),null,2); }
 function marcarExportado(){ S.meta.exportadoEm=new Date().toISOString(); S.meta.semCopia=false; saveMeta(); }
 function nomeFicheiro(){ return 'familia-fit-'+iso(new Date())+'.json'; }
@@ -12418,8 +13280,18 @@ function lerPacote(txt){
   const pausas=limparPausas(d.pausas, idsOk.concat(['casa']));
   const diario=limparDiario(d.diario, idsOk);
   const cozPref=limparCozPref(d.cozPref);
+  /* As estruturas novas passam pelo mesmo crivo das antigas: datas verificadas,
+     ids remapeados para os perfis que sobreviveram à importação, e receitas
+     que têm mesmo de existir deste lado. */
+  const validades=limparValidades(d.validades);
+  const veredictos=limparVeredictos((Array.isArray(d.veredictos)? d.veredictos:[]).map(remapa), idsOk)
+    .filter(v=>acha(v.r));
+  const brigada=limparBrigada((Array.isArray(d.brigada)? d.brigada:[]).map(remapa), idsOk)
+    .filter(b=>acha(b.r));
+  const desperdicio=limparDesperdicio(d.desperdicio).filter(x=>acha(x.r));
   return {d:{ members, cheats, plans, bought, objetivos, despensa, receitas,
               medicoes, regAtiv, regRef, sobras, precos, festas, casa, pausas, diario, cozPref,
+              validades, veredictos, brigada, desperdicio,
               prefCuisine:temChave(CUIS,d.prefCuisine)?d.prefCuisine:'todas',
               week:dataValida(d.week)? mondayISO(new Date(d.week+'T12:00:00')) : mondayISO(new Date()) }};
 }
@@ -12513,6 +13385,30 @@ function juntar(txt){
     if(S.regRef.some(x=>x.id===r.id)) return;
     if(S.regRef.some(x=>x.mid===r.mid&&x.d===r.d&&x.mk===r.mk)) return;
     S.regRef.push(r); registos++;
+  });
+  /* As estruturas novas juntam-se pela mesma regra das antigas: chave natural,
+     e o que já cá está ganha. Uma validade escrita neste dispositivo não é
+     substituída pela da cópia — quem tem a embalagem à frente é quem cá está. */
+  if(!S.validades||typeof S.validades!=='object') S.validades={};
+  Object.keys(d.validades||{}).forEach(k=>{ if(!S.validades[k]) S.validades[k]=d.validades[k]; });
+  if(!Array.isArray(S.veredictos)) S.veredictos=[];
+  (d.veredictos||[]).forEach(v0=>{
+    const v=Object.assign({},v0,{mid:mapa[v0.mid]||v0.mid});
+    if(!S.members.some(m=>m.id===v.mid)) return;
+    if(S.veredictos.some(x=>x.d===v.d&&x.mk===v.mk&&x.mid===v.mid)) return;
+    S.veredictos.push(v);
+  });
+  if(!Array.isArray(S.brigada)) S.brigada=[];
+  (d.brigada||[]).forEach(b0=>{
+    const b=Object.assign({},b0,{mid:mapa[b0.mid]||b0.mid});
+    if(!S.members.some(m=>m.id===b.mid)) return;
+    if(S.brigada.some(x=>x.d===b.d&&x.r===b.r&&x.mid===b.mid)) return;
+    S.brigada.push(b);
+  });
+  if(!Array.isArray(S.desperdicio)) S.desperdicio=[];
+  (d.desperdicio||[]).forEach(x=>{
+    if(S.desperdicio.some(y=>y.d===x.d&&y.r===x.r&&y.destino===x.destino)) return;
+    S.desperdicio.push(x);
   });
   if(!S.ui.mid && S.members[0]) S.ui.mid=S.members[0].id;
   save();
