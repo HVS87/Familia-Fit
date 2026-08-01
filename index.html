@@ -5775,15 +5775,18 @@ function ehDeDia(d){
   const dt=d||new Date(), agora=dt.getHours()*60+dt.getMinutes();
   return agora>=s.nascer && agora<s.por;
 }
-function hhmm(min){
+/* Minutos desde a meia-noite para «07h54». Não se chama hhmm porque esse nome
+   já é de outra função, que formata um instante ISO — duas declarações com o
+   mesmo nome não dão erro nenhum, a última cala a primeira em silêncio. */
+function horaSol(min){
   const h=Math.floor(min/60), m=Math.round(min%60);
   return String(h).padStart(2,'0')+'h'+String(m).padStart(2,'0');
 }
 function textoSol(){
   const s=horasSolares(); if(!s) return '';
   return ehDeDia()
-    ? 'hoje o sol põe-se às '+hhmm(s.por)+' — a app escurece com ele'
-    : 'o sol nasce às '+hhmm(s.nascer)+' — a app clareia com ele';
+    ? 'hoje o sol põe-se às '+horaSol(s.por)+' — a app escurece com ele'
+    : 'o sol nasce às '+horaSol(s.nascer)+' — a app clareia com ele';
 }
 /* Reavalia quando o separador volta à frente e de dez em dez minutos: sem isto
    a app só mudava de modo quando alguém a redesenhasse por outro motivo. */
@@ -6381,10 +6384,9 @@ function textoConservacao(r){
     +(c.cong? ' · '+c.cong+' dias no congelador' : ' · não congela bem')
     +'. '+c.nota+' '+c.reaq;
 }
-function prazoSobra(rid){
-  const r=RECIPES.find(x=>x.id===rid); const c=conservacaoDe(r);
-  return c? c.frigo : DIAS_SOBRA;
-}
+/* O prazo de uma sobra vive em prazoDaSobra(sobra), lá em cima: precisa de
+   saber se o prato está no frigorífico ou no congelador, coisa que uma função
+   que só recebesse o id da receita nunca poderia responder. */
 
 /* ================= COZINHAR EM DOBRO =================
    Uma receita cozinhada a dobrar dá para dois dias. A despensa e a lista de
@@ -11592,7 +11594,7 @@ function cartaoFibra(m){
         : 'Sem referência oficial para esta idade — fica o número, sem veredicto.'}</p>
     </div>`:''}
     ${hfDias? `<div style="margin-top:14px">
-      <div class="splabel"><span>Fruta e hortícolas · recomendação ${OMS_HORTOFRUTICOLAS} g/dia</span>
+      <div class="splabel"><span>Fruta e hortícolas · recomendação ${OMS_HORTOFRUTICOLAS} g/dia ${dica('hortofruticolas')}</span>
         <output>${Math.round(hfMedia)} g/dia</output></div>
       <div class="mbar" style="height:12px"><div style="width:${hPct.toFixed(1)}%;background:${hOk?'var(--ok)':'var(--warn)'}"></div></div>
       <p class="sub" style="margin-top:6px">${hOk? '✓ Acima dos '+OMS_HORTOFRUTICOLAS+' g.' : '↑ Faltam '+Math.round(OMS_HORTOFRUTICOLAS-hfMedia)+' g por dia.'}
@@ -14646,6 +14648,12 @@ const TOUR=[
   {tab:'familia', sel:'#hoje',
    t:'O dia de hoje, primeiro',
    d:'A app abre a responder à pergunta do dia: o que está planeado para hoje, para quem, e o que falta comprar. Um toque leva ao plano de hoje ou às compras — sem procurar nada.'},
+  {tab:'familia', sel:'#hoje',
+   t:'O frigorífico e o congelador',
+   d:'O que sobrou fica aqui com o prazo do seu prato — o arroz tem menos folga, a sopa mais. O botão 🧊 manda a sobra para o congelador, onde passa a contar os dias que a tabela de conservação sempre soube; os pratos de ovo não têm esse botão, porque não congelam bem. «Descongelar» devolve-a ao frigorífico com dois dias, que é o que comida descongelada aguenta. Quando um prazo passa, a app pergunta uma vez o que aconteceu ao prato: comeu-se, congelou-se ou foi para o lixo. Só a terceira resposta conta como desperdício, e é ela que alimenta o espelho nas Descobertas.'},
+  {tab:'familia', sel:'#hoje',
+   t:'Comer primeiro, e voltar sem culpa',
+   d:'Se escreveres validades na despensa, os itens mais perto de acabar sobem para aqui e ganham vantagem nas sugestões de receitas — a app nunca inventa um prazo, limita-se a ordenar o que tu escreveste da embalagem. E quem volta depois de uma semana fora encontra aqui o convite para marcar esse tempo como pausa: a sequência da casa congela em vez de partir, porque uma gripe não apaga dois meses de esforço.'},
   {tab:'familia', sel:'main .grid.g2 .card',
    t:'Perfis da família',
    d:'Cada pessoa tem aqui o seu perfil. A idade vem da data de nascimento e envelhece sozinha; a altura escreve-se uma vez. O que se mexe todos os dias é o peso, e o slider dele mexe em direto no índice de massa corporal, no metabolismo basal e no gasto diário. A fase da vida (bebé, criança, adolescente, adulto ou gravidez) escolhe as fórmulas certas para cada idade.'},
@@ -14670,6 +14678,9 @@ const TOUR=[
   {tab:'nutricao', sel:'[data-col="nu-passaporte"]', quando:()=>S.members.length&&passaporteDe(curM().id).ordem.length,
    t:'Passaporte de sabores',
    d:'Os ingredientes que cada um já provou, contados das refeições confirmadas. «Provou mas não gostou» não risca o sabor: faz a app voltar a propô-lo mais tarde noutra receita. A neofobia das crianças passa a jogo de descoberta em vez de guerra à mesa.'},
+  {tab:'nutricao', sel:'[data-col="nu-fibra"]', quando:()=>S.members.length&&fibraMedia(curM().id,7),
+   t:'Fibra e hortofrutícolas',
+   d:'Dois números que os ingredientes sempre tiveram e que nunca eram somados ao dia. A fibra vem da tabela do INSA e compara-se com a Ingestão Adequada da EFSA — 25 g por dia num adulto, 2 g por cada MJ numa criança, que é como a EFSA a define nessas idades. Os hortofrutícolas comparam-se com os 400 g por dia da OMS, que exclui expressamente a batata e outras raízes ricas em amido. O julgamento faz-se à média da semana: um dia de sopa e outro de bife não são um problema. Abaixo de um ano não há referência e a app não inventa nenhuma — mostra o número sem veredicto.'},
   {tab:'familia', sel:'[data-col="fam-resumo"]',
    t:'O mês em palavras',
    d:'Um retrato dos últimos 30 dias escrito em prosa a partir do que está registado: refeições planeadas, dias livres, atividade e objetivos. Só afirma o que os dados sustentam.'},
@@ -14717,15 +14728,21 @@ const TOUR=[
   {tab:'receitas', sel:'.rc',
    t:'Toca na receita: os passos de preparação',
    d:'Cada receita abre uma ficha com os ingredientes já na quantidade certa para quem vai comer, o que está e o que falta na despensa, e os passos de preparação escritos um a um, com os tempos. Daí segue-se para o modo Cozinha, um passo de cada vez em letra grande e com o ecrã impedido de adormecer — para se seguir a receita com as mãos na massa.'},
+  {tab:'receitas', sel:'.rc',
+   t:'Quanto disto é espera?',
+   d:'Na ficha, uma barra parte o tempo da receita em trabalho e espera, passo a passo: vê-se que a moussaka é um quarto de hora de mãos na massa e quarenta minutos de forno, e isso muda a decisão de a fazer num dia de semana. Ao lado, uma régua de doze meses por cada ingrediente de época mostra não só que está na época, mas em que ponto dela — se a sardinha está no último mês ou se os grelos vêm aí. E quando falta um ingrediente, a app propõe o que se costuma pôr no lugar dele numa cozinha portuguesa, dizendo o que muda no prato: uma troca nunca é sugerida se trouxer um alergénio marcado nesta casa.'},
   {tab:'receitas', sel:'#btn-nova-receita',
-   t:'As tuas receitas',
-   d:'Escreve a receita da casa com ingredientes do catálogo: os macros por dose e as etiquetas de dieta aparecem enquanto escreves, e a receita entra na biblioteca como qualquer outra. Também podes copiar uma existente para a pôr a teu gosto.'},
+   t:'As tuas receitas, com história',
+   d:'Escreve a receita da casa com ingredientes do catálogo: os macros por dose e as etiquetas de dieta aparecem enquanto escreves, e a receita entra na biblioteca como qualquer outra. Também podes copiar uma existente para a pôr a teu gosto. Duas linhas opcionais fazem a diferença toda — «de quem veio» e «a história» — e passam a aparecer coladas na ficha e a abrir o modo Cozinha: repetir um prato deixa de ser repetir um prato e passa a ser manter viva uma pessoa. Com receitas da casa, o botão «📖 Livro da casa» compõe tudo para impressão, com capa, monograma, histórias e índice.'},
   {tab:'receitas', sel:'.rc .quant', quando:()=>true,
    t:'Guardar, reaquecer, quente ou frio',
    d:'Cada receita diz quanto tempo aguenta no frigorífico e como se reaquece — o arroz é o que tem menos folga, as sopas e os cozidos os que têm mais. São prazos genéricos e conservadores para sobras refrigeradas, que não substituem o cheiro nem o bom senso. E cada prato traz o seu género: no verão os frios ganham peso nas sugestões, sobretudo ao almoço.'},
   {tab:'mercearia', sel:'#despensa-lista', antes:()=>{S.ui.mercVista='despensa';},
    t:'A minha despensa',
    d:'Marca aqui o que tens em casa. A lista vem dos ingredientes das próprias receitas, para os nomes baterem sempre certo — e cada ingrediente mostra os alergénios marcados na família. Comprar um item na lista de compras marca-o aqui automaticamente, e ao entrar a app pergunta se as compras que ficaram por marcar já foram feitas, para validar item a item de uma vez.'},
+  {tab:'mercearia', sel:'#despensa-lista', antes:()=>{S.ui.mercVista='despensa'; S.ui.validades=true;},
+   t:'Preços e validades',
+   d:'Dois interruptores no topo da despensa. «💶 Preços» abre um campo por ingrediente e é o que permite à app estimar o custo de uma receita, de uma semana e do talão — sem nunca inventar um cêntimo: o que não tiver preço aparece sempre contado como «faltam N». «📅 Validades» abre um campo de data para copiares o que vem impresso na embalagem; a app não calcula prazos nenhuns, limita-se a pôr à frente o que está mais perto de acabar e a dar vantagem, nas sugestões, às receitas que o gastem.'},
   {tab:'objetivos', sel:'main .card',
    t:'Objetivos com estratégia mista',
    d:'Define quantos quilos e em quanto tempo: a app calcula o défice diário e reparte-o entre dieta e exercício num slider. Ao criar, aplica logo o objetivo à Nutrição e acrescenta as horas de treino ao desporto escolhido.'},
@@ -14750,6 +14767,13 @@ const TOUR=[
   {tab:'plano', sel:'#sug',
    t:'Sugestões para a mesa',
    d:'Liga e desliga quem se senta à mesa: a lista mostra só as receitas que servem toda a gente ligada ao mesmo tempo — e diz quantas caíram por dieta, por alergénio ou por calorias, e porquê. Planeia-se num toque, já com os comensais certos.'},
+  {tab:'plano', sel:'#pla-equilibrio', quando:()=>{ const d=weekDates(S.week);
+     return S.members.some(m=>equilibrioSemana(m,d).diasComPlano>0); },
+   t:'O equilíbrio faz-se à semana',
+   d:'A app julga cada refeição contra um teto do dia, mas o equilíbrio de uma casa mede-se à semana — e é isso que tira o peso a um cheat day, a um aniversário ou a um jantar fora. Esta linha soma as calorias planeadas dos sete dias contra a soma dos sete alvos, pessoa a pessoa. Por baixo, a barra da despensa responde à pergunta de domingo à noite: dá para cozinhar a semana ou é preciso ir às compras primeiro? E se definires um orçamento em euros, a app mostra o custo das refeições confirmadas contra o teto — sempre a dizer quantos ingredientes ficaram sem preço, e a pesar o custo nas sugestões só quando a semana já está encostada ao limite.'},
+  {tab:'plano', sel:'#pla-equilibrio', quando:()=>quemEscolheEstaSemana(),
+   t:'A vez de escolher, e a votação',
+   d:'Uma rotativa entre quem cá vive dá a cada um a sua semana para escolher um jantar — turno garantido, que é a justiça que as crianças percebem, e troca-se com um toque porque trocas de vez acontecem em todas as casas. Diferente disso é a votação do jantar especial, no fecho de domingo: o telemóvel passa de mão em mão, cada um toca no seu avatar e no prato, e os candidatos já passaram pelo crivo das alergias, das dietas e do teto de calorias da mesa toda — por isso a escolha é real e não fingida. Em empate ganha quem não venceu da última vez.'},
   {tab:'plano', sel:'#pla-resumo',
    t:'Plano semanal e acompanhamentos',
    d:'Quatro refeições por dia, com quem come cada uma — e ao almoço e jantar, uma linha tracejada para o acompanhamento: batatas, arroz, legumes ou salada, com as calorias somadas ao dia. O 🔀 troca-o por outro que sirva a mesma mesa; o «juntar acompanhamento» põe mais um ao lado, e os dois repartem o mesmo lugar — meia dose de cada, com as calorias, os macros e as compras a seguir a divisão. Cinzento é dia incompleto, rosa é cheat day.'},
@@ -14760,9 +14784,16 @@ const TOUR=[
   {tab:'plano', sel:'.mesas-semana', quando:()=>S.members.length>1 && (S.regRef||[]).some(r=>r.estado==='feita'),
    t:'Mesas cheias e lápis e tinta',
    d:'O que está só planeado desenha-se a lápis, sobre papel quadriculado; o que foi confirmado passa a tinta e leva um carimbo. E quando toda a gente prevista para uma refeição confirma, a mesa dessa refeição enche-se — um lugar por pessoa, sem números. É o hábito que os macros escondem: comer juntos.'},
+  {tab:'plano', sel:'.day.hoje', quando:()=>{ const w=S.plans[S.week]||{};
+     for(let d=0;d<7;d++) for(const k of MEALK) if(((w[d]||{})[k]||{}).r) return true; return false; },
+   t:'Como correu? O fecho da mesa',
+   d:'Depois de registar quem comeu — e a dose de cada um corrige-se ali mesmo, tocando no «1× dose» — a app faz três perguntas rápidas, todas opcionais. Se sobrou, e para onde vai. O que a mesa achou: «repetir em breve» dá vantagem à receita nas sugestões, «não é para nós» arrefece-a oito semanas sem nunca a esconder dos filtros, porque um «não» de há dois meses não é uma proibição. E quem cozinhou e quem ajudou — a app sabia o que se comeu, mas não quem pôs as mãos na massa, e isso reparte o mérito e dá às crianças um papel com nome.'},
   {tab:'mercearia', sel:'#falta-corpo', antes:()=>{S.ui.mercVista='compras';}, quando:()=>shoppingItems().items.length,
    t:'Compras e o que falta',
    d:'A lista agrega os ingredientes da semana — pratos e acompanhamentos — pelo número de comensais, e acompanhamentos que dividem o mesmo lugar entram com a fatia que lhes cabe. O cartão «O que falta comprar» tira o que já está na despensa e envia-se pelo menu de partilha do telemóvel.'},
+  {tab:'mercearia', sel:'#falta-corpo', antes:()=>{S.ui.mercVista='compras';}, quando:()=>shoppingItems().items.length,
+   t:'O que é mesmo para hoje, e onde pesa o talão',
+   d:'A lista sabe em que dia cada ingrediente é usado pela primeira vez, e põe à cabeça o que é preciso hoje ou amanhã — é a única parte da lista onde falhar tem consequência física: uma mesa sem jantar. O açafrão de domingo pode esperar pela próxima ida. E quando há preços, as barras mostram onde o dinheiro está mesmo a ir: ver que o salmão e o queijo são metade do talão transforma um número opaco numa decisão.'},
   {tab:'familia', sel:'#fecho', quando:()=>ehDomingo()&&!(S.diario||[]).some(x=>x.wk===mondayISO(hojeISO())),
    t:'Fechar a semana ao domingo',
    d:'Cinco passos curtos: resolver o que ficou por confirmar, olhar a semana, escolher o jantar especial da próxima, preencher o plano e escrever uma frase no caderno. Fica assinado com o avatar de quem fechou, e as frases ficam no caderno da família.'},
@@ -14772,9 +14803,15 @@ const TOUR=[
   {tab:'dados', sel:'[data-col="dados-aspeto"]',
    t:`${Object.keys(PALETAS).length} paletas, dois modos`,
    d:'Azulejo, Alecrim, Figo, Maré, Brasa, Tinta — e Contraste, que leva todos os textos a 7:1, engrossa o traço e faz as linhas dos gráficos distinguirem-se por padrão, não só por cor. Cada uma em claro e escuro. Ao lado ficam a densidade («Cerrado» para quem já conhece a app), o virar de folha e «Seguir as estações», que muda apontamentos e ilustrações com o calendário português — nunca a cor de um texto, porque a legibilidade não é sazonal.'},
+  {tab:'dados', sel:'[data-col="dados-aspeto"]',
+   t:'Seguir o sol, e os sons da casa',
+   d:'Além de claro, escuro e «segue o sistema», há «🌅 Segue o sol»: a app escurece quando o sol se põe em Portugal e clareia quando ele nasce — em dezembro anoitece por volta das 17h30, em junho aguenta clara até perto das 21h. As horas saem das equações solares clássicas, contas feitas aqui dentro, sem rede e sem saber onde estás; e só alterna entre os dois modos que já conheces, por isso as cores e os contrastes ficam intactos. Mais abaixo, «Sons da casa» acrescenta três apontamentos sonoros gerados na hora — um toc quando uma mesa passa a tinta, um tlim ao registar, papel ao virar a folha. Desligados por defeito, calados com o separador escondido, e nunca num erro.'},
   {tab:'dados', sel:'main .card',
    t:'Cópias de segurança',
    d:'Tudo fica gravado só neste browser, por isso o ficheiro de cópia é a única coisa que sobrevive a limpar o histórico ou trocar de telemóvel. Podes substituir tudo por uma cópia ou juntar duas, para combinar o que duas pessoas preencheram.'},
+  {tab:'familia', sel:'#hoje', quando:()=>mosaicoDoAno(),
+   t:'O mosaico do ano',
+   d:'A sequência da casa é um número; o mosaico é a textura por trás dele. Cada quadrado é um dia dos últimos seis meses: verde se se cumpriu tudo o que estava planeado, amarelo se em parte, vermelho se nada, vazio se não havia nada marcado. As semanas declaradas como pausa aparecem a tracejado e não só noutra cor — vê-se o mês mau, a gripe que congelou a contagem e o padrão que as Descobertas anunciam por palavras.'},
   {tab:'familia', sel:'#btn-pesq',
    t:'Procurar em toda a app',
    d:`Um campo que atravessa os ${TABS.length} separadores: receitas, os ${Object.keys(NUTRI).length} ingredientes, as ${SPORTS.length} modalidades, os perfis — e os próprios cartões, para «onde é que se marcam as alergias?» deixar de exigir conhecer a arquitetura. Em teclado abre-se com a tecla «/».`},
