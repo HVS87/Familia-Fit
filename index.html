@@ -1194,10 +1194,11 @@ function migraRegistos(s){
   });
   s.regAtiv=(Array.isArray(s.regAtiv)? s.regAtiv : []).map(r=>limparRegAtiv(r,ids)).filter(Boolean);
   s.regRef =(Array.isArray(s.regRef)?  s.regRef  : []).map(r=>limparRegRef(r,ids)).filter(Boolean);
-  s.sobras =(Array.isArray(s.sobras)?  s.sobras  : []).map(limparSobra).filter(Boolean).slice(0,200);
+  s.sobras =(Array.isArray(s.sobras)?  s.sobras  : []).map(x=>limparSobraCru(x)).filter(Boolean).slice(0,200);
   s.precos = limparPrecos(s.precos);
   s.festas = limparFestas(s.festas);
   s.casa   = limparCasa(s.casa);
+  s.pausas = limparPausas(s.pausas, ids);
   /* convidados de datas passadas saem sozinhos do plano */
   limparConvidadosEm(s);
   if(!s.meta.desdeRegisto || !dataValida(s.meta.desdeRegisto)) s.meta.desdeRegisto=iso(new Date());
@@ -1205,15 +1206,17 @@ function migraRegistos(s){
     if(a&&a.length){ const h=iso(new Date());
       for(let i=a.length-1;i>=0;i--) if(a[i].d<=h){ m.peso=a[i].p; break; } } });
 }
+/* A unidade de um preço não se guarda: deriva-se do ingrediente na leitura.
+   Guardá-la obrigaria a chamar unidadeDe() na migração, que corre antes de a
+   tabela de unidades existir — e um dado derivável não deve ser gravado. */
 function limparPrecos(o){
   const out={};
   if(!o||typeof o!=='object') return out;
-  const cat=catalogoIngredientes();
   Object.keys(o).slice(0,2000).forEach(k=>{
-    if(cat.indexOf(k)<0) return;
-    const v=parseFloat(o[k]&&o[k].v);
+    if(!temChave(NUTRI,k)) return;
+    const v=parseFloat(o[k]&&o[k].v!==undefined? o[k].v : o[k]);
     if(!isFinite(v)||v<=0||v>10000) return;
-    out[k]={v:Math.round(v*100)/100, u: unidadeDe(k)};
+    out[k]={v:Math.round(v*100)/100};
   });
   return out;
 }
@@ -1224,6 +1227,16 @@ function limparFestas(a){
     const n=String(f.n||'').trim().slice(0,40); if(!n) return null;
     return {id:limparId(f.id), md:f.md, n};
   }).filter(Boolean).slice(0,40);
+}
+function limparPausas(a,ids){
+  if(!Array.isArray(a)) return [];
+  const vistos={};
+  return a.map(p=>{ if(!p||typeof p!=='object') return null;
+    if(!dataValida(p.wk)) return null;
+    const mid=String(p.mid||''); if(mid!=='casa' && (!ids || ids.indexOf(mid)<0)) return null;
+    const k=p.wk+'|'+mid; if(vistos[k]) return null; vistos[k]=1;
+    return {wk:mondayISO(new Date(p.wk+'T12:00:00')), mid};
+  }).filter(Boolean).slice(0,200);
 }
 function limparCasa(c){
   if(!c||typeof c!=='object') return {nome:'',lema:''};
@@ -2774,7 +2787,7 @@ function blank(){ return {members:[],cheats:{},plans:{},bought:{},prefCuisine:'t
   /* sobras: o tacho que dá para dois dias. precos: o que o talão disse, para
      a app estimar custos sem inventar um único cêntimo. festas: as datas da
      casa que não são aniversários. */
-  sobras:[], precos:{}, festas:[], casa:{nome:'',lema:''},
+  sobras:[], precos:{}, festas:[], casa:{nome:'',lema:''}, pausas:[],
   ui:{tab:'familia',mid:null,cuis:'todas',soComp:false,mealF:'todas',dietaF:'todas',busca:'',editor:null,
       objForm:{membros:[],tipo:'perder',delta:5,semanas:12,split:50,desporto:null,banda:2},
       objExpandido:null, objAdj:null, celebrando:null, tourPasso:null, tourVisto:false,
@@ -2819,7 +2832,7 @@ let pilhaUndo=[], pilhaRedo=[], estadoAnterior=null, ultimaDesc=null;
 function instantaneo(){ return JSON.stringify({members:S.members, cheats:S.cheats, plans:S.plans,
   bought:S.bought, week:S.week, prefCuisine:S.prefCuisine, objetivos:S.objetivos, despensa:S.despensa,
   receitas:S.receitas, medicoes:S.medicoes, regAtiv:S.regAtiv, regRef:S.regRef,
-  sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa}); }
+  sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa, pausas:S.pausas}); }
 function aplicaInstantaneo(js){
   const d=JSON.parse(js);
   S.members=d.members; S.cheats=d.cheats; S.plans=d.plans; S.bought=d.bought;
@@ -2832,6 +2845,7 @@ function aplicaInstantaneo(js){
   S.precos=d.precos&&typeof d.precos==='object'? d.precos : {};
   S.festas=Array.isArray(d.festas)? d.festas : [];
   S.casa=d.casa&&typeof d.casa==='object'? d.casa : {nome:'',lema:''};
+  S.pausas=Array.isArray(d.pausas)? d.pausas : [];
   sincronizaReceitas();
   S.members.forEach(normalizaMembro);
   if(!S.members.some(m=>m.id===S.ui.mid)) S.ui.mid=S.members[0]? S.members[0].id : null;
@@ -3677,6 +3691,11 @@ const DICAS={
   alergias:'As catorze categorias de declaração obrigatória do anexo II do Regulamento (UE) n.º 1169/2011 — a lista que se aplica em Portugal, fiscalizada pela ASAE e com a DGAV como autoridade competente. Uma receita com um ingrediente destes deixa de ser sugerida a quem o tem marcado, e fica assinalada a vermelho onde apareça. Nota: os frutos de casca rija são uma lista fechada de oito, onde a castanha portuguesa e o pinhão não entram; o amendoim é categoria à parte, por ser leguminosa. Isto ajuda a planear e não substitui ler o rótulo nem perguntar num restaurante.',
   porcoes:'As receitas estão escritas para uma pessoa. Este número multiplica as quantidades de todos os ingredientes — é o que se leva para a cozinha.',
   editorReceitas:'Escreve os ingredientes e o número de doses que a receita rende: os macros por dose são calculados a partir da composição de cada ingrediente, e as etiquetas de dieta saem dos números e do que a receita leva dentro. Só entram ingredientes do catálogo — é isso que faz a receita falar com a despensa e com a lista de compras.',
+  descobertas:'Detetores que correm sobre os teus registos das últimas oito semanas — o jantar que nunca se cumpre, o dia com mais treinos ignorados, o prato que domina. Cada sinal só aparece se passar um mínimo de amostra, vem com os números à vista e traz um gesto ao lado. Sem sinais fiáveis, a app di-lo em vez de inventar um.',
+  leque:'A tendência das pesagens das últimas oito semanas prolongada num intervalo, nunca numa data única: a largura vem da dispersão real da tua balança. Precisa de seis pesagens ao longo de quatro semanas, e nunca aparece em bebés, crianças ou gravidez — nessas fases o peso muda porque o corpo está a crescer.',
+  passaporte:'Os ingredientes que esta pessoa já provou, contados das refeições confirmadas. «Provou mas não gostou» não risca o sabor para sempre: faz a app voltar a propô-lo mais tarde noutra receita. A neofobia alimentar passa a jogo de descoberta em vez de guerra à mesa.',
+  palpite:'Da cadência das tuas compras («leite: a cada 7±2 dias») sai um palpite do que já devia ter acabado. É um palpite e diz-se que é: aparece à parte do inventário real da despensa, e silencia-se com um toque se já não usarem.',
+  sequencia:'Semanas em que se cumpriu pelo menos 80% do que estava planeado, contadas só de validações reais. Doença, férias ou lesão marcam-se como pausa: a sequência congela em vez de partir. Nem fogo, nem troféus, nem contadores agressivos — uma gripe não apaga dois meses de esforço.',
   sobras:'O jantar de hoje é o almoço de amanhã em quase todas as casas. Ao confirmar uma refeição, a app pergunta se sobrou: a sobra fica no frigorífico durante três dias, com os macros que já se sabiam da receita, e come-se com um toque — sem cozinhar, sem comprar e sem duplicar contas.',
   marmitas:'Qualquer almoço se pode marcar «em marmita», pessoa a pessoa. Na véspera à noite o cartão «Hoje» lembra-o, com a dose já escalada a cada um, os alergénios da escola assinalados e as sobras disponíveis para a encher.',
   epoca:'Que ingredientes estão na época em Portugal, este mês — carapau no verão, grelos no inverno, cereja em junho. A tabela é local e o selo muda sozinho com o calendário: comprar na época é mais barato, mais fresco e mais saboroso.',
@@ -4055,15 +4074,17 @@ function sobrasVivas(){
   return (S.sobras||[]).filter(s=>s.doses>0 && diasEntre(s.d,h)<=DIAS_SOBRA && s.d<=h)
     .sort((a,b)=> a.d<b.d? -1 : 1);
 }
-function limparSobra(x){
+function limparSobra(x,lookup){
+  lookup = lookup || (id=>RECIPES.find(r=>r.id===id));
   if(!x||typeof x!=='object') return null;
-  if(!dataValida(x.d) || x.d>hojeISO()) return null;
-  const rec=RECIPES.find(r=>r.id===x.r); if(!rec) return null;
-  const ac=[]; (Array.isArray(x.ac)? x.ac:[]).forEach(id=>{ const r=RECIPES.find(y=>y.id===id);
+  if(!dataValida(x.d) || x.d>iso(new Date())) return null;
+  if(!lookup(x.r)) return null;
+  const ac=[]; (Array.isArray(x.ac)? x.ac:[]).forEach(id=>{ const r=lookup(id);
     if(r && ehAcompanhamento(r) && ac.indexOf(id)<0 && ac.length<MAX_AC) ac.push(id); });
   return {id:limparId(x.id), d:x.d, r:x.r, ac, doses:clampNum(parseFloat(x.doses)||0,0,12),
     mk: MEALK.indexOf(x.mk)>=0? x.mk : 'j'};
 }
+function limparSobraCru(x){ return limparSobra(x); }
 function guardarSobra(d,mk,rid,ac,doses){
   const s=limparSobra({id:uid(), d, mk, r:rid, ac, doses});
   if(!s || !(s.doses>0)) return null;
@@ -4180,12 +4201,13 @@ function receitaDaEpoca(r){ return ingredientesDaEpoca(r).length>0; }
 /* ================= CUSTO =================
    Os preços são do talão de quem usa a app; a app não inventa um cêntimo, e
    diz sempre quantos itens ficaram por preço. */
-function precoDe(nome){ const p=(S.precos||{})[nome]; return p&&p.v>0? p : null; }
-function setPreco(nome,v,un){
+function precoDe(nome){ const p=(S.precos||{})[nome];
+  return p&&p.v>0? {v:p.v, u:unidadeDe(nome)} : null; }
+function setPreco(nome,v){
   if(!S.precos||typeof S.precos!=='object') S.precos={};
   const val=parseFloat(String(v).replace(',','.'));
-  if(!isFinite(val)||val<=0){ delete S.precos[nome]; return; }
-  S.precos[nome]={v:Math.round(val*100)/100, u: un||unidadeDe(nome)};
+  if(!isFinite(val)||val<=0||val>10000){ delete S.precos[nome]; return; }
+  S.precos[nome]={v:Math.round(val*100)/100};
 }
 /* Custo de uma lista de ingredientes escalada. Devolve o que sabe e quantos
    itens não têm preço — um total sem essa nota seria uma mentira arredondada. */
@@ -4463,6 +4485,400 @@ function planoDeLote(){
   /* só vale a pena cozinhar em lote o que serve dois dias ou mais */
   return Object.values(bases).filter(b=>b.dias.length>=2)
     .sort((a,b)=>b.dias.length-a.dias.length || b.g-a.g);
+}
+
+/* ================= DESCOBERTAS =================
+   Meses de registo transformados em duas ou três frases úteis por semana. Cada
+   detetor tem um mínimo de amostra e só fala se o passar; os números vão à
+   vista e cada sinal traz o gesto para agir. Sem sinais, diz-se que não há —
+   um horóscopo estatístico seria pior do que o silêncio. */
+const MIN_SEMANAS=4, MIN_OCORRENCIAS=6;
+function janelaRegistos(mid,dias){
+  const h=hojeISO(), ini=addDias(h,-(dias||56));
+  return {ini, h,
+    ref:regRefDe(mid).filter(r=>r.d>=ini),
+    ativ:regAtivDe(mid).filter(r=>r.d>=ini)};
+}
+function descobertas(m){
+  if(!m) return [];
+  const j=janelaRegistos(m.id,56), out=[];
+  const semanas=new Set(j.ref.concat(j.ativ).map(r=>mondayISO(r.d))).size;
+  if(semanas<MIN_SEMANAS) return [{tipo:'poucos', semanas, faltam:MIN_SEMANAS-semanas}];
+  /* 1. a refeição planeada que raramente se cumpre */
+  const porDiaRef={};
+  j.ref.forEach(r=>{ const k=diaSemana(r.d)+'|'+r.mk;
+    if(!porDiaRef[k]) porDiaRef[k]={n:0, feitas:0};
+    porDiaRef[k].n++; if(r.estado==='feita') porDiaRef[k].feitas++; });
+  Object.keys(porDiaRef).forEach(k=>{
+    const x=porDiaRef[k]; if(x.n<MIN_OCORRENCIAS) return;
+    const pct=x.feitas/x.n;
+    if(pct>0.5) return;
+    const [d,mk]=k.split('|');
+    out.push({tipo:'refFalha', peso:1-pct, dia:+d, mk,
+      texto:'O '+nomeRefeicao(mk).toLowerCase()+' de '+NOME_DIAS[+d]+' cumpre-se '+x.feitas+' vezes em '+x.n+'.',
+      accao:'Rever a '+NOME_DIAS[+d]+' no plano', fn:"go('plano')"});
+  });
+  /* 2. o dia da semana com mais treinos por fazer */
+  const porDiaAtiv={};
+  j.ativ.forEach(r=>{ const d=diaSemana(r.d);
+    if(!porDiaAtiv[d]) porDiaAtiv[d]={n:0, feitos:0};
+    porDiaAtiv[d].n++; if(r.estado==='feita') porDiaAtiv[d].feitos++; });
+  Object.keys(porDiaAtiv).forEach(d=>{
+    const x=porDiaAtiv[d]; if(x.n<MIN_OCORRENCIAS) return;
+    const pct=x.feitos/x.n; if(pct>0.5) return;
+    out.push({tipo:'ativFalha', peso:1-pct, dia:+d,
+      texto:'Os treinos de '+NOME_DIAS[+d]+' fazem-se '+x.feitos+' vezes em '+x.n+'.',
+      accao:'Mudar os dias no plano', fn:"go('atividade')"});
+  });
+  /* 3. o prato que domina */
+  const porReceita={};
+  j.ref.filter(r=>r.estado==='feita').forEach(r=>{ porReceita[r.r]=(porReceita[r.r]||0)+1; });
+  const totalRef=j.ref.filter(r=>r.estado==='feita').length;
+  if(totalRef>=12){
+    const top=Object.entries(porReceita).sort((a,b)=>b[1]-a[1])[0];
+    if(top && top[1]/totalRef>=0.25){
+      const rec=RECIPES.find(x=>x.id===top[0]);
+      out.push({tipo:'monotonia', peso:top[1]/totalRef,
+        texto:(rec?rec.n:'Um prato')+' foi '+top[1]+' das '+totalRef+' refeições registadas.',
+        accao:'Ver sugestões novas', fn:"go('plano')"});
+    }
+  }
+  /* 4. a hora do dia em que o alvo se perde */
+  const dias={};
+  j.ref.filter(r=>r.estado==='feita').forEach(r=>{ dias[r.d]=(dias[r.d]||0)+kcalRegRef(r); });
+  const chaves=Object.keys(dias);
+  if(chaves.length>=14){
+    const acima=chaves.filter(d=>dias[d]>alvoDoDia(m,d)*1.15).length;
+    if(acima/chaves.length>=0.4)
+      out.push({tipo:'acima', peso:acima/chaves.length,
+        texto:'Em '+acima+' dos '+chaves.length+' dias com registo comeu-se mais de 15% acima do alvo.',
+        accao:'Rever o alvo na Nutrição', fn:"go('nutricao')"});
+  }
+  /* 5. cumprir mais está a mexer no peso? — só como associação */
+  const cmp=comparaSemanas(m);
+  if(cmp) out.push({tipo:'compara', peso:0.4, texto:cmp.texto, accao:'Ver o histórico', fn:"abrirHistRef('"+m.id+"')", nota:cmp.nota});
+  return out.sort((a,b)=>b.peso-a.peso).slice(0,4);
+}
+/* Semanas lado a lado: divide as últimas semanas pela mediana de aderência e
+   compara. É uma associação, não uma causa — e isso vai impresso no cartão. */
+function comparaSemanas(m){
+  const h=hojeISO(), sem=[];
+  for(let k=1;k<=10;k++){
+    const wk=mondayISO(addDias(h,-7*k)), dates=weekDates(wk);
+    const ref=regRefDe(m.id).filter(r=>dates.indexOf(r.d)>=0);
+    const ativ=regAtivDe(m.id).filter(r=>dates.indexOf(r.d)>=0);
+    if(ref.length+ativ.length<4) continue;
+    const feitas=ref.filter(r=>r.estado==='feita').length+ativ.filter(r=>r.estado==='feita').length;
+    const ader=feitas/(ref.length+ativ.length);
+    const pesos=medicoesDe(m.id).filter(x=>dates.indexOf(x.d)>=0);
+    sem.push({wk, ader, peso: pesos.length? pesos[pesos.length-1].p : null,
+      kcal: ref.filter(r=>r.estado==='feita').reduce((t,r)=>t+kcalRegRef(r),0)});
+  }
+  if(sem.length<6) return null;
+  const ords=sem.map(x=>x.ader).sort((a,b)=>a-b);
+  const mediana=ords[Math.floor(ords.length/2)];
+  const altas=sem.filter(x=>x.ader>=mediana), baixas=sem.filter(x=>x.ader<mediana);
+  if(altas.length<2 || baixas.length<2) return null;
+  const dPeso=g=>{ const p=g.map(x=>x.peso).filter(x=>x!==null);
+    return p.length>=2? p[p.length-1]-p[0] : null; };
+  const a=dPeso(altas), b=dPeso(baixas);
+  if(a===null||b===null) return null;
+  return {texto:'Nas '+altas.length+' semanas em que se cumpriu mais, o peso variou '+nPT(a,1)
+      +' kg; nas '+baixas.length+' em que se cumpriu menos, '+nPT(b,1)+' kg.',
+    nota:'Isto é uma associação, não uma causa: com tão poucas semanas, muita coisa mexe um número destes.'};
+}
+function cartaoDescobertas(m){
+  const d=descobertas(m);
+  if(!d.length) return `<div class="card" data-col="nu-descobertas">
+    <h3>Descobertas ${dica('descobertas')}</h3>
+    <p class="sub" style="margin-top:6px">Nada a assinalar nas últimas oito semanas — nem sinal fraco nem sinal forte. É a resposta honesta quando os dados não mostram nada.</p></div>`;
+  if(d[0].tipo==='poucos') return `<div class="card" data-col="nu-descobertas">
+    <h3>Descobertas ${dica('descobertas')}</h3>
+    <p class="sub" style="margin-top:6px">Faltam ${plural(d[0].faltam,'semana de registo','semanas de registo')} para haver o que dizer. A app só fala quando tem amostra: ${d[0].semanas} de ${MIN_SEMANAS} semanas.</p></div>`;
+  return `<div class="card card--capa" data-col="nu-descobertas" id="descobertas">
+    <span class="lbl">Últimas oito semanas</span>
+    <h2 style="margin-top:2px">Descobertas ${dica('descobertas')}</h2>
+    ${d.map(x=>`<div class="val-item">
+      <div class="row" style="justify-content:space-between;gap:8px">
+        <div style="min-width:0"><b>${esc(x.texto)}</b>
+          ${x.nota? `<span class="sub" style="display:block">${esc(x.nota)}</span>`:''}</div>
+        <button class="btn ghost small" style="flex:none" onclick="${x.fn}">${esc(x.accao)}</button>
+      </div></div>`).join('')}
+    <p class="sub" style="margin-top:10px">Cada sinal só aparece com um mínimo de amostra — ${MIN_OCORRENCIAS} ocorrências e ${MIN_SEMANAS} semanas — e traz os números à vista. O que não passar esse mínimo fica em silêncio.</p>
+  </div>`;
+}
+
+/* ================= PROJEÇÃO EM LEQUE =================
+   «Quando é que lá chego?» respondido sem fingir precisão: a tendência das
+   pesagens prolongada num leque que alarga com a distância, calibrado pela
+   dispersão real dos resíduos. Nunca uma data única. Nunca em bebés, crianças
+   ou gravidez, onde o peso muda porque o corpo está a crescer. */
+const MIN_PESAGENS_PROJ=6, MIN_SEMANAS_PROJ=4;
+function tendenciaPeso(mid,dias){
+  const ini=addDias(hojeISO(),-(dias||56));
+  const pts=medicoesDe(mid).filter(x=>x.d>=ini);
+  if(pts.length<MIN_PESAGENS_PROJ) return null;
+  const t0=pts[0].d;
+  if(diasEntre(t0,pts[pts.length-1].d) < MIN_SEMANAS_PROJ*7) return null;
+  const xs=pts.map(p=>diasEntre(t0,p.d)), ys=pts.map(p=>p.p);
+  const n=xs.length, sx=xs.reduce((a,b)=>a+b,0), sy=ys.reduce((a,b)=>a+b,0);
+  const sxx=xs.reduce((a,b)=>a+b*b,0), sxy=xs.reduce((a,b,i)=>a+b*ys[i],0);
+  const den=n*sxx-sx*sx; if(!den) return null;
+  const m=(n*sxy-sx*sy)/den, b=(sy-m*sx)/n;
+  /* a largura do leque é o desvio-padrão dos resíduos: quanto mais dispersa a
+     balança, mais largo o intervalo — é isso que torna a projeção honesta */
+  const res=ys.map((y,i)=>y-(m*xs[i]+b));
+  const sd=Math.sqrt(res.reduce((a,r)=>a+r*r,0)/Math.max(1,n-2));
+  return {m, b, t0, sd, n, dias:diasEntre(t0,pts[pts.length-1].d), ultimo:ys[ys.length-1]};
+}
+function projecaoObjetivo(o,m){
+  if(!permiteProjecao(m)) return null;
+  const t=tendenciaPeso(m.id); if(!t) return null;
+  if(Math.abs(t.m)<0.0005) return {parado:true};
+  const alvo=o.pesoAlvo, hojeX=diasEntre(t.t0,hojeISO());
+  const y0=t.m*hojeX+t.b;
+  const dias=(alvo-y0)/t.m;
+  if(dias<0 || dias>365*3) return {longe:true, sentido:t.m<0?'a descer':'a subir'};
+  /* o leque a essa distância dá o intervalo de datas */
+  const larg=t.sd*1.96*Math.sqrt(1+dias/Math.max(1,t.dias));
+  const diasMin=(alvo-y0+ (t.m<0? larg : -larg))/t.m;
+  const diasMax=(alvo-y0+ (t.m<0? -larg : larg))/t.m;
+  const a=Math.round(Math.min(diasMin,diasMax)), b=Math.round(Math.max(diasMin,diasMax));
+  return {de:addDias(hojeISO(),Math.max(0,a)), ate:addDias(hojeISO(),Math.max(1,b)), t};
+}
+function textoProjecao(o,m){
+  const p=projecaoObjetivo(o,m);
+  if(!p) return {txt:'Faltam pesagens para projetar: são precisas '+MIN_PESAGENS_PROJ
+    +' medições ao longo de pelo menos '+MIN_SEMANAS_PROJ+' semanas.', fraco:true};
+  if(p.parado) return {txt:'A tendência das últimas semanas está praticamente plana — ao ritmo atual, não há data a apontar.', fraco:true};
+  if(p.longe) return {txt:'A tendência vai '+p.sentido+', mas devagar demais para apontar uma data dentro de três anos.', fraco:true};
+  const mesmoMes=p.de.slice(0,7)===p.ate.slice(0,7);
+  return {txt:'Ao ritmo atual, chegaria '+(mesmoMes? 'em '+fmtLongo(p.de).replace(/^\d+ de /,'') : 'entre '+fmtShort(p.de)+' e '+fmtShort(p.ate))+'.',
+    de:p.de, ate:p.ate};
+}
+
+/* ================= PASSAPORTE DE SABORES =================
+   A neofobia alimentar vira jogo de descoberta em vez de guerra à mesa: cada
+   refeição confirmada acrescenta ao passaporte da criança os ingredientes que
+   ela nunca tinha provado. Marcar «provou mas não gostou» faz a app
+   reapresentá-lo mais tarde noutra receita, em vez de o riscar para sempre. */
+function passaporteDe(mid){
+  const provados={}, ordem=[];
+  regRefDe(mid).filter(r=>r.estado==='feita').sort((a,b)=>a.d<b.d?-1:1).forEach(r=>{
+    const rec=RECIPES.find(x=>x.id===r.r); if(!rec) return;
+    const listas=[rec].concat((r.ac||[]).map(id=>RECIPES.find(y=>y.id===id)).filter(Boolean));
+    listas.forEach(x=>x.i.forEach(l=>{
+      if(provados[l[0]]) return;
+      provados[l[0]]={d:r.d, r:rec.n};
+      ordem.push(l[0]);
+    }));
+  });
+  return {provados, ordem};
+}
+function naoGostou(mid){ const m=S.members.find(x=>x.id===mid);
+  return (m&&Array.isArray(m.naoGosta))? m.naoGosta : []; }
+function toggleNaoGosta(mid,nome){
+  const m=S.members.find(x=>x.id===mid); if(!m) return;
+  if(!Array.isArray(m.naoGosta)) m.naoGosta=[];
+  const i=m.naoGosta.indexOf(nome);
+  i>=0? m.naoGosta.splice(i,1) : m.naoGosta.push(nome);
+  save('sabores de '+m.nome); render();
+}
+/* Ingredientes que esta pessoa nunca provou e que a receita traz. */
+function saboresNovos(r,mid){
+  const p=passaporteDe(mid).provados;
+  return (r.i||[]).map(l=>l[0]).filter(n=>!p[n]);
+}
+function seloSaborNovo(r,membros){
+  const quem=(membros||[]).filter(m=>faseDe(m)==='crianca'||faseDe(m)==='adolescente')
+    .filter(m=>saboresNovos(r,m.id).length);
+  if(!quem.length) return '';
+  return `<span class="tag" style="border-color:var(--party);color:var(--party)"
+    title="Traz sabores novos para ${esc(quem.map(m=>m.nome.split(' ')[0]).join(', '))}">✨ sabor novo</span>`;
+}
+function cartaoPassaporte(m){
+  if(faseDe(m)==='bebe') return '';
+  const p=passaporteDe(m.id);
+  const nao=naoGostou(m.id);
+  const total=p.ordem.length;
+  if(!total) return '';
+  /* agrupa por secção do supermercado, que é a classificação do próprio INSA */
+  const grupos={};
+  p.ordem.forEach(n=>{ const g=gruposCompras()[grupoDoItem({n, u:unidadeDe(n)})]||'Outros';
+    (grupos[g]=grupos[g]||[]).push(n); });
+  const cat=catalogoIngredientes().length;
+  return `<div class="card" data-col="nu-passaporte">
+    <div class="row" style="justify-content:space-between">
+      <h3>Passaporte de sabores ${dica('passaporte')}</h3>
+      <span class="pill">${total} de ${cat}</span></div>
+    <p class="sub" style="margin-top:4px">Os ingredientes que ${esc(m.nome.split(' ')[0])} já provou, contados das refeições confirmadas. Toca num para marcar «provou mas não gostou» — a app volta a propô-lo mais tarde noutra receita, em vez de o riscar para sempre.</p>
+    <div class="mbar" style="height:8px;margin-top:10px"><div style="width:${(total/cat*100).toFixed(1)}%;background:var(--party)"></div></div>
+    ${Object.keys(grupos).slice(0,8).map(g=>`<div style="margin-top:10px">
+      <div class="lbl">${ICO_CAT[g]||''} ${esc(g)} · ${grupos[g].length}</div>
+      <div class="row" style="margin-top:4px">${grupos[g].slice(0,14).map(n=>
+        `<button class="chip ${nao.indexOf(n)>=0?'':'on'}" onclick="toggleNaoGosta('${m.id}','${esc(n).replace(/'/g,'&#39;')}')"
+          title="${nao.indexOf(n)>=0? 'provou e não gostou' : 'provado em '+fmtShort(p.provados[n].d)+', em '+esc(p.provados[n].r)}">${
+          nao.indexOf(n)>=0? '😖 ':''}${esc(n)}</button>`).join('')}
+        ${grupos[g].length>14? `<span class="sub">e mais ${grupos[g].length-14}</span>`:''}</div>
+    </div>`).join('')}
+  </div>`;
+}
+
+/* ================= RITMO DA DESPENSA =================
+   A lista deixa de depender só da memória: da cadência das compras sai um
+   palpite do que vai faltar. É apresentado como palpite, visualmente distinto
+   do inventário real — a app não se arma em oráculo. */
+function historicoCompras(nome){
+  const datas=[];
+  Object.keys(S.bought||{}).forEach(wk=>{
+    if(!dataValida(wk)) return;
+    Object.keys(S.bought[wk]||{}).forEach(k=>{
+      if(!S.bought[wk][k]) return;
+      if(k.split('|')[0]!==nome) return;
+      datas.push(wk);
+    });
+  });
+  return [...new Set(datas)].sort();
+}
+function cadenciaDe(nome){
+  const d=historicoCompras(nome);
+  if(d.length<3) return null;
+  const gaps=[]; for(let i=1;i<d.length;i++) gaps.push(diasEntre(d[i-1],d[i]));
+  gaps.sort((a,b)=>a-b);
+  const med=gaps[Math.floor(gaps.length/2)];
+  if(!(med>0)) return null;
+  const desvio=Math.round(Math.sqrt(gaps.reduce((t,g)=>t+(g-med)*(g-med),0)/gaps.length));
+  return {med, desvio, ultima:d[d.length-1], n:d.length};
+}
+function palpitesDespensa(){
+  const h=hojeISO(), out=[];
+  const nomes=new Set();
+  Object.keys(S.bought||{}).forEach(wk=>Object.keys(S.bought[wk]||{}).forEach(k=>{
+    if(S.bought[wk][k]) nomes.add(k.split('|')[0]); }));
+  nomes.forEach(n=>{
+    if((S.ui.semPalpite||[]).indexOf(n)>=0) return;
+    if(temNaDespensa(n)) return;
+    const c=cadenciaDe(n); if(!c) return;
+    const passou=diasEntre(c.ultima,h);
+    if(passou<c.med) return;
+    out.push({n, c, passou});
+  });
+  return out.sort((a,b)=>(b.passou-b.c.med)-(a.passou-a.c.med)).slice(0,8);
+}
+function silenciarPalpite(n){
+  if(!Array.isArray(S.ui.semPalpite)) S.ui.semPalpite=[];
+  if(S.ui.semPalpite.indexOf(n)<0) S.ui.semPalpite.push(n);
+  saveMeta(); render();
+}
+function aceitarPalpite(n){ S.despensa[n]=false; delete S.despensa[n]; save('palpite aceite'); go('compras'); }
+function cartaoPalpites(){
+  const p=palpitesDespensa(); if(!p.length) return '';
+  return `<div class="card" data-col="co-palpites" style="margin-top:14px;border-left:4px solid var(--warn)">
+    <h3>Se calhar está a faltar ${dica('palpite')}</h3>
+    <p class="sub" style="margin-top:4px">Palpites da cadência das tuas compras — não é inventário, é um padrão. O que não estiver certo, silencia-se.</p>
+    ${p.map(x=>`<div class="row" style="justify-content:space-between;margin-top:8px;gap:8px">
+      <div style="min-width:0"><b>${esc(x.n)}</b>
+        <span class="sub" style="display:block">costuma comprar-se a cada ${x.c.med}${x.c.desvio? '±'+x.c.desvio:''} dias · última há ${plural(x.passou,'dia','dias')}</span></div>
+      <div class="row" style="flex:none">
+        <button class="chip" onclick="aceitarPalpite('${esc(x.n).replace(/'/g,'&#39;')}')">Juntar à lista</button>
+        <button class="chip" onclick="silenciarPalpite('${esc(x.n).replace(/'/g,'&#39;')}')">Já não usamos</button>
+      </div></div>`).join('')}
+  </div>`;
+}
+
+/* ================= SEQUÊNCIAS HONESTAS =================
+   Semanas cumpridas contadas só de validações reais. Doença, férias ou lesão
+   marcam-se como pausa: a sequência congela em vez de partir — uma gripe não
+   pode apagar dois meses de esforço. */
+const LIMIAR_SEMANA=0.8;
+function semanaCumprida(m,wk){
+  if((S.pausas||[]).some(p=>p.wk===wk && (p.mid===m.id||p.mid==='casa'))) return 'pausa';
+  const dates=weekDates(wk);
+  const ref=regRefDe(m.id).filter(r=>dates.indexOf(r.d)>=0);
+  const ativ=regAtivDe(m.id).filter(r=>dates.indexOf(r.d)>=0);
+  const tot=ref.length+ativ.length;
+  if(tot<3) return null;
+  const feitos=ref.filter(r=>r.estado==='feita').length+ativ.filter(r=>r.estado==='feita').length;
+  return feitos/tot>=LIMIAR_SEMANA? 'sim' : 'nao';
+}
+function sequenciaDe(m){
+  let n=0, wk=mondayISO(addDias(hojeISO(),-7));   /* a semana em curso ainda não fechou */
+  for(let k=0;k<52;k++){
+    const r=semanaCumprida(m,wk);
+    if(r==='sim'){ n++; }
+    else if(r==='pausa'){ /* congela: não conta nem parte */ }
+    else break;
+    wk=mondayISO(addDias(wk,-7));
+  }
+  return n;
+}
+function sequenciaCasa(){
+  if(!S.members.length) return 0;
+  let n=0, wk=mondayISO(addDias(hojeISO(),-7));
+  for(let k=0;k<52;k++){
+    const r=S.members.map(m=>semanaCumprida(m,wk));
+    if(r.every(x=>x==='sim'||x==='pausa') && r.some(x=>x==='sim')) n++;
+    else break;
+    wk=mondayISO(addDias(wk,-7));
+  }
+  return n;
+}
+function pausaDeclarada(mid,wk){
+  if(!Array.isArray(S.pausas)) S.pausas=[];
+  const i=S.pausas.findIndex(p=>p.wk===wk && p.mid===mid);
+  if(i>=0) S.pausas.splice(i,1); else S.pausas.push({wk, mid});
+  save('pausa declarada'); render();
+}
+const NUM_EXT=['zero','uma','duas','três','quatro','cinco','seis','sete','oito','nove','dez','onze','doze'];
+function textoSequencia(n){
+  if(!n) return '';
+  return (NUM_EXT[n]||n)+' '+(n===1?'semana seguida':'semanas seguidas');
+}
+
+/* ================= HÁ UM ANO =================
+   Memória afetiva tirada dos próprios registos, sem inventar nada e sem tocar
+   em perfis onde o peso não se comenta. Uma por dia, no máximo. */
+function memoriaDoDia(){
+  const h=hojeISO(), cand=[];
+  S.members.forEach(m=>{
+    /* primeiro treino de uma modalidade */
+    const porSp={};
+    regAtivDe(m.id).filter(r=>r.estado==='feita').forEach(r=>{
+      if(!porSp[r.s]||r.d<porSp[r.s].d) porSp[r.s]={d:r.d, n:0};
+      porSp[r.s].n++; });
+    Object.keys(porSp).forEach(s=>{
+      const dif=diasEntre(porSp[s].d,h);
+      if(dif===365||dif===182||dif===90)
+        cand.push({p:2, t:(dif===365?'Há um ano':dif===182?'Há seis meses':'Há três meses')+', '
+          +nomeCurto(m)+' começou '+(SPORT[s]?SPORT[s].nome.toLowerCase():'a treinar')
+          +' — leva '+plural(porSp[s].n,'treino','treinos')+'.'});
+    });
+    /* primeira vez que se cozinhou um prato */
+    const porRec={};
+    regRefDe(m.id).filter(r=>r.estado==='feita').forEach(r=>{
+      if(!porRec[r.r]||r.d<porRec[r.r]) porRec[r.r]=r.d; });
+    Object.keys(porRec).forEach(rid=>{
+      const dif=diasEntre(porRec[rid],h);
+      if(dif===365||dif===182){ const rec=RECIPES.find(x=>x.id===rid);
+        if(rec) cand.push({p:1, t:(dif===365?'Há um ano':'Há seis meses')+' comeram '+rec.n+' pela primeira vez.'}); }
+    });
+    /* variação de peso — só onde o peso se comenta, e sempre com o objetivo à frente */
+    if(permiteProjecao(m)){
+      const pts=medicoesDe(m.id);
+      if(pts.length>=2){
+        const alvoD=addDias(h,-182);
+        const antigo=pts.filter(x=>x.d<=alvoD).pop();
+        if(antigo && diasEntre(antigo.d,h)>=175 && diasEntre(antigo.d,h)<=190){
+          const dif=pts[pts.length-1].p-antigo.p;
+          if(Math.abs(dif)>=1) cand.push({p:3, t:nomeCurto(m)+' pesa '+(dif<0?'menos ':'mais ')
+            +nPT(Math.abs(dif),1)+' kg do que há seis meses.'});
+        }
+      }
+    }
+  });
+  if(!cand.length) return '';
+  cand.sort((a,b)=>b.p-a.p);
+  return cand[0].t;
 }
 
 /* ================= PENDÊNCIAS DO DIA =================
@@ -5170,6 +5586,13 @@ function cartaoHoje(){
     </div>`:''}
     ${blocoSobrasHoje()}
     ${blocoMarmitasHoje()}
+    ${(function(){ const mem=memoriaDoDia();
+      return mem? `<p class="sub" style="margin-top:10px;font-style:italic">🕰 ${esc(mem)}</p>`:''; })()}
+    ${(function(){ const seq=sequenciaCasa();
+      const eu=S.members.map(m=>({m, n:sequenciaDe(m)})).filter(x=>x.n>0).sort((a,b)=>b.n-a.n);
+      if(!seq && !eu.length) return '';
+      return `<p class="sub" style="margin-top:8px">🔁 ${seq? '<b>A casa leva '+textoSequencia(seq)+'</b> a cumprir o que planeou. '
+        : ''}${eu.length? eu.slice(0,3).map(x=>nomeCurto(x.m)+' '+textoSequencia(x.n)).join(' · ') : ''} ${dica('sequencia')}</p>`; })()}
     ${linhas.length? `<div class="hoje-lista">${linhas.join('')}</div>`
       : `<p class="sub" style="margin-top:4px">O dia de hoje está por planear — duas escolhas no Plano e a cozinha sabe o que a espera.</p>`}
     <div class="row" style="margin-top:12px">
@@ -7633,6 +8056,7 @@ function renderNutricao(){
     </div>`}
   </div>
   ${definido? cartaoGraficoRef(m) : ''}
+  ${definido? `<div class="grid g2" style="margin-top:16px">${cartaoDescobertas(m)}${cartaoPassaporte(m)}</div>` : ''}
   ${cartaoFase(m)}
   <div class="row" style="margin-top:16px">
     <button class="btn ghost" onclick="go('receitas')">🍳 Ver receitas de ${esc(m.nome.split(' ')[0])} →</button>
@@ -8009,6 +8433,11 @@ function cartaoObjetivo(o){
       </div>
       <button class="chip" onclick="toggleObjExpandido('${o.id}')" aria-expanded="${expandido}">${expandido?'Fechar':'Ajustar'}</button>
     </div>
+    ${(function(){ if(o.tipo==='manter'||o.concluido) return '';
+      const t=textoProjecao(o,m);
+      return `<div class="sub" style="margin-top:8px;${t.fraco?'':'color:var(--ink)'}">
+        📈 <b>${esc(t.txt)}</b> ${dica('leque')}
+        ${t.fraco?'':'<span class="sub" style="display:block">Um intervalo, não uma data: é o que as pesagens sustentam.</span>'}</div>`;})()}
     ${balancaObjetivo(o,m)}
     ${expandido? painelAjuste(o,m) : ''}
     <div class="row" style="justify-content:flex-end;margin-top:10px">
@@ -9070,7 +9499,8 @@ function renderCompras(){
   </div>
   <textarea id="co-txt" style="display:none;max-width:640px;margin-top:12px" readonly aria-label="Lista de compras em texto"></textarea>
   <p class="sub" style="margin-top:12px">Quantidades = receita por pessoa × nº de comensais em cada refeição (membros em cheat day não contam nesse dia).</p>
-  ${cartaoFaltaComprar(items)}`;
+  ${cartaoFaltaComprar(items)}
+  ${cartaoPalpites()}`;
 }
 /* O que falta comprar de facto: a lista completa acima, menos o que já está
    na despensa — é isto que se exporta, não a lista inteira. */
@@ -9390,7 +9820,7 @@ function pacote(){
   dados:{members:S.members, cheats:S.cheats, plans:S.plans, bought:S.bought,
          prefCuisine:S.prefCuisine, week:S.week, objetivos:S.objetivos, despensa:S.despensa,
          receitas:S.receitas, medicoes:S.medicoes, regAtiv:S.regAtiv, regRef:S.regRef,
-         sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa}}; }
+         sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa, pausas:S.pausas}}; }
 function textoCopia(){ return JSON.stringify(pacote(),null,2); }
 function marcarExportado(){ S.meta.exportadoEm=new Date().toISOString(); S.meta.semCopia=false; saveMeta(); }
 function nomeFicheiro(){ return 'familia-fit-'+iso(new Date())+'.json'; }
@@ -9621,10 +10051,11 @@ function lerPacote(txt){
   const acha=id=>receitas.find(x=>x.id===id) || RECIPES.find(x=>x.id===id&&!x.u);
   const regRef=(Array.isArray(d.regRef)? d.regRef : []).slice(0,20000)
     .map(r=>limparRegRef(remapa(r), idsOk, acha)).filter(Boolean);
-  const sobras=(Array.isArray(d.sobras)? d.sobras : []).slice(0,200).map(limparSobra).filter(Boolean);
+  const sobras=(Array.isArray(d.sobras)? d.sobras : []).slice(0,200).map(x=>limparSobra(x,acha)).filter(Boolean);
   const precos=limparPrecos(d.precos), festas=limparFestas(d.festas), casa=limparCasa(d.casa);
+  const pausas=limparPausas(d.pausas, idsOk.concat(['casa']));
   return {d:{ members, cheats, plans, bought, objetivos, despensa, receitas,
-              medicoes, regAtiv, regRef, sobras, precos, festas, casa,
+              medicoes, regAtiv, regRef, sobras, precos, festas, casa, pausas,
               prefCuisine:temChave(CUIS,d.prefCuisine)?d.prefCuisine:'todas',
               week:dataValida(d.week)? mondayISO(new Date(d.week+'T12:00:00')) : mondayISO(new Date()) }};
 }
