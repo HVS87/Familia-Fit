@@ -405,6 +405,16 @@ ol.passos li span{color:var(--mut);font-size:14px;margin-top:2px}
    quem quer comer não pode congelar por engano, e vice-versa. */
 /* A barra da cobertura fala por três larguras, mas cada troço tem legenda com
    número: quem não distingue as cores lê na mesma «22 na despensa». */
+/* A estrela da casa não é só a cor: tem um símbolo e um title, porque é uma
+   distinção e não um estado de erro. */
+.estrela-casa{font-size:.9em;filter:saturate(1.1)}
+.pill.variantes{background:var(--energy-soft,var(--card));color:var(--energy);
+  border:1px solid color-mix(in srgb,var(--energy) 40%,transparent)}
+/* Uma receita que se pode cozinhar já distingue-se por uma barra à esquerda e
+   pelo fundo — nunca só pela cor: a etiqueta «Pronta a cozinhar» continua lá,
+   e é ela que carrega a informação para quem não distingue os verdes. */
+.rc.rc-pronta{border-left:3px solid var(--ok);
+  background:linear-gradient(90deg,color-mix(in srgb,var(--ok) 7%,var(--card)) 0 40px,var(--card) 120px)}
 /* As listas do ACOG: texto corrido não serve para o que é uma lista de
    verificação, e os sinais de alarme distinguem-se por marca e não só por cor. */
 .lista-acog{margin:8px 0 0;padding-left:20px;font-size:13.5px;line-height:1.6}
@@ -1427,6 +1437,7 @@ function migraRegistos(s){
   s.veredictos = limparVeredictos(s.veredictos, ids);
   s.brigada = limparBrigada(s.brigada, ids);
   s.desperdicio = limparDesperdicio(s.desperdicio);
+  s.gostos = limparGostos(s.gostos, ids);
   /* convidados de datas passadas saem sozinhos do plano */
   limparConvidadosEm(s);
   if(!s.meta.desdeRegisto || !dataValida(s.meta.desdeRegisto)) s.meta.desdeRegisto=iso(new Date());
@@ -1507,6 +1518,25 @@ function limparDesperdicio(a){
     const r=String(x.r||''); if(!r) return null;
     return {d:x.d, r, doses:clampNum(parseFloat(x.doses)||0,0,12), destino:x.destino};
   }).filter(Boolean);
+}
+/* Gostos: um mapa de receita para membro, com 1 (favorita) ou -1 (não gosta).
+   Guarda-se por receita e não por pessoa porque é assim que se lê — quem gosta
+   deste prato? — e porque as variantes precisam de somar a mesa toda. */
+function limparGostos(o,ids){
+  const out={};
+  if(!o||typeof o!=='object') return out;
+  Object.keys(o).slice(0,2000).forEach(rid=>{
+    if(typeof rid!=='string' || !rid || rid.length>40) return;
+    const v=o[rid]; if(!v||typeof v!=='object') return;
+    const dentro={};
+    Object.keys(v).slice(0,32).forEach(mid=>{
+      if(ids && ids.indexOf(mid)<0) return;
+      const n=parseInt(v[mid],10);
+      if(n===1||n===-1) dentro[mid]=n;
+    });
+    if(Object.keys(dentro).length) out[rid]=dentro;
+  });
+  return out;
 }
 function limparFestas(a){
   if(!Array.isArray(a)) return [];
@@ -4668,6 +4698,10 @@ function blank(){ return {members:[],cheats:{},plans:{},bought:{},prefCuisine:'t
      é diferente de o ter comido. brigada: quem pôs as mãos na massa.
      desperdicio: o que foi para o lixo, para haver espelho e não amnésia. */
   validades:{}, veredictos:[], brigada:[], desperdicio:[],
+  /* gostos: {receitaId:{membroId:1|-1}}. 1 é favorita, -1 é não gosta. É
+     diferente do veredicto, que é sobre uma refeição concreta que aconteceu:
+     isto é a preferência estável da pessoa sobre o prato. */
+  gostos:{},
   /* preferências de cozinha da casa: repetir pratos na semana, cozinhar em
      dobro, seguir a época e preparar de véspera — o que muda como se sugere */
   cozPref:{repetir:false, dobro:false, sazonal:false, prep:true, cartaoEpoca:true},
@@ -4722,7 +4756,8 @@ function instantaneo(){ return JSON.stringify({members:S.members, cheats:S.cheat
   bought:S.bought, week:S.week, prefCuisine:S.prefCuisine, objetivos:S.objetivos, despensa:S.despensa,
   receitas:S.receitas, medicoes:S.medicoes, regAtiv:S.regAtiv, regRef:S.regRef,
   sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa, pausas:S.pausas, diario:S.diario, cozPref:S.cozPref,
-  validades:S.validades, veredictos:S.veredictos, brigada:S.brigada, desperdicio:S.desperdicio}); }
+  validades:S.validades, veredictos:S.veredictos, brigada:S.brigada, desperdicio:S.desperdicio,
+  gostos:S.gostos}); }
 function aplicaInstantaneo(js){
   const d=JSON.parse(js);
   S.members=d.members; S.cheats=d.cheats; S.plans=d.plans; S.bought=d.bought;
@@ -4742,6 +4777,7 @@ function aplicaInstantaneo(js){
   S.veredictos=Array.isArray(d.veredictos)? d.veredictos : [];
   S.brigada=Array.isArray(d.brigada)? d.brigada : [];
   S.desperdicio=Array.isArray(d.desperdicio)? d.desperdicio : [];
+  S.gostos=d.gostos&&typeof d.gostos==='object'? d.gostos : {};
   sincronizaReceitas();
   S.members.forEach(normalizaMembro);
   if(!S.members.some(m=>m.id===S.ui.mid)) S.ui.mid=S.members[0]? S.members[0].id : null;
@@ -5770,6 +5806,9 @@ const DICAS={
   dobro:'Cozinhar a dobrar dá para dois dias. Dobra o PRATO — as quantidades dele sobem já na lista de compras, e o dia que só aquece não volta a comprá-lo. Os acompanhamentos ficam de fora da conta porque se fazem frescos em cada dia: ninguém reaquece uma salada. O prazo de guardar e a forma de reaquecer vêm por baixo, e são diferentes de prato para prato.',
   foodprep:'Preparação de ingredientes, não pratos feitos: descascar, picar, demolhar, lavar, marinar, porcionar. Cada tarefa diz que dias serve e quanto tempo leva, com as quantidades já somadas de toda a semana. Enquanto estiver ligado, as receitas que aproveitam uma preparação já planeada têm vantagem nas sugestões — é assim que uma tarde de domingo poupa cinco jantares à pressa.',
   genero:'Um gaspacho e uma feijoada não apetecem no mesmo dia. A app lê o género do prato do nome e dos ingredientes e pesa-o na sugestão: no verão os pratos frios ganham vantagem, sobretudo ao almoço; fora dele, os quentes.',
+  sugDespensa:'Uma pergunta muito mais curta do que a do plano semanal: o que é que dá para fazer agora, com o que está aí. Ordena as receitas que servem toda a gente à mesa — dietas e alergias já contadas — pela percentagem de ingredientes que já tens em casa, e diz o que falta nas que não estão completas. A percentagem é sobre o número de ingredientes e não sobre o peso: para quem está à frente do frigorífico às sete da tarde, o que conta é quantas coisas faltam ir buscar. As que se podem cozinhar já ficam com uma barra verde à esquerda.',
+  variantes:'Sete tacos e cinco burritos ocupavam sete e cinco lugares na grelha, como se fossem doze pratos diferentes. São o mesmo prato com recheios diferentes, e o que a casa decide é «hoje é taco?» e não «qual dos sete tacos?». As variantes passam a partilhar um cartão, que mostra a que melhor serve os gostos desta mesa — pelo saldo de favoritas e não-gostas, depois por quem já se pode cozinhar com o que há em casa — e as outras ficam a um toque na ficha. O agrupamento é uma tabela explícita e não uma regra sobre os nomes: uma sopa de legumes e uma vichyssoise começam ambas por «Sopa» e não são variantes uma da outra. Numa pesquisa não se agrupa nada, porque quem escreve «taco de camarão» quer aquele taco.',
+  gostos:'Diferente do veredicto, que é sobre uma refeição que aconteceu: isto é a preferência estável de cada pessoa sobre o prato, e não muda com o jantar de ontem. Pesa nas sugestões automáticas — o que alguém não gosta pesa mais a descer do que um gosto a subir, porque um prato que alguém detesta serve pior a mesa do que um prato de que mais um gosta — e é o que decide qual das variantes de um prato aparece primeiro. A estrela aparece quando toda a gente que pode comer o prato o marcou como favorito, e são pelo menos duas pessoas: quem não o pode comer por alergia ou dieta não conta nem a favor nem contra, porque não lhe foi dada a hipótese.',
   acog:'Tudo o que este cartão diz vem do Committee Opinion n.º 804 do American College of Obstetricians and Gynecologists (2020) — a recomendação de 150 minutos por semana, as modalidades seguras, as que se desaconselham e porquê, as contraindicações absolutas e os sinais para parar. Nem um número nem uma modalidade foram decididos pela app. E nada disto substitui a consulta: há contraindicações que só uma consulta identifica, e são elas que mandam. No pós-parto a orientação não dá um calendário fixo — diz que se retoma gradualmente assim que for clinicamente seguro, conforme o tipo de parto e as complicações que tenha havido — e é isso que a app repete, em vez de inventar uma semana a partir da qual se pode correr.',
   pediatra:'A alimentação de crianças e, sobretudo, de bebés não se decide por uma tabela. Os valores que a app usa são referências populacionais de fontes oficiais, para planeamento familiar — não são prescrições, não conhecem o percentil, a história clínica, as alergias em investigação nem o ritmo de crescimento desta criança. Tudo o que aqui aparece deve ser validado com o pediatra que a segue, e a introdução de alimentos novos em particular.',
   filtrosCumulativos:'As dietas e os alergénios marcam-se todos ao mesmo tempo, e somam-se em vez de se substituírem: marcar «vegetariana» e «sem glúten» mostra as receitas que são as duas coisas, não as que são uma ou outra. É quase sempre assim que a pergunta se faz numa casa real — a dieta de um e a alergia de outro à mesma mesa. Kosher e halal entram aqui como quadros de exclusão: a app afasta o que é claramente incompatível, mas não pode verificar abate nem certificação, e di-lo em vez de fingir que pode.',
@@ -7022,6 +7061,146 @@ function notaHistoria(r){
     ${r.hist? `<span style="display:block">«${esc(r.hist)}»</span>`:''}
   </div>`;
 }
+function toggleVerVariantes(){ S.ui.verVariantes=!S.ui.verVariantes; S.ui.recLimite=LOTE_RECEITAS; saveMeta(); render(); }
+/* ================= O QUE DÁ PARA FAZER COM O QUE HÁ =================
+   A despensa já sabia o que falta a cada receita; faltava ordenar por isso.
+   A percentagem é sobre o número de ingredientes e não sobre o peso: para
+   quem está à frente do frigorífico às sete da tarde, o que conta é quantas
+   coisas faltam ir buscar, não quantos gramas. */
+const ORDENS_RECEITA={
+  nome:'Nome', despensa:'O que tenho em casa', kcal:'Calorias', gosto:'Gostos da casa'
+};
+function ordemReceitas(){ return temChave(ORDENS_RECEITA,S.ui.ordemRec)? S.ui.ordemRec : 'nome'; }
+function setOrdemRec(v){ S.ui.ordemRec=temChave(ORDENS_RECEITA,v)? v:'nome'; S.ui.recLimite=LOTE_RECEITAS; saveMeta(); render(); }
+function pctDespensa(r){
+  const d=disponibilidadeReceita(r);
+  return d.total? d.tem/d.total : 0;
+}
+function ordenaReceitas(list){
+  const o=ordemReceitas();
+  const l=list.slice();
+  if(o==='despensa') l.sort((a,b)=>pctDespensa(b)-pctDespensa(a) || a.n.localeCompare(b.n,'pt'));
+  else if(o==='kcal') l.sort((a,b)=>a.k-b.k || a.n.localeCompare(b.n,'pt'));
+  else if(o==='gosto') l.sort((a,b)=>saldoGostos(b.id,S.members)-saldoGostos(a.id,S.members) || a.n.localeCompare(b.n,'pt'));
+  return l;
+}
+/* «Sugere-me algo para hoje»: das receitas que servem toda a gente à mesa,
+   as que mais perto estão de se poderem cozinhar já. Não é o motor de
+   sugestões do plano — esse pensa na semana, na época e no food prep. Este
+   responde a uma pergunta muito mais curta: o que é que dá para fazer agora,
+   com o que está aí. */
+function sugestaoDaDespensa(){
+  const mk=refeicaoDaHora()==='p'? 'p' : refeicaoDaHora();
+  const membros=S.members.filter(m=>faseDe(m)!=='bebe');
+  let pool=RECIPES.filter(r=>!ehAcompanhamento(r) && (r.mt||[]).indexOf(mk)>=0);
+  if(membros.length) pool=pool.filter(r=>compatAll(r,membros));
+  if(!pool.length) return null;
+  const nota=r=>pctDespensa(r)*10 + saldoGostos(r.id,membros) + (receitaDaEpoca(r)?1:0) + pesoGenero(r,mk);
+  const ord=pool.slice().sort((a,b)=>nota(b)-nota(a) || a.n.localeCompare(b.n,'pt'));
+  return {mk, lista:ord.slice(0,3)};
+}
+function sugerirComDespensa(){
+  const s=sugestaoDaDespensa();
+  if(!s) return flash('warn','Não há receitas que sirvam toda a gente a esta refeição — vale a pena rever as alergias e as dietas.');
+  S.ui.sugDespensa=s.lista.map(r=>r.id);
+  S.ui.ordemRec='despensa';
+  saveMeta(); render();
+  setTimeout(()=>{ const el=document.getElementById('sug-despensa'); if(el) scrollSuave(el); },0);
+}
+function fecharSugDespensa(){ S.ui.sugDespensa=null; saveMeta(); render(); }
+function cartaoSugDespensa(){
+  const ids=Array.isArray(S.ui.sugDespensa)? S.ui.sugDespensa : null;
+  if(!ids||!ids.length) return '';
+  const l=ids.map(id=>RECIPES.find(r=>r.id===id)).filter(Boolean);
+  if(!l.length) return '';
+  const mk=refeicaoDaHora();
+  return `<div class="card card--capa" id="sug-despensa" style="margin-bottom:14px">
+    <div class="row" style="justify-content:space-between">
+      <div><span class="lbl">${nomeRefeicao(mk)} · com o que há em casa</span>
+        <h2 style="margin-top:2px">Isto dá para fazer hoje ${dica('sugDespensa')}</h2></div>
+      <button class="chip" onclick="fecharSugDespensa()">✕</button></div>
+    ${l.map(r=>{ const d=disponibilidadeReceita(r), pct=Math.round(pctDespensa(r)*100);
+      const faltam=(r.i||[]).map(x=>x[0]).filter(n=>!temNaDespensa(n));
+      return `<div class="val-item">
+        <div class="row" style="justify-content:space-between;gap:8px">
+          <div style="min-width:0">
+            <b>${favoritaDaCasa(r.id)?'⭐ ':''}${esc(r.n)}</b>
+            <span class="sub"> · ${r.k} kcal · ${esc(CUIS[r.coz]||'')}</span>
+            <span class="sub" style="display:block">${d.pronta
+              ? '<b class="f-ok-txt">Tens tudo o que é preciso.</b>'
+              : pct+'% na despensa — faltam '+faltam.slice(0,4).map(esc).join(', ')+(faltam.length>4? ' e mais '+(faltam.length-4):'')}</span>
+          </div>
+          <div class="row" style="flex:none;flex-direction:column;align-items:stretch">
+            <button class="btn small" onclick="abrirFicha('${r.id}',${porcoesAtuais()})">Ver receita</button>
+            <button class="btn ghost small" onclick="abrirCozinha('${r.id}',${Math.max(1,S.members.length)})">👨‍🍳 Cozinhar</button>
+          </div>
+        </div></div>`;}).join('')}
+    <p class="sub" style="margin-top:8px">Ordenadas pelo que já tens, e só entram as que servem toda a gente à mesa —
+      dietas e alergias já contadas. É uma pergunta mais curta do que a do plano semanal: não pensa na semana,
+      pensa em hoje.</p>
+  </div>`;
+}
+/* O selo que diz que aquele cartão representa uma família. Só aparece quando a
+   grelha está colapsada — com «ver todas as variantes» ligado seria ruído. */
+function seloVariantes(r){
+  if(S.ui.verVariantes) return '';
+  const k=familiaDe(r.id); if(!k) return '';
+  const n=membrosDaFamilia(k).length; if(n<2) return '';
+  return `<span class="pill variantes" style="align-self:flex-start"
+    title="${esc(nomeFamilia(k))}: ${n} variantes desta receita">🍽️ ${plural(n-1,'variante disponível','variantes disponíveis')}</span>`;
+}
+/* O seletor de variantes dentro da ficha: troca-se de variante sem sair, e a
+   que está a ser vista fica assinalada. */
+function blocoVariantes(r){
+  const k=familiaDe(r.id); if(!k) return '';
+  const l=membrosDaFamilia(k); if(l.length<2) return '';
+  const pref=variantePreferida(k,S.members);
+  return `<div style="margin-top:12px;border-top:1px solid var(--line);padding-top:10px">
+    <div class="splabel"><span>${esc(nomeFamilia(k))} · ${plural(l.length,'variante','variantes')} ${dica('variantes')}</span></div>
+    <div class="row" style="margin-top:6px">${l.map(x=>{
+      const aqui=x.id===r.id, saldo=saldoGostos(x.id,S.members);
+      return `<button class="chip ${aqui?'on':''}" onclick="abrirFicha('${x.id}',${porcoesAtuais()})"
+        aria-current="${aqui}" title="${esc(x.n)} — ${x.k} kcal">${aqui?'✓ ':''}${esc(x.n)}
+        ${x.id===pref.id&&!aqui? '<span class="sub">· a mais consensual</span>':''}
+        ${saldo>0? '<span class="sub">👍'+Math.round(saldo)+'</span>' : saldo<0? '<span class="sub">👎</span>':''}</button>`;
+    }).join('')}</div>
+    <p class="sub" style="margin-top:6px">Na grelha, estas partilham um cartão só: aparece a que melhor serve
+      os gostos desta mesa, e as outras ficam aqui a um toque.</p>
+  </div>`;
+}
+/* Quem gosta e quem não gosta deste prato, uma linha por pessoa. Bebés ficam
+   de fora: ainda não escolhem pratos. */
+function blocoGostos(r){
+  const quem=S.members.filter(m=>faseDe(m)!=='bebe');
+  if(!quem.length) return '';
+  const fav=favoritaDaCasa(r.id);
+  return `<div style="margin-top:12px;border-top:1px solid var(--line);padding-top:10px">
+    <div class="splabel"><span>Quem gosta ${dica('gostos')}</span>
+      ${fav? '<output class="f-ok-txt">⭐ favorita da casa</output>':''}</div>
+    ${quem.map(m=>{
+      const g=gostoDe(r.id,m.id);
+      const podeComer=avaliaReceita(r,[m],'j',false).ok;
+      return `<div class="vere-linha">
+        <span class="vere-quem">${avatar(m,22)} ${esc(m.nome.split(' ')[0])}
+          ${podeComer? '' : '<span class="sub">· não serve a dieta ou as alergias</span>'}</span>
+        <span class="row">
+          <button class="chip ${g===1?'on':''}" onclick="toggleGosto('${r.id}','${m.id}',1)"
+            aria-pressed="${g===1}" aria-label="${esc(m.nome)} gosta">⭐ Adoro</button>
+          <button class="chip ${g===-1?'on':''}" onclick="toggleGosto('${r.id}','${m.id}',-1)"
+            aria-pressed="${g===-1}" aria-label="${esc(m.nome)} não gosta">🚫 Não gosto</button>
+        </span></div>`;
+    }).join('')}
+    ${(function(){ const g=quemGosta(r.id), n=quemNaoGosta(r.id);
+      if(!g.length && !n.length) return '';
+      return `<p class="sub" style="margin-top:6px">${[
+        g.length? '👍 '+g.map(m=>esc(m.nome.split(' ')[0])).join(', ') : '',
+        n.length? '👎 '+n.map(m=>esc(m.nome.split(' ')[0])).join(', ') : ''
+      ].filter(Boolean).join(' · ')}</p>`; })()}
+    <p class="sub" style="margin-top:6px">Isto é a preferência sobre o prato, e não muda com a refeição de ontem.
+      Pesa nas sugestões automáticas e decide qual das variantes de um prato aparece primeiro.
+      ${fav? 'Toda a gente que pode comer este prato o marcou como favorito — daí a estrela.' : ''}</p>
+  </div>`;
+}
 /* O que a casa já disse sobre este prato. Sem médias nem estrelas: contam-se
    as vezes, que é o que uma família reconhece. */
 function veredictosDe(rid){
@@ -7072,6 +7251,8 @@ function fichaHtml(f){
       </div>
       ${avisoAlergia(r,S.members)}
       ${notaHistoria(r)}
+      ${blocoVariantes(r)}
+      ${blocoGostos(r)}
       ${blocoVeredictosDaCasa(r)}
       <div class="row" style="margin-top:12px;align-items:center">
         <span class="lbl" style="margin:0">Doses</span>
@@ -7096,6 +7277,7 @@ function fichaHtml(f){
       <div class="row" style="margin-top:16px;justify-content:space-between">
         <button class="btn ghost small" onclick="fecharFicha()">Fechar</button>
         <div class="row">
+          <button class="btn ghost small" onclick="fecharFicha();criarVariante('${r.id}')">🍽️ Criar variante</button>
           ${r.u? `<button class="btn ghost small" onclick="fecharFicha();abrirEditor('${r.id}')">✏️ Editar</button>`
                 : `<button class="btn ghost small" onclick="fecharFicha();abrirEditor('${r.id}')">✏️ Copiar para editar</button>`}
           <button class="btn" onclick="fecharFicha();abrirCozinha('${r.id}',${f.n})">👨‍🍳 Cozinhar agora</button>
@@ -8397,6 +8579,125 @@ function pesoCusto(r){
   const c=custoReceita(r,1);
   if(!c || c.com===0) return 0;   /* sem preços não há juízo a fazer */
   return c.total<=2? 1 : c.total<=3.5? 0.5 : c.total>=6? -1 : 0;
+}
+/* ================= VARIANTES DA MESMA RECEITA =================
+   Sete tacos e cinco burritos ocupavam sete e cinco lugares na grelha, como se
+   fossem sete e cinco pratos diferentes. São o mesmo prato com recheios
+   diferentes — e o que a casa quer decidir é «hoje é taco?», não «qual dos
+   sete tacos?». As variantes passam a partilhar um cartão, que mostra a que
+   melhor serve os gostos desta mesa, e as outras ficam a um toque.
+
+   O agrupamento é uma tabela explícita e não uma regra sobre os nomes: uma
+   sopa de legumes e uma vichyssoise começam ambas por «Sopa» e não são
+   variantes uma da outra; um bacalhau à Brás e um bacalhau com natas são dois
+   pratos clássicos distintos. Agrupar por prefixo dava disparates, e um
+   disparate na grelha esconde receitas em vez de as organizar. */
+const VARIANTES=[
+  {k:'chili',    n:'Chili',        ids:['chilicarne','chilibranco','ketochili']},
+  {k:'lasanha',  n:'Lasanha',      ids:['lasanharagu','lasanhalegumes','ketolasanha']},
+  {k:'tacos',    n:'Tacos',        ids:['tacospollo','tacospeixe','tacocarnitas','tacopeixe','tacofrango','tacocogumelos','tacocamarao']},
+  {k:'burritos', n:'Burritos',     ids:['burritocarne','burritofrango','burritovegan','burritocamarao','burritopequeno']},
+  {k:'quesadilhas',n:'Quesadilhas',ids:['quesadilla','quesadillafrango']},
+  {k:'omelete',  n:'Omelete',      ids:['omelete','omeletequeijo']},
+  {k:'panquecas',n:'Panquecas',    ids:['panquecas','panquecasus','ketopanquecas']},
+  {k:'risotto',  n:'Risotto',      ids:['risotto','risottoacafrao']},
+  {k:'feijoada', n:'Feijoada',     ids:['feijoada','feijoadatransmontana','feijoadabr','vgfeijoada']},
+  {k:'ovosmex',  n:'Ovos mexidos', ids:['ovosmex','ovoscebolinho','ovosmexidosbacon']},
+  {k:'iogurte',  n:'Iogurte com…', ids:['iogurtegranola','iogurtecompota','iogurtemaca','iogurtefigos','ketoiogurtesementes']},
+  {k:'batido',   n:'Batido',       ids:['batido','licuado']},
+  {k:'tosta',    n:'Tosta',        ids:['ricotta','tostaatum','tostatomate']},
+  {k:'espetada', n:'Espetadas',    ids:['espetadas','espetadavaca','espetadinhas','pinchos','cgespetada']},
+  {k:'caril',    n:'Caril',        ids:['caril','tikka']},
+  {k:'arrozac',  n:'Arroz (acompanhamento)', ids:['acrtomate','acrcoentros','acracafrao']},
+  {k:'bowlatum', n:'Bowl de atum', ids:['atumcouveflor','ketobowlatum']},
+];
+/* Índice inverso, construído uma vez: receita → chave da família. */
+const VAR_INDICE={};
+VARIANTES.forEach(f=>f.ids.forEach(id=>{ VAR_INDICE[id]=f.k; }));
+const VAR_NOME={}; VARIANTES.forEach(f=>{ VAR_NOME[f.k]=f.n; });
+/* A família de uma receita. Uma receita da casa criada como variante aponta
+   para a sua base; se a base já pertencer a uma família da biblioteca, entra
+   nessa, senão funda uma família própria à volta dela. */
+function chaveFamilia(rid){
+  const u=(S.receitas||[]).find(x=>x.id===rid);
+  if(u && u.base && u.base!==rid) return VAR_INDICE[u.base] || ('u:'+u.base);
+  return VAR_INDICE[rid] || null;
+}
+/* Uma receita que tem variantes da casa penduradas nela é a raiz de uma
+   família, mesmo não estando na tabela. */
+function familiaDe(rid){
+  const k=chaveFamilia(rid);
+  if(k) return k;
+  return (S.receitas||[]).some(x=>x.base===rid)? ('u:'+rid) : null;
+}
+function nomeFamilia(k){
+  if(!k) return '';
+  if(VAR_NOME[k]) return VAR_NOME[k];
+  const base=RECIPES.find(r=>r.id===k.slice(2));
+  return base? base.n : 'Variantes';
+}
+function membrosDaFamilia(k){
+  if(!k) return [];
+  return RECIPES.filter(r=>familiaDe(r.id)===k);
+}
+/* A variante que melhor serve esta mesa: primeiro o saldo dos gostos, depois
+   quem já se pode cozinhar com o que há em casa, e por fim o nome — para a
+   ordem ser estável e não andar aos saltos entre redesenhos. */
+function variantePreferida(k,membros){
+  const l=membrosDaFamilia(k);
+  if(!l.length) return null;
+  const quem=(membros&&membros.length)? membros : S.members;
+  const nota=r=>{
+    let n=saldoGostos(r.id,quem)*10;
+    if(quem.length && compatAll(r,quem)) n+=4;
+    const d=disponibilidadeReceita(r);
+    n+=d.total? d.tem/d.total*3 : 0;
+    return n;
+  };
+  return l.slice().sort((a,b)=>nota(b)-nota(a) || a.n.localeCompare(b.n,'pt'))[0];
+}
+/* ================= GOSTOS: FAVORITAS E NÃO GOSTA =================
+   O veredicto é sobre uma refeição que aconteceu; isto é a preferência estável
+   de cada pessoa sobre um prato, e é o que permite dizer qual das variantes de
+   um prato serve melhor esta mesa. Uma receita favorita de toda a gente ganha
+   estrela — e numa casa com dietas diferentes isso é raro o suficiente para
+   valer a pena assinalar. */
+function gostoDe(rid,mid){ return ((S.gostos||{})[rid]||{})[mid]||0; }
+function setGosto(rid,mid,v){
+  if(!S.gostos||typeof S.gostos!=='object') S.gostos={};
+  if(!S.gostos[rid]) S.gostos[rid]={};
+  if(S.gostos[rid][mid]===v) delete S.gostos[rid][mid]; else S.gostos[rid][mid]=v;
+  if(!Object.keys(S.gostos[rid]).length) delete S.gostos[rid];
+}
+function toggleGosto(rid,mid,v){
+  const rec=RECIPES.find(x=>x.id===rid), m=S.members.find(x=>x.id===mid);
+  if(!rec||!m) return;
+  setGosto(rid,mid,v);
+  save('gosto de '+m.nome);
+  render();
+}
+function quemGosta(rid){ const g=(S.gostos||{})[rid]||{};
+  return S.members.filter(m=>g[m.id]===1); }
+function quemNaoGosta(rid){ const g=(S.gostos||{})[rid]||{};
+  return S.members.filter(m=>g[m.id]===-1); }
+/* Favorita da casa: toda a gente que pode comer o prato marcou-o como
+   favorito, e são pelo menos duas pessoas. Quem não pode comer por alergia ou
+   dieta não conta nem a favor nem contra — não lhe foi dada a hipótese. */
+function favoritaDaCasa(rid){
+  const rec=RECIPES.find(x=>x.id===rid); if(!rec) return false;
+  const podem=S.members.filter(m=>faseDe(m)!=='bebe' && avaliaReceita(rec,[m],'j',false).ok);
+  if(podem.length<2) return false;
+  return podem.every(m=>gostoDe(rid,m.id)===1);
+}
+/* Saldo dos gostos de uma mesa para um prato: quantos gostam menos quantos não
+   gostam, com o «não gosta» a pesar mais — um prato que alguém detesta serve
+   pior a mesa do que um prato de que mais um gosta. */
+function saldoGostos(rid,membros){
+  const quem=(membros&&membros.length)? membros : S.members;
+  let s=0;
+  quem.forEach(m=>{ const g=gostoDe(rid,m.id);
+    if(g===1) s+=1; else if(g===-1) s-=1.5; });
+  return s;
 }
 const SEMANAS_ARREFECER=8;
 function pesoVeredicto(r){
@@ -10675,6 +10976,11 @@ function limparReceita(x){
      mostra. Uma receita sem história continua a ser uma receita. */
   const de=String(x.de||'').trim().slice(0,40); if(de) out.de=de;
   const hist=String(x.hist||'').trim().slice(0,240); if(hist) out.hist=hist;
+  /* base: a receita de que esta é variante. Uma receita não pode ser variante
+     de si própria, e o id tem de ter forma de id — o resto valida-se na
+     sincronização, quando a biblioteca já está montada. */
+  const base=String(x.base||'').trim().slice(0,40);
+  if(base && base!==out.id && /^[A-Za-z0-9_-]+$/.test(base)) out.base=base;
   return out;
 }
 /* A biblioteca é uma só: as receitas da casa são acrescentadas ao mesmo array
@@ -10690,6 +10996,7 @@ function sincronizaReceitas(){
       mt:x.mt, u:true, doses:x.doses};
     if(x.de) r.de=x.de;
     if(x.hist) r.hist=x.hist;
+    if(x.base) r.base=x.base;
     const s=[]; r.i.forEach(l=>atributosIng(l[0]).forEach(t=>{ if(s.indexOf(t)<0) s.push(t); }));
     r.at=s;
     /* nada se declara numa receita da casa: vegetariana, vegan e paleo saem
@@ -10712,19 +11019,36 @@ function abrirEditor(rid){
     const orig=S.receitas.find(x=>x.id===base.id);
     S.ui.editor={id:base.id, n:base.n, coz:base.coz, mt:base.mt.slice(), doses:orig? orig.doses:1,
       i:(orig? orig.i : base.i).map(l=>l.slice()),
-      de:(orig&&orig.de)||'', hist:(orig&&orig.hist)||''};
+      de:(orig&&orig.de)||'', hist:(orig&&orig.hist)||'', base:(orig&&orig.base)||''};
   } else if(base){
     /* uma receita da biblioteca copia-se para editar: o original fica intacto
        para quem quiser voltar a ele, e a cópia é da casa */
     S.ui.editor={id:null, n:base.n+' (a meu gosto)', coz:base.coz, mt:base.mt.slice(), doses:1,
-      i:base.i.map(l=>l.slice()), de:'', hist:''};
+      i:base.i.map(l=>l.slice()), de:'', hist:'', base:''};
   } else {
-    S.ui.editor={id:null, n:'', coz:'portuguesa', mt:['a','j'], doses:2, i:[], de:'', hist:''};
+    S.ui.editor={id:null, n:'', coz:'portuguesa', mt:['a','j'], doses:2, i:[], de:'', hist:'', base:''};
   }
   S.ui.tab='receitas'; saveMeta(); render();
   const el=document.getElementById('editor'); if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
 }
 function fecharEditor(){ S.ui.editor=null; saveMeta(); render(); }
+/* Criar variante: abre o editor já preenchido com a receita de partida e com a
+   ligação à família feita. O que se guarda é uma receita nova — a original
+   fica intacta, que é a diferença entre variar e substituir. */
+function criarVariante(rid){
+  const base=receitaPorId(rid); if(!base) return;
+  const orig=(S.receitas||[]).find(x=>x.id===rid);
+  /* a variante pendura-se na raiz da família, não na variante que estava
+     aberta: senão fazia-se uma cadeia e a família partia-se em duas */
+  const k=familiaDe(rid);
+  const raiz = k && k.indexOf('u:')===0 ? k.slice(2)
+    : (k? (VARIANTES.find(f=>f.k===k)||{ids:[rid]}).ids[0] : rid);
+  S.ui.editor={id:null, n:base.n+' — variante', coz:base.coz, mt:base.mt.slice(),
+    doses:(orig&&orig.doses)||1, i:(orig? orig.i : base.i).map(l=>l.slice()),
+    de:'', hist:'', base:raiz, variante:true};
+  S.ui.tab='receitas'; saveMeta(); render();
+  const el=document.getElementById('editor'); if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+}
 function edSet(campo,valor){
   const e=edCfg(); if(!e) return;
   if(campo==='n') e.n=String(valor).slice(0,80);
@@ -10777,20 +11101,57 @@ function edValido(){
   if(!e.mt.length) return 'Escolhe pelo menos uma refeição onde esta receita encaixa.';
   return null;
 }
-function guardarReceita(){
+/* Guardar uma edição tem duas leituras possíveis e a app não deve adivinhar
+   qual: quem mudou o arroz por quinoa pode querer corrigir a receita, ou pode
+   querer ficar com as duas. Por isso pergunta-se — mas só quando faz sentido
+   perguntar, ou seja, ao editar uma receita que já existia. */
+function guardarReceita(comoVariante){
   const e=edCfg(); if(!e) return;
   const erro=edValido();
   if(erro){ flash('bad',erro); return; }
   if(!Array.isArray(S.receitas)) S.receitas=[];
-  const limpa=limparReceita({id:e.id||uid(), n:e.n.trim(), coz:e.coz, mt:e.mt, doses:e.doses, i:e.i,
-    de:e.de, hist:e.hist});
+  const editaExistente = !!e.id && !e.variante;
+  if(editaExistente && comoVariante===undefined){ S.ui.editor.perguntaVariante=true; saveMeta(); render(); return; }
+  const guardaComoNova = comoVariante===true;
+  const id = guardaComoNova? uid() : (e.id||uid());
+  /* uma variante criada a partir de uma edição pendura-se na receita que se
+     estava a editar, e herda a família dela se já houver uma */
+  let base=e.base||'';
+  if(guardaComoNova && e.id){
+    const k=familiaDe(e.id);
+    base = k && k.indexOf('u:')===0 ? k.slice(2)
+      : (k? (VARIANTES.find(f=>f.k===k)||{ids:[e.id]}).ids[0] : e.id);
+  }
+  const limpa=limparReceita({id, n:e.n.trim(), coz:e.coz, mt:e.mt, doses:e.doses, i:e.i,
+    de:e.de, hist:e.hist, base});
   if(!limpa){ flash('bad','Não foi possível guardar: os ingredientes não são válidos.'); return; }
-  const idx=e.id? S.receitas.findIndex(x=>x.id===e.id) : -1;
+  const idx=(!guardaComoNova && e.id)? S.receitas.findIndex(x=>x.id===e.id) : -1;
   if(idx>=0) S.receitas[idx]=limpa; else S.receitas.push(limpa);
   sincronizaReceitas();
   S.ui.editor=null;
-  save(idx>=0? 'edição da receita '+limpa.n : 'nova receita '+limpa.n);
-  flash('ok',(idx>=0?'Receita atualizada: ':'Receita guardada: ')+limpa.n+' — '+receitaPorId(limpa.id).k+' kcal por dose.');
+  const substituiu = idx>=0;
+  save(substituiu? 'edição da receita '+limpa.n : 'nova receita '+limpa.n);
+  flash('ok',(substituiu? 'Receita atualizada: ' : guardaComoNova? 'Variante guardada: ' : 'Receita guardada: ')
+    +limpa.n+' — '+receitaPorId(limpa.id).k+' kcal por dose.'
+    +(guardaComoNova&&limpa.base? ' A original ficou intacta, e as duas partilham cartão.' : ''),
+    {rot:'Anular', fn:'desfazer()'});
+}
+function cancelarPerguntaVariante(){ const e=edCfg(); if(!e) return; delete e.perguntaVariante; saveMeta(); render(); }
+/* A caixa que faz a pergunta. Fica dentro do editor, encostada ao botão de
+   guardar, para a decisão acontecer onde o gesto acontece. */
+function caixaPerguntaVariante(e){
+  if(!e.perguntaVariante) return '';
+  const orig=receitaPorId(e.id);
+  return `<div class="alerta" style="margin-top:12px"><span aria-hidden="true">🍽️</span><span>
+    <b>Substituir «${esc(orig? orig.n : '')}» ou guardar como variante?</b>
+    Substituir reescreve a receita e as refeições já planeadas passam a usar esta versão.
+    Guardar como variante deixa a original intacta e junta as duas no mesmo cartão, com a que
+    melhor servir os gostos da casa à frente.
+    <span class="row" style="margin-top:8px">
+      <button class="btn small" onclick="guardarReceita(false)">Substituir a original</button>
+      <button class="btn small" onclick="guardarReceita(true)">Guardar como variante</button>
+      <button class="btn ghost small" onclick="cancelarPerguntaVariante()">Voltar a editar</button>
+    </span></span></div>`;
 }
 function apagarReceita(id){
   const r=receitaPorId(id); if(!r) return;
@@ -10829,8 +11190,8 @@ function painelMacrosEditor(){
       <span><i class="dot" style="background:var(--mf)"></i>Gordura ${nPT(m.f,1)} g</span></div>
     <div class="sub" style="margin-top:6px">Fibra ${nPT(m.fib,1)} g · hidrato líquido ${nPT(liq,1)} g
       · receita inteira ${total.k} kcal para ${e.doses} dose${e.doses===1?'':'s'}</div>
-    <div style="margin-top:6px">${dietas.length? dietas.map(d=>`<span class="tag">${d}</span>`).join('')
-      : '<span class="sub">Sem etiquetas de dieta: serve quem come de tudo.</span>'}</div>
+    <div style="margin-top:6px">${dietas.length? dietas.map(d=>`<span class="tag">${esc(d)}</span>`).join('')
+      : '<span class="sub">Sem etiquetas de dieta: serve quem come de tudo.</span>'} ${dica('dietaAuto')}</div>
     ${m.semDados.length? `<p class="sub" style="color:var(--warn);margin-top:6px">⚠ Sem composição para: ${m.semDados.map(esc).join(', ')} — estes ingredientes não entram na conta.</p>`:''}`;
 }
 function cartaoEditor(){
@@ -10839,9 +11200,12 @@ function cartaoEditor(){
   const erro=edValido();
   return `<div class="card" id="editor" style="margin-bottom:16px;border-color:var(--accent)">
     <div class="row" style="justify-content:space-between">
-      <h2>${e.id? '✏️ Editar receita' : '🍳 Nova receita'} ${dica('editorReceitas')}</h2>
+      <h2>${e.variante? '🍽️ Nova variante' : e.id? '✏️ Editar receita' : '🍳 Nova receita'} ${dica('editorReceitas')}</h2>
       <button class="chip" onclick="fecharEditor()">Fechar</button>
     </div>
+    ${e.base? (function(){ const b=receitaPorId(e.base);
+      return b? `<p class="sub" style="margin-top:4px">Variante de <b>${esc(b.n)}</b> —
+        as duas passam a partilhar um cartão na grelha, e aparece a que melhor servir os gostos da casa.</p>` : ''; })():''}
     <div class="frow">
       <div style="grid-column:span 2"><label class="lbl">Nome</label>
         <input type="text" value="${esc(e.n)}" placeholder="Ex.: Arroz de forno da avó" onchange="edSet('n',this.value)"></div>
@@ -10877,9 +11241,10 @@ function cartaoEditor(){
       : `<p class="sub" style="margin-top:8px">Ainda sem ingredientes. Só entram nomes do catálogo — é isso que faz a receita falar com a despensa e com a lista de compras.</p>`}
     </div>
     <div class="card" id="ed-macros" style="margin-top:14px;background:var(--bg)">${painelMacrosEditor()}</div>
+    ${caixaPerguntaVariante(e)}
     <div class="row" style="margin-top:14px">
-      <button class="btn" onclick="guardarReceita()">${e.id?'Guardar alterações':'Guardar receita'}</button>
-      ${e.id? `<button class="btn danger small" onclick="apagarReceita('${e.id}')">Apagar</button>`:''}
+      <button class="btn" onclick="guardarReceita()">${e.variante? 'Guardar variante' : e.id?'Guardar alterações':'Guardar receita'}</button>
+      ${e.id&&!e.variante? `<button class="btn danger small" onclick="apagarReceita('${e.id}')">Apagar</button>`:''}
       <button class="chip" onclick="fecharEditor()">Cancelar</button>
       ${erro? `<span class="sub" style="color:var(--warn)">${erro}</span>`:''}
     </div>
@@ -10945,15 +11310,16 @@ function recipeCard(r,n){
     return {m, itens:ingredientesVetados(r,m).filter(x=>al.indexOf(x)<0)};
   }).filter(x=>x.itens.length);
   const disp=disponibilidadeReceita(r);
-  return `<div class="rc rc-tocavel" data-rid="${r.id}" role="button" tabindex="0"
+  return `<div class="rc rc-tocavel ${disp.pronta?'rc-pronta':''}" data-rid="${r.id}" role="button" tabindex="0"
       aria-label="Abrir a ficha de ${esc(r.n)}, com os passos de preparação"
       onclick="if(!event.target.closest('button,select,a,summary,details')) abrirFicha('${r.id}',${n||1})"
       onkeydown="if((event.key==='Enter'||event.key===' ')&&!event.target.closest('button,select,a,summary,details')){event.preventDefault();abrirFicha('${r.id}',${n||1});}">
-    <div class="row" style="justify-content:space-between"><h3>${esc(r.n)}</h3><span class="kcal">${r.k} kcal</span></div>
+    <div class="row" style="justify-content:space-between"><h3>${favoritaDaCasa(r.id)? '<span class="estrela-casa" title="Favorita de toda a gente que a pode comer">⭐</span> ':''}${esc(r.n)}</h3><span class="kcal">${r.k} kcal</span></div>
     <div><span class="tag" style="border-color:var(--accent);color:var(--accent)">${r.mt.map(nomeRefeicao).join(' / ')}</span>
       <span class="tag">${ICO_COZ[r.coz]||''} ${cozinhasDe(r).map(k=>CUIS[k]).join(' · ')}</span>${selosCategoria(r)}${r.dc.filter(d=>d!==r.coz).map(d=>`<span class="tag">${esc(nomeDieta(d))}</span>`).join('')}${selosEpoca(r)}${seloGenero(r)}${seloSaborNovo(r,S.members)}</div>
     <div class="sub" style="font-variant-numeric:tabular-nums">H ${r.c} g · P ${r.p} g · G ${r.f} g${
       (function(){ const c=custoReceita(r,n||1); return c.com? ' · ~'+nPT(c.total,2)+' €'+(c.sem?'*':'') : ''; })()}</div>
+    ${seloVariantes(r)}
     <span class="pill ${disp.pronta?'ok':disp.tem?'warn':''}" style="align-self:flex-start">${disp.pronta?'Pronta a cozinhar':disp.tem+'/'+disp.total+' na despensa'}</span>
     <div class="ingr-lista">${listaIngredientesComEstado(r,n)}</div>
     <div class="row" style="margin-top:2px">${seloGenero(r)? '<span class="sub">Género do prato '+dica('genero')+'</span>':''}</div>
@@ -12173,18 +12539,52 @@ function renderReceitas(){
   if(q) list=list.filter(r=>correspondeBusca(r,q));
   const fam=S.members.length? RECIPES.filter(r=>compatAll(r,S.members)) : [];
   const n=porcoesAtuais(), minhas=RECIPES.filter(r=>r.u).length;
+  /* As variantes colapsam num cartão só. A pesquisa é a exceção: quem escreve
+     «taco de camarão» quer aquele taco, não a família toda. */
+  const totalAntes=list.length;
+  let colapsadas=0;
+  if(!q && !S.ui.verVariantes){
+    const vistas={}, out=[];
+    list.forEach(r=>{
+      const k=familiaDe(r.id);
+      if(!k){ out.push(r); return; }
+      if(vistas[k]) return;   /* já contada quando a família entrou */
+      vistas[k]=1;
+      /* a que representa a família é escolhida entre as que passaram nos
+         filtros, e não entre a família toda — senão o cartão mostrava uma
+         variante que o filtro tinha acabado de excluir */
+      const naLista=list.filter(x=>familiaDe(x.id)===k);
+      const pref=variantePreferida(k,S.members);
+      out.push(naLista.indexOf(pref)>=0? pref : naLista[0]);
+      colapsadas+=naLista.length-1;
+    });
+    list=out;
+  }
+  list=ordenaReceitas(list);
+  const prontas=list.filter(r=>disponibilidadeReceita(r).pronta).length;
   /* com pesquisa ativa mostra-se tudo o que corresponde; sem ela, por lotes */
   S.ui.recTodas=!!q;
   const mostradas=q? list : list.slice(0,S.ui.recLimite||LOTE_RECEITAS);
-  return (m?memberPicker():'')+cartaoEditor()+`
+  return (m?memberPicker():'')+cartaoEditor()+cartaoSugDespensa()+`
   <div class="row" style="justify-content:space-between;margin-bottom:10px;flex-wrap:wrap">
-    <div><h2>Receitas ${dica('receitasDisp')}</h2><span class="sub" id="rec-conta">${list.length} de ${RECIPES.length} receitas${minhas? ' · '+minhas+' da casa':''}</span></div>
+    <div><h2>Receitas ${dica('receitasDisp')}</h2><span class="sub" id="rec-conta">${list.length} de ${RECIPES.length} receitas${minhas? ' · '+minhas+' da casa':''}${
+      colapsadas? ' · '+plural(colapsadas,'variante agrupada','variantes agrupadas') : ''}</span></div>
     <div class="row">
       ${S.ui.editor? '' : `<button class="btn small" id="btn-nova-receita" onclick="abrirEditor(null)">+ Nova receita</button>`}
       ${minhas? `<button class="chip" onclick="imprimirLivro()">📖 Livro da casa ${dica('livro')}</button>`:''}
+      ${colapsadas||S.ui.verVariantes? `<button class="chip ${S.ui.verVariantes?'on':''}" onclick="toggleVerVariantes()"
+        aria-pressed="${!!S.ui.verVariantes}">🍽️ Ver todas as variantes ${dica('variantes')}</button>`:''}
       ${m? `<button class="chip ${S.ui.soComp?'on':''}" onclick="toggleComp()">Só compatíveis com ${esc(m.nome)}</button>`:''}
-      <button class="chip" onclick="go('despensa')">🥫 Ver despensa</button>
+      <button class="btn small" onclick="sugerirComDespensa()">🥫 Sugere-me algo para hoje ${dica('sugDespensa')}</button>
+      <button class="chip" onclick="go('despensa')">Ver despensa</button>
     </div>
+  </div>
+  <div class="row" style="margin-bottom:10px;align-items:center">
+    <span class="sub">Ordenar por</span>
+    <select style="width:auto" aria-label="Ordenar as receitas" onchange="setOrdemRec(this.value)">
+      ${Object.entries(ORDENS_RECEITA).map(([k,v])=>`<option value="${k}" ${ordemReceitas()===k?'selected':''}>${v}</option>`).join('')}</select>
+    ${ordemReceitas()==='despensa'? `<span class="pill ${prontas?'ok':''}">${prontas
+      ? plural(prontas,'receita pronta a cozinhar','receitas prontas a cozinhar') : 'nenhuma completa — mas as mais perto vêm primeiro'}</span>`:''}
   </div>
   <div class="row" style="margin-bottom:12px">
     <input type="search" id="rec-busca" class="busca" value="${esc(S.ui.busca||'')}" placeholder="🔎 Procurar por nome ou ingrediente…"
@@ -12942,7 +13342,7 @@ function sugestoes(){
      resolver um problema que a casa não tem. */
   const aperta=orcamentoApertado();
   const bonus=r=>(receitaDaEpoca(r)?2:0)+pesoGenero(r,mk)+Math.min(2,encaixaNoPrep(r,prep)*0.5)
-    +usaOQueVaiAcabar(r)+pesoVeredicto(r)+(aperta? pesoCusto(r) : 0);
+    +usaOQueVaiAcabar(r)+pesoVeredicto(r)+saldoGostos(r.id,membros)+(aperta? pesoCusto(r) : 0);
   ok.sort((a,b)=>{
     const da=disponibilidadeReceita(a), db=disponibilidadeReceita(b);
     if(da.pronta!==db.pronta) return da.pronta? -1:1;
@@ -12997,7 +13397,7 @@ function notaDoses(r,membros,mk){
 function cartaoSugestao(r,membros,mk){
   const n=membros.length||1, disp=disponibilidadeReceita(r), falta=disp.total-disp.tem;
   return `<div class="rc">
-    <div class="row" style="justify-content:space-between"><h3>${esc(r.n)}</h3><span class="kcal">${r.k} kcal</span></div>
+    <div class="row" style="justify-content:space-between"><h3>${favoritaDaCasa(r.id)? '<span class="estrela-casa" title="Favorita de toda a gente que a pode comer">⭐</span> ':''}${esc(r.n)}</h3><span class="kcal">${r.k} kcal</span></div>
     <div><span class="tag">${ICO_COZ[r.coz]||''} ${CUIS[r.coz]}</span>${r.dc.filter(d=>d!==r.coz).map(d=>`<span class="tag">${esc(nomeDieta(d))}</span>`).join('')}</div>
     <div class="sub" style="font-variant-numeric:tabular-nums">H ${r.c} g · P ${r.p} g · G ${r.f} g por dose</div>
     ${notaDoses(r,membros,mk)}
@@ -14416,7 +14816,8 @@ function pacote(){
          prefCuisine:S.prefCuisine, week:S.week, objetivos:S.objetivos, despensa:S.despensa,
          receitas:S.receitas, medicoes:S.medicoes, regAtiv:S.regAtiv, regRef:S.regRef,
          sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa, pausas:S.pausas, diario:S.diario, cozPref:S.cozPref,
-         validades:S.validades, veredictos:S.veredictos, brigada:S.brigada, desperdicio:S.desperdicio}}; }
+         validades:S.validades, veredictos:S.veredictos, brigada:S.brigada, desperdicio:S.desperdicio,
+         gostos:S.gostos}}; }
 function textoCopia(){ return JSON.stringify(pacote(),null,2); }
 function marcarExportado(){ S.meta.exportadoEm=new Date().toISOString(); S.meta.semCopia=false; saveMeta(); }
 function nomeFicheiro(){ return 'familia-fit-'+iso(new Date())+'.json'; }
@@ -14505,6 +14906,12 @@ function limparMembro(m){
     trimestre: clampNum(Math.round(parseFloat(m.trimestre)||1),1,3),
     fetos: clampNum(Math.round(parseFloat(m.fetos)||1),1,3),
     pesoPre: num(m.pesoPre,0)? clampNum(num(m.pesoPre,0),1,400) : undefined,
+    /* pós-parto: sem estes três, quem marcasse a retoma perdia-a na primeira
+       cópia de segurança, e o separador Atividade voltava a tratar a pessoa
+       como se nada tivesse acontecido */
+    posparto: !!m.posparto && (m.sexo==='f'),
+    semanasPos: clampNum(Math.round(parseFloat(m.semanasPos)||0),0,104),
+    parto: m.parto==='cesariana'? 'cesariana' : 'vaginal',
     restricoes: Array.isArray(m.restricoes)
       ? m.restricoes.filter((k,i,a)=>temChave(RESTR,k)&&a.indexOf(k)===i) : [],
     emoji: (typeof m.emoji==='string' && m.emoji.length>0 && m.emoji.length<=4)? m.emoji : undefined,
@@ -14670,9 +15077,20 @@ function lerPacote(txt){
   const brigada=limparBrigada((Array.isArray(d.brigada)? d.brigada:[]).map(remapa), idsOk)
     .filter(b=>acha(b.r));
   const desperdicio=limparDesperdicio(d.desperdicio).filter(x=>acha(x.r));
+  /* os gostos vêm com ids de membro do ficheiro: remapeiam-se para os perfis
+     que sobreviveram à importação, e a receita tem de existir deste lado */
+  const gostosBrutos={};
+  Object.keys((d.gostos&&typeof d.gostos==='object')? d.gostos : {}).forEach(rid=>{
+    if(!acha(rid)) return;
+    const dentro={};
+    Object.keys(d.gostos[rid]||{}).forEach(mid0=>{ const mid=mapa[mid0]||mid0;
+      dentro[mid]=d.gostos[rid][mid0]; });
+    gostosBrutos[rid]=dentro;
+  });
+  const gostos=limparGostos(gostosBrutos, idsOk);
   return {d:{ members, cheats, plans, bought, objetivos, despensa, receitas,
               medicoes, regAtiv, regRef, sobras, precos, festas, casa, pausas, diario, cozPref,
-              validades, veredictos, brigada, desperdicio,
+              validades, veredictos, brigada, desperdicio, gostos,
               prefCuisine:temChave(CUIS,d.prefCuisine)?d.prefCuisine:'todas',
               week:dataValida(d.week)? mondayISO(new Date(d.week+'T12:00:00')) : mondayISO(new Date()) }};
 }
@@ -14790,6 +15208,15 @@ function juntar(txt){
   (d.desperdicio||[]).forEach(x=>{
     if(S.desperdicio.some(y=>y.d===x.d&&y.r===x.r&&y.destino===x.destino)) return;
     S.desperdicio.push(x);
+  });
+  /* gostos: o que já cá está ganha, como em tudo o resto */
+  if(!S.gostos||typeof S.gostos!=='object') S.gostos={};
+  Object.keys(d.gostos||{}).forEach(rid=>{
+    if(!S.gostos[rid]) S.gostos[rid]={};
+    Object.keys(d.gostos[rid]).forEach(mid0=>{ const mid=mapa[mid0]||mid0;
+      if(!S.members.some(m=>m.id===mid)) return;
+      if(S.gostos[rid][mid]===undefined) S.gostos[rid][mid]=d.gostos[rid][mid0]; });
+    if(!Object.keys(S.gostos[rid]).length) delete S.gostos[rid];
   });
   if(!S.ui.mid && S.members[0]) S.ui.mid=S.members[0].id;
   save();
@@ -15034,6 +15461,14 @@ const TOUR=[
   {tab:'nutricao', sel:'[data-col="nu-passaporte"]', quando:()=>S.members.length&&passaporteDe(curM().id).ordem.length,
    t:'Passaporte de sabores',
    d:'Os ingredientes que cada um já provou, contados das refeições confirmadas. «Provou mas não gostou» não risca o sabor: faz a app voltar a propô-lo mais tarde noutra receita. A neofobia das crianças passa a jogo de descoberta em vez de guerra à mesa.'},
+  {tab:'atividade', sel:'#atv-gravidez', quando:()=>S.members.some(m=>gravida(m)||posparto(m)),
+   antes:()=>{ const m=S.members.find(x=>gravida(x)||posparto(x)); if(m) S.ui.mid=m.id; },
+   t:'Gravidez e pós-parto',
+   d:'Marcada a gravidez ou o pós-parto no perfil, o separador Atividade ganha um módulo próprio com as recomendações do <b>ACOG — Committee Opinion n.º 804</b>: os 150 minutos por semana, as modalidades que a orientação nomeia como seguras (com um toque para as acrescentar ao plano), as que desaconselha e porquê — contacto ou risco de queda —, as dez contraindicações absolutas e os sinais para parar e procurar apoio médico. Nem um número nem uma modalidade foram decididos pela app. No pós-parto a orientação não dá calendário fixo: diz que se retoma gradualmente assim que for clinicamente seguro, conforme o tipo de parto, e é isso que a app repete. Em cada ecrã fica o mesmo aviso — nada disto vale contra o que disser quem segue a gravidez.'},
+  {tab:'nutricao', sel:'[data-col="nu-pediatra"]', quando:()=>S.members.some(m=>faseDe(m)!=='adulto'),
+   antes:()=>{ const m=S.members.find(x=>faseDe(x)!=='adulto'); if(m) S.ui.mid=m.id; },
+   t:'Crianças: validar com o pediatra',
+   d:'Em qualquer perfil em idade de crescimento, e com mais força num bebé, a app põe à cabeça da Nutrição um aviso que não se fecha: os valores que usa são referências populacionais de fontes oficiais, para planear uma semana em casa — não são prescrições, e não conhecem o percentil desta criança, a história clínica, as alergias em investigação nem o ritmo de crescimento. A introdução de alimentos novos e as quantidades de leite decidem-se em consulta.'},
   {tab:'nutricao', sel:'[data-col="nu-fibra"]', quando:()=>S.members.length&&fibraMedia(curM().id,7),
    t:'Fibra e hortofrutícolas',
    d:'Dois números que os ingredientes sempre tiveram e que nunca eram somados ao dia. A fibra vem da tabela do INSA e compara-se com a Ingestão Adequada da EFSA — 25 g por dia num adulto, 2 g por cada MJ numa criança, que é como a EFSA a define nessas idades. Os hortofrutícolas comparam-se com os 400 g por dia da OMS, que exclui expressamente a batata e outras raízes ricas em amido. O julgamento faz-se à média da semana: um dia de sopa e outro de bife não são um problema. Abaixo de um ano não há referência e a app não inventa nenhuma — mostra o número sem veredicto.'},
@@ -15070,7 +15505,12 @@ const TOUR=[
   {tab:'nutricao', sel:'[data-col="nu-suplementos"]',
    t:'Suplementos e exclusões',
    d:'O que se toma entra nos macros do dia (um batido de proteína é comida) e é comparado com as doses de referência e os limites de segurança. Ao lado da dieta ficam as exclusões que não são alergias: carne, porco, álcool, picante.'},
+  /* A projeção só existe em adultos fora da gravidez; os passos anteriores
+     podem ter deixado selecionada uma criança ou uma grávida, e sem isto o
+     passo apontava para um cartão que aquele perfil nunca mostra. */
   {tab:'nutricao', sel:'#nu-plinha',
+   antes:()=>{ const a=S.members.find(x=>permiteProjecao(x)); if(a) S.ui.mid=a.id; },
+   quando:()=>S.members.some(permiteProjecao),
    t:'Projeção de peso',
    d:'Mostra para onde o peso caminha se o alvo se mantiver, recalculando o gasto a cada semana — por isso a curva achata. A faixa verde é a zona de índice de massa corporal saudável para a altura.'},
   /* Os números vêm das próprias tabelas: um texto com a contagem escrita à mão
@@ -15084,6 +15524,15 @@ const TOUR=[
   {tab:'receitas', sel:'.rc',
    t:'Toca na receita: os passos de preparação',
    d:'Cada receita abre uma ficha com os ingredientes já na quantidade certa para quem vai comer, o que está e o que falta na despensa, e os passos de preparação escritos um a um, com os tempos. Daí segue-se para o modo Cozinha, um passo de cada vez em letra grande e com o ecrã impedido de adormecer — para se seguir a receita com as mãos na massa.'},
+  {tab:'receitas', sel:'.filtros', antes:()=>{S.ui.dietaF=S.ui.dietaF||[];},
+   t:'Dietas e alergénios, ao mesmo tempo',
+   d:'Os dois filtros são listas de checks e somam-se em vez de se substituírem: marcar «vegetariana» e «sem glúten» mostra as receitas que são as duas coisas. É quase sempre assim que a pergunta se faz numa casa real — a dieta de um e a alergia de outro à mesma mesa. Além das dietas com macros próprios, há <b>kosher</b> e <b>halal</b>: a app afasta o que é claramente incompatível — porco, marisco, peixe sem barbatanas e escamas, álcool, carne e leite no mesmo prato — e diz com todas as letras que não consegue verificar abate nem certificação, que é o que verdadeiramente determina se um alimento o é. Nenhuma etiqueta de dieta é declarada: todas se verificam pelos ingredientes, pelos números (com um teto por receita de metade da dose diária) e pelo modo de preparação — um peito de frango é low fat, o mesmo frito por imersão não é.'},
+  {tab:'receitas', sel:'.rc',
+   t:'Sete tacos, um cartão',
+   d:'As variantes do mesmo prato partilham um cartão: aparece a que melhor serve os gostos desta mesa e as outras ficam a um toque, dentro da ficha. O agrupamento é uma tabela explícita e não uma regra sobre os nomes — uma sopa de legumes e uma vichyssoise começam ambas por «Sopa» e não são variantes uma da outra. Na ficha, o <b>⭐ Adoro</b> e o <b>🚫 Não gosto</b> marcam-se pessoa a pessoa: é a preferência estável sobre o prato, diferente do veredicto de uma refeição que aconteceu. Um prato que toda a gente que o pode comer marcou como favorito ganha estrela. E o botão <b>Criar variante</b> parte de uma receita para fazer outra sem tocar na original — ao editar uma receita que já existe, a app pergunta se é para substituir ou para guardar como variante.'},
+  {tab:'receitas', sel:'#btn-nova-receita',
+   t:'O que dá para fazer com o que há',
+   d:'A ordenação «o que tenho em casa» põe à frente as receitas mais perto de se poderem cozinhar já, e as que estão completas ganham uma barra verde. E o botão <b>«Sugere-me algo para hoje»</b> responde a uma pergunta muito mais curta do que a do plano semanal: das receitas que servem toda a gente à mesa, quais é que dá mesmo para fazer agora — com o que falta escrito por extenso nas que não estão completas. A percentagem é sobre o número de ingredientes e não sobre o peso, porque quem está à frente do frigorífico às sete da tarde quer saber quantas coisas faltam ir buscar.'},
   {tab:'receitas', sel:'.rc',
    t:'Quanto disto é espera?',
    d:'Na ficha, uma barra parte o tempo da receita em trabalho e espera, passo a passo: vê-se que a moussaka é um quarto de hora de mãos na massa e quarenta minutos de forno, e isso muda a decisão de a fazer num dia de semana. Ao lado, uma régua de doze meses por cada ingrediente de época mostra não só que está na época, mas em que ponto dela — se a sardinha está no último mês ou se os grelos vêm aí. E quando falta um ingrediente, a app propõe o que se costuma pôr no lugar dele numa cozinha portuguesa, dizendo o que muda no prato: uma troca nunca é sugerida se trouxer um alergénio marcado nesta casa.'},
@@ -15173,18 +15622,80 @@ const TOUR=[
    d:`Um campo que atravessa os ${TABS.length} separadores: receitas, os ${Object.keys(NUTRI).length} ingredientes, as ${SPORTS.length} modalidades, os perfis — e os próprios cartões, para «onde é que se marcam as alergias?» deixar de exigir conhecer a arquitetura. Em teclado abre-se com a tecla «/».`},
   {tab:'familia', sel:'.hist',
    t:'Desfazer e explicações',
-   d:'Qualquer alteração se desfaz com estes botões ou com Ctrl+Z — as últimas 30 ficam guardadas. E os pequenos «i» espalhados pela app explicam cada funcionalidade quando passas o rato ou lhes tocas. Já podes começar!'}
+   d:'Qualquer alteração se desfaz com estes botões ou com Ctrl+Z — as últimas 30 ficam guardadas. E os pequenos «i» espalhados pela app explicam cada funcionalidade quando passas o rato ou lhes tocas.'},
+  {tab:'familia', sel:'#capa', quando:()=>!!S.ui.exemploSemeado,
+   t:'E a família da visita?',
+   d:'A visita correu sobre uma família de demonstração, com duas semanas de histórico inventado para os gráficos terem o que mostrar. Ao fechar esta última nota, a app pergunta o que lhe queres fazer: apagá-la e começar do zero com a tua casa, ou ficar com ela mais um bocado para experimentares tudo sem receio. Se escolheres explorar, o caminho de volta fica explicado — <b>Dados → Apagar todos os dados</b> limpa tudo de uma vez, e se entretanto tiveres escrito alguma receita que queiras guardar, exporta uma cópia antes.'}
 ];
 function tourAtivo(){ return Number.isFinite(S.ui.tourPasso); }
 function iniciarTour(comExemplo){
-  if(comExemplo && !S.members.length) semearFamiliaExemplo();
+  if(comExemplo && !S.members.length){
+    semearFamiliaExemplo();
+    /* fica a saber-se que aqueles dados são de demonstração e não da casa:
+       é o que permite, no fim, oferecer apagá-los sem apagar o que é real */
+    S.ui.exemploSemeado=true; saveMeta();
+  }
   S.ui.tourPasso=0; saveMeta(); irParaPassoTour();
 }
 function fecharTour(){
+  const eraExemplo=!!S.ui.exemploSemeado && S.members.length>0;
   S.ui.tourPasso=null; S.ui.tourVisto=true;
   limpaDestaqueTour();
   const c=document.getElementById('tour-cartao'); if(c) c.remove();
+  /* Quem acabou a visita com a família de demonstração fica com uma casa que
+     não é a sua. Perguntar é melhor do que apagar por conta própria — há quem
+     queira continuar a mexer no exemplo antes de começar a sério. */
+  if(eraExemplo) S.ui.modal={tipo:'fimVisita'};
   saveMeta(); render();
+}
+/* ===== O QUE FAZER AO EXEMPLO =====
+   Duas saídas, ambas explicadas, e o caminho de volta escrito para quem
+   escolher explorar mais um bocado. */
+function modalFimVisitaHtml(){
+  const n=S.members.length;
+  return `<div class="mfundo" onclick="fundoModal(event)">
+    <div class="mcaixa" role="dialog" aria-modal="true" aria-labelledby="fv-t" style="max-width:560px">
+      <span class="lbl">Fim da visita</span>
+      <h2 id="fv-t" style="margin-top:2px">E agora, o que fazemos a esta família?</h2>
+      <p class="sub" style="margin-top:8px">A visita correu sobre uma <b>família de demonstração</b> —
+        ${esc(S.members.map(m=>m.nome.split(' ')[0]).join(', '))} — com duas semanas de histórico inventado,
+        para os gráficos e as sugestões terem o que mostrar. Não é a tua casa.</p>
+
+      <div class="val-item" style="margin-top:12px">
+        <b>🧹 Apagar e começar do zero</b>
+        <p class="sub" style="margin-top:4px">Apaga os ${n} perfis de demonstração, o histórico, o plano e a despensa
+          do exemplo. Ficas com a app vazia para criares o primeiro perfil da tua família.
+          As preferências de aspeto e o que aprendeste ficam.</p>
+        <button class="btn" style="margin-top:8px" onclick="apagarExemplo()">Apagar o exemplo e começar</button>
+      </div>
+
+      <div class="val-item" style="margin-top:10px">
+        <b>🔎 Explorar mais um bocado</b>
+        <p class="sub" style="margin-top:4px">Ficas com o exemplo e podes mexer em tudo sem receio — marcar refeições,
+          registar treinos, experimentar as receitas. É a melhor forma de perceber a app antes de pôr lá dados a sério.</p>
+        <p class="sub" style="margin-top:6px"><b>Quando quiseres começar a sério:</b> vais a
+          <b>Dados → Apagar todos os dados</b>, que limpa tudo de uma vez, e voltas a começar pelo primeiro perfil.
+          Se preferires ficar com alguma coisa do exemplo — uma receita da casa que tenhas escrito, por exemplo —
+          exporta primeiro uma cópia em <b>Dados → Exportar</b> e volta a importá-la depois.</p>
+        <button class="btn ghost" style="margin-top:8px" onclick="fecharModal()">Continuar a explorar</button>
+      </div>
+    </div></div>`;
+}
+function apagarExemplo(){
+  const n=S.members.length;
+  const avisar=S.meta.avisarAoSair, ui=S.ui;
+  try{ localStorage.removeItem(KEY); }catch(e){}
+  S=blank();
+  /* o aspeto e as preferências de ecrã não são dados do exemplo: quem escolheu
+     a paleta e a densidade durante a visita não tem de as voltar a escolher */
+  S.ui.tema=ui.tema; S.ui.paleta=ui.paleta; S.ui.densidade=ui.densidade;
+  S.ui.anim=ui.anim; S.ui.sazonal=ui.sazonal; S.ui.sons=ui.sons;
+  S.ui.tourVisto=true; S.ui.tab='familia';
+  S.meta.avisarAoSair=avisar;
+  saveMeta();
+  flash('ok',plural(n,'perfil de demonstração apagado','perfis de demonstração apagados')
+    +'. A casa está vazia — cria o primeiro perfil e começa.');
+  render();
 }
 function tourAnterior(){ if(tourAtivo() && S.ui.tourPasso>0){ S.ui.tourPasso--; saveMeta(); irParaPassoTour(); } }
 function tourSeguinte(){
@@ -15359,7 +15870,8 @@ function pintaModal(){
     : S.ui.cozinha? cozinhaHtml()
     : fi? fichaHtml(fi)
     : S.ui.mercado? mercadoHtml()
-    : mo? (mo.tipo==='peso'? modalPesoHtml(mo) : mo.tipo==='compras'? modalComprasHtml(mo) : '')
+    : mo? (mo.tipo==='peso'? modalPesoHtml(mo) : mo.tipo==='compras'? modalComprasHtml(mo)
+         : mo.tipo==='fimVisita'? modalFimVisitaHtml() : '')
     : fo? (fo.tipo==='mesa'? folhaMesaHtml(fo) : fo.tipo==='registo'? folhaRegistoHtml()
          : fo.tipo==='sobra'? folhaSobraHtml(fo) : '')
     : '';
