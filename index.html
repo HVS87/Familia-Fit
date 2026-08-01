@@ -410,6 +410,10 @@ ol.passos li span{color:var(--mut);font-size:14px;margin-top:2px}
 .estrela-casa{font-size:.9em;filter:saturate(1.1)}
 .pill.variantes{background:var(--energy-soft,var(--card));color:var(--energy);
   border:1px solid color-mix(in srgb,var(--energy) 40%,transparent)}
+/* O jejum tem cor própria e símbolo próprio: nem alerta nem sucesso, é um
+   estado. A ampulheta faz o trabalho para quem não distingue a cor. */
+.pill.jejum{background:color-mix(in srgb,var(--mut) 12%,var(--card));color:var(--mut);
+  border:1px solid color-mix(in srgb,var(--mut) 35%,transparent);font-size:11.5px}
 /* Uma receita que se pode cozinhar já distingue-se por uma barra à esquerda e
    pelo fundo — nunca só pela cor: a etiqueta «Pronta a cozinhar» continua lá,
    e é ela que carrega a informação para quem não distingue os verdes. */
@@ -1438,6 +1442,7 @@ function migraRegistos(s){
   s.brigada = limparBrigada(s.brigada, ids);
   s.desperdicio = limparDesperdicio(s.desperdicio);
   s.gostos = limparGostos(s.gostos, ids);
+  s.jejum = limparJejum(s.jejum, ids);
   /* convidados de datas passadas saem sozinhos do plano */
   limparConvidadosEm(s);
   if(!s.meta.desdeRegisto || !dataValida(s.meta.desdeRegisto)) s.meta.desdeRegisto=iso(new Date());
@@ -4802,6 +4807,9 @@ function blank(){ return {members:[],cheats:{},plans:{},bought:{},prefCuisine:'t
      diferente do veredicto, que é sobre uma refeição concreta que aconteceu:
      isto é a preferência estável da pessoa sobre o prato. */
   gostos:{},
+  /* jejum: im é o horário por pessoa (intermitente), pontuais são os jejuns
+     com data marcada. Os dois contam para o alvo do dia e para a projeção. */
+  jejum:{im:{}, pontuais:[]},
   /* preferências de cozinha da casa: repetir pratos na semana, cozinhar em
      dobro, seguir a época e preparar de véspera — o que muda como se sugere */
   cozPref:{repetir:false, dobro:false, sazonal:false, prep:true, cartaoEpoca:true},
@@ -4857,7 +4865,7 @@ function instantaneo(){ return JSON.stringify({members:S.members, cheats:S.cheat
   receitas:S.receitas, medicoes:S.medicoes, regAtiv:S.regAtiv, regRef:S.regRef,
   sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa, pausas:S.pausas, diario:S.diario, cozPref:S.cozPref,
   validades:S.validades, veredictos:S.veredictos, brigada:S.brigada, desperdicio:S.desperdicio,
-  gostos:S.gostos}); }
+  gostos:S.gostos, jejum:S.jejum}); }
 function aplicaInstantaneo(js){
   const d=JSON.parse(js);
   S.members=d.members; S.cheats=d.cheats; S.plans=d.plans; S.bought=d.bought;
@@ -4878,6 +4886,7 @@ function aplicaInstantaneo(js){
   S.brigada=Array.isArray(d.brigada)? d.brigada : [];
   S.desperdicio=Array.isArray(d.desperdicio)? d.desperdicio : [];
   S.gostos=d.gostos&&typeof d.gostos==='object'? d.gostos : {};
+  S.jejum=limparJejum(d.jejum, S.members.map(m=>m.id));
   sincronizaReceitas();
   S.members.forEach(normalizaMembro);
   if(!S.members.some(m=>m.id===S.ui.mid)) S.ui.mid=S.members[0]? S.members[0].id : null;
@@ -5488,8 +5497,21 @@ function gastoPartes(m){ const b=bmr(m);
 function ritmoSemanal(m){ return (tdee(m)-targetKcal(m))*7/7700; }
 /* Projeção iterativa: o gasto recalcula-se com o peso de cada semana, pelo que
    a curva achata à medida que o corpo muda — mais honesta do que uma reta. */
+/* A projeção conta com os jejuns pontuais já marcados: um jejum de 72 horas
+   na semana 3 é um défice de três dias de gasto, e uma curva que o ignorasse
+   estaria a prometer uma coisa e a app a planear outra. Só conta os que estão
+   no calendário — não extrapola jejuns futuros que ninguém marcou. */
+function deficeJejumNaSemana(m,wkInicio){
+  let soma=0;
+  for(let i=0;i<7;i++) soma+=deficeDoJejum(m, addDias(wkInicio,i));
+  return soma;
+}
 function projecaoPeso(m,sem){ sem=sem||12; const out=[Math.round(m.peso*10)/10]; const c=Object.assign({},m);
-  for(let i=0;i<sem;i++){ c.peso=Math.max(30, c.peso+(targetKcal(c)-tdee(c))*7/7700); out.push(Math.round(c.peso*10)/10); }
+  const h=hojeISO();
+  for(let i=0;i<sem;i++){
+    const extra=deficeJejumNaSemana(m, addDias(h, i*7));
+    c.peso=Math.max(30, c.peso+((targetKcal(c)-tdee(c))*7-extra)/7700);
+    out.push(Math.round(c.peso*10)/10); }
   return out; }
 /* Escala linear com clamp — o utilitário de todos os gráficos. */
 function sx(v,d0,d1,x0,x1){ if(d1===d0) return x0; const t=clampNum((v-d0)/(d1-d0),0,1); return x0+t*(x1-x0); }
@@ -5749,9 +5771,136 @@ function extraAtivDia(m,d){
   const previsto=planeadasNoDia(m,d).reduce((t,p)=>t+p.kcal,0);
   return feito-previsto;
 }
+/* ================= JEJUM =================
+   Duas coisas diferentes com o mesmo nome. O jejum intermitente comprime a
+   janela em que se come sem mudar o que se come no total do dia: é um horário,
+   não um défice. Um jejum pontual de 24 horas ou mais é outra coisa — é um dia
+   sem comida, com um défice do tamanho do gasto todo desse dia, e a partir de
+   certa duração deixa de ser uma escolha alimentar e passa a ser um assunto
+   clínico.
+
+   A app trata os dois de forma diferente e diz porquê em cada sítio. E há
+   perfis para quem isto não se propõe de todo: crianças, adolescentes,
+   grávidas e quem amamenta. Não é a app a decidir por eles — é a app a não
+   oferecer uma ferramenta que nesses casos não tem indicação nenhuma. */
+const PROTOCOLOS_IM=[
+  {h:12, n:'12:12', d:'Doze horas sem comer, doze a comer. É pouco mais do que uma noite dormida sem petiscar — o ponto de partida mais suave.'},
+  {h:14, n:'14:10', d:'Catorze horas de jejum. Costuma ser o primeiro passo a sério: adia-se o pequeno-almoço uma ou duas horas.'},
+  {h:16, n:'16:8',  d:'O mais praticado. Duas refeições e um lanche cabem numa janela de oito horas sem esforço.'},
+  {h:18, n:'18:6',  d:'Dezoito horas. A janela de seis horas leva duas refeições, e a segunda tem de ser cedo.'},
+  {h:20, n:'20:4',  d:'A «dieta do guerreiro». Uma refeição grande e um lanche numa janela de quatro horas.'},
+  {h:23, n:'OMAD',  d:'Uma refeição por dia. Fazer caber o dia inteiro numa refeição é difícil sem ficar aquém do que o corpo precisa — vale a pena olhar aos macros com atenção.'},
+];
+function protocoloIM(h){
+  const n=clampNum(Math.round(parseFloat(h)||16),12,23);
+  return PROTOCOLOS_IM.reduce((melhor,p)=>Math.abs(p.h-n)<Math.abs(melhor.h-n)? p : melhor, PROTOCOLOS_IM[0]);
+}
+/* Quem não deve fazer jejum. Não são contraindicações inventadas: são os
+   grupos em que o jejum não tem indicação e em que a orientação corrente é
+   não o praticar sem acompanhamento — idade de crescimento, gravidez e
+   amamentação. A app não pode saber de diabetes, medicação ou história de
+   perturbação alimentar, e por isso pergunta-o em texto em vez de assumir
+   que quem não está nesta lista pode. */
+function jejumDesaconselhado(m){
+  if(!m) return null;
+  const f=faseDe(m);
+  if(f==='bebe'||f==='crianca') return 'Em idade de crescimento não se pratica jejum: o aporte de energia e de nutrientes é o que sustenta o crescimento, e restringi-lo é uma decisão que só um pediatra pode tomar.';
+  if(f==='adolescente') return 'Na adolescência o crescimento ainda não terminou e o risco de relação perturbada com a comida é maior. O jejum aqui é assunto para o médico que segue o adolescente, não para uma app.';
+  if(gravida(m)) return 'Na gravidez não se faz jejum: o aporte contínuo de energia e de glicose é o que sustenta o desenvolvimento fetal.';
+  if(posparto(m) && semanasPosParto(m)<12) return 'No pós-parto recente, e sobretudo a amamentar, o jejum não tem indicação — a produção de leite tem um custo energético diário que não se suspende.';
+  return null;
+}
+function jejumCfg(){
+  if(!S.jejum || typeof S.jejum!=='object') S.jejum={im:{}, pontuais:[]};
+  if(!S.jejum.im || typeof S.jejum.im!=='object') S.jejum.im={};
+  if(!Array.isArray(S.jejum.pontuais)) S.jejum.pontuais=[];
+  return S.jejum;
+}
+function imDe(mid){
+  const c=jejumCfg().im[mid];
+  if(!c || !c.ativo) return null;
+  return {ativo:true, h:clampNum(Math.round(parseFloat(c.h)||16),12,23),
+          inicio:clampNum(Math.round(parseFloat(c.inicio)||12),0,23)};
+}
+/* A janela de alimentação em horas de relógio: começa na hora escolhida e dura
+   24 menos as horas de jejum. */
+function janelaIM(mid){
+  const c=imDe(mid); if(!c) return null;
+  const dur=24-c.h;
+  return {inicio:c.inicio, fim:(c.inicio+dur)%24, dur};
+}
+/* Uma refeição cabe na janela? As horas de referência de cada refeição são as
+   mesmas que o botão flutuante usa para adivinhar o que se vai registar. */
+const HORA_REF={p:8, a:13, l:17, j:20};
+function refeicaoNaJanela(mid,mk){
+  const j=janelaIM(mid); if(!j) return true;
+  const h=HORA_REF[mk]; if(h===undefined) return true;
+  if(j.dur>=24) return true;
+  const fim=j.inicio+j.dur;
+  if(fim<=24) return h>=j.inicio && h<fim;
+  return h>=j.inicio || h<(fim-24);   /* janela que atravessa a meia-noite */
+}
+/* ===== JEJUNS PONTUAIS =====
+   Um jejum pontual tem uma data de início e uma duração em horas. Os dias que
+   cobre por inteiro são dias sem comida; o dia em que começa e o dia em que
+   acaba são parciais, e a app conta-os proporcionalmente em vez de os arredondar
+   — arredondar um dia de jejum para cima ou para baixo são 2000 kcal de erro. */
+const JEJUM_MAX_H=8*24;
+function limparJejumPontual(x,ids){
+  if(!x||typeof x!=='object') return null;
+  if(!dataValida(x.d)) return null;
+  const mid=String(x.mid||''); if(ids && ids.indexOf(mid)<0) return null;
+  const horas=clampNum(Math.round(parseFloat(x.horas)||24),12,JEJUM_MAX_H);
+  return {id:limparId(x.id), mid, d:x.d, horas,
+    inicio:clampNum(Math.round(parseFloat(x.inicio)||20),0,23),
+    agua: x.agua===false? false : true};
+}
+function limparJejum(o,ids){
+  const d={im:{}, pontuais:[]};
+  if(!o||typeof o!=='object') return d;
+  Object.keys(o.im||{}).slice(0,32).forEach(mid=>{
+    if(ids && ids.indexOf(mid)<0) return;
+    const c=o.im[mid]; if(!c||typeof c!=='object') return;
+    d.im[mid]={ativo:!!c.ativo, h:clampNum(Math.round(parseFloat(c.h)||16),12,23),
+                inicio:clampNum(Math.round(parseFloat(c.inicio)||12),0,23)};
+  });
+  d.pontuais=(Array.isArray(o.pontuais)? o.pontuais:[]).slice(0,200)
+    .map(x=>limparJejumPontual(x,ids)).filter(Boolean);
+  return d;
+}
+/* As horas de jejum que caem num dia concreto, entre 0 e 24. */
+function horasDeJejumNoDia(mid,d){
+  let total=0;
+  jejumCfg().pontuais.forEach(j=>{
+    if(j.mid!==mid) return;
+    const ini=diasEntre(j.d,d)*24 - j.inicio;      /* horas desde o início do jejum até às 0h deste dia */
+    const a=Math.max(0,-ini), b=Math.min(24, j.horas-ini);
+    if(b>a) total+=b-a;
+  });
+  return Math.min(24,total);
+}
+function emJejumPontual(mid,d){ return horasDeJejumNoDia(mid,d)>=12; }
+function jejumDeHoje(mid){
+  const h=hojeISO();
+  return jejumCfg().pontuais.find(j=>j.mid===mid && horasDeJejumNoDia(mid,h)>0) || null;
+}
 function alvoDoDia(m,d){
   if(semEstimativa(m)) return 0;
-  return Math.max(bmr(m)*0.8, targetKcal(m)+extraAtivDia(m,d));
+  /* Um dia coberto por um jejum pontual não tem alvo calórico: tem zero. E um
+     dia parcialmente coberto tem a fração que sobra — não faz sentido propor
+     2000 kcal a quem só tem seis horas para as comer. */
+  const hj=horasDeJejumNoDia(m.id,d);
+  const base=Math.max(bmr(m)*0.8, targetKcal(m)+extraAtivDia(m,d));
+  if(hj>=24) return 0;
+  if(hj>0) return Math.round(base*(24-hj)/24);
+  return base;
+}
+/* O défice que um jejum acrescenta num dia: o gasto total desse dia, na
+   proporção das horas em jejum. É isto que entra na projeção e no ritmo. */
+function deficeDoJejum(m,d){
+  const hj=horasDeJejumNoDia(m.id,d);
+  if(!hj) return 0;
+  return tdee(m)*hj/24;
 }
 
 /* ================= VALIDAÇÃO DO QUE FICOU POR CONFIRMAR =================
@@ -5910,6 +6059,11 @@ const DICAS={
   variantes:'Sete tacos e cinco burritos ocupavam sete e cinco lugares na grelha, como se fossem doze pratos diferentes. São o mesmo prato com recheios diferentes, e o que a casa decide é «hoje é taco?» e não «qual dos sete tacos?». As variantes passam a partilhar um cartão, que mostra a que melhor serve os gostos desta mesa — pelo saldo de favoritas e não-gostas, depois por quem já se pode cozinhar com o que há em casa — e as outras ficam a um toque na ficha. O agrupamento é uma tabela explícita e não uma regra sobre os nomes: uma sopa de legumes e uma vichyssoise começam ambas por «Sopa» e não são variantes uma da outra. Numa pesquisa não se agrupa nada, porque quem escreve «taco de camarão» quer aquele taco.',
   gostos:'Diferente do veredicto, que é sobre uma refeição que aconteceu: isto é a preferência estável de cada pessoa sobre o prato, e não muda com o jantar de ontem. Pesa nas sugestões automáticas — o que alguém não gosta pesa mais a descer do que um gosto a subir, porque um prato que alguém detesta serve pior a mesa do que um prato de que mais um gosta — e é o que decide qual das variantes de um prato aparece primeiro. A estrela aparece quando toda a gente que pode comer o prato o marcou como favorito, e são pelo menos duas pessoas: quem não o pode comer por alergia ou dieta não conta nem a favor nem contra, porque não lhe foi dada a hipótese.',
   acog:'Tudo o que este cartão diz vem do Committee Opinion n.º 804 do American College of Obstetricians and Gynecologists (2020) — a recomendação de 150 minutos por semana, as modalidades seguras, as que se desaconselham e porquê, as contraindicações absolutas e os sinais para parar. Nem um número nem uma modalidade foram decididos pela app. E nada disto substitui a consulta: há contraindicações que só uma consulta identifica, e são elas que mandam. No pós-parto a orientação não dá um calendário fixo — diz que se retoma gradualmente assim que for clinicamente seguro, conforme o tipo de parto e as complicações que tenha havido — e é isso que a app repete, em vez de inventar uma semana a partir da qual se pode correr.',
+  jejum:'Duas coisas diferentes com o mesmo nome. O jejum intermitente comprime a janela em que se come sem mudar o total do dia — é um horário, não um défice, e o alvo de calorias não desce por causa dele. Um jejum pontual de 24 horas ou mais é outra coisa: é um dia sem comida, com um défice do tamanho do gasto desse dia, e a partir de certa duração deixa de ser uma escolha alimentar e passa a ser um assunto clínico. A app trata os dois de forma diferente e diz porquê. Não fica disponível para crianças, adolescentes, grávidas nem no pós-parto recente — não é a app a decidir por ninguém, é a app a não oferecer uma ferramenta que nesses casos não tem indicação.',
+  jejumIM:'Comprimir a janela em que se come. As calorias do dia não mudam: o que muda é caberem em menos horas, e repartir o mesmo total por menos refeições é a parte difícil — é aí que vale a pena olhar aos macros. As refeições que ficarem fora da janela aparecem assinaladas no plano semanal, e o protocolo escolhe-se num slider entre 12:12 e OMAD, com os pontos habituais marcados.',
+  jejumPontual:'Um jejum com data marcada, de 12 horas a oito dias. Os dias que cobre por inteiro ficam com alvo zero; os dias em que começa e acaba são parciais e a app conta-os proporcionalmente — arredondar um dia de jejum são duas mil calorias de erro. Acima de 72 horas há uma confirmação explícita de que existe acompanhamento médico, porque a partir daí isto é um procedimento clínico e não uma escolha alimentar.',
+  jejumImpacto:'Os jejuns marcados entram nas contas do resto da app: o alvo do dia passa a zero (ou à fração que sobra), o plano de refeições sabe disso, e o défice entra na projeção de peso e no ritmo do objetivo. A conversão para quilos usa as 7 700 kcal por quilo de gordura e é uma estimativa grosseira — boa parte do que a balança mostra num jejum é água e glicogénio, e volta quando se volta a comer.',
+  eletrolitos:'O que é factual: nada sem calorias interrompe o estado metabólico do jejum, por isso água, sal, potássio, magnésio, chá e café simples não o quebram. O que a app NÃO faz é calcular doses. As referências que mostra são ingestões diárias da EFSA para pessoas que estão a comer; num jejum prolongado as necessidades mudam e dependem da função renal, da tensão e da medicação. Quanto tomar é decisão de quem acompanha — um excesso de potássio é perigoso e não é o género de erro que dá para corrigir depois.',
   pediatra:'A alimentação de crianças e, sobretudo, de bebés não se decide por uma tabela. Os valores que a app usa são referências populacionais de fontes oficiais, para planeamento familiar — não são prescrições, não conhecem o percentil, a história clínica, as alergias em investigação nem o ritmo de crescimento desta criança. Tudo o que aqui aparece deve ser validado com o pediatra que a segue, e a introdução de alimentos novos em particular.',
   filtrosCumulativos:'As dietas e os alergénios marcam-se todos ao mesmo tempo, e somam-se em vez de se substituírem: marcar «vegetariana» e «sem glúten» mostra as receitas que são as duas coisas, não as que são uma ou outra. É quase sempre assim que a pergunta se faz numa casa real — a dieta de um e a alergia de outro à mesma mesa. Kosher e halal entram aqui como quadros de exclusão: a app afasta o que é claramente incompatível, mas não pode verificar abate nem certificação, e di-lo em vez de fingir que pode.',
   dietaAuto:'Nenhuma etiqueta de dieta é aceite como declaração — todas se verificam em três eixos e só ficam se passarem nos três. Pelos ingredientes, com os atributos que saem do catálogo. Pelos números, com um teto por receita de metade da dose diária da dieta, partindo do princípio de que um dia tem pelo menos duas refeições. E pelo modo de preparação, que é o eixo que os ingredientes nunca conseguiriam dar: um peito de frango é low fat, o mesmo peito frito por imersão não é, e o óleo que entra não aparece em lista nenhuma.',
@@ -12500,6 +12654,280 @@ function linhaRegRef(m,r){
   </div>`;
 }
 
+/* ================= O CARTÃO DO JEJUM =================
+   A app oferece a ferramenta e é honesta sobre onde é que ela deixa de ser uma
+   escolha alimentar. Os avisos sobem com a duração porque o risco sobe com a
+   duração — e o que muda a partir das 72 horas não é a opinião de quem
+   escreveu isto, é a fisiologia: as reservas de glicogénio esgotam-se, a
+   depleção de eletrólitos deixa de ser teórica e a realimentação passa a ter
+   riscos próprios. */
+const JEJUM_ESCALOES=[
+  {h:24,  cls:'', t:'Até 24 horas',
+   d:'Um dia sem comer é praticado com frequência e, em adultos saudáveis, costuma correr sem incidentes. Beber água ao longo do dia é o essencial.'},
+  {h:48,  cls:'warn', t:'24 a 48 horas',
+   d:'A partir daqui a perda de sódio e de água pela urina aumenta, e é onde aparecem as dores de cabeça, as tonturas e a fraqueza. Não é sinal de que está a resultar — é sinal de que faltam eletrólitos.'},
+  {h:72,  cls:'warn', t:'48 a 72 horas',
+   d:'Reservas de glicogénio esgotadas. Convém não conduzir nem fazer esforço intenso, e ter alguém que saiba que estás em jejum.'},
+  {h:9999,cls:'bad', t:'Mais de 72 horas',
+   d:'Um jejum prolongado é um procedimento clínico, não uma escolha alimentar. Faz-se com acompanhamento médico, com análises antes e durante, e com atenção à síndrome de realimentação, que pode ser grave e acontece precisamente quando se volta a comer. Se não tens esse acompanhamento, isto não é para fazer.'},
+];
+function escalaoJejum(h){ return JEJUM_ESCALOES.find(e=>h<=e.h) || JEJUM_ESCALOES[JEJUM_ESCALOES.length-1]; }
+/* Eletrólitos: o que é factual é que nada sem calorias interrompe o estado
+   metabólico do jejum. Já a dose de cada um durante um jejum prolongado é
+   individual e clínica — depende da função renal, da tensão, da medicação — e
+   a app não a calcula. O que mostra são as referências diárias que já usa em
+   todo o resto, com o aviso de que foram feitas para quem come. */
+const ELETROLITOS=[
+  {n:'Sódio', k:'sodio', ref:'2,0 g de sódio por dia (≈5 g de sal), Ingestão Adequada da EFSA para adultos',
+   nota:'É o que mais se perde em jejum, porque a insulina baixa e o rim deixa de o reter. A falta dá dor de cabeça, tonturas e cãibras.'},
+  {n:'Potássio', k:'potassio', ref:'3,5 g por dia, Ingestão Adequada da EFSA para adultos',
+   nota:'Perde-se junto com o sódio. É o eletrólito em que um excesso também é perigoso — mais é pior, não melhor.'},
+  {n:'Magnésio', k:'magnesio', ref:'350 mg (homens) e 300 mg (mulheres) por dia, Ingestão Adequada da EFSA',
+   nota:'A falta aparece como cãibras e sono mau. Em excesso dá diarreia, que por sua vez agrava a perda dos outros dois.'},
+];
+function setJejumIM(mid,campo,v){
+  const c=jejumCfg();
+  if(!c.im[mid]) c.im[mid]={ativo:false,h:16,inicio:12};
+  if(campo==='ativo') c.im[mid].ativo=!!v;
+  else if(campo==='h') c.im[mid].h=clampNum(Math.round(parseFloat(v)||16),12,23);
+  else if(campo==='inicio') c.im[mid].inicio=clampNum(Math.round(parseFloat(v)||12),0,23);
+  save('jejum intermitente'); render();
+}
+/* Contrato de live update: o slider muta o estado e reescreve por id, sem
+   redesenhar a página por baixo do dedo. */
+function slideJejum(mid,el){
+  const c=jejumCfg(); if(!c.im[mid]) c.im[mid]={ativo:true,h:16,inicio:12};
+  const h=clampNum(Math.round(parseFloat(el.value)||16),12,23);
+  c.im[mid].h=h;
+  const p=protocoloIM(h);
+  põe('jj-out-'+mid, p.n+' · janela de '+(24-h)+' h');
+  põe('jj-d-'+mid, p.d);
+  el.style.setProperty('--pct', ((h-12)/11*100).toFixed(1)+'%');
+}
+function commitJejum(mid,el){ slideJejum(mid,el); save('protocolo de jejum'); render(); }
+function abrirNovoJejum(mid){
+  S.ui.modal={tipo:'jejum', mid, horas:24, d:hojeISO(), inicio:20, agua:true, aceite:false};
+  saveMeta(); render();
+}
+function setNovoJejum(campo,v){
+  const mo=modalAberto(); if(!mo||mo.tipo!=='jejum') return;
+  if(campo==='horas') mo.horas=clampNum(Math.round(parseFloat(v)||24),12,JEJUM_MAX_H);
+  else if(campo==='d'){ if(dataValida(v)) mo.d=v; }
+  else if(campo==='inicio') mo.inicio=clampNum(Math.round(parseFloat(v)||20),0,23);
+  else if(campo==='agua') mo.agua=!!v;
+  else if(campo==='aceite') mo.aceite=!!v;
+  render();
+}
+/* O slider das horas escreve por id, como todos os outros. */
+function slideNovoJejum(el){
+  const mo=modalAberto(); if(!mo) return;
+  mo.horas=clampNum(Math.round(parseFloat(el.value)||24),12,JEJUM_MAX_H);
+  const e=escalaoJejum(mo.horas);
+  põe('nj-out', textoDuracaoJejum(mo.horas));
+  põe('nj-esc', e.t);
+  põe('nj-desc', e.d);
+  const cx=document.getElementById('nj-caixa');
+  if(cx) cx.setAttribute('class','alerta'+(e.cls==='bad'?' forte':''));
+  el.style.setProperty('--pct', ((mo.horas-12)/(JEJUM_MAX_H-12)*100).toFixed(1)+'%');
+  const ok=document.getElementById('nj-ok');
+  if(ok) ok.disabled = mo.horas>72 && !mo.aceite;
+}
+function textoDuracaoJejum(h){
+  if(h<24) return h+' horas';
+  const d=Math.floor(h/24), r=h%24;
+  return h+' h · '+plural(d,'dia','dias')+(r? ' e '+r+' h':'');
+}
+function guardarNovoJejum(){
+  const mo=modalAberto(); if(!mo||mo.tipo!=='jejum') return;
+  if(mo.horas>72 && !mo.aceite) return flash('warn','Confirma primeiro que leste o aviso sobre jejuns acima de 72 horas.');
+  const c=jejumCfg();
+  const j=limparJejumPontual({id:uid(), mid:mo.mid, d:mo.d, horas:mo.horas, inicio:mo.inicio, agua:mo.agua},
+    S.members.map(m=>m.id));
+  if(!j) return flash('bad','Não foi possível marcar esse jejum.');
+  if(c.pontuais.some(x=>x.mid===j.mid && x.d===j.d))
+    return flash('warn','Já há um jejum marcado para essa pessoa nesse dia.');
+  c.pontuais.push(j);
+  S.ui.modal=null;
+  save('jejum marcado');
+  const m=S.members.find(x=>x.id===j.mid);
+  flash('ok','Jejum de '+textoDuracaoJejum(j.horas)+' marcado para '+rotuloData(j.d)
+    +'. O alvo de calorias desses dias passa a contar com ele.', {rot:'Anular', fn:'desfazer()'});
+  render();
+}
+function apagarJejumPontual(id){
+  const c=jejumCfg();
+  const j=c.pontuais.find(x=>x.id===id); if(!j) return;
+  c.pontuais=c.pontuais.filter(x=>x.id!==id);
+  save('jejum desmarcado');
+  flash('ok','Jejum desmarcado.', {rot:'Anular', fn:'desfazer()'});
+  render();
+}
+function modalJejumHtml(mo){
+  const m=S.members.find(x=>x.id===mo.mid);
+  const e=escalaoJejum(mo.horas);
+  const gasto=m? Math.round(tdee(m)*mo.horas/24) : 0;
+  return `<div class="mfundo" onclick="fundoModal(event)">
+    <div class="mcaixa" role="dialog" aria-modal="true" aria-labelledby="nj-t" style="max-width:600px">
+      <span class="lbl">${esc(m? m.nome : '')}</span>
+      <h2 id="nj-t" style="margin-top:2px">Marcar um jejum</h2>
+
+      <div class="splabel" style="margin-top:12px"><span>Duração</span>
+        <output id="nj-out">${textoDuracaoJejum(mo.horas)}</output></div>
+      <input type="range" id="nj-sl" class="com-detentes" min="12" max="${JEJUM_MAX_H}" step="1" value="${mo.horas}"
+        style="--pct:${((mo.horas-12)/(JEJUM_MAX_H-12)*100).toFixed(1)}%;--passo:${(100*24/(JEJUM_MAX_H-12)).toFixed(2)}%"
+        aria-label="Duração do jejum em horas" oninput="slideNovoJejum(this)" onchange="setNovoJejum('horas',this.value)">
+      <div class="row" style="margin-top:4px">${[24,36,48,72,96,120,168,192].map(x=>
+        `<button class="chip ${mo.horas===x?'on':''}" onclick="setNovoJejum('horas',${x})">${x<48? x+'h' : Math.round(x/24)+'d'}</button>`).join('')}</div>
+
+      <div id="nj-caixa" class="alerta${e.cls==='bad'?' forte':''}" style="margin-top:12px">
+        <span aria-hidden="true">${e.cls==='bad'?'🚨':'⚠️'}</span>
+        <span><b id="nj-esc">${esc(e.t)}</b> — <span id="nj-desc">${esc(e.d)}</span></span></div>
+
+      <div class="frow" style="margin-top:12px">
+        <div><label class="lbl">Começa em</label>
+          <input type="date" value="${mo.d}" onchange="setNovoJejum('d',this.value)"></div>
+        <div><label class="lbl">Às</label>
+          <select onchange="setNovoJejum('inicio',this.value)">
+            ${[...Array(24).keys()].map(x=>`<option value="${x}" ${mo.inicio===x?'selected':''}>${String(x).padStart(2,'0')}h00</option>`).join('')}</select></div>
+        <div><label class="lbl">Tipo</label>
+          <select onchange="setNovoJejum('agua',this.value==='agua')">
+            <option value="agua" ${mo.agua?'selected':''}>Só água</option>
+            <option value="seco" ${!mo.agua?'selected':''}>Seco</option></select></div>
+      </div>
+      ${!mo.agua? `<div class="alerta forte" style="margin-top:10px"><span aria-hidden="true">🚨</span><span>
+        <b>O jejum seco não é uma versão mais intensa do outro: é outra coisa.</b> Sem água, a desidratação
+        instala-se em horas e o risco renal é real. A app deixa-te registá-lo porque é o teu registo, mas
+        não o recomenda em duração nenhuma e não sugere eletrólitos para ele — não há forma de os tomar.</span></div>`:''}
+
+      <p class="sub" style="margin-top:10px">Estimativa: ${plural(Math.round(mo.horas/24)||1,'dia','dias')} de gasto,
+        cerca de <b>${gasto} kcal</b> de défice — o que dá, muito por alto, ${nPT(gasto/7700,2)} kg.
+        Boa parte do que a balança mostrar será água e glicogénio, e volta quando voltares a comer.</p>
+
+      ${mo.horas>72? `<label class="toggle" style="margin-top:12px">
+        <input type="checkbox" ${mo.aceite?'checked':''} onchange="setNovoJejum('aceite',this.checked)">
+        <span>Li o aviso: acima de 72 horas isto é um procedimento clínico e tenho acompanhamento médico.</span></label>`:''}
+
+      <div class="row" style="margin-top:14px;justify-content:flex-end">
+        <button class="btn ghost" onclick="fecharModal()">Cancelar</button>
+        <button class="btn" id="nj-ok" onclick="guardarNovoJejum()" ${mo.horas>72&&!mo.aceite?'disabled':''}>Marcar jejum</button>
+      </div>
+    </div></div>`;
+}
+function cartaoJejum(m){
+  const bloqueio=jejumDesaconselhado(m);
+  const c=jejumCfg(), im=c.im[m.id]||{}, ativo=!!im.ativo;
+  const h=clampNum(Math.round(parseFloat(im.h)||16),12,23);
+  const p=protocoloIM(h);
+  const j=janelaIM(m.id);
+  const meus=c.pontuais.filter(x=>x.mid===m.id).slice().sort((a,b)=>a.d<b.d?-1:1);
+  const emCurso=jejumDeHoje(m.id);
+  if(bloqueio) return `<div class="card" data-col="nu-jejum" style="margin-top:16px">
+    <h2>Jejum ${dica('jejum')}</h2>
+    <div class="alerta forte" style="margin-top:10px"><span aria-hidden="true">⚕️</span><span>
+      <b>Não disponível para este perfil.</b> ${esc(bloqueio)}</span></div>
+  </div>`;
+  return `<div class="card" data-col="nu-jejum" style="margin-top:16px">
+    <h2>Jejum ${dica('jejum')}</h2>
+    <div class="alerta" style="margin-top:10px"><span aria-hidden="true">⚕️</span><span>
+      Antes de começar, e sobretudo se tomas medicação — insulina ou antidiabéticos orais em particular —,
+      se tens diabetes, tensão baixa, doença renal ou hepática, ou história de perturbação do comportamento
+      alimentar, <b>fala com o teu médico</b>. A app não sabe nada disto sobre ti e não o pode verificar.</span></div>
+
+    ${emCurso? `<div class="alerta forte" style="margin-top:10px"><span aria-hidden="true">⏳</span><span>
+      <b>Jejum a decorrer</b> — ${emCurso.horas} h desde ${rotuloData(emCurso.d)} às ${String(emCurso.inicio).padStart(2,'0')}h00.
+      Faltam ${Math.max(0,Math.round(horasDeJejumNoDia(m.id,hojeISO())))} h das que caem em hoje.</span></div>`:''}
+
+    <div class="splabel" style="margin-top:14px"><span>Jejum intermitente ${dica('jejumIM')}</span></div>
+    <label class="toggle"><input type="checkbox" ${ativo?'checked':''} onchange="setJejumIM('${m.id}','ativo',this.checked)">
+      <span>Comprimir a janela de alimentação</span></label>
+    ${ativo? `
+    <div style="margin-top:10px">
+      <div class="splabel"><span>Protocolo</span><output id="jj-out-${m.id}">${esc(p.n)} · janela de ${24-h} h</output></div>
+      <input type="range" id="jj-sl-${m.id}" class="com-detentes" min="12" max="23" step="1" value="${h}"
+        style="--pct:${((h-12)/11*100).toFixed(1)}%;--passo:${(100/11).toFixed(2)}%"
+        aria-label="Horas de jejum por dia"
+        oninput="slideJejum('${m.id}',this);detente(this,1)" onchange="commitJejum('${m.id}',this)">
+      <div class="row" style="margin-top:4px">${PROTOCOLOS_IM.map(x=>
+        `<button class="chip ${x.h===h?'on':''}" onclick="setJejumIM('${m.id}','h',${x.h})">${esc(x.n)}</button>`).join('')}</div>
+      <p class="sub" id="jj-d-${m.id}" style="margin-top:6px">${esc(p.d)}</p>
+      <div class="frow" style="margin-top:10px">
+        <div><label class="lbl">A janela abre às</label>
+          <select onchange="setJejumIM('${m.id}','inicio',this.value)">
+            ${[...Array(24).keys()].map(x=>`<option value="${x}" ${(im.inicio||12)===x?'selected':''}>${String(x).padStart(2,'0')}h00</option>`).join('')}</select></div>
+        <div style="grid-column:span 2"><label class="lbl">Fica a comer entre</label>
+          <div class="pill ok" style="margin-top:4px">${String(j.inicio).padStart(2,'0')}h00 — ${String(j.fim).padStart(2,'0')}h00</div></div>
+      </div>
+      ${(function(){ const fora=MEALK.filter(k=>!refeicaoNaJanela(m.id,k));
+        return fora.length? `<p class="sub" style="margin-top:8px">⚠ Fora da janela: <b>${fora.map(k=>nomeRefeicao(k).toLowerCase()).join(', ')}</b>.
+          No plano semanal essas refeições aparecem assinaladas, e o alvo de calorias do dia continua o mesmo —
+          o jejum intermitente muda <b>quando</b> se come, não <b>quanto</b>. Repartir o mesmo total por menos
+          refeições é a parte difícil, e é onde vale a pena olhar aos macros.</p>` : ''; })()}
+    </div>`:`<p class="sub" style="margin-top:6px">Comprime as horas em que se come sem mudar o total do dia.
+      É um horário, não um défice: o alvo de calorias não desce por causa dele.</p>`}
+
+    <div class="splabel" style="margin-top:16px"><span>Jejuns pontuais ${dica('jejumPontual')}</span>
+      ${meus.length? `<output>${plural(meus.length,'marcado','marcados')}</output>`:''}</div>
+    ${meus.length? `<div style="margin-top:6px">${meus.map(x=>{
+      const e=escalaoJejum(x.horas), passou=x.d<hojeISO() && horasDeJejumNoDia(m.id,hojeISO())===0;
+      return `<div class="vere-linha">
+        <span class="vere-quem">${x.horas>=48? '🔴':x.horas>=24?'🟡':'🟢'} <b>${x.horas} h</b>
+          <span class="sub">· ${rotuloData(x.d)} às ${String(x.inicio).padStart(2,'0')}h00 · ${x.agua?'só água':'seco'}${passou?' · passou':''}</span></span>
+        <button class="btn danger small" onclick="apagarJejumPontual('${x.id}')" aria-label="Apagar este jejum">✕</button>
+      </div>`;}).join('')}</div>`:''}
+    <div class="row" style="margin-top:8px">
+      <button class="btn small" onclick="abrirNovoJejum('${m.id}')">+ Marcar um jejum</button>
+    </div>
+    ${blocoImpactoJejum(m)}
+    ${blocoEletrolitos(m)}
+  </div>`;
+}
+/* O que os jejuns marcados fazem às contas. É o ponto em que a app deixa de
+   ser um cronómetro e passa a integrar-se no resto. */
+function blocoImpactoJejum(m){
+  const c=jejumCfg(), meus=c.pontuais.filter(x=>x.mid===m.id);
+  if(!meus.length) return '';
+  const h=hojeISO();
+  let deficeTotal=0, diasTocados=0;
+  for(let i=0;i<84;i++){ const d=addDias(h,i-28);
+    const dj=deficeDoJejum(m,d);
+    if(dj>0){ deficeTotal+=dj; diasTocados++; } }
+  const kg=deficeTotal/7700;
+  return `<div style="margin-top:14px;border-top:1px solid var(--line);padding-top:10px">
+    <div class="splabel"><span>O que isto faz às contas ${dica('jejumImpacto')}</span></div>
+    <div class="row" style="margin-top:6px">
+      <div class="stat"><b>${Math.round(deficeTotal)}</b><span>kcal de défice</span></div>
+      <div class="stat"><b>${plural(diasTocados,'dia','dias')}</b><span>com jejum</span></div>
+      <div class="stat" style="background:var(--accent-soft)"><b style="color:var(--accent)">${nPT(kg,2)} kg</b><span>equivalente estimado</span></div>
+    </div>
+    <p class="sub" style="margin-top:6px">Nos dias de jejum o alvo de calorias passa a zero (ou à fração que sobra,
+      num dia parcial) e o plano de refeições sabe disso. O défice entra na projeção de peso e no ritmo do objetivo.
+      A conversão para quilos usa as 7 700 kcal por quilo de gordura — é uma <b>estimativa grosseira</b>: boa parte
+      do que a balança mostra num jejum é água e glicogénio, e volta quando se volta a comer.</p>
+  </div>`;
+}
+function blocoEletrolitos(m){
+  const c=jejumCfg(), longos=c.pontuais.filter(x=>x.mid===m.id && x.horas>=24);
+  if(!longos.length) return '';
+  const maior=longos.reduce((a,b)=>b.horas>a.horas? b:a);
+  const e=escalaoJejum(maior.horas);
+  return `<div style="margin-top:14px;border-top:1px solid var(--line);padding-top:10px">
+    <div class="splabel"><span>Eletrólitos num jejum de água ${dica('eletrolitos')}</span></div>
+    <div class="alerta ${e.cls==='bad'?'forte':''}" style="margin-top:8px"><span aria-hidden="true">${e.cls==='bad'?'🚨':'⚠️'}</span>
+      <span><b>${esc(e.t)}.</b> ${esc(e.d)}</span></div>
+    <p class="sub" style="margin-top:8px">Água, sal, potássio e magnésio <b>não têm calorias</b>, e por isso não
+      interrompem o estado metabólico do jejum — ao contrário de qualquer coisa que traga energia, por pouca que seja.
+      Chá e café simples também não, desde que sem açúcar, leite ou natas.</p>
+    <ul class="lista-acog">${ELETROLITOS.map(x=>`<li><b>${esc(x.n)}</b> — ${esc(x.nota)}
+      <span class="sub" style="display:block">Referência para quem come: ${esc(x.ref)}.</span></li>`).join('')}</ul>
+    <div class="alerta forte" style="margin-top:10px"><span aria-hidden="true">⚕️</span><span>
+      <b>A app não calcula doses.</b> As referências acima são ingestões diárias para pessoas que estão a comer,
+      e num jejum prolongado as necessidades mudam — dependem da função renal, da tensão arterial e da medicação.
+      Quanto tomar de cada um, e se se deve tomar, é decisão de quem te acompanha. Um excesso de potássio é
+      perigoso, e não é o género de erro que dá para corrigir depois.</span></div>
+    <p class="sub" style="margin-top:8px"><i>Referências: valores de Ingestão Adequada da EFSA para adultos
+      (sódio 2019, potássio 2016, magnésio 2015). A app repete-as; não as adapta ao jejum, porque isso é um ato clínico.</i></p>
+  </div>`;
+}
 /* ===== O AVISO DO PEDIATRA =====
    Os valores que a app usa em crianças são referências populacionais de fontes
    oficiais — servem para planear uma semana em casa, não para prescrever. Não
@@ -12609,6 +13037,7 @@ function renderNutricao(){
     </div>`}
   </div>
   ${definido? cartaoGraficoRef(m) : ''}
+  ${cartaoJejum(m)}
   ${definido? cartaoFibra(m) : ''}
   ${definido? `<div class="grid g2" style="margin-top:16px">${cartaoDescobertas(m)}${cartaoPassaporte(m)}</div>` : ''}
   ${cartaoFase(m)}
@@ -13648,6 +14077,19 @@ function estadoValidacaoRef(comem,date,mk){
   return {n, total:ids.length, cheia:ids.length>0 && n===ids.length,
     alguma:n>0, falhou:!n && falhadas.length>0};
 }
+/* Uma refeição que cai fora da janela de quem a vai comer, ou num dia de
+   jejum pontual, tem de o dizer no próprio bloco — senão o plano continuava a
+   propor um pequeno-almoço a quem decidiu não o tomar. */
+function seloJejumRefeicao(comem,mk,date){
+  if(!comem.length) return '';
+  const jejua=comem.filter(m=>emJejumPontual(m.id,date));
+  if(jejua.length) return `<span class="pill jejum" title="${jejua.map(m=>esc(m.nome.split(' ')[0])).join(', ')} em jejum neste dia">⏳ ${
+    jejua.length===comem.length? 'dia de jejum' : jejua.length+' em jejum'}</span>`;
+  const fora=comem.filter(m=>!refeicaoNaJanela(m.id,mk));
+  if(!fora.length) return '';
+  return `<span class="pill jejum" title="Fora da janela de alimentação de ${fora.map(m=>esc(m.nome.split(' ')[0])).join(', ')}">⏳ fora da janela${
+    fora.length<comem.length? ' de '+fora.map(m=>esc(m.nome.split(' ')[0])).join(', ') : ''}</span>`;
+}
 function mealBlock(di,mk,label,date){
   const meal=planWeek()[di]?.[mk]; const r=meal&&RECIPES.find(x=>x.id===meal.r);
   const acs=r? acompsDe(meal) : [];
@@ -13659,6 +14101,7 @@ function mealBlock(di,mk,label,date){
   return `<div class="meal ${tinta}" id="meal-${di}-${mk}">
     <div class="row" style="justify-content:space-between;align-items:center;gap:6px">
       <div class="mtitle">${label}</div>
+      ${seloJejumRefeicao(comem,mk,date)}
       ${v.alguma? carimbo('ref:'+date+':'+mk) : v.falhou? carimbo('ref:'+date+':'+mk,'falhou') : ''}
       ${r&&v.cheia&&comem.length>1? `<span class="mesa-cheia" title="Mesa cheia: comeram todos os que estavam previstos">${mesaSvg(comem.length,comem.length,30)}</span>`:''}
     </div>
@@ -13765,14 +14208,17 @@ function reguaDias(dates){
    aniversário ou a um jantar fora. O único total semanal que existia era o do
    desporto — este é o da comida planeada. */
 function equilibrioSemana(m,dates){
-  let planeado=0, alvo=0, diasComPlano=0, cheats=0;
+  let planeado=0, alvo=0, diasComPlano=0, cheats=0, diasJejum=0, deficeJejum=0;
   dates.forEach((date,di)=>{
     const e=estadoDia(m,di,dates);
+    /* Um dia de jejum não é um dia com o alvo por cumprir: é um dia sem alvo.
+       Contá-lo como falha faria a semana toda parecer um desastre. */
+    if(horasDeJejumNoDia(m.id,date)>0){ diasJejum++; deficeJejum+=deficeDoJejum(m,date); }
     if(e.st==='cheat'){ cheats++; alvo+=alvoDoDia(m,date); return; }
     alvo+=alvoDoDia(m,date);
     if(e.refs){ planeado+=e.kcal; diasComPlano++; }
   });
-  return {planeado, alvo, diasComPlano, cheats,
+  return {planeado, alvo, diasComPlano, cheats, diasJejum, deficeJejum,
     desvio: alvo>0? (planeado-alvo)/alvo : 0};
 }
 /* Quanto custa a semana em tinta, contra o teto que a casa definiu. Herda a
@@ -13834,11 +14280,13 @@ function cartaoEquilibrio(dates){
       const tone=Math.abs(dv)<=8?'ok':Math.abs(dv)<=18?'warn':'bad';
       return `<div style="margin-top:12px">
         <div class="splabel"><span>${avatar(m,20)} ${esc(m.nome.split(' ')[0])}
-          ${e.cheats? `<span class="sub">· ${plural(e.cheats,'cheat day','cheat days')}</span>`:''}</span>
+          ${e.cheats? `<span class="sub">· ${plural(e.cheats,'cheat day','cheat days')}</span>`:''}
+          ${e.diasJejum? `<span class="sub">· ⏳ ${plural(e.diasJejum,'dia de jejum','dias de jejum')}</span>`:''}</span>
           <output id="eq-out-${m.id}">${Math.round(e.planeado)} de ${Math.round(e.alvo)} kcal</output></div>
         <div class="mbar" style="height:12px"><div id="eq-bar-${m.id}" style="width:${Math.min(100,pct).toFixed(1)}%;background:var(--${tone==='ok'?'ok':tone==='warn'?'warn':'bad'})"></div></div>
         <p class="sub" style="margin-top:4px">${e.diasComPlano<7? plural(7-e.diasComPlano,'dia ainda por planear','dias ainda por planear')+' · ' : ''}${
-          dv===0? 'em cima do alvo da semana.' : dv>0? '+'+dv+'% acima do alvo da semana.' : dv+'% abaixo do alvo da semana.'}</p>
+          dv===0? 'em cima do alvo da semana.' : dv>0? '+'+dv+'% acima do alvo da semana.' : dv+'% abaixo do alvo da semana.'}${
+          e.deficeJejum? ' O jejum acrescenta '+Math.round(e.deficeJejum)+' kcal de défice, já fora desta conta.' : ''}</p>
       </div>`;
     }).join('')}
     ${cob? `<div style="margin-top:16px;border-top:1px solid var(--line);padding-top:12px">
@@ -14917,7 +15365,7 @@ function pacote(){
          receitas:S.receitas, medicoes:S.medicoes, regAtiv:S.regAtiv, regRef:S.regRef,
          sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa, pausas:S.pausas, diario:S.diario, cozPref:S.cozPref,
          validades:S.validades, veredictos:S.veredictos, brigada:S.brigada, desperdicio:S.desperdicio,
-         gostos:S.gostos}}; }
+         gostos:S.gostos, jejum:S.jejum}}; }
 function textoCopia(){ return JSON.stringify(pacote(),null,2); }
 function marcarExportado(){ S.meta.exportadoEm=new Date().toISOString(); S.meta.semCopia=false; saveMeta(); }
 function nomeFicheiro(){ return 'familia-fit-'+iso(new Date())+'.json'; }
@@ -15188,9 +15636,16 @@ function lerPacote(txt){
     gostosBrutos[rid]=dentro;
   });
   const gostos=limparGostos(gostosBrutos, idsOk);
+  /* jejum: os ids de membro remapeiam-se como tudo o resto */
+  const jejumBruto={im:{}, pontuais:[]};
+  if(d.jejum && typeof d.jejum==='object'){
+    Object.keys(d.jejum.im||{}).forEach(mid0=>{ jejumBruto.im[mapa[mid0]||mid0]=d.jejum.im[mid0]; });
+    jejumBruto.pontuais=(Array.isArray(d.jejum.pontuais)? d.jejum.pontuais:[]).map(remapa).filter(Boolean);
+  }
+  const jejum=limparJejum(jejumBruto, idsOk);
   return {d:{ members, cheats, plans, bought, objetivos, despensa, receitas,
               medicoes, regAtiv, regRef, sobras, precos, festas, casa, pausas, diario, cozPref,
-              validades, veredictos, brigada, desperdicio, gostos,
+              validades, veredictos, brigada, desperdicio, gostos, jejum,
               prefCuisine:temChave(CUIS,d.prefCuisine)?d.prefCuisine:'todas',
               week:dataValida(d.week)? mondayISO(new Date(d.week+'T12:00:00')) : mondayISO(new Date()) }};
 }
@@ -15309,6 +15764,17 @@ function juntar(txt){
     if(S.desperdicio.some(y=>y.d===x.d&&y.r===x.r&&y.destino===x.destino)) return;
     S.desperdicio.push(x);
   });
+  /* jejum: o horário de quem já cá está não se toca; os jejuns pontuais
+     juntam-se pela chave natural (pessoa, dia) */
+  const jc=jejumCfg();
+  Object.keys((d.jejum&&d.jejum.im)||{}).forEach(mid0=>{ const mid=mapa[mid0]||mid0;
+    if(!S.members.some(m=>m.id===mid)) return;
+    if(!jc.im[mid]) jc.im[mid]=d.jejum.im[mid0]; });
+  ((d.jejum&&d.jejum.pontuais)||[]).forEach(j0=>{
+    const j=Object.assign({},j0,{mid:mapa[j0.mid]||j0.mid});
+    if(!S.members.some(m=>m.id===j.mid)) return;
+    if(jc.pontuais.some(x=>x.mid===j.mid&&x.d===j.d)) return;
+    jc.pontuais.push(j); });
   /* gostos: o que já cá está ganha, como em tudo o resto */
   if(!S.gostos||typeof S.gostos!=='object') S.gostos={};
   Object.keys(d.gostos||{}).forEach(rid=>{
@@ -15569,6 +16035,11 @@ const TOUR=[
    antes:()=>{ const m=S.members.find(x=>faseDe(x)!=='adulto'); if(m) S.ui.mid=m.id; },
    t:'Crianças: validar com o pediatra',
    d:'Em qualquer perfil em idade de crescimento, e com mais força num bebé, a app põe à cabeça da Nutrição um aviso que não se fecha: os valores que usa são referências populacionais de fontes oficiais, para planear uma semana em casa — não são prescrições, e não conhecem o percentil desta criança, a história clínica, as alergias em investigação nem o ritmo de crescimento. A introdução de alimentos novos e as quantidades de leite decidem-se em consulta.'},
+  {tab:'nutricao', sel:'[data-col="nu-jejum"]',
+   antes:()=>{ const a=S.members.find(x=>!jejumDesaconselhado(x)); if(a) S.ui.mid=a.id; },
+   quando:()=>S.members.some(x=>!jejumDesaconselhado(x)),
+   t:'Jejum: um horário e um défice',
+   d:'Duas coisas diferentes com o mesmo nome, e a app trata-as de forma diferente. O <b>jejum intermitente</b> comprime a janela em que se come sem mudar o total do dia — é um horário, não um défice, e o alvo de calorias não desce por causa dele; escolhe-se num slider entre 12:12 e OMAD, e as refeições que ficam fora da janela aparecem assinaladas no plano. Um <b>jejum pontual</b> é outra coisa: marca-se no calendário, de 12 horas a oito dias, e nos dias que cobre o alvo passa a zero (ou à fração que sobra num dia parcial, porque arredondar um dia de jejum são duas mil calorias de erro). O défice entra na projeção de peso e no ritmo do objetivo. Os avisos sobem com a duração porque o risco sobe com a duração, e acima de 72 horas há uma confirmação explícita de que existe acompanhamento médico. Para crianças, adolescentes, grávidas e no pós-parto recente a ferramenta não fica disponível de todo.'},
   {tab:'nutricao', sel:'[data-col="nu-fibra"]', quando:()=>S.members.length&&fibraMedia(curM().id,7),
    t:'Fibra e hortofrutícolas',
    d:'Dois números que os ingredientes sempre tiveram e que nunca eram somados ao dia. A fibra vem da tabela do INSA e compara-se com a Ingestão Adequada da EFSA — 25 g por dia num adulto, 2 g por cada MJ numa criança, que é como a EFSA a define nessas idades. Os hortofrutícolas comparam-se com os 400 g por dia da OMS, que exclui expressamente a batata e outras raízes ricas em amido. O julgamento faz-se à média da semana: um dia de sopa e outro de bife não são um problema. Abaixo de um ano não há referência e a app não inventa nenhuma — mostra o número sem veredicto.'},
@@ -15971,7 +16442,8 @@ function pintaModal(){
     : fi? fichaHtml(fi)
     : S.ui.mercado? mercadoHtml()
     : mo? (mo.tipo==='peso'? modalPesoHtml(mo) : mo.tipo==='compras'? modalComprasHtml(mo)
-         : mo.tipo==='fimVisita'? modalFimVisitaHtml() : '')
+         : mo.tipo==='fimVisita'? modalFimVisitaHtml()
+         : mo.tipo==='jejum'? modalJejumHtml(mo) : '')
     : fo? (fo.tipo==='mesa'? folhaMesaHtml(fo) : fo.tipo==='registo'? folhaRegistoHtml()
          : fo.tipo==='sobra'? folhaSobraHtml(fo) : '')
     : '';
