@@ -8,7 +8,7 @@ Ferramenta web para gerir a **alimentação e a atividade física de toda a fam�
 
 ## Começar
 
-A página de abertura tem uma **visita guiada** de 31 passos que percorre os nove separadores e todas as funcionalidades — perfis, data de nascimento e alergias, a evolução do peso, avatares, o mês em palavras, o plano de treinos e o registo do que se fez, treinar em conjunto, macros, suplementos, o registo das refeições, a biblioteca de receitas e o editor, a despensa, os objetivos, as sugestões por mesa, comer em conjunto, os acompanhamentos, as compras e os temas — com uma família de exemplo, já com duas semanas de histórico, para se ver tudo a funcionar. Os passos que falam de cartões que ainda não têm dados são saltados, em vez de apontarem para o vazio. Pode sair-se a qualquer momento, e o exemplo apaga-se no separador Dados. Quem preferir começar do zero cria o primeiro perfil ali ao lado; a visita fica sempre disponível em **Dados → Rever a visita guiada**.
+A página de abertura tem uma **visita guiada** de 46 passos que percorre os nove separadores e todas as funcionalidades — perfis, data de nascimento e alergias, a evolução do peso, avatares, o mês em palavras, o plano de treinos e o registo do que se fez, treinar em conjunto, macros, suplementos, o registo das refeições, a biblioteca de receitas e o editor, a despensa, os objetivos, as sugestões por mesa, comer em conjunto, os acompanhamentos, as compras e os temas — com uma família de exemplo, já com duas semanas de histórico, para se ver tudo a funcionar. Os passos que falam de cartões que ainda não têm dados são saltados, em vez de apontarem para o vazio. Pode sair-se a qualquer momento, e o exemplo apaga-se no separador Dados. Quem preferir começar do zero cria o primeiro perfil ali ao lado; a visita fica sempre disponível em **Dados → Rever a visita guiada**.
 
 ## Aspeto
 
@@ -107,6 +107,20 @@ Todas as dietas têm pelo menos três opções em cada refeição.
 O equilíbrio entre dieta e exercício é um slider contínuo (mais dieta pede menos esforço físico extra; mais exercício permite comer com menos restrição), com atalhos para "mais dieta", "equilibrado" e "mais exercício", e pode ser reajustado mais tarde a partir do próprio objetivo, sem o recriar. Perfis em crescimento ou grávidas nunca recebem um objetivo de défice — só de manutenção ou ganho, com a razão explicada.
 
 Cada objetivo mostra um anel de progresso, calculado a partir do peso atual do membro desde que o objetivo foi criado — sem precisar de um histórico à parte. A cor do anel reflete o ritmo real, não só o progresso: fica amarelo ou vermelho quando o peso perdido está a ficar para trás do tempo já passado. Ao atingir um objetivo, a app celebra com um cartão festivo, e o objetivo passa para uma secção de **Conquistas**, que fica como registo do que já foi alcançado.
+
+## Cozinhar como a casa cozinha
+
+**Cinco escolhas que mudam as contas, não a decoração.** No Plano de Refeições, «Como esta casa cozinha» tem interruptores para **repetir receitas durante a semana**, **cozinhar em dobro**, **só ingredientes de época**, **preparar de véspera** e o cartão de receita da época.
+
+**Cozinhar em dobro** dobra o *prato*: as quantidades sobem já na lista de compras, e o dia que só aquece deixa de o comprar — senão a mesma comida entrava duas vezes no talão. Os acompanhamentos ficam de fora dessa conta porque se fazem frescos em cada dia: ninguém reaquece uma salada. Cada refeição repetida mostra-se como **♻ Aquecer**, com o dia em que foi cozinhada.
+
+**Quanto tempo aguenta e como se reaquece**, por família de prato: o arroz é o que tem menos folga (um dia), as sopas e os cozidos os que têm mais (quatro). São prazos genéricos e conservadores para sobras refrigeradas a 4 °C ou menos, e a app di-lo — não substituem o cheiro, o aspeto e o bom senso. As sobras no frigorífico passam a viver o prazo do seu prato, e a que estiver mais perto do fim aparece primeiro.
+
+**Pratos quentes e pratos frios.** Um gaspacho e uma feijoada não apetecem no mesmo dia. O género lê-se do nome e dos ingredientes e pesa nas sugestões: no verão português (junho a setembro) os pratos frios ganham vantagem, **sobretudo ao almoço**; fora dele, os quentes.
+
+**🔪 Food prep familiar** — preparação de *ingredientes*, não pratos feitos: demolhar, cozer e porcionar leguminosas, picar cebola e alho, lavar e secar folhas, assar um tabuleiro de legumes, marinar carne, porcionar peixe, cozer ovos. Cada tarefa diz que dias serve, quanto tempo leva e as quantidades já somadas da semana inteira, com convidados e porções em dobro contados. E enquanto estiver ligado, **as receitas que aproveitam uma preparação já planeada ganham vantagem nas sugestões** — é assim que uma tarde de domingo poupa cinco jantares à pressa.
+
+**🌱 Da época, a sério.** Nas sugestões por mesa há um **«Só ingredientes de época»**; nas Receitas, um filtro «da época agora»; e no Plano, um cartão **«Receita da época»** que escolhe uma receita por dia entre as que servem as dietas e alergias da casa, pontuando os ingredientes sazonais, o género do prato para a estação, o que já está na despensa e o que encaixa no food prep. Muda todos os dias e desliga-se nas preferências.
 
 **📅 Plano de Refeições** — pequeno-almoço, almoço, lanche e jantar para cada dia, escolhendo quem come cada refeição, com navegação entre semanas e preenchimento automático. Os **cheat days** marcam-se por pessoa e por dia: quem estiver de folga sai das contas e da lista de compras nesse dia.
 
