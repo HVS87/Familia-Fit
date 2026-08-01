@@ -189,12 +189,43 @@ html[data-densidade="cerrado"] .spline{padding:10px 12px}
   .a-lapis{background-image:none}
   .a-tinta{border-color:var(--ink)}
 }
+/* ===== O LIVRO DA CASA =====
+   Só existe no papel: fora da impressão o nó está escondido, e a app não muda
+   de aspeto por ele existir durante um segundo. */
+.livro{display:none}
+@media print{
+  html[data-imprimir="livro"] body>*:not(.livro){display:none !important}
+  html[data-imprimir="livro"] .livro{display:block;color:#000;background:#fff;
+    font-family:Georgia,"Iowan Old Style",Palatino,serif;font-size:11.5pt;line-height:1.5}
+  .livro-capa{text-align:center;padding:22vh 0 0;page-break-after:always}
+  .livro-capa h1{font-size:30pt;margin:14pt 0 0;letter-spacing:.01em}
+  .livro-mono{display:flex;justify-content:center;color:#000}
+  .livro-sub{font-size:10.5pt;letter-spacing:.12em;text-transform:uppercase;margin-top:10pt}
+  .livro-lema{font-style:italic;font-size:13pt;margin-top:14pt}
+  .livro-rec{page-break-inside:avoid;page-break-before:always;padding-top:8pt}
+  .livro-rec h2{font-size:17pt;margin:0 0 2pt;border-bottom:1px solid #000;padding-bottom:4pt}
+  .livro-rec h3{font-size:11pt;letter-spacing:.08em;text-transform:uppercase;margin:12pt 0 4pt}
+  .livro-rec ul,.livro-rec ol{margin:0;padding-left:18pt}
+  .livro-rec li{margin-bottom:3pt}
+  .livro-meta{font-size:9.5pt;color:#333;margin-top:6pt}
+  .livro-hist{font-style:italic;margin-top:8pt;padding-left:10pt;border-left:2px solid #999}
+  .livro-alerg{font-size:9.5pt;margin-top:8pt;border:1px solid #000;padding:5pt 7pt}
+  @page{margin:18mm 16mm}
+}
 /* Fita-cola no canto das receitas da casa: um caderno tem coisas coladas. */
 .fita-cola{position:absolute;top:-7px;right:14px;width:44px;height:16px;pointer-events:none;
   background:color-mix(in srgb,var(--energy) 22%,transparent);
   border-left:1px solid color-mix(in srgb,var(--energy) 34%,transparent);
   border-right:1px solid color-mix(in srgb,var(--energy) 34%,transparent);
   transform:rotate(-2deg)}
+/* A história cola-se à ficha com a mesma fita: é uma nota de caderno, não um
+   campo de formulário. */
+.nota-historia{position:relative;margin-top:14px;padding:12px 14px;
+  border:1px solid var(--line);border-radius:var(--r-sm);
+  background:color-mix(in srgb,var(--energy) 6%,var(--card));
+  font-family:var(--fonte-display);font-size:14.5px;line-height:1.5;color:var(--ink)}
+.nota-historia b{font-family:var(--fonte-ui);font-size:11px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--mut);display:block;margin-bottom:2px}
 
 /* ===== O CARIMBO =====
    Validar é o gesto mais repetido: ganha meio segundo de tinta a assentar. */
@@ -5407,6 +5438,9 @@ const DICAS={
   dobro:'Cozinhar a dobrar dá para dois dias. Dobra o PRATO — as quantidades dele sobem já na lista de compras, e o dia que só aquece não volta a comprá-lo. Os acompanhamentos ficam de fora da conta porque se fazem frescos em cada dia: ninguém reaquece uma salada. O prazo de guardar e a forma de reaquecer vêm por baixo, e são diferentes de prato para prato.',
   foodprep:'Preparação de ingredientes, não pratos feitos: descascar, picar, demolhar, lavar, marinar, porcionar. Cada tarefa diz que dias serve e quanto tempo leva, com as quantidades já somadas de toda a semana. Enquanto estiver ligado, as receitas que aproveitam uma preparação já planeada têm vantagem nas sugestões — é assim que uma tarde de domingo poupa cinco jantares à pressa.',
   genero:'Um gaspacho e uma feijoada não apetecem no mesmo dia. A app lê o género do prato do nome e dos ingredientes e pesa-o na sugestão: no verão os pratos frios ganham vantagem, sobretudo ao almoço; fora dele, os quentes.',
+  substituicoes:'Quando falta um ingrediente que a receita pede, a app sugere o que se costuma pôr no lugar dele numa cozinha portuguesa, e diz o que muda no prato. São trocas de cozinha, não de tabela nutricional: os macros continuam a ser os dos ingredientes originais, porque a app não sabe qual das trocas foi feita. Uma troca nunca é sugerida se trouxer um alergénio marcado em alguém desta casa — essa é a regra que não se negoceia.',
+  livro:'Uma vista de impressão que compõe as receitas da casa como um livro: capa com o nome da casa, cada receita com ingredientes, passos e a sua história, e um índice no fim. Sai pela impressão do browser, por isso dá papel ou PDF conforme escolheres — sem sair da app e sem enviar nada para lado nenhum.',
+  historia:'Duas linhas opcionais numa receita da casa: de quem veio e a história por trás dela. Aparecem coladas na ficha, abrem o modo Cozinha e mudam o nome nos cartões de sugestão — «a receita da Avó Alice» em vez do nome seco. Entram na cópia de segurança como tudo o resto.',
   votacao:'O jantar especial de sábado deixa de ser escolha de um adulto. Os candidatos já passaram pelo crivo de toda a mesa — alergias, dietas e teto de calorias — por isso a escolha é real e não fingida. Passa-se o telemóvel de mão em mão: cada um toca no seu avatar e depois no prato. Em caso de empate ganha quem não venceu da última vez, senão o mesmo prato ganharia sempre.',
   vez:'Uma rotativa entre quem cá vive, uma semana para cada um. Diferente da votação, que é uma decisão coletiva pontual: isto é turno garantido, e turno é justiça que as crianças percebem — quem tem a vez na próxima semana tem uma razão para abrir a app e namorar as receitas. Bebés ficam de fora, e a vez troca-se com um toque, porque trocas de vez acontecem em todas as casas.',
   veredicto:'Os pratos favoritos que a app já conhecia eram implícitos — deduzidos da frequência com que se repetem. Isto é a voz explícita da mesa, incluindo a dos miúdos, que raramente decidem o que se repete. «Repetir em breve» dá vantagem à receita nas sugestões automáticas; «não é para nós» arrefece-a durante oito semanas, mas nunca a esconde dos filtros — um «não» de há dois meses não é uma proibição.',
@@ -6326,6 +6360,143 @@ function abrirFicha(rid,n){
 function fecharFicha(){ S.ui.ficha=null; saveMeta(); render(); }
 function setFichaDoses(v){ const f=fichaAberta(); if(!f) return;
   f.n=clampNum(Math.round(parseFloat(v)||1),1,20); saveMeta(); render(); }
+/* ================= O LIVRO DA CASA =================
+   As receitas da casa merecem sair em papel. Monta-se um documento próprio
+   num nó à parte, imprime-se com o browser e tira-se logo a seguir — nada sai
+   do dispositivo, e o DOM da app fica exatamente como estava. */
+function livroHtml(){
+  const minhas=RECIPES.filter(r=>r.u);
+  const nome=(S.casa&&S.casa.nome)||'A nossa casa';
+  const lema=(S.casa&&S.casa.lema)||'';
+  return `<div class="livro-capa">
+      <div class="livro-mono" aria-hidden="true">${monogramaSvg(88)}</div>
+      <h1>${esc(nome)}</h1>
+      <p class="livro-sub">O livro de receitas da casa</p>
+      ${lema? `<p class="livro-lema">«${esc(lema)}»</p>`:''}
+      <p class="livro-sub">${plural(minhas.length,'receita','receitas')} · ${fmtLongo(hojeISO())}</p>
+    </div>
+    ${minhas.map((r,i)=>{
+      const passos=passosDaReceita(r,1);
+      return `<section class="livro-rec">
+        <h2>${i+1}. ${esc(r.n)}</h2>
+        <p class="livro-meta">${ICO_COZ[r.coz]||''} ${cozinhasDe(r).map(k=>CUIS[k]).join(' · ')}
+          · ${r.k} kcal por dose · ${plural(r.doses||1,'dose','doses')}</p>
+        ${r.de||r.hist? `<p class="livro-hist">${r.de? '<b>Veio de '+esc(r.de)+'.</b> ':''}${r.hist? '«'+esc(r.hist)+'»':''}</p>`:''}
+        <h3>Ingredientes</h3>
+        <ul>${escalaIngredientes(r,1).map(x=>`<li>${esc(x.n)} — ${fmtQtd(x.q,x.u)}</li>`).join('')}</ul>
+        <h3>Preparação</h3>
+        <ol>${passos.map(p=>`<li><b>${esc(p.t)}</b>${p.min? ' ('+p.min+' min)':''} — ${esc(p.d)}</li>`).join('')}</ol>
+        <p class="livro-meta">${esc(textoConservacao(r))}</p>
+        ${(r.at||[]).filter(ehAlergenio).length? `<p class="livro-alerg"><b>Alergénios:</b> ${
+          (r.at||[]).filter(ehAlergenio).map(k=>esc(RESTR[k].n)).join(', ')}.</p>`:''}
+      </section>`;
+    }).join('')}
+    <section class="livro-rec">
+      <h2>Índice</h2>
+      <ol>${minhas.map(r=>`<li>${esc(r.n)}${r.de? ' — de '+esc(r.de):''}</li>`).join('')}</ol>
+      <p class="livro-meta">Alergénios segundo o anexo II do Regulamento (UE) n.º 1169/2011.
+        Valores nutricionais a partir da tabela do INSA e do USDA FoodData Central.
+        Isto ajuda a planear; não substitui ler o rótulo de cada embalagem.</p>
+    </section>`;
+}
+function imprimirLivro(){
+  const minhas=RECIPES.filter(r=>r.u);
+  if(!minhas.length) return flash('warn','O livro faz-se com as receitas da casa — ainda não há nenhuma.');
+  const velho=document.getElementById('livro'); if(velho) velho.remove();
+  const no=document.createElement('div');
+  no.id='livro'; no.className='livro';
+  no.innerHTML=livroHtml();
+  document.body.appendChild(no);
+  document.documentElement.setAttribute('data-imprimir','livro');
+  const limpar=()=>{ document.documentElement.removeAttribute('data-imprimir');
+    const n=document.getElementById('livro'); if(n) n.remove();
+    window.removeEventListener('afterprint',limpar); };
+  window.addEventListener('afterprint',limpar);
+  try{ window.print(); }catch(e){ limpar(); flash('bad','O browser não deixou abrir a impressão.'); }
+  /* alguns browsers não disparam afterprint: uma rede de segurança */
+  setTimeout(()=>{ if(document.getElementById('livro')) limpar(); }, 60000);
+}
+/* ================= FALTA UM? TROCA-SE =================
+   As trocas são de cozinha, não de tabela nutricional: servem para salvar um
+   jantar quando falta um ingrediente, e a app diz sempre o que muda. Nenhuma
+   troca é sugerida se trouxer um alergénio que alguém da casa tem — é a única
+   regra que não se negoceia aqui. */
+const SUBSTITUICOES=[
+  {de:/^Natas$/i, por:['Leite de coco','Iogurte grego','Requeijão'], nota:'Fica menos gordo e mais leve; o leite de coco muda o sabor.'},
+  {de:/^Manteiga$/i, por:['Azeite','Óleo alimentar'], nota:'Em refogados troca-se a peso; em bolos a textura muda.'},
+  {de:/^Leite$/i, por:['Leite de coco','Bebida de aveia'], nota:'Para quem evita lactose; o doce natural sobe um pouco.'},
+  {de:/^Iogurte natural$/i, por:['Iogurte grego','Requeijão'], nota:'Fica mais espesso e com mais proteína.'},
+  {de:/^Cebola$/i, por:['Chalota','Alho-francês','Cebola roxa'], nota:'A chalota é mais doce e mais fina.'},
+  {de:/^Coentros$/i, por:['Salsa','Manjericão'], nota:'A salsa é o substituto clássico em casa portuguesa.'},
+  {de:/^Arroz$/i, por:['Quinoa','Couscous','Bulgur'], nota:'O couscous e o bulgur levam glúten; a quinoa não.'},
+  {de:/^Esparguete$/i, por:['Massa de arroz','Gnocchi de batata'], nota:'A massa de arroz não leva glúten.'},
+  {de:/^Batata$/i, por:['Batata doce crua','Abóbora'], nota:'Ficam mais doces e com menos amido.'},
+  {de:/^Feijão$/i, por:['Grão-de-bico','Lentilhas'], nota:'Trocam-se a peso, com tempos de cozedura diferentes.'},
+  {de:/^Frango|^Peito de frango$/i, por:['Bifes de peru','Peito de peru'], nota:'O peru é mais magro e seca mais depressa.'},
+  {de:/^Bacalhau/i, por:['Pescada','Maruca crua'], nota:'Sem o sal do bacalhau — vale a pena provar antes de temperar.'},
+  {de:/^Queijo ralado|^Parmesão$/i, por:['Queijo flamengo','Queijo da ilha'], nota:'Derretem mais e sabem menos a curado.'},
+  {de:/^Limão$/i, por:['Lima','Vinagre de vinho'], nota:'O vinagre é mais agressivo: usa-se menos.'},
+  {de:/^Azeite$/i, por:['Óleo de girassol','Óleo alimentar'], nota:'Sabor mais neutro; para saladas o azeite não tem troca à altura.'},
+  {de:/^Manjericão$/i, por:['Salsa','Orégãos','Hortelã'], nota:'Os orégãos secos usam-se em muito menor quantidade.'},
+  {de:/^Pimento$/i, por:['Courgette','Beringela'], nota:'Perde-se a doçura do pimento assado.'},
+  {de:/^Tomate$/i, por:['Tomate pelado','Polpa de tomate'], nota:'Em cozinhados a lata rende igual e é mais constante.'},
+];
+/* Só se sugere o que existe no catálogo, o que não está vetado a ninguém cá em
+   casa, e — se der jeito — o que já está na despensa. */
+function substitutosDe(nome, membros){
+  const regra=SUBSTITUICOES.find(s=>s.de.test(nome));
+  if(!regra) return null;
+  const veta=[]; (membros||S.members).forEach(m=>restricoesDe(m).forEach(k=>{ if(veta.indexOf(k)<0) veta.push(k); }));
+  const opcoes=regra.por
+    .filter(n=>temChave(NUTRI,n))
+    .filter(n=>!atributosIng(n).some(t=>veta.indexOf(t)>=0))
+    .map(n=>({n, tem:temNaDespensa(n)}))
+    .sort((a,b)=>(b.tem?1:0)-(a.tem?1:0));
+  return opcoes.length? {opcoes, nota:regra.nota} : null;
+}
+function blocoSubstituicoes(r){
+  const faltam=(r.i||[]).map(l=>l[0]).filter(n=>!temNaDespensa(n));
+  const linhas=faltam.map(n=>({n, s:substitutosDe(n)})).filter(x=>x.s).slice(0,4);
+  if(!linhas.length) return '';
+  return `<div style="margin-top:14px">
+    <h3>Falta um? Troca-se ${dica('substituicoes')}</h3>
+    ${linhas.map(x=>`<p class="sub" style="margin-top:6px"><b>${esc(x.n)}</b> →
+      ${x.s.opcoes.map(o=>`<span class="tag ${o.tem?'val-ok':''}">${esc(o.n)}${o.tem?' ✓ tens':''}</span>`).join(' ')}
+      <span style="display:block;opacity:.8">${esc(x.s.nota)}</span></p>`).join('')}
+    <p class="sub" style="margin-top:6px"><i>Trocas de cozinha, não de tabela: os macros da receita continuam a ser
+      os dos ingredientes originais. Nunca se sugere nada que traga um alergénio marcado nesta casa.</i></p>
+  </div>`;
+}
+/* ===== A HISTÓRIA DA RECEITA =====
+   Uma app de comida trata a receita da avó como trata um prato de catálogo.
+   Uma frase de origem transforma repetir um prato em manter viva uma pessoa —
+   e é o que faz os miúdos pedirem «conta outra vez». */
+function notaHistoria(r){
+  if(!r || (!r.de && !r.hist)) return '';
+  return `<div class="nota-historia">
+    <span class="fita-cola" aria-hidden="true"></span>
+    ${r.de? `<b>Veio de ${esc(r.de)}</b>`:''}
+    ${r.hist? `<span style="display:block">«${esc(r.hist)}»</span>`:''}
+  </div>`;
+}
+/* O que a casa já disse sobre este prato. Sem médias nem estrelas: contam-se
+   as vezes, que é o que uma família reconhece. */
+function veredictosDe(rid){
+  const lim=addDias(hojeISO(), -SEMANAS_ARREFECER*7);
+  const c={rep:0, ok:0, nao:0};
+  (S.veredictos||[]).forEach(v=>{ if(v.r===rid && v.d>=lim && c[v.v]!==undefined) c[v.v]++; });
+  return c;
+}
+function blocoVeredictosDaCasa(r){
+  const c=veredictosDe(r.id);
+  if(!c.rep && !c.nao && !c.ok) return '';
+  const partes=[];
+  if(c.rep) partes.push('a casa pediu para repetir '+plural(c.rep,'vez','vezes'));
+  if(c.ok) partes.push(plural(c.ok,'«está bem»','«está bem»'));
+  if(c.nao) partes.push(plural(c.nao,'«não é para nós»','«não é para nós»'));
+  return `<p class="sub" style="margin-top:8px">🗣 ${partes.join(' · ')}
+    <span style="opacity:.7">— nas últimas ${SEMANAS_ARREFECER} semanas.</span></p>`;
+}
 function fichaHtml(f){
   const r=RECIPES.find(x=>x.id===f.r); if(!r) return '';
   const passos=passosDaReceita(r,f.n), escritos=temPassosEscritos(r);
@@ -6351,6 +6522,8 @@ function fichaHtml(f){
         ${custo.com? `<div class="stat"><b>${nPT(custo.total,2)} €</b><span>Custo${custo.sem?'*':''}</span></div>`:''}
       </div>
       ${avisoAlergia(r,S.members)}
+      ${notaHistoria(r)}
+      ${blocoVeredictosDaCasa(r)}
       <div class="row" style="margin-top:12px;align-items:center">
         <span class="lbl" style="margin:0">Doses</span>
         ${[1,2,3,4,6].map(x=>`<button class="chip ${f.n===x?'on':''}" onclick="setFichaDoses(${x})">${x}</button>`).join('')}
@@ -6359,6 +6532,7 @@ function fichaHtml(f){
       </div>
       <h3 style="margin-top:14px">Ingredientes</h3>
       <div class="ingr-lista">${listaIngredientesComEstado(r,f.n)}</div>
+      ${blocoSubstituicoes(r)}
       <h3 style="margin-top:16px">Preparação ${escritos?'':dica('passosDerivados')}</h3>
       ${escritos? '' : `<p class="sub">Esta receita ainda não tem passos escritos: os que se seguem são <b>derivados dos ingredientes e do género do prato</b>, para servirem de guia. Não são uma receita de livro, e a app diz isso em vez de fingir que são.</p>`}
       <ol class="passos">${passos.map((p,i)=>`<li>
@@ -6455,7 +6629,7 @@ function cozinhaHtml(){
       <span class="pill">${c.passo+1}/${passos.length}</span>
     </div>
     <div class="cozinha-corpo">
-      ${c.passo===0? `<ul class="coz-ing">${ing.map((x,i)=>`<li class="${c.feitos.indexOf(i)>=0?'done':''}">
+      ${c.passo===0? `${notaHistoria(r)}<ul class="coz-ing">${ing.map((x,i)=>`<li class="${c.feitos.indexOf(i)>=0?'done':''}">
         <label><input type="checkbox" ${c.feitos.indexOf(i)>=0?'checked':''} onchange="toggleIngredienteCozinha(${i})">
         <span>${esc(x.n)} <b>${fmtQtd(x.q,x.u)}</b></span></label></li>`).join('')}</ul>`
       : `<h2 class="coz-t">${esc(p.t)}</h2><p class="coz-d">${esc(p.d)}</p>
@@ -9581,10 +9755,23 @@ function macroBar(pct){ return `<div class="mbar">
    já usam — é o que garante que a lista de compras soma peras com peras — e
    só depois da tabela de composição, para os ingredientes que ainda não
    apareceram em receita nenhuma. */
-const UNID_ING={};
-RECIPES.forEach(r=>r.i.forEach(([n,q,u])=>{ if(!temChave(UNID_ING,n)) UNID_ING[n]=u; }));
+/* Construída à primeira leitura, e não aqui em cima: limparReceita chama
+   unidadeDe() a partir de load(), que corre muito antes desta linha. Com uma
+   tabela declarada com const, uma única receita da casa gravada bastava para
+   a app não arrancar — «Cannot access 'UNID_ING' before initialization». É o
+   mesmo motivo por que o catálogo de ingredientes também é preguiçoso. */
+/* var e não let, de propósito: a declaração iça e nasce a undefined, por isso
+   unidIng() funciona mesmo quando é chamada de load(), lá em cima. Com let,
+   a variável ficaria na zona morta temporal e o erro seria o mesmo. */
+var _unidIng=null;
+function unidIng(){
+  if(!_unidIng){ _unidIng={};
+    RECIPES.forEach(r=>r.i.forEach(([n,q,u])=>{ if(!temChave(_unidIng,n)) _unidIng[n]=u; })); }
+  return _unidIng;
+}
 function unidadeDe(nome){
-  if(temChave(UNID_ING,nome)) return UNID_ING[nome];
+  const t=unidIng();
+  if(temChave(t,nome)) return t[nome];
   return (temChave(NUTRI,nome) && NUTRI[nome].u)? NUTRI[nome].u : 'g';
 }
 
@@ -9601,10 +9788,15 @@ function limparReceita(x){
     .map(l=>[l[0], Math.round((parseFloat(l[1])||0)*100)/100, unidadeDe(l[0])])
     .slice(0,40);
   if(!i.length) return null;
-  return {id:'u_'+limparId(String(x.id||'').replace(/^u_/,'')),
+  const out={id:'u_'+limparId(String(x.id||'').replace(/^u_/,'')),
     n:String(x.n||'Receita sem nome').slice(0,80),
     coz, mt: mt.length? mt : ['a','j'],
     doses: clampNum(Math.round(parseFloat(x.doses)||1),1,12), i};
+  /* De quem veio e a história: texto livre, e por isso escapado onde se
+     mostra. Uma receita sem história continua a ser uma receita. */
+  const de=String(x.de||'').trim().slice(0,40); if(de) out.de=de;
+  const hist=String(x.hist||'').trim().slice(0,240); if(hist) out.hist=hist;
+  return out;
 }
 /* A biblioteca é uma só: as receitas da casa são acrescentadas ao mesmo array
    que todo o resto lê. Sincronizar é tirar as antigas e voltar a pô-las com
@@ -9617,6 +9809,8 @@ function sincronizaReceitas(){
     const r={id:x.id, n:x.n, coz:x.coz, d:[], k:m.k, c:Math.round(m.c), p:Math.round(m.p),
       f:Math.round(m.f), fib:Math.round(m.fib), i:x.i.map(l=>[l[0], Math.round(l[1]/Math.max(1,x.doses)*100)/100, l[2]]),
       mt:x.mt, u:true, doses:x.doses};
+    if(x.de) r.de=x.de;
+    if(x.hist) r.hist=x.hist;
     const s=[]; r.i.forEach(l=>atributosIng(l[0]).forEach(t=>{ if(s.indexOf(t)<0) s.push(t); }));
     r.at=s;
     /* nada se declara numa receita da casa: vegetariana, vegan e paleo saem
@@ -9638,14 +9832,15 @@ function abrirEditor(rid){
   if(base && base.u){
     const orig=S.receitas.find(x=>x.id===base.id);
     S.ui.editor={id:base.id, n:base.n, coz:base.coz, mt:base.mt.slice(), doses:orig? orig.doses:1,
-      i:(orig? orig.i : base.i).map(l=>l.slice())};
+      i:(orig? orig.i : base.i).map(l=>l.slice()),
+      de:(orig&&orig.de)||'', hist:(orig&&orig.hist)||''};
   } else if(base){
     /* uma receita da biblioteca copia-se para editar: o original fica intacto
        para quem quiser voltar a ele, e a cópia é da casa */
     S.ui.editor={id:null, n:base.n+' (a meu gosto)', coz:base.coz, mt:base.mt.slice(), doses:1,
-      i:base.i.map(l=>l.slice())};
+      i:base.i.map(l=>l.slice()), de:'', hist:''};
   } else {
-    S.ui.editor={id:null, n:'', coz:'portuguesa', mt:['a','j'], doses:2, i:[]};
+    S.ui.editor={id:null, n:'', coz:'portuguesa', mt:['a','j'], doses:2, i:[], de:'', hist:''};
   }
   S.ui.tab='receitas'; saveMeta(); render();
   const el=document.getElementById('editor'); if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
@@ -9655,6 +9850,8 @@ function edSet(campo,valor){
   const e=edCfg(); if(!e) return;
   if(campo==='n') e.n=String(valor).slice(0,80);
   else if(campo==='coz') e.coz=temChave(CUIS,valor)? valor : e.coz;
+  else if(campo==='de') e.de=String(valor).slice(0,40);
+  else if(campo==='hist') e.hist=String(valor).slice(0,240);
   else if(campo==='doses') e.doses=clampNum(Math.round(parseFloat(valor)||1),1,12);
   saveMeta();
   if(campo==='doses') atualizarEditor();
@@ -9706,7 +9903,8 @@ function guardarReceita(){
   const erro=edValido();
   if(erro){ flash('bad',erro); return; }
   if(!Array.isArray(S.receitas)) S.receitas=[];
-  const limpa=limparReceita({id:e.id||uid(), n:e.n.trim(), coz:e.coz, mt:e.mt, doses:e.doses, i:e.i});
+  const limpa=limparReceita({id:e.id||uid(), n:e.n.trim(), coz:e.coz, mt:e.mt, doses:e.doses, i:e.i,
+    de:e.de, hist:e.hist});
   if(!limpa){ flash('bad','Não foi possível guardar: os ingredientes não são válidos.'); return; }
   const idx=e.id? S.receitas.findIndex(x=>x.id===e.id) : -1;
   if(idx>=0) S.receitas[idx]=limpa; else S.receitas.push(limpa);
@@ -9772,6 +9970,13 @@ function cartaoEditor(){
         ${Object.entries(CUIS).map(([k,v])=>`<option value="${k}" ${e.coz===k?'selected':''}>${(ICO_COZ[k]||'')+' '+v}</option>`).join('')}</select></div>
       <div><label class="lbl">Doses que rende</label>
         <input type="number" min="1" max="12" step="1" value="${e.doses}" onchange="edSet('doses',this.value)"></div>
+    </div>
+    <div class="frow" style="margin-top:10px">
+      <div><label class="lbl">De quem veio ${dica('historia')}</label>
+        <input type="text" value="${esc(e.de||'')}" maxlength="40" placeholder="Ex.: Avó Alice" onchange="edSet('de',this.value)"></div>
+      <div style="grid-column:span 2"><label class="lbl">A história (opcional)</label>
+        <input type="text" value="${esc(e.hist||'')}" maxlength="240"
+          placeholder="Ex.: fazia-se sempre no Natal, em Trás-os-Montes" onchange="edSet('hist',this.value)"></div>
     </div>
     <div style="margin-top:12px"><label class="lbl">Encaixa em</label>
       <div class="row">${MEALS.concat([['ac','Acompanhamento']]).map(([k,rot])=>`<button class="chip ${e.mt.indexOf(k)>=0?'on':''}" onclick="edToggleRef('${k}')">${ICO_REF[k]||''} ${rot}</button>`).join('')}</div>
@@ -10961,6 +11166,7 @@ function renderReceitas(){
     <div><h2>Receitas ${dica('receitasDisp')}</h2><span class="sub" id="rec-conta">${list.length} de ${RECIPES.length} receitas${minhas? ' · '+minhas+' da casa':''}</span></div>
     <div class="row">
       ${S.ui.editor? '' : `<button class="btn small" id="btn-nova-receita" onclick="abrirEditor(null)">+ Nova receita</button>`}
+      ${minhas? `<button class="chip" onclick="imprimirLivro()">📖 Livro da casa ${dica('livro')}</button>`:''}
       ${m? `<button class="chip ${S.ui.soComp?'on':''}" onclick="toggleComp()">Só compatíveis com ${esc(m.nome)}</button>`:''}
       <button class="chip" onclick="go('despensa')">🥫 Ver despensa</button>
     </div>
