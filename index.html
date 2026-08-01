@@ -335,6 +335,20 @@ html[data-dispositivo="telefone"][data-orient="retrato"] .timers{bottom:calc(70p
 
 /* ===== DA ÉPOCA E CONVIDADOS ===== */
 .tag.epoca{border-color:var(--ok);color:var(--ok)}
+.tag.genero-quente{border-color:var(--energy);color:var(--energy)}
+.tag.genero-frio{border-color:var(--accent);color:var(--accent)}
+.tag.cat-ent{border-color:var(--ok);color:var(--ok)}
+.tag.cat-sob{border-color:var(--party);color:var(--party)}
+.tag.cat-br,.tag.cat-sn{border-color:var(--mut);color:var(--mut)}
+/* A ficha da receita: uma folha de caderno com os passos. */
+.rc-tocavel{cursor:pointer}
+.rc-tocavel:hover{border-color:var(--accent)}
+.mcaixa.ficha{max-width:640px}
+ol.passos{margin:8px 0 0;padding-left:22px}
+ol.passos li{margin-bottom:12px;line-height:1.5}
+ol.passos li::marker{font-family:var(--fonte-display);font-weight:700;color:var(--accent)}
+ol.passos li b{font-family:var(--fonte-display);font-size:15.5px}
+ol.passos li span{color:var(--mut);font-size:14px;margin-top:2px}
 .preco{display:inline-flex;align-items:center;gap:5px;margin-left:auto;flex:none}
 .preco input{width:76px;text-align:right;padding:4px 6px;font-size:13px}
 .shop li:has(.preco){display:flex;align-items:center;gap:8px}
@@ -1392,7 +1406,66 @@ function nomeRefeicao(k){ if(k==='ac') return 'Acompanhamento';
    eram estimativas à mão — mas são recalculados no arranque a partir da
    composição dos ingredientes, que é a única fonte de verdade. Só sobrevivem
    como recurso se algum ingrediente perder a composição. */
-function R(id,n,coz,d,k,c,p,f,i,mt,fib){return {id,n,coz,d,k,c,p,f,i,mt:mt||['a','j'],fib:fib||0}}
+function R(id,n,coz,d,k,c,p,f,i,mt,fib,cg){return {id,n,coz,d,k,c,p,f,i,mt:mt||['a','j'],fib:fib||0,cg:cg||null}}
+/* ===== PASSOS DE PREPARAÇÃO =====
+   Cada receita tem os seus passos, escritos como quem dita a alguém que está à
+   bancada: o que fazer, por que ordem, e o tempo onde ele importa. Um passo
+   com minutos ganha um botão que põe um temporizador a contar — e os
+   temporizadores desta app sobrevivem a fechar a página.
+
+   O formato é compacto de propósito: [título, texto, minutos?]. São centenas
+   de receitas, e cada quilobyte a mais é um quilobyte que alguém carrega no
+   telemóvel para ter a app offline. */
+const PASSOS={};
+function P(id,lista){ PASSOS[id]=lista; }
+
+/* ===== CATEGORIAS =====
+   O lugar de uma receita na mesa, que é uma pergunta diferente de «em que
+   refeição encaixa»: uma entrada e um prato principal cabem os dois ao jantar,
+   e uma sobremesa também. Quando a receita não declara a sua categoria, ela
+   deriva-se do que já se sabe — e é sempre a declaração que manda. */
+const CATEG={
+  ent:{n:'Entrada',         i:'🫒'},
+  pp: {n:'Prato principal', i:'🍽️'},
+  br: {n:'Brunch',          i:'🥐'},
+  sn: {n:'Snack',           i:'🍎'},
+  sob:{n:'Sobremesa',       i:'🍮'},
+};
+const CATEG_K=Object.keys(CATEG);
+/* Receitas anteriores às categorias que ganham uma marca explícita. */
+const CATEG_EXTRA={
+  melaopresunto:['ent','sn'],
+  gambasajillo:['ent'],
+};
+/* Há pratos que são de duas casas ao mesmo tempo. A cozinha principal continua
+   a ser uma — é por ela que os filtros e as sugestões trabalham — mas o cartão
+   diz a verdade toda. */
+const COZ_EXTRA={
+  melaopresunto:['portuguesa','espanhola'],
+  gambasajillo:['portuguesa'],
+};
+function cozinhasDe(r){
+  if(!r) return [];
+  return [r.coz].concat(COZ_EXTRA[r.id]||[]).filter((v,i,a)=>a.indexOf(v)===i);
+}
+function ehDaCozinha(r,k){ return cozinhasDe(r).indexOf(k)>=0; }
+function categoriasDe(r){
+  if(!r) return [];
+  if(Array.isArray(r.cg) && r.cg.length) return r.cg.filter(k=>temChave(CATEG,k));
+  if(CATEG_EXTRA[r.id]) return CATEG_EXTRA[r.id];
+  /* derivação: o acompanhamento não é categoria nenhuma; o pequeno-almoço é
+     brunch, o lanche é snack, e o que serve almoço ou jantar é prato principal */
+  const out=[];
+  if(r.mt.indexOf('ac')>=0) return out;
+  if(r.mt.indexOf('p')>=0) out.push('br');
+  if(r.mt.indexOf('l')>=0) out.push('sn');
+  if(r.mt.indexOf('a')>=0||r.mt.indexOf('j')>=0) out.push('pp');
+  return out;
+}
+function temCategoria(r,k){ return categoriasDe(r).indexOf(k)>=0; }
+function selosCategoria(r){
+  return categoriasDe(r).map(k=>`<span class="tag cat-${k}">${CATEG[k].i} ${CATEG[k].n}</span>`).join('');
+}
 /* Hidrato líquido: na convenção portuguesa (e europeia) os hidratos já vêm
    sem a fibra, que se declara à parte — é o mesmo número que está num rótulo
    e o mesmo que conta em keto. Não se subtrai nada duas vezes. */
@@ -1689,6 +1762,84 @@ R('cgespetada','Espetada de vaca em pau de louro à madeirense','portuguesa',[],
 R('vggrao','Estufado de grão-de-bico com espinafres e tomate','mediterranica',['mediterranica'],0,0,0,0,[['Grão-de-bico cozido',200,'g'],['Espinafres',100,'g'],['Tomate pelado',150,'g'],['Cebola',0.5,'un'],['Alho',2,'dente'],['Azeite',10,'ml'],['Cominhos',2,'g'],['Louro',1,'g']],['a','j']),
 R('vgtofu','Tofu grelhado com legumes salteados','asiatica',[],0,0,0,0,[['Tofu',200,'g'],['Courgette',80,'g'],['Pimento',0.5,'un'],['Cebola roxa',0.5,'un'],['Molho de soja',10,'ml'],['Azeite',10,'ml']],['a','j']),
 R('vgfeijoada','Feijoada vegetal de cogumelos portobello','portuguesa',[],0,0,0,0,[['Feijão preto',150,'g'],['Cogumelos portobello',150,'g'],['Tomate pelado',100,'g'],['Cebola',0.5,'un'],['Alho',2,'dente'],['Azeite',10,'ml'],['Louro',1,'g'],['Cominhos',2,'g']],['a','j']),
+/* ================= RECEITAS COM CATEGORIA DECLARADA =================
+   A partir daqui as receitas dizem a sua categoria em vez de a deixarem
+   derivar: uma entrada é uma entrada mesmo que sirva ao jantar, e uma
+   sobremesa não é um prato principal só por caber depois dele. */
+
+/* ---------- Pequeno-almoço e brunch ---------- */
+R('ovoscebolinho','Ovos mexidos com cebolinho','portuguesa',[],0,0,0,0,[['Ovo',3,'un'],['Cebolinho',6,'g'],['Manteiga',8,'g'],['Nata para bater 35% gordura',15,'ml'],['Pimenta preta',0.5,'g']],['p','l'],0,['br']),
+R('ovosbacon','Ovos mexidos com bacon','americana',[],0,0,0,0,[['Ovo',3,'un'],['Bacon',40,'g'],['Manteiga',6,'g'],['Cebolinho',4,'g'],['Pimenta preta',0.5,'g']],['p','l'],0,['br']),
+R('ovosbenedict','Ovos Benedict','americana',[],0,0,0,0,[['Ovo',2,'un'],['Muffin inglês',60,'g'],['Fiambre',50,'g'],['Manteiga',30,'g'],['Gema de ovo de galinha, crua',18,'g'],['Limão',10,'ml'],['Vinagre de vinho',10,'ml'],['Cebolinho',3,'g']],['p'],0,['br']),
+R('ovosestrelados','Ovos estrelados','portuguesa',[],0,0,0,0,[['Ovo',2,'un'],['Azeite',12,'ml'],['Flor de sal',1,'g'],['Pimenta preta',0.5,'g']],['p','a','j'],0,['br']),
+R('iogurtegranola','Iogurte grego com granola e frutos vermelhos','mediterranica',['mediterranica'],0,0,0,0,[['Iogurte grego',170,'g'],['Granola',45,'g'],['Frutos vermelhos',80,'g'],['Mel',10,'g']],['p','l'],0,['br','sn']),
+
+/* ---------- Entradas ---------- */
+R('camaraotigre','Camarão-tigre grelhado','portuguesa',['keto','lowcarb','paleo','mediterranica'],0,0,0,0,[['Camarão-tigre',180,'g'],['Alho',2,'dente'],['Azeite',12,'ml'],['Limão',15,'ml'],['Flor de sal',1,'g'],['Coentros',5,'g']],['a','j'],0,['ent']),
+R('camaraocozido','Camarão cozido','portuguesa',['keto','lowcarb','paleo','mediterranica'],0,0,0,0,[['Camarão',200,'g'],['Sal grosso',8,'g'],['Louro',1,'g'],['Limão',10,'ml']],['a','j'],0,['ent']),
+R('chouricoassado','Chouriço assado','portuguesa',['keto','lowcarb'],0,0,0,0,[['Chouriço',90,'g'],['Pão rústico',40,'g']],['a','j'],0,['ent']),
+R('saladapolvoent','Salada de polvo','portuguesa',['lowcarb','paleo','mediterranica'],0,0,0,0,[['Polvo',180,'g'],['Cebola roxa',60,'g'],['Pimento',60,'g'],['Salsa',6,'g'],['Azeite',15,'ml'],['Vinagre de vinho',8,'ml'],['Louro',1,'g']],['a','j'],0,['ent']),
+R('burratalimao','Burrata com raspas de limão','italiana',['keto','lowcarb','mediterranica'],0,0,0,0,[['Burrata',125,'g'],['Raspa de limão',3,'g'],['Azeite',12,'ml'],['Pimenta preta',0.5,'g'],['Manjericão',4,'g'],['Pão rústico',30,'g']],['a','j'],0,['ent']),
+R('presuntoent','Presunto','espanhola',['keto','lowcarb','paleo'],0,0,0,0,[['Presunto',70,'g'],['Pão rústico',30,'g'],['Azeite',6,'ml']],['a','j','l'],0,['ent','sn']),
+
+/* ---------- Cozinha portuguesa ---------- */
+R('ervilhasovos','Ervilhas com ovos escalfados e bacon','portuguesa',['mediterranica'],0,0,0,0,[['Ervilhas',200,'g'],['Ovo',2,'un'],['Bacon',50,'g'],['Cebola',60,'g'],['Alho',2,'dente'],['Chouriço',30,'g'],['Azeite',12,'ml'],['Coentros',6,'g']],['a','j'],0,['pp']),
+R('favaschourico','Favas com chouriço','portuguesa',['mediterranica'],0,0,0,0,[['Favas',250,'g'],['Chouriço',60,'g'],['Bacon',40,'g'],['Cebola',70,'g'],['Alho',2,'dente'],['Azeite',12,'ml'],['Coentros',6,'g'],['Louro',1,'g']],['a','j'],0,['pp']),
+R('francesinha','Francesinha','portuguesa',[],0,0,0,0,[['Pão de forma',80,'g'],['Bife de vaca',90,'g'],['Linguiça',50,'g'],['Salsicha fresca crua',50,'g'],['Fiambre',40,'g'],['Queijo flamengo',70,'g'],['Cerveja branca',80,'ml'],['Polpa de tomate',80,'g'],['Molho inglês',8,'ml'],['Manteiga',10,'g'],['Colorau',2,'g']],['a','j'],0,['pp']),
+R('empadaocarne','Empadão de carne','portuguesa',[],0,0,0,0,[['Carne picada de vaca',180,'g'],['Batata',300,'g'],['Cebola',70,'g'],['Alho',2,'dente'],['Tomate pelado',80,'g'],['Leite',60,'ml'],['Manteiga',15,'g'],['Azeite',10,'ml'],['Noz-moscada',0.5,'g'],['Salsa',5,'g']],['a','j'],0,['pp']),
+R('peixesal','Peixe ao sal no forno','portuguesa',['keto','lowcarb','paleo','mediterranica'],0,0,0,0,[['Dourada',350,'g'],['Sal grosso',400,'g'],['Limão',20,'ml'],['Azeite',12,'ml'],['Tomilho fresco',4,'g'],['Louro',1,'g']],['a','j'],0,['pp']),
+R('iscascebolada','Iscas de cebolada','portuguesa',['lowcarb'],0,0,0,0,[['Vaca, fígado cru',180,'g'],['Cebola',150,'g'],['Alho',3,'dente'],['Vinho branco',60,'ml'],['Louro',1,'g'],['Azeite',15,'ml'],['Colorau',2,'g'],['Pimenta preta',0.5,'g']],['a','j'],0,['pp']),
+R('feijoadatransmontana','Feijoada à transmontana','portuguesa',[],0,0,0,0,[['Feijão encarnado',180,'g'],['Porco, orelha cozida',60,'g'],['Porco, chispe',70,'g'],['Porco, entrecosto cru',80,'g'],['Chouriço',50,'g'],['Farinheira',40,'g'],['Couve galega',80,'g'],['Cenoura',60,'g'],['Cebola',70,'g'],['Alho',3,'dente'],['Azeite',12,'ml'],['Colorau',3,'g'],['Louro',1,'g']],['a','j'],0,['pp']),
+R('bacalhaubras','Bacalhau à Brás','portuguesa',[],0,0,0,0,[['Bacalhau desfiado',150,'g'],['Batata palha',80,'g'],['Ovo',3,'un'],['Cebola',100,'g'],['Alho',2,'dente'],['Azeite',18,'ml'],['Azeitonas pretas',20,'g'],['Salsa',6,'g']],['a','j'],0,['pp']),
+R('arrozpolvo','Arroz de polvo','portuguesa',['mediterranica'],0,0,0,0,[['Polvo',180,'g'],['Arroz carolino branqueado cru',90,'g'],['Cebola',80,'g'],['Alho',3,'dente'],['Tomate pelado',100,'g'],['Pimento',50,'g'],['Vinho branco',50,'ml'],['Azeite',15,'ml'],['Coentros',8,'g'],['Louro',1,'g']],['a','j'],0,['pp']),
+R('bifemarrare','Bife à Marrare','portuguesa',['lowcarb'],0,0,0,0,[['Bife do lombo de vaca',180,'g'],['Nata para bater 35% gordura',60,'ml'],['Manteiga',15,'g'],['Alho',2,'dente'],['Pimenta preta',2,'g'],['Louro',1,'g']],['a','j'],0,['pp']),
+R('bifecervejeira','Bife à cervejeira','portuguesa',['lowcarb'],0,0,0,0,[['Bife de vaca',180,'g'],['Cerveja branca',100,'ml'],['Alho',3,'dente'],['Manteiga',15,'g'],['Mostarda',8,'g'],['Louro',1,'g'],['Pimenta preta',1,'g']],['a','j'],0,['pp']),
+R('bifemostarda','Bife com molho de mostarda','francesa',['keto','lowcarb'],0,0,0,0,[['Bife de vaca',180,'g'],['Mostarda',15,'g'],['Nata para bater 35% gordura',60,'ml'],['Manteiga',12,'g'],['Vinho branco',40,'ml'],['Pimenta preta',1,'g']],['a','j'],0,['pp']),
+R('bifecafe','Bife com molho de café','portuguesa',['keto','lowcarb'],0,0,0,0,[['Bife de vaca',180,'g'],['Café expresso',40,'ml'],['Nata para bater 35% gordura',50,'ml'],['Manteiga',12,'g'],['Alho',2,'dente'],['Pimenta preta',1,'g']],['a','j'],0,['pp']),
+R('bitoque','Bitoque','portuguesa',[],0,0,0,0,[['Bife de vaca',150,'g'],['Ovo',1,'un'],['Batata',180,'g'],['Arroz carolino branqueado cru',60,'g'],['Alho',2,'dente'],['Manteiga',10,'g'],['Azeite',12,'ml'],['Vinho branco',30,'ml'],['Louro',1,'g']],['a','j'],0,['pp']),
+R('alheiraovo','Alheira com ovo','portuguesa',[],0,0,0,0,[['Alheira',150,'g'],['Ovo',1,'un'],['Batata',180,'g'],['Grelos',100,'g'],['Azeite',15,'ml'],['Alho',2,'dente']],['a','j'],0,['pp']),
+R('saladarussa','Salada russa','portuguesa',[],0,0,0,0,[['Batata',200,'g'],['Cenoura',100,'g'],['Ervilhas',80,'g'],['Atum em conserva',80,'g'],['Maionese',45,'g'],['Ovo',1,'un'],['Picles de pepino',30,'g'],['Salsa',5,'g']],['a','j','l'],0,['pp','ent']),
+
+/* ---------- Sopas ---------- */
+R('sopatomate','Sopa de tomate','portuguesa',['lowfat','mediterranica'],0,0,0,0,[['Tomate',350,'g'],['Cebola',80,'g'],['Alho',3,'dente'],['Batata',120,'g'],['Pão rústico',40,'g'],['Ovo',1,'un'],['Azeite',12,'ml'],['Orégãos',2,'g'],['Louro',1,'g']],['a','j'],0,['pp']),
+R('sopacenoura','Sopa de cenoura','portuguesa',['lowfat','mediterranica'],0,0,0,0,[['Cenoura',300,'g'],['Batata',120,'g'],['Cebola',70,'g'],['Alho',2,'dente'],['Azeite',10,'ml'],['Gengibre',4,'g'],['Caldo de legumes',300,'ml']],['a','j'],0,['pp']),
+R('sopacoentros','Sopa de coentros','portuguesa',['lowfat','mediterranica'],0,0,0,0,[['Coentros',20,'g'],['Batata',250,'g'],['Cebola',70,'g'],['Alho',3,'dente'],['Ovo',1,'un'],['Pão rústico',40,'g'],['Azeite',12,'ml'],['Caldo de legumes',300,'ml']],['a','j'],0,['pp']),
+R('sopacogumelos','Sopa de cogumelos','portuguesa',['lowcarb','mediterranica'],0,0,0,0,[['Cogumelos',250,'g'],['Cebola',70,'g'],['Alho',2,'dente'],['Alho-francês',80,'g'],['Nata para bater 35% gordura',40,'ml'],['Azeite',12,'ml'],['Tomilho fresco',3,'g'],['Caldo de legumes',300,'ml']],['a','j'],0,['pp']),
+R('sopafeijao','Sopa de feijão','portuguesa',['mediterranica'],0,0,0,0,[['Feijão encarnado',120,'g'],['Couve',100,'g'],['Cenoura',80,'g'],['Batata',120,'g'],['Cebola',70,'g'],['Alho',2,'dente'],['Chouriço',30,'g'],['Azeite',12,'ml'],['Louro',1,'g']],['a','j'],0,['pp']),
+R('cremaisco','Sopa creme de marisco','portuguesa',['lowcarb'],0,0,0,0,[['Camarão',150,'g'],['Amêijoas',100,'g'],['Cebola',70,'g'],['Alho',2,'dente'],['Tomate pelado',80,'g'],['Nata para bater 35% gordura',50,'ml'],['Arroz carolino branqueado cru',30,'g'],['Vinho branco',40,'ml'],['Azeite',12,'ml'],['Coentros',6,'g']],['a','j'],0,['pp']),
+R('sopapeixe','Sopa de peixe','portuguesa',['lowfat','mediterranica'],0,0,0,0,[['Pescada',180,'g'],['Batata',150,'g'],['Cebola',70,'g'],['Alho',2,'dente'],['Tomate',100,'g'],['Cenoura',60,'g'],['Azeite',12,'ml'],['Coentros',6,'g'],['Louro',1,'g']],['a','j'],0,['pp']),
+R('vichyssoise','Sopa Vichyssoise','francesa',['lowcarb'],0,0,0,0,[['Alho-francês',200,'g'],['Batata',150,'g'],['Cebola',60,'g'],['Nata para bater 35% gordura',60,'ml'],['Manteiga',15,'g'],['Cebolinho',5,'g'],['Caldo de legumes',300,'ml']],['a','j'],0,['pp']),
+
+/* ---------- Outras cozinhas ---------- */
+R('lasanharagu','Lasanha de ragu','italiana',[],0,0,0,0,[['Placas de lasanha',90,'g'],['Carne picada de vaca',140,'g'],['Carne de porco',60,'g'],['Tomate pelado',150,'g'],['Cebola',70,'g'],['Cenoura',50,'g'],['Alho',2,'dente'],['Leite',80,'ml'],['Manteiga',15,'g'],['Farinha',15,'g'],['Parmesão',25,'g'],['Azeite',12,'ml'],['Noz-moscada',0.5,'g']],['a','j'],0,['pp']),
+R('assassina',"Spaghetti all'assassina",'italiana',['mediterranica'],0,0,0,0,[['Esparguete',100,'g'],['Polpa de tomate',180,'g'],['Alho',3,'dente'],['Malagueta',2,'g'],['Azeite',20,'ml']],['a','j'],0,['pp']),
+R('nerocamarao','Spaghetti nero di seppia com camarão','italiana',['mediterranica'],0,0,0,0,[['Esparguete',100,'g'],['Tinta de choco',6,'g'],['Camarão',150,'g'],['Alho',3,'dente'],['Malagueta',1,'g'],['Vinho branco',50,'ml'],['Azeite',18,'ml'],['Salsa',6,'g']],['a','j'],0,['pp']),
+R('magretpato','Magret de pato','francesa',['keto','lowcarb','paleo'],0,0,0,0,[['Peito de pato',200,'g'],['Mel',10,'g'],['Vinagre balsâmico',15,'ml'],['Laranja',60,'g'],['Tomilho fresco',3,'g'],['Flor de sal',1,'g'],['Pimenta preta',1,'g']],['a','j'],0,['pp']),
+R('quesadillafrango','Quesadillas de frango','mexicana',[],0,0,0,0,[['Tortilhas de trigo',100,'g'],['Peito de frango',150,'g'],['Queijo cheddar',60,'g'],['Pimento',60,'g'],['Cebola',50,'g'],['Coentros',5,'g'],['Cominhos',2,'g'],['Azeite',10,'ml']],['a','j','l'],0,['pp','sn']),
+R('chickenparm','Chicken Parmesan','americana',[],0,0,0,0,[['Peito de frango',180,'g'],['Pão ralado',40,'g'],['Ovo',1,'un'],['Farinha',20,'g'],['Polpa de tomate',150,'g'],['Mozzarella',70,'g'],['Parmesão',20,'g'],['Alho',2,'dente'],['Manjericão',5,'g'],['Azeite',15,'ml']],['a','j'],0,['pp']),
+R('nasigoreng','Nasi Goreng','asiatica',[],0,0,0,0,[['Arroz',90,'g'],['Peito de frango',120,'g'],['Ovo',1,'un'],['Molho de soja',20,'ml'],['Alho',3,'dente'],['Cebola',60,'g'],['Malagueta',2,'g'],['Ervilhas',50,'g'],['Cenoura',50,'g'],['Óleo de sésamo',10,'ml'],['Açúcar amarelo',5,'g']],['a','j'],0,['pp']),
+
+/* ---------- Sobremesas ---------- */
+R('uvaslima','Uvas com raspas de lima','portuguesa',['lowfat','vegan','mediterranica'],0,0,0,0,[['Uva de mesa (branca e tinta)',180,'g'],['Raspa de lima',3,'g'],['Lima',10,'ml'],['Hortelã',3,'g']],['p','l'],0,['sob','sn','br']),
+R('pannacotta','Panna cotta','italiana',[],0,0,0,0,[['Nata para bater 35% gordura',150,'ml'],['Açúcar branco',30,'g'],['Gelatina em folhas',3,'g'],['Baunilha',1,'g'],['Frutos vermelhos',60,'g']],['l'],0,['sob']),
+R('abadepriscos','Pudim Abade de Priscos','portuguesa',[],0,0,0,0,[['Açúcar branco',80,'g'],['Gema de ovo de galinha, crua',90,'g'],['Toucinho fumado',20,'g'],['Vinho do Porto',30,'ml'],['Limão',5,'g'],['Canela',1,'g']],['l'],0,['sob']),
+R('leitecreme','Leite creme','portuguesa',[],0,0,0,0,[['Leite',200,'ml'],['Gema de ovo de galinha, crua',54,'g'],['Açúcar branco',50,'g'],['Milho, amido (pó)',15,'g'],['Limão',5,'g'],['Canela',1,'g']],['l'],0,['sob']),
+R('babacamelo','Baba de camelo','portuguesa',[],0,0,0,0,[['Leite condensado açucarado',120,'g'],['Ovo',2,'un'],['Amêndoa',15,'g']],['l'],0,['sob']),
+R('bolobolacha','Bolo de bolacha','portuguesa',[],0,0,0,0,[['Bolacha Maria',80,'g'],['Manteiga',60,'g'],['Açúcar branco',50,'g'],['Café expresso',60,'ml'],['Gema de ovo de galinha, crua',18,'g']],['l'],0,['sob']),
+R('sericaia','Sericaia','portuguesa',[],0,0,0,0,[['Leite',180,'ml'],['Ovo',3,'un'],['Açúcar branco',70,'g'],['Farinha',25,'g'],['Canela',2,'g'],['Limão',5,'g']],['l'],0,['sob']),
+
+/* ---------- Burritos e tacos ---------- */
+R('burritocarne','Burrito de carne picada com feijão','mexicana',[],0,0,0,0,[['Tortilhas de trigo',90,'g'],['Carne picada de vaca',140,'g'],['Feijão preto',90,'g'],['Arroz',60,'g'],['Queijo cheddar',40,'g'],['Tomate',60,'g'],['Cebola',40,'g'],['Coentros',5,'g'],['Cominhos',2,'g'],['Azeite',10,'ml']],['a','j'],0,['pp']),
+R('burritofrango','Burrito de frango com abacate','mexicana',[],0,0,0,0,[['Tortilhas de trigo',90,'g'],['Peito de frango',150,'g'],['Abacate',70,'g'],['Arroz',60,'g'],['Feijão preto',70,'g'],['Alface',30,'g'],['Lima',10,'ml'],['Coentros',5,'g'],['Azeite',10,'ml']],['a','j'],0,['pp']),
+R('burritovegan','Burrito vegan de feijão preto e batata-doce','mexicana',['vegan','vegetariana'],0,0,0,0,[['Tortilhas de trigo',90,'g'],['Feijão preto',120,'g'],['Batata doce crua',150,'g'],['Arroz',60,'g'],['Abacate',60,'g'],['Pimento',50,'g'],['Cominhos',2,'g'],['Coentros',5,'g'],['Azeite',12,'ml']],['a','j'],0,['pp']),
+R('burritocamarao','Burrito de camarão com lima','mexicana',[],0,0,0,0,[['Tortilhas de trigo',90,'g'],['Camarão',150,'g'],['Arroz',60,'g'],['Couve-roxa crua',50,'g'],['Abacate',50,'g'],['Lima',12,'ml'],['Coentros',5,'g'],['Malagueta',1,'g'],['Azeite',10,'ml']],['a','j'],0,['pp']),
+R('burritopequeno','Burrito de pequeno-almoço com ovo','mexicana',[],0,0,0,0,[['Tortilhas de trigo',80,'g'],['Ovo',2,'un'],['Bacon',40,'g'],['Feijão preto',60,'g'],['Queijo cheddar',35,'g'],['Tomate',50,'g'],['Coentros',4,'g']],['p','l'],0,['br','sn']),
+R('tacocarnitas','Tacos de carnitas de porco','mexicana',[],0,0,0,0,[['Tortilhas de milho',80,'g'],['Carne de porco',160,'g'],['Cebola',50,'g'],['Coentros',6,'g'],['Lima',12,'ml'],['Cominhos',2,'g'],['Laranja',40,'g'],['Azeite',10,'ml']],['a','j'],0,['pp']),
+R('tacopeixe','Tacos de peixe à Baja','mexicana',[],0,0,0,0,[['Tortilhas de milho',80,'g'],['Pescada',160,'g'],['Couve-roxa crua',60,'g'],['Maionese',20,'g'],['Lima',12,'ml'],['Farinha',20,'g'],['Coentros',5,'g'],['Malagueta',1,'g'],['Azeite',12,'ml']],['a','j'],0,['pp']),
+R('tacofrango','Tacos de frango com abacate','mexicana',[],0,0,0,0,[['Tortilhas de milho',80,'g'],['Peito de frango',150,'g'],['Abacate',60,'g'],['Cebola roxa',40,'g'],['Coentros',5,'g'],['Lima',10,'ml'],['Colorau',2,'g'],['Azeite',10,'ml']],['a','j'],0,['pp']),
+R('tacocogumelos','Tacos de cogumelos e feijão preto','mexicana',['vegan','vegetariana'],0,0,0,0,[['Tortilhas de milho',80,'g'],['Cogumelos portobello',150,'g'],['Feijão preto',90,'g'],['Cebola roxa',40,'g'],['Abacate',50,'g'],['Lima',10,'ml'],['Cominhos',2,'g'],['Coentros',5,'g'],['Azeite',12,'ml']],['a','j'],0,['pp']),
+R('tacocamarao','Tacos de camarão com molho picante','mexicana',[],0,0,0,0,[['Tortilhas de milho',80,'g'],['Camarão',160,'g'],['Alface',40,'g'],['Molho piri-piri',10,'ml'],['Maionese',15,'g'],['Lima',10,'ml'],['Coentros',5,'g'],['Azeite',10,'ml']],['a','j'],0,['pp']),
+
 /* ---------- Acompanhamentos: batata ---------- */
 R('acbcoz','Batatas cozidas com salsa','portuguesa',[],0,0,0,0,[['Batata',180,'g'],['Salsa',5,'g'],['Manteiga',10,'g'],['Azeite',5,'ml']],['ac']),
 R('acbforno','Batatas assadas no forno com alecrim','portuguesa',['mediterranica'],0,0,0,0,[['Batata',200,'g'],['Azeite',10,'ml'],['Alecrim',4,'g'],['Alho',2,'dente']],['ac']),
@@ -1713,6 +1864,1161 @@ R('aclsalmista','Salada mista de alface, tomate e cebola','portuguesa',['mediter
 R('aclsaltomate','Salada de tomate com orégãos','mediterranica',['mediterranica'],0,0,0,0,[['Tomate',1.5,'un'],['Cebola roxa',0.25,'un'],['Orégãos',3,'g'],['Azeite',8,'ml'],['Vinagre de vinho',5,'ml']],['ac']),
 R('aclcouveroxa','Salada de couve-roxa e cenoura','mediterranica',['mediterranica'],0,0,0,0,[['Couve-roxa crua',100,'g'],['Cenoura',50,'g'],['Azeite',8,'ml'],['Vinagre de vinho',8,'ml'],['Limão',0.25,'un']],['ac']),
 ];
+/* ================= PASSOS: RECEITAS NOVAS ================= */
+P('ovoscebolinho',[['Bater','Bate os ovos com a nata, uma pitada de sal e pimenta moída na hora. Não batas demais: quer-se homogéneo, não espumoso.'],
+ ['Lume brando','Derrete a manteiga numa frigideira antiaderente em lume muito brando e junta os ovos.',1],
+ ['Mexer','Mexe devagar com uma espátula, trazendo o que coalha nas bordas para o centro. Tira do lume quando ainda estiverem ligeiramente cremosos — continuam a cozinhar no prato.',4],
+ ['Cebolinho','Junta o cebolinho picado fora do lume, envolve e serve logo.']]);
+P('ovosbacon',[['Bacon','Frigideira fria, bacon em tiras, lume médio: assim a gordura derrete devagar e o bacon fica estaladiço sem queimar. Retira e reserva sobre papel.',6],
+ ['Ovos','Tira quase toda a gordura, deixa uma película e junta a manteiga. Bate os ovos com sal e pimenta e deita na frigideira em lume brando.'],
+ ['Mexer','Mexe devagar até ficarem cremosos, sem secar.',4],
+ ['Juntar','Volta a pôr o bacon, salpica com cebolinho e serve imediatamente.']]);
+P('ovosbenedict',[['Molho holandês','Bate as gemas com sumo de limão em banho-maria brando, sem deixar a taça tocar na água. Junta a manteiga derretida morna em fio, sempre a bater, até engrossar. Sal e reserva morno.',8],
+ ['Água do escalfado','Põe uma panela larga com água a fumegar (não a ferver) e junta o vinagre. É o vinagre que faz a clara agarrar-se à gema.'],
+ ['Escalfar','Parte cada ovo numa taça e desliza-o para a água. Três minutos para a gema mole. Retira com escumadeira e escorre sobre papel.',3],
+ ['Montar','Tosta o muffin aberto, põe o fiambre, o ovo por cima e cobre com o holandês. Cebolinho e pimenta a fechar.']]);
+P('ovosestrelados',[['Azeite quente','Azeite numa frigideira pequena em lume médio-alto, até brilhar.',2],
+ ['Estrelar','Parte os ovos e deixa a clara ganhar renda nas bordas, regando com o azeite quente com a ajuda de uma colher.',3],
+ ['Servir','Flor de sal e pimenta só no fim — o sal antes faz a gema abrir.']]);
+P('iogurtegranola',[['Fruta','Lava os frutos vermelhos e escorre bem. Se forem morangos, corta em quartos.'],
+ ['Montar','Põe o iogurte no fundo da taça, a granola por cima e a fruta a fechar — por esta ordem, para a granola não amolecer.'],
+ ['Mel','Fio de mel à saída, já na mesa.']]);
+
+P('camaraotigre',[['Preparar','Abre o camarão pelas costas com uma tesoura e retira a tripa. Seca bem — camarão húmido cozinha em vez de grelhar.'],
+ ['Temperar','Azeite, alho laminado e flor de sal. Deixa tomar gosto uns minutos.',10],
+ ['Grelhar','Grelha bem quente, dois a três minutos de cada lado, até a casca ficar alaranjada e a carne opaca.',5],
+ ['Servir','Sumo de limão e coentros picados fora do lume.']]);
+P('camaraocozido',[['Água','Põe água a ferver com o sal grosso e o louro. A água deve saber a mar.',5],
+ ['Cozer','Junta o camarão e conta o tempo a partir de a água voltar a ferver: dois minutos para camarão médio, três para graúdo.',3],
+ ['Parar a cozedura','Passa para água com gelo assim que sair — é isto que mantém a carne firme.'],
+ ['Servir','Escorre e serve com limão.']]);
+P('chouricoassado',[['Preparar','Faz cortes na diagonal no chouriço, sem chegar ao fundo: é por eles que a gordura sai e o fumo entra.'],
+ ['Assar','No assador de barro com aguardente, ou na grelha em lume médio, virando até estar tostado dos dois lados.',10],
+ ['Servir','Serve a escorrer com pão para aproveitar a gordura.']]);
+P('saladapolvoent',[['Cozer o polvo','Panela com o polvo, o louro e meia cebola, sem água — o polvo larga a sua. Coze com a tampa até um garfo entrar sem resistência.',45],
+ ['Arrefecer','Deixa arrefecer dentro do próprio caldo: é isso que o mantém tenro.'],
+ ['Cortar','Corta em pedaços de bocado, junta a cebola roxa e o pimento em cubinhos.'],
+ ['Temperar','Azeite, vinagre, salsa picada e sal. Repousa uma hora no frigorífico antes de servir.',60]]);
+P('burratalimao',[['Temperar','Tira a burrata do frigorífico vinte minutos antes: fria não sabe a nada.',20],
+ ['Montar','Abre a burrata no prato, rega com azeite e salpica com a raspa de limão.'],
+ ['Fechar','Pimenta moída na hora, folhas de manjericão e pão torrado ao lado.']]);
+P('presuntoent',[['Temperar','Tira o presunto do frio meia hora antes — a gordura tem de amolecer para libertar o aroma.',30],
+ ['Servir','Dispõe as fatias abertas no prato, sem sobrepor. Pão e um fio de azeite ao lado.']]);
+
+P('ervilhasovos',[['Refogado','Aloura a cebola e o alho picados no azeite, em lume brando, com o bacon e o chouriço em cubos.',8],
+ ['Ervilhas','Junta as ervilhas, envolve e cobre com água a ferver. Deixa cozinhar até estarem tenras.',15],
+ ['Escalfar','Abre covas no molho e parte lá os ovos. Tapa e deixa a clara firmar com a gema ainda mole.',5],
+ ['Servir','Coentros picados por cima, direto do tacho para a mesa.']]);
+P('favaschourico',[['Descascar','Se as favas forem frescas, descasca-as. Se forem grandes, tira também a pele de cada uma — é o que separa umas favas boas de umas favas farinhentas.'],
+ ['Refogado','Azeite, cebola, alho, louro e os enchidos em rodelas, em lume brando.',10],
+ ['Guisar','Junta as favas, envolve e cobre com água a ferver. Coze tapado até estarem macias.',20],
+ ['Servir','Coentros picados no fim, fora do lume.']]);
+P('francesinha',[['Molho','Refoga a cebola na manteiga, junta a polpa de tomate, a cerveja, o molho inglês e o colorau. Deixa apurar em lume brando e passa pelo passe-vite.',25],
+ ['Carnes','Grelha o bife e frita a linguiça e a salsicha. Corta tudo em fatias.',8],
+ ['Montar','Pão, fiambre, salsicha, linguiça, bife, pão. Cobre por completo com fatias de queijo.'],
+ ['Gratinar','Forno bem quente até o queijo derreter e começar a corar.',8],
+ ['Servir','Rega com o molho a ferver, à volta e por cima. Batata frita ao lado.']]);
+P('empadaocarne',[['Puré','Coze as batatas com casca, descasca ainda quentes e passa. Junta o leite quente, a manteiga e noz-moscada. Sal no fim.',25],
+ ['Recheio','Aloura a cebola e o alho no azeite, junta a carne e desfaz com a colher até perder o vermelho. Tomate, sal e pimenta, e deixa apurar.',15],
+ ['Montar','Camada de puré, a carne escorrida, e o resto do puré por cima. Risca a superfície com um garfo — é o que faz o topo corar.'],
+ ['Forno','Forno a 200 °C até estar dourado.',25]]);
+P('peixesal',[['Preparar','Peixe amanhado mas com escamas: são elas que o protegem do sal. Enche a barriga com limão, tomilho e louro.'],
+ ['Cama de sal','Humedece o sal grosso com um pouco de água até ficar como areia de praia. Faz uma cama no tabuleiro, deita o peixe e cobre por completo.'],
+ ['Forno','Forno a 200 °C, vinte minutos por cada 500 g. A crosta fica dura e ligeiramente dourada.',25],
+ ['Abrir','Parte a crosta com as costas de uma faca e tira-a em placas. Retira a pele com o sal agarrado e serve com azeite.']]);
+P('iscascebolada',[['Marinar','Corta o fígado em fatias finas e deixa em vinho branco com alho, louro e pimenta — de véspera, se puderes.',120],
+ ['Cebolada','Estufa a cebola em meias-luas no azeite, em lume brando, até ficar transparente e doce.',15],
+ ['Saltear','Escorre as iscas e salteia em lume forte, muito pouco tempo de cada lado. Fígado cozinhado a mais fica seco e amargo.',3],
+ ['Apurar','Junta a marinada coada à cebolada, deixa levantar fervura e volta a pôr as iscas para aquecerem.',3]]);
+P('feijoadatransmontana',[['Demolhar','Feijão de molho de véspera, doze horas em água fria.',720],
+ ['Carnes','Coze as carnes de porco com louro em água temperada, até estarem tenras. Reserva o caldo.',60],
+ ['Feijão','Coze o feijão no caldo das carnes.',40],
+ ['Refogado','Aloura cebola e alho no azeite, junta o colorau fora do lume para não queimar, e depois o feijão com o caldo.',10],
+ ['Juntar tudo','Carnes cortadas, enchidos em rodelas, cenoura e couve. Deixa apurar em lume brando até o caldo engrossar.',25]]);
+P('bacalhaubras',[['Bacalhau','Se for salgado, demolha 24 h com trocas de água. Desfia em lascas finas, tirando peles e espinhas.'],
+ ['Cebolada','Estufa a cebola em meias-luas e o alho no azeite, em lume brando, até ficar translúcida.',15],
+ ['Bacalhau na cebolada','Junta o bacalhau desfiado e deixa cozinhar uns minutos, mexendo.',5],
+ ['Ligar','Fora do lume, junta a batata palha e os ovos batidos. Volta ao lume muito brando e mexe até os ovos ligarem sem secar — é este o ponto do prato.',2],
+ ['Servir','Azeitonas e salsa por cima, imediatamente.']]);
+P('arrozpolvo',[['Cozer o polvo','Coze o polvo com louro e cebola, sem água, até um garfo entrar sem resistência. Guarda a água que ele largou.',45],
+ ['Refogado','Aloura cebola, alho e pimento no azeite. Junta o tomate e deixa desfazer.',10],
+ ['Arroz','Junta o arroz, envolve, refresca com o vinho branco e deixa evaporar. Acrescenta o dobro do volume em água do polvo, a ferver.',2],
+ ['Cozinhar','Junta o polvo cortado e deixa cozinhar tapado. Quer-se malandrinho, não seco.',18],
+ ['Servir','Coentros picados fora do lume e serve logo — arroz malandrinho não espera.']]);
+P('bifemarrare',[['Preparar','Bife fino, batido levemente. Esfrega com o alho cortado e pimenta em grão moída grossa.'],
+ ['Selar','Manteiga bem quente, bife dentro, um minuto de cada lado. Retira para um prato quente.',2],
+ ['Molho','Na mesma frigideira, junta a nata e o louro e deixa reduzir raspando o fundo — é o fundo que faz o molho.',4],
+ ['Servir','Volta a pôr o bife no molho só para aquecer e serve com o molho por cima.']]);
+P('bifecervejeira',[['Selar','Manteiga quente, bife temperado com sal e pimenta, selado dos dois lados. Retira.',3],
+ ['Molho','Junta o alho laminado, deixa perfumar sem queimar, e refresca com a cerveja raspando o fundo.',5],
+ ['Apurar','Mostarda e louro, e deixa reduzir até ficar aveludado.',4],
+ ['Servir','Bife de volta ao molho e serve com batata frita.']]);
+P('bifemostarda',[['Selar','Bife temperado, manteiga bem quente, selado de cada lado ao ponto que gostas. Retira e mantém quente.',4],
+ ['Deglaçar','Vinho branco na frigideira, raspando o fundo até quase secar.',2],
+ ['Molho','Nata e mostarda, mexendo em lume brando até engrossar. Prova antes de salgar: a mostarda já traz sal.',4],
+ ['Servir','Molho por cima do bife, pimenta moída na hora.']]);
+P('bifecafe',[['Selar','Bife temperado, manteiga quente com o alho esmagado, selado dos dois lados.',4],
+ ['Café','Retira o bife e junta o café à frigideira, raspando o fundo.',1],
+ ['Molho','Nata e pimenta, a reduzir em lume brando até napar as costas de uma colher.',4],
+ ['Servir','Bife de volta só para aquecer, e à mesa.']]);
+P('bitoque',[['Batatas','Corta as batatas em palitos e frita em óleo bem quente, em duas vezes: a primeira coze, a segunda tosta.',12],
+ ['Arroz','Refoga o alho no azeite, junta o arroz e o dobro de água a ferver. Tapa.',18],
+ ['Bife','Bife temperado, frigideira bem quente com manteiga, selado dos dois lados. Retira.',4],
+ ['Molho','Vinho branco e louro na frigideira, a raspar o fundo, até reduzir.',3],
+ ['Ovo','Estrela o ovo à parte e monta: bife, molho, ovo por cima, batatas e arroz ao lado.',3]]);
+P('alheiraovo',[['Batatas','Batatas às rodelas grossas, fritas ou assadas no forno com azeite.',25],
+ ['Grelos','Coze os grelos em água a ferver com sal, escorre e salteia com alho laminado no azeite.',8],
+ ['Alheira','Pica a pele com um palito e leva ao forno a 200 °C até estar tostada e a estalar. Nunca a fures demais: perde o recheio.',20],
+ ['Ovo','Estrela o ovo e monta tudo no prato.',3]]);
+P('saladarussa',[['Cozer','Coze as batatas e as cenouras em cubos, e as ervilhas à parte. Tudo firme, não desfeito.',15],
+ ['Arrefecer','Escorre e deixa arrefecer por completo — maionese em legumes quentes talha.',30],
+ ['Ligar','Junta o atum escorrido, os picles picados e a maionese. Envolve com cuidado.'],
+ ['Repousar','Frigorífico pelo menos uma hora. Ovo cozido às rodelas e salsa a decorar.',60]]);
+
+P('sopatomate',[['Refogado','Azeite, cebola e alho em lume brando até ficarem translúcidos.',8],
+ ['Tomate','Junta o tomate em cubos, sem pele, e deixa desfazer com o louro e os orégãos.',10],
+ ['Cozer','Batata em cubos e água a ferver. Coze até a batata desfazer nas pontas.',15],
+ ['Escalfar','Abre covas e parte lá os ovos. Tapa até a clara firmar.',4],
+ ['Servir','Fatias de pão no fundo do prato e a sopa por cima.']]);
+P('sopacenoura',[['Refogado','Cebola, alho e gengibre no azeite, em lume brando.',6],
+ ['Cozer','Cenoura e batata em rodelas, caldo a cobrir. Coze até a cenoura estar mole.',20],
+ ['Triturar','Tritura até ficar aveludada. Se ficar espessa, junta caldo a pouco e pouco.'],
+ ['Servir','Sal e pimenta no fim, e um fio de azeite em cru.']]);
+P('sopacoentros',[['Base','Coze a batata em água temperada até desfazer.',18],
+ ['Triturar','Tritura com o azeite até ficar um creme leve.'],
+ ['Coentros','Fora do lume, junta os coentros e o alho pisados no almofariz — o calor forte mata-lhes o aroma.'],
+ ['Escalfar','Volta ao lume brando e escalfa o ovo na própria sopa.',4],
+ ['Servir','Pão às fatias no prato e a sopa por cima.']]);
+P('sopacogumelos',[['Limpar','Limpa os cogumelos com um pano húmido; lavados debaixo de água ficam encharcados.'],
+ ['Saltear','Azeite bem quente, cogumelos em lume forte para corarem em vez de cozerem. Reserva alguns para decorar.',8],
+ ['Refogado','Junta cebola, alho e alho-francês e deixa amolecer.',8],
+ ['Cozer','Caldo e tomilho, a apurar.',15],
+ ['Acabar','Tritura, junta a nata fora do lume e serve com os cogumelos reservados por cima.']]);
+P('sopafeijao',[['Demolhar','Feijão de molho de véspera.',720],
+ ['Cozer','Coze o feijão com louro até estar tenro. Guarda a água.',45],
+ ['Refogado','Cebola, alho e chouriço em rodelas no azeite.',8],
+ ['Legumes','Batata, cenoura e couve cortadas, com a água do feijão. Coze até tudo estar macio.',20],
+ ['Acabar','Tritura metade do feijão para engrossar e volta a juntar o resto inteiro.']]);
+P('cremaisco',[['Caldo','Coze as cascas e cabeças do camarão em água com louro — é daqui que vem o sabor a mar. Coa e reserva.',20],
+ ['Refogado','Cebola e alho no azeite, tomate a desfazer.',10],
+ ['Cozer','Arroz e caldo de marisco, a apurar. Junta as amêijoas lavadas e deixa abrir.',18],
+ ['Triturar','Tritura tudo e passa por um passador fino, para ficar aveludado.'],
+ ['Acabar','Nata fora do lume, o camarão descascado e salteado, e coentros.']]);
+P('sopapeixe',[['Caldo','Coze as cabeças e espinhas com cebola e louro; coa. É o caldo que faz esta sopa.',25],
+ ['Refogado','Azeite, cebola, alho e tomate a desfazer.',10],
+ ['Cozer','Batata e cenoura no caldo, até estarem macias.',18],
+ ['Peixe','Junta o peixe em pedaços e deixa cozinhar poucos minutos — mais do que isso desfaz-se.',6],
+ ['Servir','Coentros picados fora do lume.']]);
+P('vichyssoise',[['Alho-francês','Corta só a parte branca em rodelas e lava bem — traz terra entre as camadas.'],
+ ['Suar','Manteiga em lume brando, alho-francês e cebola a suar sem ganhar cor. É importante que não alourem: a sopa deve ficar branca.',12],
+ ['Cozer','Batata em cubos e caldo. Coze até desfazer.',20],
+ ['Triturar','Tritura muito bem e passa por um passador. Junta a nata.'],
+ ['Arrefecer','Frigorífico pelo menos quatro horas — a Vichyssoise serve-se fria. Cebolinho por cima à saída.',240]]);
+
+P('lasanharagu',[['Ragu','Refoga cebola, cenoura e alho no azeite. Junta as carnes e deixa perder o vermelho. Tomate, sal e pimenta, e apura em lume muito brando — quanto mais tempo, melhor.',60],
+ ['Bechamel','Derrete a manteiga, junta a farinha e cozinha um minuto. Leite morno em fio, sempre a bater, até engrossar. Noz-moscada.',8],
+ ['Montar','Alterna ragu, placas, bechamel. Acaba com bechamel e parmesão por cima.'],
+ ['Forno','Forno a 180 °C até estar borbulhante e dourado.',35],
+ ['Repousar','Deixa repousar dez minutos antes de cortar, senão desfaz-se no prato.',10]]);
+P('assassina',[['Tomate','Dissolve a polpa de tomate em água quente numa panela à parte e mantém a fumegar.'],
+ ['Alho e malagueta','Azeite numa frigideira de ferro, alho e malagueta a perfumar.',2],
+ ['Tostar a massa','Junta o esparguete CRU e deixa tostar no azeite, sem mexer, até ganhar manchas escuras. É este passo que dá o nome ao prato.',3],
+ ['Cozinhar','Vai juntando o tomate uma concha de cada vez, deixando absorver e agarrar ao fundo entre cada uma. Não mexas demais.',15],
+ ['Servir','Serve diretamente da frigideira, com o crocante e tudo.']]);
+P('nerocamarao',[['Massa','Coze o esparguete em água salgada, um minuto menos do que a embalagem diz.',9],
+ ['Camarão','Azeite, alho e malagueta numa frigideira larga. Salteia o camarão até ficar rosado e retira.',3],
+ ['Molho','Refresca com o vinho branco e deixa evaporar. Junta a tinta de choco dissolvida numa colher de água da massa.',3],
+ ['Ligar','Junta a massa escorrida e um pouco de água da cozedura, saltando na frigideira até o molho agarrar. Camarão de volta.',2],
+ ['Servir','Salsa picada e serve logo.']]);
+P('magretpato',[['Pele','Risca a pele em losangos, sem chegar à carne. É por aí que a gordura sai.'],
+ ['Frigideira fria','Põe o magret com a pele para baixo numa frigideira FRIA e liga em lume médio-brando. A gordura derrete devagar e a pele fica estaladiça.',12],
+ ['Virar','Escorre a gordura, vira e deixa dois a três minutos do lado da carne. Quer-se rosado no centro.',3],
+ ['Repousar','Deixa repousar cinco minutos antes de fatiar — sem isto, o suco vai todo para a tábua.',5],
+ ['Molho','Na mesma frigideira, mel, vinagre balsâmico e sumo de laranja a reduzir. Tomilho e um pouco de flor de sal.',4]]);
+P('quesadillafrango',[['Frango','Corta o frango em tiras e salteia com cominhos, sal e pimenta até dourar.',8],
+ ['Legumes','Junta o pimento e a cebola em tiras e deixa amolecer.',5],
+ ['Montar','Meia tortilha com queijo, o frango por cima, mais queijo e dobra ao meio. O queijo dos dois lados é a cola.'],
+ ['Tostar','Frigideira seca em lume médio, dois a três minutos de cada lado, até tostar e o queijo derreter.',6],
+ ['Servir','Corta em triângulos e serve com coentros.']]);
+P('chickenparm',[['Achatar','Abre o peito ao meio e bate levemente até ficar com espessura uniforme — assim cozinha por igual.'],
+ ['Panar','Farinha, ovo batido, pão ralado com parmesão. Pressiona bem o pão ralado.'],
+ ['Fritar','Azeite bem quente, três minutos de cada lado, só até ganhar cor. Não precisa de ficar cozinhado por dentro: acaba no forno.',6],
+ ['Molho','Refoga o alho, junta a polpa de tomate e o manjericão, e deixa apurar.',12],
+ ['Forno','Molho por cima do frango, mozzarella em fatias, forno a 200 °C até borbulhar e dourar.',15]]);
+P('nasigoreng',[['Arroz frio','Usa arroz cozido do dia anterior, bem frio e solto. Arroz acabado de cozer empapa e não salta.'],
+ ['Wok','Óleo bem quente, alho, cebola e malagueta a perfumar poucos segundos.',1],
+ ['Frango','Junta o frango em cubos e salteia em lume forte até dourar. Depois a cenoura e as ervilhas.',6],
+ ['Arroz','Arroz de volta, molho de soja e açúcar, saltando sempre em lume muito forte.',4],
+ ['Ovo','Estrela o ovo à parte e serve por cima, com a gema mole.',3]]);
+
+P('uvaslima',[['Preparar','Lava as uvas e corta ao meio se forem graúdas; tira as grainhas.'],
+ ['Temperar','Sumo de lima por cima e envolve.'],
+ ['Servir','Raspa de lima e hortelã picada à saída. Melhor bem fresco.']]);
+P('pannacotta',[['Gelatina','Demolha as folhas de gelatina em água muito fria até amolecerem.',5],
+ ['Aquecer','Aquece a nata com o açúcar e a baunilha sem deixar ferver — se ferver, a nata talha.',5],
+ ['Dissolver','Fora do lume, junta a gelatina bem escorrida e mexe até desaparecer por completo.'],
+ ['Frio','Deita em taças e leva ao frigorífico pelo menos quatro horas.',240],
+ ['Servir','Frutos vermelhos por cima, à saída.']]);
+P('abadepriscos',[['Calda','Leva o açúcar ao lume com pouca água, o limão e a canela, até fio pérola. Junta o toucinho em cubinhos e deixa cozinhar na calda — é ele o segredo deste pudim.',12],
+ ['Arrefecer','Deixa a calda amornar. Se estiver a ferver, coalha as gemas.'],
+ ['Gemas','Junta as gemas mexidas (não batidas) e o vinho do Porto, sem fazer espuma.'],
+ ['Coar','Passa por um passador fino para a forma caramelizada.'],
+ ['Banho-maria','Forno a 180 °C em banho-maria, tapado, até estar preso mas ainda a tremer.',60]]);
+P('leitecreme',[['Infusão','Aquece o leite com a casca de limão e o pau de canela e deixa em infusão fora do lume.',10],
+ ['Gemas','Bate as gemas com o açúcar até esbranquiçarem, e junta o amido dissolvido num pouco de leite frio.'],
+ ['Ligar','Junta o leite coado morno em fio, sempre a mexer, e leva a lume brando mexendo sem parar até engrossar. Nunca deixes ferver.',8],
+ ['Arrefecer','Deita em taças e cobre à superfície com película, para não criar crosta.'],
+ ['Queimar','Açúcar por cima e queima com ferro em brasa ou maçarico, à saída.']]);
+P('babacamelo',[['Cozer a lata','Coze a lata de leite condensado fechada, submersa em água a ferver, durante três horas — com a lata sempre coberta de água.',180],
+ ['Arrefecer','Deixa arrefecer por completo antes de abrir. Uma lata quente sob pressão é perigosa.'],
+ ['Gemas','Separa os ovos. Bate as gemas com o doce de leite frio até ficar liso.'],
+ ['Claras','Bate as claras em castelo firme e envolve com movimentos de baixo para cima, sem bater.'],
+ ['Frio','Frigorífico pelo menos duas horas. Amêndoa laminada por cima.',120]]);
+P('bolobolacha',[['Creme','Bate a manteiga amolecida com o açúcar até ficar um creme claro e fofo. Junta as gemas.',8],
+ ['Café','Faz o café e deixa amornar num prato fundo.'],
+ ['Montar','Passa cada bolacha pelo café — um segundo de cada lado, não mais — e vai montando camadas alternadas com o creme.'],
+ ['Cobrir','Cobre tudo com o creme restante e alisa.'],
+ ['Frio','Frigorífico de um dia para o outro. Bolacha esmigalhada por cima só à saída.',480]]);
+P('sericaia',[['Infusão','Ferve o leite com a casca de limão e o pau de canela; deixa em infusão e coa.',10],
+ ['Massa','Bate as gemas com o açúcar, junta a farinha peneirada e o leite morno em fio.'],
+ ['Cozinhar','Leva a lume brando mexendo até engrossar, e deixa arrefecer um pouco.',6],
+ ['Claras','Bate as claras em castelo e envolve com cuidado.'],
+ ['Forno','Deita às colheradas num prato de barro, criando ondas. Canela por cima e forno a 180 °C até ganhar fendas.',25]]);
+
+P('burritocarne',[['Carne','Aloura a cebola, junta a carne e desfaz com a colher. Cominhos, sal e pimenta, até secar o líquido.',12],
+ ['Feijão','Aquece o feijão preto escorrido com um pouco da gordura da carne.',5],
+ ['Aquecer as tortilhas','Passa cada tortilha por uma frigideira seca e quente — assim dobram sem partir.',2],
+ ['Montar','Arroz, feijão, carne, queijo e tomate no terço inferior. Dobra os lados para dentro e enrola apertado.'],
+ ['Selar','Volta à frigideira com a dobra para baixo, até selar.',2]]);
+P('burritofrango',[['Frango','Tempera o frango em tiras e salteia até dourar.',8],
+ ['Abacate','Esmaga o abacate com sumo de lima e sal.'],
+ ['Montar','Tortilha aquecida, arroz, feijão, frango, abacate e alface.'],
+ ['Enrolar','Dobra os lados e enrola apertado; sela na frigideira com a dobra para baixo.',2]]);
+P('burritovegan',[['Batata-doce','Corta em cubos, tempera com azeite e cominhos e assa até estar macia e tostada nas pontas.',25],
+ ['Feijão','Aquece o feijão preto com o pimento picado.',6],
+ ['Montar','Tortilha aquecida, arroz, feijão, batata-doce e abacate.'],
+ ['Enrolar','Enrola apertado e sela na frigideira.',2]]);
+P('burritocamarao',[['Camarão','Salteia o camarão em lume forte com sal e pimenta, poucos minutos.',3],
+ ['Couve','Corta a couve-roxa em juliana fina e tempera com lima e sal.'],
+ ['Montar','Tortilha aquecida, arroz, camarão, couve e abacate. Coentros e malagueta.'],
+ ['Enrolar','Enrola apertado e sela.',2]]);
+P('burritopequeno',[['Bacon','Frigideira fria, bacon a ficar estaladiço. Reserva.',6],
+ ['Ovos','Ovos mexidos em lume brando na gordura do bacon, cremosos.',4],
+ ['Montar','Tortilha aquecida, feijão, ovo, bacon, queijo e tomate.'],
+ ['Enrolar','Enrola e sela na frigideira até o queijo derreter.',3]]);
+P('tacocarnitas',[['Estufar','Coze o porco em cubos em lume muito brando com sumo de laranja, cominhos e sal, até desfazer com um garfo.',90],
+ ['Tostar','Escorre, desfia e leva a frigideira quente com um pouco da própria gordura até as pontas ficarem tostadas — é este contraste que faz umas carnitas.',6],
+ ['Tortilhas','Aquece as tortilhas de milho numa frigideira seca, uma a uma.',3],
+ ['Montar','Carne, cebola picada, coentros e lima. Nada mais é preciso.']]);
+P('tacopeixe',[['Panar','Corta o peixe em tiras, passa por farinha temperada e frita em azeite bem quente até dourar.',6],
+ ['Molho','Mistura a maionese com sumo de lima e um pouco de malagueta.'],
+ ['Couve','Couve-roxa em juliana fina, com lima e sal.'],
+ ['Montar','Tortilha quente, couve, peixe, molho e coentros.']]);
+P('tacofrango',[['Frango','Tempera com colorau, sal e pimenta e grelha até dourar. Corta em tiras.',10],
+ ['Tortilhas','Aquece as tortilhas numa frigideira seca.',3],
+ ['Montar','Frango, abacate às fatias, cebola roxa e coentros. Lima à saída.']]);
+P('tacocogumelos',[['Cogumelos','Corta em lâminas grossas e salteia em lume forte, sem mexer muito, até ganharem cor.',8],
+ ['Feijão','Junta o feijão preto e os cominhos e deixa aquecer.',4],
+ ['Montar','Tortilha quente, o salteado, abacate, cebola roxa e coentros. Lima a fechar.']]);
+P('tacocamarao',[['Camarão','Salteia o camarão em lume forte com sal, poucos minutos.',3],
+ ['Molho','Mistura a maionese com o piri-piri e a lima.'],
+ ['Montar','Tortilha quente, alface, camarão, molho e coentros.']]);
+
+/* ================= PASSOS: ACOMPANHAMENTOS ================= */
+P('acbcoz',[['Cozer','Batatas com casca em água fria com sal, do lume até um garfo entrar sem resistência. Começar em água fria é o que as coze por igual.',20],
+ ['Descascar','Descasca ainda quentes, com um pano — a pele sai sozinha.'],
+ ['Temperar','Manteiga, azeite e salsa picada, envolvendo com cuidado para não desfazer.']]);
+P('acbforno',[['Cortar','Batatas em gomos, com casca, bem secas. Húmidas cozem em vez de assar.'],
+ ['Temperar','Azeite, alho esmagado, alecrim e sal grosso, misturando com as mãos.'],
+ ['Assar','Forno a 200 °C, num tabuleiro em camada única e sem sobreposição, virando a meio.',40]]);
+P('acbfritas',[['Cortar','Palitos iguais e lava-os em água fria até a água sair limpa: é o amido que faz colar.'],
+ ['Secar','Seca muito bem com um pano. Água e óleo quente não se dão.'],
+ ['Primeira fritura','Óleo a 150 °C, só até amolecerem sem ganhar cor. Escorre.',8],
+ ['Segunda fritura','Óleo a 190 °C, até ficarem douradas e estaladiças. Sal só depois de escorridas.',3]]);
+P('acbairfry',[['Cortar e secar','Palitos iguais, lavados e muito bem secos.'],
+ ['Temperar','Uma colher de óleo chega para todas — envolve para ficarem todas com uma película fina.'],
+ ['Cozinhar','Airfryer a 190 °C, sacudindo o cesto duas ou três vezes. Não enchas o cesto: em camada única ficam estaladiças, amontoadas ficam cozidas.',22]]);
+P('acbmurro',[['Assar','Batatas pequenas com casca, envoltas em sal grosso, no forno a 200 °C até a pele enrugar.',45],
+ ['Murro','Dá um murro em cada uma, com a mão protegida por um pano, só até abrir sem desfazer.'],
+ ['Temperar','Azeite generoso e alho laminado por cima, ainda quentes, para absorverem.']]);
+P('acrbranco',[['Refogar','Alho no azeite, em lume brando, só até perfumar.',2],
+ ['Arroz','Junta o arroz e envolve até os grãos brilharem.',1],
+ ['Cozer','O dobro do volume em água a ferver, sal, tapa e lume mínimo. Não mexer.',15],
+ ['Repousar','Cinco minutos fora do lume, tapado, antes de soltar com um garfo.',5]]);
+P('acrbasmati',[['Lavar','Lava o basmati até a água sair transparente — sem isto fica pegajoso.'],
+ ['Demolhar','De molho em água fria vinte minutos e escorre.',20],
+ ['Cozer','Uma vez e meia o volume em água, tapado, lume mínimo.',12],
+ ['Soltar','Repousa tapado e solta com um garfo, nunca com colher.',5]]);
+P('acrcarolino',[['Refogado','Cebola picada fina e alho no azeite, em lume brando.',6],
+ ['Arroz','Junta o carolino e envolve.',1],
+ ['Malandrinho','Três vezes o volume em água a ferver, e vai mexendo — é a mexer que o carolino larga o amido que faz o caldo.',18],
+ ['Servir','Serve logo: o arroz malandrinho seca à espera.']]);
+P('acrtomate',[['Refogado','Cebola e alho no azeite até ficarem translúcidos.',6],
+ ['Tomate','Junta o tomate sem pele em cubos e deixa desfazer por completo.',10],
+ ['Arroz','Envolve o arroz e junta o dobro do volume em água a ferver. Louro e sal.',2],
+ ['Cozer','Lume brando e tapado, até o arroz estar cozido e o caldo cremoso.',18]]);
+P('acrcoentros',[['Refogado','Alho laminado no azeite, sem deixar corar.',2],
+ ['Arroz','Arroz envolvido no azeite e o dobro de água a ferver.',1],
+ ['Cozer','Tapado, lume mínimo.',15],
+ ['Coentros','Junta os coentros picados FORA do lume: o calor forte leva-lhes o aroma todo.']]);
+P('acracafrao',[['Infusão','Põe o açafrão numa colher de água quente e deixa soltar a cor.',10],
+ ['Refogado','Cebola no azeite, em lume brando.',6],
+ ['Arroz','Envolve o arroz, junta a infusão de açafrão e o dobro de água a ferver.',2],
+ ['Cozer','Tapado e sem mexer, até ficar solto e amarelo.',16]]);
+P('acllegumes',[['Cortar','Fatias de um centímetro, iguais: mais finas queimam, mais grossas ficam cruas.'],
+ ['Temperar','Azeite e sal só na altura de grelhar — sal antes puxa a água.'],
+ ['Grelhar','Grelha bem quente, sem mexer, até marcar de um lado; depois vira.',10]]);
+P('aclbrocolos',[['Branquear','Brócolos em água a ferver com sal, só até ficarem verde vivo.',4],
+ ['Parar','Passa por água com gelo — é isto que lhes guarda a cor.'],
+ ['Saltear','Alho laminado no azeite, brócolos escorridos, lume forte, poucos minutos.',3]]);
+P('aclespargos',[['Preparar','Dobra cada espargo até partir: parte sozinho onde a parte rija acaba.'],
+ ['Grelhar','Grelha bem quente com um fio de azeite, virando, até marcarem.',6],
+ ['Servir','Flor de sal só no fim.']]);
+P('aclgrelos',[['Cozer','Grelos em água a ferver com sal, poucos minutos. Escorre bem.',5],
+ ['Saltear','Alho laminado a alourar no azeite e os grelos por cima, em lume forte.',4],
+ ['Servir','Prova antes de salgar — os grelos já vêm com o sal da cozedura.']]);
+P('aclfverde',[['Cozer','Feijão verde em água a ferver com sal, até estar tenro mas ainda com resistência.',10],
+ ['Escorrer','Escorre e deixa arrefecer um pouco.'],
+ ['Temperar','Azeite, vinagre e sal, ainda morno — é morno que absorve o tempero.']]);
+P('aclcogumelos',[['Limpar','Limpa com um pano húmido; lavados encharcam e depois cozem em vez de dourar.'],
+ ['Saltear','Frigideira bem quente com azeite, cogumelos em camada única, sem mexer no início.',6],
+ ['Alho','Junta o alho laminado no fim, para não queimar, e a salsa fora do lume.',2]]);
+P('aclsalmista',[['Lavar','Lava e seca bem a alface — água na folha faz o tempero escorregar.'],
+ ['Cortar','Tomate em gomos e cebola em meias-luas finas.'],
+ ['Temperar','Azeite, vinagre e sal só à mesa: temperada antes, a salada murcha.']]);
+P('aclsaltomate',[['Cortar','Tomate maduro às rodelas, num prato fundo.'],
+ ['Temperar','Sal primeiro, para puxar o suco, e depois azeite e orégãos.'],
+ ['Repousar','Dez minutos antes de servir — é o suco do tomate que faz o molho.',10]]);
+P('aclcouveroxa',[['Cortar','Couve-roxa em juliana muito fina e cenoura ralada grossa.'],
+ ['Amaciar','Massaja a couve com sal e um pouco de vinagre: perde a rigidez e ganha cor.',10],
+ ['Temperar','Azeite e o resto do vinagre, envolvendo bem.']]);
+
+/* ================= PASSOS: COZINHA PORTUGUESA ================= */
+P('bras',[['Bacalhau','Desfia o bacalhau em lascas finas, sem peles nem espinhas.'],
+ ['Cebolada','Cebola em meias-luas e alho a estufar no azeite, em lume brando, até translúcidos.',15],
+ ['Juntar','Bacalhau na cebolada, a cozinhar uns minutos.',5],
+ ['Ligar','Fora do lume, batata palha e ovos batidos. Volta ao lume mínimo e mexe até ligar sem secar.',2],
+ ['Servir','Azeitonas e salsa, imediatamente.']]);
+P('caldoverde',[['Base','Coze a batata com cebola e alho em água temperada, até desfazer.',20],
+ ['Triturar','Tritura com o azeite até ficar um creme liso.'],
+ ['Couve','Junta a couve cortada em juliana muito fina e deixa cozer poucos minutos — quer-se verde, não cozida demais.',5],
+ ['Chouriço','Rodelas de chouriço escaldadas à parte, uma ou duas por prato, e um fio de azeite.']]);
+P('frangopiri',[['Marinar','Frango temperado com alho, piri-piri, azeite e limão, o tempo que houver.',30],
+ ['Grelhar','Grelha em lume médio, começando pela pele, virando até estar cozinhado junto ao osso.',25],
+ ['Salada','Prepara a salada e tempera só à mesa.']]);
+P('alentejana',[['Marinar','Carne de porco em cubos, de véspera, em massa de pimentão, alho, louro e vinho branco.',240],
+ ['Selar','Escorre bem e sela em lume forte, em pequenas quantidades, para dourar em vez de cozer.',8],
+ ['Amêijoas','Junta a marinada, deixa levantar fervura e acrescenta as amêijoas lavadas. Tapa até abrirem.',6],
+ ['Batatas','Batatas em cubos fritas à parte, juntas no fim para não amolecerem.'],
+ ['Servir','Coentros e limão à mesa.']]);
+P('sardinhas',[['Sal','Sardinhas em sal grosso pelo menos uma hora antes: é o sal que lhes fixa a carne.',60],
+ ['Grelhar','Grelha de carvão bem quente, sem mexer, até a pele soltar sozinha. Vira uma vez só.',10],
+ ['Pimentos','Pimentos assados, pelados e temperados com azeite e alho, ao lado.'],
+ ['Servir','Pão e batata cozida a acompanhar.']]);
+P('arrozmarisco',[['Caldo','Coze as cascas do marisco com cebola e louro; coa. É o caldo que faz o arroz.',20],
+ ['Refogado','Cebola, alho e pimento no azeite; tomate a desfazer.',10],
+ ['Arroz','Envolve o arroz, refresca com vinho branco e junta o caldo a ferver.',2],
+ ['Marisco','Junta o marisco a meio da cozedura, por ordem de tempo: primeiro o que demora, por fim o camarão.',18],
+ ['Servir','Coentros fora do lume. Malandrinho, e à mesa de imediato.']]);
+P('sopalegumes',[['Cortar','Corta todos os legumes em tamanho parecido, para cozerem ao mesmo tempo.'],
+ ['Cozer','Água a cobrir, sal e azeite, do lume até tudo estar macio.',25],
+ ['Triturar','Tritura a base e deixa alguns legumes inteiros, se gostares de encontrar pedaços.'],
+ ['Acabar','Fio de azeite em cru no prato.']]);
+P('polvo',[['Cozer','Polvo com louro e cebola, sem água, até um garfo entrar sem resistência.',45],
+ ['Assar','Tabuleiro com azeite generoso, alho às lascas e o polvo. Forno a 200 °C.',20],
+ ['Batatas','Batatas a murro no mesmo tabuleiro, a beber o azeite do polvo.'],
+ ['Servir','Rega com o azeite do tabuleiro e salsa por cima.']]);
+P('dourada',[['Preparar','Peixe amanhado, seco, com cortes na pele para cozinhar por igual.'],
+ ['Temperar','Sal, limão e azeite, dentro e fora.'],
+ ['Grelhar','Grelha bem quente, começando pelo lado da pele, virando uma vez.',14],
+ ['Legumes','Legumes grelhados na mesma grelha, a aproveitar o sabor.']]);
+P('feijoada',[['Demolhar','Feijão de molho de véspera.',720],
+ ['Carnes','Coze as carnes com louro até tenras; guarda o caldo.',60],
+ ['Feijão','Coze o feijão no caldo das carnes.',40],
+ ['Refogado','Cebola e alho no azeite, colorau fora do lume, e junta feijão e carnes.',10],
+ ['Apurar','Lume brando até o caldo engrossar. Coentros no fim.',25]]);
+P('pescadaforno',[['Tabuleiro','Camada de batata às rodelas e cebola no fundo, regada com azeite.'],
+ ['Peixe','Filetes por cima, temperados com sal, limão e alho.'],
+ ['Forno','Forno a 190 °C até a batata estar cozida e o peixe firme.',30]]);
+P('rojoes',[['Marinar','Porco em cubos, de véspera, em vinho branco, alho, massa de pimentão e louro.',240],
+ ['Cozinhar','Cozinha na própria marinada, tapado, até o líquido evaporar.',35],
+ ['Alourar','Sem tampa e em lume mais forte, deixa alourar na própria gordura.',10],
+ ['Grelos','Grelos cozidos e salteados com alho ao lado.']]);
+P('acorda',[['Caldo','Coze as cascas do camarão com alho e coentros; coa.',15],
+ ['Pasta','Pisa alho, coentros e sal num almofariz, com azeite, até fazer uma pasta.'],
+ ['Pão','Verte o caldo a ferver sobre o pão em pedaços, na pasta de coentros, e mexe até desfazer.',5],
+ ['Ligar','Fora do lume, junta os ovos batidos e o camarão, mexendo até ligar cremoso.',2]]);
+P('migas',[['Espargos','Coze os espargos em água com sal e guarda a água.',6],
+ ['Pão','Desfaz o pão na água dos espargos, com alho e azeite, até ficar uma massa.',8],
+ ['Ovo','Escalfa o ovo à parte e serve sobre as migas, com a gema mole.',3]]);
+P('espetadavaca',[['Cortar','Cubos de carne e pimento do mesmo tamanho, para grelharem ao mesmo tempo.'],
+ ['Marinar','Alho, azeite, louro e pimenta.',60],
+ ['Espetar','Alterna carne e pimento sem apertar demais — apertados cozem, folgados grelham.'],
+ ['Grelhar','Brasa forte, virando de quarto em quarto de volta.',12]]);
+P('aveia',[['Cozer','Aveia com leite ou água, em lume brando, mexendo até engrossar.',6],
+ ['Repousar','Fora do lume um minuto: acaba de absorver e fica cremosa.',1],
+ ['Servir','Fruta cortada e canela por cima.']]);
+P('torradasqueijo',[['Torrar','Pão de centeio bem torrado, para aguentar o queijo sem amolecer.',3],
+ ['Montar','Queijo fresco esmagado com um garfo e azeite por cima.'],
+ ['Temperar','Orégãos ou pimenta, e sal só se o queijo pedir.']]);
+P('ovosmex',[['Espinafres','Salteia os espinafres com alho até murcharem e escorre a água que largam.',4],
+ ['Ovos','Ovos batidos com sal, em lume muito brando, mexendo devagar.',4],
+ ['Juntar','Espinafres de volta no fim, com os ovos ainda cremosos.']]);
+P('panquecas',[['Massa','Esmaga a banana e junta os ovos e a aveia. Deixa repousar para a aveia hidratar.',10],
+ ['Cozinhar','Frigideira antiaderente em lume médio-brando, uma concha de cada vez.',3],
+ ['Virar','Vira quando aparecerem bolhas à superfície e as bordas secarem.',2]]);
+P('frutasecos',[['Cortar','Fruta da estação em pedaços de bocado.'],
+ ['Servir','Amêndoas por cima, inteiras ou grosseiramente picadas.']]);
+P('batido',[['Juntar','Banana, cacau e leite no copo. Banana bem madura dispensa açúcar.'],
+ ['Triturar','Tritura até ficar liso e espumoso.',1]]);
+P('ovoscozidos',[['Cozer','Ovos em água a ferver: 7 minutos para gema cremosa, 9 para firme.',9],
+ ['Parar','Água com gelo assim que saírem — é o que os torna fáceis de descascar.'],
+ ['Servir','Flor de sal e pimenta.']]);
+P('tostaatum',[['Torrar','Pão bem torrado.',3],
+ ['Atum','Escorre o atum e esmaga com um garfo, com um fio de azeite.'],
+ ['Montar','Tomate às rodelas por baixo, atum por cima, orégãos a fechar.']]);
+P('requeijao',[['Montar','Requeijão esmagado sobre pão de centeio.'],
+ ['Mel','Fio de mel só à saída, para não ensopar o pão.']]);
+P('bacalhaunatas',[['Bacalhau','Coze e desfia o bacalhau em lascas.',10],
+ ['Batatas','Batatas em palitos, fritas ou assadas.',15],
+ ['Cebolada','Cebola em meias-luas estufada no azeite; junta o bacalhau.',12],
+ ['Bechamel','Manteiga, farinha e leite, mexendo até engrossar. Junta as natas e noz-moscada.',8],
+ ['Gratinar','Envolve tudo, cobre com o creme e leva ao forno a 200 °C até dourar.',25]]);
+P('gomesdesa',[['Leite','Deixa o bacalhau desfiado em leite morno — é isto que o torna macio.',60],
+ ['Batatas','Coze as batatas com casca, descasca e corta em rodelas grossas.',20],
+ ['Cebolada','Cebola e alho em azeite generoso, em lume brando, até adocicarem.',15],
+ ['Juntar','Envolve bacalhau escorrido, batatas e cebolada num tabuleiro.'],
+ ['Forno','Forno a 200 °C só para aquecer e ligar. Ovo cozido e azeitonas por cima.',15]]);
+P('cozido',[['Carnes','Começa pelas carnes que demoram mais: chispe, orelha, vaca. Enchidos só no fim.',90],
+ ['Legumes','Junta os legumes por ordem de tempo, para nenhum se desfazer.',25],
+ ['Arroz','Arroz cozido no caldo, à parte.',18],
+ ['Servir','Tudo em travessas separadas, com o caldo à parte.']]);
+P('favas',[['Descascar','Favas descascadas; se forem grandes, tira também a pele de cada uma.'],
+ ['Refogado','Cebola, alho e louro no azeite, em lume brando.',8],
+ ['Guisar','Favas envolvidas e cobertas com água a ferver, tapadas.',20],
+ ['Servir','Coentros picados fora do lume.']]);
+P('arrozpato',[['Cozer o pato','Coze o pato com enchidos, cebola e louro. Guarda o caldo e desfia a carne.',60],
+ ['Arroz','Coze o arroz no caldo do pato, deixando-o ainda um pouco cru.',12],
+ ['Montar','Camada de arroz, o pato desfiado, e o resto do arroz por cima.'],
+ ['Forno','Rodelas de chouriço à superfície e forno a 200 °C até tostar.',20]]);
+P('caldeirada',[['Camadas','Num tacho largo, camadas de cebola, batata, tomate e pimento, e o peixe por cima. Nunca mexer: sacode-se o tacho.'],
+ ['Temperar','Azeite, louro, sal e um pouco de água ou vinho branco.'],
+ ['Cozinhar','Lume brando e tapado, sacudindo o tacho de vez em quando.',35],
+ ['Servir','Coentros no fim, direto do tacho.']]);
+P('lulas',[['Limpar','Limpa as lulas e seca-as bem.'],
+ ['Grelhar','Grelha muito quente, pouco tempo de cada lado: mais do que isso e ficam borracha.',5],
+ ['Servir','Azeite, limão e a salada de tomate ao lado.']]);
+P('carapaus',[['Sal','Carapaus em sal grosso meia hora antes.',30],
+ ['Grelhar','Grelha bem quente, virando uma vez só.',10],
+ ['Batatas','Batatas a murro assadas com azeite e alho.',45]]);
+P('frangoassado',[['Temperar','Frango temperado por dentro e por fora com limão, alho e alecrim, de véspera se puderes.',120],
+ ['Assar','Forno a 200 °C, peito para baixo na primeira metade, para o peito não secar.',35],
+ ['Virar','Vira e deixa alourar, regando com o próprio suco.',30],
+ ['Repousar','Dez minutos antes de trinchar.',10]]);
+P('bifecebolada',[['Selar','Bife temperado, frigideira bem quente, selado dos dois lados. Retira.',4],
+ ['Cebolada','Cebola em meias-luas na mesma frigideira, em lume brando, até adocicar.',15],
+ ['Juntar','Bife de volta, com um pouco de vinho branco e louro, só para aquecer.',3]]);
+P('ensopado',[['Selar','Sela o borrego em lume forte, em pequenas quantidades.',10],
+ ['Refogado','Cebola, alho, tomate e louro no mesmo tacho.',10],
+ ['Estufar','Volta a pôr a carne, cobre com água e deixa em lume brando até desfazer.',75],
+ ['Servir','Fatias de pão no fundo do prato e a hortelã fresca só à mesa.']]);
+P('coelho',[['Marinar','Coelho em pedaços, de véspera, em vinho branco com alho, louro e pimenta.',240],
+ ['Selar','Escorre e aloura em lume forte.',10],
+ ['Estufar','Junta a marinada, cebola e tomate, e deixa cozinhar tapado em lume brando.',50]]);
+P('pataniscas',[['Massa','Bate ovos, farinha, cebola e salsa até ficar uma massa espessa; junta o bacalhau desfiado.'],
+ ['Repousar','Deixa repousar meia hora — a massa fica mais leve.',30],
+ ['Fritar','Óleo bem quente, às colheradas, virando quando as bordas dourarem.',6],
+ ['Arroz','Arroz de feijão a acompanhar.']]);
+P('sopapedra',[['Demolhar','Feijão de molho de véspera.',720],
+ ['Cozer','Coze o feijão com as carnes e o louro.',60],
+ ['Legumes','Junta batata, cenoura e couve cortadas.',20],
+ ['Apurar','Deixa apurar até tudo estar macio e o caldo encorpado. Coentros no fim.',20]]);
+P('bochechas',[['Selar','Bochechas bem secas, seladas em lume forte até ganharem crosta.',8],
+ ['Refogado','Cebola, alho, cenoura e louro no mesmo tacho.',10],
+ ['Estufar','Vinho tinto a cobrir e lume muito brando, tapado, até desfazerem ao toque.',150],
+ ['Molho','Retira a carne e deixa o molho reduzir até napar.',10]]);
+P('truta',[['Temperar','Truta amanhada, seca, com sal e limão por dentro.'],
+ ['Fritar','Passa por farinha e frita em manteiga, virando uma vez.',10],
+ ['Amêndoa','Amêndoa laminada tostada na mesma manteiga, por cima, no fim.',3]]);
+P('mexilhoes',[['Limpar','Raspa e tira as barbas; descarta os que não fecharem ao toque.'],
+ ['Cozinhar','Alho no azeite, mexilhões e um pouco de vinho branco. Tapa e sacode o tacho.',6],
+ ['Servir','Assim que abrirem, coentros e limão. Deita fora os que ficarem fechados.']]);
+P('jardineira',[['Selar','Sela a carne em cubos, em lume forte.',10],
+ ['Refogado','Cebola, alho e tomate.',10],
+ ['Estufar','Cobre com água e deixa em lume brando até a carne estar tenra.',60],
+ ['Legumes','Junta batata, cenoura e ervilhas e cozinha até estarem macias.',20]]);
+P('sopaabobora',[['Refogado','Cebola, alho e gengibre no azeite.',6],
+ ['Cozer','Abóbora e batata em cubos, com caldo a cobrir.',20],
+ ['Triturar','Tritura até ficar aveludada. Sal e pimenta no fim.']]);
+P('feijaofrade',[['Cozer','Coze o feijão-frade até tenro, ou usa já cozido, bem escorrido.',30],
+ ['Juntar','Atum escorrido, cebola picada fina, salsa e ovo cozido.'],
+ ['Temperar','Azeite e vinagre, e repousa meia hora antes de servir.',30]]);
+P('paoovo',[['Ovo','Ovo mexido em lume brando, cremoso.',4],
+ ['Montar','Pão torrado, tomate às rodelas com sal, e o ovo por cima.']]);
+P('torradapresunto',[['Torrar','Pão alentejano bem torrado e esfregado com alho.',4],
+ ['Ovo','Estrela o ovo com a gema mole.',3],
+ ['Montar','Presunto sobre o pão, ovo por cima e um fio de azeite.']]);
+P('iogurtemaca',[['Ralar','Rala a maçã com casca, na hora, para não escurecer.'],
+ ['Juntar','Envolve no iogurte com a canela.']]);
+P('broaqueijo',[['Cortar','Broa em fatias grossas, ligeiramente torradas.',3],
+ ['Montar','Queijo fresco esmagado, tomate às rodelas, azeite e orégãos.']]);
+P('tremocos',[['Escorrer','Escorre e lava bem os tremoços da salmoura.'],
+ ['Servir','Limão espremido por cima.']]);
+P('bolinhos',[['Bacalhau','Coze e desfia o bacalhau, tirando peles e espinhas.',10],
+ ['Massa','Mistura com puré de batata, ovo, cebola e salsa até ficar moldável.'],
+ ['Moldar','Faz quenelles com duas colheres.'],
+ ['Forno','Tabuleiro com papel vegetal, fio de azeite, forno a 200 °C até dourarem.',25]]);
+P('sardinhapao',[['Montar','Sardinha de conserva escorrida sobre pão de centeio.'],
+ ['Temperar','Limão e pimenta; a sardinha já traz sal e azeite.']]);
+P('castanhas',[['Cortar','Um golpe na casca de cada castanha — sem ele, rebentam no forno.'],
+ ['Assar','Sal grosso por cima, forno a 220 °C, sacudindo o tabuleiro a meio.',30],
+ ['Servir','Envoltas num pano, para descascarem quentes.']]);
+P('ketofrangocreme',[['Selar','Frango em cubos, selado em lume forte.',8],
+ ['Espinafres','Junta os espinafres e deixa murchar.',3],
+ ['Molho','Natas e alho, a reduzir em lume brando até engrossar.',6]]);
+P('ketopurecouveflor',[['Couve-flor','Coze a couve-flor em raminhos até muito macia e escorre MUITO bem — água a mais dá um puré aguado.',12],
+ ['Puré','Tritura com manteiga e um pouco de nata, até ficar liso.'],
+ ['Bife','Bife selado à parte, e serve sobre o puré.',4]]);
+P('pxsardinha',[['Sal','Sardinhas em sal grosso uma hora antes.',60],
+ ['Grelhar','Brasa forte, virando uma vez só, quando a pele soltar sozinha.',10],
+ ['Pimentos','Pimentos assados, pelados e temperados com azeite e alho.']]);
+P('pxcarapau',[['Temperar','Carapaus amanhados, secos, em sal grosso.',30],
+ ['Grelhar','Grelha bem quente, virando uma vez.',10],
+ ['Servir','Alho picado e limão por cima, ainda a escaldar.']]);
+P('pxdourada',[['Preparar','Cortes na pele e tempero com sal e limão.'],
+ ['Grelhar','Grelha quente, pele primeiro.',14],
+ ['Servir','Azeite, limão e salsa fora do lume.']]);
+P('pxespada',[['Preparar','Filetes de peixe-espada preto, secos e temperados com sal.'],
+ ['Grelhar','Grelha ou frigideira bem quente, pouco tempo — é peixe delicado.',6],
+ ['Servir','Alho laminado tostado em azeite por cima, e limão.']]);
+P('pxlinguado',[['Temperar','Linguado seco, sal e um pouco de farinha.'],
+ ['Grelhar','Manteiga ou azeite bem quente, virando uma vez só.',8],
+ ['Servir','Limão e salsa.']]);
+P('pxsalmonete',[['Preparar','Salmonetes amanhados, com o fígado dentro se gostares — é o melhor deles.'],
+ ['Grelhar','Grelha bem quente, poucos minutos de cada lado.',8],
+ ['Servir','Coentros e azeite por cima.']]);
+P('pxrobalo',[['Tabuleiro','Batatas às rodelas e cebola no fundo, com azeite.'],
+ ['Peixe','Robalo por cima, temperado com sal, limão e louro.'],
+ ['Forno','Forno a 190 °C até a batata estar cozida.',35]]);
+P('pxpescada',[['Tabuleiro','Batata e cebola às rodelas, regadas com azeite.'],
+ ['Peixe','Postas de pescada por cima, com sal e limão.'],
+ ['Forno','Forno a 190 °C.',30]]);
+P('pxcorvina',[['Tabuleiro','Tomate e cebola às rodelas no fundo.'],
+ ['Peixe','Corvina temperada por cima, com azeite e alho.'],
+ ['Forno','Forno a 190 °C; coentros à saída.',30]]);
+P('pxgoraz',[['Preparar','Goraz amanhado com cortes na pele, temperado com sal e limão.'],
+ ['Tabuleiro','Batatas às rodelas e cebola por baixo, azeite generoso.'],
+ ['Forno','Forno a 200 °C, regando com o próprio suco a meio.',35]]);
+P('pxcavala',[['Temperar','Cavala amanhada, sal e limão.'],
+ ['Cebolada','Cebola em meias-luas estufada no azeite com louro.',12],
+ ['Forno','Cavala sobre a cebolada, forno a 190 °C.',25]]);
+P('pxsalmao',[['Temperar','Salmão com sal, pimenta e limão.'],
+ ['Batatas','Batatas a murro assadas com azeite e alho.',45],
+ ['Forno','Salmão no forno a 190 °C, só até o centro ficar rosado — passado, seca.',15]]);
+P('mrbulhao',[['Purgar','Amêijoas em água com sal duas horas, para largarem a areia. Descarta as que não fecharem.',120],
+ ['Refogar','Alho laminado no azeite, sem alourar.',2],
+ ['Abrir','Amêijoas, vinho branco, tapa e sacode o tacho até abrirem.',5],
+ ['Servir','Coentros picados e limão fora do lume. Deita fora as que ficaram fechadas.']]);
+P('mrgambas',[['Preparar','Gambas abertas pelas costas, sem tripa, bem secas.'],
+ ['Grelhar','Grelha bem quente, dois minutos de cada lado.',4],
+ ['Servir','Alho, azeite e limão por cima, à saída.']]);
+P('mrberbigao',[['Purgar','Berbigão em água com sal, para largar a areia.',120],
+ ['Cozinhar','Alho no azeite, berbigão e um pouco de água. Tapa e sacode.',5],
+ ['Servir','Coentros picados assim que abrirem.']]);
+P('mrchoco',[['Limpar','Limpa o choco e seca bem.'],
+ ['Grelhar','Grelha bem quente, marcando dos dois lados.',8],
+ ['Servir','Azeite e alho picado por cima, ainda quente.']]);
+P('mrsapateira',[['Cozer','Sapateira em água a ferver bem salgada, contando do regresso à fervura.',15],
+ ['Desmanchar','Arrefece, abre e retira o miolo e as ovas.'],
+ ['Recheio','Mistura com cebola picada, salsa, um pouco de mostarda e azeite.'],
+ ['Servir','Volta a encher a carapaça e serve fresca.']]);
+P('mrlulas',[['Cortar','Lulas em anéis, bem secas.'],
+ ['Saltear','Lume muito forte, poucos minutos: pouco tempo ou muito tempo — nunca a meio.',4],
+ ['Servir','Alho e coentros no fim, fora do lume.']]);
+P('mralhinho',[['Preparar','Camarão descascado e seco.'],
+ ['Alho','Alho laminado a perfumar no azeite, sem queimar.',2],
+ ['Saltear','Camarão em lume forte até ficar rosado.',3],
+ ['Servir','Piri-piri, coentros e limão. Pão para o molho.']]);
+P('cgbiflombo',[['Temperar','Bife à temperatura ambiente, seco, com sal só na altura de grelhar.',30],
+ ['Grelhar','Grelha bem quente, sem mexer, até descolar sozinho. Vira uma vez.',6],
+ ['Repousar','Cinco minutos antes de cortar — sem isto o suco vai todo para a tábua.',5],
+ ['Servir','Flor de sal e alho laminado tostado.']]);
+P('cgcostnov',[['Temperar','Costeletas à temperatura ambiente, sal grosso.',30],
+ ['Grelhar','Brasa forte, virando uma vez. O osso pede mais tempo do lado dele.',10],
+ ['Repousar','Repousa antes de servir.',5]]);
+P('cgposta',[['Temperar','Posta grossa, à temperatura ambiente, seca.',45],
+ ['Selar','Brasa muito forte, selando bem os dois lados.',6],
+ ['Acabar','Afasta para uma zona mais fria da grelha até ao ponto desejado.',10],
+ ['Repousar','Cinco minutos, e flor de sal só no fim.',5]]);
+P('cgpicanha',[['Preparar','Não tires a capa de gordura: é ela que rega a carne.'],
+ ['Grelhar','Começa pelo lado da gordura, para derreter e escorrer.',8],
+ ['Acabar','Vira e grelha até ao ponto. Corta contra as fibras.',8],
+ ['Servir','Flor de sal só na hora.']]);
+P('cgfraldinha',[['Temperar','Fraldinha à temperatura ambiente, seca, com sal grosso.',30],
+ ['Grelhar','Carvão forte, virando uma vez. É corte fino: cozinha depressa.',8],
+ ['Cortar','Sempre contra as fibras, senão fica rija.']]);
+P('cgsecretos',[['Temperar','Secretos com sal e alho, sem marinada longa — a carne já é saborosa.'],
+ ['Grelhar','Brasa média, virando várias vezes, até a gordura estar tostada.',12],
+ ['Servir','Limão espremido à saída.']]);
+P('cgplumas',[['Temperar','Plumas com colorau, alho e azeite.',30],
+ ['Grelhar','Brasa média-forte, virando, até ficarem tostadas por fora e suculentas dentro.',10]]);
+P('cgbifanas',[['Marinar','Bifanas finas em vinho branco, alho, louro e massa de pimentão.',120],
+ ['Cozinhar','Frigideira bem quente, bifanas em camada única, poucos minutos.',5],
+ ['Molho','Junta a marinada e deixa reduzir; o pão vai molhado neste molho.',5]]);
+P('cgespetada',[['Cortar','Cubos grandes de carne, para não secarem.'],
+ ['Temperar','Sal grosso, alho e louro, no pau de louro que dá o aroma.',60],
+ ['Grelhar','Brasa forte, virando o pau de quarto em quarto de volta.',15]]);
+P('vgfeijoada',[['Cogumelos','Salteia os portobello em lume forte para ganharem cor.',8],
+ ['Refogado','Cebola, alho, tomate, louro e cominhos.',10],
+ ['Guisar','Junta o feijão preto e deixa apurar em lume brando.',20]]);
+
+/* ================= PASSOS: MEDITERRÂNICA ================= */
+P('grega',[['Cortar','Tomate em gomos, pepino em meias-luas grossas, cebola em meias-luas finas.'],
+ ['Montar','Tudo numa taça, com as azeitonas e a feta em cubos por cima — a feta não se mistura, põe-se.'],
+ ['Temperar','Azeite generoso e orégãos. Sem vinagre: o limão do tomate chega.']]);
+P('robalo',[['Preparar','Robalo amanhado com cortes na pele.'],
+ ['Tabuleiro','Legumes em rodelas por baixo, regados com azeite.'],
+ ['Forno','Peixe por cima com limão e ervas, forno a 190 °C.',30]]);
+P('humus',[['Grão','Grão-de-bico cozido e bem escorrido; se puderes, tira as peles — é o que faz o húmus sedoso.'],
+ ['Triturar','Tritura com tahini, alho, limão e água gelada, muito tempo, até ficar cremoso.',4],
+ ['Servir','Azeite e paprica por cima, com pão pita e legumes crus.']]);
+P('espetadas',[['Marinar','Frango em cubos em iogurte, limão, alho e especiarias — o iogurte amacia a carne.',120],
+ ['Espetar','Enfia nos espetos sem apertar.'],
+ ['Grelhar','Grelha média, virando, até dourar sem secar.',14]]);
+P('couscous',[['Hidratar','Couscous num recipiente, água a ferver a cobrir um dedo acima, tapado.',5],
+ ['Soltar','Solta com um garfo e um fio de azeite.'],
+ ['Juntar','Legumes salteados, hortelã picada e limão.']]);
+P('tabule',[['Quinoa','Coze a quinoa lavada e deixa arrefecer bem.',15],
+ ['Cortar','Tomate, pepino e cebola em cubinhos pequenos e iguais.'],
+ ['Temperar','Muita salsa e hortelã, azeite e limão. Repousa antes de servir.',30]]);
+P('moussaka',[['Beringela','Fatias salgadas e escorridas meia hora, para perderem o amargo, depois assadas ou grelhadas.',30],
+ ['Carne','Refogado com carne, tomate e canela, a apurar.',20],
+ ['Bechamel','Manteiga, farinha e leite, com noz-moscada.',8],
+ ['Montar','Camadas de beringela e carne, bechamel por cima.'],
+ ['Forno','Forno a 180 °C até dourar. Repousa antes de cortar.',35]]);
+P('salmaolentilhas',[['Lentilhas','Coze as lentilhas com louro até tenras mas inteiras.',20],
+ ['Salmão','Salmão na frigideira, pele para baixo, sem mexer, até a pele ficar estaladiça.',6],
+ ['Servir','Vira um minuto, e serve sobre as lentilhas com endro.',2]]);
+P('frittata',[['Legumes','Salteia os legumes até perderem a água.',8],
+ ['Ovos','Ovos batidos com sal por cima, em lume brando.'],
+ ['Cozinhar','Deixa presar as bordas, sem mexer.',6],
+ ['Acabar','Termina no forno ou sob o grelhador até o centro firmar.',5]]);
+P('ovosabacate',[['Escalfar','Água a fumegar com vinagre; ovo a três minutos para a gema mole.',3],
+ ['Montar','Abacate esmagado com limão e sal, tomate por cima e o ovo a fechar.']]);
+P('abacatetorrada',[['Torrar','Pão bem torrado.',3],
+ ['Abacate','Esmaga com limão, sal e pimenta.'],
+ ['Ovo','Escalfa o ovo e põe por cima.',3]]);
+P('chia',[['Misturar','Sementes de chia no leite de coco, mexendo bem para não empelotarem.'],
+ ['Repousar','Frigorífico de um dia para o outro, ou pelo menos quatro horas.',240],
+ ['Servir','Mexe outra vez e junta fruta.']]);
+P('bowlfruta',[['Cortar','Fruta da estação em pedaços.'],
+ ['Montar','Sementes e coco ralado por cima, à saída, para não amolecerem.']]);
+P('queijoazeitonas',[['Servir','Queijo fresco em cubos, azeitonas e orégãos, com azeite generoso.']]);
+P('humuspequeno',[['Cortar','Legumes em palitos, mergulhados em água gelada para ficarem estaladiços.',15],
+ ['Servir','Húmus numa taça com azeite por cima.']]);
+P('guacamole',[['Esmagar','Abacate maduro esmagado com um garfo, deixando pedaços — não é puré.'],
+ ['Temperar','Lima, sal, cebola picada fina e coentros. A lima é que impede de escurecer.'],
+ ['Servir','Aipo em bastonetes ao lado.']]);
+P('souvlaki',[['Marinar','Porco em cubos com azeite, limão, alho e orégãos.',120],
+ ['Grelhar','Espetos em brasa média, virando.',14],
+ ['Tzatziki','Iogurte com pepino ralado e espremido, alho e endro.']]);
+P('falafel',[['Grão','Grão-de-bico DEMOLHADO mas cru — cozido desfaz-se. De molho de véspera.',720],
+ ['Massa','Tritura com cebola, alho, salsa e especiarias, sem virar puré.'],
+ ['Repousar','Frigorífico meia hora, para agarrar.',30],
+ ['Assar','Bolinhas achatadas, fio de azeite, forno a 200 °C, virando a meio.',25]]);
+P('peixecrosta',[['Crosta','Sal grosso humedecido, cama no tabuleiro, peixe em cima e coberto por completo.'],
+ ['Forno','Forno a 200 °C, vinte minutos por cada 500 g.',25],
+ ['Abrir','Parte a crosta e retira a pele com o sal agarrado.']]);
+P('saladalentilhas',[['Lentilhas','Coze com louro, escorre e tempera ainda mornas — é morno que absorve.',20],
+ ['Juntar','Feta esmigalhada, cebola roxa e salsa.'],
+ ['Temperar','Azeite e vinagre.']]);
+P('shakshuka',[['Refogado','Cebola, pimento e alho no azeite, até amolecerem.',10],
+ ['Molho','Tomate, cominhos e paprica, a apurar até engrossar.',15],
+ ['Ovos','Abre covas e parte lá os ovos. Tapa até a clara firmar com a gema mole.',6],
+ ['Servir','Coentros e pão para molhar.']]);
+P('tagine',[['Marinar','Frango com especiarias, alho e limão.',60],
+ ['Selar','Sela o frango no tacho.',8],
+ ['Estufar','Cebola, limão em conserva e azeitonas, com pouca água, tapado em lume brando.',45]]);
+P('beringelarecheada',[['Beringela','Corta ao meio, risca a polpa em losangos, azeite e forno a 200 °C até amolecer.',25],
+ ['Recheio','Refoga carne com cebola, alho e tomate; junta a polpa da beringela e os pinhões.',15],
+ ['Gratinar','Enche as metades e volta ao forno.',15]]);
+P('saladapolvo',[['Cozer','Polvo com louro e cebola, sem água, até tenro. Arrefece no caldo.',45],
+ ['Juntar','Corta em pedaços, junta grão-de-bico cozido, cebola e coentros.'],
+ ['Temperar','Azeite e vinagre; repousa uma hora no frio.',60]]);
+P('bulgur',[['Bulgur','Hidrata com água a ferver, tapado.',15],
+ ['Legumes','Legumes assados no forno com azeite.',30],
+ ['Juntar','Envolve tudo com hortelã e limão.']]);
+P('atumtomateseco',[['Atum','Sela o atum em lume muito forte, deixando o centro rosado — passado fica seco.',3],
+ ['Montar','Rúcula, tomate seco e o atum fatiado por cima.'],
+ ['Temperar','Azeite e vinagre balsâmico.']]);
+P('borregoervas',[['Temperar','Costeletas com alho, alecrim e azeite.',60],
+ ['Grelhar','Grelha bem quente, virando uma vez.',8],
+ ['Courgette','Courgette grelhada na mesma grelha.',6]]);
+P('frangopita',[['Marinar','Frango em iogurte com limão, alho e especiarias.',120],
+ ['Grelhar','Grelha média até dourar.',14],
+ ['Servir','Pita aquecida, frango e salada.']]);
+P('sopagrao',[['Refogado','Cebola, alho e cominhos no azeite.',6],
+ ['Cozer','Grão-de-bico e caldo, a apurar.',20],
+ ['Espinafres','Junta os espinafres no fim, só até murcharem.',3]]);
+P('salmaoervas',[['Crosta','Mistura pão ralado com ervas picadas e azeite.'],
+ ['Montar','Pressiona a crosta sobre o salmão.'],
+ ['Forno','Forno a 200 °C até a crosta dourar e o centro ficar rosado.',15],
+ ['Espargos','Espargos no mesmo tabuleiro nos últimos minutos.',8]]);
+P('bowlmed',[['Base','Grão-de-bico cozido e escorrido, temperado ainda morno.'],
+ ['Legumes','Legumes crus e assados, à escolha.'],
+ ['Montar','Feta, azeite e limão por cima.']]);
+P('halloumi',[['Secar','Seca bem as fatias de halloumi — húmidas não tostam.'],
+ ['Grelhar','Frigideira seca bem quente, sem gordura: o halloumi tem a sua.',4],
+ ['Servir','Tomate, hortelã e azeite, ainda quente.']]);
+P('iogurtefigos',[['Montar','Iogurte grego na taça, figos abertos por cima e nozes partidas.'],
+ ['Servir','Fio de mel à saída.']]);
+P('ovosfeta',[['Espinafres','Salteia os espinafres com alho até murcharem.',4],
+ ['Escalfar','Ovos escalfados em água a fumegar com vinagre.',3],
+ ['Montar','Espinafres, ovo, feta esmigalhada e pimenta.']]);
+P('tostatomate',[['Torrar','Pão torrado, esfregado com alho enquanto quente.',3],
+ ['Tomate','Tomate ralado ou às rodelas, sal, azeite e orégãos.']]);
+P('tzatziki',[['Pepino','Rala o pepino e espreme MUITO bem — a água dele é que estraga o tzatziki.'],
+ ['Misturar','Iogurte, alho, endro e azeite.'],
+ ['Repousar','Frigorífico uma hora.',60]]);
+P('melaopresunto',[['Cortar','Melão bem frio em gomos, sem casca.'],
+ ['Montar','Fatias de presunto por cima, deixadas fora do frio meia hora antes.',30]]);
+P('tamaras',[['Abrir','Abre as tâmaras ao meio e tira o caroço.'],
+ ['Rechear','Uma amêndoa dentro de cada uma e fecha.']]);
+P('saladalaranja',[['Cortar','Laranja descascada em vivo, às rodelas, num prato fundo.'],
+ ['Montar','Cebola roxa em meias-luas finas e azeitonas.'],
+ ['Temperar','Azeite e sal; o sumo da laranja faz o resto.']]);
+P('ketoovosabacate',[['Abacate','Abre ao meio, tira o caroço e alarga um pouco a cova com a colher.'],
+ ['Ovo','Parte um ovo em cada metade, sobre um tabuleiro que as segure direitas.'],
+ ['Forno','Forno a 200 °C até a clara firmar.',15]]);
+P('ketocamarao',[['Courgette','Faz o esparguete de courgette e salga-o cinco minutos para largar água. Seca.',5],
+ ['Camarão','Alho no azeite e camarão em lume forte.',3],
+ ['Juntar','Courgette no fim, só um minuto — mais do que isso e fica mole.',1]]);
+P('ketosalmaoendro',[['Salmão','Frigideira, pele para baixo, sem mexer.',6],
+ ['Molho','Iogurte ou natas com endro, pepino ralado e limão.'],
+ ['Servir','Molho frio sobre o salmão quente.']]);
+P('ketoiogurtesementes',[['Montar','Iogurte grego com sementes e canela por cima.']]);
+P('vggrao',[['Refogado','Cebola, alho e cominhos no azeite.',8],
+ ['Tomate','Tomate a desfazer com o louro.',10],
+ ['Juntar','Grão-de-bico e espinafres, a apurar em lume brando.',15]]);
+
+/* ================= PASSOS: ITALIANA ================= */
+P('bolonhesa',[['Soffritto','Cebola, cenoura e aipo picados finos, a suar no azeite em lume brando. É a base de tudo.',10],
+ ['Carne','Junta a carne e deixa perder o vermelho, desfazendo com a colher.',8],
+ ['Apurar','Tomate, sal e pimenta, em lume muito brando. Quanto mais tempo, melhor.',60],
+ ['Massa','Coze o esparguete al dente e junta ao molho na frigideira, com um pouco de água da cozedura.',2]]);
+P('caprese',[['Cortar','Tomate e mozzarella em rodelas da mesma espessura.'],
+ ['Montar','Alterna no prato com folhas de manjericão inteiras.'],
+ ['Temperar','Azeite, flor de sal e pimenta. Nunca vinagre.']]);
+P('risotto',[['Caldo','Mantém o caldo a fumegar ao lado — caldo frio para o risotto e o arroz agarra.'],
+ ['Tostar','Cebola no azeite, arroz arbóreo a tostar até os grãos ficarem translúcidos nas bordas.',3],
+ ['Vinho','Vinho branco a evaporar.',2],
+ ['Concha a concha','Caldo uma concha de cada vez, mexendo, só juntando a próxima quando a anterior for absorvida.',18],
+ ['Mantecare','Fora do lume, manteiga fria e parmesão, batendo com energia. É isto que faz o risotto cremoso.']]);
+P('courgetti',[['Courgette','Esparguete de courgette salgado cinco minutos e bem seco.',5],
+ ['Frango','Frango em tiras, selado em lume forte.',8],
+ ['Juntar','Pesto fora do lume, para não perder o aroma. Courgette no último minuto.',1]]);
+P('piccata',[['Achatar','Peito aberto e batido fino, para cozinhar depressa.'],
+ ['Farinha','Passa por farinha temperada e sacode o excesso.'],
+ ['Selar','Manteiga bem quente, dois minutos de cada lado.',4],
+ ['Molho','Limão, alcaparras e um pouco de caldo, a raspar o fundo, até napar.',4]]);
+P('pizza',[['Massa','Amassa farinha, água, fermento e sal até ficar lisa e elástica.',10],
+ ['Levedar','Deixa levedar até dobrar de volume — quanto mais devagar, melhor.',120],
+ ['Esticar','Estica com as mãos, sem rolo, deixando a borda mais grossa.'],
+ ['Cozer','Forno o mais quente que tiver, com a pedra ou o tabuleiro já quentes.',10]]);
+P('minestrone',[['Soffritto','Cebola, cenoura e aipo no azeite.',10],
+ ['Legumes','Junta os legumes por ordem de dureza, e o tomate.',10],
+ ['Cozer','Caldo a cobrir e feijão, a apurar.',25],
+ ['Massa','Massa pequena nos últimos minutos, para não desfazer.',8]]);
+P('lasanhalegumes',[['Legumes','Assa ou salteia os legumes até perderem a água — legumes húmidos dão lasanha aguada.',25],
+ ['Bechamel','Manteiga, farinha e leite, com noz-moscada.',8],
+ ['Montar','Camadas de legumes, placas e bechamel.'],
+ ['Forno','Forno a 180 °C até dourar; repousa antes de cortar.',35]]);
+P('gnocchi',[['Cozer','Gnocchi em água a ferver com sal: estão prontos quando vierem ao de cima.',3],
+ ['Molho','Tomate com alho e manjericão, a apurar.',12],
+ ['Juntar','Gnocchi escorridos no molho, com cuidado para não desfazer.']]);
+P('saltimbocca',[['Montar','Fatia de peru, uma folha de salva e uma de presunto por cima, presas com um palito.'],
+ ['Selar','Manteiga quente, começando pelo lado do presunto.',4],
+ ['Molho','Vinho branco a deglaçar o fundo.',3]]);
+P('espadarte',[['Grelhar','Espadarte bem seco, grelha muito quente, pouco tempo de cada lado.',6],
+ ['Salsa verde','Salsa, alho, alcaparras e azeite picados grosseiramente.'],
+ ['Servir','Molho frio sobre o peixe quente.']]);
+P('ricotta',[['Torrar','Pão torrado.',3],
+ ['Montar','Ricotta espalhada, pêra às fatias finas por cima.'],
+ ['Servir','Fio de mel e pimenta moída.']]);
+P('bruschetta',[['Torrar','Pão grosso torrado e esfregado com alho ainda quente.',4],
+ ['Tomate','Tomate em cubinhos, escorrido do excesso de água, com sal e azeite.'],
+ ['Montar','Só na hora de servir, senão o pão amolece.']]);
+P('espetadinhas',[['Montar','Alterna tomate cereja e mozzarella pequena nos palitos.'],
+ ['Temperar','Azeite, manjericão e pimenta.']]);
+P('carbonara',[['Guanciale','Guanciale ou bacon em cubos, frigideira fria, lume médio, até render a gordura e ficar estaladiço.',8],
+ ['Creme','Bate as gemas com o pecorino e muita pimenta. Sem natas — nunca.'],
+ ['Massa','Coze a massa e guarda água da cozedura.',9],
+ ['Ligar','FORA DO LUME, junta a massa quente ao ovo com um pouco de água, mexendo depressa. O calor da massa é que cozinha o ovo; no lume, faz ovos mexidos.']]);
+P('puttanesca',[['Base','Alho, anchovas e malagueta no azeite, deixando as anchovas desfazerem-se.',4],
+ ['Molho','Tomate, azeitonas e alcaparras, a apurar.',15],
+ ['Massa','Massa al dente, ligada no molho com água da cozedura.',2]]);
+P('parmigiana',[['Beringela','Fatias salgadas e escorridas, depois grelhadas ou assadas.',30],
+ ['Molho','Tomate com alho e manjericão, a apurar.',20],
+ ['Montar','Camadas de beringela, molho, mozzarella e parmesão.'],
+ ['Forno','Forno a 180 °C até borbulhar. Repousa antes de servir.',30]]);
+P('risottoacafrao',[['Açafrão','Açafrão em infusão num pouco de caldo quente.',10],
+ ['Tostar','Cebola e arroz a tostar na manteiga.',3],
+ ['Concha a concha','Caldo aos poucos, mexendo sempre, com a infusão a meio.',18],
+ ['Mantecare','Manteiga fria e parmesão fora do lume.']]);
+P('vitelotonato',[['Vitela','Coze a vitela em caldo aromático e deixa arrefecer no próprio líquido.',60],
+ ['Molho','Tritura atum, maionese, alcaparras e limão até ficar liso.'],
+ ['Servir','Vitela fatiada muito fina, coberta com o molho, bem fria.']]);
+P('cacioepepe',[['Pimenta','Toca a pimenta em grão, moída grossa, numa frigideira seca — é aqui que nasce o prato.',1],
+ ['Massa','Coze a massa em pouca água, para a água ficar bem amilácea.',9],
+ ['Creme','Pecorino ralado com água da massa MORNA, batido até virar creme. Água a ferver talha o queijo.'],
+ ['Ligar','Massa e creme fora do lume, mexendo com energia.']]);
+P('panzanella',[['Pão','Pão duro em pedaços, humedecido com água e vinagre e espremido.'],
+ ['Tomate','Tomate maduro em pedaços, com sal, a largar o suco.',15],
+ ['Juntar','Envolve tudo com cebola, manjericão e azeite; repousa antes de servir.',30]]);
+P('acquapazza',[['Base','Alho e tomate cereja no azeite, a abrir.',5],
+ ['Peixe','Robalo por cima, com água e vinho branco a meia altura.'],
+ ['Cozinhar','Tapado, em lume brando, regando o peixe com o caldo.',15],
+ ['Servir','Salsa e o caldo por cima.']]);
+P('polpette',[['Massa','Carne com pão embebido em leite, ovo, alho e salsa — o pão é que as deixa tenras.'],
+ ['Moldar','Bolas do tamanho de uma noz, sem apertar demais.'],
+ ['Forno','Assadas a 200 °C até dourarem.',20],
+ ['Molho','Passam para o molho de tomate a apurar.',15]]);
+P('zuppatoscana',[['Feijão','Feijão cozido, metade triturado para engrossar.',40],
+ ['Refogado','Cebola, alho e couve.',10],
+ ['Apurar','Junta o feijão e o caldo, a apurar. Azeite em cru no prato.',20]]);
+P('cacciatore',[['Selar','Frango em pedaços, selado em lume forte.',10],
+ ['Refogado','Cebola, pimento, alho e cogumelos.',10],
+ ['Estufar','Vinho branco, tomate e ervas, tapado em lume brando.',35]]);
+P('bresaola',[['Montar','Bresaola em fatias finas, aberta no prato.'],
+ ['Temperar','Rúcula, lascas de parmesão, azeite e limão.']]);
+P('ketoalmondegas',[['Almôndegas','Carne com ovo, alho e parmesão, moldada em bolas.'],
+ ['Forno','Assadas a 200 °C.',20],
+ ['Juntar','Courgette salteada e mozzarella por cima, a derreter.',5]]);
+P('ketolasanha',[['Beringela','Fatias finas grelhadas, no lugar das placas.',15],
+ ['Molho','Carne com tomate a apurar.',20],
+ ['Montar','Camadas de beringela, carne e queijo; forno a 180 °C.',30]]);
+P('ketofrangoparmesao',[['Frango','Frango temperado, selado na frigideira.',8],
+ ['Courgette','Courgette em rodelas, salteada.',6],
+ ['Gratinar','Parmesão por cima e forno até dourar.',10]]);
+
+/* ================= PASSOS: FRANCESA ================= */
+P('ratatouille',[['Cortar','Todos os legumes em cubos do mesmo tamanho.'],
+ ['Separado','Salteia cada legume à parte, em lume forte — juntos largam água e cozem em vez de assar.',20],
+ ['Juntar','Só no fim se juntam todos, com tomate e ervas de Provença, a apurar em lume brando.',20]]);
+P('salmaomanteiga',[['Salmão','Frigideira, pele para baixo, sem mexer, até a pele descolar sozinha.',6],
+ ['Espargos','Espargos na mesma frigideira, com um pouco de manteiga.',5],
+ ['Manteiga','Manteiga com limão e salsa, derretida no fim, por cima.']]);
+P('nicoise',[['Cozer','Ovos, feijão-verde e batata, cada um no seu tempo.',12],
+ ['Montar','Alface, tomate, atum, azeitonas e anchovas dispostos por grupos, não misturados.'],
+ ['Temperar','Vinagrete de azeite, vinagre e mostarda, só à mesa.']]);
+P('omelete',[['Bater','Ovos batidos com sal, sem excesso de ar.'],
+ ['Cozinhar','Manteiga em lume médio, ovos dentro, empurrando as bordas para o centro.',3],
+ ['Dobrar','Ervas picadas e dobra ao meio com o centro ainda cremoso — é assim que se faz em França.']]);
+P('provencal',[['Selar','Frango selado em lume forte.',10],
+ ['Refogado','Cebola, alho, tomate, azeitonas e ervas de Provença.',10],
+ ['Estufar','Vinho branco e lume brando, tapado.',30]]);
+P('sopacebola',[['Caramelizar','Cebola em meias-luas em manteiga, lume brando, mexendo de vez em quando, até ficar castanha e doce. Não há atalho: são quarenta minutos.',40],
+ ['Deglaçar','Vinho branco a raspar o fundo.',3],
+ ['Caldo','Caldo de carne e tomilho, a apurar.',20],
+ ['Gratinar','Pão torrado e queijo por cima, sob o grelhador até borbulhar.',5]]);
+P('cassoulet',[['Demolhar','Feijão branco de molho de véspera.',720],
+ ['Carnes','Sela as carnes e reserva.',12],
+ ['Cozinhar','Feijão com as carnes, cebola, alho e tomate, em lume muito brando.',90],
+ ['Forno','Termina no forno, sem tampa, para criar crosta.',30]]);
+P('quiche',[['Massa','Forra a forma com a massa e pica o fundo com um garfo.'],
+ ['Cozer em branco','Forno a 180 °C com pesos, para o fundo não ficar cru.',15],
+ ['Recheio','Alho-francês estufado em manteiga e o creme de ovos e natas.',12],
+ ['Forno','Forno a 180 °C até o centro firmar e a superfície dourar.',30]]);
+P('coqauvin',[['Marinar','Frango em vinho tinto com legumes e ervas, de véspera.',720],
+ ['Selar','Escorre bem e sela em lume forte com bacon.',12],
+ ['Estufar','Junta a marinada e deixa em lume muito brando, tapado.',75],
+ ['Molho','Retira o frango e reduz o molho até napar.',10]]);
+P('omeletequeijo',[['Bater','Ovos batidos com sal.'],
+ ['Cozinhar','Manteiga em lume médio, empurrando as bordas.',3],
+ ['Queijo','Queijo e ervas no centro, e dobra com o interior ainda cremoso.']]);
+P('crepesaveia',[['Massa','Tritura aveia, ovos, banana e leite até ficar liso.'],
+ ['Repousar','Deixa a massa repousar para a aveia hidratar.',10],
+ ['Cozinhar','Frigideira antiaderente, uma concha de cada vez, virando quando as bordas soltarem.',3]]);
+P('frutossecos',[['Servir','Mistura frutos secos e sementes. Torrados numa frigideira seca ficam melhores.',4]]);
+P('iogurtecompota',[['Montar','Iogurte natural com os frutos vermelhos por cima, esmagando alguns para largarem sumo.']]);
+P('bourguignon',[['Marinar','Vaca em cubos em vinho tinto com legumes e ervas, de véspera.',720],
+ ['Selar','Carne muito bem seca, selada em lume forte e em pequenas quantidades. Húmida ou amontoada, coze em vez de corar.',15],
+ ['Estufar','Junta a marinada, o bacon e o caldo. Lume mínimo, tapado.',180],
+ ['Guarnição','Cebolinhas e cogumelos salteados à parte, juntos no fim.',10]]);
+P('dauphinois',[['Cortar','Batatas em rodelas muito finas — mandolina, se tiveres. Não as laves depois de cortar: é o amido que liga o gratinado.'],
+ ['Montar','Camadas na travessa esfregada com alho, com sal e noz-moscada entre elas.'],
+ ['Natas','Natas a cobrir até quase ao topo.'],
+ ['Forno','Forno a 160 °C, devagar, até a faca entrar sem resistência e o topo dourar.',75]]);
+P('papillote',[['Montar','Folha de papel vegetal, alho-francês em juliana por baixo e o salmão por cima, com limão e ervas.'],
+ ['Fechar','Fecha bem o embrulho: é o vapor lá dentro que cozinha.'],
+ ['Forno','Forno a 200 °C. Abre à mesa, para o aroma sair no prato.',18]]);
+P('blanquette',[['Branquear','Escalda a vitela e lava-a — é isto que mantém o molho branco.',5],
+ ['Cozer','Água com cenoura, cebola e ervas, em lume brando, sem deixar ferver com força.',75],
+ ['Molho','Manteiga e farinha, com o caldo coado, até engrossar. Natas e gema fora do lume.',10]]);
+P('chevrechaud',[['Torrar','Rodelas de queijo de cabra sobre pão, sob o grelhador até ganharem cor.',5],
+ ['Salada','Alface temperada com vinagrete.'],
+ ['Servir','Queijo quente sobre a salada fria, imediatamente.']]);
+P('moules',[['Limpar','Raspa e tira as barbas; descarta os que não fecharem.'],
+ ['Refogar','Chalota e alho em manteiga.',4],
+ ['Abrir','Mexilhões e vinho branco, tapado, sacudindo o tacho.',6],
+ ['Servir','Salsa e um pouco de natas, se gostares. Pão para o caldo.']]);
+P('croquemadame',[['Bechamel','Manteiga, farinha e leite, com noz-moscada.',8],
+ ['Montar','Pão, fiambre, queijo, pão. Bechamel e queijo por cima.'],
+ ['Gratinar','Forno até dourar.',12],
+ ['Ovo','Ovo estrelado por cima — é o ovo que faz «madame».',3]]);
+P('veloute',[['Suar','Alho-francês e cebola em manteiga, sem ganhar cor.',10],
+ ['Cozer','Batata e caldo, até desfazer.',20],
+ ['Acabar','Tritura muito bem e junta natas fora do lume.']]);
+P('steakfeijao',[['Bife','Selado em lume forte, ao ponto.',5],
+ ['Feijão-verde','Cozido e salteado em manteiga.',10],
+ ['Molho','Mostarda e natas na frigideira do bife, a raspar o fundo.',4]]);
+P('saladelentilles',[['Lentilhas','Cozidas com louro, escorridas e temperadas ainda mornas.',20],
+ ['Ovo','Ovo cozido a sete minutos, gema cremosa.',7],
+ ['Temperar','Vinagrete de mostarda, azeite e vinagre.']]);
+P('crepesalgado',[['Massa','Farinha, ovos e leite batidos até ficar liso; repousa.',30],
+ ['Cozinhar','Frigideira quente, camada fina, virando quando soltar.',3],
+ ['Rechear','Fiambre e queijo, dobrado em quatro, de volta à frigideira para o queijo derreter.',2]]);
+P('pouletmoutarde',[['Selar','Frango selado em lume forte.',10],
+ ['Cogumelos','Salteados na mesma frigideira.',6],
+ ['Molho','Mostarda, natas e caldo, a apurar em lume brando com o frango de volta.',20]]);
+P('oeufscocotte',[['Espinafres','Salteados com alho, bem escorridos, no fundo das cocottes.',4],
+ ['Ovo','Um ovo em cada uma, com uma colher de natas por cima.'],
+ ['Banho-maria','Forno a 180 °C em banho-maria, até a clara firmar e a gema ficar mole.',12]]);
+P('ketocremecouveflor',[['Cozer','Couve-flor em caldo até muito macia.',15],
+ ['Triturar','Tritura com natas até ficar aveludado.'],
+ ['Queijo','Queijo ralado fora do lume, a derreter no calor do creme.']]);
+P('ketoportobello',[['Limpar','Retira o pé dos portobello e limpa com um pano.'],
+ ['Recheio','Espinafres salteados com alho, bem escorridos, e queijo.'],
+ ['Forno','Forno a 200 °C até o queijo dourar.',20]]);
+
+/* ================= PASSOS: ESPANHOLA ================= */
+P('paella',[['Sofrito','Cebola, alho, pimento e tomate no azeite, até apurar.',15],
+ ['Arroz','Arroz envolvido no sofrito, com o açafrão.',2],
+ ['Caldo','Caldo de peixe quente, o dobro do volume. A partir daqui NÃO se mexe: é isso que forma o socarrat no fundo.',10],
+ ['Marisco','Marisco por cima, por ordem de tempo.',8],
+ ['Repousar','Fora do lume, tapada com um pano, cinco minutos.',5]]);
+P('tortilla',[['Batatas','Batatas em rodelas finas, cozinhadas em azeite abundante em lume brando, sem alourar.',20],
+ ['Ovos','Escorre e junta aos ovos batidos com sal; deixa repousar dez minutos.',10],
+ ['Cozinhar','Frigideira com pouco azeite, lume médio-brando, até presar as bordas.',6],
+ ['Virar','Vira com um prato e cozinha do outro lado. O centro deve ficar cremoso.',4]]);
+P('gazpacho',[['Triturar','Tomate maduro, pepino, pimento, alho e pão demolhado, tudo triturado muito bem.'],
+ ['Emulsionar','Azeite em fio, com a máquina a trabalhar, até ficar aveludado e cor-de-rosa.'],
+ ['Coar','Passa por um passador para ficar liso.'],
+ ['Frio','Frigorífico pelo menos duas horas. Serve-se muito frio.',120]]);
+P('polvogalega',[['Assustar','Mergulha o polvo três vezes em água a ferver antes de o deixar lá — é o que impede a pele de se soltar.'],
+ ['Cozer','Coze até um garfo entrar sem resistência; arrefece no caldo.',45],
+ ['Cortar','Corta em rodelas com tesoura, sobre batata cozida.'],
+ ['Temperar','Azeite, sal grosso e paprica fumada generosa.']]);
+P('gambasajillo',[['Preparar','Camarão descascado e bem seco.'],
+ ['Alho','Alho laminado e malagueta a perfumar o azeite em lume brando, sem queimar.',3],
+ ['Saltear','Lume forte e camarão, até ficar rosado.',3],
+ ['Servir','Salsa e serve a escaldar, na própria caçoila. Pão obrigatório.']]);
+P('pisto',[['Legumes','Cada legume salteado à parte, para não cozerem uns nos outros.',20],
+ ['Juntar','Tudo junto com tomate, a apurar em lume brando.',20],
+ ['Ovo','Ovo escalfado ou estrelado por cima.',3]]);
+P('fabada',[['Demolhar','Fabes de molho de véspera, em água fria.',720],
+ ['Cozer','Feijão com os enchidos e o chispe, em água fria, sem sal no início.',120],
+ ['Assustar','Junta água fria duas ou três vezes durante a cozedura, para o feijão não abrir.'],
+ ['Apurar','Sal só no fim, e deixa repousar antes de servir.',15]]);
+P('merluzaverde',[['Base','Alho e salsa em muito azeite, em lume brando.',4],
+ ['Peixe','Postas de pescada, com um pouco de vinho branco e caldo.'],
+ ['Ligar','Move a frigideira em círculos, sem mexer com colher: é o movimento que liga o molho com a gelatina do peixe.',10],
+ ['Amêijoas','Amêijoas no fim, até abrirem.',4]]);
+P('chilindron',[['Selar','Frango selado em lume forte.',10],
+ ['Chilindrón','Cebola, pimento vermelho e tomate, a apurar muito devagar.',25],
+ ['Estufar','Frango de volta, tapado, até tenro.',30]]);
+P('escalivada',[['Assar','Beringela, pimento e cebola inteiros no forno a 200 °C, até a pele estar enrugada e queimada.',45],
+ ['Suar','Fecha num saco ou taça tapada — o vapor solta as peles.',15],
+ ['Pelar','Pela e corta em tiras à mão, no sentido das fibras.'],
+ ['Temperar','Azeite, sal e as anchovas por cima.']]);
+P('garbanzos',[['Refogado','Alho e paprica fumada no azeite, fora do lume para a paprica não amargar.',3],
+ ['Grão','Grão-de-bico cozido, envolvido no refogado.',5],
+ ['Espinafres','Espinafres no fim, só até murcharem.',3]]);
+P('pantumaca',[['Torrar','Pão torrado.',3],
+ ['Tomate','Esfrega meio tomate maduro sobre o pão, com força, até só ficar a pele na mão.'],
+ ['Servir','Azeite, sal e presunto por cima.']]);
+P('pimentosatum',[['Assar','Pimentos assados, pelados e em tiras.',45],
+ ['Juntar','Atum escorrido e cebola em meias-luas finas.'],
+ ['Temperar','Azeite e vinagre; repousa antes de servir.',30]]);
+P('sopaalho',[['Alho','Alho laminado a alourar no azeite, com paprica fora do lume.',4],
+ ['Pão','Pão duro a torrar no azeite.',3],
+ ['Caldo','Caldo a ferver por cima, a apurar.',10],
+ ['Ovo','Ovo escalfado na própria sopa.',4]]);
+P('pinchos',[['Marinar','Porco em cubos com especiarias moriscas, alho e azeite, de véspera.',720],
+ ['Espetar','Enfia nos espetos.'],
+ ['Grelhar','Brasa média-forte, virando várias vezes.',12]]);
+P('manchego',[['Servir','Manchego em cunhas, com marmelada e amêndoas torradas ao lado.']]);
+P('salmorejo',[['Triturar','Tomate, pão, alho e sal, triturados muito bem.'],
+ ['Emulsionar','Azeite em fio até ficar espesso e cor-de-laranja — mais denso do que um gaspacho.'],
+ ['Servir','Muito frio, com ovo cozido e presunto picados por cima.',120]]);
+P('pilpil',[['Confitar','Bacalhau com a pele para baixo em azeite morno com alho, em lume muito brando. O azeite nunca deve fritar.',15],
+ ['Retirar','Tira o bacalhau e deixa o azeite arrefecer até ficar morno.'],
+ ['Ligar','Move a frigideira em círculos, sem parar, até o azeite emulsionar com a gelatina do peixe e ficar branco e cremoso.',10]]);
+P('ketobowlatum',[['Montar','Atum escorrido, ovo cozido em quartos, azeitonas e folhas.'],
+ ['Temperar','Azeite e limão.']]);
+
+/* ================= PASSOS: ASIÁTICA ================= */
+P('salteado',[['Preparar','Corta tudo antes de acender o lume: um salteado não espera por ninguém.'],
+ ['Wok','Óleo bem quente, gengibre e alho, poucos segundos.',1],
+ ['Frango','Frango em lume muito forte, sem encher a wok, até dourar.',6],
+ ['Legumes','Legumes por ordem de dureza, e molho de soja no fim.',4]]);
+P('caril',[['Pasta','Refoga a pasta de caril no óleo até libertar o aroma.',2],
+ ['Leite de coco','Junta o leite de coco e deixa levantar fervura branda.',5],
+ ['Legumes','Legumes por ordem de dureza, a cozinhar no molho.',15]]);
+P('poke',[['Arroz','Arroz cozido e temperado com vinagre, açúcar e sal, arrefecido a abanar.',20],
+ ['Salmão','Salmão muito fresco em cubos, marinado em soja e sésamo.',15],
+ ['Montar','Arroz em baixo, salmão e legumes por cima, em setores.']]);
+P('padthai',[['Noodles','Noodles de arroz demolhados em água morna, não cozidos.',20],
+ ['Molho','Tamarindo, molho de peixe e açúcar dissolvidos.'],
+ ['Wok','Alho e camarão em lume forte, ovo batido de lado.',4],
+ ['Juntar','Noodles escorridos e molho, saltando sempre. Amendoim e lima no fim.',3]]);
+P('beefbroc',[['Marinar','Vaca em tiras finas com soja e amido — o amido é que a mantém tenra.',20],
+ ['Brócolos','Branqueados um minuto e escorridos.',1],
+ ['Wok','Carne em lume muito forte, em pequenas quantidades, e depois os brócolos com o molho.',6]]);
+P('noodles',[['Caldo','Caldo com gengibre, alho e soja, a apurar.',20],
+ ['Frango','Frango cozinhado no caldo e desfiado.',12],
+ ['Noodles','Noodles cozidos à parte e postos na taça, com o caldo a ferver por cima.',4]]);
+P('tofu',[['Prensar','Prensa o tofu entre panos com um peso — é a água que o impede de tostar.',30],
+ ['Selar','Cubos em lume forte, sem mexer muito, até dourarem.',8],
+ ['Teriyaki','Soja, mel e gengibre, a reduzir até envidraçar.',4]]);
+P('ramen',[['Caldo','Caldo com miso dissolvido FORA da fervura — a fervura mata os aromas do miso.'],
+ ['Ovo','Ovo a seis minutos e meio, arrefecido em gelo, marinado em soja.',7],
+ ['Montar','Noodles na taça, caldo quente, ovo ao meio e cebolinho.']]);
+P('tikka',[['Marinar','Frango em iogurte com especiarias, pelo menos quatro horas.',240],
+ ['Assar','Forno bem quente ou grelha, até tostar nas pontas.',15],
+ ['Molho','Tomate, natas e especiarias, a apurar; o frango junta-se no fim.',20]]);
+P('yakisoba',[['Legumes','Legumes em juliana, salteados em lume muito forte.',5],
+ ['Noodles','Noodles cozidos, juntos com o molho de yakisoba.',3]]);
+P('atumcouveflor',[['Arroz de couve-flor','Rala a couve-flor e salteia em lume forte, sem tapar, para não ficar aguada.',6],
+ ['Montar','Atum escorrido e legumes por cima.']]);
+P('congee',[['Cozer','Arroz com muita água, em lume mínimo, mexendo de vez em quando, até desfazer num creme.',60],
+ ['Servir','Ovo escalfado e cebolinho por cima, com um fio de óleo de sésamo.']]);
+P('tofumex',[['Esmagar','Esmaga o tofu com um garfo, como se fossem ovos mexidos.'],
+ ['Saltear','Cúrcuma, legumes e tofu em lume forte.',8]]);
+P('edamame',[['Cozer','Edamame em água a ferver com sal.',5],
+ ['Servir','Escorre e polvilha com flor de sal. Comem-se pela vagem.']]);
+P('pepinosesamo',[['Esmagar','Esmaga o pepino com a lâmina da faca antes de cortar — as arestas irregulares seguram melhor o molho.'],
+ ['Marinar','Soja, vinagre de arroz, alho e óleo de sésamo.',20],
+ ['Servir','Sementes de sésamo tostadas por cima.']]);
+P('bibimbap',[['Legumes','Cada legume salteado e temperado à parte, para manter a cor e o sabor próprios.',20],
+ ['Carne','Vaca marinada em soja e sésamo, salteada em lume forte.',5],
+ ['Montar','Arroz na taça, os legumes em setores, a carne ao centro e o ovo por cima. Mistura-se à mesa.']]);
+P('misotofu',[['Dashi','Aquece o caldo sem deixar ferver.'],
+ ['Miso','Dissolve o miso numa concha de caldo à parte e junta FORA da fervura.'],
+ ['Tofu','Tofu em cubos e cogumelos, só para aquecer.',3]]);
+P('frangocaju',[['Marinar','Frango em cubos com soja e amido.',20],
+ ['Wok','Lume muito forte, frango a dourar; pimento a seguir.',8],
+ ['Caju','Caju tostado no fim, para não amolecer.',2]]);
+P('saladarepolho',[['Cortar','Repolho em juliana muito fina.'],
+ ['Molho','Soja, lima, óleo de sésamo e um pouco de açúcar.'],
+ ['Juntar','Amendoim picado só à saída, para se manter estaladiço.']]);
+P('vgtofu',[['Prensar','Prensa o tofu para libertar a água.',30],
+ ['Grelhar','Fatias grelhadas até marcar dos dois lados.',8],
+ ['Legumes','Legumes salteados em lume forte, com molho de soja.',6]]);
+
+/* ================= PASSOS: MEXICANA ================= */
+P('tacospollo',[['Frango','Frango temperado com especiarias, grelhado e cortado em tiras.',12],
+ ['Salsa','Tomate, cebola, coentros e lima picados finos.'],
+ ['Montar','Tortilhas aquecidas em frigideira seca, frango e salsa.',3]]);
+P('chilicarne',[['Refogado','Cebola, alho e pimento no azeite.',8],
+ ['Carne','Carne a perder o vermelho, com cominhos e chili.',8],
+ ['Apurar','Tomate e feijão, em lume muito brando. Quanto mais tempo, melhor.',60]]);
+P('fajitas',[['Marinar','Vaca em tiras com lima, cominhos e alho.',30],
+ ['Selar','Frigideira muito quente, carne em pequenas quantidades.',5],
+ ['Legumes','Pimentos e cebola na mesma frigideira, ainda estaladiços.',5],
+ ['Servir','Tortilhas quentes à mesa, para cada um montar a sua.']]);
+P('enchiladas',[['Molho','Molho de tomate e chili, a apurar.',15],
+ ['Rechear','Frango desfiado enrolado nas tortilhas.'],
+ ['Gratinar','Num tabuleiro, cobertas de molho e queijo, forno a 200 °C.',20]]);
+P('sopaasteca',[['Caldo','Tomate assado e triturado, com caldo de galinha, a apurar.',20],
+ ['Tiras','Tiras de tortilha fritas ou assadas até estaladiças.',8],
+ ['Montar','Caldo na taça, frango desfiado, tiras por cima só na hora — senão amolecem.']]);
+P('ceviche',[['Cortar','Peixe muito fresco em cubos iguais.'],
+ ['Marinar','Sumo de lima a cobrir, com cebola roxa e sal. Quinze minutos: a lima «cozinha» o peixe, mas passado disso fica seco.',15],
+ ['Servir','Coentros e malagueta à saída, bem frio.']]);
+P('rancheros',[['Molho','Tomate, cebola, alho e chili, a apurar.',15],
+ ['Tortilhas','Tortilhas aquecidas na frigideira.',3],
+ ['Ovos','Ovos estrelados por cima da tortilha, e o molho à volta.',3]]);
+P('carnitas',[['Estufar','Porco em cubos em lume muito brando com laranja e especiarias, até desfazer.',90],
+ ['Tostar','Desfia e tosta na própria gordura, até as pontas ficarem crocantes.',6],
+ ['Salada','Repolho em juliana com lima e sal.']]);
+P('saladafeijaopreto',[['Juntar','Feijão preto escorrido, milho e abacate em cubos.'],
+ ['Temperar','Lima, azeite, coentros e sal; envolve com cuidado para o abacate não desfazer.']]);
+P('tacospeixe',[['Peixe','Peixe temperado, grelhado ou frito, em pedaços.',8],
+ ['Molho','Iogurte com lima, alho e um pouco de malagueta.'],
+ ['Montar','Tortilha quente, peixe, repolho e molho.']]);
+P('quesadilla',[['Legumes','Legumes salteados até perderem a água.',8],
+ ['Montar','Tortilha, queijo, legumes, queijo, e dobra.'],
+ ['Tostar','Frigideira seca, virando uma vez, até o queijo derreter.',6]]);
+P('picodegallo',[['Cortar','Tomate, cebola e coentros picados finos e iguais.'],
+ ['Temperar','Lima e sal; deixa repousar dez minutos.',10],
+ ['Servir','Tortilhas aquecidas ao lado.']]);
+P('esquites',[['Milho','Salteia o milho em lume forte até ganhar manchas tostadas.',8],
+ ['Temperar','Lima, queijo esmigalhado e chili em pó, fora do lume.']]);
+P('licuado',[['Triturar','Banana, aveia, leite e canela até ficar liso.',1]]);
+P('ketowrapalface',[['Carne','Carne picada salteada com especiarias, bem escorrida.',10],
+ ['Folhas','Folhas de alface inteiras, lavadas e secas, a fazer de tortilha.'],
+ ['Montar','Carne dentro da folha, com tomate e lima.']]);
+P('ketochili',[['Refogado','Cebola, alho e pimento.',8],
+ ['Carne','Carne com cominhos e chili, a perder o vermelho.',8],
+ ['Apurar','Tomate e caldo, a apurar em lume brando. Sem feijão.',40]]);
+
+/* ================= PASSOS: NORTE-AMERICANA ================= */
+P('hamburguer',[['Moldar','Carne fria, moldada sem apertar — apertada fica dura. Uma cova no centro impede que inche.'],
+ ['Temperar','Sal só na altura de ir para a grelha: antes, puxa a água.'],
+ ['Grelhar','Frigideira ou grelha muito quente, virando uma vez só.',8],
+ ['Repousar','Três minutos antes de montar.',3]]);
+P('bbqfrango',[['Marinar','Frango em molho barbecue, o tempo que houver.',120],
+ ['Assar','Forno a 190 °C, pincelando com o molho a cada dez minutos.',40],
+ ['Milho','Espigas cozidas ou grelhadas, com manteiga.',12]]);
+P('cobb',[['Componentes','Ovo cozido, bacon estaladiço, frango grelhado e abacate, tudo preparado à parte.',20],
+ ['Montar','Dispostos em filas sobre a alface, sem misturar — é essa a graça da Cobb.'],
+ ['Temperar','Vinagrete à parte, para cada um servir.']]);
+P('chowder',[['Bacon','Bacon a render a gordura numa panela funda.',6],
+ ['Refogado','Cebola e aipo na gordura do bacon.',8],
+ ['Cozer','Batata e milho com caldo, até a batata desfazer nas pontas.',20],
+ ['Acabar','Natas ou leite fora da fervura, para não talhar.']]);
+P('pulledpork',[['Temperar','Esfrega o porco com a mistura de especiarias, de véspera.',720],
+ ['Assar','Forno a 140 °C, tapado, muito devagar, até desfazer com um garfo.',300],
+ ['Desfiar','Desfia com dois garfos e envolve nos próprios sucos.'],
+ ['Salada','Repolho em juliana com vinagre e um pouco de maionese.']]);
+P('rolocarne',[['Massa','Carne com pão embebido em leite, ovo, cebola e ervas.'],
+ ['Moldar','Forma um rolo firme num tabuleiro.'],
+ ['Forno','Forno a 180 °C, pincelado com molho de tomate a meio.',50],
+ ['Puré','Puré de batata a acompanhar.',25]]);
+P('macandcheese',[['Massa','Coze a massa um minuto menos do que a embalagem diz.',8],
+ ['Molho','Manteiga, farinha e leite; queijo fora do lume, para não talhar.',10],
+ ['Brócolos','Brócolos branqueados envolvidos no fim.',4],
+ ['Gratinar','Forno a 200 °C até criar crosta.',18]]);
+P('asasforno',[['Secar','Seca muito bem as asas e deixa-as destapadas no frigorífico, se puderes: pele seca fica estaladiça.',60],
+ ['Assar','Forno a 200 °C sobre grelha, para o ar circular por baixo, virando a meio.',45],
+ ['Molho','Envolve no molho só no fim, para não amolecer a pele.']]);
+P('panquecasus',[['Massa','Mistura os secos e os líquidos separadamente e junta sem bater demais — grumos são bons.'],
+ ['Repousar','Deixa a massa repousar.',10],
+ ['Cozinhar','Frigideira em lume médio, virando quando aparecerem bolhas.',3]]);
+P('overnightoats',[['Misturar','Aveia, leite e manteiga de amendoim numa taça.'],
+ ['Frio','Frigorífico de um dia para o outro.',480],
+ ['Servir','Mexe e junta fruta.']]);
+P('bagelsalmao',[['Torrar','Bagel aberto e torrado.',3],
+ ['Montar','Queijo creme, salmão fumado, cebola roxa e alcaparras.'],
+ ['Temperar','Limão e pimenta.']]);
+P('caesar',[['Molho','Anchovas, alho, gema, mostarda e limão, com azeite em fio até emulsionar.'],
+ ['Croutons','Pão em cubos tostado no forno com azeite.',12],
+ ['Montar','Alface romana bem seca, frango grelhado, molho e parmesão em lascas.']]);
+P('chilibranco',[['Refogado','Cebola, alho e cominhos.',8],
+ ['Frango','Frango em cubos, selado.',8],
+ ['Apurar','Feijão branco e caldo, a apurar; parte do feijão triturado engrossa.',35]]);
+P('sandeperu',[['Montar','Pão, peru, abacate esmagado com limão, alface e tomate.'],
+ ['Fechar','Pimenta e um fio de azeite.']]);
+P('ketosaladabacon',[['Bacon','Bacon estaladiço, frigideira fria a lume médio.',6],
+ ['Montar','Frango grelhado, abacate e folhas.'],
+ ['Temperar','Azeite e limão, com o bacon partido por cima.']]);
+P('ketopanquecas',[['Massa','Farinha de amêndoa, ovos e um pouco de leite, batidos.'],
+ ['Cozinhar','Lume brando e panquecas pequenas — sem glúten, partem-se ao virar se forem grandes.',4]]);
+P('ketobrocolosbacon',[['Bacon','Bacon a render a gordura.',6],
+ ['Brócolos','Brócolos branqueados, salteados na gordura do bacon.',5],
+ ['Amêndoa','Amêndoa laminada tostada no fim.',2]]);
+
 
 /* ================= COMPOSIÇÃO DOS INGREDIENTES =================
    Valores por 100 g ou 100 ml de parte edível. A fonte principal é a Tabela
@@ -1847,6 +3153,38 @@ NI('Carapau',105,0,19.7,2.9,0,0,0);
 NI('Truta',92,0,17.8,2.3,0,0,0);
 NI('Anchovas',191,0,25.2,10,0,0,0);
 NI('Camarão',77,0.3,17.6,0.6,0,0,0);
+/* ---- Acrescentos para as receitas novas ----
+   INSA/PortFIR onde a tabela portuguesa os cobre; USDA FoodData Central nos
+   restantes, convertidos para a convenção europeia de hidratos disponíveis.
+   Os enchidos e as carnes de víscera vêm do INSA porque são pratos nossos e a
+   composição muda muito de país para país. */
+NI('Vaca, fígado cru',130,1.1,20.6,4.9,0,0,2);
+NI('Alheira',301,22.5,12.8,17.4,1.1,0,1);
+NI('Farinheira',433,12.4,9.6,38.9,0.6,0,1);
+NI('Porco, orelha cozida',234,0,19.4,17.4,0,0,2);
+NI('Toucinho fumado',541,0.6,9.1,55.6,0,0,2);
+NI('Nata para bater 35% gordura',337,2.9,2.1,35,0,0,3);
+NI('Leite condensado açucarado',331,55.4,8.2,8.7,0,0,3);
+NI('Bolacha Maria',419,76.4,7.5,9.5,2.3,0,10);
+NI('Café expresso',2,0.3,0.2,0,0,0,10);
+NI('Vinho do Porto',155,12,0.1,0,0,0,10);
+NI('Cerveja branca',42,3.6,0.4,0,0,0,10);
+NI('Gelatina em folhas',338,0,84.4,0.1,0,0,10);
+NI('Burrata',330,1.8,15.4,29.4,0,0,3);
+NI('Muffin inglês',235,44.4,8,1.8,2.7,0,4);
+NI('Polpa de tomate',32,4.4,1.5,0.3,1.2,0,6);
+NI('Morango',33,5.4,0.8,0.4,2,0,7);
+NI('Vinagre balsâmico',88,17,0.5,0,0,0,10);
+NI('Molho inglês',78,19.5,0,0,0,0,10);
+NI('Tinta de choco',52,0,10,1,0,0,10);
+NI('Colorau',282,34.9,14.1,12.9,34.9,0,10);
+NI('Molho piri-piri',40,4.8,1.6,1.2,1.5,0,10);
+NI('Camarão-tigre',85,0.2,20.1,0.5,0,0,0);
+NI('Bife do lombo de vaca',131,0,21.4,4.9,0,0,2);
+NI('Queijo da ilha',390,1.5,26.5,31,0,0,3);
+NI('Sal grosso',0,0,0,0,0,0,10);
+NI('Raspa de limão',47,9.3,1.5,0.3,10.6,0,7);
+NI('Raspa de lima',30,10.5,0.7,0.2,2.8,0,7);
 NI('Amêijoas',65,2.6,11.7,0.9,0,0,0);
 NI('Mexilhões',70,2,12.1,1.5,0,0,0);
 NI('Lulas',71,0,15.8,0.9,0,0,0);
@@ -2826,7 +4164,7 @@ function blank(){ return {members:[],cheats:{},plans:{},bought:{},prefCuisine:'t
       densidade:'folgado', sazonal:false, anim:true, folha:null, mercado:false, modal:null,
       cozinha:null, precos:false, soEpoca:false, convAberto:null,
       mercVista:'compras', capaAberta:false, fecho:null, passosFeitos:false,
-      pesqAberta:false, pesqQ:'', semPalpite:[]},
+      pesqAberta:false, pesqQ:'', semPalpite:[], ficha:null, catF:''},
   week:mondayISO(new Date()),
   meta:{gravadoEm:null,exportadoEm:null,semCopia:false,avisarAoSair:true,desdeRegisto:null}}; }
 let S = load();
@@ -3724,6 +5062,8 @@ const DICAS={
   editorReceitas:'Escreve os ingredientes e o número de doses que a receita rende: os macros por dose são calculados a partir da composição de cada ingrediente, e as etiquetas de dieta saem dos números e do que a receita leva dentro. Só entram ingredientes do catálogo — é isso que faz a receita falar com a despensa e com a lista de compras.',
   fecho:'Um ritual curto de domingo, em cinco passos: resolver o que ficou por confirmar, olhar a semana em números, escolher o jantar especial da próxima, preencher o plano com sugestões que servem a casa, e escrever uma frase no caderno. Fica assinado com o avatar de quem fechou — o hábito passa a ser da casa, não só de quem trata da app.',
   festas:'Os aniversários saem das datas de nascimento dos perfis. Aqui juntam-se as outras datas da casa — Santo António, o aniversário de casamento, o dia da mudança. Nesses dias o cartão «Hoje» amanhece com enfeites, mostra os pratos que a pessoa mais comeu no ano e propõe marcar dia livre: uma festa deixa de ser uma falha ao plano e passa a fazer parte dele.',
+  passosDerivados:'Os passos escritos à mão ganham sempre. Quando uma receita ainda não os tem, a app deriva-os dos ingredientes e do género do prato — e diz que os derivou, em vez de os fazer passar por receita de livro. Servem de guia, não de autoridade.',
+  categorias:'O lugar de uma receita na mesa, que é uma pergunta diferente de «em que refeição encaixa»: uma entrada e um prato principal cabem os dois ao jantar, e uma sobremesa também. Quando a receita não declara a categoria, ela deriva-se do que já se sabe — pequeno-almoço é brunch, lanche é snack, almoço ou jantar é prato principal.',
   cozPref:'Cinco escolhas que mudam o que a app sugere e o que a lista de compras conta. «Repetir receitas» faz o preenchimento automático repetir pratos em vez de os evitar; «cozinhar em dobro» faz a primeira vez render duas refeições, e a segunda passa a «aquecer» sem voltar à lista de compras; «só ingredientes de época» prefere o que está na época em Portugal; «preparar de véspera» dá vantagem às receitas que aproveitam uma preparação já planeada; e o cartão de receita da época pode desligar-se.',
   dobro:'Cozinhar a dobrar dá para dois dias. Dobra o PRATO — as quantidades dele sobem já na lista de compras, e o dia que só aquece não volta a comprá-lo. Os acompanhamentos ficam de fora da conta porque se fazem frescos em cada dia: ninguém reaquece uma salada. O prazo de guardar e a forma de reaquecer vêm por baixo, e são diferentes de prato para prato.',
   foodprep:'Preparação de ingredientes, não pratos feitos: descascar, picar, demolhar, lavar, marinar, porcionar. Cada tarefa diz que dias serve e quanto tempo leva, com as quantidades já somadas de toda a semana. Enquanto estiver ligado, as receitas que aproveitam uma preparação já planeada têm vantagem nas sugestões — é assim que uma tarde de domingo poupa cinco jantares à pressa.',
@@ -3843,6 +5183,7 @@ document.addEventListener('keydown',e=>{
   /* o que está por cima fecha primeiro */
   if(S.ui.pesqAberta){ fecharPesquisa(); return; }
   if(S.ui.cozinha){ fecharCozinha(); return; }
+  if(fichaAberta()){ fecharFicha(); return; }
   if(S.ui.mercado){ fecharMercado(); return; }
   if(folhaMesa()){ fecharFolha(); return; }
   if(modalAberto()){ fecharModal(); return; }
@@ -4449,13 +5790,87 @@ function membrosVirtuais(meal){
     objetivoPct:0, restricoes:(c.al||[]).slice(), convidado:true}));
 }
 
+/* ================= A FICHA DA RECEITA =================
+   Tocar numa receita abre-a por inteiro: os passos de preparação, as
+   quantidades já escaladas, os macros, os alergénios de quem cá vive e como se
+   guarda o que sobrar. É o sítio de onde se parte para a bancada. */
+function fichaAberta(){ return S.ui.ficha&&typeof S.ui.ficha==='object'? S.ui.ficha : null; }
+function abrirFicha(rid,n){
+  const r=RECIPES.find(x=>x.id===rid); if(!r) return;
+  S.ui.ficha={r:rid, n:clampNum(n||porcoesAtuais()||1,1,20)};
+  saveMeta(); render();
+}
+function fecharFicha(){ S.ui.ficha=null; saveMeta(); render(); }
+function setFichaDoses(v){ const f=fichaAberta(); if(!f) return;
+  f.n=clampNum(Math.round(parseFloat(v)||1),1,20); saveMeta(); render(); }
+function fichaHtml(f){
+  const r=RECIPES.find(x=>x.id===f.r); if(!r) return '';
+  const passos=passosDaReceita(r,f.n), escritos=temPassosEscritos(r);
+  const ing=escalaIngredientes(r,f.n);
+  const disp=disponibilidadeReceita(r);
+  const c=conservacaoDe(r), custo=custoReceita(r,f.n);
+  const daEp=ingredientesDaEpoca(r);
+  return `<div class="mfundo" onclick="fundoFicha(event)" style="align-items:flex-start;padding:4vh 12px">
+    <div class="mcaixa ficha" role="dialog" aria-modal="true" aria-labelledby="fi-t">
+      <div class="row" style="justify-content:space-between;align-items:flex-start;gap:10px">
+        <div style="min-width:0">
+          <h2 id="fi-t" style="margin:0">${esc(r.n)}</h2>
+          <div style="margin-top:4px"><span class="tag">${ICO_COZ[r.coz]||''} ${cozinhasDe(r).map(k=>CUIS[k]).join(' · ')}</span>${
+            selosCategoria(r)}${seloGenero(r)}${daEp.length? '<span class="tag epoca">🌱 da época</span>':''}</div>
+        </div>
+        <button class="btn ghost small" style="flex:none" onclick="fecharFicha()">✕</button>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <div class="stat"><b>${r.k*f.n}</b><span>kcal ${f.n>1?'total':''}</span></div>
+        <div class="stat"><b style="color:var(--mc)">${r.c*f.n} g</b><span>Hidratos</span></div>
+        <div class="stat"><b style="color:var(--mp)">${r.p*f.n} g</b><span>Proteína</span></div>
+        <div class="stat"><b style="color:var(--mf)">${r.f*f.n} g</b><span>Gordura</span></div>
+        ${custo.com? `<div class="stat"><b>${nPT(custo.total,2)} €</b><span>Custo${custo.sem?'*':''}</span></div>`:''}
+      </div>
+      ${avisoAlergia(r,S.members)}
+      <div class="row" style="margin-top:12px;align-items:center">
+        <span class="lbl" style="margin:0">Doses</span>
+        ${[1,2,3,4,6].map(x=>`<button class="chip ${f.n===x?'on':''}" onclick="setFichaDoses(${x})">${x}</button>`).join('')}
+        <span class="pill ${disp.pronta?'ok':disp.tem?'warn':''}" style="margin-left:auto">${
+          disp.pronta?'Pronta a cozinhar':disp.tem+'/'+disp.total+' na despensa'}</span>
+      </div>
+      <h3 style="margin-top:14px">Ingredientes</h3>
+      <div class="ingr-lista">${listaIngredientesComEstado(r,f.n)}</div>
+      <h3 style="margin-top:16px">Preparação ${escritos?'':dica('passosDerivados')}</h3>
+      ${escritos? '' : `<p class="sub">Esta receita ainda não tem passos escritos: os que se seguem são <b>derivados dos ingredientes e do género do prato</b>, para servirem de guia. Não são uma receita de livro, e a app diz isso em vez de fingir que são.</p>`}
+      <ol class="passos">${passos.map((p,i)=>`<li>
+        <b>${esc(p.t)}</b>${p.min? ` <button class="chip" style="padding:1px 9px"
+          onclick="novoTemporizador('${esc(p.t).replace(/'/g,'&#39;')}',${p.min})">⏲ ${p.min} min</button>`:''}
+        <span style="display:block">${esc(p.d)}</span></li>`).join('')}</ol>
+      <h3 style="margin-top:16px">Guardar e reaquecer</h3>
+      <p class="sub">${esc(textoConservacao(r))}</p>
+      <p class="sub" style="margin-top:4px"><i>Prazos genéricos e conservadores para sobras refrigeradas a 4 °C ou menos. Não substituem o cheiro, o aspeto e o bom senso.</i></p>
+      <div class="row" style="margin-top:16px;justify-content:space-between">
+        <button class="btn ghost small" onclick="fecharFicha()">Fechar</button>
+        <div class="row">
+          ${r.u? `<button class="btn ghost small" onclick="fecharFicha();abrirEditor('${r.id}')">✏️ Editar</button>`
+                : `<button class="btn ghost small" onclick="fecharFicha();abrirEditor('${r.id}')">✏️ Copiar para editar</button>`}
+          <button class="btn" onclick="fecharFicha();abrirCozinha('${r.id}',${f.n})">👨‍🍳 Cozinhar agora</button>
+        </div>
+      </div>
+    </div></div>`;
+}
+function fundoFicha(e){ if(e&&e.target&&e.target.classList.contains('mfundo')) fecharFicha(); }
+
 /* ================= MODO COZINHA =================
    O momento em que a app está mesmo na bancada: mãos ocupadas, telemóvel
    apoiado no escorredor. Um passo por vista, em letra grande, quantidades já
    escaladas aos comensais, e o ecrã que não se apaga a meio do refogado. */
+/* Os passos escritos à mão ganham sempre ao motor de derivação. Quando não os
+   há, deriva-se — e diz-se que se derivou, em vez de fazer passar por receita
+   de livro o que é uma sugestão a partir dos ingredientes. */
+function temPassosEscritos(r){ return !!(r && PASSOS[r.id] && PASSOS[r.id].length); }
 function passosDaReceita(r,n){
-  /* a biblioteca não traz instruções escritas; os passos derivam-se dos
-     ingredientes e do género do prato, e dizem-se como quem dita a alguém */
+  if(temPassosEscritos(r)) return PASSOS[r.id].map(p=>({t:p[0], d:p[1], min:p[2]||0}));
+  return passosDerivados(r,n);
+}
+function passosDerivados(r,n){
+  /* sem passos escritos, derivam-se dos ingredientes e do género do prato */
   const ing=escalaIngredientes(r,n);
   const passos=[];
   passos.push({t:'Reunir', d:'Põe tudo à mão antes de acender o lume: '+ing.map(x=>esc(x.n)+' '+fmtQtd(x.q,x.u)).join(', ')+'.'});
@@ -7317,6 +8732,7 @@ function setBusca(v,el){
 function setMealF(v){ S.ui.mealF=(v==='todas'||v==='ac'||MEALK.indexOf(v)>=0)? v:'todas'; S.ui.recLimite=LOTE_RECEITAS; saveMeta(); render(); }
 function toggleComp(){ S.ui.soComp=!S.ui.soComp; saveMeta(); render(); }
 function toggleEpoca(){ S.ui.soEpoca=!S.ui.soEpoca; S.ui.recLimite=LOTE_RECEITAS; saveMeta(); render(); }
+function setCatF(k){ S.ui.catF=temChave(CATEG,k)? k:''; S.ui.recLimite=LOTE_RECEITAS; saveMeta(); render(); }
 
 function macroBar(pct){ return `<div class="mbar">
     <div id="nu-bar-c" style="width:${pct.c}%;background:var(--mc)"></div>
@@ -7624,10 +9040,13 @@ function recipeCard(r,n){
     return {m, itens:ingredientesVetados(r,m).filter(x=>al.indexOf(x)<0)};
   }).filter(x=>x.itens.length);
   const disp=disponibilidadeReceita(r);
-  return `<div class="rc" data-rid="${r.id}">
+  return `<div class="rc rc-tocavel" data-rid="${r.id}" role="button" tabindex="0"
+      aria-label="Abrir a ficha de ${esc(r.n)}, com os passos de preparação"
+      onclick="if(!event.target.closest('button,select,a,summary,details')) abrirFicha('${r.id}',${n||1})"
+      onkeydown="if((event.key==='Enter'||event.key===' ')&&!event.target.closest('button,select,a,summary,details')){event.preventDefault();abrirFicha('${r.id}',${n||1});}">
     <div class="row" style="justify-content:space-between"><h3>${esc(r.n)}</h3><span class="kcal">${r.k} kcal</span></div>
     <div><span class="tag" style="border-color:var(--accent);color:var(--accent)">${r.mt.map(nomeRefeicao).join(' / ')}</span>
-      <span class="tag">${ICO_COZ[r.coz]||''} ${CUIS[r.coz]}</span>${r.dc.filter(d=>d!==r.coz).map(d=>`<span class="tag">${DIETS[d].n}</span>`).join('')}${selosEpoca(r)}${seloGenero(r)}${seloSaborNovo(r,S.members)}</div>
+      <span class="tag">${ICO_COZ[r.coz]||''} ${cozinhasDe(r).map(k=>CUIS[k]).join(' · ')}</span>${selosCategoria(r)}${r.dc.filter(d=>d!==r.coz).map(d=>`<span class="tag">${DIETS[d].n}</span>`).join('')}${selosEpoca(r)}${seloGenero(r)}${seloSaborNovo(r,S.members)}</div>
     <div class="sub" style="font-variant-numeric:tabular-nums">H ${r.c} g · P ${r.p} g · G ${r.f} g${
       (function(){ const c=custoReceita(r,n||1); return c.com? ' · ~'+nPT(c.total,2)+' €'+(c.sem?'*':'') : ''; })()}</div>
     <span class="pill ${disp.pronta?'ok':disp.tem?'warn':''}" style="align-self:flex-start">${disp.pronta?'Pronta a cozinhar':disp.tem+'/'+disp.total+' na despensa'}</span>
@@ -8651,12 +10070,15 @@ function renderReceitas(){
   const m = S.members.length? curM() : null;
   /* «Todas as refeições» mostra os pratos; os acompanhamentos têm filtro
      próprio, para não se misturarem com o que é uma refeição a sério. */
-  let list=RECIPES.filter(r=> (S.ui.cuis==='todas'||r.coz===S.ui.cuis)
+  /* o filtro de cozinha usa TODAS as cozinhas da receita: um melão com
+     presunto é português e espanhol, e tem de aparecer nas duas listas */
+  let list=RECIPES.filter(r=> (S.ui.cuis==='todas'||ehDaCozinha(r,S.ui.cuis))
     && (S.ui.mealF==='todas'? !ehAcompanhamento(r) : r.mt.indexOf(S.ui.mealF)>=0));
   if(S.ui.dietaF!=='todas' && temChave(DIETS,S.ui.dietaF)) list=list.filter(r=>compat(r,S.ui.dietaF));
   if(S.ui.alergF && ehAlergenio(S.ui.alergF)) list=list.filter(r=>r.at.indexOf(S.ui.alergF)<0);
   if(S.ui.soComp && m) list=list.filter(r=>compat(r,chaveDieta(m))&&!ingredientesVetados(r,m).length);
   if(S.ui.soEpoca) list=list.filter(receitaDaEpoca);
+  if(S.ui.catF && temChave(CATEG,S.ui.catF)) list=list.filter(r=>temCategoria(r,S.ui.catF));
   const q=semAcentos(S.ui.busca||'').trim();
   if(q) list=list.filter(r=>correspondeBusca(r,q));
   const fam=S.members.length? RECIPES.filter(r=>compatAll(r,S.members)) : [];
@@ -8697,6 +10119,12 @@ function renderReceitas(){
     <button class="chip ${S.ui.mealF==='ac'?'on':''}" onclick="setMealF('ac')">${ICO_REF.ac} Acompanhamentos</button>
     <button class="chip ${S.ui.soEpoca?'on':''}" onclick="toggleEpoca()" aria-pressed="${!!S.ui.soEpoca}"
       title="Receitas com pelo menos um ingrediente na época em Portugal, este mês">🌱 Da época agora</button>
+  </div>
+  <div class="row" style="margin-bottom:12px">
+    <span class="lbl" style="margin:0">Categoria ${dica('categorias')}</span>
+    <button class="chip ${!S.ui.catF?'on':''}" onclick="setCatF('')">Todas</button>
+    ${CATEG_K.map(k=>`<button class="chip ${S.ui.catF===k?'on':''}" onclick="setCatF('${k}')"
+      aria-pressed="${S.ui.catF===k}">${CATEG[k].i} ${CATEG[k].n}</button>`).join('')}
   </div>
   ${list.length? `<div class="grid g3" id="rec-grelha">${mostradas.map(r=>recipeCard(r,n)).join('')}</div>
       ${list.length>mostradas.length? `<div class="row" style="justify-content:center;margin-top:16px">
@@ -11445,8 +12873,10 @@ function pintaModal(){
   let cx=document.getElementById('modal-raiz');
   if(!cx){ cx=document.createElement('div'); cx.id='modal-raiz'; document.body.appendChild(cx); }
   const mo=modalAberto(), fo=folhaMesa();
+  const fi=fichaAberta();
   cx.innerHTML = S.ui.pesqAberta? pesquisaHtml()
     : S.ui.cozinha? cozinhaHtml()
+    : fi? fichaHtml(fi)
     : S.ui.mercado? mercadoHtml()
     : mo? (mo.tipo==='peso'? modalPesoHtml(mo) : mo.tipo==='compras'? modalComprasHtml(mo) : '')
     : fo? (fo.tipo==='mesa'? folhaMesaHtml(fo) : fo.tipo==='registo'? folhaRegistoHtml()
@@ -11457,7 +12887,7 @@ function pintaModal(){
   /* o botão de registo vive fora do #main, para não piscar a cada redesenho
      de separador — mas some quando há uma folha ou um diálogo por cima */
   let fab=document.getElementById('fab-registo');
-  const querFab=S.members.length && !mo && !fo && !S.ui.mercado && !S.ui.cozinha && !S.ui.pesqAberta && !tourAtivo()
+  const querFab=S.members.length && !mo && !fo && !fi && !S.ui.mercado && !S.ui.cozinha && !S.ui.pesqAberta && !tourAtivo()
     && ['familia','atividade','nutricao','plano'].indexOf(S.ui.tab)>=0;
   if(querFab){
     if(!fab){ fab=document.createElement('button'); fab.id='fab-registo'; fab.className='fab';
