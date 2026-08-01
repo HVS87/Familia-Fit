@@ -128,6 +128,184 @@ html[data-paleta="tinta"][data-modo="escuro"]{
   --accent:#E4E4E4; --accent-soft:#2E2E2E; --energy:#B0B0B0; --energy-soft:#282828;
   --party:#9A9A9A; --party-soft:#262626; --mc:#9A9A9A; --mp:#E4E4E4; --mf:#B0B0B0;
 }
+/* --- Contraste: para quem vê mal ou vê pouca cor. Todos os pares de texto
+       chegam a 7:1 (AAA), o traço dos ícones engrossa e as séries dos
+       gráficos passam a distinguir-se por padrão, não só por cor. --- */
+html[data-paleta="contraste"]{
+  --bg:#FFFFFF; --card:#FFFFFF; --ink:#000000; --mut:#3A3A3A; --line:#6E6E6E;
+  --accent:#0033A0; --accent-soft:#DCE4F7; --energy:#7A2E00; --energy-soft:#F6E6DC;
+  --party:#6B004B; --party-soft:#F7DFEF;
+  --ok:#00552B; --warn:#5F4200; --bad:#960000;
+  --mc:#5F4200; --mp:#0033A0; --mf:#6B004B;
+  --on-accent:#FFFFFF; --shadow:0 0 0 1px #6E6E6E;
+}
+html[data-paleta="contraste"][data-modo="escuro"]{
+  --bg:#000000; --card:#0E0E0E; --ink:#FFFFFF; --mut:#CFCFCF; --line:#7A7A7A;
+  --accent:#9CC4FF; --accent-soft:#141F31; --energy:#FFB870; --energy-soft:#2B1E12;
+  --party:#FFA5C8; --party-soft:#2E1520;
+  --ok:#71E8A4; --warn:#FFD75E; --bad:#FF9E8E;
+  --mc:#FFD75E; --mp:#9CC4FF; --mf:#FFA5C8;
+  --on-accent:#000000; --shadow:0 0 0 1px #7A7A7A;
+}
+html[data-paleta="contraste"] .ico,
+html[data-paleta="contraste"] .svgfx{ stroke-width:2.4 }
+html[data-paleta="contraste"] :focus-visible{outline-width:3px}
+html[data-paleta="contraste"] .btn,
+html[data-paleta="contraste"] .chip{min-height:44px}
+
+/* ===== DENSIDADE =====
+   No primeiro mês os espaços ensinam; ao sexto atrapalham. «Cerrado» aperta
+   por variáveis e por umas quantas regras, sem tocar nos alvos de toque da
+   barra do polegar — só o conteúdo compacta. */
+html[data-densidade="cerrado"]{ --r:11px; --r-sm:8px }
+html[data-densidade="cerrado"] body{font-size:14px;line-height:1.45}
+html[data-densidade="cerrado"] .card{padding:12px 14px}
+html[data-densidade="cerrado"] h2{font-size:18.5px}
+html[data-densidade="cerrado"] h3{font-size:15px}
+html[data-densidade="cerrado"] .stat{padding:6px 9px;min-width:82px}
+html[data-densidade="cerrado"] .stat b{font-size:19px}
+html[data-densidade="cerrado"] .card--capa .stat b{font-size:21px}
+html[data-densidade="cerrado"] .reg-linha{padding:4px 0}
+html[data-densidade="cerrado"] .val-item{padding:7px 9px;margin-top:6px}
+html[data-densidade="cerrado"] .fita-dia{margin-bottom:9px}
+html[data-densidade="cerrado"] .meal{padding:8px 10px}
+html[data-densidade="cerrado"] .spline{padding:10px 12px}
+
+/* ===== LÁPIS E TINTA =====
+   O princípio que organiza os dados desta app — plano é intenção, registo é
+   realidade — passa a ler-se sem uma palavra: o que está só planeado desenha-
+   se a lápis sobre papel quadriculado; o que foi confirmado passa a tinta. */
+.a-lapis{border-style:dashed !important;
+  background-image:
+    repeating-linear-gradient(0deg, color-mix(in srgb,var(--line) 55%,transparent) 0 1px, transparent 1px 13px),
+    repeating-linear-gradient(90deg, color-mix(in srgb,var(--line) 55%,transparent) 0 1px, transparent 1px 13px);
+  background-size:13px 13px}
+.a-lapis .mtitle{color:var(--mut)}
+.a-tinta{border-style:solid;border-color:color-mix(in srgb,var(--ink) 26%,var(--line));
+  background-image:none}
+.a-tinta .mtitle{color:var(--ink)}
+.a-tinta .kcal, .a-tinta .reg-k{font-family:var(--fonte-display)}
+@supports not (background:color-mix(in srgb,red 50%,blue)){
+  .a-lapis{background-image:none}
+  .a-tinta{border-color:var(--ink)}
+}
+/* Fita-cola no canto das receitas da casa: um caderno tem coisas coladas. */
+.fita-cola{position:absolute;top:-7px;right:14px;width:44px;height:16px;pointer-events:none;
+  background:color-mix(in srgb,var(--energy) 22%,transparent);
+  border-left:1px solid color-mix(in srgb,var(--energy) 34%,transparent);
+  border-right:1px solid color-mix(in srgb,var(--energy) 34%,transparent);
+  transform:rotate(-2deg)}
+
+/* ===== O CARIMBO =====
+   Validar é o gesto mais repetido: ganha meio segundo de tinta a assentar. */
+.carimbo{display:inline-flex;align-items:center;justify-content:center;flex:none;
+  width:26px;height:26px;color:var(--ok);transform:rotate(-7deg)}
+.carimbo svg{width:100%;height:100%}
+.carimbo.falhou{color:var(--bad)} .carimbo.adiado{color:var(--warn)}
+@media (prefers-reduced-motion: no-preference){
+  .carimbo-novo svg path{stroke-dasharray:40;stroke-dashoffset:40;animation:carimbar .34s ease-out forwards}
+  .carimbo-novo{animation:assentar .34s ease-out}
+  @keyframes carimbar{ to{ stroke-dashoffset:0 } }
+  @keyframes assentar{ from{ transform:rotate(-7deg) scale(1.5); opacity:.2 } }
+}
+
+/* ===== VIRAR DE FOLHA ===== */
+@media (prefers-reduced-motion: no-preference){
+  html[data-anim="on"] main.vira-frente{animation:folha-frente .18s ease-out}
+  html[data-anim="on"] main.vira-tras{animation:folha-tras .18s ease-out}
+  @keyframes folha-frente{ from{ opacity:.35; transform:translateX(14px) } }
+  @keyframes folha-tras{ from{ opacity:.35; transform:translateX(-14px) } }
+}
+
+/* ===== MESA CHEIA ===== */
+.mesa-cheia{display:inline-flex;align-items:center;gap:6px;color:var(--mut);font-size:12px}
+.mesa-cheia svg{width:30px;height:22px;flex:none}
+.mesas-semana{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.mesa-dia{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10.5px;color:var(--mut)}
+.mesa-dia svg{width:34px;height:24px}
+
+/* ===== PROSA EDITORIAL ===== */
+.capitular::first-letter{font-family:var(--fonte-display);font-size:3.1em;line-height:.84;
+  float:left;margin:2px 8px 0 0;color:var(--accent);font-weight:700}
+.spark{display:inline-block;vertical-align:-0.15em;width:34px;height:12px;margin:0 2px}
+.ornamento{display:block;margin:10px auto 0;width:96px;height:14px;color:var(--sazonal,var(--accent));opacity:.85}
+
+/* ===== CARIMBOS DE CONQUISTA ===== */
+.selo{position:relative;display:inline-flex;align-items:center;justify-content:center;
+  width:76px;height:76px;flex:none;color:var(--party);transform:rotate(-6deg)}
+.selo svg{width:100%;height:100%}
+.selo-txt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;font-family:var(--fonte-display);font-weight:700;font-size:11px;
+  line-height:1.1;text-align:center;padding:0 10px;color:var(--party)}
+.selo-txt small{font-size:8.5px;font-weight:600;letter-spacing:.04em;opacity:.9}
+
+/* ===== BALANÇA ===== */
+.balanca{width:100%;max-width:320px;height:118px;display:block;margin:6px auto 0}
+
+/* ===== FOLHA INFERIOR =====
+   A folha de mesa e o registo rápido vivem colados ao polegar, não no meio do
+   ecrã: é com o telemóvel numa mão e a travessa na outra que se usam. */
+.folha{position:fixed;inset:auto 0 0 0;z-index:62;background:var(--card);
+  border-top:1px solid var(--line);border-radius:var(--r) var(--r) 0 0;box-shadow:var(--elev);
+  padding:16px 18px calc(18px + env(safe-area-inset-bottom));max-height:82vh;overflow:auto;
+  max-width:560px;margin:0 auto}
+.folha-pega{width:38px;height:4px;border-radius:2px;background:var(--line);margin:-6px auto 12px}
+@media (prefers-reduced-motion: no-preference){
+  .folha{animation:folha-sobe .2s ease-out}
+  @keyframes folha-sobe{ from{ transform:translateY(24px); opacity:0 } }
+}
+/* Lugares à mesa: um por comensal, do tamanho de um dedo. */
+.lugares{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.lugar{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:64px;min-height:76px;
+  border:1px solid var(--line);border-radius:var(--r-sm);background:var(--bg);cursor:pointer;
+  padding:8px 6px;font:600 12px/1.2 var(--fonte-ui);color:var(--mut)}
+.lugar.on{border-color:var(--accent);background:var(--accent-soft);color:var(--ink)}
+.lugar .lg-vst{height:14px;color:var(--ok)}
+.lugar.off .lg-vst{visibility:hidden}
+
+/* ===== BOTÃO DE REGISTO SEMPRE À MÃO ===== */
+.fab{position:fixed;right:max(14px,env(safe-area-inset-right));z-index:39;
+  bottom:calc(20px + env(safe-area-inset-bottom));
+  background:var(--accent);color:var(--on-accent);border:none;border-radius:999px;
+  min-height:52px;padding:0 20px;font:700 15px/1 var(--fonte-ui);cursor:pointer;
+  box-shadow:0 4px 14px rgba(0,0,0,.22);display:inline-flex;align-items:center;gap:8px}
+html[data-dispositivo="telefone"][data-orient="retrato"] .fab{bottom:calc(84px + env(safe-area-inset-bottom))}
+.fab:hover{filter:brightness(1.06)}
+
+/* ===== MODO SUPERMERCADO ===== */
+.mercado{position:fixed;inset:0;z-index:64;background:var(--bg);overflow:auto;
+  padding:0 0 calc(24px + env(safe-area-inset-bottom))}
+.mercado-topo{position:sticky;top:0;z-index:2;background:var(--card);border-bottom:1px solid var(--line);
+  padding:12px 16px calc(12px);display:flex;align-items:center;gap:10px}
+.mercado-sec{position:sticky;top:56px;z-index:1;background:var(--bg);padding:12px 16px 6px;
+  font:700 13px/1 var(--fonte-ui);letter-spacing:.06em;text-transform:uppercase;color:var(--mut)}
+.mercado ul{list-style:none;padding:0 12px;margin:0}
+.mercado li{margin:0 0 6px}
+.mercado label{display:flex;align-items:center;gap:14px;width:100%;min-height:60px;padding:10px 14px;
+  border:1px solid var(--line);border-radius:var(--r-sm);background:var(--card);cursor:pointer;font-size:17px}
+.mercado li.done label{background:var(--bg);color:var(--mut);text-decoration:line-through;
+  text-decoration-color:var(--ok);text-decoration-thickness:2px}
+.mercado input[type=checkbox]{width:26px;height:26px;flex:none;accent-color:var(--accent)}
+.mercado .q{margin-left:auto;font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;font-size:14px;flex:none}
+
+/* ===== DESLIZAR PARA VALIDAR ===== */
+.desliza{position:relative;touch-action:pan-y}
+.desliza-fundo{position:absolute;inset:0;border-radius:var(--r-sm);display:flex;align-items:center;
+  padding:0 16px;font-weight:700;font-size:13px;pointer-events:none;opacity:0}
+.desliza-fundo.sim{background:color-mix(in srgb,var(--ok) 22%,var(--card));color:var(--ok);justify-content:flex-start}
+.desliza-fundo.nao{background:color-mix(in srgb,var(--warn) 22%,var(--card));color:var(--warn);justify-content:flex-end}
+.desliza-corpo{position:relative;background:var(--bg);border-radius:var(--r-sm)}
+@media (prefers-reduced-motion: no-preference){ .desliza-corpo.volta{transition:transform .16s ease-out} }
+
+/* ===== CRACHÁS DE PENDENTES ===== */
+nav button{position:relative}
+.cracha{position:absolute;top:4px;right:8px;min-width:17px;height:17px;border-radius:999px;
+  background:var(--accent);color:var(--on-accent);font:700 10.5px/17px var(--fonte-ui);
+  text-align:center;padding:0 4px;pointer-events:none}
+html[data-dispositivo="telefone"][data-orient="retrato"] .cracha{top:2px;right:calc(50% - 22px)}
+nav button.on .cracha{background:var(--on-accent);color:var(--accent)}
+
+/* Caixa de diálogo: só para o que a app precisa mesmo de perguntar ao entrar —
 *{box-sizing:border-box;margin:0}
 /* overflow-x:clip (e não hidden) impede que uma bolha de explicação ponha a
    página a deslizar na horizontal, sem criar um contentor de scroll — o
@@ -2507,7 +2685,8 @@ function blank(){ return {members:[],cheats:{},plans:{},bought:{},prefCuisine:'t
       recLimite:48, recTodas:false,
       sug:{membros:null,ref:'a',teto:true,cuis:'todas',verFora:false}, porcoes:null,
       histAtiv:null, histRef:null, janelaPeso:'mes', linhasPeso:{ativ:false,kcal:false},
-      formAtiv:null, formRef:null, medForm:null, comprasConf:null},
+      formAtiv:null, formRef:null, medForm:null, comprasConf:null,
+      densidade:'folgado', sazonal:false, anim:true, folha:null, mercado:false, modal:null},
   week:mondayISO(new Date()),
   meta:{gravadoEm:null,exportadoEm:null,semCopia:false,avisarAoSair:true,desdeRegisto:null}}; }
 let S = load();
@@ -3395,6 +3574,10 @@ const DICAS={
   alergias:'As catorze categorias de declaração obrigatória do anexo II do Regulamento (UE) n.º 1169/2011 — a lista que se aplica em Portugal, fiscalizada pela ASAE e com a DGAV como autoridade competente. Uma receita com um ingrediente destes deixa de ser sugerida a quem o tem marcado, e fica assinalada a vermelho onde apareça. Nota: os frutos de casca rija são uma lista fechada de oito, onde a castanha portuguesa e o pinhão não entram; o amendoim é categoria à parte, por ser leguminosa. Isto ajuda a planear e não substitui ler o rótulo nem perguntar num restaurante.',
   porcoes:'As receitas estão escritas para uma pessoa. Este número multiplica as quantidades de todos os ingredientes — é o que se leva para a cozinha.',
   editorReceitas:'Escreve os ingredientes e o número de doses que a receita rende: os macros por dose são calculados a partir da composição de cada ingrediente, e as etiquetas de dieta saem dos números e do que a receita leva dentro. Só entram ingredientes do catálogo — é isso que faz a receita falar com a despensa e com a lista de compras.',
+  mesaCheia:'Uma refeição conta como «mesa cheia» quando toda a gente que estava prevista para ela confirmou que comeu. Não é uma pontuação: é o retrato de um hábito que os macros e as calorias escondem — comer juntos.',
+  balanca:'Num prato o défice que veio da mesa, no outro o gasto que veio do movimento, nos últimos catorze dias com registo. O braço inclina com o que ficou REGISTADO, não com o que o plano previa — e sem registos suficientes a balança aparece pousada, porque um desenho não pode afirmar um equilíbrio que os dados não sustentam.',
+  densidade:'«Folgado» é o espaçamento de sempre, bom para aprender. «Cerrado» aperta o conteúdo para caber mais no ecrã, sem nunca encolher os alvos de toque da barra do polegar — serve a quem já conhece a app e gere a semana de cinco pessoas.',
+  sazonal:'Um apontamento que muda com o calendário português: flor de amendoeira em fevereiro e março, andorinhas na primavera, maré e sardinha no verão, vindima no outono, laranja em janeiro. Muda só desenhos e apontamentos — nunca a cor de um texto, porque a legibilidade não é sazonal.',
   partilhada:'Uma atividade ou refeição partilhada fica registada uma vez por pessoa, ligadas entre si. Cada uma tem o seu tempo, a sua intensidade, a sua dose e os seus acompanhamentos — partilhar a hora não obriga a partilhar o esforço nem a quantidade. Confirmar uma confirma o grupo; editar ou apagar pergunta primeiro se vale para os outros.',
   registoDia:'O que ficou registado é o que aconteceu, por oposição ao plano, que é o que se tencionava fazer. É do registo que saem o gasto real do dia, o alvo de calorias ajustado e o ritmo verdadeiro dos objetivos.',
   pesoHist:'Cada pesagem fica com a sua data. O peso do perfil é sempre a medição mais recente que já aconteceu, para os cálculos e a balança nunca contarem histórias diferentes. Podem registar-se medições passadas, se as tiveres anotadas.',
@@ -3437,7 +3620,11 @@ function rotuloCurto(k){ const t=TABS.find(x=>x[0]===k);
   return t? t[1].replace(' Física','').replace(' de Refeições','') : k; }
 function pintaNav(){
   const nav=document.getElementById('nav'); if(!nav) return;
-  const btn=k=>`<button class="${S.ui.tab===k?'on':''}" onclick="go('${k}')">${icoNav(k)}<span>${rotuloCurto(k)}</span></button>`;
+  /* o crachá conta o que está por despachar naquele separador; o acento, que
+     nesta app significa sempre «agora», diz onde é preciso ir sem abrir nada */
+  const pend=pendentesPorSeparador();
+  const btn=k=>`<button class="${S.ui.tab===k?'on':''}" onclick="go('${k}')">${icoNav(k)}<span>${rotuloCurto(k)}</span>${
+    pend[k]? `<span class="cracha" aria-label="${pend[k]} por despachar">${pend[k]>99?'99+':pend[k]}</span>`:''}</button>`;
   let folha=document.getElementById('nav-mais');
   if(modoBarraInferior()){
     const resto=TABS.map(t=>t[0]).filter(k=>NAV_PRINCIPAL.indexOf(k)<0);
@@ -3468,7 +3655,9 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('keydown',e=>{
   if(e.key!=='Escape') return;
-  /* a caixa de diálogo fecha primeiro: é o que está por cima de tudo */
+  /* o que está por cima fecha primeiro */
+  if(S.ui.mercado){ fecharMercado(); return; }
+  if(folhaMesa()){ fecharFolha(); return; }
   if(modalAberto()){ fecharModal(); return; }
   const f=document.getElementById('nav-mais');
   if(f && f.classList.contains('aberta')){ f.classList.remove('aberta');
@@ -3496,9 +3685,35 @@ const PALETAS={
   figo:{n:'Figo', d:'Roxos e magentas', c:['#6B4396','#C25B45','#B23D74']},
   mare:{n:'Maré', d:'Azuis-esverdeados de água', c:['#0F6E78','#C2622C','#9A4E8C']},
   brasa:{n:'Brasa', d:'Laranjas e vermelhos quentes', c:['#B4501F','#8A6A1C','#B03F5C']},
-  tinta:{n:'Tinta', d:'Monocromático, alto contraste', c:['#2B2B2B','#5C5C5C','#9A9A9A']}
+  tinta:{n:'Tinta', d:'Monocromático, alto contraste', c:['#2B2B2B','#5C5C5C','#9A9A9A']},
+  contraste:{n:'Contraste', d:'Máximo contraste, traço grosso', c:['#0033A0','#7A2E00','#6B004B']}
 };
 const MODOS={auto:'Segue o sistema',claro:'Claro',escuro:'Escuro'};
+/* ===== O ANO PORTUGUÊS =====
+   O caderno acompanha as estações: muda o apontamento e o motivo dos estados
+   vazios, nunca a cor de um texto — a legibilidade não é sazonal. */
+const ESTACOES=[
+  {m:[1],  k:'inverno',   n:'Laranja de inverno', c:'#C2621C', c2:'#E8A65C',
+   svg:'<circle cx="48" cy="8" r="6"/><path d="M6 8h30M60 8h30"/><path d="M48 2v12"/>'},
+  {m:[2,3],k:'amendoeira',n:'Flor de amendoeira', c:'#C97FA6', c2:'#E2AFC9',
+   svg:'<path d="M6 8h32M58 8h32"/><circle cx="48" cy="8" r="3.4"/><circle cx="41" cy="4" r="2.6"/><circle cx="55" cy="4" r="2.6"/><circle cx="41" cy="12" r="2.6"/><circle cx="55" cy="12" r="2.6"/>'},
+  {m:[4,5],k:'primavera', n:'Andorinhas',         c:'#3E7845', c2:'#7FB489',
+   svg:'<path d="M6 9h28M62 9h28"/><path d="M38 10c3-4 5-4 6 0 1-4 3-4 6 0"/><path d="M50 6c3-3 5-3 6 1"/>'},
+  {m:[6,7,8],k:'verao',   n:'Maré e sardinha',    c:'#0F6E78', c2:'#5FB6BE',
+   svg:'<path d="M6 9h26M64 9h26"/><path d="M36 9c4-5 12-5 16 0-4 5-12 5-16 0z"/><path d="M52 9l6-4v8z"/><circle cx="41" cy="8" r="1"/>'},
+  {m:[9,10],k:'vindima',  n:'Vindima',            c:'#7A3B6B', c2:'#B078A4',
+   svg:'<path d="M6 8h30M60 8h30"/><circle cx="44" cy="6" r="2.6"/><circle cx="52" cy="6" r="2.6"/><circle cx="48" cy="11" r="2.6"/><path d="M48 3v-2"/>'},
+  {m:[11,12],k:'castanha',n:'Castanha e folha',   c:'#8A5A22', c2:'#C08E51',
+   svg:'<path d="M6 9h28M62 9h28"/><path d="M40 12c0-5 4-8 8-8s8 3 8 8z"/><path d="M48 4v-2"/>'},
+];
+function estacaoAgora(){ const m=new Date().getMonth()+1;
+  return ESTACOES.find(e=>e.m.indexOf(m)>=0) || ESTACOES[0]; }
+function ornamentoSazonal(){
+  if(!S.ui.sazonal) return '';
+  const e=estacaoAgora();
+  return `<svg class="ornamento" viewBox="0 0 96 16" aria-hidden="true" fill="none"
+    stroke="currentColor" stroke-width="1.4" stroke-linecap="round">${e.svg}</svg>`;
+}
 const EMOJIS_MEMBRO=['🙂','😀','😎','🧑','👩','👨','👧','👦','👶','🧒','👵','👴','🐣','🦊','🐼','🐨','🐯','🦁','🐸','🐙','🌻','🌵','⭐','🚀','⚽','🎸','📚','🍀'];
 function modoEfetivo(){
   const t=S.ui.tema||'auto';
@@ -3510,6 +3725,14 @@ function aplicarTema(){
   const pal=temChave(PALETAS,S.ui.paleta)? S.ui.paleta : 'azulejo';
   r.setAttribute('data-modo',modo);
   r.setAttribute('data-paleta',pal);
+  r.setAttribute('data-densidade', S.ui.densidade==='cerrado'? 'cerrado':'folgado');
+  r.setAttribute('data-anim', S.ui.anim===false? 'off':'on');
+  /* a cor da estação só veste apontamentos e ilustrações — nunca um texto,
+     porque a legibilidade não muda com o calendário */
+  if(S.ui.sazonal){ const e=estacaoAgora();
+    r.setAttribute('data-estacao', e.k);
+    r.style.setProperty('--sazonal', modo==='escuro'? e.c2 : e.c);
+  } else { r.removeAttribute('data-estacao'); r.style.removeProperty('--sazonal'); }
   /* a barra do browser no telemóvel acompanha o fundo real, e como o modo já
      não vem da media query, as metas estáticas deixariam de bater certo */
   const bg=getComputedStyle(r).getPropertyValue('--bg').trim();
@@ -3517,6 +3740,9 @@ function aplicarTema(){
 }
 function setTema(t){ S.ui.tema=temChave(MODOS,t)? t:'auto'; saveMeta(); aplicarTema(); render(); }
 function setPaleta(p){ S.ui.paleta=temChave(PALETAS,p)? p:'azulejo'; saveMeta(); aplicarTema(); render(); }
+function setDensidade(d){ S.ui.densidade= d==='cerrado'? 'cerrado':'folgado'; saveMeta(); aplicarTema(); render(); }
+function setSazonal(v){ S.ui.sazonal=!!v; saveMeta(); aplicarTema(); render(); }
+function setAnim(v){ S.ui.anim=!!v; saveMeta(); aplicarTema(); render(); }
 /* Aura do cabeçalho a partir das cores dos membros. */
 function pintaAura(){
   let a=document.getElementById('aura');
@@ -3590,6 +3816,59 @@ const ILUS={
   lupa:`<circle cx="46" cy="42" r="24" fill="none"/><path d="M64 60l22 22" fill="none"/>
     <path d="M36 42h20" fill="none" opacity=".5"/>`
 };
+/* ================= DESENHOS DA CASA =================
+   Tudo no mesmo traço dos ícones (24×24, 1.8) e sem imagens externas. */
+/* O carimbo que assenta ao validar. `novo` só é verdade no render logo a
+   seguir ao gesto — a animação corre uma vez e não volta a correr a cada
+   redesenho da página. */
+let carimboAlvo=null;
+function carimbo(chave,tipo){
+  const novo=carimboAlvo===chave;
+  const d = tipo==='falhou'? 'M6 6l12 12M18 6L6 18'
+    : tipo==='adiado'? 'M5 14a7 7 0 1 1 3 5.7M5 9v5h5'
+    : 'M4.5 12.8l4.6 4.6L19.5 7';
+  return `<span class="carimbo ${tipo||''} ${novo?'carimbo-novo':''}" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg></span>`;
+}
+/* Mesa vista de cima com um lugar por pessoa: ocupados a acento, vazios a
+   tracejado. Sem números — é o retrato de quem se sentou. */
+function mesaSvg(total,ocupados,larg){
+  const n=Math.max(1,Math.min(8,total||1)), W=larg||34, H=Math.round(W*0.7);
+  const cx=W/2, cy=H/2, rx=W*0.26, ry=H*0.26, rp=Math.max(1.6,W*0.075);
+  const lugares=[];
+  for(let i=0;i<n;i++){
+    const a=(-Math.PI/2)+(i*2*Math.PI/n);
+    const x=cx+Math.cos(a)*(rx+rp*1.9), y=cy+Math.sin(a)*(ry+rp*1.9);
+    const cheio=i<ocupados;
+    lugares.push(`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${rp.toFixed(1)}"
+      ${cheio? 'fill="currentColor" stroke="none"' : 'fill="none" stroke="currentColor" stroke-dasharray="1.6 1.6"'}/>`);
+  }
+  return `<svg viewBox="0 0 ${W} ${H}" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true">
+    <ellipse cx="${cx}" cy="${cy}" rx="${rx.toFixed(1)}" ry="${ry.toFixed(1)}"/>${lugares.join('')}</svg>`;
+}
+/* Selo de conquista: círculo denteado com tinta falhada, como um passaporte. */
+function seloSvg(){
+  const dentes=[]; const R=44, r=40;
+  for(let i=0;i<36;i++){ const a=i*Math.PI/18;
+    dentes.push((50+Math.cos(a)*(i%2?R:r)).toFixed(1)+','+(50+Math.sin(a)*(i%2?R:r)).toFixed(1)); }
+  return `<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+    <defs><filter id="tinta-falhada"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="1.6"/></filter></defs>
+    <g filter="url(#tinta-falhada)">
+      <polygon points="${dentes.join(' ')}"/>
+      <circle cx="50" cy="50" r="32" stroke-width="1.3"/>
+    </g></svg>`;
+}
+/* Sparkline do tamanho de uma palavra, para viver dentro da frase. */
+function sparkSvg(vals,rot){
+  const v=(vals||[]).filter(x=>isFinite(x));
+  if(v.length<2) return '';
+  const mn=Math.min(...v), mx=Math.max(...v), amp=(mx-mn)||1;
+  const pts=v.map((x,i)=>(i/(v.length-1)*32+1).toFixed(1)+','+(11-((x-mn)/amp)*9).toFixed(1)).join(' ');
+  return `<svg class="spark" viewBox="0 0 34 12" fill="none" stroke="currentColor" stroke-width="1.3"
+    stroke-linecap="round" stroke-linejoin="round" role="img"><title>${esc(rot||'')}</title>
+    <polyline points="${pts}"/><circle cx="33" cy="${(11-((v[v.length-1]-mn)/amp)*9).toFixed(1)}" r="1.5" fill="currentColor" stroke="none"/></svg>`;
+}
 function ilustracao(nome){
   const d=ILUS[nome]||ILUS.lupa;
   return `<svg viewBox="0 0 108 96" aria-hidden="true" fill="none" stroke="var(--accent)" stroke-width="3"
@@ -3600,7 +3879,13 @@ function estadoVazio(ilus,titulo,texto,botoes){
     <h3>${titulo}</h3><p>${texto}</p>
     ${botoes? `<div class="row">${botoes}</div>`:''}</div></div>`;
 }
-function go(t){ S.ui.tab=t; msg=null;
+/* Virar de folha: a direção vem da ordem dos separadores na barra, para a
+   navegação ganhar um mapa mental em vez de piscar. */
+let viraFolha=null;
+function go(t){
+  const de=TABS.findIndex(x=>x[0]===S.ui.tab), para=TABS.findIndex(x=>x[0]===t);
+  viraFolha = (de<0||para<0||de===para)? null : (para>de? 'vira-frente':'vira-tras');
+  S.ui.tab=t; msg=null;
   /* histórico é uma vista dentro do separador, não um sítio onde se fica ao
      mudar de separador */
   if(t!=='atividade') S.ui.histAtiv=null;
@@ -3646,6 +3931,289 @@ function montaMembrosFixos(){
     new IntersectionObserver(es=>{ fila.classList.toggle('colada', !es[0].isIntersecting); },
       {rootMargin:`-${parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||58}px 0px 0px 0px`}).observe(s);
   });
+}
+
+/* ================= PENDÊNCIAS DO DIA =================
+   O que a casa tem por despachar, contado uma vez e reutilizado no crachá do
+   ícone da PWA, nos pontos da barra e no «Correu como planeado». */
+function pendenciasHoje(){
+  const d=hojeISO(), out={ref:[], ativ:[], compras:0, pesagens:0};
+  S.members.forEach(m=>{
+    planeadasHojeSemRegisto(m).forEach(p=>out.ref.push({mid:m.id, mk:p.mk, meal:p.meal}));
+    planeadasNoDia(m,d).forEach(p=>{
+      if((S.regAtiv||[]).some(r=>r.mid===m.id&&r.d===d&&r.plano===p.s.id&&r.estado!=='agendada')) return;
+      out.ativ.push({mid:m.id, sid:p.s.id, s:p.s, min:p.min}); });
+    if(precisaPesagem(m)) out.pesagens++;
+  });
+  const wk=mondayISO(d), guarda=S.week; S.week=wk;
+  out.compras=itensEmFalta(shoppingItems().items).filter(i=>!((S.bought[wk]||{})[i.n+'|'+i.u])).length;
+  S.week=guarda;
+  out.total=out.ref.length+out.ativ.length;
+  return out;
+}
+/* Sem servidor não há notificações — mas há o número no ícone da PWA, que
+   lembra sem interromper. Onde a API não exista, ficam só os pontos na barra. */
+function pintaCracha(){
+  if(!('setAppBadge' in navigator)) return;
+  try{
+    const p=S.members.length? pendenciasHoje() : {total:0, compras:0};
+    const n=p.total+p.compras;
+    if(n>0) navigator.setAppBadge(n).catch(()=>{});
+    else navigator.clearAppBadge && navigator.clearAppBadge().catch(()=>{});
+  }catch(e){}
+}
+function pendentesPorSeparador(){
+  if(!S.members.length) return {};
+  const p=pendenciasHoje();
+  const out={};
+  if(p.ref.length) out.nutricao=p.ref.length;
+  if(p.ativ.length) out.atividade=p.ativ.length;
+  if(p.compras) out.compras=p.compras;
+  if(p.pesagens) out.familia=p.pesagens;
+  return out;
+}
+
+/* ================= «CORREU COMO PLANEADO» =================
+   Um toque fecha o dia inteiro — mas só depois da hora da última refeição
+   planeada. Aparecer de manhã seria convidar a registar o que ainda não
+   aconteceu, e a fronteira entre plano e registo é o que sustenta esta app. */
+const HORA_REFEICAO={p:10, a:15, l:18, j:22};
+function podeFecharDia(){
+  const p=pendenciasHoje();
+  if(!p.total) return null;
+  const agora=new Date().getHours();
+  const ultima=Math.max(0,...p.ref.map(x=>HORA_REFEICAO[x.mk]||22), p.ativ.length? 21:0);
+  return agora>=ultima? p : null;
+}
+function fecharDiaComoPlaneado(){
+  const p=podeFecharDia(); if(!p) return;
+  const d=hojeISO();
+  let nR=0, nA=0;
+  p.ref.forEach(x=>{
+    if((S.regRef||[]).some(r=>r.mid===x.mid&&r.d===d&&r.mk===x.mk)) return;
+    const m=S.members.find(y=>y.id===x.mid), rec=RECIPES.find(y=>y.id===x.meal.r);
+    registarRefeicao({d, mk:x.mk, r:x.meal.r, ac:acIds(x.meal),
+      dose: m&&rec? doseSugerida(m,rec,x.mk) : 1}, [x.mid], 'feita'); nR++;
+  });
+  p.ativ.forEach(x=>{
+    if((S.regAtiv||[]).some(r=>r.mid===x.mid&&r.d===d&&r.plano===x.sid&&r.estado!=='agendada')) return;
+    registarAtividade({d, s:x.s.s, min:x.min, i:x.s.i, v:x.s.v, plano:x.sid}, [x.mid], 'feita'); nA++;
+  });
+  if(!nR && !nA) return;
+  carimboAlvo='dia:'+d;
+  save('dia fechado como planeado');
+  flash('ok', [nR? plural(nR,'refeição registada','refeições registadas'):'',
+    nA? plural(nA,'treino registado','treinos registados'):''].filter(Boolean).join(' e ')
+    +'. Se alguma coisa não foi bem assim, desfaz num toque.');
+  render();
+}
+
+/* ================= FOLHA DE MESA =================
+   Registar o jantar de quatro em cinco segundos: os avatares dos comensais
+   previstos, um toque em cada um que comeu, e nada para preencher — o prato,
+   a dose e os acompanhamentos vêm do plano. */
+function folhaMesa(){ return S.ui.folha&&typeof S.ui.folha==='object'? S.ui.folha : null; }
+function abrirFolhaMesa(d,mk){
+  const dia=(S.plans[mondayISO(d)]||{})[diaSemana(d)]||{};
+  const meal=dia[mk]; if(!meal||!meal.r) return;
+  const comem=S.members.filter(m=>meal.m.indexOf(m.id)>=0 && !isCheat(m.id,d));
+  if(!comem.length) return flash('warn','Ninguém estava previsto para esta refeição.');
+  /* já validados entram desligados: confirmar duas vezes seria duplicar */
+  const jaFeitos=(S.regRef||[]).filter(r=>r.d===d&&r.mk===mk).map(r=>r.mid);
+  S.ui.folha={tipo:'mesa', d, mk,
+    sel:comem.filter(m=>jaFeitos.indexOf(m.id)<0).map(m=>m.id)};
+  saveMeta(); render();
+}
+function fecharFolha(){ S.ui.folha=null; saveMeta(); render(); }
+function toggleLugar(mid){
+  const f=folhaMesa(); if(!f) return;
+  const i=f.sel.indexOf(mid);
+  i>=0? f.sel.splice(i,1) : f.sel.push(mid);
+  saveMeta(); render();
+}
+function guardarFolhaMesa(){
+  const f=folhaMesa(); if(!f) return;
+  if(!f.sel.length){ return flash('warn','Toca em quem comeu — ou fecha a folha.'); }
+  const dia=(S.plans[mondayISO(f.d)]||{})[diaSemana(f.d)]||{};
+  const meal=dia[f.mk]; if(!meal) return fecharFolha();
+  const rec=RECIPES.find(x=>x.id===meal.r);
+  const porMembro={};
+  f.sel.forEach(mid=>{ const m=S.members.find(x=>x.id===mid);
+    porMembro[mid]={dose: m&&rec? doseSugerida(m,rec,f.mk) : 1}; });
+  const mids=f.sel.filter(mid=>!(S.regRef||[]).some(r=>r.mid===mid&&r.d===f.d&&r.mk===f.mk));
+  if(!mids.length){ S.ui.folha=null; saveMeta(); return render(); }
+  registarRefeicao({d:f.d, mk:f.mk, r:meal.r, ac:acIds(meal), dose:1, porMembro}, mids, 'feita');
+  S.ui.folha=null;
+  carimboAlvo='ref:'+f.d+':'+f.mk;
+  save('refeição registada à mesa');
+  flash('ok', plural(mids.length,'pessoa registada','pessoas registadas')+' — '+esc(rec?rec.n:'refeição')+'.');
+  render();
+}
+function outraCoisaNaFolha(mid){
+  const f=folhaMesa(); if(!f) return;
+  const d=f.d, mk=f.mk;
+  S.ui.folha=null;
+  registarRefeicao({d, mk, r:((S.plans[mondayISO(d)]||{})[diaSemana(d)]||{})[mk]?.r, ac:[], dose:1},[mid],'falhada');
+  save('refeição substituída');
+  abrirFormRef(mid,{d, mk, subst:true});
+}
+function folhaMesaHtml(f){
+  const dia=(S.plans[mondayISO(f.d)]||{})[diaSemana(f.d)]||{};
+  const meal=dia[f.mk]; if(!meal||!meal.r) return '';
+  const rec=RECIPES.find(x=>x.id===meal.r);
+  const acs=acompsDe(meal);
+  const comem=S.members.filter(m=>meal.m.indexOf(m.id)>=0 && !isCheat(m.id,f.d));
+  const jaFeitos=(S.regRef||[]).filter(r=>r.d===f.d&&r.mk===f.mk&&r.estado==='feita').map(r=>r.mid);
+  return `<div class="mfundo" onclick="fundoFolha(event)" style="align-items:flex-end;padding:0">
+    <div class="folha" role="dialog" aria-modal="true" aria-labelledby="fm-t">
+      <div class="folha-pega" aria-hidden="true"></div>
+      <span class="lbl">${nomeRefeicao(f.mk)} · ${rotuloData(f.d)}</span>
+      <h2 id="fm-t" style="margin-top:2px">${esc(rec?rec.n:'Refeição')}</h2>
+      <p class="sub" style="margin-top:4px">${acs.length? 'com '+acs.map(x=>esc(x.n)).join(' + ')+' · ':''}${rec? rec.k+somaAc(acs,'k') : 0} kcal por dose. Toca em quem comeu; toque longo para «comeu outra coisa».</p>
+      <div class="lugares">${comem.map(m=>{
+        const feito=jaFeitos.indexOf(m.id)>=0;
+        const on=f.sel.indexOf(m.id)>=0;
+        const dose=rec? doseSugerida(m,rec,f.mk) : 1;
+        return `<button class="lugar ${on?'on':'off'}" ${feito?'disabled style="opacity:.5"':''}
+          onclick="toggleLugar('${m.id}')" oncontextmenu="event.preventDefault();outraCoisaNaFolha('${m.id}')"
+          aria-pressed="${on}" aria-label="${esc(m.nome)}${feito?' — já registado':''}">
+          ${avatar(m,30)}<span>${esc(m.nome.split(' ')[0])}</span>
+          <span class="sub" style="font-size:10.5px">${feito? 'já registado' : nPT(dose,2).replace(',00','')+'× dose'}</span>
+          <span class="lg-vst">${on? '✓' : ''}</span></button>`;}).join('')}</div>
+      <div class="row" style="margin-top:14px;justify-content:space-between">
+        <button class="btn ghost small" onclick="fecharFolha()">Fechar</button>
+        <div class="row">
+          <button class="btn ghost small" onclick="fecharFolha();abrirFormRef(S.members[0].id,{d:'${f.d}',mk:'${f.mk}'})">Comi outra coisa</button>
+          <button class="btn" onclick="guardarFolhaMesa()">Registar ${f.sel.length||''}</button>
+        </div>
+      </div>
+    </div></div>`;
+}
+function fundoFolha(e){ if(e&&e.target&&e.target.classList.contains('mfundo')) fecharFolha(); }
+
+/* ================= MODO SUPERMERCADO =================
+   A lista comporta-se como papel pendurado no carrinho: letra grande, alvos a
+   toda a largura, secção sempre à vista e o ecrã que não se apaga. */
+let wakeLock=null;
+async function pedirEcraAceso(){
+  try{ if('wakeLock' in navigator && !wakeLock) wakeLock=await navigator.wakeLock.request('screen'); }catch(e){}
+}
+function largarEcraAceso(){ try{ if(wakeLock){ wakeLock.release(); wakeLock=null; } }catch(e){} }
+function abrirMercado(){ S.ui.mercado=true; saveMeta(); render(); pedirEcraAceso(); }
+function fecharMercado(){
+  S.ui.mercado=false; largarEcraAceso(); saveMeta(); render();
+  const n=itensEmFalta(shoppingItems().items).filter(i=>((S.bought[S.week]||{})[i.n+'|'+i.u])).length;
+  if(n) flash('ok', plural(n,'item riscado','itens riscados')+' — já estão marcados como comprados e na despensa.');
+}
+function mercadoHtml(){
+  const {items}=shoppingItems();
+  const falta=itensEmFalta(items);
+  const marcados=S.bought[S.week]||{};
+  const grupos={};
+  falta.forEach(it=>{ const g=gruposCompras()[grupoDoItem(it)]||'Outros'; (grupos[g]=grupos[g]||[]).push(it); });
+  const feitos=falta.filter(it=>marcados[it.n+'|'+it.u]).length;
+  return `<div class="mercado" role="dialog" aria-modal="true" aria-label="Modo supermercado">
+    <div class="mercado-topo">
+      <button class="btn ghost small" onclick="fecharMercado()">← Sair</button>
+      <div style="flex:1;min-width:0"><b>No supermercado</b>
+        <span class="sub" style="display:block">${feitos} de ${falta.length} no carrinho</span></div>
+      <span class="pill ${feitos===falta.length&&falta.length?'ok':''}">${falta.length-feitos}</span>
+    </div>
+    <div class="mbar" style="height:6px;margin:0 12px"><div style="width:${falta.length? (feitos/falta.length*100).toFixed(1):0}%;background:var(--ok)"></div></div>
+    ${!falta.length? `<div style="padding:40px 20px;text-align:center" class="sub">Não falta nada — a despensa já tem tudo o que a semana precisa.</div>`
+    : Object.keys(grupos).map(g=>`<div class="mercado-sec">${ICO_CAT[g]||''} ${esc(g)}</div>
+      <ul>${grupos[g].map(it=>{ const chave=it.n+'|'+it.u, on=!!marcados[chave];
+        return `<li class="${on?'done':''}"><label><input type="checkbox" ${on?'checked':''}
+          onchange="toggleBought('${esc(chave).replace(/'/g,'&#39;')}',this)">
+          <span>${esc(it.n)}</span><span class="q">${fmtQ(it)}</span></label></li>`;}).join('')}</ul>`).join('')}
+    <p class="sub" style="padding:16px 16px 0">O ecrã fica aceso enquanto este modo estiver aberto. Cada item riscado entra logo na despensa.</p>
+  </div>`;
+}
+
+/* ================= DESLIZAR PARA VALIDAR =================
+   Direita confirma a opção principal, esquerda abre as alternativas. O
+   desfazer de 30 passos é a rede para o dedo que escorrega. */
+function ligaDeslize(){
+  document.querySelectorAll('#main .desliza:not([data-liga])').forEach(el=>{
+    el.setAttribute('data-liga','1');
+    const corpo=el.querySelector('.desliza-corpo');
+    const sim=el.querySelector('.desliza-fundo.sim'), nao=el.querySelector('.desliza-fundo.nao');
+    if(!corpo) return;
+    let x0=null, dx=0, larg=1;
+    const fim=()=>{
+      corpo.classList.add('volta'); corpo.style.transform='';
+      if(sim) sim.style.opacity=0; if(nao) nao.style.opacity=0;
+      setTimeout(()=>corpo.classList.remove('volta'),180);
+      x0=null; dx=0;
+    };
+    corpo.addEventListener('pointerdown',e=>{
+      if(e.target.closest('button,select,input,a')) return;
+      x0=e.clientX; larg=el.getBoundingClientRect().width||1; corpo.setPointerCapture(e.pointerId);
+    });
+    corpo.addEventListener('pointermove',e=>{
+      if(x0===null) return;
+      dx=e.clientX-x0;
+      if(Math.abs(dx)<6) return;
+      corpo.style.transform='translateX('+dx.toFixed(0)+'px)';
+      const p=Math.min(1,Math.abs(dx)/(larg*0.4));
+      if(sim) sim.style.opacity = dx>0? p : 0;
+      if(nao) nao.style.opacity = dx<0? p : 0;
+    });
+    corpo.addEventListener('pointerup',()=>{
+      if(x0===null) return;
+      const limiar=larg*0.4, d=dx;
+      fim();
+      if(d>limiar && el.dataset.sim) { const f=new Function(el.dataset.sim); f(); }
+      else if(d<-limiar && el.dataset.nao){ const f=new Function(el.dataset.nao); f(); }
+    });
+    corpo.addEventListener('pointercancel',fim);
+  });
+}
+
+/* ================= REGISTAR SEMPRE À MÃO =================
+   Um botão que sabe a hora: às 13h propõe o almoço, em dia de treino propõe o
+   treino, de manhã propõe a pesagem se a última já tem uma semana. A ordem é
+   uma função pura sobre dados locais — nada de heurísticas opacas. */
+function acoesRegisto(){
+  if(!S.members.length) return [];
+  const h=new Date().getHours(), d=hojeISO(), out=[];
+  const p=pendenciasHoje();
+  /* a refeição da hora vem primeiro */
+  const janela = h<11? 'p' : h<16? 'a' : h<19? 'l' : 'j';
+  const ordemRef=[janela].concat(MEALK.filter(k=>k!==janela));
+  ordemRef.forEach(mk=>{ const x=p.ref.find(y=>y.mk===mk); if(!x) return;
+    if(out.some(o=>o.mk===mk)) return;
+    const rec=RECIPES.find(y=>y.id===x.meal.r);
+    out.push({tipo:'ref', mk, rot:nomeRefeicao(mk)+' de hoje', sub:rec? rec.n : '',
+      fn:"abrirFolhaMesa('"+d+"','"+mk+"')"});
+  });
+  p.ativ.slice(0,2).forEach(x=>{
+    const m=S.members.find(y=>y.id===x.mid);
+    out.push({tipo:'ativ', rot:'Treino de '+(m?m.nome.split(' ')[0]:''), sub:SPORT[x.s.s].nome+' · '+x.min+' min',
+      fn:"validarAtivFeita('"+x.mid+"','"+d+"','"+x.sid+"')"});
+  });
+  if(h<12 && p.pesagens) out.push({tipo:'peso', rot:'Pesagem', sub:plural(p.pesagens,'perfil sem pesagem recente','perfis sem pesagem recente'), fn:"abrirPesagens()"});
+  out.push({tipo:'ref', rot:'Registar refeição', sub:'escolher à mão', fn:"abrirFormRef(S.ui.mid||S.members[0].id)"});
+  out.push({tipo:'ativ', rot:'Registar atividade', sub:'escolher à mão', fn:"abrirFormAtiv(S.ui.mid||S.members[0].id)"});
+  if(!(h<12 && p.pesagens)) out.push({tipo:'peso', rot:'Registar pesagem', sub:'com data', fn:"abrirPesagens()"});
+  return out.slice(0,5);
+}
+function abrirFolhaRegisto(){ S.ui.folha={tipo:'registo'}; saveMeta(); render(); }
+function folhaRegistoHtml(){
+  const acoes=acoesRegisto();
+  const ico={ref:'🍽️', ativ:'🏃', peso:'⚖'};
+  return `<div class="mfundo" onclick="fundoFolha(event)" style="align-items:flex-end;padding:0">
+    <div class="folha" role="dialog" aria-modal="true" aria-labelledby="fr-t">
+      <div class="folha-pega" aria-hidden="true"></div>
+      <h2 id="fr-t">Registar</h2>
+      <p class="sub" style="margin-top:4px">O que costuma acontecer a esta hora fica em cima.</p>
+      <div style="margin-top:10px">${acoes.map(a=>`<button class="btn ghost" style="width:100%;text-align:left;margin-top:8px;min-height:56px"
+        onclick="fecharFolha();${a.fn}"><span style="font-size:19px;margin-right:10px">${ico[a.tipo]}</span>
+        <b>${esc(a.rot)}</b>${a.sub? ' <span class="sub">· '+esc(a.sub)+'</span>':''}</button>`).join('')}</div>
+      <div class="row" style="margin-top:14px;justify-content:flex-end">
+        <button class="btn ghost small" onclick="fecharFolha()">Fechar</button>
+      </div>
+    </div></div>`;
 }
 
 /* ================= CAIXAS DE DIÁLOGO =================
@@ -3932,12 +4500,39 @@ function narrativaMes(){
   if(semDespensa) frases.push(`Na despensa há <b>${plural(semDespensa,'item marcado','itens marcados')}</b> como disponíveis, o que já poupa passos na lista de compras.`);
   return frases.join(' ');
 }
+/* Prosa com prova no mesmo parágrafo: uma frase por perfil com o traço do peso
+   e da atividade do próprio mês, do tamanho de uma palavra. Só para quem tem
+   pesagens que cheguem — uma linha com dois pontos não é uma tendência. */
+function sparklinesDoMes(){
+  const h=hojeISO(), ini=addDias(h,-30);
+  const frases=S.members.map(m=>{
+    const pts=medicoesDe(m.id).filter(x=>x.d>=ini);
+    const treinos=[];
+    for(let i=29;i>=0;i--){ const d=addDias(h,-i);
+      treinos.push(regAtivDe(m.id).filter(r=>r.d===d&&r.estado==='feita').reduce((t,r)=>t+kcalRegAtiv(r),0)); }
+    const temTreino=treinos.some(x=>x>0);
+    if(pts.length<3 && !temTreino) return '';
+    const partes=[];
+    if(pts.length>=3){
+      const dif=pts[pts.length-1].p-pts[0].p;
+      partes.push(sparkSvg(pts.map(x=>x.p), 'peso de '+m.nome+' no mês')
+        +' o peso '+(Math.abs(dif)<0.25? 'esteve quieto' : dif<0? 'desceu '+nPT(Math.abs(dif),1)+' kg' : 'subiu '+nPT(dif,1)+' kg'));
+    }
+    if(temTreino) partes.push(sparkSvg(treinos,'atividade de '+m.nome+' no mês')
+      +' e o movimento fez '+Math.round(treinos.reduce((t,x)=>t+x,0))+' kcal');
+    if(!partes.length) return '';
+    return '<b>'+nomeCurto(m)+':</b>'+partes.join(',');
+  }).filter(Boolean);
+  if(!frases.length) return '';
+  return ' '+frases.join('. ')+'.';
+}
 function cartaoResumoMes(){
   if(!S.members.length) return '';
   const d=dadosMes();
   return `<div class="card card--capa secgap" data-col="fam-resumo">
     <h2>O mês em palavras ${dica('resumoMes')}</h2>
-    <p class="narrativa" style="margin-top:8px">${narrativaMes()}</p>
+    <p class="narrativa capitular" style="margin-top:8px">${narrativaMes()}${sparklinesDoMes()}</p>
+    ${ornamentoSazonal()}
     <div class="row" style="margin-top:14px">
       <div class="stat"><b>${d.refs}</b><span>Refeições planeadas</span></div>
       <div class="stat"><b>${d.diasCompletos}</b><span>Dias completos</span></div>
@@ -3971,11 +4566,18 @@ function cartaoHoje(){
        do dia de hoje como o do bife */
     [r].concat(acs).forEach(rec=>comem.forEach(m=>{ const al=alergenicosDe(rec,m);
       if(al.length) alertas.push(nomeCurto(m)+': '+al.map(a=>a.nome.toLowerCase()).join(', ')+' em '+esc(rec.n)); }));
-    linhas.push(`<div class="hoje-linha"><span class="hoje-ico" aria-hidden="true">${ICO_REF[mk]||''}</span>
+    const v=estadoValidacaoRef(comem,dataISO,mk);
+    linhas.push(`<button class="hoje-linha ${v.alguma?'a-tinta':''}" style="width:100%;text-align:left;border:none;background:none;cursor:pointer;font:inherit;color:inherit"
+      onclick="abrirFolhaMesa('${dataISO}','${mk}')"
+      aria-label="Registar quem comeu o ${nomeRefeicao(mk).toLowerCase()} de hoje">
+      <span class="hoje-ico" aria-hidden="true">${ICO_REF[mk]||''}</span>
       <div style="flex:1;min-width:0"><b>${esc(r.n)}</b>${acs.length? ` <span class="sub">+ ${acs.map(x=>esc(x.n)).join(' + ')}</span>`:''}
-        <span class="sub" style="display:block">${nomeRefeicao(mk)} · ${r.k+somaAc(acs,'k')} kcal/dose</span></div>
-      <span style="display:inline-flex;gap:2px;flex:none">${comem.map(m=>avatar(m,20)).join('')}</span></div>`);
+        <span class="sub" style="display:block">${nomeRefeicao(mk)} · ${r.k+somaAc(acs,'k')} kcal/dose${
+          v.alguma? ' · '+(v.cheia? 'mesa cheia' : v.n+' de '+v.total+' confirmados') : ''}</span></div>
+      ${v.alguma? carimbo('ref:'+dataISO+':'+mk) : ''}
+      <span style="display:inline-flex;gap:2px;flex:none">${comem.map(m=>avatar(m,20)).join('')}</span></button>`);
   });
+  const fecho=podeFecharDia();
   /* o que falta comprar conta-se na semana de HOJE, que pode não ser a que
      está aberta no plano — daí não se usar shoppingItems() diretamente */
   const guarda=S.week; S.week=wk;
@@ -3985,11 +4587,15 @@ function cartaoHoje(){
     <span class="lbl">${rot}</span>
     <h2 style="margin-top:2px">${linhas.length? 'À mesa hoje' : 'Hoje ainda sem plano'}</h2>
     ${alertas.length? `<div class="alerta forte" style="margin:8px 0"><span aria-hidden="true">🚨</span><span>${alertas.join(' · ')}</span></div>`:''}
+    ${fecho? `<div class="row" style="margin:10px 0 2px">
+      <button class="btn" onclick="fecharDiaComoPlaneado()">✓ Correu como planeado</button>
+      <span class="sub">${plural(fecho.total,'coisa por confirmar','coisas por confirmar')} — um toque fecha o dia. Desfaz-se num passo.</span>
+    </div>`:''}
     ${linhas.length? `<div class="hoje-lista">${linhas.join('')}</div>`
       : `<p class="sub" style="margin-top:4px">O dia de hoje está por planear — duas escolhas no Plano e a cozinha sabe o que a espera.</p>`}
     <div class="row" style="margin-top:12px">
       <button class="btn small" onclick="irHojePlano()">${linhas.length? 'Ver o plano de hoje':'Abrir o plano'}</button>
-      ${pend? `<button class="pill warn hoje-pend" onclick="go('compras')">🛒 ${pend} ${pend===1?'item':'itens'} por comprar</button>`:''}
+      ${pend? `<button class="pill warn hoje-pend" onclick="abrirMercado()">🛒 ${pend} ${pend===1?'item':'itens'} por comprar</button>`:''}
     </div>
   </section>`;
 }
@@ -4589,6 +5195,7 @@ function validarAtivFeita(mid,d,sid){
       i:ss.i, v:ss.v, km:ss.km? Math.round(ss.km/ (diasPlano(ss).length||1) *10)/10 : undefined}; });
   S.regAtiv=(S.regAtiv||[]).filter(r=>!(r.estado==='agendada'&&r.d===d&&mids.indexOf(r.mid)>=0&&r.plano===sid));
   registarAtividade({d, s:s.s, min:Math.round(minutosSessao(s)), i:s.i, v:s.v, plano:sid, porMembro}, mids, 'feita');
+  carimboAlvo='ativ:'+d+':'+sid;
   save('treino confirmado');
   flash('ok', mids.length>1? 'Confirmado para '+mids.length+' pessoas.' : 'Treino confirmado.');
   render();
@@ -4604,6 +5211,7 @@ function validarAtivFalhou(mid,d,sid,modo,novaData){
     registarAtividade({d:alvo, s:s? s.s : 'caminhada', min:s? Math.round(minutosSessao(s)) : 30,
       i:s? s.i : 'moderado', v:s? s.v : undefined, plano:sid}, [mid], 'agendada');
   }
+  carimboAlvo='ativ:'+d+':'+sid;
   save('treino não realizado');
   if(modo==='remarcar') flash('ok','Remarcado para '+rotuloData(novaData||addDias(hojeISO(),1))+'.');
   else if(modo==='rever'){ S.ui.tab='atividade'; flash('warn','Marcado como não realizado. Ajusta os dias ou o volume no plano, aqui em baixo.'); }
@@ -4651,7 +5259,11 @@ function cartaoValidacaoAtiv(m){
       const sp=SPORT[p.s.s||p.s.id]||SPORT[p.s.s]||{nome:'Treino'};
       const chave=m.id+'|'+p.d+'|'+p.sid;
       const aberto=S.ui.valAberto===chave;
-      return `<div class="val-item">
+      return `<div class="val-item desliza" data-sim="validarAtivFeita('${m.id}','${p.d}','${p.sid}')"
+          data-nao="abrirValAtiv('${chave}')">
+        <span class="desliza-fundo sim" aria-hidden="true">✓ fiz</span>
+        <span class="desliza-fundo nao" aria-hidden="true">não fiz ›</span>
+        <div class="desliza-corpo">
         <div class="row" style="justify-content:space-between;gap:8px">
           <div style="min-width:0"><b>${esc(sp.nome||'Treino')}</b>
             <span class="sub" style="display:block">${rotuloData(p.d)} · ${p.min} min · ~${p.kcal} kcal</span></div>
@@ -4667,6 +5279,7 @@ function cartaoValidacaoAtiv(m){
           <button class="btn ghost small" onclick="validarAtivFalhou('${m.id}','${p.d}','${p.sid}','ignorar')">Ignorar</button>
           <button class="btn ghost small" onclick="validarAtivFalhou('${m.id}','${p.d}','${p.sid}','rever')">Rever o plano</button>
         </div>`:''}
+        </div>
       </div>`;}).join('')}
     ${pend.length>mostra.length? `<p class="sub" style="margin-top:8px">E mais ${pend.length-mostra.length} — confirma ou ignora em bloco aqui em baixo.</p>`:''}
     <div class="row" style="margin-top:12px">
@@ -6051,6 +6664,7 @@ function validarRefFeita(mid,d,mk){
     const rec=RECIPES.find(x=>x.id===meal.r);
     porMembro[id]={dose: mm&&rec? doseSugerida(mm,rec,mk) : 1}; });
   registarRefeicao({d, mk, r:meal.r, ac:acIds(meal), dose:1, porMembro}, mids, 'feita');
+  carimboAlvo='ref:'+d+':'+mk;
   save('refeição confirmada');
   flash('ok', mids.length>1? 'Confirmada para '+mids.length+' pessoas.' : 'Refeição confirmada.');
   render();
@@ -6059,6 +6673,7 @@ function validarRefFalhou(mid,d,mk,modo){
   const dia=(S.plans[mondayISO(d)]||{})[diaSemana(d)]||{};
   const meal=dia[mk]||{};
   registarRefeicao({d, mk, r:meal.r, ac:acIds(meal), dose:1}, [mid], 'falhada');
+  carimboAlvo='ref:'+d+':'+mk;
   save('refeição não realizada');
   if(modo==='substituir'){
     render();
@@ -6104,7 +6719,11 @@ function cartaoValidacaoRef(m){
       const acs=acompsDe(p.meal);
       const chave=m.id+'|'+p.d+'|'+p.mk;
       const aberto=S.ui.valRefAberto===chave;
-      return `<div class="val-item">
+      return `<div class="val-item desliza" data-sim="validarRefFeita('${m.id}','${p.d}','${p.mk}')"
+          data-nao="abrirValRef('${chave}')">
+        <span class="desliza-fundo sim" aria-hidden="true">✓ comi</span>
+        <span class="desliza-fundo nao" aria-hidden="true">não comi ›</span>
+        <div class="desliza-corpo">
         <div class="row" style="justify-content:space-between;gap:8px">
           <div style="min-width:0"><b>${ICO_REF[p.mk]||''} ${esc(rec?rec.n:'Receita')}</b>
             <span class="sub" style="display:block">${rotuloData(p.d)} · ${nomeRefeicao(p.mk)} · ${rec? rec.k+somaAc(acs,'k') : 0} kcal${acs.length? ' · com '+acs.map(x=>esc(x.n)).join(' + '):''}</span></div>
@@ -6118,6 +6737,7 @@ function cartaoValidacaoRef(m){
           <button class="btn ghost small" onclick="validarRefFalhou('${m.id}','${p.d}','${p.mk}','ignorar')">Não comi nada</button>
           <button class="btn ghost small" onclick="validarRefFalhou('${m.id}','${p.d}','${p.mk}','rever')">Rever o plano</button>
         </div>`:''}
+        </div>
       </div>`;}).join('')}
     ${pend.length>mostra.length? `<p class="sub" style="margin-top:8px">E mais ${pend.length-mostra.length} — confirma ou ignora em bloco aqui em baixo.</p>`:''}
     <div class="row" style="margin-top:12px">
@@ -6771,10 +7391,14 @@ function cartaoConquista(o){
   const m=S.members.find(x=>x.id===o.membroId);
   const texto = o.tipo==='perder'? '−'+nPT(Math.abs(o.pesoInicial-o.pesoAlvo),1)+' kg'
     : o.tipo==='ganhar'? '+'+nPT(Math.abs(o.pesoAlvo-o.pesoInicial),1)+' kg' : 'manteve o peso';
+  const dt=o.dataConclusao? new Date(o.dataConclusao) : null;
+  const curto = o.tipo==='perder'? '−'+nPT(Math.abs(o.pesoInicial-o.pesoAlvo),1)+' kg'
+    : o.tipo==='ganhar'? '+'+nPT(Math.abs(o.pesoAlvo-o.pesoInicial),1)+' kg' : 'MANTEVE';
   return `<div class="card" style="display:flex;align-items:center;gap:14px">
-    <span style="font-size:28px" aria-hidden="true">🏆</span>
+    <span class="selo" aria-hidden="true">${seloSvg()}
+      <span class="selo-txt">${esc(curto)}<small>${dt? fmtShort(iso(dt)).toUpperCase() : ''}</small></span></span>
     <div style="flex:1"><b>${m?esc(m.nome):'Membro removido'}</b> — ${texto}
-      <div class="sub">Concluído ${o.dataConclusao? fmtShort(iso(new Date(o.dataConclusao))) : ''}</div></div>
+      <div class="sub">Concluído ${dt? fmtLongo(iso(dt)) : ''}${o.semanas? ' · '+plural(o.semanas,'semana de plano','semanas de plano'):''}</div></div>
     <button class="btn danger small" onclick="removerObjetivo('${o.id}')">Remover</button>
   </div>`;
 }
@@ -6799,10 +7423,71 @@ function cartaoObjetivo(o){
       </div>
       <button class="chip" onclick="toggleObjExpandido('${o.id}')" aria-expanded="${expandido}">${expandido?'Fechar':'Ajustar'}</button>
     </div>
+    ${balancaObjetivo(o,m)}
     ${expandido? painelAjuste(o,m) : ''}
     <div class="row" style="justify-content:flex-end;margin-top:10px">
       <button class="btn danger small" onclick="removerObjetivo('${o.id}')">Remover objetivo</button>
     </div>
+  </div>`;
+}
+/* ===== A BALANÇA DO OBJETIVO =====
+   Num prato o défice que veio da mesa, no outro o que veio do movimento; o
+   braço inclina com o que ficou REGISTADO, não com o que o plano previa. Sem
+   registos, a balança aparece pousada e diz que não tem o que pesar — um
+   desenho não pode afirmar um equilíbrio que os dados não sustentam. */
+function pesosDaBalanca(m){
+  const h=hojeISO(); let dieta=0, exercicio=0, dias=0;
+  for(let i=1;i<=14;i++){
+    const d=addDias(h,-i);
+    const regs=regRefDe(m.id).filter(r=>r.d===d&&r.estado==='feita');
+    const treinos=regAtivDe(m.id).filter(r=>r.d===d&&r.estado==='feita');
+    if(!regs.length && !treinos.length) continue;
+    dias++;
+    if(regs.length){ const ing=ingeridoRealDia(m.id,d);
+      /* o que se deixou de comer face à manutenção é o défice da mesa */
+      dieta+=Math.max(0, tdee(m)-ing.k); }
+    exercicio+=treinos.reduce((t,r)=>t+kcalRegAtiv(r),0);
+  }
+  return {dieta:Math.round(dieta), exercicio:Math.round(exercicio), dias};
+}
+function balancaObjetivo(o,m){
+  if(o.tipo==='manter') return '';
+  const p=pesosDaBalanca(m);
+  const alvo=clampNum(parseFloat(o.splitDieta)||50,0,100);
+  const temDados=p.dias>=3 && (p.dieta+p.exercicio)>0;
+  const pctDieta=temDados? p.dieta/(p.dieta+p.exercicio)*100 : 50;
+  /* o braço inclina no máximo 12°, para a leitura ser de proporção e não de drama */
+  const ang=temDados? clampNum((pctDieta-50)/50*12,-12,12) : 0;
+  const rad=ang*Math.PI/180, cx=160, cy=44, br=104;
+  const x1=cx-Math.cos(rad)*br, y1=cy+Math.sin(rad)*br;
+  const x2=cx+Math.cos(rad)*br, y2=cy-Math.sin(rad)*br;
+  const prato=(x,y,rot)=>`<path d="M${(x-22).toFixed(1)} ${y.toFixed(1)} q22 15 44 0" class="s-ink" fill="none"/>
+    <line x1="${x.toFixed(1)}" y1="${y.toFixed(1)}" x2="${x.toFixed(1)}" y2="${(y-9).toFixed(1)}" class="s-line"/>`;
+  const xAlvo=cx-Math.cos(0)*br*((alvo-50)/50)*0;
+  return `<div style="margin-top:12px;border-top:1px solid var(--line);padding-top:10px">
+    <div class="splabel"><span>De onde veio o esforço ${dica('balanca')}</span>
+      <output>${temDados? 'plano: '+alvo+'% da mesa' : 'sem dados'}</output></div>
+    <svg class="balanca" viewBox="0 0 320 118" role="img"
+        aria-label="${temDados? 'Balança do esforço: '+Math.round(pctDieta)+' por cento veio da alimentação e '+Math.round(100-pctDieta)+' por cento do exercício, nos últimos '+p.dias+' dias com registo' : 'Balança pousada: ainda sem registos suficientes para pesar'}">
+      <line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" class="s-ink" stroke-width="2" stroke-linecap="round"/>
+      ${prato(x1,y1+22)}${prato(x2,y2+22)}
+      <line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x1.toFixed(1)}" y2="${(y1+13).toFixed(1)}" class="s-line"/>
+      <line x1="${x2.toFixed(1)}" y1="${y2.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${(y2+13).toFixed(1)}" class="s-line"/>
+      <line x1="${cx}" y1="${cy}" x2="${cx}" y2="96" class="s-ink" stroke-width="2"/>
+      <path d="M${cx-20} 100 h40" class="s-ink" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="${cx}" cy="${cy}" r="3.4" class="f-ink"/>
+      ${temDados? `<text x="${x1.toFixed(1)}" y="${(y1+40).toFixed(1)}" font-size="11" text-anchor="middle" class="f-ink"
+          style="font-family:var(--fonte-display);font-variant-numeric:tabular-nums">${Math.round(pctDieta)}%</text>
+        <text x="${x1.toFixed(1)}" y="${(y1+52).toFixed(1)}" font-size="9.5" text-anchor="middle" class="f-mut">mesa</text>
+        <text x="${x2.toFixed(1)}" y="${(y2+40).toFixed(1)}" font-size="11" text-anchor="middle" class="f-ink"
+          style="font-family:var(--fonte-display);font-variant-numeric:tabular-nums">${Math.round(100-pctDieta)}%</text>
+        <text x="${x2.toFixed(1)}" y="${(y2+52).toFixed(1)}" font-size="9.5" text-anchor="middle" class="f-mut">movimento</text>`
+      : `<text x="${cx}" y="${cy+34}" font-size="10.5" text-anchor="middle" class="f-mut">sem dados para pesar</text>`}
+    </svg>
+    <p class="sub" style="margin-top:2px">${temDados
+      ? 'Últimos '+plural(p.dias,'dia com registo','dias com registo')+'. O plano deste objetivo previa '+alvo+'% do esforço na mesa'
+        +(Math.abs(pctDieta-alvo)>15? ' — a realidade tem estado noutro sítio.' : '.')
+      : 'Faltam registos: a balança só pesa o que foi mesmo confirmado, e ainda não há três dias com registo.'}</p>
   </div>`;
 }
 function celebracaoHtml(o){
@@ -7283,13 +7968,30 @@ function blocoAcomp(di,mk,acs,label){
         aria-label="Juntar outro acompanhamento ao ${ref} de ${dia}, a dividir a dose">＋ juntar acompanhamento</button>`:'')
     +(acs.length>1? `<span class="ac-divide">⚖ ${notaDivisao(acs.length)}</span>`:'');
 }
+/* Quem, dos que estavam à mesa, já confirmou esta refeição. É daqui que sai o
+   lápis-ou-tinta do cartão e o desenho da mesa cheia. */
+function estadoValidacaoRef(comem,date,mk){
+  const ids=comem.map(m=>m.id);
+  const feitas=(S.regRef||[]).filter(r=>r.d===date && r.mk===mk && r.estado==='feita' && ids.indexOf(r.mid)>=0);
+  const falhadas=(S.regRef||[]).filter(r=>r.d===date && r.mk===mk && r.estado==='falhada' && ids.indexOf(r.mid)>=0);
+  const n=new Set(feitas.map(r=>r.mid)).size;
+  return {n, total:ids.length, cheia:ids.length>0 && n===ids.length,
+    alguma:n>0, falhou:!n && falhadas.length>0};
+}
 function mealBlock(di,mk,label,date){
   const meal=planWeek()[di]?.[mk]; const r=meal&&RECIPES.find(x=>x.id===meal.r);
   const acs=r? acompsDe(meal) : [];
   const members=S.members;
   const comem=members.filter(m=>(meal? meal.m.includes(m.id) : true) && !isCheat(m.id,date));
-  return `<div class="meal" id="meal-${di}-${mk}">
-    <div class="mtitle">${label}</div>
+  const v=estadoValidacaoRef(comem,date,mk);
+  /* a lápis enquanto é só intenção; a tinta quando alguém confirmou */
+  const tinta=r? (v.alguma? 'a-tinta' : v.falhou? '' : 'a-lapis') : '';
+  return `<div class="meal ${tinta}" id="meal-${di}-${mk}">
+    <div class="row" style="justify-content:space-between;align-items:center;gap:6px">
+      <div class="mtitle">${label}</div>
+      ${v.alguma? carimbo('ref:'+date+':'+mk) : v.falhou? carimbo('ref:'+date+':'+mk,'falhou') : ''}
+      ${r&&v.cheia&&comem.length>1? `<span class="mesa-cheia" title="Mesa cheia: comeram todos os que estavam previstos">${mesaSvg(comem.length,comem.length,30)}</span>`:''}
+    </div>
     ${r? [r].concat(acs).map(x=>avisoAlergia(x,comem,true)).join('') : ''}
     <select class="sel-receita ${r?'cheio':''}" data-di="${di}" data-mk="${mk}" data-tipo="r"
       aria-label="Receita de ${label.toLowerCase()} de ${DAYN[di].toLowerCase()}"
@@ -7366,7 +8068,38 @@ function cartaoSemana(dates){
         </svg>
       </div>`;
     }).join('')}
+    ${mesasDaSemana(dates)}
     <p class="sub" style="margin-top:10px">Toca numa coluna para saltar para o dia. Cinzento = dia incompleto (n/4 refeições planeadas), rosa = cheat day. Verde, amarelo e vermelho só em dias completos: até ±10%, até ±25% e além disso do alvo.</p>
+  </div>`;
+}
+/* As mesas da semana: uma por dia, com um lugar por pessoa prevista e os
+   lugares ocupados por quem confirmou. Só aparece quando já há registos —
+   sete mesas vazias não contam história nenhuma. */
+function mesasDaSemana(dates){
+  if(S.members.length<2) return '';
+  const dias=dates.map((date,di)=>{
+    let prev=0, ocup=0, cheias=0, refs=0;
+    MEALK.forEach(mk=>{
+      const meal=(planWeek()[di]||{})[mk]; if(!meal||!meal.r) return;
+      const comem=S.members.filter(m=>meal.m.includes(m.id)&&!isCheat(m.id,date));
+      if(!comem.length) return;
+      const v=estadoValidacaoRef(comem,date,mk);
+      prev+=v.total; ocup+=v.n; refs++;
+      if(v.cheia) cheias++;
+    });
+    return {date, di, prev, ocup, cheias, refs};
+  });
+  if(!dias.some(x=>x.ocup>0)) return '';
+  const total=dias.reduce((t,x)=>t+x.cheias,0);
+  return `<div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
+    <div class="splabel"><span>Mesas cheias ${dica('mesaCheia')}</span>
+      <output>${plural(total,'refeição com todos','refeições com todos')}</output></div>
+    <div class="mesas-semana">${dias.map(x=>{
+      const n=Math.max(1,Math.round(x.prev/Math.max(1,x.refs)));
+      const o=Math.round(x.ocup/Math.max(1,x.refs));
+      return `<span class="mesa-dia" style="color:${x.cheias?'var(--accent)':'var(--mut)'}"
+        title="${DAYN[x.di]}: ${plural(x.cheias,'mesa cheia','mesas cheias')} em ${plural(x.refs,'refeição','refeições')}">
+        ${mesaSvg(n, x.refs? o : 0, 34)}<span>${['S','T','Q','Q','S','S','D'][x.di]}</span></span>`;}).join('')}</div>
   </div>`;
 }
 /* ================= REFEIÇÕES PARA PARTILHAR =================
@@ -7662,7 +8395,9 @@ function renderCompras(){
     <div><h2>Lista de compras ${dica('compras')}</h2>
     <span class="sub">Semana de ${fmtShort(dates[0])} a ${fmtShort(dates[6])} · ${plural(meals,'refeição planeada','refeições planeadas')} ·
       <span id="co-num" ${completo?'class="f-ok-txt"':''}>${completo?'tudo comprado ✓':done+'/'+items.length+' comprados'}</span></span></div>
-    <button class="btn ghost small" onclick="copyList()">📋 Copiar lista</button></div>
+    <div class="row">
+      <button class="btn" onclick="abrirMercado()">🛒 Estou no supermercado</button>
+      <button class="btn ghost small" onclick="copyList()">📋 Copiar lista</button></div></div>
   <div class="co-topo"><div class="mbar" style="height:10px;max-width:640px;margin:0">
     <div id="co-bar" style="background:${completo?'var(--ok)':'var(--accent)'};width:${items.length? done/items.length*100:0}%"></div></div></div>
   <div class="card" style="max-width:640px">
@@ -8356,7 +9091,21 @@ function cartaoAspeto(){
       </button>`).join('')}</div>
     <p class="sub" style="margin-top:12px">A paleta muda os acentos e o tom dos neutros; o modo claro ou escuro
       é independente e cada paleta tem os dois. «Segue o sistema» acompanha o que o telemóvel ou o computador
-      estiverem a usar, e muda sozinho ao anoitecer se o aparelho o fizer.</p>
+      estiverem a usar, e muda sozinho ao anoitecer se o aparelho o fizer.
+      <b>Contraste</b> leva todos os textos a 7:1, engrossa o traço dos ícones e faz as linhas dos gráficos
+      distinguirem-se por padrão, não só por cor.</p>
+    <div class="splabel" style="margin-top:14px"><span>Densidade ${dica('densidade')}</span></div>
+    <div class="row">
+      <button class="chip ${S.ui.densidade!=='cerrado'?'on':''}" onclick="setDensidade('folgado')">Folgado</button>
+      <button class="chip ${S.ui.densidade==='cerrado'?'on':''}" onclick="setDensidade('cerrado')">Cerrado</button>
+    </div>
+    <div class="splabel" style="margin-top:14px"><span>O ano no caderno ${dica('sazonal')}</span></div>
+    <label class="toggle"><input type="checkbox" ${S.ui.sazonal?'checked':''} onchange="setSazonal(this.checked)">
+      <span>Seguir as estações — ${esc(estacaoAgora().n).toLowerCase()}, agora</span></label>
+    <div class="splabel" style="margin-top:14px"><span>Movimento</span></div>
+    <label class="toggle"><input type="checkbox" ${S.ui.anim!==false?'checked':''} onchange="setAnim(this.checked)">
+      <span>Virar de folha ao mudar de separador</span></label>
+    <p class="sub" style="margin-top:6px">Quem tem «reduzir movimento» ligado no sistema nunca vê animações, independentemente desta escolha.</p>
     ${nFechados? `<div class="row" style="margin-top:10px">
       <span class="sub">${plural(nFechados,'secção fechada','secções fechadas')} nesta app</span>
       <button class="btn ghost small" onclick="abrirTodasSeccoes()">Abrir todas</button></div>`:''}
@@ -8718,6 +9467,12 @@ function render(){
   if(S.ui.tab==='nutricao' && S.members.length && !S.ui.histRef) atualizarNutricao();
   pintaModal();
   montaColapsaveis(); pintaAura(); montaMembrosFixos();
+  /* o virar de folha e o carimbo correm uma vez, logo a seguir ao gesto que os
+     provocou — não a cada redesenho */
+  if(viraFolha){ el.classList.remove('vira-frente','vira-tras');
+    void el.offsetWidth; el.classList.add(viraFolha); viraFolha=null; }
+  carimboAlvo=null;
+  ligaDeslize();
   paintSave(); pintaHist(); pintaTour(); medirTopo();
 }
 /* A caixa de diálogo vive fora do #main: se vivesse lá dentro, qualquer
@@ -8725,12 +9480,25 @@ function render(){
 function pintaModal(){
   let cx=document.getElementById('modal-raiz');
   if(!cx){ cx=document.createElement('div'); cx.id='modal-raiz'; document.body.appendChild(cx); }
-  const mo=modalAberto();
-  cx.innerHTML = !mo? ''
-    : mo.tipo==='peso'? modalPesoHtml(mo)
-    : mo.tipo==='compras'? modalComprasHtml(mo)
+  const mo=modalAberto(), fo=folhaMesa();
+  cx.innerHTML = S.ui.mercado? mercadoHtml()
+    : mo? (mo.tipo==='peso'? modalPesoHtml(mo) : mo.tipo==='compras'? modalComprasHtml(mo) : '')
+    : fo? (fo.tipo==='mesa'? folhaMesaHtml(fo) : fo.tipo==='registo'? folhaRegistoHtml() : '')
     : '';
-  if(mo){ const f=cx.querySelector('input,button'); if(f) setTimeout(()=>f.focus(),0); }
+  if(mo || (fo&&fo.tipo!=='mesa')){ const f=cx.querySelector('input,button'); if(f) setTimeout(()=>f.focus(),0); }
+  /* o botão de registo vive fora do #main, para não piscar a cada redesenho
+     de separador — mas some quando há uma folha ou um diálogo por cima */
+  let fab=document.getElementById('fab-registo');
+  const querFab=S.members.length && !mo && !fo && !S.ui.mercado && !tourAtivo()
+    && ['familia','atividade','nutricao','plano'].indexOf(S.ui.tab)>=0;
+  if(querFab){
+    if(!fab){ fab=document.createElement('button'); fab.id='fab-registo'; fab.className='fab';
+      fab.setAttribute('aria-label','Registar refeição, treino ou pesagem');
+      fab.addEventListener('click',abrirFolhaRegisto); document.body.appendChild(fab); }
+    const p=pendenciasHoje();
+    fab.innerHTML='<span aria-hidden="true">✎</span> Registar'+(p.total? ' <span class="pill" style="background:var(--on-accent);color:var(--accent)">'+p.total+'</span>':'');
+  } else if(fab) fab.remove();
+  pintaCracha();
 }
 /* Ctrl+Z / Ctrl+Shift+Z (ou ⌘ no Mac). Dentro de um campo de texto não se
    intercepta nada — aí o desfazer que faz sentido é o do próprio campo. */
@@ -8779,11 +9547,32 @@ ligarOrientacao();
 (function(){ const d=document.getElementById('dica-desfazer');
   if(d) d.setAttribute('data-dica', DICAS.desfazer); })();
 estadoAnterior=instantaneo();   /* base do histórico: o estado tal como foi carregado */
+/* Atalhos do ícone da PWA: um toque longo no ícone traz o gesto certo antes de
+   a app abrir. O parâmetro é lido uma vez e limpo do endereço, para um
+   refresh não repetir a ação. */
+let atalhoArranque=null;
+(function(){
+  let ir=null;
+  try{ ir=new URLSearchParams(location.search).get('ir'); }catch(e){}
+  if(!ir) return;
+  try{ history.replaceState(null,'',location.pathname+location.hash); }catch(e){}
+  atalhoArranque=ir;
+})();
 render();
+function correrAtalho(){
+  if(!atalhoArranque) return;
+  const ir=atalhoArranque; atalhoArranque=null;
+  if(!S.members.length) return;
+  const mid=S.ui.mid||S.members[0].id;
+  if(ir==='refeicao'){ go('nutricao'); abrirFormRef(mid); }
+  else if(ir==='treino'){ go('atividade'); abrirFormAtiv(mid); }
+  else if(ir==='compras'){ go('compras'); abrirMercado(); }
+  else if(ir==='pesagem'){ go('familia'); abrirPesagens(); }
+}
 /* A pergunta das pesagens fica para depois do primeiro desenho: quem abre a
    app e vê uma caixa antes de ver a app não sabe o que está a responder. E
    nunca por cima da visita guiada nem de um ecrã ainda sem ninguém. */
-if(S.members.length && !tourAtivo()) setTimeout(talvezPerguntarPeso, 700);
+if(S.members.length && !tourAtivo()) setTimeout(()=>{ correrAtalho(); talvezPerguntarPeso(); }, 700);
 
 /* Instalável no ecrã principal e utilizável sem rede (útil para a lista de
    compras no supermercado). Só corre em http/https — via file:// é ignorado. */
