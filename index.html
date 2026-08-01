@@ -1274,7 +1274,7 @@ const ICO_REF={p:'🌅',a:'🍽️',l:'🍎',j:'🌙',ac:'🍚'};
    prato nacional brasileiro, e a salsicha pelas cozinhas do centro da Europa
    que não têm separador próprio. */
 const ICO_COZ={portuguesa:'🇵🇹',italiana:'🍝',francesa:'🥐',mediterranica:'🫒',asiatica:'🍜',
-  espanhola:'🥘',mexicana:'🌮',americana:'🍔',brasileira:'🫘',africana:'🌍',outras:'🌭'};
+  espanhola:'🥘',mexicana:'🌮',americana:'🍔',indiana:'🍛',brasileira:'🫘',africana:'🌍',outras:'🌭'};
 const ICO_SUPL={proteico:'🥤',vitaminico:'💊',mineral:'🧂',composto:'🐟'};
 const ICO_FASE={bebe:'🍼',crianca:'🧒',adolescente:'🧑',adulto:'🧑‍🦱'};
 function SP(id,nome,cat,mets,dicas,dist){ return {id,nome,cat,mets,dicas:dicas||null,dist:dist||null}; }
@@ -1704,7 +1704,7 @@ const DIETS = {
    alemã, a britânica, a do norte da Europa. Fica no fim da lista de propósito. */
 const CUIS = {portuguesa:'Portuguesa',mediterranica:'Mediterrânica',espanhola:'Espanhola',italiana:'Italiana',
   francesa:'Francesa',mexicana:'Mexicana',americana:'Norte-americana',asiatica:'Asiática',
-  brasileira:'Brasileira',africana:'Africana',outras:'Outras'};
+  indiana:'Indiana',brasileira:'Brasileira',africana:'Africana',outras:'Outras'};
 const BASE_ACT = {sedentario:['Sedentário (escritório, pouco movimento)',1.2],leve:['Leve (em pé parte do dia)',1.35],moderado:['Moderado (trabalho ativo)',1.5],intenso:['Intenso (trabalho físico pesado)',1.65]};
 const COMMUTE = {nenhum:['Carro / transportes',0],pe30:['A pé (~30 min/dia)',1.75],pe60:['A pé (~1 h/dia)',3.5],bici:['Bicicleta (~30 min/dia)',3.4]}; // valor = MET·h efetivos/dia útil
 const GOALS = {perder:['Perder peso',-0.15],manter:['Manter peso',0],ganhar:['Ganhar massa',0.10]};
@@ -2222,6 +2222,24 @@ R('ketocogumelos','Cogumelos recheados com queijo e alho','mediterranica',['medi
 R('ketoaipoamendoim','Aipo com manteiga de amendoim','americana',[],0,0,0,0,[['Aipo',120,'g'],['Manteiga de amendoim',30,'g'],['Flor de sal',0.5,'g']],['l'],0,['sn']),
 R('ketoabacatelima','Abacate com lima e flor de sal','mexicana',[],0,0,0,0,[['Abacate',0.5,'un'],['Lima',0.25,'un'],['Flor de sal',1,'g'],['Azeite',5,'ml'],['Malagueta',1,'g']],['l'],0,['sn']),
 R('ketosardinha','Sardinha em conserva com limão e orégãos','portuguesa',['mediterranica'],0,0,0,0,[['Sardinha meio gorda conserva em azeite',80,'g'],['Limão',0.25,'un'],['Orégãos',1,'g'],['Cebola roxa',0.15,'un']],['l'],0,['sn']),
+/* ---- Cozinha indiana ----
+   O vindaloo e o sarapatel são goeses e vêm do nosso «vinha d'alhos»: carne
+   de porco em vinho e alho, que em Goa ganhou malagueta e tamarindo. São
+   cozinha indiana de pleno direito, com uma raiz portuguesa que se ouve no
+   nome. A bebinca é a sobremesa de Goa, de camadas assadas uma a uma. */
+R('butterchicken','Butter chicken (murgh makhani)','indiana',[],0,0,0,0,[['Peito de frango',180,'g'],['Iogurte natural',60,'g'],['Polpa de tomate',80,'g'],['Nata para bater 35% gordura',40,'ml'],['Manteiga',20,'g'],['Caju',20,'g'],['Cebola',0.5,'un'],['Alho',3,'dente'],['Gengibre',8,'g'],['Garam masala',4,'g'],['Curcuma em pó',2,'g'],['Chili em pó',1,'g']],['a','j'],0,['pp']),
+R('tikkamasala','Chicken tikka masala','indiana',[],0,0,0,0,[['Peito de frango',180,'g'],['Iogurte natural',70,'g'],['Polpa de tomate',90,'g'],['Nata para bater 35% gordura',35,'ml'],['Cebola',0.5,'un'],['Alho',3,'dente'],['Gengibre',8,'g'],['Garam masala',5,'g'],['Colorau',3,'g'],['Cominhos',2,'g'],['Coentros',8,'g'],['Óleo alimentar',12,'ml']],['a','j'],0,['pp']),
+R('lambkorma','Lamb korma','indiana',[],0,0,0,0,[['Borrego',170,'g'],['Iogurte natural',70,'g'],['Caju',25,'g'],['Nata para bater 35% gordura',30,'ml'],['Cebola',0.75,'un'],['Alho',3,'dente'],['Gengibre',8,'g'],['Cardamomo',1,'g'],['Canela',1,'g'],['Ghee',15,'g'],['Garam masala',3,'g']],['a','j'],0,['pp']),
+R('carilcamarao','Caril de camarão','indiana',[],0,0,0,0,[['Camarão',180,'g'],['Leite de coco',120,'ml'],['Cebola',0.5,'un'],['Alho',3,'dente'],['Gengibre',8,'g'],['Tomate',1,'un'],['Curcuma em pó',2,'g'],['Caril em pó',5,'g'],['Malagueta',2,'g'],['Coentros',8,'g'],['Óleo alimentar',12,'ml'],['Lima',0.25,'un']],['a','j'],0,['pp']),
+R('vindaloo','Vindaloo de porco','indiana',[],0,0,0,0,[['Porco, lombo cru',170,'g'],['Vinagre de vinho',30,'ml'],['Alho',5,'dente'],['Malagueta',4,'g'],['Cominhos',2,'g'],['Cravinho',0.5,'g'],['Canela',1,'g'],['Colorau',3,'g'],['Cebola',0.5,'un'],['Gengibre',6,'g'],['Óleo alimentar',15,'ml'],['Açúcar amarelo',4,'g']],['a','j'],0,['pp']),
+R('sarapatelgoa','Sarapatel de Goa','indiana',[],0,0,0,0,[['Porco, lombo cru',110,'g'],['Vaca, fígado cru',50,'g'],['Sangue de porco',30,'g'],['Vinagre de vinho',35,'ml'],['Alho',5,'dente'],['Malagueta',4,'g'],['Cominhos',2,'g'],['Cravinho',0.5,'g'],['Canela',1,'g'],['Curcuma em pó',2,'g'],['Cebola',0.5,'un'],['Tamarindo pasta',10,'g'],['Óleo alimentar',12,'ml']],['a','j'],0,['pp']),
+R('biryani','Biryani de frango','indiana',[],0,0,0,0,[['Coxas de frango',150,'g'],['Arroz basmati',80,'g'],['Iogurte natural',60,'g'],['Cebola',0.75,'un'],['Ghee',15,'g'],['Açafrão',0.1,'g'],['Cardamomo',1,'g'],['Canela',1,'g'],['Cravinho',0.3,'g'],['Garam masala',4,'g'],['Gengibre',8,'g'],['Alho',3,'dente'],['Coentros',8,'g'],['Hortelã',5,'g']],['a','j'],0,['pp']),
+R('naanqueijo','Naan de alho e queijo','indiana',[],0,0,0,0,[['Farinha',80,'g'],['Iogurte natural',40,'g'],['Mozzarella',45,'g'],['Alho',3,'dente'],['Manteiga',12,'g'],['Fermento de padeiro',3,'g'],['Coentros',4,'g'],['Açúcar branco',3,'g']],['a','j'],0,['ac']),
+R('daltarka','Dal tarka de lentilhas','indiana',[],0,0,0,0,[['Lentilhas',90,'g'],['Cebola',0.5,'un'],['Alho',3,'dente'],['Gengibre',6,'g'],['Tomate',1,'un'],['Curcuma em pó',2,'g'],['Cominhos',2,'g'],['Ghee',12,'g'],['Malagueta',1,'g'],['Coentros',8,'g']],['a','j'],0,['pp']),
+R('palakpaneer','Palak paneer de espinafres e queijo','indiana',[],0,0,0,0,[['Espinafres',200,'g'],['Queijo fresco',110,'g'],['Cebola',0.5,'un'],['Alho',3,'dente'],['Gengibre',8,'g'],['Nata para bater 35% gordura',30,'ml'],['Ghee',12,'g'],['Garam masala',3,'g'],['Cominhos',2,'g']],['a','j'],0,['pp']),
+R('chanamasala','Chana masala de grão','indiana',[],0,0,0,0,[['Grão-de-bico seco cru',80,'g'],['Cebola',0.5,'un'],['Tomate',1.5,'un'],['Alho',3,'dente'],['Gengibre',8,'g'],['Garam masala',4,'g'],['Cominhos',2,'g'],['Curcuma em pó',2,'g'],['Coentros',8,'g'],['Óleo alimentar',12,'ml'],['Lima',0.25,'un']],['a','j'],0,['pp']),
+R('raita','Raita de pepino e hortelã','indiana',[],0,0,0,0,[['Iogurte natural',120,'g'],['Pepino',80,'g'],['Hortelã',5,'g'],['Cominhos',1,'g'],['Coentros',4,'g']],['ac'],0),
+R('bebinca','Bebinca de Goa','indiana',[],0,0,0,0,[['Gema de ovo de galinha, crua',30,'g'],['Leite de coco',60,'ml'],['Açúcar branco',30,'g'],['Farinha',20,'g'],['Ghee',15,'g'],['Noz-moscada',0.3,'g'],['Cardamomo',0.3,'g']],['l'],0,['sob']),
 /* ---- Cozinha do norte e do rio ----
    Pratos que a app não tinha e que são de casa: a cabidela e o sarrabulho
    levam sangue, a lampreia é de época curta e o safio e a raia entram na
@@ -2238,7 +2256,23 @@ R('caldeiradarica','Caldeirada rica de três peixes','portuguesa',['mediterranic
 R('enguiasfritas','Enguias fritas','portuguesa',[],0,0,0,0,[['Enguia crua',110,'g'],['Farinha de milho tipo 70',20,'g'],['Óleo alimentar',12,'ml'],['Alho',2,'dente'],['Limão',0.5,'un'],['Louro',1,'g']],['a','j'],0,['pp']),
 R('caldeiradaenguias','Caldeirada de enguias','portuguesa',[],0,0,0,0,[['Enguia crua',120,'g'],['Batata',180,'g'],['Cebola',0.75,'un'],['Tomate',1,'un'],['Pimento',0.5,'un'],['Azeite',12,'ml'],['Vinho branco',60,'ml'],['Alho',3,'dente'],['Louro',2,'g'],['Colorau',2,'g'],['Salsa',8,'g']],['a','j'],0,['pp']),
 R('arrozfrango','Arroz de frango','portuguesa',['mediterranica'],0,0,0,0,[['Frango inteiro com pele, cru',150,'g'],['Arroz carolino',70,'g'],['Cebola',0.5,'un'],['Alho',2,'dente'],['Tomate',1,'un'],['Cenoura',50,'g'],['Ervilhas',40,'g'],['Azeite',15,'ml'],['Louro',1,'g'],['Colorau',2,'g'],['Salsa',5,'g']],['a','j'],0,['pp']),
+/* ---- Salmão, de todas as maneiras ---- */
+R('salmaogrelhado','Salmão grelhado com limão e endro','portuguesa',['mediterranica'],0,0,0,0,[['Salmão',180,'g'],['Limão',0.5,'un'],['Endro',4,'g'],['Azeite',10,'ml'],['Flor de sal',1,'g'],['Pimenta preta',0.5,'g']],['a','j'],0,['pp']),
+R('salmaoteriyaki','Salmão glaceado com teriyaki e sésamo','asiatica',[],0,0,0,0,[['Salmão',170,'g'],['Molho teriyaki',30,'ml'],['Sementes de sésamo',6,'g'],['Gengibre',6,'g'],['Alho',1,'dente'],['Óleo de sésamo',6,'ml'],['Cebolinho',5,'g']],['a','j'],0,['pp']),
+R('salmaoforno','Salmão no forno com espargos e tomate cereja','mediterranica',['mediterranica'],0,0,0,0,[['Salmão',180,'g'],['Espargos',120,'g'],['Tomate cereja',100,'g'],['Azeite',12,'ml'],['Alho',2,'dente'],['Limão',0.5,'un'],['Orégãos',2,'g']],['a','j'],0,['pp']),
+R('salmaocrostaervas','Salmão em crosta de ervas e mostarda','francesa',[],0,0,0,0,[['Salmão',180,'g'],['Pão ralado',25,'g'],['Mostarda de Dijon',12,'g'],['Salsa',8,'g'],['Endro',4,'g'],['Manteiga',12,'g'],['Limão',0.25,'un']],['a','j'],0,['pp']),
+R('saladasalmaofumado','Salada de salmão fumado com abacate e endro','mediterranica',['mediterranica'],0,0,0,0,[['Salmão fumado',80,'g'],['Abacate',0.5,'un'],['Rúcula',50,'g'],['Pepino',60,'g'],['Endro',4,'g'],['Alcaparras',8,'g'],['Azeite',10,'ml'],['Limão',0.5,'un']],['a','l','j'],0,['ent','pp']),
+R('saladasalmaoquinoa','Salada de quinoa com salmão fumado e ervilhas','mediterranica',['mediterranica'],0,0,0,0,[['Quinoa',60,'g'],['Salmão fumado',70,'g'],['Ervilhas',60,'g'],['Rúcula',40,'g'],['Cebola roxa',0.25,'un'],['Endro',4,'g'],['Azeite',10,'ml'],['Limão',0.5,'un']],['a','j'],0,['pp']),
+R('tostasalmaofumado','Tosta de salmão fumado com queijo creme','francesa',[],0,0,0,0,[['Pão integral',60,'g'],['Salmão fumado',60,'g'],['Queijo creme',35,'g'],['Endro',3,'g'],['Alcaparras',6,'g'],['Cebola roxa',0.15,'un'],['Limão',0.25,'un']],['p','l'],0,['sn','br']),
+/* ---- Beurre blanc: o molho de manteiga de Nantes ----
+   Redução de vinho branco, vinagre e chalota, montada com manteiga fria fora
+   do lume. É emulsão, não é molho fervido — daí a manteiga entrar em pedaços
+   e o tacho nunca voltar a ferver. */
+R('robalobeurreblanc','Robalo com beurre blanc','francesa',[],0,0,0,0,[['Robalo',180,'g'],['Manteiga',45,'g'],['Vinho branco',60,'ml'],['Vinagre de vinho',15,'ml'],['Chalota',30,'g'],['Nata para bater 35% gordura',20,'ml'],['Cebolinho',4,'g'],['Flor de sal',1,'g']],['a','j'],0,['pp']),
+R('pescadabeurreblanc','Pescada com beurre blanc e alcaparras','francesa',[],0,0,0,0,[['Pescada',190,'g'],['Manteiga',40,'g'],['Vinho branco',60,'ml'],['Vinagre de vinho',15,'ml'],['Chalota',30,'g'],['Alcaparras',12,'g'],['Salsa',5,'g'],['Limão',0.25,'un']],['a','j'],0,['pp']),
+R('salmaobeurreblanc','Salmão com beurre blanc de endro','francesa',[],0,0,0,0,[['Salmão',175,'g'],['Manteiga',42,'g'],['Vinho branco',60,'ml'],['Vinagre de vinho',15,'ml'],['Chalota',30,'g'],['Endro',5,'g'],['Nata para bater 35% gordura',20,'ml']],['a','j'],0,['pp']),
 /* ---- Sobremesas de colher ---- */
+R('tiramisu','Tiramisu','italiana',[],0,0,0,0,[['Queijo Mascarpone',70,'g'],['Gema de ovo de galinha, crua',20,'g'],['Clara de ovo de galinha, crua',25,'g'],['Açúcar branco',25,'g'],['Café expresso',40,'ml'],['Bolacha Maria',30,'g'],['Cacau em pó',4,'g']],['l'],0,['sob']),
 R('bavaroise','Bavaroise de morango','francesa',[],0,0,0,0,[['Morango',80,'g'],['Nata para bater 35% gordura',60,'ml'],['Leite',50,'ml'],['Gema de ovo de galinha, crua',18,'g'],['Açúcar branco',25,'g'],['Gelatina em folhas',2,'g']],['l'],0,['sob']),
 R('moussechoc','Mousse de chocolate','portuguesa',[],0,0,0,0,[['Chocolate de culinária',35,'g'],['Ovo',1,'un'],['Açúcar branco',12,'g'],['Manteiga',8,'g']],['l'],0,['sob']),
 R('bolochoc','Bolo de chocolate','portuguesa',[],0,0,0,0,[['Farinha',35,'g'],['Açúcar branco',40,'g'],['Cacau em pó',12,'g'],['Ovo',0.75,'un'],['Manteiga',25,'g'],['Leite',35,'ml'],['Fermento em pó',2,'g']],['l'],0,['sob']),
@@ -3472,6 +3506,126 @@ P('bololaranja',[['Preparar','Raspa a laranja antes de a espremer — depois de 
  ['Farinha','Farinha e fermento peneirados, envolvidos com movimentos largos e poucos — bater agora deixa o bolo rijo.'],
  ['Forno','Forma untada e polvilhada, forno a 180 °C. Não abras a porta na primeira meia hora.',40],
  ['Calda','Se gostares húmido, rega ainda quente com sumo de laranja e açúcar levados ao lume.',5]]);
+P('butterchicken',[['Marinar','Frango em cubos no iogurte com gengibre, alho e metade das especiarias. Quatro horas, ou de véspera.',240],
+ ['Selar','Frango a corar em lume forte, aos poucos, e reserva. Não coze — sela.',10],
+ ['Base','Cebola em manteiga até dourar, o resto das especiarias fora do lume forte, depois o tomate.',12],
+ ['Caju','Caju demolhado e triturado com um pouco de água — é ele que dá a textura, não a nata.',5],
+ ['Apurar','Frango de volta com a base e o caju, em lume brando, tapado.',20],
+ ['Fechar','Nata e um bocado de manteiga fora do lume. Coentros por cima e arroz basmati ao lado.',3]]);
+P('tikkamasala',[['Marinar','Frango no iogurte com colorau, garam masala, alho e gengibre. Quanto mais tempo, melhor.',240],
+ ['Tikka','Frango grelhado ou no forno bem quente, até marcar nos bordos. É esse tostado que faz o tikka.',15],
+ ['Masala','Cebola em óleo até dourar, especiarias fora do lume, tomate a desfazer.',15],
+ ['Juntar','Frango grelhado ao molho, a apurar em lume brando.',15],
+ ['Fechar','Nata e coentros no fim, fora do lume.',2]]);
+P('lambkorma',[['Cebola','Cebola em fatias finas a fritar em ghee até castanha e doce — vinte minutos, sem pressa. É a base do korma.',20],
+ ['Especiarias','Cardamomo, canela e cravinho no ghee quente até libertarem o cheiro. Não mais de um minuto.',1],
+ ['Selar','Borrego em cubos a corar de todos os lados.',10],
+ ['Iogurte','Iogurte batido, uma colher de cada vez, mexendo sempre — junto de uma vez, talha.',5],
+ ['Guisar','Tapado, em lume muito brando, até o borrego desfazer ao garfo.',75],
+ ['Caju','Pasta de caju e nata no fim, fora do lume. O korma quer-se suave, não picante.',3]]);
+P('carilcamarao',[['Cascas','As cascas do camarão fritas em óleo dão um caldo curto que é onde está o sabor. Coa e reserva.',10],
+ ['Base','Cebola, alho e gengibre a refogar; curcuma e caril fora do lume forte, que queimam.',10],
+ ['Tomate','Tomate ralado a desfazer, depois o leite de coco e o caldo das cascas.',12],
+ ['Camarão','Camarão nos últimos três minutos. Mais do que isso e fica borracha.',3],
+ ['Fechar','Coentros e lima fora do lume. Arroz branco ao lado.']]);
+P('vindaloo',[['Vinha de alhos','Alho, malagueta e especiarias moídas com o vinagre até formar pasta. É daqui que vem o nome: «vinha d’alhos».',10],
+ ['Marinar','Porco em cubos na pasta, de véspera no frigorífico. Menos do que uma noite não chega.',720],
+ ['Selar','Escorre a carne (guarda a marinada) e cora em óleo bem quente.',12],
+ ['Guisar','Cebola picada, a marinada toda e água a meio. Lume brando e tapado.',60],
+ ['Apurar','Destapa no fim para o molho apertar e a gordura vir ao de cima. Uma pitada de açúcar equilibra o vinagre.',15],
+ ['Repousar','Como quase todos os caris, sabe melhor no dia seguinte.']]);
+P('sarapatelgoa',[['Cozer','Carne e fígado cozidos brevemente em água com sal, depois cortados em cubos pequenos. Guarda a água.',25],
+ ['Pasta','Malagueta, alho, cominhos, cravinho, canela e curcuma moídos com vinagre.',10],
+ ['Refogar','Cebola em óleo, a pasta a fritar até o cru do vinagre desaparecer.',10],
+ ['Guisar','Carnes, a água da cozedura e o tamarindo. Lume brando, destapado, a apurar.',45],
+ ['Sangue','Sangue em fio no fim, fora do lume forte, mexendo sempre — a ferver, talha.',5],
+ ['Descansar','Come-se ao segundo ou terceiro dia, que é quando assenta. Em Goa faz-se assim de propósito.']]);
+P('biryani',[['Arroz','Basmati demolhado meia hora e depois cozido só a 70% em água com cardamomo e canela. Escorre.',25],
+ ['Cebola','Cebola em fatias finas frita em ghee até castanha — metade para o guisado, metade para o topo.',20],
+ ['Frango','Frango marinado em iogurte com gengibre, alho e garam masala, guisado até quase pronto.',30],
+ ['Camadas','Numa panela de fundo grosso: frango, arroz por cima, cebola frita, hortelã, coentros e o açafrão em leite morno.'],
+ ['Dum','Tapa com massa ou papel vegetal e tampa pesada, lume mínimo. É o vapor selado que cozinha o resto — não se abre.',25],
+ ['Servir','Abre à mesa e mistura só ao servir, das camadas para o prato. Raita ao lado.']]);
+P('naanqueijo',[['Massa','Farinha, iogurte, fermento, açúcar e água morna. Amassa até ficar lisa e elástica.',10],
+ ['Levedar','Tapada, em sítio morno, até dobrar.',90],
+ ['Rechear','Divide, abre cada bola, põe mozzarella e alho picado no meio e fecha como uma trouxa. Abre outra vez com cuidado.',10],
+ ['Cozer','Frigideira de ferro muito quente, sem gordura. Bolhas de um lado, vira, e pronto.',4],
+ ['Pincelar','Manteiga derretida com alho e coentros por cima, ainda a sair da frigideira.']]);
+P('daltarka',[['Lentilhas','Lentilhas lavadas a cozer em água com curcuma até desfazerem. Espuma que suba, tira-se.',30],
+ ['Tarka','Noutra frigideira: ghee, cominhos em grão a estalar, alho, gengibre e malagueta.',5],
+ ['Tomate','Cebola e tomate ao tarka, até o tomate desfazer.',10],
+ ['Juntar','O tarka inteiro despejado nas lentilhas — é esse chiado que dá nome ao prato.',2],
+ ['Fechar','Coentros e sal. Come-se com arroz ou naan.']]);
+P('palakpaneer',[['Escaldar','Espinafres 30 segundos em água a ferver e logo para água gelada — é o que mantém o verde vivo.',5],
+ ['Triturar','Espinafres escorridos e triturados até puré grosseiro. Puré fino demais fica papa.',3],
+ ['Queijo','Cubos de queijo fresco a corar em ghee e reserva.',6],
+ ['Base','Cebola, alho e gengibre a refogar; cominhos e garam masala fora do lume forte.',10],
+ ['Juntar','Puré de espinafres à base, o queijo por cima e a nata a fechar. Não deixes ferver muito: o verde escurece.',8]]);
+P('chanamasala',[['Demolhar','Grão de molho de véspera, doze horas, e cozido até tenro. Guarda a água da cozedura.',720],
+ ['Base','Cebola em óleo até dourar bem, alho e gengibre depois. Especiarias fora do lume forte.',12],
+ ['Tomate','Tomate ralado a desfazer até a gordura se separar — é esse o sinal de que a base está pronta.',12],
+ ['Guisar','Grão e um pouco da água da cozedura, a apurar destapado.',20],
+ ['Fechar','Lima e coentros fora do lume.']]);
+P('raita',[['Pepino','Pepino ralado grosso e espremido num pano — sem isso, o raita fica água.',5],
+ ['Bater','Iogurte batido liso com uma pitada de sal.',2],
+ ['Juntar','Pepino, hortelã picada e cominhos torrados e moídos.',3],
+ ['Frio','Frigorífico até servir. Serve para acalmar o picante, e é essa a função.',30]]);
+P('bebinca',[['Massa','Gemas batidas com açúcar, leite de coco e farinha peneirada, até ficar um creme liso e fino.',10],
+ ['Primeira','Uma concha na forma untada com ghee, forno com calor só de cima até dourar.',8],
+ ['Camadas','Ghee por cima, nova concha, e outra vez ao forno. Cada camada é assada sozinha — são sete a dezasseis.',90],
+ ['Paciência','É a receita mais paciente da cozinha goesa. Não há atalho: camadas juntas não fazem bebinca.'],
+ ['Arrefecer','Arrefece por completo antes de desenformar. Corta-se em fatias finas, que se veem as camadas.',60]]);
+P('salmaogrelhado',[['Temperar','Salmão com sal e pimenta só na hora — o sal antes puxa a água e a pele não fica estaladiça.'],
+ ['Grelhar','Grelha ou frigideira bem quente, pele para baixo primeiro, e não se mexe. Dois terços do tempo desse lado.',7],
+ ['Virar','Vira uma única vez. O centro fica rosado — salmão cozido de todo perde a gordura toda.',3],
+ ['Fechar','Limão, endro e um fio de azeite fora do lume.']]);
+P('salmaoteriyaki',[['Marinar','Salmão no teriyaki com gengibre e alho ralados, quinze minutos. Mais tempo e o açúcar queima ao grelhar.',15],
+ ['Selar','Frigideira quente com óleo de sésamo, salmão a corar de ambos os lados.',6],
+ ['Glacear','A marinada ao lume a reduzir até brilhar, e o salmão a rolar lá dentro.',4],
+ ['Servir','Sésamo torrado e cebolinho por cima.']]);
+P('salmaoforno',[['Preparar','Espargos e tomate cereja num tabuleiro com azeite, alho laminado e sal.',6],
+ ['Assar','Forno a 200 °C, os legumes primeiro, uns minutos à frente do peixe.',8],
+ ['Peixe','Salmão por cima dos legumes, com limão em rodelas.',14],
+ ['Ponto','Está quando as lascas se separam com o garfo mas ainda brilham no centro.']]);
+P('salmaocrostaervas',[['Crosta','Pão ralado misturado com salsa, endro e manteiga amolecida, até formar uma pasta.',6],
+ ['Mostarda','Salmão pincelado com mostarda — é o que faz a crosta agarrar.'],
+ ['Cobrir','Crosta bem pressionada por cima, sem deixar buracos.',4],
+ ['Forno','200 °C até a crosta dourar e o peixe estar no ponto.',15],
+ ['Servir','Limão à parte, para quem quiser.']]);
+P('saladasalmaofumado',[['Base','Rúcula lavada e bem seca — folha molhada não pega tempero.'],
+ ['Montar','Abacate em fatias, pepino em meias-luas, salmão fumado dobrado por cima.',6],
+ ['Temperar','Azeite, limão, alcaparras e endro. Sal com cuidado: o salmão fumado já traz o dele.'],
+ ['Servir','Faz-se na hora. O abacate escurece e o salmão amolece a rúcula.']]);
+P('saladasalmaoquinoa',[['Quinoa','Quinoa lavada em água corrente — a saponina da casca amarga — e cozida em dobro de água.',15],
+ ['Arrefecer','Solta com um garfo e deixa arrefecer por completo. Quente, murcha a rúcula.',20],
+ ['Ervilhas','Ervilhas escaldadas um minuto e passadas por água gelada.',3],
+ ['Montar','Quinoa, ervilhas, cebola roxa fina, rúcula e o salmão fumado em tiras.',5],
+ ['Temperar','Azeite, limão e endro. Sabe melhor depois de meia hora no frio.']]);
+P('tostasalmaofumado',[['Torrar','Pão integral bem torrado — mole não aguenta o recheio.',4],
+ ['Barrar','Queijo creme com endro picado e umas gotas de limão.',3],
+ ['Montar','Salmão fumado dobrado, cebola roxa em fios e alcaparras por cima.'],
+ ['Fechar','Raspa de limão e pimenta moída na hora.']]);
+P('robalobeurreblanc',[['Redução','Chalota picada fina com vinho branco e vinagre, a reduzir até quase seco — duas colheres de líquido, não mais.',12],
+ ['Nata','Nata à redução, a levantar fervura uma vez. É ela que estabiliza a emulsão e perdoa um descuido de temperatura.',2],
+ ['Montar','Fora do lume, manteiga muito fria em cubos, um a um, batendo sempre. Nunca deixar ferver: a emulsão quebra.',8],
+ ['Peixe','Robalo grelhado ou salteado em manteiga, pele estaladiça.',8],
+ ['Servir','Molho no prato, peixe por cima — nunca ao contrário, que o molho escorre. Cebolinho a fechar.']]);
+P('pescadabeurreblanc',[['Redução','Vinho, vinagre e chalota a reduzir até quase seco.',12],
+ ['Montar','Manteiga fria em cubos fora do lume, a bater. O molho fica opaco e sedoso, não translúcido.',8],
+ ['Alcaparras','Alcaparras escorridas no fim, para não salgarem o molho todo.'],
+ ['Peixe','Pescada escalfada em água mal a tremer, ou salteada em manteiga.',8],
+ ['Servir','Molho por baixo, peixe por cima, salsa e limão.']]);
+P('salmaobeurreblanc',[['Redução','Chalota, vinho e vinagre a reduzir. Endro só no fim — cozido perde o perfume.',12],
+ ['Nata','Nata a levantar fervura, para o molho aguentar melhor.',2],
+ ['Montar','Manteiga fria em cubos, fora do lume, sem parar de bater.',8],
+ ['Salmão','Salmão salteado com a pele estaladiça, o centro rosado.',8],
+ ['Servir','Endro fresco no molho, fora do lume, e serve logo. Beurre blanc não espera nem reaquece.']]);
+P('tiramisu',[['Gemas','Gemas batidas com o açúcar até esbranquiçarem e triplicarem.',8],
+ ['Mascarpone','Mascarpone à temperatura ambiente, envolvido nas gemas sem bater — batido demais, talha e fica granuloso.',4],
+ ['Claras','Claras em castelo firme, envolvidas com movimentos largos de baixo para cima.',5],
+ ['Molhar','Bolachas passadas rapidamente pelo café frio, um segundo de cada lado. Encharcadas, desfazem-se.',5],
+ ['Camadas','Bolacha, creme, bolacha, creme. Alisa por cima.',5],
+ ['Frio','Frigorífico no mínimo seis horas, melhor de um dia para o outro. Cacau peneirado só na hora de servir.',360]]);
 P('cabidela',[['Sangue','O sangue apara-se com um golpe de vinagre e mexe-se logo — sem vinagre coalha, e coalhado já não há molho que se faça.'],
  ['Refogado','Cebola e alho em azeite, devagar. Colorau fora do lume, que a esta temperatura queima e amarga.',10],
  ['Guisar','Frango aos pedaços a alourar no refogado, depois água a cobrir e o louro. Coze até a carne largar do osso.',35],
@@ -3995,6 +4149,16 @@ NI('Sangue de galinha',63,0,11.1,1.7,0,0,1);
 NI('Massa cotovelo crua',352,71.2,12.1,1.6,3.1,0,4);
 /* Massa de pimentão: o tempero-mãe do Alentejo e do Minho. INSA. */
 NI('Massa de pimentão',96,7.2,2.4,4.8,3.5,0,4);
+/* ---- Para a cozinha indiana ---- */
+NI('Arroz basmati',349,77.2,8.1,0.8,1.3,0,4);
+/* Ghee é manteiga clarificada: sem água e sem sólidos lácteos, é quase só
+   gordura — daí ficar acima da manteiga em energia. */
+NI('Ghee',876,0,0.3,99.5,0,0,4);
+NI('Cardamomo',311,40.5,10.8,6.7,28,0,4);
+NI('Curcuma em pó',312,44.4,9.7,3.3,22.7,0,4);
+NI('Garam masala',379,45.1,14.2,15.1,25.2,0,4);
+NI('Tamarindo pasta',239,57.4,2.8,0.6,5.1,0,4);
+NI('Grão-de-bico seco cru',343,49.6,20.5,5.4,15.5,0,4);
 NI('Arroz arbóreo',350,77,7,0.6,1.4,0,-1);  // USDA, hidratos convertidos para disponiveis
 NI('Arroz para sushi',355,78,6.5,0.6,1,0,-1);  // USDA, hidratos convertidos para disponiveis
 NI('Esparguete',360,71.1,12.1,1.9,5.1,0,4);
@@ -5226,7 +5390,7 @@ function blank(){ return {members:[],cheats:{},plans:{},bought:{},prefCuisine:'t
   gostos:{},
   /* jejum: im é o horário por pessoa (intermitente), pontuais são os jejuns
      com data marcada. Os dois contam para o alvo do dia e para a projeção. */
-  jejum:{im:{}, pontuais:[]},
+  jejum:{im:{}, pontuais:[], renutricao:{}, renutRecusada:{}},
   /* preferências de cozinha da casa: repetir pratos na semana, cozinhar em
      dobro, seguir a época e preparar de véspera — o que muda como se sugere */
   cozPref:{repetir:false, dobro:false, sazonal:false, prep:true, cartaoEpoca:true},
@@ -6231,6 +6395,8 @@ function jejumCfg(){
   if(!S.jejum || typeof S.jejum!=='object') S.jejum={im:{}, pontuais:[]};
   if(!S.jejum.im || typeof S.jejum.im!=='object') S.jejum.im={};
   if(!Array.isArray(S.jejum.pontuais)) S.jejum.pontuais=[];
+  if(!S.jejum.renutricao || typeof S.jejum.renutricao!=='object') S.jejum.renutricao={};
+  if(!S.jejum.renutRecusada || typeof S.jejum.renutRecusada!=='object') S.jejum.renutRecusada={};
   return S.jejum;
 }
 function imDe(mid){
@@ -6286,6 +6452,11 @@ function limparJejum(o,ids){
   });
   d.pontuais=(Array.isArray(o.pontuais)? o.pontuais:[]).slice(0,200)
     .map(x=>limparJejumPontual(x,ids)).filter(Boolean);
+  d.renutricao={}; d.renutRecusada={};
+  Object.keys(o.renutricao||{}).slice(0,32).forEach(mid=>{
+    if((!ids||ids.indexOf(mid)>=0) && o.renutricao[mid]) d.renutricao[mid]=true; });
+  Object.keys(o.renutRecusada||{}).slice(0,32).forEach(mid=>{
+    if((!ids||ids.indexOf(mid)>=0) && dataValida(o.renutRecusada[mid])) d.renutRecusada[mid]=o.renutRecusada[mid]; });
   return d;
 }
 /* As horas de jejum que caem num dia concreto, entre 0 e 24. */
@@ -6304,6 +6475,71 @@ function jejumDeHoje(mid){
   const h=hojeISO();
   return jejumCfg().pontuais.find(j=>j.mid===mid && horasDeJejumNoDia(mid,h)>0) || null;
 }
+/* ================= RENUTRIÇÃO FASEADA =================
+   Sair de um jejum longo com uma refeição normal é o momento de maior risco de
+   todo o processo — mais do que o jejum em si. A síndrome de realimentação
+   acontece quando a insulina volta a subir de repente e puxa fosfato, potássio
+   e magnésio para dentro das células, esvaziando o sangue. Pode ser grave.
+
+   Os critérios de risco elevado são os do NICE (guideline CG32, «Nutrition
+   support for adults»), e é de lá que vem a regra de começar devagar e subir
+   ao longo de vários dias. Esses valores foram escritos para doentes
+   internados em desnutrição — não para um adulto saudável que fez um jejum de
+   dois dias. A app usa o princípio, escalona-o pela duração do jejum, e diz
+   com todas as letras onde é que deixa de ser suficiente. */
+const NICE_RISCO_ALTO=[
+  'Índice de massa corporal abaixo de 16',
+  'Perda de peso não intencional de mais de 15% em 3 a 6 meses',
+  'Pouca ou nenhuma alimentação há mais de 10 dias',
+  'Potássio, fosfato ou magnésio já baixos antes de voltar a comer',
+];
+const NICE_RISCO_MODERADO=[
+  'Índice de massa corporal abaixo de 18,5',
+  'Perda de peso não intencional de mais de 10% em 3 a 6 meses',
+  'Pouca ou nenhuma alimentação há mais de 5 dias',
+  'História de consumo excessivo de álcool, ou medicação como insulina, quimioterapia, antiácidos ou diuréticos',
+];
+/* A rampa, por duração do jejum. Cada número é a fração do alvo normal nesse
+   dia. Quanto mais longo o jejum, mais lenta a subida. */
+function rampaRenutricao(horas){
+  if(horas<24) return [];
+  if(horas<48) return [0.6];
+  if(horas<72) return [0.5,0.75];
+  if(horas<120) return [0.4,0.6,0.8];
+  if(horas<168) return [0.3,0.45,0.6,0.8];
+  return [0.25,0.35,0.5,0.65,0.8,0.9];
+}
+/* O que se come em cada fase. Não é uma prescrição: é o que a prática
+   corrente recomenda, e a ordem importa mais do que os alimentos. */
+const FASES_RENUTRICAO=[
+  {t:'Primeiras horas', d:'Caldo de legumes ou de osso, morno e salgado. Repõe sódio e volume sem sobrecarregar nada. Bebe devagar.'},
+  {t:'Primeira refeição', d:'Pequena e sem hidratos rápidos: ovo, peixe cozido, iogurte natural, legumes cozidos. Metade do que te apetecer.'},
+  {t:'Primeiro dia', d:'Três refeições pequenas em vez de uma grande. Nada de fritos, açúcar, álcool ou refeições volumosas — o aparelho digestivo esteve parado.'},
+  {t:'Dias seguintes', d:'Sobe aos poucos, com hidratos a entrar por último. É o regresso dos hidratos que dispara a insulina, e é aí que o risco está.'},
+];
+/* Um jejum que acabou nos últimos dias e ainda está dentro da janela de
+   renutrição. É o que faz a app propor o plano sozinha. */
+function jejumRecente(mid){
+  const h=hojeISO();
+  let melhor=null;
+  jejumCfg().pontuais.forEach(j=>{
+    if(j.mid!==mid) return;
+    const fim=addDias(j.d, Math.floor((j.inicio+j.horas)/24));
+    const dias=diasEntre(fim,h);
+    const rampa=rampaRenutricao(j.horas);
+    if(dias>=0 && dias<rampa.length && (!melhor || j.horas>melhor.j.horas))
+      melhor={j, fim, diaDe:dias, rampa};
+  });
+  return melhor;
+}
+/* A fração do alvo que se propõe hoje, se houver renutrição a decorrer e ela
+   tiver sido aceite. */
+function fatorRenutricao(mid){
+  if(!(S.jejum && S.jejum.renutricao && S.jejum.renutricao[mid])) return 1;
+  const r=jejumRecente(mid);
+  if(!r) return 1;
+  return r.rampa[r.diaDe] || 1;
+}
 function alvoDoDia(m,d){
   if(semEstimativa(m)) return 0;
   /* Um dia coberto por um jejum pontual não tem alvo calórico: tem zero. E um
@@ -6313,6 +6549,10 @@ function alvoDoDia(m,d){
   const base=Math.max(bmr(m)*0.8, targetKcal(m)+extraAtivDia(m,d));
   if(hj>=24) return 0;
   if(hj>0) return Math.round(base*(24-hj)/24);
+  /* Depois de um jejum longo, o alvo sobe por degraus em vez de saltar de zero
+     para o normal. Só se aplica ao dia de hoje: os dias futuros da rampa
+     calculam-se quando lá chegarem. */
+  if(d===hojeISO()){ const f=fatorRenutricao(m.id); if(f<1) return Math.round(base*f); }
   return base;
 }
 /* O défice que um jejum acrescenta num dia: o gasto total desse dia, na
@@ -6483,6 +6723,7 @@ const DICAS={
   jejum:'Duas coisas diferentes com o mesmo nome. O jejum intermitente comprime a janela em que se come sem mudar o total do dia — é um horário, não um défice, e o alvo de calorias não desce por causa dele. Um jejum pontual de 24 horas ou mais é outra coisa: é um dia sem comida, com um défice do tamanho do gasto desse dia, e a partir de certa duração deixa de ser uma escolha alimentar e passa a ser um assunto clínico. A app trata os dois de forma diferente e diz porquê. Não fica disponível para crianças, adolescentes, grávidas nem no pós-parto recente — não é a app a decidir por ninguém, é a app a não oferecer uma ferramenta que nesses casos não tem indicação.',
   comecarTreinar:'Um plano de treino começa por haver onde treinar. A app abre uma pesquisa de ginásios, piscinas, clubes, treinadores e estúdios perto de ti — mas convém saber como: a app não faz chamadas de rede nenhumas. Pede a posição ao browser, que é uma API local com permissão explícita, e usa-a para montar uma ligação para um mapa. A ligação só abre quando lhe tocas, e até lá as coordenadas não saem do dispositivo. Não são gravadas, não entram na cópia de segurança e desaparecem ao fechar a app. O OpenStreetMap vem primeiro porque não exige conta nem rastreia quem pesquisa.',
   naArea:'Para quem está de férias ou em viagem e quer manter o ritmo. Além de ginásios e piscinas para um dia solto, procura o que não precisa de inscrição nenhuma: trilhos e percursos pedestres, ciclovias e ecopistas, equipamentos de manutenção ao ar livre e polidesportivos. Funciona da mesma forma — a app monta a ligação, o browser é que a abre, e a posição fica só nesta sessão.',
+  renutricao:'Sair de um jejum longo é o momento de maior risco de todo o processo — mais do que o jejum em si. Quando a insulina volta a subir de repente, puxa fosfato, potássio e magnésio para dentro das células e esvazia-os do sangue: chama-se síndrome de realimentação e pode ser grave. A app propõe-se sozinha porque é precisamente o momento em que ninguém se lembra de o fazer, e faz o alvo de calorias subir por degraus ao longo de vários dias em vez de saltar de zero para o normal — quanto mais longo o jejum, mais lenta a subida. Os critérios de risco elevado são os do NICE (guideline CG32), escritos para doentes internados em desnutrição: se algum se aplicar, a saída do jejum é assunto de consulta e não de app. Acima de 72 horas, com acompanhamento médico e análises, sempre.',
   objJejum:'Porque se jejua muda o que faz sentido fazer: perder peso e procurar autofagia não pedem o mesmo protocolo. Escolher um objetivo muda a sugestão e, no caso da autofagia, abre o que se sabe e o que não se sabe sobre ela — que é o tema do jejum em que mais se afirma o que não está demonstrado.',
   autofagia:'A autofagia existe e a privação de nutrientes ativa-a: isso está demonstrado em levedura, em células e em animais, e valeu o Nobel da Medicina de 2016 a Yoshinori Ohsumi. Em humanos mediu-se muito menos — aumentos de marcadores indiretos em leucócitos e músculo após jejuns de 24 a 72 horas, em amostras pequenas. O que NÃO existe é um limiar horário validado em humanos: as «16 horas» que circulam vêm de extrapolações de roedores, que têm um metabolismo várias vezes mais rápido. Também não está demonstrado que mais autofagia signifique melhor saúde. A app dá as estratégias que a literatura associa a maior ativação e recusa-se a dizer que a certa hora «entraste em autofagia», porque isso não se mede sem uma biópsia.',
   calendarios:'Dois calendários com naturezas diferentes. A Páscoa calcula-se ao dia com o algoritmo de Meeus, e a Quaresma deriva dela — Cinzas 46 dias antes, e são 46 porque os 40 dias não contam os domingos. O Ramadão não se calcula com a mesma certeza: o calendário islâmico é lunar e o início de cada mês depende do avistamento da lua nova, que varia com o país e com a autoridade religiosa. A app dá a conversão tabular, que costuma acertar dentro de um dia, e diz que é uma estimativa. O Ramadão marca-se como jejum diurno repetido e não como um jejum contínuo de trinta dias, que seria outra coisa completamente.',
@@ -13511,10 +13752,84 @@ function cartaoJejum(m){
     <div class="row" style="margin-top:8px">
       <button class="btn small" onclick="abrirNovoJejum('${m.id}')">+ Marcar um jejum</button>
     </div>
+    ${blocoRenutricao(m)}
     ${blocoObjetivoJejum(m)}
     ${blocoCalendarios(m)}
     ${blocoImpactoJejum(m)}
     ${blocoEletrolitos(m)}
+  </div>`;
+}
+function aceitarRenutricao(mid){
+  if(!S.jejum.renutricao) S.jejum.renutricao={};
+  S.jejum.renutricao[mid]=true;
+  save('renutrição faseada');
+  const r=jejumRecente(mid);
+  flash('ok','Plano de renutrição ligado: o alvo de calorias sobe por degraus ao longo de '
+    +plural(r? r.rampa.length : 3,'dia','dias')+', em vez de saltar de zero para o normal.',
+    {rot:'Anular', fn:'desfazer()'});
+  render();
+}
+function recusarRenutricao(mid){
+  if(!S.jejum.renutricao) S.jejum.renutricao={};
+  delete S.jejum.renutricao[mid];
+  S.jejum.renutRecusada=S.jejum.renutRecusada||{};
+  S.jejum.renutRecusada[mid]=hojeISO();
+  save('renutrição dispensada'); render();
+}
+/* Sair de um jejum longo é o momento de maior risco de todo o processo. A app
+   propõe-se sozinha porque é precisamente quando ninguém se lembra de o fazer. */
+function blocoRenutricao(m){
+  const r=jejumRecente(m.id);
+  if(!r) return '';
+  const ligado=!!(S.jejum.renutricao&&S.jejum.renutricao[m.id]);
+  const recusou=(S.jejum.renutRecusada||{})[m.id]===hojeISO();
+  if(recusou && !ligado) return '';
+  const base=Math.max(bmr(m)*0.8, targetKcal(m));
+  const longo=r.j.horas>=72;
+  return `<div class="card" style="margin-top:12px;background:var(--bg);border-color:var(--${longo?'bad':'warn'})">
+    <div class="row" style="justify-content:space-between">
+      <div><span class="lbl">Dia ${r.diaDe+1} de ${r.rampa.length}</span>
+        <h3 style="margin-top:2px">Sair do jejum devagar ${dica('renutricao')}</h3></div>
+      ${ligado? '<span class="pill ok">a seguir o plano</span>':''}
+    </div>
+    <p class="sub" style="margin-top:6px">Acabaste um jejum de <b>${textoDuracaoJejum(r.j.horas)}</b> ${
+      r.diaDe===0? 'hoje' : 'há '+plural(r.diaDe,'dia','dias')}.
+      <b>Voltar a comer é o momento de maior risco de todo o processo</b> — mais do que o jejum em si.
+      Quando a insulina volta a subir de repente, puxa fosfato, potássio e magnésio para dentro das células
+      e esvazia-os do sangue. Chama-se síndrome de realimentação e pode ser grave.</p>
+
+    ${longo? `<div class="alerta forte" style="margin-top:10px"><span aria-hidden="true">🚨</span><span>
+      Acima de 72 horas, a saída do jejum faz-se com acompanhamento médico e com análises — o risco não é
+      teórico e não se avalia pelo que se sente. Se não tens esse acompanhamento, procura-o antes de voltar a comer a sério.</span></div>`:''}
+
+    <div class="splabel" style="margin-top:12px"><span>A rampa proposta</span></div>
+    <div class="row" style="margin-top:4px">${r.rampa.map((f,i)=>
+      `<div class="stat ${i===r.diaDe?'':''}" style="${i===r.diaDe?'background:var(--accent-soft)':''}">
+        <b style="${i===r.diaDe?'color:var(--accent)':''}">${Math.round(base*f)}</b>
+        <span>dia ${i+1}${i===r.diaDe? ' · hoje':''}</span></div>`).join('')}
+      <div class="stat"><b>${Math.round(base)}</b><span>normal</span></div>
+    </div>
+    <p class="sub" style="margin-top:6px">Percentagens do teu alvo habitual, a subir por degraus.
+      Quanto mais longo o jejum, mais lenta a subida.</p>
+
+    <div class="splabel" style="margin-top:12px"><span>Por que ordem</span></div>
+    <ul class="lista-acog">${FASES_RENUTRICAO.map(f=>`<li><b>${esc(f.t)}</b> — ${esc(f.d)}</li>`).join('')}</ul>
+
+    <details style="margin-top:10px"><summary><b>Quem tem risco elevado</b></summary>
+      <p class="sub">Critérios do NICE (guideline CG32). <b>Um</b> destes basta para risco elevado:</p>
+      <ul class="lista-acog alarme">${NICE_RISCO_ALTO.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+      <p class="sub" style="margin-top:8px">Ou <b>dois</b> destes:</p>
+      <ul class="lista-acog">${NICE_RISCO_MODERADO.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+      <p class="sub" style="margin-top:8px">Estes critérios foram escritos para doentes internados em desnutrição,
+        não para um adulto saudável que fez um jejum de dois dias. A app usa o princípio e escalona-o pela duração —
+        mas se algum destes se aplicar a ti, a saída do jejum é assunto de consulta e não de app.</p>
+    </details>
+
+    ${!ligado? `<div class="row" style="margin-top:12px">
+      <button class="btn" onclick="aceitarRenutricao('${m.id}')">Adaptar o plano</button>
+      <button class="btn ghost small" onclick="recusarRenutricao('${m.id}')">Agora não</button>
+    </div>` : `<p class="sub" style="margin-top:10px">O alvo de hoje já está ajustado, e o plano de refeições conta com ele.
+      <button class="chip" onclick="recusarRenutricao('${m.id}')">Desligar</button></p>`}
   </div>`;
 }
 function setObjetivoJejum(mid,k){
@@ -16392,10 +16707,12 @@ function lerPacote(txt){
   });
   const gostos=limparGostos(gostosBrutos, idsOk);
   /* jejum: os ids de membro remapeiam-se como tudo o resto */
-  const jejumBruto={im:{}, pontuais:[]};
+  const jejumBruto={im:{}, pontuais:[], renutricao:{}, renutRecusada:{}};
   if(d.jejum && typeof d.jejum==='object'){
     Object.keys(d.jejum.im||{}).forEach(mid0=>{ jejumBruto.im[mapa[mid0]||mid0]=d.jejum.im[mid0]; });
     jejumBruto.pontuais=(Array.isArray(d.jejum.pontuais)? d.jejum.pontuais:[]).map(remapa).filter(Boolean);
+    Object.keys(d.jejum.renutricao||{}).forEach(mid0=>{ jejumBruto.renutricao[mapa[mid0]||mid0]=d.jejum.renutricao[mid0]; });
+    Object.keys(d.jejum.renutRecusada||{}).forEach(mid0=>{ jejumBruto.renutRecusada[mapa[mid0]||mid0]=d.jejum.renutRecusada[mid0]; });
   }
   const jejum=limparJejum(jejumBruto, idsOk);
   return {d:{ members, cheats, plans, bought, objetivos, despensa, receitas,
@@ -16831,6 +17148,11 @@ const TOUR=[
    antes:()=>{ const m=S.members.find(x=>faseDe(x)!=='adulto'); if(m) S.ui.mid=m.id; },
    t:'Crianças: validar com o pediatra',
    d:'Em qualquer perfil em idade de crescimento, e com mais força num bebé, a app põe à cabeça da Nutrição um aviso que não se fecha: os valores que usa são referências populacionais de fontes oficiais, para planear uma semana em casa — não são prescrições, e não conhecem o percentil desta criança, a história clínica, as alergias em investigação nem o ritmo de crescimento. A introdução de alimentos novos e as quantidades de leite decidem-se em consulta.'},
+  {tab:'nutricao', sel:'[data-col="nu-jejum"]',
+   antes:()=>{ const a=S.members.find(x=>!jejumDesaconselhado(x)); if(a) S.ui.mid=a.id; },
+   quando:()=>S.members.some(x=>!jejumDesaconselhado(x)),
+   t:'Sair do jejum devagar',
+   d:'Depois de um jejum longo, a app propõe-se sozinha — porque voltar a comer é <b>o momento de maior risco de todo o processo</b>, mais do que o jejum em si, e é precisamente quando ninguém se lembra de ter cuidado. Quando a insulina volta a subir de repente, puxa fosfato, potássio e magnésio para dentro das células e esvazia-os do sangue: chama-se síndrome de realimentação e pode ser grave. O plano faz o alvo de calorias subir <b>por degraus</b> ao longo de vários dias em vez de saltar de zero para o normal, e quanto mais longo foi o jejum, mais lenta é a subida. Traz também a ordem por que se come — caldo primeiro, depois proteína e legumes, e os hidratos por último, porque são eles que disparam a insulina. Os critérios de risco elevado são os do <b>NICE (CG32)</b>: se algum se aplicar, a saída do jejum é assunto de consulta e não de app.'},
   {tab:'nutricao', sel:'[data-col="nu-jejum"]',
    antes:()=>{ const a=S.members.find(x=>!jejumDesaconselhado(x)); if(a) S.ui.mid=a.id; },
    quando:()=>S.members.some(x=>!jejumDesaconselhado(x)),
