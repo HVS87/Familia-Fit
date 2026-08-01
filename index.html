@@ -1058,7 +1058,7 @@ const ICO_CAT={'Peixe & Marisco':'🐟','Carne & Ovos':'🥩','Frutas & Legumes'
   'Laticínios':'🥛','Mercearia & Outros':'🫙','Suplementos':'💊'};
 const ICO_REF={p:'🌅',a:'🍽️',l:'🍎',j:'🌙',ac:'🍚'};
 const ICO_COZ={portuguesa:'🇵🇹',italiana:'🍝',francesa:'🥐',mediterranica:'🫒',asiatica:'🍜',
-  espanhola:'🥘',mexicana:'🌮',americana:'🍔'};
+  espanhola:'🥘',mexicana:'🌮',americana:'🍔',brasileira:'🇧🇷',africana:'🌍'};
 const ICO_SUPL={proteico:'🥤',vitaminico:'💊',mineral:'🧂',composto:'🐟'};
 const ICO_FASE={bebe:'🍼',crianca:'🧒',adolescente:'🧑',adulto:'🧑‍🦱'};
 function SP(id,nome,cat,mets,dicas,dist){ return {id,nome,cat,mets,dicas:dicas||null,dist:dist||null}; }
@@ -1386,7 +1386,8 @@ const DIETS = {
   vegan:{n:'Vegan',c:52,p:18,f:30}
 };
 const CUIS = {portuguesa:'Portuguesa',mediterranica:'Mediterrânica',espanhola:'Espanhola',italiana:'Italiana',
-  francesa:'Francesa',mexicana:'Mexicana',americana:'Norte-americana',asiatica:'Asiática'};
+  francesa:'Francesa',mexicana:'Mexicana',americana:'Norte-americana',asiatica:'Asiática',
+  brasileira:'Brasileira',africana:'Africana'};
 const BASE_ACT = {sedentario:['Sedentário (escritório, pouco movimento)',1.2],leve:['Leve (em pé parte do dia)',1.35],moderado:['Moderado (trabalho ativo)',1.5],intenso:['Intenso (trabalho físico pesado)',1.65]};
 const COMMUTE = {nenhum:['Carro / transportes',0],pe30:['A pé (~30 min/dia)',1.75],pe60:['A pé (~1 h/dia)',3.5],bici:['Bicicleta (~30 min/dia)',3.4]}; // valor = MET·h efetivos/dia útil
 const GOALS = {perder:['Perder peso',-0.15],manter:['Manter peso',0],ganhar:['Ganhar massa',0.10]};
@@ -1443,6 +1444,10 @@ const CATEG_EXTRA={
 const COZ_EXTRA={
   melaopresunto:['portuguesa','espanhola'],
   gambasajillo:['portuguesa'],
+  /* a picanha e a fraldinha entraram pela churrasqueira portuguesa, mas vêm do
+     churrasco brasileiro e são de lá tanto como de cá */
+  cgpicanha:['brasileira'],
+  cgfraldinha:['brasileira'],
 };
 function cozinhasDe(r){
   if(!r) return [];
@@ -1839,6 +1844,25 @@ R('tacopeixe','Tacos de peixe à Baja','mexicana',[],0,0,0,0,[['Tortilhas de mil
 R('tacofrango','Tacos de frango com abacate','mexicana',[],0,0,0,0,[['Tortilhas de milho',80,'g'],['Peito de frango',150,'g'],['Abacate',60,'g'],['Cebola roxa',40,'g'],['Coentros',5,'g'],['Lima',10,'ml'],['Colorau',2,'g'],['Azeite',10,'ml']],['a','j'],0,['pp']),
 R('tacocogumelos','Tacos de cogumelos e feijão preto','mexicana',['vegan','vegetariana'],0,0,0,0,[['Tortilhas de milho',80,'g'],['Cogumelos portobello',150,'g'],['Feijão preto',90,'g'],['Cebola roxa',40,'g'],['Abacate',50,'g'],['Lima',10,'ml'],['Cominhos',2,'g'],['Coentros',5,'g'],['Azeite',12,'ml']],['a','j'],0,['pp']),
 R('tacocamarao','Tacos de camarão com molho picante','mexicana',[],0,0,0,0,[['Tortilhas de milho',80,'g'],['Camarão',160,'g'],['Alface',40,'g'],['Molho piri-piri',10,'ml'],['Maionese',15,'g'],['Lima',10,'ml'],['Coentros',5,'g'],['Azeite',10,'ml']],['a','j'],0,['pp']),
+
+/* ---------- Cozinha africana ---------- */
+R('cachupa','Cachupa','africana',[],0,0,0,0,[['Milho, grão seco cru',90,'g'],['Feijão encarnado',70,'g'],['Feijão branco',40,'g'],['Couve galega',80,'g'],['Batata doce crua',100,'g'],['Abóbora',80,'g'],['Mandioca crua',80,'g'],['Carne de porco',80,'g'],['Chouriço',40,'g'],['Linguiça',40,'g'],['Toucinho fumado',25,'g'],['Cebola',70,'g'],['Alho',3,'dente'],['Azeite',15,'ml'],['Louro',1,'g']],['a','j'],0,['pp']),
+R('moamba','Moamba de galinha','africana',[],0,0,0,0,[['Frango inteiro com pele, cru',220,'g'],['Óleo de palma',20,'ml'],['Quiabo cru',100,'g'],['Abóbora',120,'g'],['Amendoim',30,'g'],['Tomate',120,'g'],['Cebola',80,'g'],['Alho',3,'dente'],['Jindungo (piri-piri)',5,'g'],['Louro',1,'g']],['a','j'],0,['pp']),
+
+/* ---------- Cozinha brasileira ---------- */
+R('moqueca','Moqueca de peixe','brasileira',['lowcarb'],0,0,0,0,[['Pescada',200,'g'],['Leite de coco',120,'ml'],['Óleo de dendê',15,'ml'],['Tomate',120,'g'],['Pimento',80,'g'],['Cebola',80,'g'],['Alho',3,'dente'],['Coentros',10,'g'],['Lima',15,'ml'],['Jindungo (piri-piri)',3,'g']],['a','j'],0,['pp']),
+R('feijoadabr','Feijoada brasileira','brasileira',[],0,0,0,0,[['Feijão preto',180,'g'],['Carne seca (charque)',70,'g'],['Paio de lombo',50,'g'],['Linguiça',50,'g'],['Costela de vaca crua',80,'g'],['Rabo de porco',50,'g'],['Cebola',80,'g'],['Alho',4,'dente'],['Louro',2,'g'],['Laranja',80,'g'],['Couve galega',80,'g'],['Farinha de pau (mandioca)',30,'g'],['Azeite',15,'ml']],['a','j'],0,['pp']),
+R('maminha','Maminha grelhada','brasileira',['keto','lowcarb','paleo'],0,0,0,0,[['Maminha de vaca crua',220,'g'],['Sal grosso',6,'g'],['Alho',2,'dente'],['Azeite',10,'ml']],['a','j'],0,['pp']),
+R('pasteisvento','Pastéis de vento','brasileira',[],0,0,0,0,[['Massa de pastel crua',90,'g'],['Óleo alimentar',18,'ml'],['Flor de sal',1,'g']],['l','a','j'],0,['ent','sn']),
+R('pastelcatupiry','Pastel de queijo e catupiry','brasileira',[],0,0,0,0,[['Massa de pastel crua',90,'g'],['Mozzarella',50,'g'],['Requeijão cremoso (catupiry)',40,'g'],['Óleo alimentar',18,'ml'],['Orégãos',1,'g']],['l','a','j'],0,['ent','sn']),
+R('paodequeijo','Pão de queijo','brasileira',[],0,0,0,0,[['Polvilho azedo',100,'g'],['Queijo minas frescal',60,'g'],['Parmesão',20,'g'],['Ovo',1,'un'],['Leite',60,'ml'],['Óleo alimentar',20,'ml'],['Flor de sal',2,'g']],['p','l'],0,['br','sn']),
+
+/* ---------- Italianas e mediterrânicas novas ---------- */
+R('espguetepesto','Esparguete com pesto','italiana',['vegetariana','mediterranica'],0,0,0,0,[['Esparguete',100,'g'],['Pesto',45,'g'],['Parmesão',20,'g'],['Pinhões',12,'g'],['Manjericão',6,'g'],['Azeite',8,'ml']],['a','j'],0,['pp']),
+R('espgueterequeijao','Esparguete com requeijão, tomate cereja e azeitonas','mediterranica',['vegetariana','mediterranica'],0,0,0,0,[['Esparguete',100,'g'],['Requeijão',80,'g'],['Tomate cereja',150,'g'],['Alho',3,'dente'],['Azeitonas pretas',35,'g'],['Tomilho fresco',3,'g'],['Manjericão',6,'g'],['Azeite',18,'ml'],['Vinagre de vinho',8,'ml']],['a','j'],0,['pp']),
+
+/* ---------- Sobremesa portuguesa ---------- */
+R('bololaranja','Bolo de laranja','portuguesa',[],0,0,0,0,[['Farinha',90,'g'],['Açúcar branco',90,'g'],['Ovo',2,'un'],['Óleo alimentar',50,'ml'],['Laranja',110,'g'],['Raspa de limão',3,'g'],['Fermento em pó',4,'g']],['l','p'],0,['sob','sn']),
 
 /* ---------- Acompanhamentos: batata ---------- */
 R('acbcoz','Batatas cozidas com salsa','portuguesa',[],0,0,0,0,[['Batata',180,'g'],['Salsa',5,'g'],['Manteiga',10,'g'],['Azeite',5,'ml']],['ac']),
@@ -3019,6 +3043,65 @@ P('ketobrocolosbacon',[['Bacon','Bacon a render a gordura.',6],
  ['Brócolos','Brócolos branqueados, salteados na gordura do bacon.',5],
  ['Amêndoa','Amêndoa laminada tostada no fim.',2]]);
 
+/* ================= PASSOS: AFRICANA ================= */
+P('cachupa',[['Demolhar','Milho e feijão de molho de véspera, em taças separadas — o milho precisa de mais tempo do que o feijão.',720],
+ ['Milho','Começa a cozer o milho sozinho: é ele que demora, e só depois é que o feijão entra.',60],
+ ['Feijão','Junta o feijão escorrido e continua a cozer.',40],
+ ['Carnes','Carne de porco, toucinho e enchidos, com louro e a cebola inteira.',35],
+ ['Legumes','Batata-doce, mandioca e abóbora em pedaços grandes, e a couve por último.',25],
+ ['Apurar','Refogado de cebola e alho no azeite juntado no fim, a apurar em lume brando. A cachupa é melhor no dia seguinte, refogada em fatias.',20]]);
+P('moamba',[['Temperar','Frango em pedaços, temperado com alho, sal e jindungo, a repousar.',30],
+ ['Refogado','Cebola e tomate no óleo de palma, em lume brando — o dendém dá a cor e o sabor, não se substitui por azeite.',10],
+ ['Estufar','Frango de volta, tapado, a cozinhar no próprio suco.',30],
+ ['Abóbora e quiabo','Junta a abóbora em cubos e o quiabo inteiro. O quiabo entra no fim e não se mexe demais, para não largar a baba.',15],
+ ['Amendoim','Amendoim torrado e moído a engrossar o molho, nos últimos minutos.',5]]);
+
+/* ================= PASSOS: BRASILEIRA ================= */
+P('moqueca',[['Marinar','Peixe em postas com lima, alho, sal e coentros.',30],
+ ['Camadas','Numa panela de barro, camadas de cebola, tomate e pimento em rodelas, e o peixe por cima. Nunca se mexe: sacode-se a panela.'],
+ ['Cozinhar','Leite de coco e dendê por cima, tapado, em lume brando.',20],
+ ['Servir','Coentros no fim. Arroz branco e pirão a acompanhar.']]);
+P('feijoadabr',[['Dessalgar','Carne seca de molho, com trocas de água, para perder o sal.',720],
+ ['Demolhar','Feijão preto de molho de véspera, à parte.',720],
+ ['Carnes','Coze as carnes salgadas primeiro, em água a renovar, até tenras.',60],
+ ['Feijão','Feijão preto com louro e as carnes, em lume brando.',60],
+ ['Refogado','Cebola e alho no azeite; junta um pouco de feijão esmagado para engrossar o caldo.',10],
+ ['Servir','Arroz, couve em juliana salteada, farofa de mandioca e gomos de laranja. A laranja não é enfeite: corta a gordura.']]);
+P('maminha',[['Temperar','Maminha à temperatura ambiente, seca, com sal grosso — nada mais.',45],
+ ['Selar','Brasa forte, começando pelo lado da gordura, sem mexer.',8],
+ ['Acabar','Vira e afasta para uma zona mais fria, até ao ponto. A maminha é corte macio: passada, perde a graça.',10],
+ ['Repousar','Repousa e corta SEMPRE contra as fibras.',5]]);
+P('pasteisvento',[['Massa','Estica a massa fina e corta em retângulos.'],
+ ['Fechar','Dobra e sela as bordas com um garfo, deixando ar dentro — é o ar que faz o pastel inchar e dar o nome.'],
+ ['Fritar','Óleo bem quente, regando por cima com a escumadeira para inchar depressa. Vira quando dourar.',4],
+ ['Escorrer','Papel absorvente e sal só no fim.']]);
+P('pastelcatupiry',[['Recheio','Mistura a mozzarella ralada com o requeijão cremoso e os orégãos.'],
+ ['Montar','Recheio ao centro da massa, sem chegar às bordas, e sela com um garfo.'],
+ ['Fritar','Óleo bem quente, virando quando dourar. Frio demais encharca a massa.',4],
+ ['Servir','Escorre em papel e come logo, com o queijo ainda a puxar.']]);
+P('paodequeijo',[['Escaldar','Ferve o leite com o óleo e o sal e deita sobre o polvilho, mexendo depressa. É o escaldar que faz a massa.',3],
+ ['Arrefecer','Deixa amornar antes de juntar o ovo, senão coze.',10],
+ ['Massa','Junta o ovo e os queijos ralados e amassa até ficar homogéneo e pegajoso.'],
+ ['Moldar','Bolas com as mãos untadas, num tabuleiro com espaço entre elas.'],
+ ['Forno','Forno a 200 °C até incharem e dourarem. Não abras a porta antes de crescerem.',22]]);
+
+/* ================= PASSOS: MASSAS E BOLO NOVOS ================= */
+P('espguetepesto',[['Massa','Coze o esparguete em água bem salgada e guarda uma concha da água da cozedura.',9],
+ ['Ligar','Pesto numa taça larga com uma colher da água quente da massa, mexido até ficar cremoso. O pesto nunca vai ao lume: o calor mata o manjericão.'],
+ ['Envolver','Massa escorrida na taça, envolvida com energia, juntando água se precisar.'],
+ ['Servir','Parmesão, pinhões tostados e folhas de manjericão à saída.']]);
+P('espgueterequeijao',[['Tomate','Tomate cereja ao meio com sal e um pouco de azeite, a soltar o suco.',10],
+ ['Alho','Alho picado no azeite, em lume brando, sem alourar.',3],
+ ['Massa','Coze o esparguete al dente e guarda água da cozedura.',9],
+ ['Ligar','Requeijão esmagado numa taça larga com uma concha da água quente, até virar creme. Fora do lume.'],
+ ['Envolver','Massa, tomate, azeitonas e o alho no azeite. Envolve tudo com o creme de requeijão.'],
+ ['Temperar','Vinagrete de azeite e vinagre por cima, tomilho e manjericão a fechar. Serve morno ou à temperatura ambiente.']]);
+P('bololaranja',[['Preparar','Raspa a laranja antes de a espremer — depois de espremida não há raspa que se tire.'],
+ ['Massa','Bate os ovos com o açúcar até esbranquiçarem; junta o óleo em fio, depois o sumo e a raspa.',6],
+ ['Farinha','Farinha e fermento peneirados, envolvidos com movimentos largos e poucos — bater agora deixa o bolo rijo.'],
+ ['Forno','Forma untada e polvilhada, forno a 180 °C. Não abras a porta na primeira meia hora.',40],
+ ['Calda','Se gostares húmido, rega ainda quente com sumo de laranja e açúcar levados ao lume.',5]]);
+
 
 /* ================= COMPOSIÇÃO DOS INGREDIENTES =================
    Valores por 100 g ou 100 ml de parte edível. A fonte principal é a Tabela
@@ -3185,6 +3268,22 @@ NI('Queijo da ilha',390,1.5,26.5,31,0,0,3);
 NI('Sal grosso',0,0,0,0,0,0,10);
 NI('Raspa de limão',47,9.3,1.5,0.3,10.6,0,7);
 NI('Raspa de lima',30,10.5,0.7,0.2,2.8,0,7);
+/* ---- Cozinhas africana e brasileira ----
+   Onde o INSA cobre (milho, feijão, mandioca, quiabo, óleo de palma), é ele.
+   O resto — carne seca, polvilho, requeijão cremoso, cortes brasileiros —
+   vem do FoodData Central do USDA e da TACO brasileira, convertidos para a
+   convenção europeia de hidratos disponíveis. */
+NI('Milho, grão seco cru',362,64.7,9.4,4.7,9.6,0,4);
+NI('Carne seca (charque)',312,0,32.5,20.1,0,0,2);
+NI('Costela de vaca crua',277,0,18.9,22.2,0,0,2);
+NI('Rabo de porco',376,0,17.8,33.8,0,0,2);
+NI('Maminha de vaca crua',153,0,21.2,7.4,0,0,2);
+NI('Polvilho azedo',351,86.7,0.4,0.1,0.9,0,4);
+NI('Requeijão cremoso (catupiry)',264,3.4,9.6,23.5,0,0,3);
+NI('Queijo minas frescal',264,3.2,17.4,20.2,0,0,3);
+NI('Massa de pastel crua',321,54.6,8.1,7.2,2.1,0,4);
+NI('Óleo de dendê',884,0,0,100,0,0,9);
+NI('Jindungo (piri-piri)',40,7.3,1.9,0.4,1.5,0,6);
 NI('Amêijoas',65,2.6,11.7,0.9,0,0,0);
 NI('Mexilhões',70,2,12.1,1.5,0,0,0);
 NI('Lulas',71,0,15.8,0.9,0,0,0);
