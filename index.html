@@ -32,10 +32,10 @@
    quem lê. */
 :root, html[data-modo="claro"]{
   --bg:#F6F5F1; --card:#FFFFFF; --ink:#232930; --mut:#68717B; --line:#E4E1D8;
-  --accent:#2456A6; --accent-soft:#E8EEF8; --energy:#B85C1C; --energy-soft:#F8EDE2;
+  --accent:#2456A6; --accent-soft:#E8EEF8; --energy:#AF571B; --energy-soft:#F8EDE2;
   --party:#BC4578; --party-soft:#FCF2F7;
   --ok:#2C774B; --warn:#86610F; --bad:#B83D31;
-  --mc:#C8862A; --mp:#2456A6; --mf:#7C5CB0;
+  --mc:#8E6020; --mp:#2456A6; --mf:#7C5CB0;
   /* A tinta que assenta POR CIMA do acento. Em claro o acento é escuro e pede
      branco; em escuro é claro e pede tinta escura. Sem este token, a regra do
      texto do botão tinha de olhar para o modo — e era isso que fazia o botão
@@ -57,7 +57,7 @@ html[data-modo="escuro"], :root[data-theme="dark"]{
 /* --- Alecrim: verdes de horta, neutros com um travo de azeitona --- */
 html[data-paleta="alecrim"]{
   --bg:#F4F5F0; --card:#FFFFFF; --ink:#23291F; --mut:#687269; --line:#E0E4D8;
-  --accent:#3E7845; --accent-soft:#E7F0E6; --energy:#A36A26; --energy-soft:#F6EEE0;
+  --accent:#3E7845; --accent-soft:#E7F0E6; --energy:#996424; --energy-soft:#F6EEE0;
   --party:#9D5A81; --party-soft:#FAF2F7; --mp:#3E7845;
 }
 html[data-paleta="alecrim"][data-modo="escuro"]{
@@ -68,7 +68,7 @@ html[data-paleta="alecrim"][data-modo="escuro"]{
 /* --- Figo: roxos e magentas, neutros levemente ameixa --- */
 html[data-paleta="figo"]{
   --bg:#F6F3F6; --card:#FFFFFF; --ink:#28222C; --mut:#6F6874; --line:#E5DEE6;
-  --accent:#6B4396; --accent-soft:#EDE6F6; --energy:#BC5843; --energy-soft:#F8E9E5;
+  --accent:#6B4396; --accent-soft:#EDE6F6; --energy:#AC503D; --energy-soft:#F8E9E5;
   --party:#B23D74; --party-soft:#F8E6EE; --mp:#6B4396; --mf:#B23D74;
 }
 html[data-paleta="figo"][data-modo="escuro"]{
@@ -79,7 +79,7 @@ html[data-paleta="figo"][data-modo="escuro"]{
 /* --- Maré: azuis-esverdeados de água, neutros frios --- */
 html[data-paleta="mare"]{
   --bg:#F1F5F5; --card:#FFFFFF; --ink:#1F2A2C; --mut:#637375; --line:#DBE4E4;
-  --accent:#0F6E78; --accent-soft:#E0F0F1; --energy:#B85D2A; --energy-soft:#F7ECE2;
+  --accent:#0F6E78; --accent-soft:#E0F0F1; --energy:#AD5727; --energy-soft:#F7ECE2;
   --party:#9A4E8C; --party-soft:#F3E7F1; --mp:#0F6E78;
 }
 html[data-paleta="mare"][data-modo="escuro"]{
@@ -102,12 +102,12 @@ html[data-paleta="brasa"][data-modo="escuro"]{
 html[data-paleta="tinta"]{
   --bg:#F4F4F4; --card:#FFFFFF; --ink:#1A1A1A; --mut:#666666; --line:#DEDEDE;
   --accent:#2B2B2B; --accent-soft:#E6E6E6; --energy:#5C5C5C; --energy-soft:#EDEDED;
-  --party:#6F6F6F; --party-soft:#F6F6F6; --mc:#8A8A8A; --mp:#2B2B2B; --mf:#5C5C5C;
+  --party:#6F6F6F; --party-soft:#F6F6F6; --mc:#707070; --mp:#2B2B2B; --mf:#5C5C5C;
 }
 html[data-paleta="tinta"][data-modo="escuro"]{
   --bg:#121212; --card:#1C1C1C; --ink:#F0F0F0; --mut:#9A9A9A; --line:#2E2E2E;
   --accent:#E4E4E4; --accent-soft:#2E2E2E; --energy:#B0B0B0; --energy-soft:#282828;
-  --party:#9A9A9A; --party-soft:#262626; --mc:#8A8A8A; --mp:#E4E4E4; --mf:#B0B0B0;
+  --party:#9A9A9A; --party-soft:#262626; --mc:#9A9A9A; --mp:#E4E4E4; --mf:#B0B0B0;
 }
 *{box-sizing:border-box;margin:0}
 /* overflow-x:clip (e não hidden) impede que uma bolha de explicação ponha a
@@ -343,14 +343,29 @@ input[type=range]:focus-visible::-moz-range-thumb{box-shadow:0 0 0 3px var(--acc
 .ingr i{font-style:normal;font-weight:700;width:12px;text-align:center}
 .ingr.tem i{color:var(--ok)} .ingr.falta i{color:var(--bad)}
 .ingr.tem{color:var(--ink)}
-.ingr b{font-weight:600;font-variant-numeric:tabular-nums;opacity:.75}
+/* A quantidade distingue-se pelo peso da letra, não por opacidade: a 75% o
+   cinzento descia abaixo dos 4,5:1 e o número que interessa a quem cozinha
+   era o mais difícil de ler da lista. */
+.ingr b{font-weight:600;font-variant-numeric:tabular-nums}
 .quant summary{font-size:12px;color:var(--accent);cursor:pointer;padding:2px 0}
 .quant[open] summary{margin-bottom:3px}
 .quant .sub{font-variant-numeric:tabular-nums;line-height:1.5}
 select.slot{margin-top:4px}
-.restr{gap:6px;flex-wrap:wrap}
+.restr{gap:6px;flex-wrap:wrap;margin-top:6px}
 .restr .chip:disabled{opacity:.55;cursor:default}
+/* Uma alergia marcada não se confunde com uma preferência: fica vermelha,
+   com o mesmo peso do aviso que aparece nas receitas. */
+/* 9% e não 14%: o chip assenta em --bg (que já é quente nalgumas paletas) e
+   não no branco do cartão, e a 14% o texto vermelho sobre tinta vermelha
+   descia abaixo dos 4,5:1 na paleta Brasa. */
+.chip.perigo{background:color-mix(in srgb,var(--bad) 9%,transparent);border-color:var(--bad);color:var(--bad)}
+.card-alergia{border:1px solid var(--line);border-left:3px solid var(--bad);border-radius:10px;padding:10px 12px;background:var(--bg)}
+.f-bad-txt{color:var(--bad)}
+.alerta{background:color-mix(in srgb,var(--bad) 12%,transparent);border:1px solid var(--bad);border-radius:8px;
+  padding:6px 9px;font-size:12.5px;font-weight:600;color:var(--bad);display:flex;gap:6px;align-items:flex-start}
+.tag.alerg{border-color:var(--bad);padding:0 4px;margin-left:3px}
 .busca{width:auto;min-width:230px;flex:1 1 230px;max-width:340px}
+select.acomp{margin-top:6px;border-style:dashed;font-size:13.5px}
 .ed-lista{display:flex;flex-direction:column;gap:8px;margin-top:8px}
 .ed-linha{display:grid;grid-template-columns:minmax(0,1fr) 88px 34px 40px;gap:8px;align-items:center}
 .ed-linha input{text-align:right}
@@ -601,7 +616,7 @@ const ICO_SPORT={corrida:'🏃',ciclismo:'🚴',agua:'🏊',forca:'🏋️',corp
   raquete:'🎾',combate:'🥊',natureza:'⛰️',danca:'💃'};
 const ICO_CAT={'Peixe & Marisco':'🐟','Carne & Ovos':'🥩','Frutas & Legumes':'🥦',
   'Laticínios':'🥛','Mercearia & Outros':'🫙','Suplementos':'💊'};
-const ICO_REF={p:'🌅',a:'🍽️',l:'🍎',j:'🌙'};
+const ICO_REF={p:'🌅',a:'🍽️',l:'🍎',j:'🌙',ac:'🍚'};
 const ICO_COZ={portuguesa:'🇵🇹',italiana:'🍝',francesa:'🥐',mediterranica:'🫒',asiatica:'🍜',
   espanhola:'🥘',mexicana:'🌮',americana:'🍔'};
 const ICO_SUPL={proteico:'🥤',vitaminico:'💊',mineral:'🧂',composto:'🐟'};
@@ -737,7 +752,12 @@ const DIETS = {
   lowcarb:{n:'Low carb',c:20,p:35,f:45},
   lowfat:{n:'Low fat',c:55,p:25,f:20},
   paleo:{n:'Paleo',c:30,p:30,f:40},
-  vegetariana:{n:'Vegetariana',c:50,p:20,f:30}
+  vegetariana:{n:'Vegetariana',c:50,p:20,f:30},
+  /* Vegetariana e vegan são dietas diferentes e a diferença não é pormenor:
+     a vegetariana come ovos, queijo e mel; a vegan não come nada de origem
+     animal. As duas etiquetas são derivadas dos ingredientes, nunca escritas
+     à mão — uma receita com manteiga perde a vegan e mantém a vegetariana. */
+  vegan:{n:'Vegan',c:52,p:18,f:30}
 };
 const CUIS = {portuguesa:'Portuguesa',mediterranica:'Mediterrânica',espanhola:'Espanhola',italiana:'Italiana',
   francesa:'Francesa',mexicana:'Mexicana',americana:'Norte-americana',asiatica:'Asiática'};
@@ -748,7 +768,8 @@ const GOALS = {perder:['Perder peso',-0.15],manter:['Manter peso',0],ganhar:['Ga
 /* Refeições do dia, com a fatia sugerida do total calórico. */
 const MEALS=[['p','Pequeno-almoço',0.25],['a','Almoço',0.35],['l','Lanche',0.10],['j','Jantar',0.30]];
 const MEALK=MEALS.map(x=>x[0]);
-function nomeRefeicao(k){ const m=MEALS.find(x=>x[0]===k); return m? m[1] : k; }
+function nomeRefeicao(k){ if(k==='ac') return 'Acompanhamento';
+  const m=MEALS.find(x=>x[0]===k); return m? m[1] : k; }
 
 /* Receitas: por dose (uma pessoa). d = dietas compatíveis além da equilibrada.
    k kcal, c/p/f gramas. mt = refeições em que encaixa (por omissão, almoço e
@@ -1021,6 +1042,65 @@ R('ketofrangoparmesao','Frango gratinado com courgette e parmesão','italiana',[
 R('ketobowlatum','Bowl de atum, ovo e azeitonas','espanhola',['keto','lowcarb','mediterranica'],445,8,36,30,[['Atum em conserva',120,'g'],['Ovo',2,'un'],['Azeitonas',30,'g'],['Alface',50,'g'],['Tomate cereja',60,'g'],['Azeite',12,'ml']],['a','j','l'],3),
 R('ketoiogurtesementes','Iogurte grego com sementes e canela','mediterranica',['keto','lowcarb','vegetariana'],320,14,20,20,[['Iogurte grego',200,'g'],['Sementes de chia',15,'g'],['Sementes de linhaça',10,'g'],['Amêndoa',15,'g'],['Canela',1,'g']],['p','l'],9),
 R('ketobrocolosbacon','Brócolos salteados com bacon e amêndoa','americana',['keto','lowcarb','paleo'],345,12,16,26,[['Brócolos',200,'g'],['Bacon',40,'g'],['Amêndoa',20,'g'],['Alho',2,'dente'],['Azeite',8,'ml']],['a','j','l'],6),
+
+/* ---------- Peixe grelhado e no forno ---------- */
+R('pxsardinha','Sardinhas assadas com pimento assado','portuguesa',['mediterranica'],0,0,0,0,[['Sardinhas',300,'g'],['Flor de sal',3,'g'],['Pimento',0.5,'un'],['Azeite',8,'ml'],['Salsa',3,'g']],['a','j']),
+R('pxcarapau','Carapau grelhado com alho e limão','portuguesa',['mediterranica'],0,0,0,0,[['Carapau',300,'g'],['Azeite',10,'ml'],['Alho',2,'dente'],['Limão',0.5,'un'],['Salsa',5,'g']],['a','j']),
+R('pxdourada','Dourada grelhada com limão e salsa','portuguesa',['mediterranica'],0,0,0,0,[['Dourada',300,'g'],['Azeite',10,'ml'],['Alho',1,'dente'],['Limão',0.5,'un'],['Salsa',3,'g']],['a','j']),
+R('pxespada','Peixe-espada preto grelhado com alho e limão','portuguesa',['mediterranica'],0,0,0,0,[['Peixe-espada-preto cru',200,'g'],['Azeite',10,'ml'],['Alho',2,'dente'],['Limão',0.5,'un'],['Salsa',3,'g']],['a','j']),
+R('pxlinguado','Linguado grelhado com limão','portuguesa',['mediterranica'],0,0,0,0,[['Linguado cru',300,'g'],['Azeite',10,'ml'],['Alho',1,'dente'],['Limão',0.5,'un'],['Salsa',3,'g']],['a','j']),
+R('pxsalmonete','Salmonetes grelhados com coentros','portuguesa',['mediterranica'],0,0,0,0,[['Salmonete cru',300,'g'],['Azeite',10,'ml'],['Alho',2,'dente'],['Limão',0.5,'un'],['Coentros',5,'g']],['a','j']),
+R('pxrobalo','Robalo no forno com batatas','portuguesa',['mediterranica'],0,0,0,0,[['Robalo',300,'g'],['Batata',150,'g'],['Cebola',0.5,'un'],['Alho',2,'dente'],['Azeite',12,'ml'],['Vinho branco',30,'ml'],['Louro',1,'g']],['a','j']),
+R('pxpescada','Pescada no forno com batatas','portuguesa',['mediterranica'],0,0,0,0,[['Pescada',200,'g'],['Batata',150,'g'],['Cebola',0.5,'un'],['Azeite',12,'ml'],['Alho',2,'dente'],['Pimentão-doce',2,'g'],['Salsa',3,'g']],['a','j']),
+R('pxcorvina','Corvina no forno com tomate e coentros','portuguesa',['mediterranica'],0,0,0,0,[['Corvina crua',200,'g'],['Tomate',1,'un'],['Cebola',0.5,'un'],['Azeite',10,'ml'],['Alho',2,'dente'],['Vinho branco',30,'ml'],['Coentros',5,'g']],['a','j']),
+R('pxgoraz','Goraz assado no forno com batatas e limão','portuguesa',['mediterranica'],0,0,0,0,[['Goraz cru',300,'g'],['Batata',150,'g'],['Cebola',0.5,'un'],['Azeite',12,'ml'],['Alho',2,'dente'],['Limão',0.25,'un'],['Salsa',3,'g']],['a','j']),
+R('pxcavala','Cavala no forno com cebolada','portuguesa',['mediterranica'],0,0,0,0,[['Cavala',300,'g'],['Cebola',0.5,'un'],['Tomate',1,'un'],['Pimento',0.25,'un'],['Azeite',10,'ml'],['Alho',1,'dente'],['Louro',1,'g']],['a','j']),
+R('pxsalmao','Salmão no forno com batatas a murro','portuguesa',['mediterranica'],0,0,0,0,[['Salmão',200,'g'],['Batata nova',150,'g'],['Azeite',12,'ml'],['Alho',2,'dente'],['Flor de sal',2,'g'],['Coentros',3,'g']],['a','j']),
+/* ---------- Marisco ---------- */
+R('mrbulhao','Amêijoas à Bulhão Pato','portuguesa',['mediterranica'],0,0,0,0,[['Amêijoas',350,'g'],['Azeite',10,'ml'],['Alho',2,'dente'],['Coentros',8,'g'],['Vinho branco',30,'ml'],['Limão',0.5,'un']],['a','j']),
+R('mrgambas','Gambas grelhadas com alho e limão','portuguesa',['mediterranica'],0,0,0,0,[['Gamba crua',300,'g'],['Azeite',10,'ml'],['Alho',2,'dente'],['Limão',0.5,'un'],['Salsa',5,'g'],['Flor de sal',2,'g']],['a','j']),
+R('mrberbigao','Berbigão ao vapor com coentros','portuguesa',['mediterranica'],0,0,0,0,[['Berbigão cru',350,'g'],['Azeite',5,'ml'],['Alho',1,'dente'],['Coentros',5,'g'],['Limão',0.5,'un']],['a','j']),
+R('mrchoco','Choco grelhado com azeite e alho','portuguesa',['mediterranica'],0,0,0,0,[['Choco cru',250,'g'],['Azeite',10,'ml'],['Alho',2,'dente'],['Limão',0.5,'un'],['Salsa',5,'g']],['a','j']),
+R('mrsapateira','Sapateira recheada','portuguesa',[],0,0,0,0,[['Sapateira crua',400,'g'],['Maionese',20,'g'],['Picles de pepino',15,'g'],['Mostarda',5,'g'],['Pão rústico',50,'g']],['a','j']),
+R('mrlulas','Lulas salteadas com alho e coentros','portuguesa',['mediterranica'],0,0,0,0,[['Lulas',250,'g'],['Azeite',10,'ml'],['Alho',3,'dente'],['Coentros',5,'g'],['Vinho branco',20,'ml'],['Limão',0.5,'un']],['a','j']),
+R('mralhinho','Camarão ao alhinho','portuguesa',['mediterranica'],0,0,0,0,[['Camarão',300,'g'],['Azeite',15,'ml'],['Alho',3,'dente'],['Malagueta',0.5,'un'],['Salsa',5,'g'],['Limão',0.5,'un']],['a','j']),
+/* ---------- Carne grelhada e na brasa ---------- */
+R('cgbiflombo','Bife do lombo grelhado com alho e flor de sal','portuguesa',[],0,0,0,0,[['Vaca, lombo magro cru',200,'g'],['Alho',2,'dente'],['Azeite',10,'ml'],['Flor de sal',2,'g'],['Limão',0.5,'un']],['a','j']),
+R('cgcostnov','Costeletas de novilho grelhadas','portuguesa',[],0,0,0,0,[['Vitela, costeleta crua',250,'g'],['Alho',2,'dente'],['Azeite',10,'ml'],['Flor de sal',2,'g'],['Limão',0.5,'un']],['a','j']),
+R('cgposta','Posta mirandesa na brasa','portuguesa',[],0,0,0,0,[['Vitela, lombo cru',220,'g'],['Azeite',10,'ml'],['Alho',1,'dente'],['Flor de sal',3,'g']],['a','j']),
+R('cgpicanha','Picanha grelhada com flor de sal','portuguesa',[],0,0,0,0,[['Vaca para assar crua',220,'g'],['Alho',2,'dente'],['Azeite',5,'ml'],['Flor de sal',3,'g']],['a','j']),
+R('cgfraldinha','Fraldinha grelhada no carvão','portuguesa',[],0,0,0,0,[['Bife de vaca',200,'g'],['Alho',2,'dente'],['Azeite',10,'ml'],['Flor de sal',2,'g'],['Limão',0.5,'un']],['a','j']),
+R('cgsecretos','Secretos de porco preto grelhados com limão','portuguesa',[],0,0,0,0,[['Porco, costeleta gorda crua',180,'g'],['Alho',1,'dente'],['Azeite',5,'ml'],['Flor de sal',2,'g'],['Limão',0.5,'un']],['a','j']),
+R('cgplumas','Plumas de porco preto grelhadas com colorau','portuguesa',[],0,0,0,0,[['Porco, costeleta meio gorda crua',180,'g'],['Alho',2,'dente'],['Pimentão-doce',3,'g'],['Azeite',5,'ml'],['Flor de sal',2,'g']],['a','j']),
+R('cgbifanas','Bifanas no pão à moda do Alentejo','portuguesa',[],0,0,0,0,[['Carne de porco',150,'g'],['Pão rústico',80,'g'],['Alho',3,'dente'],['Louro',1,'g'],['Vinho branco',50,'ml'],['Pimentão-doce',4,'g'],['Azeite',10,'ml']],['a','j']),
+R('cgespetada','Espetada de vaca em pau de louro à madeirense','portuguesa',[],0,0,0,0,[['Carne de vaca',220,'g'],['Alho',3,'dente'],['Louro',2,'g'],['Azeite',10,'ml'],['Flor de sal',3,'g']],['a','j']),
+/* ---------- Pratos vegan ---------- */
+R('vggrao','Estufado de grão-de-bico com espinafres e tomate','mediterranica',['mediterranica'],0,0,0,0,[['Grão-de-bico cozido',200,'g'],['Espinafres',100,'g'],['Tomate pelado',150,'g'],['Cebola',0.5,'un'],['Alho',2,'dente'],['Azeite',10,'ml'],['Cominhos',2,'g'],['Louro',1,'g']],['a','j']),
+R('vgtofu','Tofu grelhado com legumes salteados','asiatica',[],0,0,0,0,[['Tofu',200,'g'],['Courgette',80,'g'],['Pimento',0.5,'un'],['Cebola roxa',0.5,'un'],['Molho de soja',10,'ml'],['Azeite',10,'ml']],['a','j']),
+R('vgfeijoada','Feijoada vegetal de cogumelos portobello','portuguesa',[],0,0,0,0,[['Feijão preto',150,'g'],['Cogumelos portobello',150,'g'],['Tomate pelado',100,'g'],['Cebola',0.5,'un'],['Alho',2,'dente'],['Azeite',10,'ml'],['Louro',1,'g'],['Cominhos',2,'g']],['a','j']),
+/* ---------- Acompanhamentos: batata ---------- */
+R('acbcoz','Batatas cozidas com salsa','portuguesa',[],0,0,0,0,[['Batata',180,'g'],['Salsa',5,'g'],['Manteiga',10,'g'],['Azeite',5,'ml']],['ac']),
+R('acbforno','Batatas assadas no forno com alecrim','portuguesa',['mediterranica'],0,0,0,0,[['Batata',200,'g'],['Azeite',10,'ml'],['Alecrim',4,'g'],['Alho',2,'dente']],['ac']),
+R('acbfritas','Batatas fritas caseiras','portuguesa',[],0,0,0,0,[['Batata',200,'g'],['Óleo alimentar',15,'ml'],['Flor de sal',2,'g'],['Salsa',3,'g']],['ac']),
+R('acbairfry','Batatas fritas na airfryer','portuguesa',[],0,0,0,0,[['Batata',180,'g'],['Azeite',5,'ml'],['Alecrim',3,'g'],['Flor de sal',1,'g']],['ac']),
+R('acbmurro','Batata a murro com alho e azeite','portuguesa',['mediterranica'],0,0,0,0,[['Batata nova',200,'g'],['Alho',3,'dente'],['Azeite',15,'ml'],['Flor de sal',2,'g']],['ac']),
+/* ---------- Acompanhamentos: arroz ---------- */
+R('acrbranco','Arroz branco solto','portuguesa',[],0,0,0,0,[['Arroz',70,'g'],['Azeite',5,'ml'],['Alho',1,'dente'],['Louro',1,'g']],['ac']),
+R('acrbasmati','Arroz basmati','portuguesa',[],0,0,0,0,[['Arroz',70,'g'],['Manteiga',10,'g'],['Cebola',0.25,'un'],['Louro',1,'g']],['ac']),
+R('acrcarolino','Arroz carolino malandrinho','portuguesa',['mediterranica'],0,0,0,0,[['Arroz carolino branqueado cru',70,'g'],['Azeite',10,'ml'],['Cebola',0.5,'un'],['Alho',1,'dente'],['Salsa',3,'g']],['ac']),
+R('acrtomate','Arroz de tomate','portuguesa',['mediterranica'],0,0,0,0,[['Arroz carolino branqueado cru',70,'g'],['Tomate pelado',100,'g'],['Cebola',0.5,'un'],['Alho',1,'dente'],['Azeite',10,'ml'],['Louro',1,'g'],['Salsa',3,'g']],['ac']),
+R('acrcoentros','Arroz de coentros','portuguesa',['mediterranica'],0,0,0,0,[['Arroz',70,'g'],['Coentros',8,'g'],['Alho',2,'dente'],['Azeite',10,'ml']],['ac']),
+R('acracafrao','Arroz de açafrão','portuguesa',['mediterranica'],0,0,0,0,[['Arroz',70,'g'],['Açafrão',0.2,'g'],['Cebola',0.25,'un'],['Azeite',10,'ml'],['Louro',1,'g']],['ac']),
+/* ---------- Acompanhamentos: legumes e saladas ---------- */
+R('acllegumes','Legumes grelhados de courgette, beringela e pimento','mediterranica',['mediterranica'],0,0,0,0,[['Courgette',100,'g'],['Beringela',80,'g'],['Pimento',0.5,'un'],['Azeite',10,'ml'],['Orégãos',3,'g']],['ac']),
+R('aclbrocolos','Brócolos salteados com alho','portuguesa',['mediterranica'],0,0,0,0,[['Brócolos',150,'g'],['Alho',2,'dente'],['Azeite',10,'ml'],['Limão',0.25,'un']],['ac']),
+R('aclespargos','Espargos grelhados com flor de sal','mediterranica',['mediterranica'],0,0,0,0,[['Espargos',150,'g'],['Azeite',8,'ml'],['Flor de sal',1,'g'],['Limão',0.25,'un']],['ac']),
+R('aclgrelos','Grelos salteados com alho e azeite','portuguesa',['mediterranica'],0,0,0,0,[['Grelos',150,'g'],['Alho',3,'dente'],['Azeite',12,'ml'],['Limão',0.25,'un']],['ac']),
+R('aclfverde','Feijão verde cozido com azeite e vinagre','portuguesa',['mediterranica'],0,0,0,0,[['Feijão verde',150,'g'],['Azeite',8,'ml'],['Vinagre de vinho',5,'ml'],['Alho',1,'dente']],['ac']),
+R('aclcogumelos','Cogumelos salteados com alho e salsa','mediterranica',['mediterranica'],0,0,0,0,[['Cogumelos',150,'g'],['Alho',2,'dente'],['Azeite',10,'ml'],['Salsa',5,'g']],['ac']),
+R('aclsalmista','Salada mista de alface, tomate e cebola','portuguesa',['mediterranica'],0,0,0,0,[['Alface',100,'g'],['Tomate',1,'un'],['Cebola',0.25,'un'],['Azeite',8,'ml'],['Vinagre de vinho',5,'ml']],['ac']),
+R('aclsaltomate','Salada de tomate com orégãos','mediterranica',['mediterranica'],0,0,0,0,[['Tomate',1.5,'un'],['Cebola roxa',0.25,'un'],['Orégãos',3,'g'],['Azeite',8,'ml'],['Vinagre de vinho',5,'ml']],['ac']),
+R('aclcouveroxa','Salada de couve-roxa e cenoura','mediterranica',['mediterranica'],0,0,0,0,[['Couve-roxa crua',100,'g'],['Cenoura',50,'g'],['Azeite',8,'ml'],['Vinagre de vinho',8,'ml'],['Limão',0.25,'un']],['ac']),
 ];
 
 /* ================= COMPOSIÇÃO DOS INGREDIENTES =================
@@ -1728,52 +1808,106 @@ const SEC_FIXA={
 };
 const AVCOLORS = ['#2456A6','#C8641E','#2E7D4F','#7C5CB0','#C2477C','#B07F14','#0E7490','#8A5A44'];
 
-/* ================= INGREDIENTES: O QUE CADA UM CARREGA =================
-   Uma receita não se avalia só pelos macros: avalia-se pelo que leva dentro.
-   Esta tabela dá a cada ingrediente os seus atributos, e é daqui que sai tudo
-   o que exclui uma receita de uma mesa — a alergia de um membro, a dieta de
-   outro, a carne que um vegetariano não come.
+/* ================= ALERGÉNIOS =================
+   Isto não é uma preferência alimentar: é uma questão de saúde, e por isso a
+   lista não foi inventada nem arredondada. São as catorze categorias de
+   declaração obrigatória do anexo II do Regulamento (UE) n.º 1169/2011, na
+   versão consolidada em vigor.
 
-   As catorze primeiras entradas são os alergénios de declaração obrigatória
-   na União Europeia (Regulamento 1169/2011, anexo II). Ficam de fora os
-   sulfitos: não se deduzem do nome de um ingrediente, declaram-se no rótulo
-   do produto comprado. As últimas quatro não são alergénios — são exclusões
-   alimentares comuns (religiosas, éticas ou de gosto) que valem a mesma
-   filtragem. */
-const RESTRICOES=[
-  ['gluten','Glúten','🌾'],['lacticinio','Lacticínios','🥛'],['ovo','Ovo','🥚'],
-  ['peixe','Peixe','🐟'],['crustaceos','Crustáceos','🦐'],['moluscos','Moluscos','🦑'],
-  ['frutosecos','Frutos de casca rija','🌰'],['amendoim','Amendoim','🥜'],['soja','Soja','🌱'],
-  ['sesamo','Sésamo','⚪'],['aipo','Aipo','🥬'],['mostarda','Mostarda','🫙'],['tremoco','Tremoço','🫛'],
-  ['carne','Carne','🥩'],['porco','Porco','🐖'],['alcool','Álcool','🍷'],['picante','Picante','🌶️']
+   Uma nota sobre a origem, porque a pergunta é natural: o INSA e o PortFIR
+   publicam a composição dos alimentos, não a lista de alergénios. Em Portugal
+   não existe lista nacional própria — aplica-se diretamente o anexo II do
+   regulamento europeu, com a DGAV como autoridade competente e a ASAE como
+   fiscalizadora; o Decreto-Lei n.º 26/2016 trata da informação nos alimentos
+   não pré-embalados (restauração, take-away, venda a granel).
+
+   Dois pormenores da lei que se veem aqui e que se erram com facilidade:
+   os frutos de casca rija são uma lista FECHADA de oito — a castanha
+   portuguesa e o pinhão não estão lá — e o amendoim é categoria à parte,
+   porque é uma leguminosa.
+
+   Isto ajuda a planear; não substitui ler o rótulo de cada embalagem, nem
+   dispensa perguntar num restaurante. A app di-lo onde é preciso. */
+const ALERGENIOS=[
+  ['gluten','Cereais com glúten','🌾','Trigo (incluindo espelta e khorasan), centeio, cevada, aveia e tudo o que se faça a partir deles: farinha, pão, massa, sêmola, cuscuz, cerveja, panados.'],
+  ['crustaceos','Crustáceos','🦐','Camarão, gamba, lagosta, lagostim, sapateira, santola, percebes, e caldos ou pastas de marisco.'],
+  ['ovo','Ovos','🥚','Ovos de qualquer ave e derivados: gema, clara, maionese, merengue, massa fresca com ovo.'],
+  ['peixe','Peixe','🐟','Todas as espécies de peixe e derivados, incluindo conservas, anchovas, ovas e molho de peixe.'],
+  ['amendoim','Amendoins','🥜','Amendoim e derivados, incluindo o óleo e a manteiga de amendoim. É uma leguminosa: categoria à parte dos frutos de casca rija.'],
+  ['soja','Soja','🌱','Grão de soja e derivados: tofu, miso, molho de soja, edamame, rebentos, proteína texturizada.'],
+  ['lacticinio','Leite (e lactose)','🥛','Leite de qualquer espécie e derivados: manteiga, natas, queijo, requeijão, iogurte, caseína, soro de leite.'],
+  ['frutosecos','Frutos de casca rija','🌰','Lista fechada de oito: amêndoa, avelã, noz, caju, noz-pecã, castanha do Brasil, pistácio e macadâmia. A castanha portuguesa e o pinhão não pertencem a esta categoria.'],
+  ['aipo','Aipo','🥬','Raiz, caule, folhas e sementes de aipo — e o que os leve escondidos, como caldos, sopas e misturas de temperos.'],
+  ['mostarda','Mostarda','🫙','Sementes, folhas e rebentos de mostarda e tudo o que deles se faça.'],
+  ['sesamo','Sementes de sésamo','⚪','Sementes de sésamo, óleo de sésamo e tahini.'],
+  ['sulfitos','Dióxido de enxofre e sulfitos','🍶','Acima de 10 mg/kg: vinho, vinagre, fruta desidratada, batata processada, conservas e pickles. Aqui assinalam-se os ingredientes onde é habitual estarem — o valor exato só o rótulo o diz.'],
+  ['tremoco','Tremoço','🫛','Grão de tremoço e a farinha ou proteína de tremoço usadas em pão, massas e substitutos de carne.'],
+  ['moluscos','Moluscos','🦑','Amêijoa, mexilhão, ostra, berbigão, vieira, lula, pota, polvo, choco, caracol e búzio.']
 ];
-const RESTR={}; RESTRICOES.forEach(([k,n,i])=>{ RESTR[k]={n,i}; });
+/* Exclusões que não são alergénios: escolhas religiosas, éticas ou de gosto.
+   Filtram as mesmas receitas, mas não têm a mesma gravidade — e a app não as
+   trata como se tivessem. */
+const EXCLUSOES=[
+  ['carne','Carne','🥩','Todas as carnes e produtos cárneos.'],
+  ['porco','Porco','🐖','Carne de porco e charcutaria: chouriço, presunto, fiambre, bacon, paio, salpicão.'],
+  ['alcool','Álcool','🍷','Vinho, cerveja e licores usados na confeção.'],
+  ['picante','Picante','🌶️','Malagueta, piri-piri, chili e molhos picantes.']
+];
+const RESTRICOES=ALERGENIOS.concat(EXCLUSOES);
+const RESTR={}; RESTRICOES.forEach(([k,n,i,d])=>{ RESTR[k]={n,i,d}; });
+const CHAVES_ALERGENIO=ALERGENIOS.map(a=>a[0]);
+function ehAlergenio(k){ return CHAVES_ALERGENIO.indexOf(k)>=0; }
+
 /* A aveia entra no glúten de propósito. Não tem glúten por natureza, mas é
    colhida e moída com cereais que têm, e a contaminação cruzada é a regra e
    não a exceção — quem filtra por glúten está a proteger-se, e o lado seguro
    do erro é excluir de mais. */
 const ING_REGRAS=[
-  ['gluten',/pão|farinha|esparguete|massa|noodles|couscous|bulgur|granola|aveia|lasanha|gnocchi|bagel|pita|broa|tortilhas de trigo|cerveja|fermento de padeiro|trigo|centeio|cevada|espelta|farelo|gérmen|sêmola|tosta|gressino|seitan|rabanada/i],
+  /* O fermento de padeiro NÃO está aqui de propósito: Saccharomyces
+     cerevisiae é um fungo propagado em melaço, não um cereal — é precisamente
+     o levedante do pão sem glúten certificado, e o próprio INSA classifica-o
+     como auxiliar tecnológico e não como produto à base de cereais. */
+  ['gluten',/pão|farinha|esparguete|massa|noodles|couscous|bulgur|granola|aveia|lasanha|gnocchi|bagel|pita|broa|tortilhas de trigo|cerveja|trigo|centeio|cevada|espelta|farelo|gérmen|sêmola|tosta|gressino|seitan|rabanada/i],
   ['lacticinio',/queijo|iogurte|mozzarella|parmes|feta|gruy|ricotta|requeij|nata|halloumi|manchego|cheddar|manteiga|leite|caseína|mascarpone|brie|camembert|emmental|gouda|raclette|roquefort|quark|kefir/i],
-  ['ovo',/^ovo|maionese|clara de ovo|gema de ovo/i],
-  ['peixe',/bacalhau|salm|sardinh|atum|dourada|robalo|pescada|espadarte|cavala|carapau|truta|anchova|peixe|abrótea|besugo|cação|cachucho|cantarilho|cherne|chicharro|corvina|enguia|faneca|garoupa|goraz|imperador|lampreia|linguado|maruca|pargo|raia|safio|salmonete|sarda\b|solha|tamboril|perca|tilápia|arenque|alabote|escamudo|paloco|red ?fish|peixe-espada|ovas/i],
+  ['ovo',/^ovo|maionese|clara de ovo|gema de ovo|com ovo|de ovos|e ovos/i],
+  ['peixe',/bacalhau|salm|sardinh|atum|dourada|robalo|pescada|espadarte|cavala|carapau|truta|anchova|peixe|abrótea|besugo|cação|cachucho|cantarilho|cherne|chicharro|corvina|enguia|faneca|garoupa|goraz|imperador|lampreia|linguado|maruca|\bpargo|raia|safio|salmonete|\bsarda\b|solha|tamboril|perca|tilápia|arenque|alabote|escamudo|paloco|red ?fish|peixe-espada|ovas/i],
   ['crustaceos',/camar|lagost|sapateira|gamba|percebe|santola|navalheira|caranguejo/i],
-  ['moluscos',/amêijoa|polvo|lula|mexilh|choco|marisco|vieira|berbigão|búzio|lapas|ostra|pota|caracol|conquilha|amêijola/i],
-  ['frutosecos',/amêndoa|noz\b|nozes|caju|avel|pinhão|pinhões|pistá|castanha|macadâmia|pecan/i],
+  /* As fronteiras de palavra aqui não são estilo: sem elas, «choco» apanhava
+     o chocolate, «pota» apanhava a compota e «ostra» apanhava o cogumelo
+     ostra. Um alergénio a mais destrói a confiança na lista tão depressa
+     como um a menos a torna perigosa. */
+  ['moluscos',/amêijoa|polvo|lula|mexilh|\bchoco\b|marisco|vieira|berbigão|búzio|\blapas\b|\bostra\b|\bpota\b|caracol|conquilha/i],
+  /* Lista FECHADA de oito, como o anexo II a define. A castanha portuguesa e
+     o pinhão ficam de fora de propósito — não são alergénios de declaração
+     obrigatória, e alargar a categoria por instinto tornaria o filtro menos
+     fiel à lei sem tornar ninguém mais seguro. */
+  ['frutosecos',/amêndoa|avel[ãa]|\bnoz\b|nozes|noz pecan|noz macad|macadâmia|caju|pistá|castanha do brasil/i],
   ['amendoim',/amendoim/i],
   ['soja',/soja|tofu|edamame|miso|teriyaki/i],
   ['sesamo',/sésamo|tahini/i],
   ['aipo',/aipo/i],
   ['mostarda',/mostarda/i],
   ['tremoco',/tremoç/i],
+  /* Sulfitos: a lei fala de uma dose (10 mg/kg), que um nome de ingrediente
+     não pode dizer. O que se assinala aqui são os alimentos onde é habitual
+     estarem — vinho, vinagre, fruta desidratada, batata processada, conservas
+     — para quem os evita saber onde olhar. O rótulo é que manda. */
+  ['sulfitos',/\bvinho\b|vinagre|cerveja|sidra|\bpassas\b|sultana|alperce seco|ameixa seca|figo seco|desidratad|batata palha|picles|chucrute|tomate seco|bagas goji|melaço/i],
   ['carne',/frango|porco|vaca|picada|peru|chouri|bife|coxas|bacon|presunto|borrego|coelho|pato|vitela|bresaola|asas|fiambre|bochechas|linguiça|carne|cabrito|carneiro|cavalo|codorniz|galinha|javali|lebre|perdiz|pombo|veado|paio|salame|salpicão|mortadela|salsicha|toucinho|banha|entrecosto|costeleta|lombo|chambão|cachaço|jarrete|chispe|grilo/i],
   ['porco',/porco|chouri|bacon|presunto|fiambre|bochechas|linguiça|paio|salame|salpicão|mortadela|salsicha|toucinho|banha|entrecosto|javali/i],
   ['alcool',/vinho|cerveja|licor|aguardente|madeira\b|porto\b|sidra/i],
   ['picante',/malagueta|piri-piri|chili|jalape|molho picante/i],
+  /* Só para a dieta vegan: o mel é de origem animal. A âncora ^mel$ é
+     deliberada — melaço, melancia e mel de cana são plantas. */
+  ['mel',/^mel$/i],
   /* Não é alergénio nem se mostra como filtro: existe só para o paleo, que
      exclui leguminosas por princípio. O feijão-verde fica de fora da regra
      porque se come a vagem inteira e a prática paleo aceita-o. */
-  ['leguminosa',/feij[ãa]o|grão-de-bico|lentilha|ervilha|fava|tremoç|soja|tofu|edamame|amendoim|miso|alfarroba|alfalfa|mungo/i]
+  ['leguminosa',/feij[ãa]o|grão-de-bico|lentilha|ervilha|fava|tremoç|soja|tofu|edamame|amendoim|miso|alfarroba|alfalfa|mungo/i],
+  /* Também só para o paleo, e diferente do glúten: o arroz e o milho não têm
+     glúten mas são cereais, e o paleo exclui cereais. Sem esta distinção um
+     arroz de coentros passava por paleo só porque não leva trigo. */
+  ['cereal',/arroz|\bmilho|quinoa|aveia|trigo|centeio|cevada|espelta|millet|sarraceno|couscous|bulgur|sêmola|flocos de|farinha|pão|massa|esparguete|noodles|granola|gnocchi|lasanha|bagel|pita|broa|tosta|tortilha|gérmen|farelo|cuscuz/i]
 ];
 /* Nomes onde a expressão acerta pelo motivo errado. Uma noz-moscada não é uma
    noz, uma massa de arroz não tem trigo e um leite de coco não vem de vaca —
@@ -1781,24 +1915,51 @@ const ING_REGRAS=[
    custa mais do que a tabela toda. A exceção substitui a regra, não a
    completa: o que estiver aqui é a lista final de atributos desse nome. */
 const ING_EXCECAO={
-  'Noz-moscada':[], 'Massa de arroz':[], 'Leite de coco':[], 'Óleo de coco':[], 'Coco ralado':[],
+  'Noz-moscada':[], 'Leite de coco':[], 'Óleo de coco':[], 'Coco ralado':[],
   'Manteiga de amendoim':['amendoim','leguminosa'], 'Farinha de amêndoa':['frutosecos'],
-  'Tortilhas de milho':[], 'Broa de milho':['gluten'], 'Molho de peixe':['peixe'],
+  'Tortilhas de milho':['cereal'], 'Broa de milho':['gluten','cereal'], 'Molho de peixe':['peixe'],
   'Óleo de sésamo':['sesamo'], 'Sementes de sésamo':['sesamo'],
   'Pasta de miso':['soja','gluten','leguminosa'], 'Feijão verde':[],
   'Molho de soja':['soja','gluten','leguminosa'], 'Molho teriyaki':['soja','gluten','leguminosa'], 'Algas nori':[],
   'Carne de porco':['carne','porco'], 'Molho barbecue':[], 'Molho picante':['picante'],
-  'Chili em pó':['picante'], 'Vinagre de vinho':[], 'Vinagre balsâmico':[], 'Vinagre':[],
+  'Chili em pó':['picante'],
   /* nomes do INSA onde a expressão acertaria pelo motivo errado */
   'Farinha de pau (mandioca)':[], 'Farinha de alfarroba':['leguminosa'],
-  'Farinha de aveia':['gluten'], 'Flocos de arroz':[], 'Massa de arroz':[],
-  'Milho, amido (pó)':[], 'Sêmola de milho':[], 'Tapioca':[], 'Trigo Sarraceno (grão) cru':[],
-  'Millet, cru, seco':[], 'Sementes de mostarda':['mostarda'], 'Molho de mostarda':['mostarda'],
+  'Farinha de aveia':['gluten','cereal'], 'Flocos de arroz':['cereal'], 'Massa de arroz':['cereal'],
+  'Milho, amido (pó)':['cereal'], 'Sêmola de milho':['cereal'], 'Tapioca':[],
+  'Trigo Sarraceno (grão) cru':['cereal'], 'Millet, cru, seco':['cereal'],
+  'Sementes de mostarda':['mostarda'], 'Molho de mostarda':['mostarda'],
   'Castanha de caju torrada e salgada':['frutosecos'], 'Castanha do Brasil':['frutosecos'],
-  'Castanha cozida sem sal':[], 'Castanha pilada':[], 'Castanha, miolo':[],
+  /* castanha portuguesa e pinhão: fora da lista fechada dos oito */
+  'Castanha cozida sem sal':[], 'Castanha pilada':[], 'Castanha, miolo':[], 'Castanhas':[],
+  'Pinhões':[], 'Pinhão, miolo':[],
+  /* Onde o nome engana a expressão, ou onde o produto real leva coisas que o
+     nome não diz. Os caldos e cubos são o caso clássico do aipo escondido,
+     e as autoridades assinalam-no expressamente. */
+  'Cogumelos ostra (pleurotus)':[], 'Cravinho':[], 'Rábano cru':[],
+  'Feijão manteiga, seco, cru':['leguminosa'], 'Marmelada':[],
+  'Farinha de milho tipo 70':['cereal'], 'Flocos de milho tipo "Corn Flakes"':['cereal'],
+  'Caldo de galinha':['aipo'], 'Caldo de legumes':['aipo'],
+  'Cubo de carne de galinha para caldo':['aipo'], 'Cubo de carne de vaca para caldo':['aipo'],
+  /* O pesto comercial troca com frequência o pinhão por caju ou amêndoa, que
+     são dois dos oito da lista fechada — por omissão vale o lado seguro. */
+  'Pesto':['lacticinio','frutosecos'], 'Rabanada':['gluten','cereal','lacticinio','ovo'],
+  'Massa com ovo crua':['gluten','cereal','ovo'],
+  /* O pão de leite é pincelado com ovo: a DGS nomeia-o expressamente no guia
+     de alergia alimentar na restauração. */
+  'Pão de leite (trigo)':['gluten','cereal','lacticinio','ovo'],
+  'Fermento de padeiro':[], 'Fermento seco de padeiro':[],
+  /* «vaca» no nome de um queijo é a raça, não carne */
+  'Queijo de vaca curado':['lacticinio'], 'Queijo de vaca curado, magro':['lacticinio'],
+  'Queijo de vaca curado, meio gordo':['lacticinio'], 'Queijo de vaca, amanteigado':['lacticinio'],
+  'Queijo de mistura (vaca, cabra e ovelha)':['lacticinio'],
+  'Vinagre de vinho':['sulfitos'], 'Vinagre':['sulfitos'], 'Vinagre balsâmico':['sulfitos'],
+  'Vinho branco':['alcool','sulfitos'], 'Vinho tinto':['alcool','sulfitos'],
+  'Passas':['sulfitos'], 'Sultanas':['sulfitos'], 'Batata palha':['sulfitos'],
+  'Picles de pepino':['sulfitos','aipo'], 'Tomate seco':['sulfitos'],
   'Leite de cabra cru':['lacticinio'], 'Leite de ovelha cru':['lacticinio'],
   'Grilo doméstico, pó':[], 'Molho para francesinha':['gluten','lacticinio','alcool','carne','porco'],
-  'Molho branco com caldo de carne de vaca':['gluten','lacticinio','carne'],
+  'Molho branco com caldo de carne de vaca':['gluten','cereal','lacticinio','carne','aipo'],
   'Óleo "Becel"':[], 'Óleo alimentar':[], 'Óleo de girassol':[], 'Óleo de milho':[],
   'Óleo de palma':[], 'Óleo de linhaça':[], 'Óleo de amendoim':['amendoim','leguminosa'],
   'Óleo de soja':['soja','leguminosa'], 'Soja, farinha com baixo teor de gordura':['soja','leguminosa'],
@@ -1806,9 +1967,14 @@ const ING_EXCECAO={
   'Wasabi, raiz crua':['picante'], 'Caseína':['lacticinio'],
   'Túbera (trufa) crua':[], 'Salicórnia fresca':[], 'Sementes de coentro':[],
   'Sementes de girassol, cruas, secas, miolo':[], 'Sementes de papoila':[],
-  'Sementes de cânhamo secas':[], 'Sementes de melão':[], 'Picles de pepino':[],
+  'Sementes de cânhamo secas':[], 'Sementes de melão':[],
   'Pimenta branca':[], 'Pimenta moída':[]
 };
+/* AVISO A QUEM EDITAR ESTA TABELA: uma chave repetida num literal de objeto
+   não dá erro — a última cala a primeira, e um alergénio desaparece em
+   silêncio. Já aconteceu aqui: 'Picles de pepino' ficou declarado duas vezes
+   e os sulfitos evaporaram-se. A bateria de testes verifica as repetições
+   sobre o próprio ficheiro; ao acrescentar um nome, procura-o primeiro. */
 const _atribIng=Object.create(null);
 function atributosIng(nome){
   if(nome in _atribIng) return _atribIng[nome];
@@ -1827,10 +1993,18 @@ function atributosIng(nome){
    receita com carne perde a etiqueta mesmo que a tenha escrita. */
 const GORD_TETO_LOWFAT=0.30;
 const DIETA_VETA={ vegetariana:['carne','peixe','crustaceos','moluscos'],
-                   paleo:['gluten','lacticinio','leguminosa'] };
+                   vegan:['carne','peixe','crustaceos','moluscos','lacticinio','ovo','mel'],
+                   paleo:['gluten','lacticinio','leguminosa','cereal'] };
 const DIETAS_NUM=['keto','lowcarb','lowfat'];
 function dietasDaReceita(r){
-  const d=r.d.filter(x=>DIETAS_NUM.indexOf(x)<0 && !(DIETA_VETA[x]||[]).some(t=>r.at.indexOf(t)>=0));
+  /* Vegetariana, vegan e paleo derivam-se SÓ dos ingredientes — nem sequer se
+     aceita a declaração, porque a declaração pode mentir e os ingredientes
+     não. Sobra a mediterrânica, que é um estilo e não uma exclusão, e por
+     isso continua a ser declarada em cada receita. */
+  const DERIVADAS=['vegetariana','vegan','paleo'];
+  const d=r.d.filter(x=>DIETAS_NUM.indexOf(x)<0 && DERIVADAS.indexOf(x)<0
+    && !(DIETA_VETA[x]||[]).some(t=>r.at.indexOf(t)>=0));
+  DERIVADAS.forEach(x=>{ if(!DIETA_VETA[x].some(t=>r.at.indexOf(t)>=0)) d.push(x); });
   if(hcLiq(r)<=HC_TETO.keto) d.push('keto');
   if(hcLiq(r)<=HC_TETO.lowcarb) d.push('lowcarb');
   if(r.f*9<=r.k*GORD_TETO_LOWFAT) d.push('lowfat');
@@ -1872,6 +2046,28 @@ function restricoesDe(m){
 function ingredientesVetados(r,m){
   const veta=restricoesDe(m); if(!veta.length) return [];
   return r.i.filter(x=>atributosIng(x[0]).some(t=>veta.indexOf(t)>=0)).map(x=>x[0]);
+}
+/* Separa o que é alergia do que é escolha: a mensagem, a cor e a insistência
+   não podem ser as mesmas. Devolve, por alergénio, os ingredientes que o
+   trazem — dizer «contém glúten: Pão rústico» é mais útil, e mais verificável,
+   do que dizer «não compatível». */
+function alergenicosDe(r,m){
+  const veta=restricoesDe(m).filter(ehAlergenio);
+  const out=[];
+  veta.forEach(t=>{
+    const itens=r.i.filter(x=>atributosIng(x[0]).indexOf(t)>=0).map(x=>x[0]);
+    if(itens.length) out.push({tag:t, nome:RESTR[t].n, itens});
+  });
+  return out;
+}
+function avisoAlergia(r,membros){
+  const linhas=[];
+  (membros||[]).forEach(m=>{
+    const al=alergenicosDe(r,m);
+    if(al.length) linhas.push(esc(m.nome.split(' ')[0])+': '+al.map(a=>a.nome.toLowerCase()+' ('+a.itens.map(esc).join(', ')+')').join('; '));
+  });
+  if(!linhas.length) return '';
+  return `<div class="alerta"><span aria-hidden="true">🚨</span><span>Alergénio — ${linhas.join(' · ')}</span></div>`;
 }
 function toggleRestricao(mid,k){
   const m=S.members.find(x=>x.id===mid); if(!m||!temChave(RESTR,k)) return;
@@ -1979,7 +2175,7 @@ function blank(){ return {members:[],cheats:{},plans:{},bought:{},prefCuisine:'t
   ui:{tab:'familia',mid:null,cuis:'todas',soComp:false,mealF:'todas',dietaF:'todas',busca:'',editor:null,
       objForm:{membros:[],tipo:'perder',delta:5,semanas:12,split:50,desporto:null,banda:2},
       objExpandido:null, objAdj:null, celebrando:null, tourPasso:null, tourVisto:false,
-      tema:'auto', paleta:'azulejo', colapsados:{},
+      tema:'auto', paleta:'azulejo', colapsados:{}, alergF:'', alergDesp:'',
       sug:{membros:null,ref:'a',teto:true,cuis:'todas',verFora:false}, porcoes:null},
   week:mondayISO(new Date()),
   meta:{gravadoEm:null,exportadoEm:null,semCopia:false,avisarAoSair:true}}; }
@@ -2556,7 +2752,10 @@ function kcalPlaneadasDia(m,di,dates){
   if(isCheat(m.id,dates[di])) return {cheat:true,kcal:0,refs:0};
   const w=S.plans[S.week]||{}; let kcal=0,refs=0;
   MEALK.forEach(mk=>{ const meal=w[di]&&w[di][mk]; if(!meal||!meal.r||meal.m.indexOf(m.id)<0) return;
-    const r=RECIPES.find(x=>x.id===meal.r); if(!r) return; kcal+=r.k; refs++; });
+    const r=RECIPES.find(x=>x.id===meal.r); if(!r) return; kcal+=r.k; refs++;
+    /* o acompanhamento come-se com o prato: as calorias dele contam no dia,
+       mas não conta como refeição — um arroz de tomate não é um jantar */
+    const ac=meal.ac && RECIPES.find(x=>x.id===meal.ac); if(ac) kcal+=ac.k; });
   return {cheat:false,kcal,refs};
 }
 function estadoDia(m,di,dates){
@@ -2588,7 +2787,6 @@ const DICAS={
   barraGasto:'De onde vem o gasto do dia, parcela a parcela. A linha tracejada marca o alvo alimentar: a distância entre o fim da barra e a linha é o défice ou o excedente do plano.',
   objetivo:'Quanto queres comer acima ou abaixo do que gastas. Um défice de 15 % é um ritmo comum de perda; abaixo de −20 % a app avisa, e se o alvo cair abaixo do metabolismo basal avisa com mais força.',
   ritmo:'A perda ou ganho de peso que o objetivo implica, a 7 700 kcal por quilo. Acima de 0,75 kg por semana passa a amarelo, acima de 1 kg a vermelho.',
-  dieta:'Cada dieta é uma repartição diferente de hidratos, proteína e gordura. A «Personalizada» abre três sliders ligados entre si, que somam sempre 100 %.',
   macros:'Quanto do total calórico vem de cada macronutriente, e a tradução em gramas. Um grama de hidratos ou de proteína dá 4 kcal, um de gordura dá 9.',
   amdr:'A faixa de distribuição de macronutrientes considerada aceitável nesta fase da vida. Em crianças e na gravidez, uma dieta que saia da faixa é encostada aos limites; num adulto é apenas referência.',
   proteinaKg:'A proteína recomendada por quilo de peso muda com a idade: um bebé precisa de quase o dobro de um adulto, e na gravidez sobe para 1,1 g por quilo.',
@@ -2618,9 +2816,12 @@ const DICAS={
   aspeto:'Seis paletas, cada uma com modo claro e escuro. A paleta muda os acentos e o tom dos neutros; o modo é independente e pode seguir o sistema. As secções que fechares ficam fechadas — a app lembra-se de cada uma.',
   resumoMes:'Um retrato dos últimos 30 dias escrito a partir do que registaste: refeições planeadas, dias completos, atividade, objetivos e evolução do peso de quem tem um objetivo a decorrer.',
   sugestoes:'Liga e desliga quem se senta à mesa. A lista mostra só as receitas que servem toda a gente ligada ao mesmo tempo: fora ficam as que chocam com a dieta de alguém, as que levam um ingrediente que alguém não come e as que passam a fatia de calorias daquela refeição. As quantidades já vêm multiplicadas pelo número de pessoas.',
-  restricoes:'O que esta pessoa não come — por alergia, intolerância ou escolha. As catorze primeiras são os alergénios de declaração obrigatória na União Europeia. Qualquer receita que leve um ingrediente marcado deixa de ser sugerida a quem o tem marcado.',
+  restricoes:'Exclusões que não são alergias: escolhas religiosas, éticas ou de gosto. Filtram as mesmas receitas, mas sem o peso de uma alergia. As alergias marcam-se no perfil, no separador Família.',
+  alergias:'As catorze categorias de declaração obrigatória do anexo II do Regulamento (UE) n.º 1169/2011 — a lista que se aplica em Portugal, fiscalizada pela ASAE e com a DGAV como autoridade competente. Uma receita com um ingrediente destes deixa de ser sugerida a quem o tem marcado, e fica assinalada a vermelho onde apareça. Nota: os frutos de casca rija são uma lista fechada de oito, onde a castanha portuguesa e o pinhão não entram; o amendoim é categoria à parte, por ser leguminosa. Isto ajuda a planear e não substitui ler o rótulo nem perguntar num restaurante.',
   porcoes:'As receitas estão escritas para uma pessoa. Este número multiplica as quantidades de todos os ingredientes — é o que se leva para a cozinha.',
-  editorReceitas:'Escreve os ingredientes e o número de doses que a receita rende: os macros por dose são calculados a partir da composição de cada ingrediente, e as etiquetas de dieta saem dos números e do que a receita leva dentro. Só entram ingredientes do catálogo — é isso que faz a receita falar com a despensa e com a lista de compras.'
+  editorReceitas:'Escreve os ingredientes e o número de doses que a receita rende: os macros por dose são calculados a partir da composição de cada ingrediente, e as etiquetas de dieta saem dos números e do que a receita leva dentro. Só entram ingredientes do catálogo — é isso que faz a receita falar com a despensa e com a lista de compras.',
+  acompanhamento:'O que vai ao lado do prato: batatas, arroz, legumes ou salada. As calorias somam-se às do prato no total do dia, os ingredientes somam-se à lista de compras, mas não conta como uma refeição — um arroz de coentros não é um jantar. O preenchimento automático escolhe um para cada almoço e jantar, respeitando as mesmas dietas e exclusões.',
+  vegan:'Cada dieta é uma repartição diferente de hidratos, proteína e gordura; a «Personalizada» abre três sliders que somam sempre 100 %. Vegetariana e vegan são dietas diferentes: a vegetariana come ovos, lacticínios e mel, a vegan não come nada de origem animal — e as duas etiquetas são lidas dos ingredientes de cada receita, nunca escritas à mão.'
 };
 function dica(k,extra){ const t=DICAS[k]; if(!t) return '';
   return `<button type="button" class="dica ${extra||''}" data-dica="${esc(t)}" aria-label="Explicação">i</button>`; }
@@ -2976,6 +3177,7 @@ function renderFamilia(){
           <div class="stat"><b id="f-${mid}-tdee">${Math.round(tdee(m))}</b><span>Gasto kcal ${dica('gasto')}</span></div>
           <div class="stat" style="background:var(--accent-soft)"><b id="f-${mid}-alvo" style="color:var(--accent)">${semEstimativa(m)?'—':Math.round(targetKcal(m))}</b><span>Alvo kcal ${dica('alvo','dica-e')}</span></div>
         </div>
+        ${blocoAlergias(m)}
         <div class="row" style="margin-top:10px;min-height:34px;justify-content:space-between">
           <div><span class="pill ${tone}" id="f-${mid}-cls">${fase==='adulto'?cls:nomeFase(m)}</span>
             <span class="sub" style="margin-left:8px">${dietaDe(m).n} · ${rotuloObjetivo(m)}</span></div>
@@ -3367,7 +3569,8 @@ function renderAtividade(){
 /* ================= NUTRIÇÃO ================= */
 function setCuis(v){ S.ui.cuis=(v==='todas'||temChave(CUIS,v))? v:'todas'; saveMeta(); render(); }
 function setDietaF(v){ S.ui.dietaF=(v==='todas'||temChave(DIETS,v))? v:'todas'; saveMeta(); render(); }
-function limparFiltros(){ S.ui.cuis='todas'; S.ui.dietaF='todas'; S.ui.mealF='todas'; S.ui.busca=''; saveMeta(); render(); }
+function setAlergF(v){ S.ui.alergF=ehAlergenio(v)? v:''; saveMeta(); render(); }
+function limparFiltros(){ S.ui.cuis='todas'; S.ui.dietaF='todas'; S.ui.mealF='todas'; S.ui.busca=''; S.ui.alergF=''; saveMeta(); render(); }
 /* Pesquisa por nome: sem acentos e sem maiúsculas dos dois lados, porque
    ninguém escreve «Bacalhau à Brás» com o à certo numa caixa de pesquisa. E
    procura também nos ingredientes — «quem tem couve na despensa» é uma
@@ -3400,7 +3603,7 @@ function setBusca(v,el){
   const vazio=document.getElementById('rec-vazio');
   if(vazio) vazio.style.display=visiveis? 'none':'';
 }
-function setMealF(v){ S.ui.mealF=v; saveMeta(); render(); }
+function setMealF(v){ S.ui.mealF=(v==='todas'||v==='ac'||MEALK.indexOf(v)>=0)? v:'todas'; saveMeta(); render(); }
 function toggleComp(){ S.ui.soComp=!S.ui.soComp; saveMeta(); render(); }
 
 function macroBar(pct){ return `<div class="mbar">
@@ -3464,10 +3667,9 @@ function sincronizaReceitas(){
       mt:x.mt, u:true, doses:x.doses};
     const s=[]; r.i.forEach(l=>atributosIng(l[0]).forEach(t=>{ if(s.indexOf(t)<0) s.push(t); }));
     r.at=s;
-    /* vegetariana e paleo não se declaram numa receita da casa: leem-se do que
-       ela leva dentro, que é mais fiável do que uma caixa por marcar */
-    if(!DIETA_VETA.vegetariana.some(t=>s.indexOf(t)>=0)) r.d.push('vegetariana');
-    if(!DIETA_VETA.paleo.some(t=>s.indexOf(t)>=0)) r.d.push('paleo');
+    /* nada se declara numa receita da casa: vegetariana, vegan e paleo saem
+       do que ela leva dentro, dentro de dietasDaReceita, tal como na
+       biblioteca — não há aqui duas regras diferentes */
     r.dc=dietasDaReceita(r);
     RECIPES.push(r);
   });
@@ -3563,7 +3765,8 @@ function apagarReceita(id){
   /* uma receita apagada não pode continuar planeada: ficaria um id órfão que
      o plano lê como refeição vazia sem dizer porquê */
   Object.values(S.plans).forEach(w=>Object.values(w).forEach(d=>MEALK.forEach(k=>{
-    if(d[k]&&d[k].r===id) d[k].r=''; })));
+    if(d[k]&&d[k].r===id){ d[k].r=''; d[k].ac=''; }
+    if(d[k]&&d[k].ac===id) d[k].ac=''; })));
   sincronizaReceitas();
   if(S.ui.editor&&S.ui.editor.id===id) S.ui.editor=null;
   save('receita apagada'); render();
@@ -3579,6 +3782,7 @@ function painelMacrosEditor(){
   if(m.f*9<=m.k*GORD_TETO_LOWFAT) dietas.push('Low fat');
   const at=[]; e.i.forEach(l=>atributosIng(l[0]).forEach(t=>{ if(at.indexOf(t)<0) at.push(t); }));
   if(!DIETA_VETA.vegetariana.some(t=>at.indexOf(t)>=0)) dietas.push('Vegetariana');
+  if(!DIETA_VETA.vegan.some(t=>at.indexOf(t)>=0)) dietas.push('Vegan');
   if(!DIETA_VETA.paleo.some(t=>at.indexOf(t)>=0)) dietas.push('Paleo');
   const pct=m.k>0? {c:Math.round(m.c*4/m.k*100), p:Math.round(m.p*4/m.k*100), f:Math.round(m.f*9/m.k*100)} : {c:0,p:0,f:0};
   return `<div class="row" style="justify-content:space-between;align-items:baseline">
@@ -3641,20 +3845,40 @@ function cartaoEditor(){
   </div>`;
 }
 
-function blocoRestricoes(m){
+/* Alergias e exclusões são a mesma mecânica com pesos diferentes: uma alergia
+   tem consequências de saúde, uma exclusão é uma escolha. Por isso vivem em
+   sítios diferentes — as alergias no perfil, à vista de quem cria o membro; as
+   exclusões ao lado da dieta — e falam com vozes diferentes. */
+function grupoRestricoes(m,lista,alerta){
   const at=Array.isArray(m.restricoes)? m.restricoes : [];
   const implicitas=(DIETA_VETA[chaveDieta(m)]||[]).filter(k=>temChave(RESTR,k));
+  return `<div class="row restr">
+      ${lista.map(([k,nome,ico,desc])=>{
+        const impl=implicitas.indexOf(k)>=0, on=at.indexOf(k)>=0||impl;
+        return `<button class="chip ${on?'on':''} ${on&&alerta?'perigo':''}"
+          ${impl?'disabled ':''}title="${esc(impl? 'Implícito na dieta '+dietaDe(m).n+'. ' : '')}${esc(desc||'')}"
+          onclick="toggleRestricao('${m.id}','${k}')">${ico} ${nome}</button>`;}).join('')}
+    </div>`;
+}
+function blocoAlergias(m){
+  const at=(Array.isArray(m.restricoes)? m.restricoes : []).filter(ehAlergenio);
+  const afetadas=RECIPES.filter(r=>r.at.some(t=>at.indexOf(t)>=0)).length;
+  return `<div class="card-alergia" style="margin-top:10px">
+    <label class="lbl" style="margin:0">🚨 Alergias e intolerâncias ${dica('alergias')}</label>
+    ${grupoRestricoes(m,ALERGENIOS,true)}
+    <p class="sub" style="margin-top:6px">${at.length
+      ? '<b class="f-bad-txt">'+afetadas+' das '+RECIPES.length+' receitas contêm um destes alergénios</b> e deixam de ser sugeridas a '+esc(m.nome.split(' ')[0])+'. Isto ajuda a planear, mas não dispensa ler o rótulo de cada embalagem nem perguntar num restaurante.'
+      : 'As catorze categorias de declaração obrigatória na União Europeia (anexo II do Regulamento 1169/2011). Marca as que se aplicam.'}</p>
+  </div>`;
+}
+function blocoRestricoes(m){
   const afetadas=RECIPES.filter(r=>ingredientesVetados(r,m).length).length;
   return `<div style="margin-top:14px">
-    <label class="lbl">O que ${esc(m.nome.split(' ')[0])} não come ${dica('restricoes')}</label>
-    <div class="row restr">
-      ${RESTRICOES.map(([k,nome,ico])=>{
-        const impl=implicitas.indexOf(k)>=0, on=at.indexOf(k)>=0||impl;
-        return `<button class="chip ${on?'on':''}" ${impl?'disabled title="Implícito na dieta '+esc(dietaDe(m).n)+'"':''}
-          onclick="toggleRestricao('${m.id}','${k}')">${ico} ${nome}</button>`;}).join('')}
-    </div>
-    <p class="sub" style="margin-top:6px">${afetadas? afetadas+' das '+RECIPES.length+' receitas deixam de ser sugeridas a esta pessoa.'
-      : 'Sem exclusões: todas as '+RECIPES.length+' receitas continuam disponíveis.'}</p>
+    <label class="lbl">Outras exclusões de ${esc(m.nome.split(' ')[0])} ${dica('restricoes')}</label>
+    ${grupoRestricoes(m,EXCLUSOES,false)}
+    <p class="sub" style="margin-top:6px">${afetadas? afetadas+' das '+RECIPES.length+' receitas deixam de ser sugeridas a esta pessoa, contando alergias e dieta.'
+      : 'Sem exclusões: todas as '+RECIPES.length+' receitas continuam disponíveis.'}
+      As alergias marcam-se no perfil, no separador <a href="#" onclick="go('familia');return false">Família</a>.</p>
   </div>`;
 }
 function setPorcoes(v){
@@ -3673,7 +3897,12 @@ function recipeCard(r,n){
      São duas perguntas diferentes e a segunda é a que magoa, por isso a
      resposta é o ingrediente concreto, não um aviso genérico. */
   const comp=S.members.filter(m=>compat(r,chaveDieta(m))&&!ingredientesVetados(r,m).length);
-  const vetados=S.members.map(m=>({m,itens:ingredientesVetados(r,m)})).filter(x=>x.itens.length);
+  /* o que é alergia sai no aviso vermelho; aqui fica só o resto, para não se
+     dizer a mesma coisa duas vezes com dois pesos diferentes */
+  const vetados=S.members.map(m=>{
+    const al=alergenicosDe(r,m).reduce((s,a)=>s.concat(a.itens),[]);
+    return {m, itens:ingredientesVetados(r,m).filter(x=>al.indexOf(x)<0)};
+  }).filter(x=>x.itens.length);
   const disp=disponibilidadeReceita(r);
   return `<div class="rc" data-rid="${r.id}">
     <div class="row" style="justify-content:space-between"><h3>${esc(r.n)}</h3><span class="kcal">${r.k} kcal</span></div>
@@ -3684,6 +3913,7 @@ function recipeCard(r,n){
     <div class="ingr-lista">${listaIngredientesComEstado(r,n)}</div>
     ${S.members.length? `<div class="row" style="margin-top:2px"><span class="sub">Compatível:</span>
       ${comp.length? comp.map(m=>avatar(m,22)).join('') : '<span class="sub">— só como refeição livre</span>'}</div>`:''}
+    ${avisoAlergia(r,S.members)}
     ${vetados.length? `<div class="sub" style="color:var(--warn)">⚠ ${vetados.map(x=>nomeCurto(x.m)+' não come '+x.itens.map(esc).join(', ')).join(' · ')}</div>`:''}
     <div class="row" style="margin-top:2px">
       ${r.u? `<span class="tag" style="border-color:var(--accent);color:var(--accent)">da casa</span>
@@ -3793,8 +4023,8 @@ function cartaoProjecao(m){
     ${yZona!==null? `<text x="44" y="${yZona.toFixed(1)}" font-size="9.5" class="f-mut">zona de IMC saudável</text>`:''}`:''}
     <line x1="40" y1="${g.Y(m.peso).toFixed(1)}" x2="330" y2="${g.Y(m.peso).toFixed(1)}" class="s-mut" stroke-dasharray="2 3"/>
     <text x="40" y="${(g.Y(m.peso)-5).toFixed(1)}" font-size="10" class="f-mut" style="font-variant-numeric:tabular-nums">hoje ${nPT(m.peso,1)}</text>
-    ${[0,4,8,12].map(i=>`<text x="${g.X(i).toFixed(1)}" y="146" font-size="10" text-anchor="middle" class="f-mut">${i}</text>`).join('')}
-    <text x="330" y="158" font-size="9.5" text-anchor="end" class="f-mut">semanas</text>
+    ${[0,4,8].map(i=>`<text x="${g.X(i).toFixed(1)}" y="146" font-size="10" text-anchor="middle" class="f-mut">${i}</text>`).join('')}
+    <text x="330" y="146" font-size="10" text-anchor="end" class="f-mut">12 semanas</text>
     <polyline id="nu-plinha" points="${pts}" class="s-acc" stroke-width="2.5" fill="none" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
     <circle id="nu-pdot" cx="330" cy="${clampNum(g.Y(fim),12,130).toFixed(1)}" r="4.5" class="${dentro?'f-ok':'f-acc'}"/>
     <text id="nu-pfim" x="326" y="${yFim.toFixed(1)}" font-size="13" font-weight="700" text-anchor="end" class="f-ink" style="font-variant-numeric:tabular-nums">${nPT(fim,1)} kg</text>
@@ -4206,7 +4436,7 @@ function renderNutricao(){
         <button class="chip" onclick="presetObjetivo('${m.id}',10)">Ganhar +10%</button>
       </div>
       <p class="sub" id="nu-aviso" style="min-height:1.55em;visibility:hidden;color:var(--warn);margin-top:4px">défice agressivo — acompanha este plano com um profissional de saúde</p>
-      <div><label class="lbl">Tipo de dieta ${dica('dieta')}</label><select onchange="upd('${m.id}','dieta',this.value)">${Object.entries(DIETS).map(([kk,v])=>
+      <div><label class="lbl">Tipo de dieta ${dica('vegan')}</label><select onchange="upd('${m.id}','dieta',this.value)">${Object.entries(DIETS).map(([kk,v])=>
           `<option value="${kk}" ${m.dieta===kk?'selected':''}>${v.n}</option>`).join('')}<option value="personalizada" ${m.dieta==='personalizada'?'selected':''}>Personalizada…</option></select></div>
       ${blocoRestricoes(m)}
       <div class="row" style="margin-top:14px">
@@ -4263,9 +4493,12 @@ function renderNutricao(){
 /* ================= RECEITAS ================= */
 function renderReceitas(){
   const m = S.members.length? curM() : null;
+  /* «Todas as refeições» mostra os pratos; os acompanhamentos têm filtro
+     próprio, para não se misturarem com o que é uma refeição a sério. */
   let list=RECIPES.filter(r=> (S.ui.cuis==='todas'||r.coz===S.ui.cuis)
-    && (S.ui.mealF==='todas'||r.mt.indexOf(S.ui.mealF)>=0));
+    && (S.ui.mealF==='todas'? !ehAcompanhamento(r) : r.mt.indexOf(S.ui.mealF)>=0));
   if(S.ui.dietaF!=='todas' && temChave(DIETS,S.ui.dietaF)) list=list.filter(r=>compat(r,S.ui.dietaF));
+  if(S.ui.alergF && ehAlergenio(S.ui.alergF)) list=list.filter(r=>r.at.indexOf(S.ui.alergF)<0);
   if(S.ui.soComp && m) list=list.filter(r=>compat(r,chaveDieta(m))&&!ingredientesVetados(r,m).length);
   const q=semAcentos(S.ui.busca||'').trim();
   if(q) list=list.filter(r=>correspondeBusca(r,q));
@@ -4275,7 +4508,7 @@ function renderReceitas(){
   <div class="row" style="justify-content:space-between;margin-bottom:10px;flex-wrap:wrap">
     <div><h2>Receitas ${dica('receitasDisp')}</h2><span class="sub" id="rec-conta">${list.length} de ${RECIPES.length} receitas${minhas? ' · '+minhas+' da casa':''}</span></div>
     <div class="row">
-      ${S.ui.editor? '' : `<button class="btn small" onclick="abrirEditor(null)">+ Nova receita</button>`}
+      ${S.ui.editor? '' : `<button class="btn small" id="btn-nova-receita" onclick="abrirEditor(null)">+ Nova receita</button>`}
       ${m? `<button class="chip ${S.ui.soComp?'on':''}" onclick="toggleComp()">Só compatíveis com ${esc(m.nome)}</button>`:''}
       <button class="chip" onclick="go('despensa')">🥫 Ver despensa</button>
     </div>
@@ -4287,7 +4520,9 @@ function renderReceitas(){
       ${Object.entries(CUIS).map(([kk,v])=>`<option value="${kk}" ${S.ui.cuis===kk?'selected':''}>${(ICO_COZ[kk]||'')+' '+v}</option>`).join('')}</select>
     <select style="width:auto" onchange="setDietaF(this.value)"><option value="todas">Todas as dietas</option>
       ${Object.entries(DIETS).map(([kk,v])=>`<option value="${kk}" ${S.ui.dietaF===kk?'selected':''}>${v.n}</option>`).join('')}</select>
-    ${(S.ui.cuis!=='todas'||S.ui.dietaF!=='todas'||S.ui.mealF!=='todas'||(S.ui.busca||''))? `<button class="chip" onclick="limparFiltros()">✕ Limpar filtros</button>`:''}
+    <select style="width:auto" onchange="setAlergF(this.value)"><option value="">🚨 Sem alergénio…</option>
+      ${ALERGENIOS.map(([kk,nome,ico])=>`<option value="${kk}" ${S.ui.alergF===kk?'selected':''}>sem ${nome.toLowerCase()}</option>`).join('')}</select>
+    ${(S.ui.cuis!=='todas'||S.ui.dietaF!=='todas'||S.ui.mealF!=='todas'||(S.ui.busca||'')||(S.ui.alergF||''))? `<button class="chip" onclick="limparFiltros()">✕ Limpar filtros</button>`:''}
   </div>
   <div class="row" style="margin-bottom:12px;align-items:center">
     <span class="sub">Quantidades para ${dica('porcoes')}</span>
@@ -4299,6 +4534,7 @@ function renderReceitas(){
   <div class="row" style="margin-bottom:12px">
     <button class="chip ${S.ui.mealF==='todas'?'on':''}" onclick="setMealF('todas')">Todas as refeições</button>
     ${MEALS.map(([kk,rot])=>`<button class="chip ${S.ui.mealF===kk?'on':''}" onclick="setMealF('${kk}')">${ICO_REF[kk]||''} ${rot}</button>`).join('')}
+    <button class="chip ${S.ui.mealF==='ac'?'on':''}" onclick="setMealF('ac')">${ICO_REF.ac} Acompanhamentos</button>
   </div>
   ${list.length? `<div class="grid g3" id="rec-grelha">${list.map(r=>recipeCard(r,n)).join('')}</div>
       <div id="rec-vazio" style="display:none">${estadoVazio('lupa','Nada com esse nome',
@@ -4708,15 +4944,23 @@ function renderObjetivos(){
 /* ================= PLANO SEMANAL ================= */
 function shiftWeek(n){ const d=new Date(S.week+'T12:00:00'); d.setDate(d.getDate()+7*n); S.week=mondayISO(d); saveMeta(); render(); }
 function planWeek(){ if(!S.plans[S.week]) S.plans[S.week]={}; return S.plans[S.week]; }
-function planMeal(di,mk){ const w=planWeek(); if(!w[di]) w[di]={}; if(!w[di][mk]) w[di][mk]={r:'',m:S.members.map(x=>x.id)}; return w[di][mk]; }
-function setMeal(di,mk,rid){ planMeal(di,mk).r=rid; save('escolha de refeição'); render(); }
+function planMeal(di,mk){ const w=planWeek(); if(!w[di]) w[di]={}; if(!w[di][mk]) w[di][mk]={r:'',ac:'',m:S.members.map(x=>x.id)}; return w[di][mk]; }
+function setMeal(di,mk,rid){ const meal=planMeal(di,mk); meal.r=rid;
+  if(!rid) meal.ac='';   /* tirar o prato tira o acompanhamento: um arroz sozinho não é plano */
+  save('escolha de refeição'); render(); }
+function setAcomp(di,mk,rid){ planMeal(di,mk).ac=rid; save('acompanhamento'); render(); }
 function toggleEater(di,mk,mid){ const meal=planMeal(di,mk);
   meal.m = meal.m.includes(mid)? meal.m.filter(x=>x!==mid) : [...meal.m,mid]; save(); render(); }
 function toggleCheat(mid,date){ if(!S.cheats[mid]) S.cheats[mid]=[];
   const i=S.cheats[mid].indexOf(date); i>=0? S.cheats[mid].splice(i,1) : S.cheats[mid].push(date);
   save('cheat day'); render(); }
 function clearWeek(){ if(confirm('Limpar todas as refeições desta semana?')){ delete S.plans[S.week]; delete S.bought[S.week]; save('limpeza da semana'); render(); } }
-function receitasDe(mk){ return RECIPES.filter(r=>r.mt.indexOf(mk)>=0); }
+/* Os acompanhamentos vivem à parte: não aparecem nas listas de pratos nem nas
+   sugestões de refeição, porque ninguém janta um arroz de coentros sozinho.
+   Aparecem só na linha do acompanhamento, depois de haver prato escolhido. */
+function receitasDe(mk){ return RECIPES.filter(r=>r.mt.indexOf(mk)>=0 && r.mt.indexOf('ac')<0); }
+function acompanhamentos(){ return RECIPES.filter(r=>r.mt.indexOf('ac')>=0); }
+function ehAcompanhamento(r){ return !!r && r.mt.indexOf('ac')>=0; }
 function autoFill(){
   const dates=weekDates(S.week); const used=new Set(); let semSolucao=0;
   Object.values(planWeek()).forEach(d=>MEALK.forEach(k=>d[k]?.r&&used.add(d[k].r)));
@@ -4741,6 +4985,14 @@ function autoFill(){
     const fresh=pool.filter(r=>!used.has(r.id));
     const alvo=fresh.length? fresh : pool;
     meal.r=alvo[Math.floor(Math.random()*alvo.length)].id; used.add(meal.r);
+    /* Almoços e jantares levam acompanhamento; um pequeno-almoço ou um lanche
+       não. O acompanhamento respeita as mesmas dietas e vetos do prato. */
+    if(mk==='a'||mk==='j'){
+      const acs=acompanhamentos().filter(x=>avaliaReceita(x,eaters,mk,false).ok);
+      const frescos=acs.filter(x=>!used.has(x.id));
+      const escolha=(frescos.length? frescos : acs);
+      if(escolha.length){ meal.ac=escolha[Math.floor(Math.random()*escolha.length)].id; used.add(meal.ac); }
+    }
   }
   save('preenchimento automático da semana'); render();
   if(semSolucao) toast(semSolucao+' refeições sem solução: nenhuma receita serve toda a mesa');
@@ -4810,7 +5062,8 @@ function planearSugestao(rid,valor,el){
   const r=RECIPES.find(x=>x.id===rid);
   if(!r || !(di>=0&&di<7) || MEALK.indexOf(mk)<0) return;
   const meal=planMeal(di,mk);
-  meal.r=rid;
+  if(ehAcompanhamento(r)){ meal.ac=rid; }
+  else { meal.r=rid; }
   const ids=selSug(); if(ids.length) meal.m=ids.slice();
   if(el) el.value='';
   save('receita planeada');
@@ -4897,15 +5150,20 @@ const MOTIVO_CURTO={dieta:'dieta',ingredientes:'ingrediente',calorias:'calorias'
 /* O que se mostra depois de a receita estar escolhida: o que falta na
    despensa, quem é que ela não serve e — o número que ninguém quer fazer de
    cabeça — as quantidades já multiplicadas por quem se senta à mesa. */
-function blocoReceitaPlaneada(r,comem,mk){
+function blocoReceitaPlaneada(r,comem,mk,ac){
   const n=comem.length, disp=disponibilidadeReceita(r), falta=disp.total-disp.tem;
   const a=avaliaReceita(r,comem,mk,true);
-  return `<div class="sub" style="margin-top:4px">H ${r.c} · P ${r.p} · G ${r.f} g/dose
-    ${falta>0?' · <span style="color:var(--warn)">'+falta+' ingrediente'+(falta===1?'':'s')+' em falta</span>':' · <span style="color:var(--ok)">✓ tens tudo</span>'}</div>
+  /* Com acompanhamento, o que interessa é o total do que vai para a mesa:
+     um bife de 300 kcal com batatas fritas de 280 não é uma refeição de 300. */
+  const kt=r.k+(ac? ac.k:0), ct=r.c+(ac? ac.c:0), pt=r.p+(ac? ac.p:0), ft=r.f+(ac? ac.f:0);
+  const faltaAc=ac? disponibilidadeReceita(ac).total-disponibilidadeReceita(ac).tem : 0;
+  const total=falta+faltaAc;
+  return `<div class="sub" style="margin-top:4px">${ac? `<b>${kt} kcal</b> com o acompanhamento · `:''}H ${ct} · P ${pt} · G ${ft} g/dose
+    ${total>0?' · <span style="color:var(--warn)">'+total+' ingrediente'+(total===1?'':'s')+' em falta</span>':' · <span style="color:var(--ok)">✓ tens tudo</span>'}</div>
     ${a.ok?'':`<div class="sub" style="color:var(--warn)">⚠ ${motivoTexto({r,a})}</div>`}
     ${notaDoses(r,comem,mk)}
     ${n? `<details class="quant"><summary>Quantidades para ${n} pessoa${n===1?'':'s'}</summary>
-      <div class="sub">${textoEscala(r,n)}</div></details>`:''}`;
+      <div class="sub">${textoEscala(r,n)}${ac? '<br><b>'+esc(ac.n)+':</b> '+textoEscala(ac,n) : ''}</div></details>`:''}`;
 }
 /* A lista não esconde nada: separa o que serve esta mesa do que não serve, e
    diz porquê em cada linha. Esconder seria decidir pela pessoa.
@@ -4915,35 +5173,48 @@ function blocoReceitaPlaneada(r,comem,mk){
    isso a lista só é construída quando alguém vai mesmo abrir aquele seletor:
    o fecho é preenchido no foco, antes de o menu nativo aparecer, e os três
    eventos cobrem rato, teclado e dedo. */
-function opcoesRefeicao(di,mk){
-  const meal=planWeek()[di]?.[mk], rid=meal&&meal.r, date=weekDates(S.week)[di];
+function opcoesRefeicao(di,mk,tipo){
+  const meal=planWeek()[di]?.[mk], date=weekDates(S.week)[di];
+  const acomp=tipo==='ac';
+  const rid=meal&&(acomp? meal.ac : meal.r);
   const comem=S.members.filter(m=>(meal? meal.m.includes(m.id) : true) && !isCheat(m.id,date));
+  const lista=acomp? acompanhamentos() : receitasDe(mk);
   const servem=[], outras=[];
-  receitasDe(mk).forEach(x=>{ const a=avaliaReceita(x,comem,mk,true); (a.ok?servem:outras).push({r:x,a}); });
+  /* O acompanhamento não leva teto de calorias próprio: ele soma-se ao prato,
+     e é o prato que já foi medido contra a fatia da refeição. Filtrá-lo pelo
+     mesmo teto escondia quase tudo por uma conta feita duas vezes. */
+  lista.forEach(x=>{ const a=avaliaReceita(x,comem,mk,!acomp); (a.ok?servem:outras).push({r:x,a}); });
   const op=e=>`<option value="${e.r.id}" ${rid===e.r.id?'selected':''}>${esc(e.r.n)} · ${e.r.k} kcal${e.a.ok?'':' — '+MOTIVO_CURTO[e.a.motivo]}</option>`;
-  return `<option value="">— escolher receita —</option>`
-    +(!comem.length? receitasDe(mk).map(x=>op({r:x,a:{ok:true}})).join('')
+  return `<option value="">${acomp?'— sem acompanhamento —':'— escolher receita —'}</option>`
+    +(!comem.length? lista.map(x=>op({r:x,a:{ok:true}})).join('')
       : (servem.length? `<optgroup label="Servem ${comem.length===1? nomeCurto(comem[0]) : 'os '+comem.length+' à mesa'}">${servem.map(op).join('')}</optgroup>`:'')
         +(outras.length? `<optgroup label="Fora dos critérios">${outras.map(op).join('')}</optgroup>`:''));
 }
 function encheSelect(el){
   if(el.dataset.cheio) return;
   const di=parseInt(el.dataset.di,10), mk=el.dataset.mk, valor=el.value;
-  el.innerHTML=opcoesRefeicao(di,mk);
+  el.innerHTML=opcoesRefeicao(di,mk,el.dataset.tipo);
   el.value=valor; el.dataset.cheio='1';
 }
 function mealBlock(di,mk,label,date){
   const meal=planWeek()[di]?.[mk]; const r=meal&&RECIPES.find(x=>x.id===meal.r);
+  const ac=meal&&meal.ac&&RECIPES.find(x=>x.id===meal.ac);
   const members=S.members;
   const comem=members.filter(m=>(meal? meal.m.includes(m.id) : true) && !isCheat(m.id,date));
   return `<div class="meal">
     <div class="mtitle">${label}</div>
-    <select data-di="${di}" data-mk="${mk}" onfocus="encheSelect(this)" onmousedown="encheSelect(this)"
+    <select data-di="${di}" data-mk="${mk}" data-tipo="r" onfocus="encheSelect(this)" onmousedown="encheSelect(this)"
       ontouchstart="encheSelect(this)" onchange="setMeal(${di},'${mk}',this.value)">
       <option value="">— escolher receita —</option>
       ${r? `<option value="${r.id}" selected>${esc(r.n)} · ${r.k} kcal</option>`:''}
     </select>
-    ${r? blocoReceitaPlaneada(r,comem,mk) : ''}
+    ${r&&(mk==='a'||mk==='j')? `<select class="acomp" data-di="${di}" data-mk="${mk}" data-tipo="ac" onfocus="encheSelect(this)"
+      onmousedown="encheSelect(this)" ontouchstart="encheSelect(this)" onchange="setAcomp(${di},'${mk}',this.value)"
+      aria-label="Acompanhamento">
+      <option value="">🍚 — sem acompanhamento —</option>
+      ${ac? `<option value="${ac.id}" selected>🍚 ${esc(ac.n)} · ${ac.k} kcal</option>`:''}
+    </select>`:''}
+    ${r? blocoReceitaPlaneada(r,comem,mk,ac) : ''}
     <div class="row" style="margin-top:7px">${members.map(m=>{
       const on=meal? meal.m.includes(m.id) : true, cheat=isCheat(m.id,date);
       return `<button class="chip ${on&&!cheat?'on':''}" ${cheat?'style="opacity:.45" title="Cheat day"':''}
@@ -5014,7 +5285,8 @@ function renderPlano(){
       <button class="btn small" onclick="autoFill()">✨ Preencher automaticamente</button>${dica('auto','dica-e')}
       <button class="btn danger small" onclick="clearWeek()">Limpar</button>
     </div></div>
-  <p class="sub" style="margin-bottom:14px">🎉 <b>Cheat days</b> ${dica('cheat')} clica no nome de um membro na linha «Cheat day» para marcar um dia livre (aniversários, festas…) — esse membro sai das contas e da lista de compras nesse dia.</p>
+  <p class="sub" style="margin-bottom:14px">🎉 <b>Cheat days</b> ${dica('cheat')} clica no nome de um membro na linha «Cheat day» para marcar um dia livre (aniversários, festas…) — esse membro sai das contas e da lista de compras nesse dia.
+    🍚 <b>Acompanhamentos</b> ${dica('acompanhamento')} ao almoço e ao jantar, por baixo do prato, há uma linha tracejada para escolher o que vai ao lado.</p>
   ${cartaoSugestoes()}
   ${cartaoSemana(dates)}
   <div class="grid gdias">
@@ -5065,7 +5337,10 @@ function shoppingItems(){
     const r=RECIPES.find(x=>x.id===meal.r); if(!r) continue;
     const n=S.members.filter(m=>meal.m.includes(m.id)&&!isCheat(m.id,dates[di])).length;
     if(!n) continue; meals++;
-    r.i.forEach(([nome,q,u])=>{ const key=nome+'|'+u;
+    /* o acompanhamento entra na lista pela mesma porta que o prato: quem come
+       arroz de tomate ao jantar tem de comprar o arroz e o tomate */
+    const ac=meal.ac && RECIPES.find(x=>x.id===meal.ac);
+    (ac? r.i.concat(ac.i) : r.i).forEach(([nome,q,u])=>{ const key=nome+'|'+u;
       if(!agg[key]) agg[key]={n:nome,u,q:0}; agg[key].q+=q*n; });
   }
   /* Os suplementos consomem-se todos os dias, não por refeição planeada:
@@ -5251,16 +5526,27 @@ function filtrarDespensa(el){
     li.style.display = !q || li.textContent.toLowerCase().indexOf(q)>=0 ? '' : 'none';
   });
 }
+function setAlergDesp(v){ S.ui.alergDesp=ehAlergenio(v)? v:''; saveMeta(); render(); }
+/* Os alergénios que os membros da casa têm marcados: são estes que valem a
+   pena assinalar em cada ingrediente da despensa, e não os catorze todos. */
+function alergiasDaCasa(){
+  const s=[];
+  S.members.forEach(m=>restricoesDe(m).filter(ehAlergenio).forEach(t=>{ if(s.indexOf(t)<0) s.push(t); }));
+  return s;
+}
 function renderDespensa(){
   const catalogo=catalogoDespensa(), nIngr=catalogoIngredientes().length;
   const tem=catalogo.filter(n=>S.despensa[n]).length;
+  const filtro=S.ui.alergDesp, daCasa=alergiasDaCasa();
   /* os suplementos ficam num grupo próprio no fim, em vez de espalhados
      pelas secções de supermercado — não é lá que se compram */
   const grouped=CATS.map(([cat])=>[cat,[]]).concat([['Suplementos',[]]]);
   catalogo.forEach((nome,i)=>{
+    if(filtro && atributosIng(nome).indexOf(filtro)<0) return;
     if(i>=nIngr){ grouped[grouped.length-1][1].push(i); return; }
-    for(const [gi,[cat,re]] of CATS.entries()){ if(re.test(nome)){ grouped[gi][1].push(i); break; } }
+    grouped[grupoDoItem({n:nome,u:unidadeDe(nome)})][1].push(i);
   });
+  const nFiltrado=grouped.reduce((t,[,idx])=>t+idx.length,0);
   return `<div class="row" style="justify-content:space-between;margin-bottom:4px">
     <div><h2>A minha despensa ${dica('despensa')}</h2>
       <span class="sub">${tem} de ${catalogo.length} itens marcados como disponíveis</span></div>
@@ -5268,20 +5554,31 @@ function renderDespensa(){
       <button class="btn ghost small" onclick="marcarTodaDespensa()">Marcar tudo</button>
       <button class="btn danger small" onclick="limparDespensa()">Esvaziar</button>
     </div></div>
-  <input type="text" placeholder="Procurar ingrediente ou suplemento…" style="max-width:340px;margin:10px 0 14px" aria-label="Procurar na despensa" oninput="filtrarDespensa(this)">
+  <div class="row" style="margin:10px 0 14px">
+    <input type="text" placeholder="Procurar ingrediente ou suplemento…" class="busca" aria-label="Procurar na despensa" oninput="filtrarDespensa(this)">
+    <select style="width:auto" onchange="setAlergDesp(this.value)"><option value="">🚨 Ver por alergénio…</option>
+      ${ALERGENIOS.map(([kk,nome])=>`<option value="${kk}" ${filtro===kk?'selected':''}>só com ${nome.toLowerCase()}</option>`).join('')}</select>
+    ${filtro? `<button class="chip" onclick="setAlergDesp('')">✕ ${esc(RESTR[filtro].n)}</button>`:''}
+  </div>
+  ${filtro? `<div class="alerta" style="max-width:640px;margin-bottom:12px"><span aria-hidden="true">🚨</span>
+    <span>${nFiltrado} ingrediente${nFiltrado===1?'':'s'} do catálogo ${nFiltrado===1?'traz':'trazem'} ${esc(RESTR[filtro].n.toLowerCase())}. ${esc(RESTR[filtro].d||'')}</span></div>`:''}
   <div class="card" style="max-width:640px">
     <div id="despensa-lista">
     ${grouped.filter(([,idx])=>idx.length).map(([cat,idx])=>`
       <div class="cat-h">${ICO_CAT[cat]||''} ${cat}</div>
       <ul class="shop">${idx.map(i=>{
         const nome=catalogo[i], ok=!!S.despensa[nome];
+        /* a etiqueta só aparece para os alergénios que alguém cá em casa tem:
+           marcar os catorze em todos os ingredientes seria ruído */
+        const al=atributosIng(nome).filter(t=>daCasa.indexOf(t)>=0);
         return `<li class="${ok?'done':''}"><label><input type="checkbox" ${ok?'checked':''} onchange="toggleDespensaIdx(${i})">
-          <span>${esc(nome)}</span></label></li>`;
+          <span>${esc(nome)}${al.length? ' '+al.map(t=>`<span class="tag alerg" title="${esc(RESTR[t].n)}">${RESTR[t].i}</span>`).join(''):''}</span></label></li>`;
       }).join('')}</ul>`).join('')}
     </div>
   </div>
   <p class="sub" style="margin-top:12px">Marca o que já tens em casa: as receitas e a lista de compras passam a saber
-    o que falta comprar de verdade. Comprar um ingrediente na lista de compras marca-o aqui automaticamente.</p>`;
+    o que falta comprar de verdade. Comprar um ingrediente na lista de compras marca-o aqui automaticamente.
+    ${daCasa.length? 'Os símbolos assinalam os alergénios marcados nos perfis da família.':''}</p>`;
 }
 
 /* ================= ORIENTAÇÃO E TIPO DE ECRÃ =================
@@ -5517,6 +5814,7 @@ function lerPacote(txt){
       const or={};
       MEALK.forEach(mk=>{ const r=refs[mk]; if(!r || typeof r!=='object') return;
         or[mk]={ r: receitaExiste(r.r)? String(r.r):'',
+                 ac: receitaExiste(r.ac)? String(r.ac):'',
                  m: Array.isArray(r.m)? r.m.map(idOk).filter(Boolean) : [] }; });
       if(Object.keys(or).length) od[di]=or;
     });
@@ -5594,7 +5892,7 @@ function juntar(txt){
       Object.keys(d.plans[wk][di]).forEach(mk=>{
         if(S.plans[wk][di][mk] && S.plans[wk][di][mk].r) return;   // não mexe no que já está marcado
         const ref=d.plans[wk][di][mk]||{};
-        S.plans[wk][di][mk]={r:ref.r||'', m:(ref.m||[]).map(x=>mapa[x]||x)};
+        S.plans[wk][di][mk]={r:ref.r||'', ac:ref.ac||'', m:(ref.m||[]).map(x=>mapa[x]||x)};
         if(ref.r) refeicoes++;
       });
     });
@@ -5767,9 +6065,18 @@ const TOUR=[
   {tab:'familia', sel:'main .card',
    t:'Perfis da família',
    d:'Cada pessoa tem aqui o seu perfil. Os sliders de peso, altura e idade mexem em direto no índice de massa corporal, no metabolismo basal e no gasto diário — e a fase da vida (bebé, criança, adolescente, adulto ou gravidez) escolhe as fórmulas certas para cada idade.'},
+  {tab:'familia', sel:'.card-alergia',
+   t:'Alergias e intolerâncias',
+   d:'As catorze categorias de declaração obrigatória na União Europeia, marcadas pessoa a pessoa. Uma receita que traga um alergénio marcado deixa de ser sugerida e fica assinalada a vermelho, com o ingrediente concreto que o traz. Ajuda a planear — não substitui ler o rótulo.'},
+  {tab:'familia', sel:'main .av',
+   t:'Avatares e aura',
+   d:'Cada membro escolhe um emoji e uma cor, que aparecem no avatar, nos pontos do plano semanal e na aura esbatida do cabeçalho — a app fica com a cara da família.'},
   {tab:'familia', sel:'svg[aria-label*="massa corporal"]',
    t:'Índice de massa corporal',
    d:'A banda mostra onde o peso cai na escala da Organização Mundial de Saúde, com a zona saudável em verde. Em crianças não se aplicam estes limites de adulto — a app diz-o e usa o percentil em vez disso.'},
+  {tab:'familia', sel:'[data-col="fam-resumo"]',
+   t:'O mês em palavras',
+   d:'Um retrato dos últimos 30 dias escrito em prosa a partir do que está registado: refeições planeadas, dias livres, atividade e objetivos. Só afirma o que os dados sustentam.'},
   {tab:'atividade', sel:'.spline',
    t:'Atividade — 43 desportos',
    d:'Nos desportos em que a velocidade manda no esforço (corrida, ciclismo, natação, remo, patinagem) indicam-se distância e ritmo em sliders, e o ponto laranja percorre a curva de esforço em direto. Nos restantes escolhe-se a intensidade pelo teste da conversa.'},
@@ -5778,28 +6085,43 @@ const TOUR=[
    d:'A barra reparte o gasto entre metabolismo basal, dia-a-dia, deslocações e desporto. A linha tracejada marca o alvo alimentar: a distância entre o fim da barra e a linha é o défice ou o excedente do plano.'},
   {tab:'nutricao', sel:'#nu-r-obj',
    t:'Nutrição — objetivo e macros',
-   d:'O objetivo é um slider contínuo de −25 % a +20 % do gasto, com o ritmo em quilos por semana e travão quando o alvo desce abaixo do metabolismo basal. A dieta escolhida vira gramas de hidratos, proteína e gordura, repartidas pelas quatro refeições.'},
+   d:'O objetivo é um slider contínuo de −25 % a +20 % do gasto, com o ritmo em quilos por semana e travão quando o alvo desce abaixo do metabolismo basal. A dieta escolhida — incluindo vegetariana e vegan, que a app distingue — vira gramas de hidratos, proteína e gordura.'},
+  {tab:'nutricao', sel:'[data-col="nu-suplementos"]',
+   t:'Suplementos e exclusões',
+   d:'O que se toma entra nos macros do dia (um batido de proteína é comida) e é comparado com as doses de referência e os limites de segurança. Ao lado da dieta ficam as exclusões que não são alergias: carne, porco, álcool, picante.'},
   {tab:'nutricao', sel:'#nu-plinha',
    t:'Projeção de peso',
    d:'Mostra para onde o peso caminha se o alvo se mantiver, recalculando o gasto a cada semana — por isso a curva achata. A faixa verde é a zona de índice de massa corporal saudável para a altura.'},
+  {tab:'receitas', sel:'#rec-busca',
+   t:'279 receitas, oito cozinhas',
+   d:'Peixe grelhado e no forno, marisco à portuguesa, carne na brasa com os cortes pelo nome, keto, vegan e muito mais. Pesquisa por nome ou por ingrediente, e filtra por refeição, cozinha, dieta — ou «sem» um alergénio.'},
   {tab:'receitas', sel:'.rc',
-   t:'Receitas ligadas à despensa',
-   d:'São 84 receitas, filtráveis por refeição, cozinha e compatibilidade com a dieta. Cada uma mostra os ingredientes com ✓ verde para o que já tens em casa e ✗ vermelho para o que falta — e diz «Pronta a cozinhar» quando não falta nada.'},
+   t:'Macros que saem dos ingredientes',
+   d:'As calorias e os macros de cada receita são calculados da composição de cada ingrediente (tabela do INSA), com as quantidades já multiplicadas pelas pessoas escolhidas. Os ✓ e ✗ mostram o que já tens na despensa.'},
+  {tab:'receitas', sel:'#btn-nova-receita',
+   t:'As tuas receitas',
+   d:'Escreve a receita da casa com ingredientes do catálogo: os macros por dose e as etiquetas de dieta aparecem enquanto escreves, e a receita entra na biblioteca como qualquer outra. Também podes copiar uma existente para a pôr a teu gosto.'},
   {tab:'despensa', sel:'#despensa-lista',
    t:'A minha despensa',
-   d:'Marca aqui o que tens em casa. A lista vem dos ingredientes das próprias receitas, para os nomes baterem sempre certo. Comprar um item na lista de compras marca-o aqui automaticamente.'},
+   d:'Marca aqui o que tens em casa. A lista vem dos ingredientes das próprias receitas, para os nomes baterem sempre certo — e cada ingrediente mostra os alergénios marcados na família. Comprar um item na lista de compras marca-o aqui automaticamente.'},
   {tab:'objetivos', sel:'main .card',
    t:'Objetivos com estratégia mista',
    d:'Define quantos quilos e em quanto tempo: a app calcula o défice diário e reparte-o entre dieta e exercício num slider. Ao criar, aplica logo o objetivo à Nutrição e acrescenta as horas de treino ao desporto escolhido.'},
   {tab:'objetivos', sel:'.anel',
    t:'Anéis de progresso e conquistas',
    d:'Cada objetivo tem um anel que compara o progresso real com o tempo já passado — fica amarelo ou vermelho se ficares para trás. Ao atingir a meta, a app celebra e guarda o objetivo nas Conquistas.'},
+  {tab:'plano', sel:'#sug',
+   t:'Sugestões para a mesa',
+   d:'Liga e desliga quem se senta à mesa: a lista mostra só as receitas que servem toda a gente ligada ao mesmo tempo — e diz quantas caíram por dieta, por alergénio ou por calorias, e porquê. Planeia-se num toque, já com os comensais certos.'},
   {tab:'plano', sel:'#pla-resumo',
-   t:'Plano semanal',
-   d:'Quatro refeições por dia, com quem come cada uma. O resumo mostra as calorias planeadas por dia contra o alvo de cada membro; cinzento é dia incompleto e rosa é cheat day. O preenchimento automático só sugere receitas compatíveis com todos os comensais.'},
+   t:'Plano semanal e acompanhamentos',
+   d:'Quatro refeições por dia, com quem come cada uma — e ao almoço e jantar, uma linha tracejada para o acompanhamento: batatas, arroz, legumes ou salada, com as calorias somadas ao dia. Cinzento é dia incompleto, rosa é cheat day.'},
   {tab:'compras', sel:'#falta-corpo',
    t:'Compras e o que falta',
-   d:'A lista agrega os ingredientes da semana pelo número de comensais. O cartão «O que falta comprar» tira o que já está na despensa e permite enviá-lo pelo menu de partilha do telemóvel — para o Keep, os Lembretes ou onde quiseres.'},
+   d:'A lista agrega os ingredientes da semana — pratos e acompanhamentos — pelo número de comensais. O cartão «O que falta comprar» tira o que já está na despensa e envia-se pelo menu de partilha do telemóvel.'},
+  {tab:'dados', sel:'[data-col="dados-aspeto"]',
+   t:'Seis paletas, dois modos',
+   d:'Azulejo, Alecrim, Figo, Maré, Brasa e Tinta, cada uma em claro e escuro — ou a seguir o sistema. As secções que fechares ficam fechadas, cartão a cartão: a app lembra-se.'},
   {tab:'dados', sel:'main .card',
    t:'Cópias de segurança',
    d:'Tudo fica gravado só neste browser, por isso o ficheiro de cópia é a única coisa que sobrevive a limpar o histórico ou trocar de telemóvel. Podes substituir tudo por uma cópia ou juntar duas, para combinar o que duas pessoas preencheram.'},
