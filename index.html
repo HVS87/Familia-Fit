@@ -500,6 +500,38 @@ select.slot{margin-top:4px}
 select.acomp{margin-top:6px;border-style:dashed;font-size:13.5px}
 /* Um prato pode levar mais do que um acompanhamento a dividir a mesma dose:
    cada um tem a sua linha, com o botão de trocar colado ao seletor. */
+/* Caixa de diálogo: só para o que a app precisa mesmo de perguntar ao entrar —
+   pesagens novas e compras por confirmar. Fecha com Escape ou com o fundo. */
+.mfundo{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:60;display:flex;
+  align-items:center;justify-content:center;padding:16px}
+.mcaixa{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--elev);
+  max-width:540px;width:100%;padding:18px 20px;max-height:86vh;overflow:auto}
+.mcaixa h2{margin:0}
+.med-linha{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
+.med-linha:last-of-type{border-bottom:none}
+.med-linha input[type=number]{width:96px;text-align:right}
+.med-linha .ml-nome{flex:1;min-width:0}
+@media (max-width:520px){ .mcaixa{padding:14px 14px} }
+/* Dias de treino do plano: sete alvos pequenos, do tamanho de um dedo. */
+.dias-plano{display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin-top:10px;
+  border-top:1px solid var(--line);padding-top:10px}
+.dia-op{min-width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:var(--card);
+  color:var(--mut);font:600 12.5px/1 var(--fonte-ui);cursor:pointer;padding:0}
+.dia-op.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.dia-op:hover{border-color:var(--accent)}
+/* Fita do tempo do histórico */
+.fita{position:relative;margin-top:10px;padding-left:22px}
+.fita:before{content:"";position:absolute;left:6px;top:4px;bottom:4px;width:2px;background:var(--line)}
+.fita-dia{position:relative;margin-bottom:14px}
+.fita-dia:before{content:"";position:absolute;left:-19px;top:6px;width:9px;height:9px;border-radius:50%;
+  background:var(--accent);box-shadow:0 0 0 3px var(--card)}
+.fita-dia.vazio:before{background:var(--line)}
+.fita-data{font:600 12.5px/1.3 var(--fonte-ui);color:var(--ink)}
+.reg-linha{display:flex;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
+.reg-linha:last-child{border-bottom:none}
+.reg-linha .rl-corpo{flex:1;min-width:0}
+.reg-acoes{display:flex;gap:4px;flex:none}
+.val-item{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:8px;background:var(--bg)}
 .ac-linha{display:flex;gap:6px;align-items:center}
 select.acomp.cheio{border-style:solid;background-color:var(--card);color:var(--ink);font-weight:600}
 .ac-linha select.acomp{flex:1;min-width:0}
@@ -867,6 +899,12 @@ function normalizaDesporto(s){
   if(!temChave(SPORT,s.s)) return null;
   const sp=SPORT[s.s];
   const per=['dia','semana','mes'].indexOf(s.per)>=0 ? s.per : 'semana';
+  /* o id acompanha o desporto durante toda a vida do plano: é por ele que os
+     registos sabem que treino do plano estão a cumprir */
+  const id=/^[A-Za-z0-9_-]{1,32}$/.test(String(s.id||''))? s.id : 'p'+Math.random().toString(36).slice(2,9);
+  const dias=Array.isArray(s.dias)
+    ? s.dias.map(x=>parseInt(x,10)).filter(x=>x>=0&&x<=6).filter((v,i,a)=>a.indexOf(v)===i).sort((a,b)=>a-b)
+    : null;
   if(sp.dist){
     let v=parseFloat(s.v), km=parseFloat(s.km), converter=false;
     if(!(isFinite(v)&&v>0) || !isFinite(km)){ v=velocidadeParaMet(sp.dist, sp.mets[nivelIndice(s.i)]); converter=true; }
@@ -875,18 +913,108 @@ function normalizaDesporto(s){
        para as horas do registo antigo se manterem exatas. */
     v=Math.round(Math.round(v/sp.dist.vStep)*sp.dist.vStep*100)/100;
     if(converter) km=(parseFloat(s.h)||0)*v;
-    return {s:sp.id, per, v, km:Math.max(0,Math.round(km*10)/10)};
+    const out={id, s:sp.id, per, v, km:Math.max(0,Math.round(km*10)/10)};
+    out.dias=(dias&&dias.length)? dias : diasSugeridos(out);
+    return out;
   }
-  return {s:sp.id, per, h:Math.max(0,parseFloat(s.h)||0),
+  const out={id, s:sp.id, per, h:Math.max(0,parseFloat(s.h)||0),
     i:NIVEIS.some(n=>n[0]===s.i)? s.i : 'moderado'};
+  out.dias=(dias&&dias.length)? dias : diasSugeridos(out);
+  return out;
+}
+/* Data de nascimento: a idade deixa de ser um número que envelhece sozinho no
+   perfil. Quando existe, é ela que manda — a idade e os meses passam a ser
+   derivados, para todo o resto da app continuar a ler o que sempre leu. */
+function anosDesde(nasc,ate){
+  const a=new Date(nasc+'T12:00:00'), b=new Date((ate||hojeISO())+'T12:00:00');
+  let anos=b.getFullYear()-a.getFullYear();
+  const m=b.getMonth()-a.getMonth();
+  if(m<0 || (m===0 && b.getDate()<a.getDate())) anos--;
+  return anos;
+}
+function mesesDesde(nasc,ate){
+  const a=new Date(nasc+'T12:00:00'), b=new Date((ate||hojeISO())+'T12:00:00');
+  let meses=(b.getFullYear()-a.getFullYear())*12+(b.getMonth()-a.getMonth());
+  if(b.getDate()<a.getDate()) meses--;
+  return Math.max(0,meses);
+}
+function nascValida(v){ return dataValida(v) && v<=hojeISO() && v>='1900-01-01'; }
+function aplicaNascimento(m){
+  if(!m || !nascValida(m.nasc)) return;
+  const meses=mesesDesde(m.nasc);
+  if(meses<24){ m.meses=meses; m.idade=meses/12; }
+  else { delete m.meses; m.idade=anosDesde(m.nasc); }
 }
 function normalizaMembro(m){
   if(m && Array.isArray(m.desportos)) m.desportos=m.desportos.map(normalizaDesporto).filter(Boolean);
   /* migração: deriva o objetivo contínuo do antigo — o alvo kcal não muda */
   if(m && !Number.isFinite(m.objetivoPct)) m.objetivoPct=Math.round((GOALS[m.objetivo]?.[1]||0)*100);
   else if(m) sincronizaObjetivo(m);   /* e mantém o campo legado coerente */
+  if(m && !nascValida(m.nasc)) delete m.nasc;
+  if(m) aplicaNascimento(m);      /* com data de nascimento, a idade é derivada e envelhece sozinha */
   if(m) normalizaIdadeMeses(m);   /* corrige qualquer meses/idade que tenha ficado do lado errado da fronteira dos 2 anos */
   return m;
+}
+/* As estruturas novas podem não existir numa cópia antiga, e os registos
+   podem apontar a membros ou receitas que já não estão cá. Isto corre uma vez
+   ao carregar e deixa tudo coerente antes do primeiro render. */
+function migraRegistos(s){
+  if(!s.medicoes || typeof s.medicoes!=='object') s.medicoes={};
+  const ids=s.members.map(m=>m.id);
+  Object.keys(s.medicoes).forEach(mid=>{
+    if(ids.indexOf(mid)<0){ delete s.medicoes[mid]; return; }
+    const arr=Array.isArray(s.medicoes[mid])? s.medicoes[mid] : [];
+    const vistos={}, limpo=[];
+    arr.forEach(x=>{ if(!x||!dataValida(x.d)||vistos[x.d]) return;
+      const p=clampNum(parseFloat(x.p)||0,1,400); if(!(p>0)) return;
+      vistos[x.d]=1; limpo.push({d:x.d,p}); });
+    limpo.sort((a,b)=> a.d<b.d? -1 : a.d>b.d? 1 : 0);
+    s.medicoes[mid]=limpo;
+  });
+  s.regAtiv=(Array.isArray(s.regAtiv)? s.regAtiv : []).map(r=>limparRegAtiv(r,ids)).filter(Boolean);
+  s.regRef =(Array.isArray(s.regRef)?  s.regRef  : []).map(r=>limparRegRef(r,ids)).filter(Boolean);
+  if(!s.meta.desdeRegisto || !dataValida(s.meta.desdeRegisto)) s.meta.desdeRegisto=iso(new Date());
+  s.members.forEach(m=>{ const a=s.medicoes[m.id];
+    if(a&&a.length){ const h=iso(new Date());
+      for(let i=a.length-1;i>=0;i--) if(a[i].d<=h){ m.peso=a[i].p; break; } } });
+}
+const ESTADOS_REG=['feita','falhada','agendada'];
+function limparRegAtiv(r,ids){
+  if(!r || typeof r!=='object') return null;
+  if(!temChave(SPORT,r.s)) return null;
+  if(!dataValida(r.d)) return null;
+  if(ids && ids.indexOf(r.mid)<0) return null;
+  const sp=SPORT[r.s];
+  const out={id:limparId(r.id), mid:r.mid, d:r.d, s:r.s,
+    min:clampNum(Math.round(parseFloat(r.min)||0),1,1440),
+    estado: ESTADOS_REG.indexOf(r.estado)>=0? r.estado : 'feita',
+    grupo: /^[A-Za-z0-9_-]{1,32}$/.test(String(r.grupo||''))? r.grupo : null,
+    plano: /^[A-Za-z0-9_-]{1,32}$/.test(String(r.plano||''))? r.plano : null,
+    nota: String(r.nota||'').slice(0,120)};
+  if(sp.dist){ out.v=clampNum(parseFloat(r.v)||sp.dist.vdef, sp.dist.vmin, sp.dist.vmax);
+    out.km=clampNum(parseFloat(r.km)||0, 0, sp.dist.maxSemana*2); }
+  else out.i=NIVEIS.some(n=>n[0]===r.i)? r.i : 'moderado';
+  return out;
+}
+/* lookup: como encontrar uma receita. Ao importar, as receitas da casa do
+   ficheiro ainda não estão na biblioteca — sem isto, um registo que aponte a
+   uma delas seria descartado como se a receita não existisse. */
+function limparRegRef(r,ids,lookup){
+  lookup = lookup || (id=>RECIPES.find(x=>x.id===id));
+  if(!r || typeof r!=='object') return null;
+  if(!dataValida(r.d)) return null;
+  if(MEALK.indexOf(r.mk)<0) return null;
+  if(ids && ids.indexOf(r.mid)<0) return null;
+  if(!lookup(r.r)) return null;
+  const ac=[]; (Array.isArray(r.ac)? r.ac : []).forEach(id=>{
+    const rec=lookup(id);
+    if(rec && ehAcompanhamento(rec) && ac.indexOf(id)<0 && ac.length<MAX_AC) ac.push(id); });
+  return {id:limparId(r.id), mid:r.mid, d:r.d, mk:r.mk, r:r.r, ac,
+    dose:clampNum(parseFloat(r.dose)||1,0.25,4),
+    estado: ESTADOS_REG.indexOf(r.estado)>=0? r.estado : 'feita',
+    grupo: /^[A-Za-z0-9_-]{1,32}$/.test(String(r.grupo||''))? r.grupo : null,
+    subst: !!r.subst,
+    nota: String(r.nota||'').slice(0,120)};
 }
 /* Faixa do slider de distância: depende do período, para não haver 400 km/dia. */
 function faixaDist(sp,per){
@@ -937,6 +1065,7 @@ const GOALS = {perder:['Perder peso',-0.15],manter:['Manter peso',0],ganhar:['Ga
 /* Refeições do dia, com a fatia sugerida do total calórico. */
 const MEALS=[['p','Pequeno-almoço',0.25],['a','Almoço',0.35],['l','Lanche',0.10],['j','Jantar',0.30]];
 const MEALK=MEALS.map(x=>x[0]);
+const MAX_AC=3;   /* acompanhamentos por prato: passado isto deixa de ser acompanhamento */
 function nomeRefeicao(k){ if(k==='ac') return 'Acompanhamento';
   const m=MEALS.find(x=>x[0]===k); return m? m[1] : k; }
 
@@ -2360,16 +2489,23 @@ const KEY='familiaFitV1', APPID='familia-fit', FORMATO=1;
 let saveErr='', msg=null;
 function blank(){ return {members:[],cheats:{},plans:{},bought:{},prefCuisine:'todas',objetivos:[],despensa:{},
   receitas:[],
+  /* medicoes: {membro:[{d,p}]} por ordem de data — o peso deixa de ser um
+     número solto e passa a ter história. regAtiv/regRef: o que foi mesmo
+     feito e comido, por oposição ao plano, que é o que se tenciona fazer. */
+  medicoes:{}, regAtiv:[], regRef:[],
   ui:{tab:'familia',mid:null,cuis:'todas',soComp:false,mealF:'todas',dietaF:'todas',busca:'',editor:null,
       objForm:{membros:[],tipo:'perder',delta:5,semanas:12,split:50,desporto:null,banda:2},
       objExpandido:null, objAdj:null, celebrando:null, tourPasso:null, tourVisto:false,
       tema:'auto', paleta:'azulejo', colapsados:{}, alergF:'', alergDesp:'',
       recLimite:48, recTodas:false,
-      sug:{membros:null,ref:'a',teto:true,cuis:'todas',verFora:false}, porcoes:null},
+      sug:{membros:null,ref:'a',teto:true,cuis:'todas',verFora:false}, porcoes:null,
+      histAtiv:null, histRef:null, janelaPeso:'mes', linhasPeso:{ativ:false,kcal:false},
+      formAtiv:null, formRef:null, medForm:null, comprasConf:null},
   week:mondayISO(new Date()),
-  meta:{gravadoEm:null,exportadoEm:null,semCopia:false,avisarAoSair:true}}; }
+  meta:{gravadoEm:null,exportadoEm:null,semCopia:false,avisarAoSair:true,desdeRegisto:null}}; }
 let S = load();
 sincronizaReceitas();   /* as receitas da casa entram na biblioteca antes do primeiro render */
+migraRegistos(S);       /* e só depois se validam os registos, que podem apontar a elas */
 function load(){
   let s=null;
   try{ s=JSON.parse(localStorage.getItem(KEY)); }catch(e){}
@@ -2398,12 +2534,15 @@ const UNDO_MAX=30;
 let pilhaUndo=[], pilhaRedo=[], estadoAnterior=null, ultimaDesc=null;
 function instantaneo(){ return JSON.stringify({members:S.members, cheats:S.cheats, plans:S.plans,
   bought:S.bought, week:S.week, prefCuisine:S.prefCuisine, objetivos:S.objetivos, despensa:S.despensa,
-  receitas:S.receitas}); }
+  receitas:S.receitas, medicoes:S.medicoes, regAtiv:S.regAtiv, regRef:S.regRef}); }
 function aplicaInstantaneo(js){
   const d=JSON.parse(js);
   S.members=d.members; S.cheats=d.cheats; S.plans=d.plans; S.bought=d.bought;
   S.week=d.week; S.prefCuisine=d.prefCuisine; S.objetivos=d.objetivos||[]; S.despensa=d.despensa||{};
   S.receitas=Array.isArray(d.receitas)? d.receitas : [];
+  S.medicoes=d.medicoes&&typeof d.medicoes==='object'? d.medicoes : {};
+  S.regAtiv=Array.isArray(d.regAtiv)? d.regAtiv : [];
+  S.regRef=Array.isArray(d.regRef)? d.regRef : [];
   sincronizaReceitas();
   S.members.forEach(normalizaMembro);
   if(!S.members.some(m=>m.id===S.ui.mid)) S.ui.mid=S.members[0]? S.members[0].id : null;
@@ -2957,7 +3096,247 @@ function estadoDia(m,di,dates){
   return Object.assign({st: dv<=0.10?'ok': dv<=0.25?'warn':'bad'},d);
 }
 function fmtShort(isoD){ const d=new Date(isoD+'T12:00:00'); return d.getDate()+' '+['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][d.getMonth()]; }
+function fmtLongo(isoD){ const d=new Date(isoD+'T12:00:00');
+  return d.getDate()+' de '+['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'][d.getMonth()]+' de '+d.getFullYear(); }
 function isCheat(mid,date){ return (S.cheats[mid]||[]).includes(date); }
+function hojeISO(){ return iso(new Date()); }
+function diaSemana(isoD){ return (new Date(isoD+'T12:00:00').getDay()+6)%7; }   /* 0 = segunda */
+function addDias(isoD,n){ const d=new Date(isoD+'T12:00:00'); d.setDate(d.getDate()+n); return iso(d); }
+function diasEntre(a,b){ return Math.round((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/86400000); }
+function nomeDiaCurto(isoD){ return ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'][diaSemana(isoD)]; }
+function rotuloData(isoD){
+  const h=hojeISO(), dif=diasEntre(isoD,h);
+  if(dif===0) return 'hoje';
+  if(dif===1) return 'ontem';
+  if(dif===-1) return 'amanhã';
+  return nomeDiaCurto(isoD)+', '+fmtShort(isoD);
+}
+
+/* ================= MEDIÇÕES DE PESO =================
+   O peso deixou de ser um número que se corrige e passou a ter história: cada
+   pesagem fica com a sua data. O campo do perfil continua a existir e continua
+   a mandar nos cálculos, mas agora é apenas o espelho da medição mais recente
+   que já aconteceu — os dois nunca podem contar histórias diferentes. */
+function medicoesDe(mid){ const a=S.medicoes&&S.medicoes[mid]; return Array.isArray(a)? a : []; }
+function ultimaMedicao(mid){ const a=medicoesDe(mid); return a.length? a[a.length-1] : null; }
+/* O peso que a pessoa tinha numa data: a medição mais recente até essa data.
+   Antes da primeira pesagem devolve a primeira conhecida, porque extrapolar
+   para trás um peso que ninguém mediu seria inventar. */
+function pesoNaData(mid,d){
+  const m=S.members.find(x=>x.id===mid);
+  const a=medicoesDe(mid);
+  if(!a.length) return m? m.peso : 0;
+  let out=a[0].p;
+  for(let i=0;i<a.length;i++){ if(a[i].d<=d) out=a[i].p; else break; }
+  return out;
+}
+function sincronizaPeso(m){
+  const a=medicoesDe(m.id); if(!a.length) return;
+  const h=hojeISO();
+  for(let i=a.length-1;i>=0;i--) if(a[i].d<=h){ m.peso=a[i].p; return; }
+}
+/* Registar uma pesagem antiga em quem ainda não tem nenhuma guardaria o peso
+   do perfil como se fosse dessa data — daí fixar-se primeiro o que já se sabe
+   hoje, antes de acrescentar o passado. */
+function registarMedicao(mid,d,p){
+  const m=S.members.find(x=>x.id===mid); if(!m) return false;
+  /* uma pesagem fora do que um corpo humano pesa é um engano de escrita, não
+     um valor a aparar: aparar guardaria uma medição que ninguém fez */
+  const kg=Math.round((parseFloat(p)||0)*10)/10;
+  if(!isFinite(kg) || kg<1 || kg>400) return false;
+  if(!dataValida(d) || d>hojeISO()) return false;
+  if(!S.medicoes || typeof S.medicoes!=='object') S.medicoes={};
+  if(!Array.isArray(S.medicoes[mid])) S.medicoes[mid]=[];
+  const arr=S.medicoes[mid];
+  if(!arr.length && d!==hojeISO() && m.peso>0) arr.push({d:hojeISO(), p:m.peso});
+  const i=arr.findIndex(x=>x.d===d);
+  if(i>=0) arr[i].p=kg; else arr.push({d,p:kg});
+  arr.sort((a,b)=> a.d<b.d? -1 : a.d>b.d? 1 : 0);
+  sincronizaPeso(m);
+  return true;
+}
+function apagarMedicao(mid,d){
+  const arr=medicoesDe(mid); const i=arr.findIndex(x=>x.d===d);
+  if(i<0) return false;
+  arr.splice(i,1);
+  const m=S.members.find(x=>x.id===mid); if(m) sincronizaPeso(m);
+  return true;
+}
+
+/* ================= AGENDA DO PLANO DE ATIVIDADE =================
+   O plano dizia quantas horas por semana, mas não em que dias — e sem dias não
+   há nada para validar no fim do dia. Os dias distribuem o volume que já
+   estava lá: o total semanal não muda, e por isso nenhum gasto calórico já
+   calculado se mexe com esta adição. */
+function diasSugeridos(s){
+  if(s.per==='dia') return [0,1,2,3,4,5,6];
+  const h=sportWeeklyH(s);
+  const n=clampNum(Math.ceil(h/1.5)||1,1,6);
+  const out=[]; for(let i=0;i<n;i++) out.push(Math.round(i*7/n)%7);
+  return out.filter((v,i,a)=>a.indexOf(v)===i).sort((a,b)=>a-b);
+}
+function diasPlano(s){
+  if(Array.isArray(s.dias)){
+    const d=s.dias.map(x=>parseInt(x,10)).filter(x=>x>=0&&x<=6).filter((v,i,a)=>a.indexOf(v)===i).sort((a,b)=>a-b);
+    if(d.length) return d;
+  }
+  return diasSugeridos(s);
+}
+function minutosSessao(s){ const n=diasPlano(s).length||1; return sportWeeklyH(s)*60/n; }
+function kcalSessao(mid,s,d){ return metDe(s)*pesoNaData(mid,d||hojeISO())*minutosSessao(s)/60; }
+/* O que o plano marca para um membro numa data. */
+function planeadasNoDia(m,d){
+  const wd=diaSemana(d);
+  return (m.desportos||[]).filter(s=>diasPlano(s).indexOf(wd)>=0)
+    .map(s=>({s, min:Math.round(minutosSessao(s)), kcal:Math.round(kcalSessao(m.id,s,d))}));
+}
+
+/* ================= REGISTOS: O QUE FOI MESMO FEITO =================
+   Uma atividade partilhada é um registo por pessoa ligado pelo mesmo grupo:
+   cada um tem o seu tempo, a sua intensidade e a sua distância, porque correr
+   com o pai não obriga a correr ao ritmo dele. Validar um valida o grupo;
+   editar um pergunta se se aplica aos outros. */
+function regAtivDe(mid){ return (S.regAtiv||[]).filter(r=>r.mid===mid); }
+function regRefDe(mid){ return (S.regRef||[]).filter(r=>r.mid===mid); }
+function porData(a,b){ return a.d<b.d? 1 : a.d>b.d? -1 : 0; }   /* mais recente primeiro */
+function kcalRegAtiv(r){
+  const s=r.s&&SPORT[r.s]; if(!s) return 0;
+  const met = r.met>0? r.met
+    : s.dist? metPorVelocidade(s.dist.curva, clampNum(parseFloat(r.v)||s.dist.vdef, s.dist.vmin, s.dist.vmax))
+    : s.mets[nivelIndice(r.i)];
+  return met*pesoNaData(r.mid,r.d)*(parseFloat(r.min)||0)/60;
+}
+function kcalRegRef(r){
+  const rec=RECIPES.find(x=>x.id===r.r); if(!rec) return 0;
+  const acs=(r.ac||[]).map(id=>RECIPES.find(x=>x.id===id)).filter(Boolean);
+  return (rec.k+somaAc(acs,'k'))*(parseFloat(r.dose)||1);
+}
+function macrosRegRef(r){
+  const rec=RECIPES.find(x=>x.id===r.r); if(!rec) return {k:0,c:0,p:0,f:0};
+  const acs=(r.ac||[]).map(id=>RECIPES.find(x=>x.id===id)).filter(Boolean);
+  const dose=parseFloat(r.dose)||1;
+  return {k:(rec.k+somaAc(acs,'k'))*dose, c:(rec.c+somaAc(acs,'c'))*dose,
+          p:(rec.p+somaAc(acs,'p'))*dose, f:(rec.f+somaAc(acs,'f'))*dose};
+}
+/* Gasto real de um dia: o basal e o dia-a-dia não se registam (são o que o
+   corpo faz de qualquer maneira), o desporto é o que ficou registado — não o
+   que estava planeado. É esta a diferença entre plano e realidade. */
+function gastoRealDia(m,d){
+  const base=bmr(m)*(temChave(BASE_ACT,m.atividade)?BASE_ACT[m.atividade][1]:1.2)+commuteKcalDay(m);
+  const desp=regAtivDe(m.id).filter(r=>r.d===d&&r.estado==='feita').reduce((t,r)=>t+kcalRegAtiv(r),0);
+  return {base, desp, total:base+desp};
+}
+function ingeridoRealDia(mid,d){
+  return regRefDe(mid).filter(r=>r.d===d&&r.estado==='feita')
+    .reduce((t,r)=>{ const x=macrosRegRef(r); return {k:t.k+x.k,c:t.c+x.c,p:t.p+x.p,f:t.f+x.f}; },{k:0,c:0,p:0,f:0});
+}
+/* Alvo do dia: o plano ajustado ao que se gastou a mais (ou a menos) do que o
+   plano previa para aquele dia. Quem corre 10 km que não estavam marcados
+   precisa de comer esse gasto para manter o mesmo défice — e dizer-lhe para
+   comer o mesmo seria transformar um treino extra num défice a dobrar. */
+function extraAtivDia(m,d){
+  const feito=regAtivDe(m.id).filter(r=>r.d===d&&r.estado==='feita').reduce((t,r)=>t+kcalRegAtiv(r),0);
+  const previsto=planeadasNoDia(m,d).reduce((t,p)=>t+p.kcal,0);
+  return feito-previsto;
+}
+function alvoDoDia(m,d){
+  if(semEstimativa(m)) return 0;
+  return Math.max(bmr(m)*0.8, targetKcal(m)+extraAtivDia(m,d));
+}
+function temRegistos(mid){ return regAtivDe(mid).length>0 || regRefDe(mid).length>0; }
+
+/* ================= VALIDAÇÃO DO QUE FICOU POR CONFIRMAR =================
+   Ao entrar no perfil, o que estava marcado para trás e nunca foi confirmado
+   aparece para validar. Só se olha para trás até ao dia em que esta app passou
+   a guardar registos: perguntar por treinos de antes disso seria perguntar por
+   uma coisa que nunca chegou a estar marcada. */
+const JANELA_VALIDACAO=21;
+function desdeRegisto(){
+  if(!S.meta.desdeRegisto || !dataValida(S.meta.desdeRegisto)) S.meta.desdeRegisto=hojeISO();
+  return S.meta.desdeRegisto;
+}
+function inicioValidacao(){
+  const h=hojeISO(), limite=addDias(h,-JANELA_VALIDACAO), desde=desdeRegisto();
+  return desde>limite? desde : limite;
+}
+function pendentesAtiv(m){
+  if(!m) return [];
+  const ini=inicioValidacao(), h=hojeISO(), out=[];
+  for(let d=addDias(h,-1); d>=ini; d=addDias(d,-1)){
+    planeadasNoDia(m,d).forEach(p=>{
+      /* uma remarcação não fecha o dia de origem: é a falhada que o fecha */
+      if((S.regAtiv||[]).some(r=>r.mid===m.id && r.d===d && r.plano===p.s.id && r.estado!=='agendada')) return;
+      out.push({d, sid:p.s.id, s:p.s, min:p.min, kcal:p.kcal, reg:null});
+    });
+  }
+  /* e o que foi remarcado para um dia que entretanto também já passou */
+  (S.regAtiv||[]).filter(r=>r.mid===m.id && r.estado==='agendada' && r.d<h && r.d>=ini).forEach(r=>{
+    out.push({d:r.d, sid:r.plano, s:(m.desportos||[]).find(x=>x.id===r.plano)||{s:r.s},
+      min:r.min, kcal:Math.round(kcalRegAtiv(r)), reg:r});
+  });
+  return out.sort((a,b)=> a.d<b.d? 1 : a.d>b.d? -1 : 0);
+}
+function agendadasFuturas(mid){
+  const h=hojeISO();
+  return (S.regAtiv||[]).filter(r=>r.mid===mid && r.estado==='agendada' && r.d>=h).sort((a,b)=>a.d<b.d?-1:1);
+}
+function pendentesRef(m){
+  if(!m) return [];
+  const ini=inicioValidacao(), out=[];
+  for(let d=addDias(hojeISO(),-1); d>=ini; d=addDias(d,-1)){
+    if(isCheat(m.id,d)) continue;
+    const dia=(S.plans[mondayISO(d)]||{})[diaSemana(d)];
+    if(!dia) continue;
+    MEALK.forEach(mk=>{
+      const meal=dia[mk];
+      if(!meal || !meal.r || !Array.isArray(meal.m) || meal.m.indexOf(m.id)<0) return;
+      if(!RECIPES.some(x=>x.id===meal.r)) return;
+      if((S.regRef||[]).some(r=>r.mid===m.id && r.d===d && r.mk===mk)) return;
+      out.push({d, mk, meal});
+    });
+  }
+  return out;
+}
+
+/* ---- Escrever registos ----
+   Uma atividade ou refeição partilhada é um registo por pessoa ligado pelo
+   mesmo grupo. Assim cada um tem o seu tempo, a sua dose e os seus
+   acompanhamentos, e o grupo continua a saber que aquilo aconteceu à mesma
+   mesa ou no mesmo passeio. */
+function novoGrupo(){ return 'g'+Math.random().toString(36).slice(2,9); }
+function registarAtividade(base,mids,estado){
+  const grupo=mids.length>1? novoGrupo() : null;
+  const criados=[];
+  mids.forEach(mid=>{
+    const m=S.members.find(x=>x.id===mid); if(!m) return;
+    const ajuste=(base.porMembro&&base.porMembro[mid])||{};
+    const r=limparRegAtiv(Object.assign({}, base, ajuste,
+      {id:uid(), mid, grupo, estado:estado||'feita'}), S.members.map(x=>x.id));
+    if(r){ S.regAtiv.push(r); criados.push(r); }
+  });
+  return criados;
+}
+function registarRefeicao(base,mids,estado){
+  const grupo=mids.length>1? novoGrupo() : null;
+  const criados=[];
+  mids.forEach(mid=>{
+    const ajuste=(base.porMembro&&base.porMembro[mid])||{};
+    const r=limparRegRef(Object.assign({}, base, ajuste,
+      {id:uid(), mid, grupo, estado:estado||'feita'}), S.members.map(x=>x.id));
+    if(r){ S.regRef.push(r); criados.push(r); }
+  });
+  return criados;
+}
+function irmaosDe(lista,r){ return r.grupo? lista.filter(x=>x.grupo===r.grupo && x.id!==r.id) : []; }
+/* Editar ou apagar um registo partilhado pergunta pelos outros: quem correu
+   contigo pode ter corrido menos, mas se o passeio não aconteceu, não
+   aconteceu para ninguém. */
+function confirmaPartilha(irmaos,verbo){
+  if(!irmaos.length) return false;
+  const nomes=irmaos.map(x=>{ const m=S.members.find(y=>y.id===x.mid); return m? m.nome.split(' ')[0] : '?'; });
+  return confirm('Esta era partilhada com '+nomes.join(', ')+'.\n\nQueres '+verbo+' também no registo '
+    +(nomes.length===1? 'dessa pessoa' : 'dessas pessoas')+'?');
+}
 
 /* ================= NAVEGAÇÃO ================= */
 /* Explicadores. Ficam todos aqui para o texto ser escrito uma vez e revisto
@@ -3010,13 +3389,16 @@ const DICAS={
   alergias:'As catorze categorias de declaração obrigatória do anexo II do Regulamento (UE) n.º 1169/2011 — a lista que se aplica em Portugal, fiscalizada pela ASAE e com a DGAV como autoridade competente. Uma receita com um ingrediente destes deixa de ser sugerida a quem o tem marcado, e fica assinalada a vermelho onde apareça. Nota: os frutos de casca rija são uma lista fechada de oito, onde a castanha portuguesa e o pinhão não entram; o amendoim é categoria à parte, por ser leguminosa. Isto ajuda a planear e não substitui ler o rótulo nem perguntar num restaurante.',
   porcoes:'As receitas estão escritas para uma pessoa. Este número multiplica as quantidades de todos os ingredientes — é o que se leva para a cozinha.',
   editorReceitas:'Escreve os ingredientes e o número de doses que a receita rende: os macros por dose são calculados a partir da composição de cada ingrediente, e as etiquetas de dieta saem dos números e do que a receita leva dentro. Só entram ingredientes do catálogo — é isso que faz a receita falar com a despensa e com a lista de compras.',
+  partilhada:'Uma atividade ou refeição partilhada fica registada uma vez por pessoa, ligadas entre si. Cada uma tem o seu tempo, a sua intensidade, a sua dose e os seus acompanhamentos — partilhar a hora não obriga a partilhar o esforço nem a quantidade. Confirmar uma confirma o grupo; editar ou apagar pergunta primeiro se vale para os outros.',
+  registoDia:'O que ficou registado é o que aconteceu, por oposição ao plano, que é o que se tencionava fazer. É do registo que saem o gasto real do dia, o alvo de calorias ajustado e o ritmo verdadeiro dos objetivos.',
+  pesoHist:'Cada pesagem fica com a sua data. O peso do perfil é sempre a medição mais recente que já aconteceu, para os cálculos e a balança nunca contarem histórias diferentes. Podem registar-se medições passadas, se as tiveres anotadas.',
   acompanhamento:'O que vai ao lado do prato: batatas, arroz, legumes ou salada. As calorias somam-se às do prato no total do dia, os ingredientes somam-se à lista de compras, mas não conta como uma refeição — um arroz de coentros não é um jantar. O 🔀 troca por outro que sirva a mesma mesa, e o «juntar» põe mais um ao lado: como o lugar do acompanhamento é um só, os que lá estiverem repartem-no entre si — meia dose de batatas e meia de salada, e as calorias, os macros e as quantidades a comprar seguem essa divisão. O preenchimento automático escolhe um para cada almoço e jantar, respeitando as mesmas dietas e exclusões.',
   vegan:'Cada dieta é uma repartição diferente de hidratos, proteína e gordura; a «Personalizada» abre três sliders que somam sempre 100 %. Vegetariana e vegan são dietas diferentes: a vegetariana come ovos, lacticínios e mel, a vegan não come nada de origem animal — e as duas etiquetas são lidas dos ingredientes de cada receita, nunca escritas à mão.'
 };
 function dica(k,extra){ const t=DICAS[k]; if(!t) return '';
   return `<button type="button" class="dica ${extra||''}" data-dica="${esc(t)}" aria-label="Explicação">i</button>`; }
-const TABS=[['familia','Família'],['atividade','Atividade'],['nutricao','Nutrição'],['receitas','Receitas'],
-  ['objetivos','Objetivos'],['plano','Plano semanal'],['despensa','Despensa'],['compras','Compras'],['dados','Dados']];
+const TABS=[['familia','Família'],['atividade','Atividade Física'],['nutricao','Nutrição'],['receitas','Receitas'],
+  ['objetivos','Objetivos'],['plano','Plano de Refeições'],['despensa','Despensa'],['compras','Compras'],['dados','Dados']];
 /* ===== NAVEGAÇÃO =====
    Ícones de linha desenhados no mesmo traço dos gráficos e dos estados vazios
    da app — 24×24, contorno 1.8, sem preenchimento. Herdam currentColor, por
@@ -3043,7 +3425,10 @@ function modoBarraInferior(){
   const r=document.documentElement;
   return r.getAttribute('data-dispositivo')==='telefone' && r.getAttribute('data-orient')==='retrato';
 }
-function rotuloCurto(k){ const t=TABS.find(x=>x[0]===k); return t? t[1].replace(' semanal','') : k; }
+/* Na barra do polegar não cabem nomes compridos: «Atividade Física» e «Plano
+   de Refeições» encurtam-se, e o nome inteiro fica no separador de cima. */
+function rotuloCurto(k){ const t=TABS.find(x=>x[0]===k);
+  return t? t[1].replace(' Física','').replace(' de Refeições','') : k; }
 function pintaNav(){
   const nav=document.getElementById('nav'); if(!nav) return;
   const btn=k=>`<button class="${S.ui.tab===k?'on':''}" onclick="go('${k}')">${icoNav(k)}<span>${rotuloCurto(k)}</span></button>`;
@@ -3077,6 +3462,8 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('keydown',e=>{
   if(e.key!=='Escape') return;
+  /* a caixa de diálogo fecha primeiro: é o que está por cima de tudo */
+  if(modalAberto()){ fecharModal(); return; }
   const f=document.getElementById('nav-mais');
   if(f && f.classList.contains('aberta')){ f.classList.remove('aberta');
     const b=document.getElementById('nav-btn-mais'); if(b){ b.setAttribute('aria-expanded','false'); b.focus(); } }
@@ -3191,6 +3578,11 @@ const ILUS={
     <rect x="66" y="70" width="12" height="12" rx="3" fill="none" opacity=".6"/>`,
   trofeu:`<path d="M36 18h36v20a18 18 0 0 1-36 0z" fill="none"/><path d="M36 24H24a10 10 0 0 0 12 12M72 24h12a10 10 0 0 1-12 12" fill="none"/>
     <path d="M54 56v14M40 82h28l-3-12H43z" fill="none"/>`,
+  grafico:`<path d="M18 16v62h72" fill="none"/><path d="M30 66v-14M46 66v-28M62 66v-20M78 66v-38" fill="none"/>
+    <path d="M30 40l16-16 16 8 16-18" fill="none" opacity=".5"/>`,
+  balanca:`<rect x="18" y="34" width="72" height="48" rx="8" fill="none"/>
+    <path d="M54 34V20" fill="none"/><circle cx="54" cy="58" r="15" fill="none"/>
+    <path d="M54 58l9-8" fill="none"/>`,
   lupa:`<circle cx="46" cy="42" r="24" fill="none"/><path d="M64 60l22 22" fill="none"/>
     <path d="M36 42h20" fill="none" opacity=".5"/>`
 };
@@ -3204,7 +3596,14 @@ function estadoVazio(ilus,titulo,texto,botoes){
     <h3>${titulo}</h3><p>${texto}</p>
     ${botoes? `<div class="row">${botoes}</div>`:''}</div></div>`;
 }
-function go(t){ S.ui.tab=t; msg=null; saveMeta(); render(); }
+function go(t){ S.ui.tab=t; msg=null;
+  /* histórico é uma vista dentro do separador, não um sítio onde se fica ao
+     mudar de separador */
+  if(t!=='atividade') S.ui.histAtiv=null;
+  if(t!=='nutricao') S.ui.histRef=null;
+  saveMeta(); render();
+  if(t==='despensa') talvezPerguntarCompras();
+}
 function pickM(id){ S.ui.mid=id; macroLive=null; saveMeta(); render(); }
 function curM(){ return S.members.find(m=>m.id===S.ui.mid) || S.members[0]; }
 /* Cor do membro: a escolhida, ou uma da paleta pela ordem de entrada. */
@@ -3235,6 +3634,181 @@ function montaMembrosFixos(){
   });
 }
 
+/* ================= CAIXAS DE DIÁLOGO =================
+   A app pergunta pouco, e quando pergunta é porque a resposta muda os dados:
+   pesagens novas e compras por confirmar. Uma de cada vez, e nunca duas vezes
+   na mesma sessão — perguntar outra vez o que já foi respondido é ruído. */
+let jaPerguntouPeso=false, jaPerguntouCompras=false;
+function abrirModal(tipo,dados){ S.ui.modal=Object.assign({tipo},dados||{}); saveMeta(); render(); }
+function fecharModal(){ S.ui.modal=null; saveMeta(); render(); }
+function fundoModal(e){ if(e && e.target && e.target.classList.contains('mfundo')) fecharModal(); }
+function modalAberto(){ return S.ui.modal&&typeof S.ui.modal==='object'? S.ui.modal : null; }
+/* Quem já não se pesa há uma semana. Não é um alarme: é só a pergunta que
+   qualquer pessoa que segue o peso faz a si própria de vez em quando. */
+const DIAS_ENTRE_PESAGENS=7;
+function precisaPesagem(m){
+  if(faseDe(m)==='bebe') return false;
+  const u=ultimaMedicao(m.id);
+  return !u || diasEntre(u.d,hojeISO())>=DIAS_ENTRE_PESAGENS;
+}
+function talvezPerguntarPeso(){
+  if(jaPerguntouPeso || modalAberto() || tourAtivo()) return;
+  jaPerguntouPeso=true;
+  const quem=S.members.filter(precisaPesagem);
+  if(!quem.length) return;
+  abrirModal('peso',{mids:quem.map(m=>m.id), d:hojeISO(), vals:{}});
+}
+function abrirPesagens(mid){
+  jaPerguntouPeso=true;
+  const quem=mid? S.members.filter(m=>m.id===mid) : S.members.filter(m=>faseDe(m)!=='bebe');
+  if(!quem.length) return flash('warn','Não há perfis para pesar.');
+  abrirModal('peso',{mids:quem.map(m=>m.id), d:hojeISO(), vals:{}});
+}
+function setModalCampo(campo,val){ const mo=modalAberto(); if(!mo) return; mo[campo]=val; }
+function setPesagem(mid,val){ const mo=modalAberto(); if(!mo) return; mo.vals[mid]=val; }
+function guardarPesagens(){
+  const mo=modalAberto(); if(!mo) return;
+  const d=dataValida(mo.d)&&mo.d<=hojeISO()? mo.d : hojeISO();
+  let n=0, recusados=[];
+  mo.mids.forEach(mid=>{
+    const v=mo.vals[mid];
+    if(v===undefined || v==='' || v===null) return;
+    const m=S.members.find(x=>x.id===mid);
+    if(registarMedicao(mid,d,v)) n++; else recusados.push(m? m.nome : mid);
+  });
+  S.ui.modal=null;
+  if(!n && !recusados.length){ saveMeta(); return render(); }
+  if(n) save(plural(n,'pesagem registada','pesagens registadas'));
+  render();
+  if(recusados.length) flash('bad','Peso fora do que é possível para '+recusados.join(', ')+' — entre 1 e 400 kg.');
+  else flash('ok', plural(n,'pesagem registada','pesagens registadas')+' em '+rotuloData(d)+'.');
+}
+function modalPesoHtml(mo){
+  const quem=mo.mids.map(id=>S.members.find(m=>m.id===id)).filter(Boolean);
+  return `<div class="mfundo" onclick="fundoModal(event)">
+    <div class="mcaixa" role="dialog" aria-modal="true" aria-labelledby="md-peso-t">
+      <h2 id="md-peso-t">Queres registar novas medições de peso? ${dica('pesoHist')}</h2>
+      <p class="sub" style="margin-top:6px">${quem.length===1
+        ? 'A última pesagem de '+esc(quem[0].nome.split(' ')[0])+' foi '+(ultimaMedicao(quem[0].id)? rotuloData(ultimaMedicao(quem[0].id).d) : 'nunca')+'.'
+        : 'Estes perfis não têm pesagem recente. Preenche só os que quiseres — os outros ficam como estão.'}</p>
+      <div style="margin-top:12px"><label class="lbl">Dia da pesagem</label>
+        <input type="date" value="${mo.d}" max="${hojeISO()}" aria-label="Dia da pesagem"
+          onchange="setModalCampo('d',this.value)"></div>
+      <div style="margin-top:10px">${quem.map(m=>{
+        const u=ultimaMedicao(m.id);
+        return `<div class="med-linha">
+          ${avatar(m,28)}
+          <div class="ml-nome"><b>${esc(m.nome)}</b>
+            <span class="sub" style="display:block">${u? 'última: '+nPT(u.p,1)+' kg em '+fmtShort(u.d) : 'sem pesagens · perfil diz '+nPT(m.peso,1)+' kg'}</span></div>
+          <input type="number" min="1" max="400" step="0.1" inputmode="decimal"
+            placeholder="${nPT(m.peso,1).replace(',','.')}" value="${mo.vals[m.id]!==undefined? mo.vals[m.id] : ''}"
+            aria-label="Peso de ${esc(m.nome)} em quilogramas" onchange="setPesagem('${m.id}',this.value)">
+          <span class="sub">kg</span>
+        </div>`;}).join('')}</div>
+      <p class="sub" style="margin-top:10px">Podes registar pesagens de dias passados se as tiveres anotadas: muda o dia e escreve o valor. O peso do perfil passa a ser sempre a medição mais recente.</p>
+      <div class="row" style="margin-top:14px;justify-content:flex-end">
+        <button class="btn ghost" onclick="fecharModal()">Agora não</button>
+        <button class="btn" onclick="guardarPesagens()">Registar</button>
+      </div>
+    </div></div>`;
+}
+
+/* ================= EVOLUÇÃO DO PESO =================
+   O peso ao longo do tempo, com a atividade e as calorias por cima quando se
+   quer perceber porquê. Sem inventar pontos: entre duas pesagens a linha liga
+   o que foi medido, e onde não há medição não há linha. */
+const JANELAS={dias:[14,'14 dias'], semanas:[56,'8 semanas'], mes:[182,'6 meses'], ano:[730,'2 anos']};
+function setJanelaPeso(k){ if(temChave(JANELAS,k)) S.ui.janelaPeso=k; saveMeta(); render(); }
+function toggleLinhaPeso(k){
+  if(!S.ui.linhasPeso||typeof S.ui.linhasPeso!=='object') S.ui.linhasPeso={ativ:false,kcal:false};
+  S.ui.linhasPeso[k]=!S.ui.linhasPeso[k]; saveMeta(); render();
+}
+function janelaPeso(){ return temChave(JANELAS,S.ui.janelaPeso)? S.ui.janelaPeso : 'mes'; }
+function graficoPesoSvg(m){
+  const jan=janelaPeso(), dias=JANELAS[jan][0], h=hojeISO(), ini=addDias(h,-dias+1);
+  const pts=medicoesDe(m.id).filter(x=>x.d>=ini);
+  const W=340, H=132, X0=34, X1=332, Y0=14, Y1=H-20;
+  if(pts.length<1) return {svg:'', pts:0};
+  const pesos=pts.map(x=>x.p);
+  let pmin=Math.min(...pesos), pmax=Math.max(...pesos);
+  if(pmax-pmin<2){ const c=(pmax+pmin)/2; pmin=c-1; pmax=c+1; }
+  const marg=(pmax-pmin)*0.15; pmin-=marg; pmax+=marg;
+  const X=d=>X0+(X1-X0)*clampNum(diasEntre(ini,d)/(dias-1||1),0,1);
+  const Y=p=>Y1-(Y1-Y0)*clampNum((p-pmin)/(pmax-pmin||1),0,1);
+  const linha=pts.map(x=>X(x.d).toFixed(1)+','+Y(x.p).toFixed(1)).join(' ');
+  const L=S.ui.linhasPeso||{};
+  /* as sobreposições usam a sua própria escala: o que interessa é a forma da
+     curva ao lado da do peso, não comparar quilos com calorias */
+  const serie=fn=>{ const out=[]; for(let i=0;i<dias;i++){ const d=addDias(ini,i); out.push({d, v:fn(d)}); } return out; };
+  const desenhaSerie=(dados,classe)=>{
+    const max=Math.max(1,...dados.map(x=>x.v));
+    const p=dados.filter(x=>x.v>0).map(x=>X(x.d).toFixed(1)+','+(Y1-(Y1-Y0)*0.55*(x.v/max)).toFixed(1));
+    if(p.length<2) return '';
+    return `<polyline points="${p.join(' ')}" fill="none" class="${classe}" stroke-width="1.3" opacity=".65"/>`;
+  };
+  const svgAtiv=L.ativ? desenhaSerie(serie(d=>regAtivDe(m.id).filter(r=>r.d===d&&r.estado==='feita').reduce((t,r)=>t+kcalRegAtiv(r),0)),'s-energy') : '';
+  const svgKcal=L.kcal? desenhaSerie(serie(d=>ingeridoRealDia(m.id,d).k),'s-acc') : '';
+  const grelha=[0,0.5,1].map(t=>{ const p=pmin+(pmax-pmin)*t;
+    return `<line x1="${X0}" y1="${Y(p).toFixed(1)}" x2="${X1}" y2="${Y(p).toFixed(1)}" class="s-line" opacity=".55"/>
+      <text x="${X0-4}" y="${(Y(p)+3).toFixed(1)}" font-size="9.5" text-anchor="end" class="f-mut" style="font-variant-numeric:tabular-nums">${nPT(p,1)}</text>`;}).join('');
+  return {pts:pts.length, svg:`<svg class="svgfx" viewBox="0 0 ${W} ${H}" role="img"
+      aria-label="Evolução do peso de ${esc(m.nome)} em ${JANELAS[jan][1]}">
+    ${grelha}${svgAtiv}${svgKcal}
+    ${pts.length>1? `<polyline points="${linha}" fill="none" class="s-ink" stroke-width="2"/>`:''}
+    ${pts.map(x=>`<circle cx="${X(x.d).toFixed(1)}" cy="${Y(x.p).toFixed(1)}" r="${pts.length>40?1.8:3}" class="f-ink"
+      ><title>${fmtLongo(x.d)}: ${nPT(x.p,1)} kg</title></circle>`).join('')}
+    <text x="${X0}" y="${H-5}" font-size="9.5" class="f-mut">${fmtShort(ini)}</text>
+    <text x="${X1}" y="${H-5}" font-size="9.5" text-anchor="end" class="f-mut">hoje</text>
+  </svg>`};
+}
+function cartaoPeso(){
+  if(!S.members.length) return '';
+  const m=curM(); if(!m) return '';
+  const g=graficoPesoSvg(m);
+  const pts=medicoesDe(m.id);
+  const jan=janelaPeso(), ini=addDias(hojeISO(),-JANELAS[jan][0]+1);
+  const naJanela=pts.filter(x=>x.d>=ini);
+  const dif=naJanela.length>1? naJanela[naJanela.length-1].p-naJanela[0].p : null;
+  const L=S.ui.linhasPeso||{};
+  return `<div class="card" id="peso-hist" data-col="fam-peso" style="margin-top:16px">
+    <div class="row" style="justify-content:space-between">
+      <div><span class="lbl">Peso</span><h2 style="margin-top:2px">Evolução de ${esc(m.nome.split(' ')[0])} ${dica('pesoHist')}</h2></div>
+      <button class="btn small" onclick="abrirPesagens('${m.id}')">+ Registar pesagem</button></div>
+    <div class="row" style="margin-top:10px">${S.members.map(x=>`<button class="chip ${x.id===m.id?'on':''}"
+      onclick="pickM('${x.id}')">${avatar(x,20)} ${esc(x.nome.split(' ')[0])}</button>`).join('')}</div>
+    <div class="row" style="margin-top:10px">
+      ${Object.entries(JANELAS).map(([k,v])=>`<button class="chip ${jan===k?'on':''}" onclick="setJanelaPeso('${k}')">${v[1]}</button>`).join('')}
+    </div>
+    ${!pts.length? estadoVazio('balanca','Ainda sem pesagens',
+        'Regista o peso de hoje e, se tiveres medições antigas anotadas, também essas — a linha só liga o que foi mesmo medido.',
+        `<button class="btn" onclick="abrirPesagens('${m.id}')">+ Registar pesagem</button>`)
+    : `${g.svg}
+      <div class="row" style="margin-top:8px">
+        <button class="chip ${L.ativ?'on':''}" onclick="toggleLinhaPeso('ativ')" aria-pressed="${!!L.ativ}">🏃 Atividade registada</button>
+        <button class="chip ${L.kcal?'on':''}" onclick="toggleLinhaPeso('kcal')" aria-pressed="${!!L.kcal}">🍽️ Calorias ingeridas</button>
+      </div>
+      ${(L.ativ||L.kcal)? `<p class="sub" style="margin-top:6px">As linhas sobrepostas têm escala própria: servem para ver a <i>forma</i> ao lado da do peso, não para comparar quilos com calorias.</p>`:''}
+      <div class="row" style="margin-top:12px">
+        <div class="stat"><b>${nPT(pts[pts.length-1].p,1)} kg</b><span>Última · ${fmtShort(pts[pts.length-1].d)}</span></div>
+        <div class="stat"><b>${pts.length}</b><span>Pesagens</span></div>
+        ${dif!==null? `<div class="stat" style="background:${Math.abs(dif)<0.3?'var(--bg)':'var(--accent-soft)'}"><b style="color:${Math.abs(dif)<0.3?'var(--ink)':dif<0?'var(--ok)':'var(--warn)'}">${dif>0?'+':''}${nPT(dif,1)} kg</b><span>Em ${JANELAS[jan][1]}</span></div>`:''}
+        ${naJanela.length? `<div class="stat"><b>${naJanela.length}</b><span>Nesta janela</span></div>`:''}
+      </div>
+      ${naJanela.length<2? `<p class="sub" style="margin-top:8px">Com uma pesagem só não há linha para traçar. A segunda medição já desenha a tendência.</p>`:''}
+      <details class="quant" style="margin-top:10px"><summary>Todas as pesagens (${pts.length})</summary>
+        <div style="margin-top:6px">${pts.slice().reverse().map(x=>`<div class="reg-linha">
+          <div class="rl-corpo"><b>${nPT(x.p,1)} kg</b> <span class="sub">· ${fmtLongo(x.d)}</span></div>
+          <div class="reg-acoes"><button class="btn danger small" aria-label="Apagar pesagem de ${fmtShort(x.d)}"
+            onclick="removerMedicao('${m.id}','${x.d}')">✕</button></div></div>`).join('')}</div>
+      </details>`}
+  </div>`;
+}
+function removerMedicao(mid,d){
+  if(!confirm('Apagar a pesagem de '+fmtLongo(d)+'?')) return;
+  if(apagarMedicao(mid,d)) save('pesagem apagada');
+  render();
+}
+
 /* ================= FAMÍLIA ================= */
 function addMember(){
   const m={id:uid(),nome:'Novo membro',sexo:'m',idade:35,altura:172,peso:75,atividade:'sedentario',desloc:'nenhum',desportos:[],dieta:'equilibrada',objetivo:'manter',objetivoPct:0};
@@ -3245,6 +3819,13 @@ function delMember(id){
   if(!confirm(`Remover o perfil de ${m.nome}?`)) return;
   S.members=S.members.filter(x=>x.id!==id); delete S.cheats[id];
   Object.values(S.plans).forEach(w=>Object.values(w).forEach(d=>MEALK.forEach(k=>{ if(d[k]) d[k].m=d[k].m.filter(x=>x!==id); })));
+  /* o histórico da pessoa sai com ela: pesagens, treinos e refeições ficariam
+     órfãos, a somar em gráficos de quem já cá não está */
+  delete S.medicoes[id];
+  S.regAtiv=(S.regAtiv||[]).filter(r=>r.mid!==id);
+  S.regRef=(S.regRef||[]).filter(r=>r.mid!==id);
+  if(S.ui.histAtiv===id) S.ui.histAtiv=null;
+  if(S.ui.histRef===id) S.ui.histRef=null;
   save('remoção de '+m.nome); render();
 }
 function upd(id,field,val,num){ const m=S.members.find(x=>x.id===id); if(!m) return;
@@ -3412,7 +3993,7 @@ function renderFamilia(){
           <div class="splabel"><span>${rot}</span><output id="f-${mid}-o-${campo}" style="min-width:9ch;text-align:right">${txt}</output></div>
           <input type="range" id="f-${mid}-r-${campo}" min="${mn}" max="${mx}" step="${st}" value="${clampNum(m[campo],mn,mx)}"
             style="--pct:${Math.round((clampNum(m[campo],mn,mx)-mn)/(mx-mn)*100)}%" aria-label="${aria}"
-            oninput="slidePerfil('${mid}','${campo}',this)" onchange="save()"></div>`;
+            oninput="slidePerfil('${mid}','${campo}',this)" onchange="commitPesoSlider('${mid}',this)"></div>`;
       const imcX=x=>sx(x,15,40,8,332);
       return `<div class="card">
         <div class="row" style="justify-content:space-between">
@@ -3437,16 +4018,21 @@ function renderFamilia(){
         <div class="frow">
           <div><label class="lbl">Sexo</label><select aria-label="Sexo" onchange="upd('${mid}','sexo',this.value)">
             <option value="m" ${m.sexo==='m'?'selected':''}>Masculino</option><option value="f" ${m.sexo==='f'?'selected':''}>Feminino</option></select></div>
-          <div><label class="lbl">Fase ${dica('fase')}</label><select aria-label="Fase da vida" onchange="setFase('${mid}',this.value)">
+          ${m.nasc? `<div><label class="lbl">Fase ${dica('fase')}</label>
+            <div style="min-height:38px;display:flex;align-items:center"><span class="pill">${ICO_FASE[fase]||''} ${FASES[fase]}</span></div></div>`
+          : `<div><label class="lbl">Fase ${dica('fase')}</label><select aria-label="Fase da vida" onchange="setFase('${mid}',this.value)">
             <option value="bebe" ${bebe?'selected':''}>Bebé (até 2 anos)</option>
             <option value="crianca" ${fase==='crianca'?'selected':''}>Criança (2–12)</option>
             <option value="adolescente" ${fase==='adolescente'?'selected':''}>Adolescente (13–18)</option>
-            <option value="adulto" ${fase==='adulto'?'selected':''}>Adulto (19+)</option></select></div>
-          ${bebe? `<div><label class="lbl">Idade (meses)</label><input type="number" id="in-${mid}-idade" min="0" max="24" step="1"
-              value="${Math.round(idadeMeses(m))}" onchange="upd('${mid}','meses',this.value,1)"></div>`
-          : `<div><label class="lbl">Idade (anos)</label><input type="number" id="in-${mid}-idade" min="2" value="${Math.round(m.idade)}" aria-label="Idade em anos" onchange="upd('${mid}','idade',this.value,1)"></div>`}
-          <div><label class="lbl">Altura cm</label><input type="number" id="in-${mid}-altura" min="30" value="${m.altura}" aria-label="Altura em centímetros" onchange="upd('${mid}','altura',this.value,1)"></div>
-          <div><label class="lbl">Peso kg</label><input type="number" id="in-${mid}-peso" min="2" step="0.1" value="${m.peso}" aria-label="Peso em quilogramas" onchange="upd('${mid}','peso',this.value,1)"></div>
+            <option value="adulto" ${fase==='adulto'?'selected':''}>Adulto (19+)</option></select></div>`}
+          ${blocoIdade(m)}
+          <div><label class="lbl">Altura cm</label><input type="number" id="in-${mid}-altura" min="30" max="250" value="${m.altura}" aria-label="Altura em centímetros" onchange="upd('${mid}','altura',this.value,1)"></div>
+          <div><label class="lbl">Peso kg ${dica('pesoHist')}</label>
+            <div class="row" style="flex-wrap:nowrap;gap:6px">
+              <input type="number" id="in-${mid}-peso" min="1" max="400" step="0.1" value="${m.peso}" aria-label="Peso em quilogramas" onchange="commitPesoCampo('${mid}',this.value)">
+              <button class="btn ghost small" style="flex:none" title="Registar pesagem com data"
+                aria-label="Registar pesagem de ${esc(m.nome)}" onclick="abrirPesagens('${mid}')">⚖</button>
+            </div></div>
         </div>
         ${m.sexo==='f' && idadeAnos(m)>=12 ? `
         <label class="toggle" style="margin-top:8px">
@@ -3462,20 +4048,9 @@ function renderFamilia(){
           <div><label class="lbl">Peso pré kg</label><input type="number" min="30" step="0.1" value="${pesoRef(m)}" onchange="upd('${mid}','pesoPre',this.value,1)"></div>
         </div>`:''}`:''}
         <div class="spgrid" style="margin-top:14px">
-          ${sl('peso','Peso',bebe?2:20,160,bebe?0.1:0.5,nPT(m.peso,1)+' kg','Peso em quilogramas')}
-          ${sl('altura','Altura',bebe?40:90,220,1,Math.round(m.altura)+' cm','Altura em centímetros')}
-          <div>
-            <div class="splabel"><span>Idade</span><output id="f-${mid}-o-idade" style="min-width:9ch;text-align:right">${bebe? Math.round(idadeMeses(m))+' meses' : Math.round(m.idade)+' anos'}</output></div>
-            ${bebe
-              ? `<input type="range" id="f-${mid}-r-idade" min="0" max="24" step="1" value="${idadeMeses(m)}"
-                  style="--pct:${Math.round(idadeMeses(m)/24*100)}%" aria-label="Idade em meses"
-                  oninput="slideIdadeMeses('${mid}',this)" onchange="commitIdadeMeses('${mid}',this)">`
-              : `<input type="range" id="f-${mid}-r-idade" min="2" max="90" step="1" value="${clampNum(m.idade,2,90)}"
-                  style="--pct:${Math.round((clampNum(m.idade,2,90)-2)/88*100)}%" aria-label="Idade em anos"
-                  oninput="slidePerfil('${mid}','idade',this)" onchange="save()">`}
-          </div>
+          ${sl('peso','Peso de hoje',bebe?2:20,160,bebe?0.1:0.5,nPT(m.peso,1)+' kg','Peso em quilogramas')}
         </div>
-        <p class="sub" style="margin-top:2px">Dois anos é o valor mínimo medido em anos — abaixo disso, a idade mede-se sempre em meses.</p>
+        <p class="sub" style="margin-top:2px">Arrastar o peso regista a pesagem de hoje. Para uma medição de outro dia, o ⚖ ao lado do campo.</p>
         <div class="splabel" style="margin:10px 0 0"><span>Índice de massa corporal ${dica('bandaImc')}</span></div>
         ${avisoFase(m)}
         <svg class="svgfx" viewBox="0 0 340 64" role="img" aria-label="Índice de massa corporal na escala de 15 a 40" style="margin-top:6px">
@@ -3510,7 +4085,59 @@ function renderFamilia(){
           <button class="chip" onclick="pickM('${mid}');go('nutricao')">→ macros de ${esc(m.nome.split(' ')[0])}</button>
         </div>
       </div>`;}).join('')}</div>
+    ${cartaoPeso()}
     ${cartaoResumoMes()}`;
+}
+/* A idade deixou de ser um slider: ou vem da data de nascimento e envelhece
+   sozinha, ou se escreve à mão enquanto essa data não existir. */
+function blocoIdade(m){
+  const mid=m.id, bebe=faseDe(m)==='bebe';
+  const aberto=S.ui.nascAberto===mid;
+  if(m.nasc && !aberto) return `<div><label class="lbl">Idade</label>
+    <div class="row" style="flex-wrap:nowrap;gap:6px;min-height:38px;align-items:center">
+      <span class="pill" style="flex:1;justify-content:center">${textoIdade(m)}</span>
+      <button class="btn ghost small" style="flex:none" aria-label="Editar a data de nascimento de ${esc(m.nome)}"
+        title="Nasceu em ${fmtLongo(m.nasc)}" onclick="abrirNasc('${mid}')">✎</button>
+    </div></div>`;
+  if(aberto || m.nasc) return `<div><label class="lbl">Data de nascimento</label>
+    <input type="date" id="in-${mid}-nasc" max="${hojeISO()}" min="1900-01-01" value="${m.nasc||''}"
+      aria-label="Data de nascimento de ${esc(m.nome)}" onchange="setNascimento('${mid}',this.value)"></div>`;
+  return `<div><label class="lbl">${bebe?'Idade (meses)':'Idade (anos)'}</label>
+    <div class="row" style="flex-wrap:nowrap;gap:6px">
+      ${bebe? `<input type="number" id="in-${mid}-idade" min="0" max="24" step="1" value="${Math.round(idadeMeses(m))}"
+          aria-label="Idade em meses" onchange="upd('${mid}','meses',this.value,1)">`
+        : `<input type="number" id="in-${mid}-idade" min="2" max="120" value="${Math.round(m.idade)}"
+          aria-label="Idade em anos" onchange="upd('${mid}','idade',this.value,1)">`}
+      <button class="btn ghost small" style="flex:none" title="Usar a data de nascimento"
+        aria-label="Definir a data de nascimento de ${esc(m.nome)}" onclick="abrirNasc('${mid}')">📅</button>
+    </div></div>`;
+}
+function textoIdade(m){
+  return faseDe(m)==='bebe'? plural(Math.round(idadeMeses(m)),'mês','meses')
+    : plural(Math.round(idadeAnos(m)),'ano','anos');
+}
+function abrirNasc(mid){ S.ui.nascAberto = S.ui.nascAberto===mid? null : mid; saveMeta(); render(); }
+function setNascimento(mid,v){
+  const m=S.members.find(x=>x.id===mid); if(!m) return;
+  if(!v){ delete m.nasc; S.ui.nascAberto=null; save('data de nascimento de '+m.nome); return render(); }
+  if(!nascValida(v)) return flash('bad','Data de nascimento inválida — tem de ser uma data passada.');
+  m.nasc=v; aplicaNascimento(m); normalizaIdadeMeses(m);
+  if(m.bebe){ delete m.bebe.pctLeite; m.bebe.ml=null; }
+  if(faseDe(m)!=='bebe') m.gravida = m.gravida && m.sexo==='f' && idadeAnos(m)>=12;
+  S.ui.nascAberto=null;
+  save('data de nascimento de '+m.nome); render();
+}
+/* Mexer no peso é pesar-se: o valor fica com a data de hoje, e a evolução do
+   peso ganha o ponto sem ninguém ter de o escrever duas vezes. */
+function commitPesoCampo(mid,val){
+  const m=S.members.find(x=>x.id===mid); if(!m) return;
+  if(!registarMedicao(mid,hojeISO(),val)) return flash('bad','Peso fora do que é possível — entre 1 e 400 kg.');
+  save('peso de '+m.nome); render();
+}
+function commitPesoSlider(mid,el){
+  const m=S.members.find(x=>x.id===mid); if(!m) return;
+  registarMedicao(mid,hojeISO(),el.value);
+  save('peso de '+m.nome);
 }
 /* A escolha da fase acerta a idade para dentro do escalão, para os cálculos
    e os limites de esforço passarem logo a ser os certos. */
@@ -3616,10 +4243,12 @@ function updSport(mid,i,f,val){
     /* Ao trocar de desporto guardam-se as horas e convertem-se para a forma
        que o novo desporto usa, para não se perder o que já estava escrito. */
     const horas=horasPeriodo(s), novo=SPORT[val];
-    if(novo && novo.dist){ m.desportos[i]={s:val, per:s.per, v:novo.dist.vdef,
-      km:Math.round(Math.max(horas,0.25)*novo.dist.vdef*10)/10}; }
-    else { m.desportos[i]={s:val, per:s.per, h:Math.round(Math.max(horas,0.25)*10)/10,
-      i:NIVEIS.some(n=>n[0]===s.i)? s.i : 'moderado'}; }
+    /* o id e os dias são do lugar no plano, não do desporto: trocar a
+       modalidade não desmarca os dias nem quebra os registos já ligados */
+    if(novo && novo.dist){ m.desportos[i]=normalizaDesporto({id:s.id, dias:s.dias, s:val, per:s.per, v:novo.dist.vdef,
+      km:Math.round(Math.max(horas,0.25)*novo.dist.vdef*10)/10}); }
+    else { m.desportos[i]=normalizaDesporto({id:s.id, dias:s.dias, s:val, per:s.per, h:Math.round(Math.max(horas,0.25)*10)/10,
+      i:NIVEIS.some(n=>n[0]===s.i)? s.i : 'moderado'}); }
   } else if(f==='per'){
     s.per=val;
     const sp=SPORT[s.s];
@@ -3796,7 +4425,36 @@ function blocoDesporto(m,s,i){
     <div class="sptop">
       <select onchange="updSport('${m.id}',${i},'s',this.value)" aria-label="Desporto">${opcoesDesporto(s.s)}</select>
       <button class="btn danger small" onclick="delSport('${m.id}',${i})" aria-label="Remover desporto">✕</button>
-    </div>${miolo}</div>`;
+    </div>${miolo}
+    ${linhaDiasPlano(m,s,i)}</div>`;
+}
+/* Em que dias da semana este treino acontece. Os dias só repartem o volume que
+   já estava no plano — o total semanal, e portanto o gasto calórico, não muda
+   com esta escolha. O que muda é passar a haver treinos com data, e por isso
+   passar a haver alguma coisa para confirmar no fim do dia. */
+const INI_DIAS=['S','T','Q','Q','S','S','D'];
+const NOME_DIAS=['segunda','terça','quarta','quinta','sexta','sábado','domingo'];
+function linhaDiasPlano(m,s,i){
+  const dias=diasPlano(s), sess=minutosSessao(s);
+  const proprios=Array.isArray(s.dias)&&s.dias.length;
+  return `<div class="dias-plano">
+    <span class="lbl" style="margin:0">Dias</span>
+    ${INI_DIAS.map((ini,d)=>`<button class="dia-op ${dias.indexOf(d)>=0?'on':''}"
+      onclick="toggleDiaPlano('${m.id}',${i},${d})" aria-pressed="${dias.indexOf(d)>=0}"
+      aria-label="${NOME_DIAS[d]}">${ini}</button>`).join('')}
+    <span class="sub" style="margin-left:auto">${dias.length}× ${hmm(sess/60)}${proprios?'':' · sugestão'}</span>
+  </div>`;
+}
+function toggleDiaPlano(mid,i,d){
+  const m=S.members.find(x=>x.id===mid); if(!m) return;
+  const s=m.desportos[i]; if(!s) return;
+  const dias=diasPlano(s).slice();
+  const j=dias.indexOf(d);
+  if(j>=0){ if(dias.length===1) return flash('warn','Um treino do plano precisa de pelo menos um dia. Para o tirar do plano, remove-o.');
+    dias.splice(j,1); }
+  else dias.push(d);
+  s.dias=dias.sort((a,b)=>a-b);
+  save('dias de treino'); render();
 }
 /* Recomendação e limites de esforço da fase, com o que está registado a ser
    comparado com o que é recomendado — e a lista concreta do que evitar. */
@@ -3828,13 +4486,522 @@ function cartaoEsforco(m){
     ${idadeAnos(m)<19? `<p class="sub" style="margin-top:10px">Nota de cálculo: as calorias por METs foram medidas em adultos. Em crianças o custo relativo do mesmo movimento é diferente, pelo que estes valores servem de ordem de grandeza e não de medição.</p>`:''}
   </div>`;
 }
+/* ================= REGISTAR, VALIDAR E REVER ATIVIDADE =================
+   O plano diz o que se tenciona fazer; o registo diz o que se fez. São coisas
+   diferentes e a app deixou de as misturar: enquanto não há plano, é o plano
+   que ocupa o lugar de destaque; a partir do momento em que existe, o que
+   interessa todos os dias é registar o que aconteceu. */
+function formAtiv(){ return S.ui.formAtiv&&typeof S.ui.formAtiv==='object'? S.ui.formAtiv : null; }
+function fecharFormAtiv(){ S.ui.formAtiv=null; saveMeta(); render(); }
+function abrirFormAtiv(mid,pre){
+  const m=S.members.find(x=>x.id===mid)||curM(); if(!m) return;
+  pre=pre||{};
+  const base=(m.desportos||[])[0];
+  const sid=temChave(SPORT,pre.s)? pre.s : (base? base.s : 'caminhada');
+  const sp=SPORT[sid];
+  const f={mid:m.id, editar:pre.editar||null, d:pre.d||hojeISO(), s:sid,
+    min:Math.round(pre.min|| (base? minutosSessao(base) : 45)) || 45,
+    i:NIVEIS.some(n=>n[0]===pre.i)? pre.i : 'moderado',
+    plano:pre.plano||null, mids:Array.isArray(pre.mids)&&pre.mids.length? pre.mids.slice() : [m.id]};
+  if(sp.dist){ f.v=clampNum(parseFloat(pre.v)||sp.dist.vdef, sp.dist.vmin, sp.dist.vmax);
+    f.km=Math.round((parseFloat(pre.km)|| f.v*f.min/60)*10)/10; }
+  S.ui.formAtiv=f; saveMeta(); render();
+  setTimeout(()=>{ const el=document.getElementById('fa-cartao'); if(el) scrollSuave(el); },0);
+}
+function setFormAtiv(campo,val){
+  const f=formAtiv(); if(!f) return;
+  const sp=SPORT[f.s];
+  if(campo==='s'){
+    if(!temChave(SPORT,val)) return;
+    f.s=val; const novo=SPORT[val];
+    if(novo.dist){ f.v=novo.dist.vdef; f.km=Math.round(f.v*f.min/60*10)/10; }
+    else { delete f.v; delete f.km; }
+    f.plano=null;   /* trocar de modalidade deixa de cumprir aquele treino do plano */
+  }
+  else if(campo==='d'){ if(dataValida(val) && val<=hojeISO()) f.d=val; }
+  else if(campo==='min'){ f.min=clampNum(Math.round(parseFloat(val)||0),1,1440);
+    if(sp.dist) f.km=Math.round(f.v*f.min/60*10)/10; }
+  else if(campo==='v'){ if(!sp.dist) return;
+    f.v=clampNum(parseFloat(val)||sp.dist.vdef, sp.dist.vmin, sp.dist.vmax);
+    f.min=clampNum(Math.round(f.km/f.v*60)||1,1,1440); }
+  else if(campo==='km'){ if(!sp.dist) return;
+    f.km=clampNum(Math.round((parseFloat(val)||0)*10)/10, 0.1, sp.dist.maxSemana*2);
+    f.min=clampNum(Math.round(f.km/f.v*60)||1,1,1440); }
+  else if(campo==='i'){ if(NIVEIS.some(n=>n[0]===val)) f.i=val; }
+  saveMeta(); render();
+}
+function toggleFormAtivMembro(mid){
+  const f=formAtiv(); if(!f) return;
+  const i=f.mids.indexOf(mid);
+  if(i>=0){ if(f.mids.length===1) return flash('warn','Tem de haver pelo menos uma pessoa a fazer a atividade.');
+    f.mids.splice(i,1); }
+  else f.mids.push(mid);
+  saveMeta(); render();
+}
+function guardarFormAtiv(){
+  const f=formAtiv(); if(!f) return;
+  const base={d:f.d, s:f.s, min:f.min, i:f.i, v:f.v, km:f.km, plano:f.plano, estado:'feita'};
+  if(f.editar){
+    const r=(S.regAtiv||[]).find(x=>x.id===f.editar);
+    if(!r) return fecharFormAtiv();
+    const irmaos=irmaosDe(S.regAtiv,r);
+    const aplicarATodos=irmaos.length? confirmaPartilha(irmaos,'aplicar a alteração') : false;
+    const limpo=limparRegAtiv(Object.assign({},r,base,{id:r.id,mid:r.mid,grupo:r.grupo}),S.members.map(x=>x.id));
+    if(!limpo) return flash('bad','Não foi possível guardar esta atividade.');
+    Object.assign(r,limpo);
+    if(aplicarATodos) irmaos.forEach(x=>{
+      const l=limparRegAtiv(Object.assign({},x,base,{id:x.id,mid:x.mid,grupo:x.grupo}),S.members.map(y=>y.id));
+      if(l) Object.assign(x,l); });
+    S.ui.formAtiv=null;
+    save('atividade editada');
+    flash('ok','Atividade atualizada'+(aplicarATodos?' para todos os que a partilharam.':'.'));
+    return render();
+  }
+  /* uma remarcação que se cumpre deixa de estar agendada: se ficasse, o mesmo
+     treino aparecia por confirmar depois de já ter sido confirmado */
+  S.regAtiv=(S.regAtiv||[]).filter(r=>!(r.estado==='agendada'&&r.d===f.d&&f.mids.indexOf(r.mid)>=0&&r.plano===f.plano&&f.plano));
+  const criados=registarAtividade(base,f.mids,'feita');
+  if(!criados.length) return flash('bad','Não foi possível registar esta atividade.');
+  S.ui.formAtiv=null;
+  save('atividade registada');
+  flash('ok', criados.length>1
+    ? 'Atividade registada para '+criados.length+' pessoas — '+Math.round(criados.reduce((t,r)=>t+kcalRegAtiv(r),0))+' kcal no total.'
+    : 'Atividade registada — '+Math.round(kcalRegAtiv(criados[0]))+' kcal.');
+  render();
+}
+function apagarRegAtiv(id){
+  const r=(S.regAtiv||[]).find(x=>x.id===id); if(!r) return;
+  const irmaos=irmaosDe(S.regAtiv,r);
+  const m=S.members.find(x=>x.id===r.mid);
+  if(!confirm('Apagar esta atividade do registo'+(m?' de '+m.nome:'')+'?')) return;
+  const todos=irmaos.length? confirmaPartilha(irmaos,'apagar') : false;
+  const fora=[r.id].concat(todos? irmaos.map(x=>x.id) : []);
+  S.regAtiv=S.regAtiv.filter(x=>fora.indexOf(x.id)<0);
+  save('atividade apagada'); render();
+}
+/* ---- Validação do que ficou por confirmar ---- */
+function validarAtivFeita(mid,d,sid){
+  const m=S.members.find(x=>x.id===mid); if(!m) return;
+  const s=(m.desportos||[]).find(x=>x.id===sid); if(!s) return;
+  /* quem partilha o mesmo treino no mesmo dia valida junto: uma caminhada em
+     família não se confirma três vezes */
+  const juntos=S.members.filter(x=>x.id!==mid && (x.desportos||[]).some(y=>y.s===s.s && diasPlano(y).indexOf(diaSemana(d))>=0
+    && !(S.regAtiv||[]).some(r=>r.mid===x.id&&r.d===d&&r.plano===y.id&&r.estado!=='agendada')));
+  const mids=[mid].concat(juntos.map(x=>x.id));
+  const porMembro={};
+  mids.forEach(id=>{ const mm=S.members.find(x=>x.id===id);
+    const ss=(mm.desportos||[]).find(y=>y.s===s.s&&diasPlano(y).indexOf(diaSemana(d))>=0)||s;
+    porMembro[id]={min:Math.round(minutosSessao(ss)), plano:ss.id,
+      i:ss.i, v:ss.v, km:ss.km? Math.round(ss.km/ (diasPlano(ss).length||1) *10)/10 : undefined}; });
+  S.regAtiv=(S.regAtiv||[]).filter(r=>!(r.estado==='agendada'&&r.d===d&&mids.indexOf(r.mid)>=0&&r.plano===sid));
+  registarAtividade({d, s:s.s, min:Math.round(minutosSessao(s)), i:s.i, v:s.v, plano:sid, porMembro}, mids, 'feita');
+  save('treino confirmado');
+  flash('ok', mids.length>1? 'Confirmado para '+mids.length+' pessoas.' : 'Treino confirmado.');
+  render();
+}
+function validarAtivFalhou(mid,d,sid,modo,novaData){
+  const m=S.members.find(x=>x.id===mid); if(!m) return;
+  const s=(m.desportos||[]).find(x=>x.id===sid);
+  S.regAtiv=(S.regAtiv||[]).filter(r=>!(r.estado==='agendada'&&r.d===d&&r.mid===mid&&r.plano===sid));
+  registarAtividade({d, s:s? s.s : 'caminhada', min:s? Math.round(minutosSessao(s)) : 30,
+    i:s? s.i : 'moderado', v:s? s.v : undefined, plano:sid}, [mid], 'falhada');
+  if(modo==='remarcar'){
+    const alvo=novaData||addDias(hojeISO(),1);
+    registarAtividade({d:alvo, s:s? s.s : 'caminhada', min:s? Math.round(minutosSessao(s)) : 30,
+      i:s? s.i : 'moderado', v:s? s.v : undefined, plano:sid}, [mid], 'agendada');
+  }
+  save('treino não realizado');
+  if(modo==='remarcar') flash('ok','Remarcado para '+rotuloData(novaData||addDias(hojeISO(),1))+'.');
+  else if(modo==='rever'){ S.ui.tab='atividade'; flash('warn','Marcado como não realizado. Ajusta os dias ou o volume no plano, aqui em baixo.'); }
+  else flash('ok','Marcado como não realizado.');
+  render();
+}
+function ignorarTodasAtiv(mid){
+  const m=S.members.find(x=>x.id===mid); if(!m) return;
+  const pend=pendentesAtiv(m);
+  if(!pend.length) return;
+  if(!confirm('Marcar '+plural(pend.length,'treino','treinos')+' por confirmar como não realizados?')) return;
+  pend.forEach(p=>{
+    S.regAtiv=(S.regAtiv||[]).filter(r=>!(r.estado==='agendada'&&r.d===p.d&&r.mid===mid&&r.plano===p.sid));
+    registarAtividade({d:p.d, s:p.s.s||p.s, min:p.min, i:p.s.i, v:p.s.v, plano:p.sid}, [mid], 'falhada');
+  });
+  save('treinos por confirmar'); render();
+}
+function confirmarTodasAtiv(mid){
+  const m=S.members.find(x=>x.id===mid); if(!m) return;
+  const pend=pendentesAtiv(m).slice();
+  pend.forEach(p=>{
+    if((S.regAtiv||[]).some(r=>r.mid===mid&&r.d===p.d&&r.plano===p.sid&&r.estado!=='agendada')) return;
+    validarAtivSilenciosa(mid,p);
+  });
+  save('treinos confirmados');
+  flash('ok', plural(pend.length,'treino confirmado','treinos confirmados')+'.');
+  render();
+}
+function validarAtivSilenciosa(mid,p){
+  const m=S.members.find(x=>x.id===mid);
+  const s=(m.desportos||[]).find(x=>x.id===p.sid);
+  S.regAtiv=(S.regAtiv||[]).filter(r=>!(r.estado==='agendada'&&r.d===p.d&&r.mid===mid&&r.plano===p.sid));
+  registarAtividade({d:p.d, s:s? s.s : (p.s.s||p.s), min:p.min, i:s? s.i : 'moderado',
+    v:s? s.v : undefined, plano:p.sid}, [mid], 'feita');
+}
+function cartaoValidacaoAtiv(m){
+  const pend=pendentesAtiv(m);
+  if(!pend.length) return '';
+  const mostra=pend.slice(0,6);
+  return `<div class="card card--capa" id="val-ativ" style="border-left:4px solid var(--warn)">
+    <span class="lbl">Por confirmar</span>
+    <h2 style="margin-top:2px">${plural(pend.length,'treino do plano ficou por confirmar','treinos do plano ficaram por confirmar')}</h2>
+    <p class="sub" style="margin-top:4px">O plano marcou-os e o registo não os tem. Confirma o que aconteceu para as contas do gasto e dos objetivos ficarem certas.</p>
+    ${mostra.map(p=>{
+      const sp=SPORT[p.s.s||p.s.id]||SPORT[p.s.s]||{nome:'Treino'};
+      const chave=m.id+'|'+p.d+'|'+p.sid;
+      const aberto=S.ui.valAberto===chave;
+      return `<div class="val-item">
+        <div class="row" style="justify-content:space-between;gap:8px">
+          <div style="min-width:0"><b>${esc(sp.nome||'Treino')}</b>
+            <span class="sub" style="display:block">${rotuloData(p.d)} · ${p.min} min · ~${p.kcal} kcal</span></div>
+          <div class="row" style="flex:none">
+            <button class="btn small" onclick="validarAtivFeita('${m.id}','${p.d}','${p.sid}')">✓ Fiz</button>
+            <button class="btn ghost small" onclick="abrirValAtiv('${chave}')" aria-expanded="${aberto}">Não fiz</button>
+          </div>
+        </div>
+        ${aberto? `<div class="row" style="margin-top:8px;gap:6px;flex-wrap:wrap">
+          <label class="lbl" style="margin:0">Remarcar para</label>
+          <input type="date" id="rem-${p.sid}-${p.d}" min="${hojeISO()}" value="${addDias(hojeISO(),1)}" aria-label="Nova data para o treino">
+          <button class="btn small" onclick="validarAtivFalhou('${m.id}','${p.d}','${p.sid}','remarcar',document.getElementById('rem-${p.sid}-${p.d}').value)">Remarcar</button>
+          <button class="btn ghost small" onclick="validarAtivFalhou('${m.id}','${p.d}','${p.sid}','ignorar')">Ignorar</button>
+          <button class="btn ghost small" onclick="validarAtivFalhou('${m.id}','${p.d}','${p.sid}','rever')">Rever o plano</button>
+        </div>`:''}
+      </div>`;}).join('')}
+    ${pend.length>mostra.length? `<p class="sub" style="margin-top:8px">E mais ${pend.length-mostra.length} — confirma ou ignora em bloco aqui em baixo.</p>`:''}
+    <div class="row" style="margin-top:12px">
+      <button class="btn" onclick="confirmarTodasAtiv('${m.id}')">✓ Confirmar todos</button>
+      <button class="btn ghost" onclick="ignorarTodasAtiv('${m.id}')">Nenhum foi feito</button>
+    </div>
+  </div>`;
+}
+function abrirValAtiv(chave){ S.ui.valAberto = S.ui.valAberto===chave? null : chave; saveMeta(); render(); }
+
+/* ---- Cartão de registo ---- */
+function cartaoRegistarAtiv(m,destaque){
+  const f=formAtiv();
+  const aberto=!!f && f.mid===m.id;
+  const hojeFeitas=regAtivDe(m.id).filter(r=>r.d===hojeISO()&&r.estado==='feita');
+  const kcalHoje=Math.round(hojeFeitas.reduce((t,r)=>t+kcalRegAtiv(r),0));
+  if(!aberto) return `<div class="card ${destaque?'card--capa energia':''}" id="fa-cartao">
+    <span class="lbl">Registo</span>
+    <h2 style="margin-top:2px">Registar atividade física</h2>
+    <p class="sub" style="margin-top:4px">${hojeFeitas.length
+      ? plural(hojeFeitas.length,'atividade registada hoje','atividades registadas hoje')+' · '+kcalHoje+' kcal'
+      : 'Ainda nada registado hoje. O que se regista entra logo no gasto do dia, no alvo de calorias e nos objetivos.'}</p>
+    <div class="row" style="margin-top:12px">
+      <button class="btn" onclick="abrirFormAtiv('${m.id}')">+ Registar atividade</button>
+      ${planeadasNoDia(m,hojeISO()).filter(p=>!(S.regAtiv||[]).some(r=>r.mid===m.id&&r.d===hojeISO()&&r.plano===p.s.id&&r.estado!=='agendada'))
+        .slice(0,2).map(p=>`<button class="chip" onclick="validarAtivFeita('${m.id}','${hojeISO()}','${p.s.id}')">✓ ${esc(SPORT[p.s.s].nome)} de hoje</button>`).join('')}
+    </div>
+  </div>`;
+  const sp=SPORT[f.s];
+  const kcalPrev=Math.round(metDoForm(f)*pesoNaData(m.id,f.d)*f.min/60);
+  return `<div class="card card--capa energia" id="fa-cartao">
+    <span class="lbl">${f.editar?'Editar registo':'Registo'}</span>
+    <h2 style="margin-top:2px">${f.editar?'Editar atividade':'Registar atividade física'}</h2>
+    <div class="frow" style="margin-top:10px">
+      <div><label class="lbl">Dia</label><input type="date" value="${f.d}" max="${hojeISO()}"
+        aria-label="Dia da atividade" onchange="setFormAtiv('d',this.value)"></div>
+      <div><label class="lbl">Modalidade</label><select aria-label="Modalidade" onchange="setFormAtiv('s',this.value)">${opcoesDesporto(f.s)}</select></div>
+    </div>
+    ${sp.dist? `<div class="frow">
+      <div><label class="lbl">Distância km</label><input type="number" min="0.1" step="0.1" value="${nPT(f.km,1).replace(',','.')}"
+        aria-label="Distância em quilómetros" onchange="setFormAtiv('km',this.value)"></div>
+      <div><label class="lbl">Velocidade km/h</label><input type="number" min="${sp.dist.vmin}" max="${sp.dist.vmax}" step="${sp.dist.vStep}"
+        value="${f.v}" aria-label="Velocidade média" onchange="setFormAtiv('v',this.value)"></div>
+      <div><label class="lbl">Tempo min</label><input type="number" min="1" step="1" value="${f.min}"
+        aria-label="Duração em minutos" onchange="setFormAtiv('min',this.value)"></div>
+    </div>`
+    : `<div class="frow">
+      <div><label class="lbl">Tempo min</label><input type="number" min="1" step="1" value="${f.min}"
+        aria-label="Duração em minutos" onchange="setFormAtiv('min',this.value)"></div>
+      <div><label class="lbl">Intensidade</label><select aria-label="Intensidade" onchange="setFormAtiv('i',this.value)">${NIVEIS.map(([k],ni)=>
+        `<option value="${k}" ${nivelIndice(f.i)===ni?'selected':''}>${rotuloNivel(sp,ni)}</option>`).join('')}</select></div>
+    </div>`}
+    ${S.members.length>1 && !f.editar? `<div style="margin-top:12px">
+      <label class="lbl">Quem fez ${dica('partilhada')}</label>
+      <div class="row">${S.members.map(x=>`<button class="chip ${f.mids.indexOf(x.id)>=0?'on':''}"
+        onclick="toggleFormAtivMembro('${x.id}')">${avatar(x,20)} ${esc(x.nome.split(' ')[0])}</button>`).join('')}</div>
+      ${f.mids.length>1? `<p class="sub" style="margin-top:6px">Fica registada para ${f.mids.length} pessoas com o mesmo tempo e a mesma intensidade. Depois, no histórico, cada uma pode ajustar o que fez de facto — quem foi mais devagar não gastou o mesmo.</p>`:''}
+    </div>`:''}
+    <div class="row" style="margin-top:12px;justify-content:space-between">
+      <span class="pill">${kcalPrev} kcal${f.mids.length>1? ' cada':''}</span>
+      <div class="row">
+        <button class="btn ghost small" onclick="fecharFormAtiv()">Cancelar</button>
+        <button class="btn" onclick="guardarFormAtiv()">${f.editar?'Guardar alterações':'Registar'}</button>
+      </div>
+    </div>
+  </div>`;
+}
+function metDoForm(f){
+  const sp=SPORT[f.s]; if(!sp) return 0;
+  return sp.dist? metPorVelocidade(sp.dist.curva, clampNum(f.v,sp.dist.vmin,sp.dist.vmax))
+    : sp.mets[nivelIndice(f.i)];
+}
+
+/* ---- Gráfico de atividade passada ---- */
+/* Barras por dia com o que foi mesmo feito, e a linha tracejada do que o plano
+   marcava. A distância entre as duas é a única coisa que interessa ver aqui. */
+function graficoAtivSvg(m,dias){
+  const h=hojeISO(), W=340, H=110, X0=8, X1=332;
+  const barras=[];
+  for(let i=dias-1;i>=0;i--){
+    const d=addDias(h,-i);
+    const feito=regAtivDe(m.id).filter(r=>r.d===d&&r.estado==='feita').reduce((t,r)=>t+kcalRegAtiv(r),0);
+    const prev=planeadasNoDia(m,d).reduce((t,p)=>t+p.kcal,0);
+    barras.push({d,feito,prev});
+  }
+  const max=Math.max(1,...barras.map(b=>Math.max(b.feito,b.prev)))*1.1;
+  const bw=(X1-X0)/barras.length;
+  const Y=v=>H-6-(v/max)*(H-24);
+  const linhaPrev=barras.map((b,i)=>(X0+bw*i+bw/2).toFixed(1)+','+Y(b.prev).toFixed(1)).join(' ');
+  return `<svg class="svgfx" viewBox="0 0 ${W} ${H+16}" role="img"
+      aria-label="Calorias gastas em atividade nos últimos ${dias} dias, comparadas com o plano">
+    ${barras.map((b,i)=>{ const x=X0+bw*i+bw*0.15, w=Math.max(1.5,bw*0.7);
+      return `<rect x="${x.toFixed(1)}" y="${Y(b.feito).toFixed(1)}" width="${w.toFixed(1)}"
+        height="${Math.max(0,H-6-Y(b.feito)).toFixed(1)}" rx="1.5" class="f-energy"
+        fill-opacity="${b.d===h?1:0.8}"><title>${rotuloData(b.d)}: ${Math.round(b.feito)} kcal (plano ${Math.round(b.prev)})</title></rect>`;}).join('')}
+    <polyline points="${linhaPrev}" fill="none" class="s-ink" stroke-width="1.4" stroke-dasharray="3 3" opacity=".65"/>
+    <line x1="${X0}" y1="${H-6}" x2="${X1}" y2="${H-6}" class="s-line"/>
+    <text x="${X0}" y="${H+10}" font-size="9.5" class="f-mut">${fmtShort(barras[0].d)}</text>
+    <text x="${X1}" y="${H+10}" font-size="9.5" text-anchor="end" class="f-mut">hoje</text>
+    <text x="${X0}" y="10" font-size="9.5" class="f-mut">${Math.round(max)} kcal</text>
+  </svg>`;
+}
+function resumoAtiv(m,dias){
+  const h=hojeISO();
+  let feito=0, prev=0, sessoes=0, minutos=0;
+  for(let i=0;i<dias;i++){ const d=addDias(h,-i);
+    regAtivDe(m.id).filter(r=>r.d===d&&r.estado==='feita').forEach(r=>{ feito+=kcalRegAtiv(r); sessoes++; minutos+=parseFloat(r.min)||0; });
+    prev+=planeadasNoDia(m,d).reduce((t,p)=>t+p.kcal,0);
+  }
+  return {feito:Math.round(feito), prev:Math.round(prev), sessoes, minutos:Math.round(minutos),
+    cumprimento: prev>0? Math.round(feito/prev*100) : null};
+}
+function cartaoGraficoAtiv(m){
+  const r=resumoAtiv(m,30);
+  if(!regAtivDe(m.id).length) return `<div class="card" data-col="atv-historico">
+    <h2>Atividade passada</h2>
+    ${estadoVazio('grafico','Ainda sem histórico de treinos',
+      'Assim que registares a primeira atividade, aparece aqui o gráfico dos últimos 30 dias com o que fizeste ao lado do que o plano marcava.',
+      `<button class="btn" onclick="abrirFormAtiv('${m.id}')">+ Registar a primeira</button>`)}
+  </div>`;
+  return `<div class="card" data-col="atv-historico">
+    <div class="row" style="justify-content:space-between">
+      <h2>Atividade passada — 30 dias</h2>
+      <button class="chip" onclick="abrirHistAtiv('${m.id}')">Ver histórico completo →</button></div>
+    ${graficoAtivSvg(m,30)}
+    <div class="mleg"><span><i class="dot" style="background:var(--energy)"></i>Feito</span>
+      <span><i class="dot" style="background:var(--ink);opacity:.6"></i>Plano</span></div>
+    <div class="row" style="margin-top:12px">
+      <div class="stat"><b>${r.sessoes}</b><span>Sessões</span></div>
+      <div class="stat"><b>${hmm(r.minutos/60)}</b><span>Tempo</span></div>
+      <div class="stat" style="background:var(--energy-soft)"><b style="color:var(--energy)">${r.feito}</b><span>kcal feitas</span></div>
+      <div class="stat"><b>${r.prev}</b><span>kcal do plano</span></div>
+      ${r.cumprimento!==null? `<div class="stat" style="background:${r.cumprimento>=90?'var(--accent-soft)':'var(--bg)'}"><b style="color:${r.cumprimento>=90?'var(--ok)':r.cumprimento>=60?'var(--warn)':'var(--bad)'}">${r.cumprimento}%</b><span>Do plano</span></div>`:''}
+    </div>
+    ${r.cumprimento!==null&&r.cumprimento<60? `<div class="msg warn-msg" style="margin-top:10px">Nos últimos 30 dias fez-se pouco mais de metade do que o plano marcava. Ou o plano é ambicioso a mais, ou os dias escolhidos não são os melhores — vale a pena ajustá-lo em vez de o arrastar.</div>`:''}
+  </div>`;
+}
+function abrirHistAtiv(mid){ S.ui.histAtiv=mid; S.ui.mid=mid; saveMeta(); render(); window.scrollTo(0,0); }
+function fecharHistAtiv(){ S.ui.histAtiv=null; saveMeta(); render(); }
+
+/* ---- Histórico completo ---- */
+function renderHistAtiv(){
+  const m=S.members.find(x=>x.id===S.ui.histAtiv);
+  if(!m){ S.ui.histAtiv=null; return renderAtividade(); }
+  const regs=regAtivDe(m.id).slice().sort(porData);
+  const feitas=regs.filter(r=>r.estado==='feita');
+  const porDia={};
+  regs.forEach(r=>{ (porDia[r.d]=porDia[r.d]||[]).push(r); });
+  const dias=Object.keys(porDia).sort().reverse();
+  const total=feitas.reduce((t,r)=>t+kcalRegAtiv(r),0);
+  const minutos=feitas.reduce((t,r)=>t+(parseFloat(r.min)||0),0);
+  const porDesporto={};
+  feitas.forEach(r=>{ porDesporto[r.s]=(porDesporto[r.s]||0)+kcalRegAtiv(r); });
+  const topo=Object.entries(porDesporto).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const maxT=topo.length? topo[0][1] : 1;
+  return `<div class="row" style="margin-bottom:12px">
+      <button class="btn ghost small" onclick="fecharHistAtiv()">← Voltar à Atividade Física</button></div>
+    <div class="card card--capa">
+      <span class="lbl">Histórico de ${esc(m.nome)}</span>
+      <h2 style="margin-top:2px">${plural(feitas.length,'atividade registada','atividades registadas')}</h2>
+      <div class="row" style="margin-top:12px">
+        <div class="stat"><b>${hmm(minutos/60)}</b><span>Tempo total</span></div>
+        <div class="stat" style="background:var(--energy-soft)"><b style="color:var(--energy)">${Math.round(total)}</b><span>kcal no total</span></div>
+        <div class="stat"><b>${regs.filter(r=>r.estado==='falhada').length}</b><span>Falhados</span></div>
+        <div class="stat"><b>${dias.length}</b><span>Dias com registo</span></div>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn" onclick="abrirFormAtiv('${m.id}')">+ Acrescentar ao registo</button>
+      </div>
+    </div>
+    ${formAtiv()&&formAtiv().mid===m.id? cartaoRegistarAtiv(m,true) : ''}
+    ${feitas.length? `<div class="grid g2" style="margin-top:16px">
+      <div class="card">
+        <h3>Últimos 90 dias</h3>
+        ${graficoAtivSvg(m,90)}
+        <p class="sub" style="margin-top:6px">Barras: o que ficou registado. Tracejado: o que o plano marcava para cada dia.</p>
+      </div>
+      <div class="card">
+        <h3>Onde foi o esforço</h3>
+        ${topo.map(([sid,k])=>`<div style="margin-top:8px">
+          <div class="splabel"><span>${esc(SPORT[sid]?SPORT[sid].nome:sid)}</span><output>${Math.round(k)} kcal</output></div>
+          <div class="mbar" style="height:9px"><div style="width:${(k/maxT*100).toFixed(1)}%;background:var(--energy)"></div></div>
+        </div>`).join('')}
+      </div>
+    </div>`:''}
+    <div class="card" style="margin-top:16px">
+      <h3>Fita do tempo</h3>
+      <p class="sub" style="margin-top:4px">Tudo o que está registado, do mais recente para trás. Cada linha pode ser editada ou apagada — e as contas do gasto, do alvo de calorias e dos objetivos acertam-se logo a seguir.</p>
+      ${!dias.length? estadoVazio('grafico','Nada registado ainda','Regista a primeira atividade e ela aparece aqui.','')
+      : `<div class="fita">${dias.map(d=>{
+        const lista=porDia[d];
+        const k=Math.round(lista.filter(r=>r.estado==='feita').reduce((t,r)=>t+kcalRegAtiv(r),0));
+        return `<div class="fita-dia ${lista.some(r=>r.estado==='feita')?'':'vazio'}">
+          <div class="fita-data">${fmtLongo(d)} <span class="sub">· ${nomeDiaCurto(d)}${k?' · '+k+' kcal':''}</span></div>
+          ${lista.map(r=>linhaRegAtiv(m,r)).join('')}
+        </div>`;}).join('')}</div>`}
+    </div>`;
+}
+function linhaRegAtiv(m,r){
+  const sp=SPORT[r.s];
+  const irm=irmaosDe(S.regAtiv,r);
+  const nomes=irm.map(x=>{ const mm=S.members.find(y=>y.id===x.mid); return mm? mm.nome.split(' ')[0] : null; }).filter(Boolean);
+  const et=r.estado==='feita'? '' : r.estado==='falhada'? '<span class="pill bad">não feito</span>' : '<span class="pill warn">remarcado</span>';
+  return `<div class="reg-linha">
+    <div class="rl-corpo">
+      <b>${esc(sp? sp.nome : r.s)}</b> ${et}
+      <span class="sub" style="display:block">${r.min} min${sp&&sp.dist&&r.km? ' · '+nPT(r.km,1)+' km · '+nPT(r.v,1)+' km/h':''}${r.estado==='feita'? ' · '+Math.round(kcalRegAtiv(r))+' kcal':''}${r.plano?' · do plano':' · extra'}${nomes.length? ' · com '+nomes.join(', '):''}</span>
+    </div>
+    <div class="reg-acoes">
+      ${r.estado!=='falhada'? `<button class="btn ghost small" aria-label="Editar ${esc(sp?sp.nome:r.s)} de ${fmtShort(r.d)}"
+        onclick="abrirFormAtiv('${m.id}',{editar:'${r.id}',d:'${r.d}',s:'${r.s}',min:${r.min},i:'${r.i||'moderado'}',v:${r.v||'null'},km:${r.km||'null'},plano:${r.plano?"'"+r.plano+"'":'null'}})">✎</button>`:''}
+      <button class="btn danger small" aria-label="Apagar ${esc(sp?sp.nome:r.s)} de ${fmtShort(r.d)}" onclick="apagarRegAtiv('${r.id}')">✕</button>
+    </div>
+  </div>`;
+}
+
+/* ================= ATIVIDADES PARTILHADAS =================
+   Duas pessoas da casa que já têm o mesmo desporto no plano e querem o peso a
+   ir para o mesmo lado estão a treinar sozinhas por falta de combinação, não
+   por falta de vontade. A app junta-as — e adapta o tempo e a intensidade de
+   cada uma ao que o plano de cada uma já dizia, porque correr juntos não é
+   correr ao mesmo ritmo. */
+function direcaoObjetivo(m){ const p=objetivoPct(m); return p<=-3? 'perder' : p>=3? 'ganhar' : 'manter'; }
+function sugestoesPartilhaAtiv(){
+  const out=[];
+  const elegiveis=S.members.filter(m=>faseDe(m)!=='bebe' && (m.desportos||[]).length);
+  elegiveis.forEach((a,ia)=>elegiveis.slice(ia+1).forEach(b=>{
+    if(direcaoObjetivo(a)!==direcaoObjetivo(b)) return;
+    (a.desportos||[]).forEach(sa=>{
+      const sb=(b.desportos||[]).find(x=>x.s===sa.s); if(!sb) return;
+      const La=limitesEsforco(a), Lb=limitesEsforco(b);
+      if(La.evitar.indexOf(sa.s)>=0 || Lb.evitar.indexOf(sa.s)>=0) return;
+      const comuns=diasPlano(sa).filter(d=>diasPlano(sb).indexOf(d)>=0);
+      const dia=comuns.length? comuns[0] : diasPlano(sa)[0];
+      out.push({sid:sa.s, membros:[a,b], planos:[sa,sb], dia, comum:!!comuns.length});
+    });
+  }));
+  /* junta pares que são afinal o mesmo grupo: se três pessoas correm, a
+     sugestão é correrem os três, não três pares a correr aos bocados */
+  const juntos={};
+  out.forEach(o=>{ const k=o.sid+'|'+o.dia;
+    if(!juntos[k]) juntos[k]={sid:o.sid, dia:o.dia, comum:o.comum, membros:[], planos:[]};
+    o.membros.forEach((m,i)=>{ if(!juntos[k].membros.some(x=>x.id===m.id)){ juntos[k].membros.push(m); juntos[k].planos.push(o.planos[i]); } });
+    juntos[k].comum=juntos[k].comum||o.comum;
+  });
+  return Object.values(juntos).sort((a,b)=> b.membros.length-a.membros.length || (a.comum===b.comum?0:a.comum?-1:1));
+}
+function cartaoPartilhaAtiv(){
+  const sug=sugestoesPartilhaAtiv();
+  if(!sug.length) return '';
+  return `<div class="card" data-col="atv-partilha" id="atv-partilha">
+    <h2>Para fazer em conjunto ${dica('partilhada')}</h2>
+    <p class="sub" style="margin-top:4px">Modalidades que mais do que uma pessoa cá de casa já tem no plano, com o objetivo a apontar para o mesmo lado. Cada um mantém o seu tempo e a sua intensidade — o que se partilha é a hora e o caminho.</p>
+    ${sug.slice(0,4).map(g=>{
+      const sp=SPORT[g.sid];
+      return `<div class="val-item">
+        <div class="row" style="justify-content:space-between;gap:8px">
+          <div style="min-width:0">
+            <b>${esc(sp.nome)}</b> <span class="sub">· ${g.comum? NOME_DIAS[g.dia]+', dia que já é comum aos dois planos' : 'sem dia comum — '+NOME_DIAS[g.dia]+' serve'}</span>
+            <div class="row" style="margin-top:6px">${g.membros.map((m,i)=>{
+              const s=g.planos[i], min=Math.round(minutosSessao(s));
+              const met=metDe(s);
+              return `<span class="chip">${avatar(m,18)} ${esc(m.nome.split(' ')[0])} · ${min} min · ${nPT(met,1)} MET</span>`;}).join('')}</div>
+            ${(()=>{ const mins=g.planos.map(s=>Math.round(minutosSessao(s)));
+              const mets=g.planos.map(s=>metDe(s));
+              const difT=Math.max(...mins)-Math.min(...mins), difI=Math.max(...mets)-Math.min(...mets);
+              return (difT>=5||difI>=0.5)? `<p class="sub" style="margin-top:6px">Saem juntos e cada um faz o seu: ${g.membros.map((m,i)=>nomeCurto(m)+' '+mins[i]+' min').join(', ')}. Quem acabar primeiro espera, e ninguém treina fora da sua condição.</p>`:''; })()}
+          </div>
+          <button class="btn small" style="flex:none" onclick="registarPartilhaAtiv('${g.sid}',${g.dia})">Registar em conjunto</button>
+        </div>
+      </div>`;}).join('')}
+  </div>`;
+}
+function registarPartilhaAtiv(sid,dia){
+  const g=sugestoesPartilhaAtiv().find(x=>x.sid===sid&&x.dia===dia);
+  if(!g) return;
+  const f={mid:g.membros[0].id, editar:null, d:hojeISO(), s:sid,
+    min:Math.round(minutosSessao(g.planos[0])), i:g.planos[0].i||'moderado', plano:null,
+    mids:g.membros.map(m=>m.id)};
+  const sp=SPORT[sid];
+  if(sp.dist){ f.v=g.planos[0].v||sp.dist.vdef; f.km=Math.round(f.v*f.min/60*10)/10; }
+  S.ui.formAtiv=f; saveMeta(); render();
+  setTimeout(()=>{ const el=document.getElementById('fa-cartao'); if(el) scrollSuave(el); },0);
+}
+
+/* A semana que vem aí, lida do plano: sete dias com o que está marcado, mais
+   o que foi remarcado para a frente. É o lado futuro da mesma moeda de que o
+   gráfico da atividade passada é o lado de trás. */
+function cartaoProximosTreinos(m){
+  if(!(m.desportos||[]).length) return '';
+  const h=hojeISO();
+  const dias=[];
+  for(let i=0;i<7;i++){
+    const d=addDias(h,i);
+    const plano=planeadasNoDia(m,d);
+    const extra=agendadasFuturas(m.id).filter(r=>r.d===d);
+    dias.push({d, plano, extra});
+  }
+  const totalSemana=dias.reduce((t,x)=>t+x.plano.reduce((u,p)=>u+p.kcal,0)
+    +x.extra.reduce((u,r)=>u+kcalRegAtiv(r),0),0);
+  return `<div class="card" data-col="atv-proximos">
+    <div class="row" style="justify-content:space-between">
+      <div><span class="lbl">Próximos sete dias</span><h3 style="margin-top:2px">O que está marcado</h3></div>
+      <span class="pill">${Math.round(totalSemana)} kcal na semana</span></div>
+    <div class="grid gdias" style="margin-top:10px">${dias.map(x=>{
+      const n=x.plano.length+x.extra.length;
+      return `<div class="val-item" style="margin-top:0;${x.d===h?'border-color:var(--accent)':''}">
+        <div class="fita-data">${x.d===h? 'Hoje' : nomeDiaCurto(x.d)} <span class="sub">${fmtShort(x.d)}</span></div>
+        ${n? x.plano.map(p=>`<div class="sub" style="margin-top:4px">${esc(SPORT[p.s.s].nome)} · ${p.min} min</div>`).join('')
+             +x.extra.map(r=>`<div class="sub" style="margin-top:4px">${esc(SPORT[r.s]?SPORT[r.s].nome:r.s)} · ${r.min} min · <span style="color:var(--warn)">remarcado</span></div>`).join('')
+          : `<div class="sub" style="margin-top:4px;font-style:italic">descanso</div>`}
+      </div>`;}).join('')}</div>
+    <p class="sub" style="margin-top:10px">Os dias saem do plano aqui em baixo — cada desporto diz em que dias acontece, e o tempo de cada sessão é o volume semanal dividido por eles.</p>
+  </div>`;
+}
+
 function renderAtividade(){
   if(!S.members.length) return noMembers();
+  if(S.ui.histAtiv) return renderHistAtiv();
   const m=curM();
+  const temPlano=(m.desportos||[]).length>0;
   const sK=Math.round(sportsKcalDay(m)), cK=Math.round(commuteKcalDay(m));
-  return memberPicker()+`
+  return memberPicker()+cartaoValidacaoAtiv(m)+`
   <div class="grid" style="grid-template-columns:1fr;max-width:760px">
-    <div class="card">
+    ${temPlano? cartaoRegistarAtiv(m,true) : ''}
+    ${temPlano? cartaoProximosTreinos(m) : ''}
+    ${temPlano? cartaoGraficoAtiv(m) : ''}
+    ${cartaoPartilhaAtiv()}
+    <div class="card ${temPlano?'':'card--capa'}" data-col="atv-diaadia">
       <h2>Dia-a-dia de ${esc(m.nome)}</h2>
       <div class="frow" style="grid-template-columns:1fr 1fr">
         <div><label class="lbl">Nível de atividade diária ${dica('nivelAtiv')}</label>
@@ -3845,12 +5012,15 @@ function renderAtividade(){
             `<option value="${k}" ${m.desloc===k?'selected':''}>${v[0]}</option>`).join('')}</select></div>
       </div>
     </div>
-    <div class="card">
+    <div class="card ${temPlano?'':'card--capa'}" id="atv-plano" data-col="atv-plano">
       <div class="row" style="justify-content:space-between">
-        <h2>Desporto praticado</h2>
+        <div><span class="lbl">Plano</span><h2 style="margin-top:2px">O que ${esc(m.nome.split(' ')[0])} tenciona fazer</h2></div>
         <button class="btn small" onclick="addSport('${m.id}')">+ Adicionar desporto</button></div>
-      ${m.desportos.length? `<div class="splist">${m.desportos.map((s,i)=>blocoDesporto(m,s,i)).join('')}</div>`
-        : `<p class="sub" style="margin-top:8px">Sem desportos registados — adiciona os treinos para contarem no gasto calórico.</p>`}
+      <p class="sub" style="margin-top:4px">Isto é o plano — o que está marcado para a frente, e o que a app usa para estimar o gasto.
+        ${temPlano? 'O que aconteceu de facto regista-se lá em cima, e as duas coisas comparam-se no gráfico da atividade passada.'
+          : 'Assim que houver um plano, este cartão recolhe e o destaque passa para o registo do dia-a-dia.'}</p>
+      ${m.desportos.length? `<div class="splist" style="margin-top:10px">${m.desportos.map((s,i)=>blocoDesporto(m,s,i)).join('')}</div>`
+        : `<p class="sub" style="margin-top:8px">Sem desportos no plano — adiciona os treinos para contarem no gasto calórico e passarem a poder ser confirmados dia a dia.</p>`}
       ${cartaoEsforco(m)}
       <p class="sub" style="margin-top:12px">Na corrida, no ciclismo, na natação, no remo e na patinagem é a velocidade
         que manda no esforço: indica-se a distância e o ritmo nos sliders, e as horas saem daí. Nos restantes escolhe-se
@@ -3884,6 +5054,14 @@ function renderAtividade(){
         <div class="stat" style="background:var(--energy-soft)"><b id="tot-total" style="color:var(--energy)">${Math.round(gp.total)}</b><span>Total kcal/dia</span></div>
         <div class="stat" style="background:var(--accent-soft)"><b id="ga-alvostat" style="color:var(--accent)">${Math.round(alvo)}</b><span>Alvo kcal/dia</span></div>
       </div>
+      ${(()=>{ const gr=gastoRealDia(m,hojeISO()), extra=Math.round(extraAtivDia(m,hojeISO()));
+        if(!regAtivDe(m.id).some(r=>r.d===hojeISO()&&r.estado==='feita') && !extra) return '';
+        return `<div class="row" style="margin-top:12px">
+          <div class="stat"><b>${Math.round(gr.total)}</b><span>Gasto real hoje</span></div>
+          <div class="stat"><b style="color:${extra>0?'var(--ok)':extra<0?'var(--warn)':'var(--ink)'}">${extra>0?'+':''}${extra}</b><span>vs. plano do dia</span></div>
+          <div class="stat" style="background:var(--accent-soft)"><b style="color:var(--accent)">${Math.round(alvoDoDia(m,hojeISO()))}</b><span>Alvo de hoje</span></div>
+        </div>
+        <p class="sub" style="margin-top:6px">A barra em cima é a média do plano; estes números são o dia de hoje, com o que ficou registado. ${extra>0? 'Gastaste '+extra+' kcal a mais do que estava marcado, e por isso o alvo de hoje sobe outro tanto — um treino extra não é um défice a dobrar.' : extra<0? 'Ficou por fazer parte do que estava marcado, e o alvo de hoje desce em conformidade.' : ''}</p>`; })()}
       <div class="row" style="margin-top:12px;justify-content:space-between">
         <p class="sub" style="margin:0">A distância entre o fim da barra e a linha tracejada é o défice (ou superavit) do plano alimentar. Estimativa por METs sobre a fórmula de Mifflin-St Jeor.</p>
         <button class="chip" onclick="go('nutricao')">Ajustar alvo na Nutrição →</button>
@@ -4757,18 +5935,439 @@ function moduloBebe(m){
     <p class="sub" style="margin-top:12px">Fontes: peso para a idade — Organização Mundial de Saúde, <i>WHO Child Growth Standards</i> (2006). Doses de referência — Institute of Medicine / National Academies, <i>Dietary Reference Intakes</i> para energia, hidratos, proteína, gordura e água (2002/2005), ferro (2001) e cálcio e vitamina D (2011). Densidade energética do leite — Codex Alimentarius CXS 72-1981 e ESPGHAN (Koletzko <i>et al.</i>, 2005). Aleitamento — Estratégia Global da OMS/UNICEF para a Alimentação de Lactentes e Crianças Pequenas. Recomendações portuguesas — Direção-Geral da Saúde: Norma n.º 004/2019 (vitamina D), Programa Nacional de Saúde Infantil e Juvenil/Norma n.º 010/2013 (diversificação alimentar) e o manual <i>Alimentação Saudável dos 0 aos 6 anos</i> (PNPAS, 2020/2024) para sal, açúcar, mel e leite de vaca.</p>
   </div>`;
 }
+/* ================= REGISTAR, VALIDAR E REVER REFEIÇÕES =================
+   O mesmo princípio da atividade: o plano diz o que se tenciona comer, o
+   registo diz o que se comeu. Uma refeição partilhada guarda-se uma vez por
+   pessoa — cada uma com a sua dose e os seus acompanhamentos, porque à mesma
+   mesa nem todos comem a mesma quantidade nem o mesmo ao lado do prato. */
+function temPlanoNut(m){
+  if(!m) return false;
+  if(objetivoPct(m)!==0) return true;
+  if(regRefDe(m.id).length) return true;
+  const w=S.plans[S.week]||{};
+  for(let di=0;di<7;di++) for(const mk of MEALK){
+    const meal=(w[di]||{})[mk];
+    if(meal && meal.r && Array.isArray(meal.m) && meal.m.indexOf(m.id)>=0) return true;
+  }
+  return false;
+}
+function formRef(){ return S.ui.formRef&&typeof S.ui.formRef==='object'? S.ui.formRef : null; }
+function fecharFormRef(){ S.ui.formRef=null; saveMeta(); render(); }
+function abrirFormRef(mid,pre){
+  const m=S.members.find(x=>x.id===mid)||curM(); if(!m) return;
+  pre=pre||{};
+  const mk=MEALK.indexOf(pre.mk)>=0? pre.mk : 'a';
+  const lista=receitasDe(mk);
+  const rid=RECIPES.some(x=>x.id===pre.r)? pre.r : (lista[0]? lista[0].id : '');
+  S.ui.formRef={mid:m.id, editar:pre.editar||null, d:pre.d||hojeISO(), mk, r:rid,
+    ac:Array.isArray(pre.ac)? pre.ac.slice(0,MAX_AC) : [],
+    dose:clampNum(parseFloat(pre.dose)||1,0.25,4), subst:!!pre.subst,
+    mids:Array.isArray(pre.mids)&&pre.mids.length? pre.mids.slice() : [m.id]};
+  saveMeta(); render();
+  setTimeout(()=>{ const el=document.getElementById('fr-cartao'); if(el) scrollSuave(el); },0);
+}
+function setFormRef(campo,val){
+  const f=formRef(); if(!f) return;
+  if(campo==='d'){ if(dataValida(val) && val<=hojeISO()) f.d=val; }
+  else if(campo==='mk'){ if(MEALK.indexOf(val)<0) return;
+    f.mk=val;
+    if(!receitasDe(val).some(x=>x.id===f.r)){ const l=receitasDe(val); f.r=l[0]? l[0].id : ''; }
+    if(val!=='a'&&val!=='j') f.ac=[];
+  }
+  else if(campo==='r'){ if(RECIPES.some(x=>x.id===val)) f.r=val; }
+  else if(campo==='dose'){ f.dose=clampNum(Math.round((parseFloat(val)||1)*100)/100,0.25,4); }
+  saveMeta(); render();
+}
+function setFormRefAc(i,val){
+  const f=formRef(); if(!f) return;
+  const ac=f.ac.slice();
+  if(val){ if(ac.indexOf(val)>=0 && ac[i]!==val) return flash('warn','Esse acompanhamento já está nesta refeição.');
+    ac[i]=val; }
+  else ac.splice(i,1);
+  f.ac=ac.filter(Boolean).slice(0,MAX_AC);
+  saveMeta(); render();
+}
+function juntarFormRefAc(){
+  const f=formRef(); if(!f) return;
+  if(f.ac.length>=MAX_AC) return flash('warn','Mais do que '+MAX_AC+' acompanhamentos deixam de ser acompanhamento.');
+  const nova=acompanhamentos().find(x=>f.ac.indexOf(x.id)<0);
+  if(!nova) return;
+  f.ac=f.ac.concat(nova.id); saveMeta(); render();
+}
+function toggleFormRefMembro(mid){
+  const f=formRef(); if(!f) return;
+  const i=f.mids.indexOf(mid);
+  if(i>=0){ if(f.mids.length===1) return flash('warn','Tem de haver pelo menos uma pessoa a comer.');
+    f.mids.splice(i,1); }
+  else f.mids.push(mid);
+  saveMeta(); render();
+}
+function guardarFormRef(){
+  const f=formRef(); if(!f) return;
+  if(!f.r) return flash('bad','Escolhe a receita.');
+  const base={d:f.d, mk:f.mk, r:f.r, ac:f.ac, dose:f.dose, subst:f.subst, estado:'feita'};
+  if(f.editar){
+    const r=(S.regRef||[]).find(x=>x.id===f.editar);
+    if(!r) return fecharFormRef();
+    const irmaos=irmaosDe(S.regRef,r);
+    const todos=irmaos.length? confirmaPartilha(irmaos,'aplicar a alteração') : false;
+    const limpo=limparRegRef(Object.assign({},r,base,{id:r.id,mid:r.mid,grupo:r.grupo}),S.members.map(x=>x.id));
+    if(!limpo) return flash('bad','Não foi possível guardar esta refeição.');
+    Object.assign(r,limpo);
+    if(todos) irmaos.forEach(x=>{
+      /* a dose e os acompanhamentos são de cada um: aplicar a alteração a
+         todos muda o prato e o dia, não a quantidade que cada um comeu */
+      const l=limparRegRef(Object.assign({},x,base,{id:x.id,mid:x.mid,grupo:x.grupo,dose:x.dose,ac:x.ac}),S.members.map(y=>y.id));
+      if(l) Object.assign(x,l); });
+    S.ui.formRef=null;
+    save('refeição editada');
+    flash('ok','Refeição atualizada'+(todos?' para todos os que a partilharam.':'.'));
+    return render();
+  }
+  const criados=registarRefeicao(base,f.mids,'feita');
+  if(!criados.length) return flash('bad','Não foi possível registar esta refeição.');
+  S.ui.formRef=null;
+  save('refeição registada');
+  flash('ok', criados.length>1
+    ? 'Refeição registada para '+criados.length+' pessoas.'
+    : 'Refeição registada — '+Math.round(kcalRegRef(criados[0]))+' kcal.');
+  render();
+}
+function apagarRegRef(id){
+  const r=(S.regRef||[]).find(x=>x.id===id); if(!r) return;
+  const irmaos=irmaosDe(S.regRef,r);
+  const m=S.members.find(x=>x.id===r.mid);
+  if(!confirm('Apagar esta refeição do registo'+(m?' de '+m.nome:'')+'?')) return;
+  const todos=irmaos.length? confirmaPartilha(irmaos,'apagar') : false;
+  const fora=[r.id].concat(todos? irmaos.map(x=>x.id) : []);
+  S.regRef=S.regRef.filter(x=>fora.indexOf(x.id)<0);
+  save('refeição apagada'); render();
+}
+/* ---- Validação ---- */
+function validarRefFeita(mid,d,mk){
+  const dia=(S.plans[mondayISO(d)]||{})[diaSemana(d)]||{};
+  const meal=dia[mk]; if(!meal||!meal.r) return;
+  /* quem estava à mesa naquele dia valida junto: uma refeição em família não
+     se confirma pessoa a pessoa */
+  const mids=(meal.m||[]).filter(id=>S.members.some(x=>x.id===id) && !isCheat(id,d)
+    && !(S.regRef||[]).some(r=>r.mid===id&&r.d===d&&r.mk===mk));
+  if(mids.indexOf(mid)<0) mids.push(mid);
+  const porMembro={};
+  mids.forEach(id=>{ const mm=S.members.find(x=>x.id===id);
+    const rec=RECIPES.find(x=>x.id===meal.r);
+    porMembro[id]={dose: mm&&rec? doseSugerida(mm,rec,mk) : 1}; });
+  registarRefeicao({d, mk, r:meal.r, ac:acIds(meal), dose:1, porMembro}, mids, 'feita');
+  save('refeição confirmada');
+  flash('ok', mids.length>1? 'Confirmada para '+mids.length+' pessoas.' : 'Refeição confirmada.');
+  render();
+}
+function validarRefFalhou(mid,d,mk,modo){
+  const dia=(S.plans[mondayISO(d)]||{})[diaSemana(d)]||{};
+  const meal=dia[mk]||{};
+  registarRefeicao({d, mk, r:meal.r, ac:acIds(meal), dose:1}, [mid], 'falhada');
+  save('refeição não realizada');
+  if(modo==='substituir'){
+    render();
+    abrirFormRef(mid,{d, mk, subst:true});
+    return flash('ok','Marcada como não feita. Escolhe agora o que foi comido em vez dela.');
+  }
+  if(modo==='rever'){ S.week=mondayISO(d); S.ui.tab='plano'; saveMeta();
+    flash('warn','Marcada como não feita. Revê a semana no plano — se um prato nunca se cumpre, o problema é do plano.'); }
+  render();
+}
+function confirmarTodasRef(mid){
+  const m=S.members.find(x=>x.id===mid); if(!m) return;
+  const pend=pendentesRef(m).slice();
+  pend.forEach(p=>{
+    if((S.regRef||[]).some(r=>r.mid===mid&&r.d===p.d&&r.mk===p.mk)) return;
+    const rec=RECIPES.find(x=>x.id===p.meal.r);
+    registarRefeicao({d:p.d, mk:p.mk, r:p.meal.r, ac:acIds(p.meal),
+      dose: rec? doseSugerida(m,rec,p.mk) : 1}, [mid], 'feita');
+  });
+  save('refeições confirmadas');
+  flash('ok', plural(pend.length,'refeição confirmada','refeições confirmadas')+'.');
+  render();
+}
+function ignorarTodasRef(mid){
+  const m=S.members.find(x=>x.id===mid); if(!m) return;
+  const pend=pendentesRef(m);
+  if(!pend.length) return;
+  if(!confirm('Marcar '+plural(pend.length,'refeição','refeições')+' por confirmar como não realizadas?')) return;
+  pend.forEach(p=>registarRefeicao({d:p.d, mk:p.mk, r:p.meal.r, ac:acIds(p.meal), dose:1},[mid],'falhada'));
+  save('refeições por confirmar'); render();
+}
+function abrirValRef(chave){ S.ui.valRefAberto = S.ui.valRefAberto===chave? null : chave; saveMeta(); render(); }
+function cartaoValidacaoRef(m){
+  const pend=pendentesRef(m);
+  if(!pend.length) return '';
+  const mostra=pend.slice(0,6);
+  return `<div class="card card--capa" id="val-ref" style="border-left:4px solid var(--warn)">
+    <span class="lbl">Por confirmar</span>
+    <h2 style="margin-top:2px">${plural(pend.length,'refeição do plano ficou por confirmar','refeições do plano ficaram por confirmar')}</h2>
+    <p class="sub" style="margin-top:4px">Estavam planeadas e o registo não as tem. Confirma o que foi mesmo à mesa — é daqui que sai o que comeste de facto.</p>
+    ${mostra.map(p=>{
+      const rec=RECIPES.find(x=>x.id===p.meal.r);
+      const acs=acompsDe(p.meal);
+      const chave=m.id+'|'+p.d+'|'+p.mk;
+      const aberto=S.ui.valRefAberto===chave;
+      return `<div class="val-item">
+        <div class="row" style="justify-content:space-between;gap:8px">
+          <div style="min-width:0"><b>${ICO_REF[p.mk]||''} ${esc(rec?rec.n:'Receita')}</b>
+            <span class="sub" style="display:block">${rotuloData(p.d)} · ${nomeRefeicao(p.mk)} · ${rec? rec.k+somaAc(acs,'k') : 0} kcal${acs.length? ' · com '+acs.map(x=>esc(x.n)).join(' + '):''}</span></div>
+          <div class="row" style="flex:none">
+            <button class="btn small" onclick="validarRefFeita('${m.id}','${p.d}','${p.mk}')">✓ Comi</button>
+            <button class="btn ghost small" onclick="abrirValRef('${chave}')" aria-expanded="${aberto}">Não comi</button>
+          </div>
+        </div>
+        ${aberto? `<div class="row" style="margin-top:8px;gap:6px;flex-wrap:wrap">
+          <button class="btn small" onclick="validarRefFalhou('${m.id}','${p.d}','${p.mk}','substituir')">Comi outra coisa — registar</button>
+          <button class="btn ghost small" onclick="validarRefFalhou('${m.id}','${p.d}','${p.mk}','ignorar')">Não comi nada</button>
+          <button class="btn ghost small" onclick="validarRefFalhou('${m.id}','${p.d}','${p.mk}','rever')">Rever o plano</button>
+        </div>`:''}
+      </div>`;}).join('')}
+    ${pend.length>mostra.length? `<p class="sub" style="margin-top:8px">E mais ${pend.length-mostra.length} — confirma ou ignora em bloco aqui em baixo.</p>`:''}
+    <div class="row" style="margin-top:12px">
+      <button class="btn" onclick="confirmarTodasRef('${m.id}')">✓ Confirmar todas</button>
+      <button class="btn ghost" onclick="ignorarTodasRef('${m.id}')">Nenhuma foi feita</button>
+    </div>
+  </div>`;
+}
+/* ---- Cartão de registo ---- */
+function cartaoRegistarRef(m,destaque){
+  const f=formRef();
+  const aberto=!!f && f.mid===m.id;
+  const hoje=regRefDe(m.id).filter(r=>r.d===hojeISO()&&r.estado==='feita');
+  const ing=ingeridoRealDia(m.id,hojeISO());
+  const alvo=Math.round(alvoDoDia(m,hojeISO()));
+  if(!aberto){
+    const porPlanear=planeadasHojeSemRegisto(m);
+    return `<div class="card ${destaque?'card--capa':''}" id="fr-cartao">
+      <span class="lbl">Registo</span>
+      <h2 style="margin-top:2px">Registar refeição ${dica('registoDia')}</h2>
+      <p class="sub" style="margin-top:4px">${hoje.length
+        ? plural(hoje.length,'refeição registada hoje','refeições registadas hoje')+' · '+Math.round(ing.k)+' de '+alvo+' kcal'
+        : 'Ainda nada registado hoje. O que se regista entra logo no balanço do dia e no ritmo dos objetivos.'}</p>
+      ${hoje.length? `<div class="mbar" style="height:12px;margin-top:10px"><div style="width:${Math.min(100,alvo? ing.k/alvo*100:0).toFixed(1)}%;background:${ing.k>alvo*1.1?'var(--warn)':'var(--accent)'}"></div></div>`:''}
+      <div class="row" style="margin-top:12px">
+        <button class="btn" onclick="abrirFormRef('${m.id}')">+ Registar refeição</button>
+        ${porPlanear.slice(0,2).map(p=>`<button class="chip" onclick="validarRefFeita('${m.id}','${hojeISO()}','${p.mk}')">✓ ${nomeRefeicao(p.mk).toLowerCase()} de hoje</button>`).join('')}
+      </div>
+    </div>`;
+  }
+  const rec=RECIPES.find(x=>x.id===f.r);
+  const acs=f.ac.map(id=>RECIPES.find(x=>x.id===id)).filter(Boolean);
+  const kcal=rec? Math.round((rec.k+somaAc(acs,'k'))*f.dose) : 0;
+  const podeAc=f.mk==='a'||f.mk==='j';
+  return `<div class="card card--capa" id="fr-cartao">
+    <span class="lbl">${f.editar?'Editar registo':'Registo'}</span>
+    <h2 style="margin-top:2px">${f.editar?'Editar refeição':f.subst?'O que foi comido em vez do que estava planeado':'Registar refeição'}</h2>
+    <div class="frow" style="margin-top:10px">
+      <div><label class="lbl">Dia</label><input type="date" value="${f.d}" max="${hojeISO()}"
+        aria-label="Dia da refeição" onchange="setFormRef('d',this.value)"></div>
+      <div><label class="lbl">Refeição</label><select aria-label="Tipo de refeição" onchange="setFormRef('mk',this.value)">${MEALS.map(([k,rot])=>
+        `<option value="${k}" ${f.mk===k?'selected':''}>${ICO_REF[k]||''} ${rot}</option>`).join('')}</select></div>
+    </div>
+    <div style="margin-top:10px"><label class="lbl">Prato</label>
+      <select aria-label="Receita comida" onchange="setFormRef('r',this.value)">${receitasDe(f.mk).map(x=>
+        `<option value="${x.id}" ${f.r===x.id?'selected':''}>${esc(x.n)} · ${x.k} kcal</option>`).join('')}</select></div>
+    ${podeAc? `<div style="margin-top:10px"><label class="lbl">Acompanhamentos ${dica('acompanhamento')}</label>
+      ${f.ac.map((id,i)=>`<div class="ac-linha"><select class="acomp cheio" aria-label="Acompanhamento ${i+1}"
+          onchange="setFormRefAc(${i},this.value)">
+          <option value="">🍚 — tirar —</option>
+          ${acompanhamentos().filter(x=>x.id===id||f.ac.indexOf(x.id)<0).map(x=>
+            `<option value="${x.id}" ${id===x.id?'selected':''}>🍚 ${esc(x.n)} · ${x.k} kcal</option>`).join('')}
+        </select></div>`).join('')}
+      ${f.ac.length<MAX_AC? `<button class="chip" style="margin-top:6px" onclick="juntarFormRefAc()">＋ juntar acompanhamento</button>`:''}
+      ${f.ac.length>1? `<span class="ac-divide">⚖ ${notaDivisao(f.ac.length)}</span>`:''}
+    </div>`:''}
+    <div style="margin-top:10px">
+      <div class="splabel"><span>Quantidade ${dica('partilhada')}</span><output>${nPT(f.dose,2).replace(',00','')}× dose</output></div>
+      <input type="range" min="0.25" max="2" step="0.25" value="${f.dose}" style="--pct:${((f.dose-0.25)/1.75*100).toFixed(0)}%"
+        aria-label="Quantidade em doses" oninput="pintaRange(this)" onchange="setFormRef('dose',this.value)">
+    </div>
+    ${S.members.length>1 && !f.editar? `<div style="margin-top:12px">
+      <label class="lbl">Quem comeu</label>
+      <div class="row">${S.members.map(x=>`<button class="chip ${f.mids.indexOf(x.id)>=0?'on':''}"
+        onclick="toggleFormRefMembro('${x.id}')">${avatar(x,20)} ${esc(x.nome.split(' ')[0])}</button>`).join('')}</div>
+      ${f.mids.length>1? `<p class="sub" style="margin-top:6px">Fica registada para ${f.mids.length} pessoas. Depois, no histórico, cada uma pode ajustar a sua dose e os seus acompanhamentos — à mesma mesa nem todos comem o mesmo.</p>`:''}
+    </div>`:''}
+    <div class="row" style="margin-top:12px;justify-content:space-between">
+      <span class="pill">${kcal} kcal${f.mids.length>1? ' cada':''}</span>
+      <div class="row">
+        <button class="btn ghost small" onclick="fecharFormRef()">Cancelar</button>
+        <button class="btn" onclick="guardarFormRef()">${f.editar?'Guardar alterações':'Registar'}</button>
+      </div>
+    </div>
+  </div>`;
+}
+function planeadasHojeSemRegisto(m){
+  const d=hojeISO(), dia=(S.plans[mondayISO(d)]||{})[diaSemana(d)]||{}, out=[];
+  MEALK.forEach(mk=>{ const meal=dia[mk];
+    if(!meal||!meal.r||(meal.m||[]).indexOf(m.id)<0) return;
+    if((S.regRef||[]).some(r=>r.mid===m.id&&r.d===d&&r.mk===mk)) return;
+    out.push({mk, meal}); });
+  return out;
+}
+/* ---- Gráfico da alimentação passada ---- */
+function graficoRefSvg(m,dias){
+  const h=hojeISO(), W=340, H=110, X0=8, X1=332;
+  const barras=[];
+  for(let i=dias-1;i>=0;i--){ const d=addDias(h,-i);
+    barras.push({d, k:ingeridoRealDia(m.id,d).k, alvo:alvoDoDia(m,d)}); }
+  const max=Math.max(1,...barras.map(b=>Math.max(b.k,b.alvo)))*1.1;
+  const bw=(X1-X0)/barras.length, Y=v=>H-6-(v/max)*(H-24);
+  const linha=barras.map((b,i)=>(X0+bw*i+bw/2).toFixed(1)+','+Y(b.alvo).toFixed(1)).join(' ');
+  return `<svg class="svgfx" viewBox="0 0 ${W} ${H+16}" role="img"
+      aria-label="Calorias registadas nos últimos ${dias} dias, comparadas com o alvo de cada dia">
+    ${barras.map((b,i)=>{ const x=X0+bw*i+bw*0.15, w=Math.max(1.5,bw*0.7);
+      const cor=!b.k? 'f-mut' : b.k>b.alvo*1.1? 'f-warn' : b.k<b.alvo*0.75? 'f-warn' : 'f-ok';
+      return `<rect x="${x.toFixed(1)}" y="${Y(b.k).toFixed(1)}" width="${w.toFixed(1)}"
+        height="${Math.max(0,H-6-Y(b.k)).toFixed(1)}" rx="1.5" class="${cor}"
+        ><title>${rotuloData(b.d)}: ${Math.round(b.k)} kcal (alvo ${Math.round(b.alvo)})</title></rect>`;}).join('')}
+    <polyline points="${linha}" fill="none" class="s-acc" stroke-width="1.4" stroke-dasharray="3 3"/>
+    <line x1="${X0}" y1="${H-6}" x2="${X1}" y2="${H-6}" class="s-line"/>
+    <text x="${X0}" y="${H+10}" font-size="9.5" class="f-mut">${fmtShort(barras[0].d)}</text>
+    <text x="${X1}" y="${H+10}" font-size="9.5" text-anchor="end" class="f-mut">hoje</text>
+    <text x="${X0}" y="10" font-size="9.5" class="f-mut">${Math.round(max)} kcal</text>
+  </svg>`;
+}
+function resumoRef(m,dias){
+  const h=hojeISO(); let k=0, alvo=0, n=0, comDados=0, c=0,p=0,fg=0;
+  for(let i=0;i<dias;i++){ const d=addDias(h,-i);
+    const ing=ingeridoRealDia(m.id,d);
+    const regs=regRefDe(m.id).filter(r=>r.d===d&&r.estado==='feita');
+    if(regs.length){ comDados++; k+=ing.k; alvo+=alvoDoDia(m,d); c+=ing.c; p+=ing.p; fg+=ing.f; }
+    n+=regs.length;
+  }
+  return {kcal:Math.round(k), alvo:Math.round(alvo), refs:n, dias:comDados,
+    media: comDados? Math.round(k/comDados) : 0, mediaAlvo: comDados? Math.round(alvo/comDados) : 0,
+    c:Math.round(c), p:Math.round(p), f:Math.round(fg)};
+}
+function cartaoGraficoRef(m){
+  if(!regRefDe(m.id).length) return `<div class="card" data-col="nu-historico">
+    <h2>Alimentação passada</h2>
+    ${estadoVazio('grafico','Ainda sem histórico de refeições',
+      'Assim que registares a primeira refeição, aparece aqui o gráfico dos últimos 30 dias com o que comeste ao lado do alvo de cada dia.',
+      `<button class="btn" onclick="abrirFormRef('${m.id}')">+ Registar a primeira</button>`)}
+  </div>`;
+  const r=resumoRef(m,30);
+  const dif=r.media-r.mediaAlvo;
+  return `<div class="card" data-col="nu-historico">
+    <div class="row" style="justify-content:space-between">
+      <h2>Alimentação passada — 30 dias</h2>
+      <button class="chip" onclick="abrirHistRef('${m.id}')">Ver histórico completo →</button></div>
+    ${graficoRefSvg(m,30)}
+    <div class="mleg"><span><i class="dot" style="background:var(--ok)"></i>Dentro do alvo</span>
+      <span><i class="dot" style="background:var(--warn)"></i>Fora do alvo</span>
+      <span><i class="dot" style="background:var(--accent)"></i>Alvo do dia</span></div>
+    <div class="row" style="margin-top:12px">
+      <div class="stat"><b>${r.refs}</b><span>Refeições</span></div>
+      <div class="stat"><b>${r.dias}</b><span>Dias com registo</span></div>
+      <div class="stat" style="background:var(--accent-soft)"><b style="color:var(--accent)">${r.media}</b><span>Média kcal/dia</span></div>
+      <div class="stat"><b>${r.mediaAlvo}</b><span>Alvo médio</span></div>
+      <div class="stat"><b style="color:${Math.abs(dif)<=100?'var(--ok)':Math.abs(dif)<=250?'var(--warn)':'var(--bad)'}">${dif>0?'+':''}${dif}</b><span>Diferença</span></div>
+    </div>
+    ${r.dias>=7 && Math.abs(dif)>250? `<div class="msg warn-msg" style="margin-top:10px">Nos dias com registo comeu-se em média ${Math.abs(dif)} kcal ${dif>0?'acima':'abaixo'} do alvo. ${dif>0? 'Com esta diferença o objetivo não avança ao ritmo planeado.' : 'Um défice muito maior do que o planeado não acelera o resultado na mesma proporção — costuma cobrar-se em massa muscular e em desistência.'} Vale a pena rever o alvo ou o plano de refeições.</div>`:''}
+  </div>`;
+}
+function abrirHistRef(mid){ S.ui.histRef=mid; S.ui.mid=mid; saveMeta(); render(); window.scrollTo(0,0); }
+function fecharHistRef(){ S.ui.histRef=null; saveMeta(); render(); }
+function renderHistRef(){
+  const m=S.members.find(x=>x.id===S.ui.histRef);
+  if(!m){ S.ui.histRef=null; return renderNutricao(); }
+  const regs=regRefDe(m.id).slice().sort(porData);
+  const feitas=regs.filter(r=>r.estado==='feita');
+  const porDia={}; regs.forEach(r=>{ (porDia[r.d]=porDia[r.d]||[]).push(r); });
+  const dias=Object.keys(porDia).sort().reverse();
+  const tot=feitas.reduce((t,r)=>{ const x=macrosRegRef(r); return {k:t.k+x.k,c:t.c+x.c,p:t.p+x.p,f:t.f+x.f}; },{k:0,c:0,p:0,f:0});
+  const porReceita={};
+  feitas.forEach(r=>{ porReceita[r.r]=(porReceita[r.r]||0)+1; });
+  const topo=Object.entries(porReceita).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const maxT=topo.length? topo[0][1] : 1;
+  const g=normaliza100({c:tot.c*4, p:tot.p*4, f:tot.f*9});
+  return `<div class="row" style="margin-bottom:12px">
+      <button class="btn ghost small" onclick="fecharHistRef()">← Voltar à Nutrição</button></div>
+    <div class="card card--capa">
+      <span class="lbl">Histórico de ${esc(m.nome)}</span>
+      <h2 style="margin-top:2px">${plural(feitas.length,'refeição registada','refeições registadas')}</h2>
+      <div class="row" style="margin-top:12px">
+        <div class="stat" style="background:var(--accent-soft)"><b style="color:var(--accent)">${Math.round(tot.k)}</b><span>kcal no total</span></div>
+        <div class="stat"><b style="color:var(--mc)">${Math.round(tot.c)} g</b><span>Hidratos</span></div>
+        <div class="stat"><b style="color:var(--mp)">${Math.round(tot.p)} g</b><span>Proteína</span></div>
+        <div class="stat"><b style="color:var(--mf)">${Math.round(tot.f)} g</b><span>Gordura</span></div>
+        <div class="stat"><b>${regs.filter(r=>r.estado==='falhada').length}</b><span>Falhadas</span></div>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn" onclick="abrirFormRef('${m.id}')">+ Acrescentar ao registo</button>
+      </div>
+    </div>
+    ${formRef()&&formRef().mid===m.id? cartaoRegistarRef(m,true) : ''}
+    ${feitas.length? `<div class="grid g2" style="margin-top:16px">
+      <div class="card">
+        <h3>Últimos 90 dias</h3>
+        ${graficoRefSvg(m,90)}
+        <p class="sub" style="margin-top:6px">Barras: o que ficou registado. Tracejado: o alvo de cada dia, já com o ajuste do que se gastou a mais em atividade.</p>
+      </div>
+      <div class="card">
+        <h3>Macros de tudo o que se registou</h3>
+        ${macroBar(g)}
+        <h3 style="margin-top:14px">Os pratos que mais se repetem</h3>
+        ${topo.map(([rid,n])=>{ const rec=RECIPES.find(x=>x.id===rid);
+          return `<div style="margin-top:8px">
+            <div class="splabel"><span>${esc(rec?rec.n:rid)}</span><output>${plural(n,'vez','vezes')}</output></div>
+            <div class="mbar" style="height:9px"><div style="width:${(n/maxT*100).toFixed(1)}%;background:var(--accent)"></div></div>
+          </div>`;}).join('')}
+      </div>
+    </div>`:''}
+    <div class="card" style="margin-top:16px">
+      <h3>Fita do tempo</h3>
+      <p class="sub" style="margin-top:4px">Tudo o que está registado, do mais recente para trás. Cada linha pode ser editada ou apagada — o balanço do dia, o alvo e o ritmo dos objetivos acertam-se logo a seguir.</p>
+      ${!dias.length? estadoVazio('grafico','Nada registado ainda','Regista a primeira refeição e ela aparece aqui.','')
+      : `<div class="fita">${dias.map(d=>{
+        const lista=porDia[d];
+        const k=Math.round(lista.filter(r=>r.estado==='feita').reduce((t,r)=>t+kcalRegRef(r),0));
+        const alvo=Math.round(alvoDoDia(m,d));
+        return `<div class="fita-dia ${lista.some(r=>r.estado==='feita')?'':'vazio'}">
+          <div class="fita-data">${fmtLongo(d)} <span class="sub">· ${nomeDiaCurto(d)}${k? ' · '+k+' de '+alvo+' kcal':''}</span></div>
+          ${lista.map(r=>linhaRegRef(m,r)).join('')}
+        </div>`;}).join('')}</div>`}
+    </div>`;
+}
+function linhaRegRef(m,r){
+  const rec=RECIPES.find(x=>x.id===r.r);
+  const acs=(r.ac||[]).map(id=>RECIPES.find(x=>x.id===id)).filter(Boolean);
+  const irm=irmaosDe(S.regRef,r);
+  const nomes=irm.map(x=>{ const mm=S.members.find(y=>y.id===x.mid); return mm? mm.nome.split(' ')[0] : null; }).filter(Boolean);
+  const et=r.estado==='feita'? (r.subst? '<span class="pill warn">substituição</span>':'') : '<span class="pill bad">não comida</span>';
+  return `<div class="reg-linha">
+    <div class="rl-corpo">
+      <b>${ICO_REF[r.mk]||''} ${esc(rec? rec.n : r.r)}</b> ${et}
+      <span class="sub" style="display:block">${nomeRefeicao(r.mk)}${acs.length? ' · com '+acs.map(x=>esc(x.n)).join(' + '):''} · ${nPT(parseFloat(r.dose)||1,2).replace(',00','')}× dose${r.estado==='feita'? ' · '+Math.round(kcalRegRef(r))+' kcal':''}${nomes.length? ' · com '+nomes.join(', '):''}</span>
+    </div>
+    <div class="reg-acoes">
+      ${r.estado!=='falhada'? `<button class="btn ghost small" aria-label="Editar ${esc(rec?rec.n:r.r)} de ${fmtShort(r.d)}"
+        onclick="abrirFormRef('${m.id}',{editar:'${r.id}',d:'${r.d}',mk:'${r.mk}',r:'${r.r}',ac:${JSON.stringify(r.ac||[])},dose:${r.dose||1}})">✎</button>`:''}
+      <button class="btn danger small" aria-label="Apagar ${esc(rec?rec.n:r.r)} de ${fmtShort(r.d)}" onclick="apagarRegRef('${r.id}')">✕</button>
+    </div>
+  </div>`;
+}
+
 function renderNutricao(){
   if(!S.members.length) return noMembers();
+  if(S.ui.histRef) return renderHistRef();
   const m=curM(), mk=macros(m), k=Math.round(targetKcal(m));
   const pct=objetivoPct(m), d=mk.pct;
   const gkg=m.peso>0? mk.p/m.peso:0;
   /* Num bebé, o simulador de macros de adulto não diz nada de útil: o que
      conta é o percentil, o leite e o horário das tomadas. */
   if(faseDe(m)==='bebe') return memberPicker()+`<div class="grid g2">${moduloBebe(m)}</div>`;
-  return memberPicker()+`
+  const definido=temPlanoNut(m);
+  return memberPicker()+cartaoValidacaoRef(m)
+    +(definido? `<div style="margin-bottom:16px">${cartaoRegistarRef(m,true)}</div>` : '')+`
   <div class="grid g2" style="margin-bottom:24px">
-    <div class="card card--capa">
-      <h2>Plano de ${esc(m.nome)}</h2>
+    <div class="card ${definido?'':'card--capa'}" data-col="nu-plano">
+      <span class="lbl">Plano</span>
+      <h2 style="margin-top:2px">Plano de ${esc(m.nome)}</h2>
       <div style="margin-top:10px">
         <div class="splabel"><span>Objetivo ${dica('objetivo')}</span><output id="nu-obj" style="min-width:22ch;text-align:right">${textoObjetivo(m)}</output></div>
         <input type="range" id="nu-r-obj" min="${permiteDefice(m)?-25:0}" max="20" step="1" value="${clampNum(pct,permiteDefice(m)?-25:0,20)}" style="--pct:${Math.round((clampNum(pct,permiteDefice(m)?-25:0,20)-(permiteDefice(m)?-25:0))/(permiteDefice(m)?45:20)*100)}%"
@@ -4836,6 +6435,7 @@ function renderNutricao(){
         Por isso a app não mostra aqui uma projeção.</p>
     </div>`}
   </div>
+  ${definido? cartaoGraficoRef(m) : ''}
   ${cartaoFase(m)}
   <div class="row" style="margin-top:16px">
     <button class="btn ghost" onclick="go('receitas')">🍳 Ver receitas de ${esc(m.nome.split(' ')[0])} →</button>
@@ -5288,7 +6888,19 @@ function renderObjetivos(){
   const ativos=S.objetivos.filter(o=>!o.concluido && S.members.some(m=>m.id===o.membroId));
   const concluidos=S.objetivos.filter(o=>o.concluido).sort((a,b)=>new Date(b.dataConclusao||0)-new Date(a.dataConclusao||0));
   const celebrarObj = S.ui.celebrando? S.objetivos.find(x=>x.id===S.ui.celebrando) : null;
+  /* o progresso de um objetivo lê-se da balança, e a balança é o histórico de
+     pesagens — daí a porta para registar uma estar aqui, e não só na Família */
+  const semPesagem=S.members.filter(m=>S.objetivos.some(o=>!o.concluido&&o.membroId===m.id) && precisaPesagem(m));
   return (celebrarObj? celebracaoHtml(celebrarObj) : '')
+    + (semPesagem.length? `<div class="card" style="margin-bottom:16px;border-left:4px solid var(--accent)">
+        <div class="row" style="justify-content:space-between;gap:10px">
+          <div style="min-width:0"><b>${semPesagem.length===1
+              ? esc(semPesagem[0].nome.split(' ')[0])+' tem um objetivo a decorrer e não se pesa há '
+                +(ultimaMedicao(semPesagem[0].id)? plural(diasEntre(ultimaMedicao(semPesagem[0].id).d,hojeISO()),'dia','dias') : 'sempre')
+              : semPesagem.length+' perfis com objetivo a decorrer estão sem pesagem recente'}</b>
+            <span class="sub" style="display:block">O progresso do anel sai da balança: sem pesagem nova, o que se vê é o de sempre.</span></div>
+          <button class="btn small" style="flex:none" onclick="abrirPesagens()">⚖ Registar pesagem</button>
+        </div></div>`:'')
     + formCriacaoHtml()
     + `<div class="secgap"><h2>Objetivos ativos</h2>`
     + (ativos.length? `<div class="grid g2" style="margin-top:10px">${ativos.map(cartaoObjetivo).join('')}</div>`
@@ -5341,8 +6953,8 @@ function ehAcompanhamento(r){ return !!r && r.mt.indexOf('ac')>=0; }
    que ninguém pôs na mesa.
 
    Guardava-se um id só. Aceita-se ainda essa forma, porque há cópias
-   exportadas e gravadas antes disto. */
-const MAX_AC=3;
+   exportadas e gravadas antes disto. (MAX_AC vive lá em cima, com as
+   refeições: os registos precisam dele antes daqui.) */
 function acIds(meal){
   if(!meal || !meal.ac) return [];
   const arr=Array.isArray(meal.ac)? meal.ac : [meal.ac];
@@ -5763,11 +7375,134 @@ function cartaoSemana(dates){
     <p class="sub" style="margin-top:10px">Toca numa coluna para saltar para o dia. Cinzento = dia incompleto (n/4 refeições planeadas), rosa = cheat day. Verde, amarelo e vermelho só em dias completos: até ±10%, até ±25% e além disso do alvo.</p>
   </div>`;
 }
+/* ================= REFEIÇÕES PARA PARTILHAR =================
+   Cozinhar duas coisas diferentes para a mesma mesa é o trabalho a dobrar que
+   as casas com dietas diferentes fazem todos os dias. Quando duas pessoas
+   gostam do mesmo e querem o peso a ir para o mesmo lado, o prato pode ser um
+   só — e o que se ajusta é a dose de cada um e o que vai ao lado, não a
+   receita. É assim que se come em conjunto sem comer o mesmo. */
+function gostosDe(mid){
+  /* o que a pessoa já comeu e o que tem planeado: o gosto lê-se do que se
+     repete, não de uma preferência declarada que ninguém preenche */
+  const conta={};
+  regRefDe(mid).filter(r=>r.estado==='feita').forEach(r=>{ conta[r.r]=(conta[r.r]||0)+2; });
+  Object.values(S.plans||{}).forEach(w=>Object.values(w).forEach(d=>MEALK.forEach(k=>{
+    const meal=d[k];
+    if(meal&&meal.r&&Array.isArray(meal.m)&&meal.m.indexOf(mid)>=0) conta[meal.r]=(conta[meal.r]||0)+1;
+  })));
+  return conta;
+}
+/* Como cada pessoa adapta o mesmo prato ao seu objetivo: a dose sai do teto
+   de calorias que já é calculado para ela; o acompanhamento aligeira-se para
+   quem está em défice, porque é aí que estão as calorias fáceis de tirar. */
+const KCAL_AC_LEVE=140;
+function ajusteRefMembro(r,m,mk,acs){
+  const dose=doseSugerida(m,r,mk);
+  const dir=direcaoObjetivo(m);
+  let ac=acs.map(x=>x.id), nota='';
+  if(dir==='perder' && acs.length){
+    const pesados=acs.filter(x=>x.k>KCAL_AC_LEVE);
+    if(pesados.length){
+      const leve=acompanhamentos().filter(x=>x.k<=KCAL_AC_LEVE && avaliaReceita(x,[m],mk,false).ok
+        && ac.indexOf(x.id)<0).sort((a,b)=>a.k-b.k)[0];
+      ac=acs.filter(x=>x.k<=KCAL_AC_LEVE).map(x=>x.id);
+      if(leve && !ac.length) ac=[leve.id];
+      nota = ac.length? 'troca o acompanhamento por '+(leve&&ac.indexOf(leve.id)>=0? leve.n.toLowerCase() : 'o mais leve')
+        : 'sem acompanhamento';
+    }
+  } else if(dir==='ganhar' && dose>=1){ nota='dose cheia'; }
+  return {dose, ac, nota};
+}
+function sugestoesPartilhaRef(){
+  const elegiveis=S.members.filter(m=>faseDe(m)!=='bebe');
+  if(elegiveis.length<2) return [];
+  const grupos={};
+  elegiveis.forEach(m=>{ const k=direcaoObjetivo(m); (grupos[k]=grupos[k]||[]).push(m); });
+  const out=[];
+  Object.entries(grupos).forEach(([dir,membros])=>{
+    if(membros.length<2) return;
+    const gosto={};
+    membros.forEach(m=>{ const g=gostosDe(m.id);
+      Object.keys(g).forEach(rid=>{ gosto[rid]=(gosto[rid]||0)+g[rid]; }); });
+    MEALK.forEach(mk=>{
+      const candidatas=receitasDe(mk).filter(r=>compatAll(r,membros));
+      if(!candidatas.length) return;
+      candidatas.sort((a,b)=>{
+        const ga=gosto[a.id]||0, gb=gosto[b.id]||0;
+        if(ga!==gb) return gb-ga;
+        const da=disponibilidadeReceita(a).pronta, db=disponibilidadeReceita(b).pronta;
+        if(da!==db) return da? -1:1;
+        return a.n.localeCompare(b.n,'pt');
+      });
+      const r=candidatas[0];
+      if(!(gosto[r.id]>0)) return;   /* sem gosto comum, é só uma receita compatível — isso já existe nas sugestões */
+      const acs=(mk==='a'||mk==='j')? poolAcompParaMesa(membros,mk).slice(0,1) : [];
+      out.push({dir, mk, r, membros, acs,
+        ajustes: membros.map(m=>({m, aj:ajusteRefMembro(r,m,mk,acs)}))});
+    });
+  });
+  return out.sort((a,b)=> b.membros.length-a.membros.length || MEALK.indexOf(a.mk)-MEALK.indexOf(b.mk));
+}
+function poolAcompParaMesa(membros,mk){
+  return acompanhamentos().filter(x=>avaliaReceita(x,membros,mk,false).ok)
+    .sort((a,b)=>{ const da=disponibilidadeReceita(a).pronta, db=disponibilidadeReceita(b).pronta;
+      if(da!==db) return da? -1:1; return a.n.localeCompare(b.n,'pt'); });
+}
+const ROT_DIR={perder:'a perder peso', ganhar:'a ganhar peso', manter:'a manter o peso'};
+function cartaoPartilhaRef(){
+  const sug=sugestoesPartilhaRef();
+  if(!sug.length) return '';
+  return `<div class="card" id="sug-partilha" data-col="pla-partilha" style="margin-bottom:16px">
+    <h2>Para comer em conjunto ${dica('partilhada')}</h2>
+    <p class="sub" style="margin-top:4px">Pratos que já entraram em casa e servem mais do que uma pessoa com o objetivo a apontar para o mesmo lado. Cozinha-se uma vez; o que muda de pessoa para pessoa é a dose e o que vai ao lado.</p>
+    ${sug.slice(0,3).map(g=>`<div class="val-item">
+      <div class="row" style="justify-content:space-between;gap:8px">
+        <div style="min-width:0">
+          <b>${ICO_REF[g.mk]||''} ${esc(g.r.n)}</b>
+          <span class="sub"> · ${nomeRefeicao(g.mk).toLowerCase()} · ${g.membros.length} pessoas ${ROT_DIR[g.dir]} · ${g.r.k} kcal por dose</span>
+          ${g.acs.length? `<span class="sub" style="display:block">ao lado: ${g.acs.map(x=>esc(x.n)).join(' + ')}</span>`:''}
+          <div style="margin-top:6px">${g.ajustes.map(({m,aj})=>`<div class="sub">
+            ${avatar(m,18)} <b>${esc(m.nome.split(' ')[0])}</b> · ${nPT(aj.dose,2).replace(',00','')}× dose${aj.nota? ' · '+aj.nota:''}
+            · ${Math.round((g.r.k+somaAc(aj.ac.map(id=>RECIPES.find(x=>x.id===id)).filter(Boolean),'k'))*aj.dose)} kcal</div>`).join('')}</div>
+        </div>
+        <div class="row" style="flex:none;flex-direction:column;align-items:stretch">
+          <button class="btn small" onclick="registarPartilhaRef('${g.r.id}','${g.mk}','${g.dir}')">Registar agora</button>
+          <button class="btn ghost small" onclick="planearPartilhaRef('${g.r.id}','${g.mk}','${g.dir}')">Pôr no plano</button>
+        </div>
+      </div>
+    </div>`).join('')}
+  </div>`;
+}
+function grupoPartilhaRef(rid,mk,dir){ return sugestoesPartilhaRef().find(g=>g.r.id===rid&&g.mk===mk&&g.dir===dir); }
+function registarPartilhaRef(rid,mk,dir){
+  const g=grupoPartilhaRef(rid,mk,dir); if(!g) return;
+  const porMembro={};
+  g.ajustes.forEach(({m,aj})=>{ porMembro[m.id]={dose:aj.dose, ac:aj.ac}; });
+  registarRefeicao({d:hojeISO(), mk, r:rid, ac:g.acs.map(x=>x.id), dose:1, porMembro},
+    g.membros.map(m=>m.id), 'feita');
+  save('refeição partilhada registada');
+  flash('ok','Registada para '+g.membros.length+' pessoas, cada uma com a sua dose.');
+  render();
+}
+function planearPartilhaRef(rid,mk,dir){
+  const g=grupoPartilhaRef(rid,mk,dir); if(!g) return;
+  /* no primeiro dia da semana em que aquela refeição ainda está por escolher */
+  let di=-1;
+  for(let i=0;i<7;i++){ const meal=(planWeek()[i]||{})[mk]; if(!meal||!meal.r){ di=i; break; } }
+  if(di<0) di=0;
+  const meal=planMeal(di,mk);
+  meal.r=rid; meal.ac=g.acs.map(x=>x.id); meal.m=g.membros.map(m=>m.id);
+  save('refeição partilhada planeada');
+  flash('ok',g.r.n+' → '+DAYN[di]+', '+nomeRefeicao(mk).toLowerCase()+', para '+g.membros.length+' pessoas.');
+  render();
+  setTimeout(()=>{ const el=document.getElementById('dia-'+di); if(el) scrollSuave(el); },0);
+}
+
 function renderPlano(){
   if(!S.members.length) return noMembers();
   const dates=weekDates(S.week);
   return `<div class="row" style="justify-content:space-between;margin-bottom:14px">
-    <div><h2>Plano semanal</h2><span class="sub">${fmtShort(dates[0])} — ${fmtShort(dates[6])}</span></div>
+    <div><h2>Plano de refeições</h2><span class="sub">${fmtShort(dates[0])} — ${fmtShort(dates[6])}</span></div>
     <div class="row">
       <button class="btn ghost small" onclick="shiftWeek(-1)">← Semana anterior</button>
       <button class="btn ghost small" onclick="shiftWeek(1)">Semana seguinte →</button>
@@ -5779,6 +7514,7 @@ function renderPlano(){
     </div></div>
   <p class="sub" style="margin-bottom:14px">🎉 <b>Cheat days</b> ${dica('cheat')} clica no nome de um membro na linha «Cheat day» para marcar um dia livre (aniversários, festas…) — esse membro sai das contas e da lista de compras nesse dia.
     🍚 <b>Acompanhamentos</b> ${dica('acompanhamento')} ao almoço e ao jantar, por baixo do prato, há uma linha tracejada para escolher o que vai ao lado — o 🔀 troca-o por outro, e podes juntar até ${MAX_AC} a repartir a mesma dose.</p>
+  ${cartaoPartilhaRef()}
   ${cartaoSugestoes()}
   ${cartaoSemana(dates)}
   ${reguaDias(dates)}
@@ -6036,6 +7772,88 @@ function alergiasDaCasa(){
   S.members.forEach(m=>restricoesDe(m).filter(ehAlergenio).forEach(t=>{ if(s.indexOf(t)<0) s.push(t); }));
   return s;
 }
+/* ================= COMPRAS POR CONFIRMAR =================
+   Uma lista de compras que ficou por marcar significa uma de duas coisas: ou
+   as compras não se fizeram, ou fizeram-se e ninguém as foi apontar. A segunda
+   é de longe a mais frequente — daí a app perguntar, uma vez por sessão, ao
+   entrar na despensa, e deixar validar item a item em vez de tudo ou nada. */
+function listasPendentes(){
+  const guarda=S.week, out=[];
+  /* a semana atual e as duas anteriores: mais para trás é história, não uma
+     compra por fazer */
+  for(let k=0;k<3;k++){
+    const wk=mondayISO(addDias(hojeISO(),-7*k));
+    S.week=wk;
+    const items=shoppingItems().items;
+    const marcados=S.bought[wk]||{};
+    const falta=items.filter(it=>!marcados[it.n+'|'+it.u] && !temNaDespensa(it.n));
+    if(falta.length) out.push({wk, itens:falta});
+  }
+  S.week=guarda;
+  return out;
+}
+function talvezPerguntarCompras(){
+  if(jaPerguntouCompras || modalAberto() || tourAtivo()) return;
+  jaPerguntouCompras=true;
+  const listas=listasPendentes();
+  if(!listas.length) return;
+  const l=listas[0];
+  abrirModal('compras',{wk:l.wk, marcados:l.itens.reduce((o,it)=>{ o[it.n+'|'+it.u]=true; return o; },{})});
+}
+function toggleCompraConf(chave){
+  const mo=modalAberto(); if(!mo) return;
+  mo.marcados[chave]=!mo.marcados[chave];
+  saveMeta(); render();
+}
+function todosCompraConf(v){
+  const mo=modalAberto(); if(!mo) return;
+  Object.keys(mo.marcados).forEach(k=>mo.marcados[k]=v);
+  saveMeta(); render();
+}
+function guardarComprasConf(){
+  const mo=modalAberto(); if(!mo) return;
+  const wk=mo.wk;
+  if(!S.bought[wk]) S.bought[wk]={};
+  let n=0;
+  Object.keys(mo.marcados).forEach(chave=>{
+    if(!mo.marcados[chave]) return;
+    S.bought[wk][chave]=true;
+    const nome=chave.split('|')[0];
+    if(nome){ S.despensa[nome]=true; n++; }
+  });
+  S.ui.modal=null;
+  if(!n){ saveMeta(); return render(); }
+  save(plural(n,'item comprado','itens comprados'));
+  render();
+  flash('ok', plural(n,'item passou','itens passaram')+' para a despensa.');
+}
+function modalComprasHtml(mo){
+  const guarda=S.week; S.week=mo.wk;
+  const items=shoppingItems().items.filter(it=>mo.marcados[it.n+'|'+it.u]!==undefined);
+  S.week=guarda;
+  const n=items.filter(it=>mo.marcados[it.n+'|'+it.u]).length;
+  const mesma=mo.wk===mondayISO(hojeISO());
+  return `<div class="mfundo" onclick="fundoModal(event)">
+    <div class="mcaixa" role="dialog" aria-modal="true" aria-labelledby="md-comp-t">
+      <h2 id="md-comp-t">Já fizeste estas compras?</h2>
+      <p class="sub" style="margin-top:6px">Ficaram ${plural(items.length,'item por marcar','itens por marcar')} na lista ${mesma?'desta semana':'da semana de '+fmtShort(mo.wk)}. Confirma o que já está em casa — vai tudo para a despensa de uma vez.</p>
+      <div class="row" style="margin-top:10px">
+        <button class="chip" onclick="todosCompraConf(true)">Marcar tudo</button>
+        <button class="chip" onclick="todosCompraConf(false)">Desmarcar tudo</button>
+        <span class="pill" style="margin-left:auto">${n} de ${items.length}</span>
+      </div>
+      <ul class="shop" style="margin-top:10px">${items.map(it=>{
+        const chave=it.n+'|'+it.u, on=!!mo.marcados[chave];
+        return `<li class="${on?'done':''}"><label><input type="checkbox" ${on?'checked':''}
+          onchange="toggleCompraConf('${esc(chave).replace(/'/g,'&#39;')}')">
+          <span>${esc(it.n)} <span class="q">${fmtQ(it)}</span></span></label></li>`;}).join('')}</ul>
+      <div class="row" style="margin-top:14px;justify-content:flex-end">
+        <button class="btn ghost" onclick="fecharModal()">Ainda não comprei</button>
+        <button class="btn" onclick="guardarComprasConf()">Passar para a despensa</button>
+      </div>
+    </div></div>`;
+}
+
 function renderDespensa(){
   const catalogo=catalogoDespensa(), nIngr=catalogoIngredientes().length;
   const tem=catalogo.filter(n=>S.despensa[n]).length;
@@ -6169,7 +7987,7 @@ function pacote(){
   return {app:APPID, formato:FORMATO, exportadoEm:new Date().toISOString(),
   dados:{members:S.members, cheats:S.cheats, plans:S.plans, bought:S.bought,
          prefCuisine:S.prefCuisine, week:S.week, objetivos:S.objetivos, despensa:S.despensa,
-         receitas:S.receitas}}; }
+         receitas:S.receitas, medicoes:S.medicoes, regAtiv:S.regAtiv, regRef:S.regRef}}; }
 function textoCopia(){ return JSON.stringify(pacote(),null,2); }
 function marcarExportado(){ S.meta.exportadoEm=new Date().toISOString(); S.meta.semCopia=false; saveMeta(); }
 function nomeFicheiro(){ return 'familia-fit-'+iso(new Date())+'.json'; }
@@ -6378,7 +8196,30 @@ function lerPacote(txt){
     const catalogo=new Set(catalogoDespensa());
     Object.keys(d.despensa).forEach(k=>{ if(d.despensa[k] && catalogo.has(k)) despensa[k]=true; });
   }
+  /* Pesagens, treinos e refeições registados: as datas e os ids têm de ser
+     verificados um a um, como tudo o resto que vem de um ficheiro. Os ids de
+     membro são os já validados acima, não os do ficheiro. */
+  const idsOk=members.map(m=>m.id);
+  const medicoes={};
+  if(d.medicoes && typeof d.medicoes==='object') Object.keys(d.medicoes).forEach(k=>{
+    const mid=mapa[k]||k; if(idsOk.indexOf(mid)<0) return;
+    const arr=Array.isArray(d.medicoes[k])? d.medicoes[k] : [];
+    const vistos={}, limpo=[];
+    arr.forEach(x=>{ if(!x||!dataValida(x.d)||vistos[x.d]) return;
+      const p=parseFloat(x.p); if(!isFinite(p)||p<1||p>400) return;
+      vistos[x.d]=1; limpo.push({d:x.d, p:Math.round(p*10)/10}); });
+    limpo.sort((a,b)=> a.d<b.d? -1 : a.d>b.d? 1 : 0);
+    if(limpo.length) medicoes[mid]=limpo;
+  });
+  const remapa=r=>{ if(!r||typeof r!=='object') return null;
+    const o=Object.assign({},r); o.mid=mapa[r.mid]||r.mid; return o; };
+  const regAtiv=(Array.isArray(d.regAtiv)? d.regAtiv : []).slice(0,20000)
+    .map(r=>limparRegAtiv(remapa(r), idsOk)).filter(Boolean);
+  const acha=id=>receitas.find(x=>x.id===id) || RECIPES.find(x=>x.id===id&&!x.u);
+  const regRef=(Array.isArray(d.regRef)? d.regRef : []).slice(0,20000)
+    .map(r=>limparRegRef(remapa(r), idsOk, acha)).filter(Boolean);
   return {d:{ members, cheats, plans, bought, objetivos, despensa, receitas,
+              medicoes, regAtiv, regRef,
               prefCuisine:temChave(CUIS,d.prefCuisine)?d.prefCuisine:'todas',
               week:dataValida(d.week)? mondayISO(new Date(d.week+'T12:00:00')) : mondayISO(new Date()) }};
 }
@@ -6389,6 +8230,7 @@ function substituir(txt){
   const antigo=S.meta;
   S=Object.assign(blank(), d);
   sincronizaReceitas();
+  migraRegistos(S);   /* o peso do perfil volta a ser o da última pesagem da cópia */
   S.meta=Object.assign(S.meta,{avisarAoSair:antigo.avisarAoSair, exportadoEm:antigo.exportadoEm});
   S.ui.tab='dados'; S.ui.mid=S.members[0]? S.members[0].id : null;
   S.meta.semCopia=false; saveMeta();
@@ -6397,6 +8239,9 @@ function substituir(txt){
 }
 function juntar(txt){
   const {d,erro}=lerPacote(txt); if(erro) return flash('bad',erro);
+  if(!S.medicoes||typeof S.medicoes!=='object') S.medicoes={};
+  if(!Array.isArray(S.regAtiv)) S.regAtiv=[];
+  if(!Array.isArray(S.regRef)) S.regRef=[];
   const mapa={}; let novos=0, refeicoes=0;
   d.members.forEach(im=>{
     const igual=S.members.find(m=>m.id===im.id
@@ -6437,12 +8282,42 @@ function juntar(txt){
     S.receitas.push(r); receitasNovas++;
   });
   if(receitasNovas) sincronizaReceitas();
+  /* Pesagens e registos juntam-se pela chave natural de cada um: uma pesagem
+     é única por dia e por pessoa, e um treino ou uma refeição por pessoa, dia
+     e tipo. O que já cá está ganha — juntar nunca reescreve o local. */
+  let pesagens=0, registos=0;
+  Object.keys(d.medicoes||{}).forEach(k=>{
+    const mid=mapa[k]||k; if(!S.members.some(m=>m.id===mid)) return;
+    if(!Array.isArray(S.medicoes[mid])) S.medicoes[mid]=[];
+    const arr=S.medicoes[mid];
+    (d.medicoes[k]||[]).forEach(x=>{ if(arr.some(y=>y.d===x.d)) return; arr.push({d:x.d,p:x.p}); pesagens++; });
+    arr.sort((a,b)=> a.d<b.d? -1 : a.d>b.d? 1 : 0);
+  });
+  S.members.forEach(sincronizaPeso);
+  /* os ids de membro do ficheiro têm de passar pelo mesmo mapa que os perfis:
+     o «Bruno» da cópia é o «Bruno» daqui, com outro id */
+  (d.regAtiv||[]).forEach(r0=>{
+    const r=Object.assign({},r0,{mid:mapa[r0.mid]||r0.mid});
+    if(!S.members.some(m=>m.id===r.mid)) return;
+    if(S.regAtiv.some(x=>x.id===r.id)) return;
+    if(r.plano && S.regAtiv.some(x=>x.mid===r.mid&&x.d===r.d&&x.plano===r.plano)) return;
+    S.regAtiv.push(r); registos++;
+  });
+  (d.regRef||[]).forEach(r0=>{
+    const r=Object.assign({},r0,{mid:mapa[r0.mid]||r0.mid});
+    if(!S.members.some(m=>m.id===r.mid)) return;
+    if(S.regRef.some(x=>x.id===r.id)) return;
+    if(S.regRef.some(x=>x.mid===r.mid&&x.d===r.d&&x.mk===r.mk)) return;
+    S.regRef.push(r); registos++;
+  });
   if(!S.ui.mid && S.members[0]) S.ui.mid=S.members[0].id;
   save();
   flash('ok','Cópia integrada: '+plural(novos,'perfil novo','perfis novos')+', '
     +plural(refeicoes,'refeição acrescentada','refeições acrescentadas')+', '
-    +plural(receitasNovas,'receita nova','receitas novas')+' e '
-    +plural(objetivosNovos,'objetivo novo','objetivos novos')+'. Perfis com o mesmo nome foram '
+    +plural(receitasNovas,'receita nova','receitas novas')+', '
+    +plural(objetivosNovos,'objetivo novo','objetivos novos')+', '
+    +plural(pesagens,'pesagem nova','pesagens novas')+' e '
+    +plural(registos,'registo novo','registos novos')+'. Perfis com o mesmo nome foram '
     +'tratados como a mesma pessoa e as refeições e objetivos já existentes ficaram intactos.');
 }
 function importarFicheiro(input,modo){
@@ -6587,13 +8462,21 @@ function renderDados(){
    Passa por todos os separadores e explica o que cada um faz. O cartão vive
    fora do #main, por isso sobrevive aos redesenhos; o destaque é reposto
    depois de cada render, porque o innerHTML destrói o elemento anterior. */
+/* Alguns passos falam de cartões que só existem quando há dados para eles —
+   treinos em conjunto, histórico, registo. Apontar para um cartão que não está
+   no ecrã seria explicar o vazio, por isso esses passos têm condição e a
+   visita salta-os. */
+function passosTour(){ return TOUR.filter(p=>!p.quando || (()=>{ try{ return !!p.quando(); }catch(e){ return false; } })()); }
 const TOUR=[
   {tab:'familia', sel:'#hoje',
    t:'O dia de hoje, primeiro',
    d:'A app abre a responder à pergunta do dia: o que está planeado para hoje, para quem, e o que falta comprar. Um toque leva ao plano de hoje ou às compras — sem procurar nada.'},
   {tab:'familia', sel:'main .grid.g2 .card',
    t:'Perfis da família',
-   d:'Cada pessoa tem aqui o seu perfil. Os sliders de peso, altura e idade mexem em direto no índice de massa corporal, no metabolismo basal e no gasto diário — e a fase da vida (bebé, criança, adolescente, adulto ou gravidez) escolhe as fórmulas certas para cada idade.'},
+   d:'Cada pessoa tem aqui o seu perfil. A idade vem da data de nascimento e envelhece sozinha; a altura escreve-se uma vez. O que se mexe todos os dias é o peso, e o slider dele mexe em direto no índice de massa corporal, no metabolismo basal e no gasto diário. A fase da vida (bebé, criança, adolescente, adulto ou gravidez) escolhe as fórmulas certas para cada idade.'},
+  {tab:'familia', sel:'#peso-hist',
+   t:'O peso ao longo do tempo',
+   d:'Cada pesagem fica com a sua data — as de hoje e as antigas que tenhas anotadas. A app pergunta por medições novas quando abre, e aqui vês a linha em 14 dias, 8 semanas, 6 meses ou 2 anos, com a atividade registada e as calorias ingeridas sobrepostas em toggles, para veres a forma de umas ao lado da outra.'},
   {tab:'familia', sel:'.card-alergia',
    t:'Alergias e intolerâncias',
    d:'As catorze categorias de declaração obrigatória na União Europeia, marcadas pessoa a pessoa. Uma receita que traga um alergénio marcado deixa de ser sugerida e fica assinalada a vermelho, com o ingrediente concreto que o traz. Ajuda a planear — não substitui ler o rótulo.'},
@@ -6606,15 +8489,33 @@ const TOUR=[
   {tab:'familia', sel:'[data-col="fam-resumo"]',
    t:'O mês em palavras',
    d:'Um retrato dos últimos 30 dias escrito em prosa a partir do que está registado: refeições planeadas, dias livres, atividade e objetivos. Só afirma o que os dados sustentam.'},
-  {tab:'atividade', sel:'.spline',
-   t:'Atividade — 43 desportos',
+  {tab:'atividade', sel:'#fa-cartao', quando:()=>S.members.length&&(curM().desportos||[]).length,
+   t:'Atividade Física — plano e registo',
+   d:'O separador separa duas coisas que não são a mesma: o plano é o que se tenciona fazer, o registo é o que se fez. Enquanto não há plano, é ele que ocupa o destaque; a partir daí o lugar de cima passa a ser deste cartão, para o gesto de todos os dias ser registar. O que se regista entra logo no gasto do dia, no alvo de calorias e no ritmo dos objetivos.'},
+  {tab:'atividade', sel:'#atv-plano .dias-plano', quando:()=>S.members.length&&(curM().desportos||[]).length,
+   t:'O plano tem dias',
+   d:'Cada desporto do plano diz em que dias da semana acontece, e o tempo de cada sessão é o volume semanal dividido por eles — o total não muda, só passa a haver treinos com data. É daqui que sai a semana que vem aí e, no fim do dia, o que há para confirmar.'},
+  {tab:'atividade', sel:'.spline', quando:()=>S.members.length&&(curM().desportos||[]).length,
+   t:'43 desportos, esforço medido',
    d:'Nos desportos em que a velocidade manda no esforço (corrida, ciclismo, natação, remo, patinagem) indicam-se distância e ritmo em sliders, e o ponto laranja percorre a curva de esforço em direto. Nos restantes escolhe-se a intensidade pelo teste da conversa.'},
+  {tab:'atividade', sel:'[data-col="atv-historico"]', quando:()=>S.members.length&&(curM().desportos||[]).length,
+   t:'Atividade passada e histórico',
+   d:'As barras são o que ficou registado; o tracejado é o que o plano marcava. A distância entre os dois é a única coisa que interessa ver — e se o plano nunca se cumpre, o problema é do plano. O histórico completo tem a fita do tempo, com tudo o que se pode consultar, editar ou apagar.'},
+  {tab:'atividade', sel:'#atv-partilha', quando:()=>sugestoesPartilhaAtiv().length,
+   t:'Treinar em conjunto',
+   d:'Quando duas pessoas cá de casa já têm a mesma modalidade no plano e o objetivo a apontar para o mesmo lado, a app junta-as. Saem à mesma hora e cada uma faz o seu tempo e o seu ritmo: correr juntos não é correr ao mesmo ritmo. Confirmar a atividade confirma-a para todos os que a partilharam.'},
   {tab:'atividade', sel:'#ga-basal',
    t:'De onde vem o gasto do dia',
    d:'A barra reparte o gasto entre metabolismo basal, dia-a-dia, deslocações e desporto. A linha tracejada marca o alvo alimentar: a distância entre o fim da barra e a linha é o défice ou o excedente do plano.'},
   {tab:'nutricao', sel:'#nu-r-obj',
    t:'Nutrição — objetivo e macros',
    d:'O objetivo é um slider contínuo de −25 % a +20 % do gasto, com o ritmo em quilos por semana e travão quando o alvo desce abaixo do metabolismo basal. A dieta escolhida — incluindo vegetariana e vegan, que a app distingue — vira gramas de hidratos, proteína e gordura.'},
+  {tab:'nutricao', sel:'#fr-cartao', quando:()=>S.members.length&&temPlanoNut(curM()),
+   t:'Registar o que se comeu',
+   d:'Tal como na Atividade Física: definido o plano, o destaque passa para o registo. As refeições planeadas que ficaram por confirmar aparecem em cima ao entrar no perfil — «comi», «comi outra coisa» (e regista-se o que foi) ou «rever o plano», quando um prato nunca se cumpre. Uma refeição partilhada confirma-se de uma vez para todos os que estavam à mesa.'},
+  {tab:'nutricao', sel:'[data-col="nu-historico"]', quando:()=>S.members.length&&temPlanoNut(curM()),
+   t:'Alimentação passada e histórico',
+   d:'As barras são as calorias registadas, verdes dentro do alvo do dia e amarelas fora dele; o tracejado é o alvo, já com o ajuste do que se gastou a mais em atividade — quem corre 10 km que não estavam marcados precisa de comer esse gasto. No histórico completo estão os macros de tudo, os pratos que mais se repetem e a fita do tempo, com edição e remoção.'},
   {tab:'nutricao', sel:'[data-col="nu-suplementos"]',
    t:'Suplementos e exclusões',
    d:'O que se toma entra nos macros do dia (um batido de proteína é comida) e é comparado com as doses de referência e os limites de segurança. Ao lado da dieta ficam as exclusões que não são alergias: carne, porco, álcool, picante.'},
@@ -6632,20 +8533,23 @@ const TOUR=[
    d:'Escreve a receita da casa com ingredientes do catálogo: os macros por dose e as etiquetas de dieta aparecem enquanto escreves, e a receita entra na biblioteca como qualquer outra. Também podes copiar uma existente para a pôr a teu gosto.'},
   {tab:'despensa', sel:'#despensa-lista',
    t:'A minha despensa',
-   d:'Marca aqui o que tens em casa. A lista vem dos ingredientes das próprias receitas, para os nomes baterem sempre certo — e cada ingrediente mostra os alergénios marcados na família. Comprar um item na lista de compras marca-o aqui automaticamente.'},
+   d:'Marca aqui o que tens em casa. A lista vem dos ingredientes das próprias receitas, para os nomes baterem sempre certo — e cada ingrediente mostra os alergénios marcados na família. Comprar um item na lista de compras marca-o aqui automaticamente, e ao entrar a app pergunta se as compras que ficaram por marcar já foram feitas, para validar item a item de uma vez.'},
   {tab:'objetivos', sel:'main .card',
    t:'Objetivos com estratégia mista',
    d:'Define quantos quilos e em quanto tempo: a app calcula o défice diário e reparte-o entre dieta e exercício num slider. Ao criar, aplica logo o objetivo à Nutrição e acrescenta as horas de treino ao desporto escolhido.'},
-  {tab:'objetivos', sel:'.anel',
+  {tab:'objetivos', sel:'.anel', quando:()=>(S.objetivos||[]).some(o=>!o.concluido&&S.members.some(m=>m.id===o.membroId)),
    t:'Anéis de progresso e conquistas',
    d:'Cada objetivo tem um anel que compara o progresso real com o tempo já passado — fica amarelo ou vermelho se ficares para trás. Ao atingir a meta, a app celebra e guarda o objetivo nas Conquistas.'},
+  {tab:'plano', sel:'#sug-partilha', quando:()=>sugestoesPartilhaRef().length,
+   t:'Comer em conjunto',
+   d:'Cozinhar duas coisas para a mesma mesa é o trabalho a dobrar que as casas com dietas diferentes fazem todos os dias. Quando duas pessoas gostam do mesmo — lê-se do que já comeram e planearam — e querem o peso a ir para o mesmo lado, o prato é um só: o que muda é a dose de cada um e o que vai ao lado, mais leve para quem está em défice.'},
   {tab:'plano', sel:'#sug',
    t:'Sugestões para a mesa',
    d:'Liga e desliga quem se senta à mesa: a lista mostra só as receitas que servem toda a gente ligada ao mesmo tempo — e diz quantas caíram por dieta, por alergénio ou por calorias, e porquê. Planeia-se num toque, já com os comensais certos.'},
   {tab:'plano', sel:'#pla-resumo',
    t:'Plano semanal e acompanhamentos',
    d:'Quatro refeições por dia, com quem come cada uma — e ao almoço e jantar, uma linha tracejada para o acompanhamento: batatas, arroz, legumes ou salada, com as calorias somadas ao dia. O 🔀 troca-o por outro que sirva a mesma mesa; o «juntar acompanhamento» põe mais um ao lado, e os dois repartem o mesmo lugar — meia dose de cada, com as calorias, os macros e as compras a seguir a divisão. Cinzento é dia incompleto, rosa é cheat day.'},
-  {tab:'compras', sel:'#falta-corpo',
+  {tab:'compras', sel:'#falta-corpo', quando:()=>shoppingItems().items.length,
    t:'Compras e o que falta',
    d:'A lista agrega os ingredientes da semana — pratos e acompanhamentos — pelo número de comensais, e acompanhamentos que dividem o mesmo lugar entram com a fatia que lhes cabe. O cartão «O que falta comprar» tira o que já está na despensa e envia-se pelo menu de partilha do telemóvel.'},
   {tab:'dados', sel:'[data-col="dados-aspeto"]',
@@ -6669,13 +8573,14 @@ function fecharTour(){
   const c=document.getElementById('tour-cartao'); if(c) c.remove();
   saveMeta(); render();
 }
-function tourAnterior(){ if(S.ui.tourPasso>0){ S.ui.tourPasso--; saveMeta(); irParaPassoTour(); } }
+function tourAnterior(){ if(tourAtivo() && S.ui.tourPasso>0){ S.ui.tourPasso--; saveMeta(); irParaPassoTour(); } }
 function tourSeguinte(){
-  if(S.ui.tourPasso>=TOUR.length-1) return fecharTour();
+  if(!tourAtivo()) return;   /* sem isto, avançar depois de terminar recomeçava a visita */
+  if(S.ui.tourPasso>=passosTour().length-1) return fecharTour();
   S.ui.tourPasso++; saveMeta(); irParaPassoTour();
 }
 function irParaPassoTour(){
-  const p=TOUR[S.ui.tourPasso]; if(!p) return fecharTour();
+  const p=passosTour()[S.ui.tourPasso]; if(!p) return fecharTour();
   S.ui.tab=p.tab; saveMeta(); render();   /* render repõe o cartão e o destaque */
 }
 function limpaDestaqueTour(){
@@ -6685,18 +8590,19 @@ function pintaTour(){
   limpaDestaqueTour();
   let c=document.getElementById('tour-cartao');
   if(!tourAtivo()){ if(c) c.remove(); return; }
-  const p=TOUR[S.ui.tourPasso];
+  const passos=passosTour(), p=passos[S.ui.tourPasso];
+  if(!p){ if(c) c.remove(); return; }
   if(!c){ c=document.createElement('div'); c.id='tour-cartao'; c.className='tour-cartao';
     c.setAttribute('role','dialog'); c.setAttribute('aria-label','Visita guiada'); document.body.appendChild(c); }
   c.innerHTML=`<div class="row" style="justify-content:space-between;align-items:baseline">
-      <h3>${esc(p.t)}</h3><span class="sub">${S.ui.tourPasso+1} de ${TOUR.length}</span></div>
+      <h3>${esc(p.t)}</h3><span class="sub">${S.ui.tourPasso+1} de ${passos.length}</span></div>
     <p class="sub">${p.d}</p>
-    <div class="tour-progresso" aria-hidden="true">${TOUR.map((_,i)=>`<i class="${i<=S.ui.tourPasso?'feito':''}"></i>`).join('')}</div>
+    <div class="tour-progresso" aria-hidden="true">${passos.map((_,i)=>`<i class="${i<=S.ui.tourPasso?'feito':''}"></i>`).join('')}</div>
     <div class="tour-acoes">
       <button class="btn ghost small" onclick="fecharTour()">Sair</button>
       <span style="flex:1"></span>
       ${S.ui.tourPasso>0? '<button class="btn ghost" onclick="tourAnterior()">← Anterior</button>':''}
-      <button class="btn" onclick="tourSeguinte()">${S.ui.tourPasso>=TOUR.length-1?'Terminar':'Seguinte →'}</button>
+      <button class="btn" onclick="tourSeguinte()">${S.ui.tourPasso>=passos.length-1?'Terminar':'Seguinte →'}</button>
     </div>`;
   /* o alvo pode não existir neste estado (sem membros, sem plano) — o passo
      continua a fazer sentido pelo texto, só não há halo */
@@ -6715,10 +8621,14 @@ function semearFamiliaExemplo(){
   addMember(); Object.assign(S.members[0],{nome:'Ana',sexo:'f',idade:38,altura:166,peso:68,
     atividade:'leve',desloc:'pe30',dieta:'mediterranica',objetivoPct:-12,
     desportos:[normalizaDesporto({s:'corrida',km:18,v:9.5,per:'semana'}),
+               normalizaDesporto({s:'caminhada',h:2,per:'semana',i:'moderado'}),
                normalizaDesporto({s:'yoga',h:2,per:'semana',i:'leve'})]});
   addMember(); Object.assign(S.members[1],{nome:'Bruno',sexo:'m',idade:41,altura:179,peso:86,
     atividade:'sedentario',desloc:'nenhum',dieta:'lowcarb',objetivoPct:-15,
-    desportos:[normalizaDesporto({s:'ciclismo',km:60,v:22,per:'semana'})]});
+    desportos:[normalizaDesporto({s:'ciclismo',km:60,v:22,per:'semana'}),
+               /* a caminhada é a mesma dos dois, e é por isso que a app a
+                  sugere como treino em conjunto */
+               normalizaDesporto({s:'caminhada',h:2.5,per:'semana',i:'moderado'})]});
   addMember(); Object.assign(S.members[2],{nome:'Rita',sexo:'f',idade:9,altura:134,peso:30,
     atividade:'moderado',desloc:'pe30',dieta:'equilibrada',
     desportos:[normalizaDesporto({s:'natacao',km:2,v:2.2,per:'semana'})]});
@@ -6731,6 +8641,43 @@ function semearFamiliaExemplo(){
     pesoInicial:88, pesoAlvo:82, semanas:12, dataInicio:new Date(Date.now()-21*24*3600*1000).toISOString(),
     splitDieta:60, desportoEscolhido:'ciclismo', bandaManter:2,
     concluido:false, celebrado:false, dataConclusao:null});
+  /* O exemplo também tem passado: sem pesagens e sem registos, os cartões de
+     evolução e de histórico apareciam vazios logo na visita guiada, e quem
+     está a conhecer a app não perceberia para que servem. */
+  const h=hojeISO();
+  [[S.members[0].id,[[42,70.4],[28,69.8],[14,69.1],[7,68.6],[0,68]]],
+   [S.members[1].id,[[42,88.4],[28,87.6],[21,87.1],[14,86.6],[7,86.2],[0,86]]],
+   [S.members[2].id,[[28,29.6],[0,30]]]].forEach(([mid,pts])=>{
+    S.medicoes[mid]=pts.map(([atras,p])=>({d:addDias(h,-atras), p})).sort((a,b)=> a.d<b.d? -1:1);
+  });
+  S.members.forEach(sincronizaPeso);
+  /* duas semanas de treinos e refeições cumpridos, para os gráficos terem
+     forma; o dia de ontem fica por confirmar de propósito, para a caixa de
+     validação existir e poder ser explicada */
+  S.meta.desdeRegisto=addDias(h,-14);
+  /* as duas semanas anteriores também têm plano: sem isso não haveria
+     refeições passadas para registar, e o histórico nascia vazio */
+  const semanaAtual=S.week;
+  [2,1].forEach(k=>{ S.week=mondayISO(addDias(h,-7*k)); autoFill(); });
+  S.week=semanaAtual;
+  for(let k=14;k>=2;k--){
+    const d=addDias(h,-k);
+    S.members.forEach(mm=>{
+      planeadasNoDia(mm,d).forEach(p=>{
+        if(Math.random()<0.18) return;   /* nem tudo se cumpre, e é isso que o gráfico mostra */
+        registarAtividade({d, s:p.s.s, min:p.min, i:p.s.i, v:p.s.v, plano:p.s.id},[mm.id],'feita');
+      });
+      const dia=(S.plans[mondayISO(d)]||{})[diaSemana(d)];
+      if(!dia) return;
+      MEALK.forEach(mk=>{ const meal=dia[mk];
+        if(!meal||!meal.r||(meal.m||[]).indexOf(mm.id)<0) return;
+        if(Math.random()<0.12) return;
+        const rec=RECIPES.find(x=>x.id===meal.r);
+        registarRefeicao({d, mk, r:meal.r, ac:acIds(meal),
+          dose: rec? doseSugerida(mm,rec,mk) : 1},[mm.id],'feita');
+      });
+    });
+  }
   save('família de exemplo');
 }
 function cartaoBoasVindas(){
@@ -6774,9 +8721,22 @@ function render(){
     : S.ui.tab==='dados'? renderDados()
     : renderFamilia();
   /* semeia os valores que só o atualizador escreve (pill de ritmo, etc.) */
-  if(S.ui.tab==='nutricao' && S.members.length) atualizarNutricao();
+  if(S.ui.tab==='nutricao' && S.members.length && !S.ui.histRef) atualizarNutricao();
+  pintaModal();
   montaColapsaveis(); pintaAura(); montaMembrosFixos();
   paintSave(); pintaHist(); pintaTour(); medirTopo();
+}
+/* A caixa de diálogo vive fora do #main: se vivesse lá dentro, qualquer
+   redesenho de separador a apagava a meio de a estarem a preencher. */
+function pintaModal(){
+  let cx=document.getElementById('modal-raiz');
+  if(!cx){ cx=document.createElement('div'); cx.id='modal-raiz'; document.body.appendChild(cx); }
+  const mo=modalAberto();
+  cx.innerHTML = !mo? ''
+    : mo.tipo==='peso'? modalPesoHtml(mo)
+    : mo.tipo==='compras'? modalComprasHtml(mo)
+    : '';
+  if(mo){ const f=cx.querySelector('input,button'); if(f) setTimeout(()=>f.focus(),0); }
 }
 /* Ctrl+Z / Ctrl+Shift+Z (ou ⌘ no Mac). Dentro de um campo de texto não se
    intercepta nada — aí o desfazer que faz sentido é o do próprio campo. */
@@ -6826,6 +8786,10 @@ ligarOrientacao();
   if(d) d.setAttribute('data-dica', DICAS.desfazer); })();
 estadoAnterior=instantaneo();   /* base do histórico: o estado tal como foi carregado */
 render();
+/* A pergunta das pesagens fica para depois do primeiro desenho: quem abre a
+   app e vê uma caixa antes de ver a app não sabe o que está a responder. E
+   nunca por cima da visita guiada nem de um ecrã ainda sem ninguém. */
+if(S.members.length && !tourAtivo()) setTimeout(talvezPerguntarPeso, 700);
 
 /* Instalável no ecrã principal e utilizável sem rede (útil para a lista de
    compras no supermercado). Só corre em http/https — via file:// é ignorado. */
