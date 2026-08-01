@@ -31,8 +31,8 @@
    diferenças de 2 a 9% de luminosidade, invisíveis ao lado, decisivas para
    quem lê. */
 :root, html[data-modo="claro"]{
-  --bg:#F6F5F1; --card:#FFFFFF; --ink:#232930; --mut:#68717B; --line:#E4E1D8;
-  --accent:#2456A6; --accent-soft:#E8EEF8; --energy:#AF571B; --energy-soft:#F8EDE2;
+  --bg:#F6F5F1; --card:#FFFFFF; --ink:#232930; --mut:#646C76; --line:#E4E1D8;
+  --accent:#2456A6; --accent-soft:#E8EEF8; --energy:#AA541A; --energy-soft:#F8EDE2;
   --party:#BC4578; --party-soft:#FCF2F7;
   --ok:#2C774B; --warn:#86610F; --bad:#B83D31;
   --mc:#8E6020; --mp:#2456A6; --mf:#7C5CB0;
@@ -44,6 +44,19 @@
   --on-accent:#FFFFFF;
   --shadow:0 1px 3px rgba(35,41,48,.07),0 4px 14px rgba(35,41,48,.05);
   --r:14px;
+  /* A identidade tipográfica: serifa editorial nos títulos e nos números de
+     destaque, UI de sistema disciplinada em todo o resto. Sem fontes
+     externas — o CSP não deixa e o offline agradece. */
+  --fonte-display:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+  --fonte-ui:"Segoe UI",system-ui,-apple-system,sans-serif;
+  /* Superfícies: --inset é o rebaixo onde vivem campos e estatísticas,
+     --elev a folha que flutua. Derivam da tinta e do fundo, por isso vestem
+     as seis paletas sem uma regra que seja por paleta. */
+  --hh:58px; --r-sm:10px; --inset:var(--bg); --elev:var(--card);
+}
+@supports (background:color-mix(in srgb,red 50%,blue)){
+  :root{ --inset:color-mix(in srgb,var(--ink) 4%,var(--bg));
+         --elev:color-mix(in srgb,var(--card) 92%,var(--ink)); }
 }
 html[data-modo="escuro"], :root[data-theme="dark"]{
   --bg:#14181D; --card:#1C2229; --ink:#E8EAED; --mut:#96A0AA; --line:#2A323B;
@@ -56,8 +69,8 @@ html[data-modo="escuro"], :root[data-theme="dark"]{
 }
 /* --- Alecrim: verdes de horta, neutros com um travo de azeitona --- */
 html[data-paleta="alecrim"]{
-  --bg:#F4F5F0; --card:#FFFFFF; --ink:#23291F; --mut:#687269; --line:#E0E4D8;
-  --accent:#3E7845; --accent-soft:#E7F0E6; --energy:#996424; --energy-soft:#F6EEE0;
+  --bg:#F4F5F0; --card:#FFFFFF; --ink:#23291F; --mut:#626C63; --line:#E0E4D8;
+  --accent:#3E7845; --accent-soft:#E7F0E6; --energy:#946123; --energy-soft:#F6EEE0;
   --party:#9D5A81; --party-soft:#FAF2F7; --mp:#3E7845;
 }
 html[data-paleta="alecrim"][data-modo="escuro"]{
@@ -67,8 +80,8 @@ html[data-paleta="alecrim"][data-modo="escuro"]{
 }
 /* --- Figo: roxos e magentas, neutros levemente ameixa --- */
 html[data-paleta="figo"]{
-  --bg:#F6F3F6; --card:#FFFFFF; --ink:#28222C; --mut:#6F6874; --line:#E5DEE6;
-  --accent:#6B4396; --accent-soft:#EDE6F6; --energy:#AC503D; --energy-soft:#F8E9E5;
+  --bg:#F6F3F6; --card:#FFFFFF; --ink:#28222C; --mut:#6D6672; --line:#E5DEE6;
+  --accent:#6B4396; --accent-soft:#EDE6F6; --energy:#AA4F3C; --energy-soft:#F8E9E5;
   --party:#B23D74; --party-soft:#F8E6EE; --mp:#6B4396; --mf:#B23D74;
 }
 html[data-paleta="figo"][data-modo="escuro"]{
@@ -78,8 +91,8 @@ html[data-paleta="figo"][data-modo="escuro"]{
 }
 /* --- Maré: azuis-esverdeados de água, neutros frios --- */
 html[data-paleta="mare"]{
-  --bg:#F1F5F5; --card:#FFFFFF; --ink:#1F2A2C; --mut:#637375; --line:#DBE4E4;
-  --accent:#0F6E78; --accent-soft:#E0F0F1; --energy:#AD5727; --energy-soft:#F7ECE2;
+  --bg:#F1F5F5; --card:#FFFFFF; --ink:#1F2A2C; --mut:#5F6E70; --line:#DBE4E4;
+  --accent:#0F6E78; --accent-soft:#E0F0F1; --energy:#A85426; --energy-soft:#F7ECE2;
   --party:#9A4E8C; --party-soft:#F3E7F1; --mp:#0F6E78;
 }
 html[data-paleta="mare"][data-modo="escuro"]{
@@ -90,7 +103,7 @@ html[data-paleta="mare"][data-modo="escuro"]{
 /* --- Brasa: laranjas e vermelhos quentes, neutros de barro --- */
 html[data-paleta="brasa"]{
   --bg:#F7F3F0; --card:#FFFFFF; --ink:#2B2320; --mut:#75695F; --line:#E8DED6;
-  --accent:#B04E1E; --accent-soft:#FAEAE0; --energy:#8A6A1C; --energy-soft:#F5F0DE;
+  --accent:#B04E1E; --accent-soft:#FAEAE0; --energy:#87681B; --energy-soft:#F5F0DE;
   --party:#B03F5C; --party-soft:#F9E7EA; --mp:#B04E1E; --mc:#8A6A1C;
 }
 html[data-paleta="brasa"][data-modo="escuro"]{
@@ -113,10 +126,13 @@ html[data-paleta="tinta"][data-modo="escuro"]{
 /* overflow-x:clip (e não hidden) impede que uma bolha de explicação ponha a
    página a deslizar na horizontal, sem criar um contentor de scroll — o
    cabeçalho fixo continua a colar-se ao topo. */
-body{background:var(--bg);color:var(--ink);font:15px/1.55 "Segoe UI",system-ui,-apple-system,sans-serif;
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--fonte-ui);
   padding-bottom:60px;overflow-x:clip}
-h1,h2,h3{font-family:Georgia,"Times New Roman",serif;font-weight:600;text-wrap:balance}
-h1{font-size:26px} h2{font-size:20px;margin-bottom:4px} h3{font-size:16px}
+h1,h2,h3,.dhead b{font-family:var(--fonte-display);font-weight:600;text-wrap:balance}
+h1{font-size:27px;font-weight:700;letter-spacing:-.01em}
+h2{font-size:21px;letter-spacing:-.006em;margin-bottom:4px}
+h3{font-size:16.5px}
+.brand h1 em{font-style:italic;color:var(--accent)}
 button,input,select{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
 header{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10;
@@ -130,21 +146,118 @@ html[data-modo="escuro"] .aura{opacity:.34}
 .brand{display:flex;flex-direction:column;line-height:1.2}
 .brand small{color:var(--mut);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase}
 nav{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
-nav button{background:none;border:none;padding:8px 14px;border-radius:999px;cursor:pointer;color:var(--mut);font-weight:600;font-size:14px}
+nav button{background:none;border:none;padding:8px 14px;border-radius:999px;cursor:pointer;color:var(--mut);
+  font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:7px}
 nav button:hover{color:var(--ink)}
-nav button.on{background:var(--accent-soft);color:var(--accent)}
+/* O separador ativo é inconfundível: acento cheio, não um sublinhado tímido.
+   O par accent/on-accent já está verificado nas doze combinações. */
+nav button.on{background:var(--accent);color:var(--on-accent)}
+.ico{width:22px;height:22px;flex:none}
+nav button .ico{width:20px;height:20px}
+
+/* ===== BARRA INFERIOR (telemóvel ao alto) =====
+   Os quatro separadores do dia a dia ficam ao alcance do polegar; o resto
+   vive na folha «Mais». Tudo scoped: em paisagem, tablet e desktop nada muda. */
+html[data-dispositivo="telefone"][data-orient="retrato"] nav{
+  position:fixed;top:auto;bottom:0;left:0;right:0;z-index:40;
+  background:var(--card);border-top:1px solid var(--line);
+  display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:0;margin:0;
+  padding:6px max(6px,env(safe-area-inset-right)) max(6px,env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left))}
+html[data-dispositivo="telefone"][data-orient="retrato"] nav button{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  font-size:10.5px;min-height:54px;border-radius:12px;padding:6px 2px}
+html[data-dispositivo="telefone"][data-orient="retrato"] nav button .ico{width:22px;height:22px}
+html[data-dispositivo="telefone"][data-orient="retrato"] body,
+html[data-dispositivo="telefone"][data-orient="retrato"] main{scroll-margin-top:var(--hh,58px)}
+#nav-mais{position:fixed;bottom:calc(74px + env(safe-area-inset-bottom));right:8px;z-index:41;
+  background:var(--elev);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);
+  padding:8px;display:none;gap:2px;min-width:190px}
+#nav-mais.aberta{display:grid}
+#nav-mais button{background:none;border:none;cursor:pointer;color:var(--ink);font-weight:600;
+  min-height:48px;display:flex;flex-direction:row;align-items:center;justify-content:flex-start;
+  gap:10px;padding:8px 12px;border-radius:var(--r-sm);font-size:14px}
+#nav-mais button.on{background:var(--accent);color:var(--on-accent)}
+#nav-mais button .ico{width:20px;height:20px}
+@media (prefers-reduced-motion: no-preference){
+  #nav-mais.aberta{animation:folha-entra .18s ease-out}
+  @keyframes folha-entra{ from{ opacity:0; transform:translateY(8px);} }
+}
+/* O que vive colado ao fundo sobe acima da barra. */
+html[data-dispositivo="telefone"][data-orient="retrato"] body{
+  padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+html[data-dispositivo="telefone"][data-orient="retrato"] #toast{
+  bottom:calc(74px + max(14px,env(safe-area-inset-bottom)))}
+html[data-dispositivo="telefone"][data-orient="retrato"] .tour-cartao{
+  bottom:calc(74px + max(14px,env(safe-area-inset-bottom)))}
+/* Cabeçalho magro no mesmo modo: a nav já não vive lá, sobra a marca e o
+   desfazer. A aura ganha um pouco mais de presença no topo agora baixo. */
+html[data-dispositivo="telefone"][data-orient="retrato"] .hwrap{
+  padding-top:8px;padding-bottom:8px;flex-wrap:nowrap;gap:8px}
+html[data-dispositivo="telefone"][data-orient="retrato"] .brand small{display:none}
+html[data-dispositivo="telefone"][data-orient="retrato"] h1{font-size:18px}
+html[data-dispositivo="telefone"][data-orient="retrato"] .hist{margin-left:auto}
+html[data-dispositivo="telefone"][data-orient="retrato"] .aura{opacity:.6}
+html[data-dispositivo="telefone"][data-orient="retrato"][data-modo="escuro"] .aura{opacity:.34}
 main{max-width:1100px;margin:0 auto;padding:24px 20px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:18px 20px}
+/* Um único dialeto de hierarquia: o cartão normal fica quieto (sem sombra),
+   a «capa» de cada separador flutua com sombra e um gradiente suave do
+   acento, e o auxiliar recua para o fundo. É a diferença entre resumo e
+   detalhe, dita pela superfície e não por mais uma moldura. */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px}
+.card--capa{border-color:var(--line);box-shadow:var(--shadow)}
+.card--capa{border-color:color-mix(in srgb,var(--accent) 22%,var(--line));
+  background:linear-gradient(180deg,var(--accent-soft),var(--card) 46%)}
+.card--capa>h2::after, .card--capa>.card-cab h2::after{content:"";display:block;width:28px;height:3px;
+  border-radius:2px;background:var(--accent);margin-top:6px}
+.card--capa .stat b{font-size:28px;font-family:var(--fonte-display);letter-spacing:-.01em}
+.card--capa.energia{border-color:var(--line)}
+.card--capa.energia{border-color:color-mix(in srgb,var(--energy) 22%,var(--line));
+  background:linear-gradient(180deg,var(--energy-soft),var(--card) 46%)}
+.card--capa.energia>h2::after, .card--capa.energia>.card-cab h2::after{background:var(--energy)}
+.card--quieto{background:var(--bg)}
+.card--quieto{background:color-mix(in srgb,var(--card) 60%,var(--bg))}
+/* Cartão «Hoje»: linhas de agenda com fio tracejado, avatares à direita. */
+.hoje-lista{margin-top:8px}
+.hoje-linha{display:flex;gap:10px;align-items:center;min-height:44px;padding:7px 0;
+  border-bottom:1px dashed var(--line)}
+.hoje-linha:last-child{border-bottom:none}
+.hoje-ico{font-size:17px;flex:none;width:24px;text-align:center}
+.hoje-pend{cursor:pointer;border:none;font:inherit;font-size:12px;font-weight:700}
+/* Régua de dias do plano: cola ao cabeçalho, um botão por dia com o estado
+   do planeamento em ponto — e o dia de hoje vestido de acento. */
+.dias-nav{position:sticky;top:var(--hh,58px);z-index:8;display:flex;gap:6px;background:var(--bg);
+  padding:8px 0;overflow-x:auto;scrollbar-width:none;margin-bottom:12px}
+.dias-nav::-webkit-scrollbar{display:none}
+.dia-salto{flex:1;min-width:44px;min-height:44px;border:1px solid var(--line);border-radius:var(--r-sm);
+  background:var(--card);color:var(--ink);font-weight:700;font-size:13px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:3px;cursor:pointer;padding:4px 2px}
+.dia-salto .dot{margin:0}
+.dia-salto.hoje{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.day.hoje{border:2px solid var(--accent)}
+.day.hoje .dhead{background:var(--accent-soft)}
+.day.hoje .dhead b::after{content:" · hoje";font:700 11px/1 var(--fonte-ui);color:var(--accent);letter-spacing:.05em}
+/* A segurança ganha à marcação de hoje: declarado depois, vence o empate. */
+.day.tem-alerta{border-color:var(--bad)}
+.dia-alerta{cursor:pointer;border:none;font:inherit}
+.alerta.forte{border-left:4px solid var(--bad);border-radius:6px;font-size:13px}
+/* Seletor de membro que acompanha o scroll em Atividade e Nutrição. */
+.membros-fixos{position:sticky;top:var(--hh,58px);z-index:9;background:var(--bg);margin:0 0 14px;
+  padding:8px 0;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid transparent}
+.membros-fixos::-webkit-scrollbar{display:none}
+.membros-fixos .chip{flex:none}
+.membros-fixos.colada{border-bottom-color:var(--line)}
+.membros-fixos .chip.on{box-shadow:inset 0 0 0 1px var(--accent)}
+@media (max-width:640px){ .membros-fixos{margin-left:-12px;margin-right:-12px;padding-left:12px;padding-right:12px} }
 .grid{display:grid;gap:16px}
 .g2{grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}
 .g3{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
 .sub{color:var(--mut);font-size:13.5px}
 .lbl{display:block;font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--mut);font-weight:600;margin-bottom:3px}
-input[type=text],input[type=number],input[type=date],select{
-  width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 10px}
+input[type=text],input[type=number],input[type=date],input[type=search],select{
+  width:100%;background:var(--inset);border:1px solid var(--line);border-radius:var(--r-sm);padding:7px 10px}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .frow{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:10px;margin-top:10px}
-.btn{background:var(--accent);color:var(--on-accent);border:none;border-radius:9px;padding:9px 16px;font-weight:600;cursor:pointer}
+.btn{background:var(--accent);color:var(--on-accent);border:none;border-radius:var(--r-sm);padding:9px 16px;font-weight:600;cursor:pointer}
 .btn.ghost{background:none;color:var(--accent);border:1px solid var(--accent)}
 .btn.small{padding:5px 11px;font-size:13px}
 .btn.danger{background:none;border:1px solid var(--line);color:var(--bad)}
@@ -153,9 +266,18 @@ input[type=text],input[type=number],input[type=date],select{
 .chip.party{border-color:var(--party);color:var(--party)}
 .chip.party.on{background:var(--party-soft)}
 .av{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;color:#fff;flex:none}
-.stat{display:flex;flex-direction:column;gap:2px;padding:10px 12px;background:var(--bg);border-radius:10px;min-width:100px}
-.stat b{font-size:20px;font-variant-numeric:tabular-nums}
+.stat{display:flex;flex-direction:column;gap:2px;padding:10px 12px;background:var(--inset);border-radius:var(--r-sm);min-width:100px}
+.stat b{font-size:24px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .stat span{font-size:11.5px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
+/* Uma régua única para todos os micro-rótulos: quatro variantes quase iguais
+   de maiúsculas pequenas passam a uma só voz. Os valores dentro de .splabel
+   são repostos pela regra própria de .splabel output, que vem depois. */
+.lbl,.mtitle,.splabel,.stat span,.brand small{font-size:11px;letter-spacing:.09em;
+  text-transform:uppercase;font-weight:700;color:var(--mut)}
+/* Régua de caderno: o título de cada refeição prolonga-se num fio até à
+   margem, como numa página pautada — separa sem acrescentar caixas. */
+.mtitle{display:flex;align-items:center;gap:8px}
+.mtitle::after{content:"";flex:1;height:1px;background:var(--line)}
 .pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700}
 .pill.ok{background:color-mix(in srgb,var(--ok) 14%,transparent);color:var(--ok)}
 .pill.warn{background:color-mix(in srgb,var(--warn) 16%,transparent);color:var(--warn)}
@@ -166,7 +288,7 @@ input[type=text],input[type=number],input[type=date],select{
 .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}
 table{border-collapse:collapse;width:100%}
 .splist{display:flex;flex-direction:column;gap:10px;margin-top:12px}
-.spline{border:1px solid var(--line);border-radius:12px;padding:11px 13px;background:var(--bg);
+.spline{border:1px solid var(--line);border-radius:var(--r-sm);padding:11px 13px;background:var(--inset);
   display:flex;flex-direction:column;gap:10px}
 .sptop{display:flex;gap:10px;align-items:center}
 .sptop select{flex:1 1 auto;min-width:0}
@@ -251,7 +373,7 @@ input[type=range]:focus-visible::-moz-range-thumb{box-shadow:0 0 0 3px var(--acc
 .f-ok-txt{color:var(--ok)}
 .dt-ok{background:var(--ok)} .dt-warn{background:var(--warn)} .dt-bad{background:var(--bad)}
 .dt-line{background:var(--line)} .dt-party{background:var(--party)}
-.day{scroll-margin-top:130px}
+.day{scroll-margin-top:calc(var(--hh,58px) + 68px)}
 .shop label{display:flex;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer}
 @media (prefers-reduced-motion: no-preference){
   #co-bar{transition:width .2s,background-color .2s}
@@ -385,7 +507,32 @@ ul.fora li{margin:2px 0}
 .shop li{list-style:none;display:flex;align-items:center;gap:10px;padding:6px 4px;border-bottom:1px dashed var(--line)}
 .shop li.done span{text-decoration:line-through;color:var(--mut)}
 .shop .q{margin-left:auto;color:var(--mut);font-variant-numeric:tabular-nums;white-space:nowrap;font-size:13.5px}
-.cat-h{margin:18px 0 4px;font-family:Georgia,serif;font-size:15px;color:var(--accent)}
+/* Talão de mercearia: os corredores são carimbos com fio tracejado e um
+   contador-pastilha, e colam ao topo enquanto se percorre a lista — no
+   supermercado sabe-se sempre em que corredor se está. */
+.cat-h{margin:18px 0 4px;font-family:var(--fonte-ui);font-size:11px;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--mut);
+  display:flex;align-items:center;gap:10px}
+.cat-h::after{content:"";flex:1;order:2;border-top:1px dashed var(--line)}
+.cat-h .cat-conta{order:3}
+.cat-conta{font:700 12px/1 var(--fonte-ui);color:var(--mut);background:var(--card);
+  border:1px solid var(--line);border-radius:999px;padding:3px 8px;
+  font-variant-numeric:tabular-nums;letter-spacing:0;float:none !important}
+.cat-h.feita{color:var(--ok)}
+.cat-h.feita .cat-conta{color:var(--ok);border-color:var(--ok)}
+.co-topo{position:sticky;top:var(--hh,58px);z-index:8;background:var(--bg);padding:8px 0 10px;margin-bottom:6px}
+.shop .q{font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;font-size:12.5px}
+.shop li.done span{text-decoration-thickness:1.5px;text-decoration-color:var(--ok)}
+.shop li.done span{text-decoration-color:color-mix(in srgb,var(--ok) 70%,transparent)}
+.shop li span{transition:none}
+@media (prefers-reduced-motion: no-preference){
+  .shop li span{transition:color .15s,text-decoration-color .15s}
+}
+/* Os selects do plano dizem o estado de relance: por escolher é um convite
+   tracejado e apagado; escolhido é sólido e com peso. */
+select.sel-receita{min-height:46px;border-style:dashed;color:var(--mut);font-weight:500;margin-top:2px}
+select.sel-receita.cheio{border-style:solid;background-color:var(--card);color:var(--ink);font-weight:600}
+select.acomp{min-height:42px}
 .secgap{margin-top:28px}
 .savest{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mut);white-space:nowrap;
   background:none;border:none;cursor:pointer;padding:4px 2px;font-family:inherit}
@@ -394,7 +541,7 @@ ul.fora li{margin:2px 0}
 .savest.pend .led{background:var(--warn)}
 .savest.err{color:var(--bad)} .savest.err .led{background:var(--bad)}
 .savest.none .led{background:var(--line)}
-textarea{width:100%;min-height:120px;background:var(--bg);border:1px solid var(--line);border-radius:8px;
+textarea{width:100%;min-height:120px;background:var(--inset);border:1px solid var(--line);border-radius:var(--r-sm);
   padding:8px 10px;font:12.5px/1.5 ui-monospace,Consolas,monospace;color:inherit;resize:vertical}
 .toggle{display:flex;align-items:flex-start;gap:9px;cursor:pointer;padding:4px 0}
 .toggle input{margin-top:4px;flex:none}
@@ -473,8 +620,8 @@ body{padding-bottom:max(60px,calc(env(safe-area-inset-bottom) + 44px))}
   .chip{min-height:42px;padding:7px 14px}
   .btn.small{min-height:40px;padding:8px 13px}
   .savest{min-height:40px}
-  .shop li{padding:11px 4px}
-  .shop input[type=checkbox]{width:22px;height:22px}
+  .shop li{padding:12px 6px;min-height:48px}
+  .shop input[type=checkbox]{width:24px;height:24px}
   .toggle input{width:20px;height:20px}
   textarea{min-height:140px}
   .spline select,.spline input[type=number]{min-height:42px}
@@ -541,7 +688,7 @@ html[data-orient="paisagem"][data-dispositivo="tablet"] .gdias{grid-template-col
 <header>
   <div class="hwrap">
     <div class="brand">
-      <h1>Família Fit</h1>
+      <h1>Família <em>Fit</em></h1>
       <small>alimentação &amp; movimento</small>
     </div>
     <nav id="nav"></nav>
@@ -2060,14 +2207,27 @@ function alergenicosDe(r,m){
   });
   return out;
 }
-function avisoAlergia(r,membros){
+function avisoAlergia(r,membros,forte){
   const linhas=[];
   (membros||[]).forEach(m=>{
     const al=alergenicosDe(r,m);
     if(al.length) linhas.push(esc(m.nome.split(' ')[0])+': '+al.map(a=>a.nome.toLowerCase()+' ('+a.itens.map(esc).join(', ')+')').join('; '));
   });
   if(!linhas.length) return '';
-  return `<div class="alerta"><span aria-hidden="true">🚨</span><span>Alergénio — ${linhas.join(' · ')}</span></div>`;
+  return `<div class="alerta${forte?' forte':''}"><span aria-hidden="true">🚨</span><span>Alergénio — ${linhas.join(' · ')}</span></div>`;
+}
+/* Os alertas de um dia do plano: por refeição, quem come o quê que não pode. */
+function alertasDoDia(di,date){
+  const w=planWeek(), out=[];
+  MEALK.forEach(mk=>{
+    const meal=w[di]&&w[di][mk]; if(!meal||!meal.r) return;
+    const comem=S.members.filter(m=>meal.m.includes(m.id)&&!isCheat(m.id,date));
+    [meal.r,meal.ac].filter(Boolean).forEach(rid=>{
+      const r=RECIPES.find(x=>x.id===rid); if(!r) return;
+      if(comem.some(m=>alergenicosDe(r,m).length)) out.push(mk);
+    });
+  });
+  return [...new Set(out)];
 }
 function toggleRestricao(mid,k){
   const m=S.members.find(x=>x.id===mid); if(!m||!temChave(RESTR,k)) return;
@@ -2825,8 +2985,87 @@ const DICAS={
 };
 function dica(k,extra){ const t=DICAS[k]; if(!t) return '';
   return `<button type="button" class="dica ${extra||''}" data-dica="${esc(t)}" aria-label="Explicação">i</button>`; }
-const TABS=[['familia','👤 Família'],['atividade','🏃 Atividade'],['nutricao','🍽️ Nutrição'],['receitas','🍳 Receitas'],
-  ['objetivos','🎯 Objetivos'],['plano','📅 Plano semanal'],['despensa','🥫 Despensa'],['compras','🛒 Compras'],['dados','⚙️ Dados']];
+const TABS=[['familia','Família'],['atividade','Atividade'],['nutricao','Nutrição'],['receitas','Receitas'],
+  ['objetivos','Objetivos'],['plano','Plano semanal'],['despensa','Despensa'],['compras','Compras'],['dados','Dados']];
+/* ===== NAVEGAÇÃO =====
+   Ícones de linha desenhados no mesmo traço dos gráficos e dos estados vazios
+   da app — 24×24, contorno 1.8, sem preenchimento. Herdam currentColor, por
+   isso vestem as doze combinações de paleta e modo sem uma regra de cor. */
+const ICONES_NAV={
+  familia:'<circle cx="12" cy="7.6" r="3.4"/><path d="M5.4 19.5c1.2-3.5 3.7-5.3 6.6-5.3s5.4 1.8 6.6 5.3"/>',
+  atividade:'<path d="M3 13.2h4.2l2.4-6.4 4.1 11 2.4-4.6H21"/>',
+  nutricao:'<circle cx="12" cy="12" r="8.2"/><circle cx="12" cy="12" r="3.8"/>',
+  receitas:'<path d="M4 10.2h16"/><path d="M5.6 10.2v4.4a4.2 4.2 0 0 0 4.2 4.2h4.4a4.2 4.2 0 0 0 4.2-4.2v-4.4"/><path d="M8.6 7.2c0-2.6 6.8-2.6 6.8 0"/>',
+  objetivos:'<circle cx="12" cy="12" r="8.2"/><circle cx="12" cy="12" r="4.4"/><circle cx="12" cy="12" r="1.1"/>',
+  plano:'<rect x="4" y="5.2" width="16" height="14.6" rx="2.2"/><path d="M4 9.8h16"/><path d="M9 3.2v3.6"/><path d="M15 3.2v3.6"/>',
+  despensa:'<rect x="7" y="8.2" width="10" height="11.6" rx="2"/><path d="M8.6 8.2V6.6A1.6 1.6 0 0 1 10.2 5h3.6a1.6 1.6 0 0 1 1.6 1.6v1.6"/><path d="M9.6 13.4h4.8"/>',
+  compras:'<path d="M4.4 9.4h15.2l-1.5 8.6a2.1 2.1 0 0 1-2.1 1.8H8a2.1 2.1 0 0 1-2.1-1.8z"/><path d="M8.6 9.4 12 4.4l3.4 5"/><path d="M9.8 12.6l.6 3.6"/><path d="M14.2 12.6l-.6 3.6"/>',
+  dados:'<path d="M4 7.2h16"/><path d="M4 12h16"/><path d="M4 16.8h16"/><circle cx="9.2" cy="7.2" r="1.9" fill="var(--card)"/><circle cx="15" cy="12" r="1.9" fill="var(--card)"/><circle cx="8" cy="16.8" r="1.9" fill="var(--card)"/>',
+  mais:'<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>'
+};
+function icoNav(k){ return `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONES_NAV[k]||''}</svg>`; }
+/* No telemóvel ao alto, a navegação desce para junto do polegar: os quatro
+   separadores do dia a dia numa barra fixa em baixo, e o resto numa folha
+   «Mais». Em paisagem, tablet e desktop fica tudo como está — pills no topo. */
+const NAV_PRINCIPAL=['familia','nutricao','plano','compras'];
+function modoBarraInferior(){
+  const r=document.documentElement;
+  return r.getAttribute('data-dispositivo')==='telefone' && r.getAttribute('data-orient')==='retrato';
+}
+function rotuloCurto(k){ const t=TABS.find(x=>x[0]===k); return t? t[1].replace(' semanal','') : k; }
+function pintaNav(){
+  const nav=document.getElementById('nav'); if(!nav) return;
+  const btn=k=>`<button class="${S.ui.tab===k?'on':''}" onclick="go('${k}')">${icoNav(k)}<span>${rotuloCurto(k)}</span></button>`;
+  let folha=document.getElementById('nav-mais');
+  if(modoBarraInferior()){
+    const resto=TABS.map(t=>t[0]).filter(k=>NAV_PRINCIPAL.indexOf(k)<0);
+    nav.innerHTML=NAV_PRINCIPAL.map(btn).join('')
+      +`<button id="nav-btn-mais" class="${resto.indexOf(S.ui.tab)>=0?'on':''}" aria-expanded="false"
+         aria-controls="nav-mais" onclick="alternarNavMais(event)">${icoNav('mais')}<span>Mais</span></button>`;
+    if(!folha){ folha=document.createElement('div'); folha.id='nav-mais'; document.body.appendChild(folha); }
+    folha.innerHTML=resto.map(btn).join('');
+    folha.classList.remove('aberta');
+  } else {
+    nav.innerHTML=TABS.map(t=>btn(t[0])).join('');
+    if(folha) folha.remove();
+  }
+}
+function alternarNavMais(e){
+  if(e) e.stopPropagation();
+  const f=document.getElementById('nav-mais'), b=document.getElementById('nav-btn-mais');
+  if(!f) return;
+  const aberta=f.classList.toggle('aberta');
+  if(b) b.setAttribute('aria-expanded',String(aberta));
+}
+document.addEventListener('click',e=>{
+  const f=document.getElementById('nav-mais');
+  if(!f || !f.classList.contains('aberta')) return;
+  if(f.contains(e.target) || (e.target.closest && e.target.closest('#nav-btn-mais'))) return;
+  f.classList.remove('aberta');
+  const b=document.getElementById('nav-btn-mais'); if(b) b.setAttribute('aria-expanded','false');
+});
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape') return;
+  const f=document.getElementById('nav-mais');
+  if(f && f.classList.contains('aberta')){ f.classList.remove('aberta');
+    const b=document.getElementById('nav-btn-mais'); if(b){ b.setAttribute('aria-expanded','false'); b.focus(); } }
+});
+/* Os elementos fixos (régua de dias, seletor de membro, topo das compras)
+   encostam-se ao cabeçalho, e a altura dele varia com o ecrã e a orientação.
+   Mede-se em vez de se adivinhar. */
+function medirTopo(){
+  const h=document.querySelector('header'); if(!h) return;
+  const colado=getComputedStyle(h).position==='sticky';
+  document.documentElement.style.setProperty('--hh',(colado? h.offsetHeight:0)+'px');
+}
+addEventListener('resize',medirTopo);
+/* Scroll programático que respeita prefers-reduced-motion, num único sítio. */
+function scrollSuave(el,bloco){
+  if(!el) return;
+  try{ el.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',
+    block:bloco||'start'}); }catch(e){ el.scrollIntoView(); }
+}
 /* ===== TEMAS, AVATARES E CARTÕES COLAPSÁVEIS ===== */
 const PALETAS={
   azulejo:{n:'Azulejo', d:'Azul de louça e terracota', c:['#2456A6','#C8641E','#C2477C']},
@@ -2950,10 +3189,21 @@ function avatar(m,sz){
   const ini=(m.nome||'?').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
   return `<span class="av" style="background:${avColor(m)};width:${tam}px;height:${tam}px">${esc(ini)}</span>`;
 }
+/* O seletor de membro acompanha o scroll: em páginas compridas (Nutrição,
+   Atividade) nunca se perde de vista de quem são os números. O sentinela de
+   1px diz ao observer quando a fila está colada, para lhe dar uma linha. */
 function memberPicker(){ if(!S.members.length) return '';
   const cur=curM();
-  return `<div class="row" style="margin-bottom:18px">${S.members.map(m=>
+  return `<div class="mf-sentinela" aria-hidden="true"></div><div class="membros-fixos">${S.members.map(m=>
     `<button class="chip ${m.id===cur.id?'on':''}" onclick="pickM('${m.id}')">${avatar(m)} ${esc(m.nome)}</button>`).join('')}</div>`; }
+function montaMembrosFixos(){
+  if(!('IntersectionObserver' in window)) return;
+  document.querySelectorAll('#main .mf-sentinela').forEach(s=>{
+    const fila=s.nextElementSibling; if(!fila||!fila.classList.contains('membros-fixos')) return;
+    new IntersectionObserver(es=>{ fila.classList.toggle('colada', !es[0].isIntersecting); },
+      {rootMargin:`-${parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||58}px 0px 0px 0px`}).observe(s);
+  });
+}
 
 /* ================= FAMÍLIA ================= */
 function addMember(){
@@ -3060,8 +3310,8 @@ function narrativaMes(){
 function cartaoResumoMes(){
   if(!S.members.length) return '';
   const d=dadosMes();
-  return `<div class="card secgap" data-col="fam-resumo" style="border-left:4px solid var(--accent)">
-    <h2>📖 O mês em palavras ${dica('resumoMes')}</h2>
+  return `<div class="card card--capa secgap" data-col="fam-resumo">
+    <h2>O mês em palavras ${dica('resumoMes')}</h2>
     <p class="narrativa" style="margin-top:8px">${narrativaMes()}</p>
     <div class="row" style="margin-top:14px">
       <div class="stat"><b>${d.refs}</b><span>Refeições planeadas</span></div>
@@ -3072,9 +3322,53 @@ function cartaoResumoMes(){
     </div>
   </div>`;
 }
+/* ===== CARTÃO «HOJE» =====
+   A home responde primeiro à pergunta do dia: o que está planeado, para quem,
+   e o que falta comprar. Só afirma o que o estado já sabe — nada de inventar. */
+function irHojePlano(){
+  S.week=mondayISO(new Date()); saveMeta(); go('plano');
+  const alvo=document.querySelector('.day.hoje')||document.getElementById('dia-'+((new Date().getDay()+6)%7));
+  if(alvo) scrollSuave(alvo);
+}
+function cartaoHoje(){
+  const hoje=new Date(), wk=mondayISO(hoje), di=(hoje.getDay()+6)%7, dataISO=iso(hoje);
+  const w=S.plans[wk]||{};
+  const dias=['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
+  const meses=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  const rot='Hoje · '+dias[hoje.getDay()]+', '+hoje.getDate()+' de '+meses[hoje.getMonth()];
+  const linhas=[], alertas=[];
+  MEALK.forEach(mk=>{
+    const meal=w[di]&&w[di][mk]; if(!meal||!meal.r) return;
+    const r=RECIPES.find(x=>x.id===meal.r); if(!r) return;
+    const comem=S.members.filter(m=>meal.m.includes(m.id)&&!isCheat(m.id,dataISO));
+    comem.forEach(m=>{ const al=alergenicosDe(r,m);
+      if(al.length) alertas.push(nomeCurto(m)+': '+al.map(a=>a.nome.toLowerCase()).join(', ')+' em '+esc(r.n)); });
+    const ac=meal.ac&&RECIPES.find(x=>x.id===meal.ac);
+    linhas.push(`<div class="hoje-linha"><span class="hoje-ico" aria-hidden="true">${ICO_REF[mk]||''}</span>
+      <div style="flex:1;min-width:0"><b>${esc(r.n)}</b>${ac? ` <span class="sub">+ ${esc(ac.n)}</span>`:''}
+        <span class="sub" style="display:block">${nomeRefeicao(mk)} · ${r.k+(ac?ac.k:0)} kcal/dose</span></div>
+      <span style="display:inline-flex;gap:2px;flex:none">${comem.map(m=>avatar(m,20)).join('')}</span></div>`);
+  });
+  /* o que falta comprar conta-se na semana de HOJE, que pode não ser a que
+     está aberta no plano — daí não se usar shoppingItems() diretamente */
+  const guarda=S.week; S.week=wk;
+  const pend=itensEmFalta(shoppingItems().items).filter(i=>!((S.bought[wk]||{})[i.n+'|'+i.u])).length;
+  S.week=guarda;
+  return `<section class="card card--capa" id="hoje" style="margin-bottom:16px">
+    <span class="lbl">${rot}</span>
+    <h2 style="margin-top:2px">${linhas.length? 'À mesa hoje' : 'Hoje ainda sem plano'}</h2>
+    ${alertas.length? `<div class="alerta forte" style="margin:8px 0"><span aria-hidden="true">🚨</span><span>${alertas.join(' · ')}</span></div>`:''}
+    ${linhas.length? `<div class="hoje-lista">${linhas.join('')}</div>`
+      : `<p class="sub" style="margin-top:4px">O dia de hoje está por planear — duas escolhas no Plano e a cozinha sabe o que a espera.</p>`}
+    <div class="row" style="margin-top:12px">
+      <button class="btn small" onclick="irHojePlano()">${linhas.length? 'Ver o plano de hoje':'Abrir o plano'}</button>
+      ${pend? `<button class="pill warn hoje-pend" onclick="go('compras')">🛒 ${pend} ${pend===1?'item':'itens'} por comprar</button>`:''}
+    </div>
+  </section>`;
+}
 function renderFamilia(){
   if(!S.members.length) return cartaoBoasVindas();
-  return `<div class="row" style="justify-content:space-between;margin-bottom:16px">
+  return cartaoHoje()+`<div class="row" style="justify-content:space-between;margin-bottom:16px">
       <div><h2>Perfis da família</h2><span class="sub">${S.members.length} membro${S.members.length>1?'s':''} · os dados guardam-se automaticamente neste dispositivo</span></div>
       <button class="btn" onclick="addMember()">+ Adicionar membro</button></div>
     <div class="grid g2">${S.members.map(m=>{
@@ -3534,7 +3828,7 @@ function renderAtividade(){
     ${(()=>{ const gp=gastoPartes(m), alvo=targetKcal(m);
       const K=Math.max(gp.total,alvo)*1.05||1, w=x=>Math.max(0,x/K*100);
       const X=w(alvo);
-      return `<div class="card" style="border-left:4px solid var(--energy)" data-col="atv-gasto">
+      return `<div class="card card--capa energia" data-col="atv-gasto">
       <h2>Gasto energético estimado ${dica('barraGasto')}</h2>
       <div style="position:relative;margin:30px 0 8px">
         <span id="ga-alvo-txt" style="position:absolute;top:-20px;left:${X}%;${X>78?'transform:translateX(-100%);':''}font-size:11px;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap">alvo ${Math.round(alvo)}</span>
@@ -3863,8 +4157,8 @@ function grupoRestricoes(m,lista,alerta){
 function blocoAlergias(m){
   const at=(Array.isArray(m.restricoes)? m.restricoes : []).filter(ehAlergenio);
   const afetadas=RECIPES.filter(r=>r.at.some(t=>at.indexOf(t)>=0)).length;
-  return `<div class="card-alergia" style="margin-top:10px">
-    <label class="lbl" style="margin:0">🚨 Alergias e intolerâncias ${dica('alergias')}</label>
+  return `<div class="card card-alergia" data-col="alerg-${m.id}" style="margin-top:10px">
+    <h3 class="lbl" style="margin:0">🚨 Alergias e intolerâncias ${dica('alergias')}</h3>
     ${grupoRestricoes(m,ALERGENIOS,true)}
     <p class="sub" style="margin-top:6px">${at.length
       ? '<b class="f-bad-txt">'+afetadas+' das '+RECIPES.length+' receitas contêm um destes alergénios</b> e deixam de ser sugeridas a '+esc(m.nome.split(' ')[0])+'. Isto ajuda a planear, mas não dispensa ler o rótulo de cada embalagem nem perguntar num restaurante.'
@@ -4415,7 +4709,7 @@ function renderNutricao(){
   if(faseDe(m)==='bebe') return memberPicker()+`<div class="grid g2">${moduloBebe(m)}</div>`;
   return memberPicker()+`
   <div class="grid g2" style="margin-bottom:24px">
-    <div class="card">
+    <div class="card card--capa">
       <h2>Plano de ${esc(m.nome)}</h2>
       <div style="margin-top:10px">
         <div class="splabel"><span>Objetivo ${dica('objetivo')}</span><output id="nu-obj" style="min-width:22ch;text-align:right">${textoObjetivo(m)}</output></div>
@@ -4546,7 +4840,7 @@ function renderReceitas(){
          <button class="btn ghost" onclick="setMealF('todas')">Todas as refeições</button>`)}
 
   ${S.members.length>1? `<div class="secgap">
-    <h2>👨‍👩‍👧 Compatíveis com toda a família</h2>
+    <h2>Compatíveis com toda a família</h2>
     <p class="sub" style="margin-bottom:10px">Receitas que servem as dietas e as exclusões de todos os ${S.members.length} membros — ideais para a mesma panela. Para escolher quem se senta à mesa e planear a semana, vai ao <a href="#" onclick="go('plano');return false">Plano</a>.</p>
     <div class="grid g3">${fam.map(r=>recipeCard(r,n)).join('')||'<p class="sub">Nenhuma receita serve todas as dietas — considerem aproximar os planos.</p>'}</div>
   </div>`:''}`;
@@ -4937,7 +5231,7 @@ function renderObjetivos(){
        : estadoVazio('alvo','Nenhum objetivo a decorrer',
            'Um objetivo transforma «queria perder uns quilos» num plano com prazo: a app calcula o défice diário, reparte-o entre dieta e exercício, e mostra o progresso num anel.',''))
     + `</div>`
-    + (concluidos.length? `<div class="secgap"><h2>🏆 Conquistas</h2>
+    + (concluidos.length? `<div class="secgap"><h2>Conquistas</h2>
         <div class="grid g2" style="margin-top:10px">${concluidos.map(cartaoConquista).join('')}</div></div>` : '');
 }
 
@@ -5117,7 +5411,7 @@ function cartaoSugestoes(){
   const g=sugestoes(), membros=g.membros;
   const nFora=g.fora.dieta.length+g.fora.ingredientes.length+g.fora.calorias.length;
   return `<div class="card" id="sug" style="margin-bottom:16px" data-col="pla-sugestoes">
-    <h2>✨ Sugestões para a semana ${dica('sugestoes')}</h2>
+    <h2>Sugestões para a semana ${dica('sugestoes')}</h2>
     <p class="sub">Receitas que servem <b>ao mesmo tempo</b> toda a gente que estiver ligada aqui em baixo — a mesma panela, sem exceções para ninguém.</p>
     <div class="row" style="margin-top:10px;align-items:center">
       <span class="sub">Para quem:</span>
@@ -5201,9 +5495,10 @@ function mealBlock(di,mk,label,date){
   const ac=meal&&meal.ac&&RECIPES.find(x=>x.id===meal.ac);
   const members=S.members;
   const comem=members.filter(m=>(meal? meal.m.includes(m.id) : true) && !isCheat(m.id,date));
-  return `<div class="meal">
+  return `<div class="meal" id="meal-${di}-${mk}">
     <div class="mtitle">${label}</div>
-    <select data-di="${di}" data-mk="${mk}" data-tipo="r" onfocus="encheSelect(this)" onmousedown="encheSelect(this)"
+    ${r? avisoAlergia(r,comem,true) : ''}${ac? avisoAlergia(ac,comem,true) : ''}
+    <select class="sel-receita ${r?'cheio':''}" data-di="${di}" data-mk="${mk}" data-tipo="r" onfocus="encheSelect(this)" onmousedown="encheSelect(this)"
       ontouchstart="encheSelect(this)" onchange="setMeal(${di},'${mk}',this.value)">
       <option value="">— escolher receita —</option>
       ${r? `<option value="${r.id}" selected>${esc(r.n)} · ${r.k} kcal</option>`:''}
@@ -5222,13 +5517,26 @@ function mealBlock(di,mk,label,date){
     </div>
   </div>`;
 }
-function irParaDia(di){ const el=document.getElementById('dia-'+di);
-  if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); }
+function irParaDia(di){ scrollSuave(document.getElementById('dia-'+di)); }
+/* Régua de dias: um botão por dia com o estado do planeamento em ponto —
+   verde completo, amarelo a meio, cinzento por planear. Cola ao cabeçalho. */
+function reguaDias(dates){
+  const hojeISO=iso(new Date()), w=planWeek();
+  const INI=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+  return `<div class="dias-nav" role="navigation" aria-label="Saltar para o dia">${dates.map((date,di)=>{
+    const dia=w[di]||{};
+    const n=MEALK.filter(mk=>dia[mk]&&dia[mk].r).length;
+    const cls=n===MEALK.length?'dt-ok': n>0?'dt-warn':'dt-line';
+    return `<button class="dia-salto ${date===hojeISO?'hoje':''}" onclick="irParaDia(${di})"
+      aria-label="${DAYN[di]}, ${n} de ${MEALK.length} refeições planeadas">
+      <span>${INI[di]}</span><span class="dot ${cls}" aria-hidden="true"></span></button>`;
+  }).join('')}</div>`;
+}
 /* Resumo «semana em números»: uma linha por membro, kcal planeadas por dia vs
    a linha do alvo — a mesma assinatura tracejada da barra da Atividade. */
 function cartaoSemana(dates){
   const INICIAIS=['S','T','Q','Q','S','S','D'];
-  return `<div class="card" id="pla-resumo" style="margin-bottom:16px" data-col="pla-resumo-card">
+  return `<div class="card card--capa" id="pla-resumo" style="margin-bottom:16px" data-col="pla-resumo-card">
     <h2>Semana em números ${dica('semana')}</h2>
     ${S.members.map(m=>{
       const alvo=targetKcal(m);
@@ -5289,17 +5597,21 @@ function renderPlano(){
     🍚 <b>Acompanhamentos</b> ${dica('acompanhamento')} ao almoço e ao jantar, por baixo do prato, há uma linha tracejada para escolher o que vai ao lado.</p>
   ${cartaoSugestoes()}
   ${cartaoSemana(dates)}
+  ${reguaDias(dates)}
   <div class="grid gdias">
   ${dates.map((date,di)=>{
     const anyCheat=S.members.some(m=>isCheat(m.id,date));
+    const alertas=alertasDoDia(di,date);
+    const ehHoje=date===iso(new Date());
     const pontos=S.members.map(m=>{ const e=estadoDia(m,di,dates);
       const cls=e.st==='cheat'?'dt-party': e.st==='vazio'||e.st==='incompleto'?'dt-line':'dt-'+e.st;
       const tt=e.st==='cheat'? esc(m.nome.split(' ')[0])+': cheat day'
         : esc(m.nome.split(' ')[0])+': '+e.kcal+' kcal ('+e.refs+'/4, alvo '+Math.round(targetKcal(m))+')';
       return `<i class="dot ${cls}" title="${tt}"></i>`; }).join('');
-    return `<div class="day ${anyCheat?'cheat-any':''}" id="dia-${di}">
+    return `<div class="day ${anyCheat?'cheat-any':''} ${ehHoje?'hoje':''} ${alertas.length?'tem-alerta':''}" id="dia-${di}">
       <div class="dhead"><b>${DAYN[di]}</b><span class="sub">${fmtShort(date)}</span>
         <span style="margin-left:auto;display:inline-flex;align-items:center">${pontos}</span>
+        ${alertas.length? `<button class="pill bad dia-alerta" onclick="scrollSuave(document.getElementById('meal-${di}-${alertas[0]}'),'center')">🚨 ${alertas.length===1?'1 alerta':alertas.length+' alertas'}</button>`:''}
         ${anyCheat?'<span class="pill" style="background:var(--party-soft);color:var(--party)">🎉</span>':''}</div>
       <div class="meal" style="background:var(--bg)">
         <div class="mtitle" style="color:var(--party)">Cheat day</div>
@@ -5389,7 +5701,8 @@ function atualizarCompras(){
     const dn=lis.filter(li=>li.classList.contains('done')).length;
     const completo=lis.length&&dn===lis.length;
     el.textContent=(completo?'✓ ':'')+dn+'/'+lis.length;
-    el.setAttribute('class', completo?'sub f-ok-txt':'sub');
+    el.setAttribute('class', completo?'sub cat-conta f-ok-txt':'sub cat-conta');
+    if(el.parentElement) el.parentElement.classList.toggle('feita',!!completo);
   });
 }
 function fmtQ(it){ return fmtQtd(it.q,it.u); }
@@ -5431,14 +5744,14 @@ function renderCompras(){
     <span class="sub">Semana de ${fmtShort(dates[0])} a ${fmtShort(dates[6])} · ${plural(meals,'refeição planeada','refeições planeadas')} ·
       <span id="co-num" ${completo?'class="f-ok-txt"':''}>${completo?'tudo comprado ✓':done+'/'+items.length+' comprados'}</span></span></div>
     <button class="btn ghost small" onclick="copyList()">📋 Copiar lista</button></div>
-  <div class="mbar" style="height:10px;max-width:640px;margin:8px 0 14px">
-    <div id="co-bar" style="background:${completo?'var(--ok)':'var(--accent)'};width:${items.length? done/items.length*100:0}%"></div></div>
+  <div class="co-topo"><div class="mbar" style="height:10px;max-width:640px;margin:0">
+    <div id="co-bar" style="background:${completo?'var(--ok)':'var(--accent)'};width:${items.length? done/items.length*100:0}%"></div></div></div>
   <div class="card" style="max-width:640px">
     ${grouped.filter(([,arr])=>arr.length).map(([cat,arr])=>{
       const iSec=grupos.indexOf(cat);
       const dnSec=arr.filter(it=>bought[it.n+'|'+it.u]).length, okSec=dnSec===arr.length&&arr.length;
       return `
-      <div class="cat-h">${ICO_CAT[cat]||''} ${cat} <span id="co-sec-${iSec}" class="sub ${okSec?'f-ok-txt':''}" style="float:right">${okSec?'✓ ':''}${dnSec}/${arr.length}</span></div>
+      <div class="cat-h ${okSec?'feita':''}">${ICO_CAT[cat]||''} ${cat} <span id="co-sec-${iSec}" class="sub cat-conta ${okSec?'f-ok-txt':''}">${okSec?'✓ ':''}${dnSec}/${arr.length}</span></div>
       <ul class="shop">${arr.sort((a,b)=>a.n.localeCompare(b.n)).map(it=>{
         const key=it.n+'|'+it.u, ok=bought[key];
         return `<li class="${ok?'done':''}" data-sec="${iSec}"><label><input type="checkbox" ${ok?'checked':''} onchange="toggleBought('${esc(key).replace(/'/g,"\\'")}',this)">
@@ -5618,6 +5931,10 @@ function aplicarEcra(){
   r.setAttribute('data-dispositivo',d);
   const info=document.getElementById('ecraInfo');
   if(info) info.textContent=nomeEcra();
+  /* mudar de orientação pode mudar a nav de sítio (barra inferior ↔ pills)
+     e a altura do cabeçalho — reflete-se já, sem esperar por um render */
+  if(mudou && typeof pintaNav==='function' && document.getElementById('nav')) pintaNav();
+  if(typeof medirTopo==='function') medirTopo();
   return mudou;
 }
 /* Ao rodar, o iOS mantém a posição de scroll em pixéis: como a página fica com
@@ -5986,7 +6303,7 @@ function renderDados(){
     telemóvel, exporta um ficheiro de cópia de vez em quando — é ele que devolve tudo ao estado em que estava.</p>
 
   <div class="grid g2">
-    <div class="card">
+    <div class="card card--quieto">
       <h3>Gravação automática</h3>
       <div style="margin-top:10px">
         <div class="kv"><span>Última gravação</span><b>${dataHora(S.meta.gravadoEm)}</b></div>
@@ -6062,7 +6379,10 @@ function renderDados(){
    fora do #main, por isso sobrevive aos redesenhos; o destaque é reposto
    depois de cada render, porque o innerHTML destrói o elemento anterior. */
 const TOUR=[
-  {tab:'familia', sel:'main .card',
+  {tab:'familia', sel:'#hoje',
+   t:'O dia de hoje, primeiro',
+   d:'A app abre a responder à pergunta do dia: o que está planeado para hoje, para quem, e o que falta comprar. Um toque leva ao plano de hoje ou às compras — sem procurar nada.'},
+  {tab:'familia', sel:'main .grid.g2 .card',
    t:'Perfis da família',
    d:'Cada pessoa tem aqui o seu perfil. Os sliders de peso, altura e idade mexem em direto no índice de massa corporal, no metabolismo basal e no gasto diário — e a fase da vida (bebé, criança, adolescente, adulto ou gravidez) escolhe as fórmulas certas para cada idade.'},
   {tab:'familia', sel:'.card-alergia',
@@ -6172,8 +6492,13 @@ function pintaTour(){
   /* o alvo pode não existir neste estado (sem membros, sem plano) — o passo
      continua a fazer sentido pelo texto, só não há halo */
   const alvo=p.sel? document.querySelector(p.sel) : null;
-  if(alvo){ alvo.classList.add('tour-alvo');
-    try{ alvo.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){ alvo.scrollIntoView(); } }
+  if(alvo){
+    /* o alvo pode viver dentro de um cartão que o utilizador fechou —
+       abre-se para a visita, sem mexer na memória de colapso */
+    let no=alvo.closest('.card[data-col]');
+    while(no){ no.classList.remove('col-fechado'); no=no.parentElement && no.parentElement.closest('.card[data-col]'); }
+    alvo.classList.add('tour-alvo');
+    scrollSuave(alvo,'center'); }
 }
 /* Família de exemplo para a visita ter conteúdo real por baixo. Só é oferecida
    quando não há dados nenhuns, por isso nunca escreve por cima de nada. */
@@ -6228,8 +6553,7 @@ function render(){
      dela, repondo dois passos atrás. Redesenhar significa que o gesto
      acabou, por isso é aqui que se compromete o que ficou pendente. */
   if(estadoAnterior!==null && instantaneo()!==estadoAnterior) save();
-  document.getElementById('nav').innerHTML = TABS.map(([k,v])=>
-    `<button class="${S.ui.tab===k?'on':''}" onclick="go('${k}')">${v}</button>`).join('');
+  pintaNav();
   const el=document.getElementById('main');
   el.innerHTML = S.ui.tab==='atividade'? renderAtividade()
     : S.ui.tab==='nutricao'? renderNutricao()
@@ -6242,8 +6566,8 @@ function render(){
     : renderFamilia();
   /* semeia os valores que só o atualizador escreve (pill de ritmo, etc.) */
   if(S.ui.tab==='nutricao' && S.members.length) atualizarNutricao();
-  montaColapsaveis(); pintaAura();
-  paintSave(); pintaHist(); pintaTour();
+  montaColapsaveis(); pintaAura(); montaMembrosFixos();
+  paintSave(); pintaHist(); pintaTour(); medirTopo();
 }
 /* Ctrl+Z / Ctrl+Shift+Z (ou ⌘ no Mac). Dentro de um campo de texto não se
    intercepta nada — aí o desfazer que faz sentido é o do próprio campo. */

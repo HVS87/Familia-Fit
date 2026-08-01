@@ -12,6 +12,14 @@ A página de abertura tem uma **visita guiada** de 22 passos que percorre os nov
 
 ## Aspeto
 
+A interface segue a ideia de um **caderno de família português**, não de um dashboard genérico: serifa editorial (Iowan/Palatino/Georgia, sem fontes externas) reservada a títulos e números de destaque sobre uma UI de sistema disciplinada, **ícones de linha desenhados no mesmo traço dos gráficos** da app, e a cor de acento a significar sempre «agora» — o separador ativo, o dia de hoje, o membro selecionado.
+
+A orientação nasce da hierarquia: cada separador abre com um **cartão-capa** (sombra e um gradiente suave do acento) e o detalhe fica em cartões quietos. O separador Família abre com o cartão **«Hoje»** — o que está planeado para hoje, para quem, alertas de alergia do próprio dia e quantos itens faltam comprar, com um toque a levar ao sítio certo.
+
+**No telemóvel ao alto, a navegação desce para junto do polegar**: os quatro separadores do dia a dia (Família, Nutrição, Plano, Compras) numa barra fixa em baixo e o resto numa folha «Mais». No plano, uma **régua de dias** cola ao cabeçalho — um botão por dia com o estado do planeamento em ponto e o dia de hoje vestido de acento; o seletor de membro acompanha o scroll em Atividade e Nutrição; e a lista de compras ganha corredores-carimbo colados ao topo com contador por secção, quantidades em letra de talão e alvos de toque de supermercado. Os selects do plano dizem o estado de relance: por escolher é um convite tracejado, escolhido é sólido e com peso.
+
+### Temas
+
 Seis paletas — **Azulejo** (azul de louça e terracota), **Alecrim** (verdes de horta), **Figo** (roxos e magentas), **Maré** (azuis-esverdeados), **Brasa** (laranjas quentes) e **Tinta** (monocromático de alto contraste) — cada uma com modo claro e escuro. A paleta muda os acentos e o tom dos neutros; o modo é independente e pode seguir o sistema, mudando sozinho ao anoitecer. Escolhe-se em **Dados → Aspeto**.
 
 O contraste é medido, não estimado: cada cor que serve de texto foi passada pelo cálculo da WCAG contra o fundo onde assenta, nas doze combinações de paleta e modo, e todas chegam aos 4,5:1 — botões, chips, pills, etiquetas e números. Os textos e os gráficos também são verificados contra sobreposições: uma varredura compara linha a linha as caixas de todos os elementos com texto, incluindo os rótulos dentro dos SVG, em vários pesos, alturas e objetivos, e a três larguras de ecrã.
