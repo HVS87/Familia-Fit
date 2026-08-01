@@ -297,6 +297,48 @@ html[data-dispositivo="telefone"][data-orient="retrato"] .fab{bottom:calc(84px +
 .desliza-corpo{position:relative;background:var(--bg);border-radius:var(--r-sm)}
 @media (prefers-reduced-motion: no-preference){ .desliza-corpo.volta{transition:transform .16s ease-out} }
 
+/* ===== MODO COZINHA ===== */
+.cozinha{position:fixed;inset:0;z-index:66;background:var(--bg);display:flex;flex-direction:column}
+.cozinha-topo{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--card);
+  border-bottom:1px solid var(--line);flex:none}
+.cozinha-corpo{flex:1;overflow:auto;padding:22px 20px;display:flex;flex-direction:column;justify-content:center;
+  max-width:640px;margin:0 auto;width:100%}
+.coz-t{font-size:clamp(24px,6vw,34px);margin-bottom:10px}
+.coz-d{font-size:clamp(17px,4.4vw,21px);line-height:1.5}
+.coz-ing{list-style:none;padding:0;margin:0}
+.coz-ing li{margin-bottom:8px}
+.coz-ing label{display:flex;align-items:center;gap:14px;min-height:56px;padding:8px 14px;font-size:17px;
+  border:1px solid var(--line);border-radius:var(--r-sm);background:var(--card);cursor:pointer}
+.coz-ing li.done label{color:var(--mut);text-decoration:line-through;text-decoration-color:var(--ok)}
+.coz-ing input{width:24px;height:24px;flex:none;accent-color:var(--accent)}
+.cozinha-fundo{display:flex;align-items:center;gap:10px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+  background:var(--card);border-top:1px solid var(--line);flex:none}
+.cozinha-fundo .btn{min-height:50px}
+
+/* ===== TEMPORIZADORES ===== */
+.timers{position:fixed;z-index:67;left:0;right:0;bottom:0;display:flex;gap:8px;justify-content:center;
+  padding:8px max(8px,env(safe-area-inset-left)) calc(8px + env(safe-area-inset-bottom));pointer-events:none;flex-wrap:wrap}
+html[data-dispositivo="telefone"][data-orient="retrato"] .timers{bottom:calc(70px + env(safe-area-inset-bottom))}
+.timer{pointer-events:auto;display:flex;flex-direction:column;align-items:center;gap:0;
+  background:var(--elev);border:1px solid var(--line);border-radius:999px;padding:6px 14px;cursor:pointer;
+  box-shadow:var(--shadow);min-height:44px;color:var(--ink)}
+.timer b{font:700 15px/1.1 var(--fonte-display);font-variant-numeric:tabular-nums}
+.timer span{font-size:10px;color:var(--mut)}
+.timer.pronto{background:var(--ok);border-color:var(--ok);color:#fff}
+.timer.pronto span{color:#fff;opacity:.85}
+@media (prefers-reduced-motion: no-preference){ .timer.pronto{animation:pisca 1s ease-in-out infinite}
+  @keyframes pisca{ 50%{ filter:brightness(1.25) } } }
+
+/* ===== DA ÉPOCA E CONVIDADOS ===== */
+.tag.epoca{border-color:var(--ok);color:var(--ok)}
+.preco{display:inline-flex;align-items:center;gap:5px;margin-left:auto;flex:none}
+.preco input{width:76px;text-align:right;padding:4px 6px;font-size:13px}
+.shop li:has(.preco){display:flex;align-items:center;gap:8px}
+.conv-linha{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px}
+.sobra-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--ok);
+  border-radius:999px;padding:4px 12px;background:color-mix(in srgb,var(--ok) 10%,var(--card));
+  cursor:pointer;font-size:13px;font-weight:600;color:var(--ink)}
+
 /* ===== CRACHÁS DE PENDENTES ===== */
 nav button{position:relative}
 .cracha{position:absolute;top:4px;right:8px;min-width:17px;height:17px;border-radius:999px;
@@ -1152,10 +1194,61 @@ function migraRegistos(s){
   });
   s.regAtiv=(Array.isArray(s.regAtiv)? s.regAtiv : []).map(r=>limparRegAtiv(r,ids)).filter(Boolean);
   s.regRef =(Array.isArray(s.regRef)?  s.regRef  : []).map(r=>limparRegRef(r,ids)).filter(Boolean);
+  s.sobras =(Array.isArray(s.sobras)?  s.sobras  : []).map(limparSobra).filter(Boolean).slice(0,200);
+  s.precos = limparPrecos(s.precos);
+  s.festas = limparFestas(s.festas);
+  s.casa   = limparCasa(s.casa);
+  /* convidados de datas passadas saem sozinhos do plano */
+  limparConvidadosEm(s);
   if(!s.meta.desdeRegisto || !dataValida(s.meta.desdeRegisto)) s.meta.desdeRegisto=iso(new Date());
   s.members.forEach(m=>{ const a=s.medicoes[m.id];
     if(a&&a.length){ const h=iso(new Date());
       for(let i=a.length-1;i>=0;i--) if(a[i].d<=h){ m.peso=a[i].p; break; } } });
+}
+function limparPrecos(o){
+  const out={};
+  if(!o||typeof o!=='object') return out;
+  const cat=catalogoIngredientes();
+  Object.keys(o).slice(0,2000).forEach(k=>{
+    if(cat.indexOf(k)<0) return;
+    const v=parseFloat(o[k]&&o[k].v);
+    if(!isFinite(v)||v<=0||v>10000) return;
+    out[k]={v:Math.round(v*100)/100, u: unidadeDe(k)};
+  });
+  return out;
+}
+function limparFestas(a){
+  if(!Array.isArray(a)) return [];
+  return a.map(f=>{ if(!f||typeof f!=='object') return null;
+    if(!/^\d{2}-\d{2}$/.test(String(f.md||''))) return null;
+    const n=String(f.n||'').trim().slice(0,40); if(!n) return null;
+    return {id:limparId(f.id), md:f.md, n};
+  }).filter(Boolean).slice(0,40);
+}
+function limparCasa(c){
+  if(!c||typeof c!=='object') return {nome:'',lema:''};
+  return {nome:String(c.nome||'').slice(0,40), lema:String(c.lema||'').slice(0,90)};
+}
+/* Convidados são de uma refeição e de um dia: passada a data, saem. */
+function limparConvidadosEm(s){
+  const h=iso(new Date());
+  Object.keys(s.plans||{}).forEach(wk=>{
+    if(!dataValida(wk)) return;
+    const dates=weekDates(wk);
+    Object.keys(s.plans[wk]||{}).forEach(di=>{
+      MEALK.forEach(mk=>{ const meal=s.plans[wk][di]&&s.plans[wk][di][mk]; if(!meal) return;
+        if(Array.isArray(meal.conv)){
+          if(dates[di]<h){ delete meal.conv; }
+          else meal.conv=meal.conv.map(c=>{ if(!c||typeof c!=='object') return null;
+            const al=(Array.isArray(c.al)? c.al : []).filter(k=>temChave(RESTR,k)&&ehAlergenio(k));
+            const n=clampNum(Math.round(parseFloat(c.n)||0),0,12); if(!n) return null;
+            return {id:limparId(c.id), t: c.t==='crianca'?'crianca':'adulto', n, al};
+          }).filter(Boolean).slice(0,8);
+        }
+        if(Array.isArray(meal.marmita)) meal.marmita=meal.marmita.filter(id=>(meal.m||[]).indexOf(id)>=0);
+      });
+    });
+  });
 }
 const ESTADOS_REG=['feita','falhada','agendada'];
 function limparRegAtiv(r,ids){
@@ -2678,6 +2771,10 @@ function blank(){ return {members:[],cheats:{},plans:{},bought:{},prefCuisine:'t
      número solto e passa a ter história. regAtiv/regRef: o que foi mesmo
      feito e comido, por oposição ao plano, que é o que se tenciona fazer. */
   medicoes:{}, regAtiv:[], regRef:[],
+  /* sobras: o tacho que dá para dois dias. precos: o que o talão disse, para
+     a app estimar custos sem inventar um único cêntimo. festas: as datas da
+     casa que não são aniversários. */
+  sobras:[], precos:{}, festas:[], casa:{nome:'',lema:''},
   ui:{tab:'familia',mid:null,cuis:'todas',soComp:false,mealF:'todas',dietaF:'todas',busca:'',editor:null,
       objForm:{membros:[],tipo:'perder',delta:5,semanas:12,split:50,desporto:null,banda:2},
       objExpandido:null, objAdj:null, celebrando:null, tourPasso:null, tourVisto:false,
@@ -2686,7 +2783,8 @@ function blank(){ return {members:[],cheats:{},plans:{},bought:{},prefCuisine:'t
       sug:{membros:null,ref:'a',teto:true,cuis:'todas',verFora:false}, porcoes:null,
       histAtiv:null, histRef:null, janelaPeso:'mes', linhasPeso:{ativ:false,kcal:false},
       formAtiv:null, formRef:null, medForm:null, comprasConf:null,
-      densidade:'folgado', sazonal:false, anim:true, folha:null, mercado:false, modal:null},
+      densidade:'folgado', sazonal:false, anim:true, folha:null, mercado:false, modal:null,
+      cozinha:null, precos:false, soEpoca:false, convAberto:null},
   week:mondayISO(new Date()),
   meta:{gravadoEm:null,exportadoEm:null,semCopia:false,avisarAoSair:true,desdeRegisto:null}}; }
 let S = load();
@@ -2720,7 +2818,8 @@ const UNDO_MAX=30;
 let pilhaUndo=[], pilhaRedo=[], estadoAnterior=null, ultimaDesc=null;
 function instantaneo(){ return JSON.stringify({members:S.members, cheats:S.cheats, plans:S.plans,
   bought:S.bought, week:S.week, prefCuisine:S.prefCuisine, objetivos:S.objetivos, despensa:S.despensa,
-  receitas:S.receitas, medicoes:S.medicoes, regAtiv:S.regAtiv, regRef:S.regRef}); }
+  receitas:S.receitas, medicoes:S.medicoes, regAtiv:S.regAtiv, regRef:S.regRef,
+  sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa}); }
 function aplicaInstantaneo(js){
   const d=JSON.parse(js);
   S.members=d.members; S.cheats=d.cheats; S.plans=d.plans; S.bought=d.bought;
@@ -2729,6 +2828,10 @@ function aplicaInstantaneo(js){
   S.medicoes=d.medicoes&&typeof d.medicoes==='object'? d.medicoes : {};
   S.regAtiv=Array.isArray(d.regAtiv)? d.regAtiv : [];
   S.regRef=Array.isArray(d.regRef)? d.regRef : [];
+  S.sobras=Array.isArray(d.sobras)? d.sobras : [];
+  S.precos=d.precos&&typeof d.precos==='object'? d.precos : {};
+  S.festas=Array.isArray(d.festas)? d.festas : [];
+  S.casa=d.casa&&typeof d.casa==='object'? d.casa : {nome:'',lema:''};
   sincronizaReceitas();
   S.members.forEach(normalizaMembro);
   if(!S.members.some(m=>m.id===S.ui.mid)) S.ui.mid=S.members[0]? S.members[0].id : null;
@@ -3574,6 +3677,13 @@ const DICAS={
   alergias:'As catorze categorias de declaração obrigatória do anexo II do Regulamento (UE) n.º 1169/2011 — a lista que se aplica em Portugal, fiscalizada pela ASAE e com a DGAV como autoridade competente. Uma receita com um ingrediente destes deixa de ser sugerida a quem o tem marcado, e fica assinalada a vermelho onde apareça. Nota: os frutos de casca rija são uma lista fechada de oito, onde a castanha portuguesa e o pinhão não entram; o amendoim é categoria à parte, por ser leguminosa. Isto ajuda a planear e não substitui ler o rótulo nem perguntar num restaurante.',
   porcoes:'As receitas estão escritas para uma pessoa. Este número multiplica as quantidades de todos os ingredientes — é o que se leva para a cozinha.',
   editorReceitas:'Escreve os ingredientes e o número de doses que a receita rende: os macros por dose são calculados a partir da composição de cada ingrediente, e as etiquetas de dieta saem dos números e do que a receita leva dentro. Só entram ingredientes do catálogo — é isso que faz a receita falar com a despensa e com a lista de compras.',
+  sobras:'O jantar de hoje é o almoço de amanhã em quase todas as casas. Ao confirmar uma refeição, a app pergunta se sobrou: a sobra fica no frigorífico durante três dias, com os macros que já se sabiam da receita, e come-se com um toque — sem cozinhar, sem comprar e sem duplicar contas.',
+  marmitas:'Qualquer almoço se pode marcar «em marmita», pessoa a pessoa. Na véspera à noite o cartão «Hoje» lembra-o, com a dose já escalada a cada um, os alergénios da escola assinalados e as sobras disponíveis para a encher.',
+  epoca:'Que ingredientes estão na época em Portugal, este mês — carapau no verão, grelos no inverno, cereja em junho. A tabela é local e o selo muda sozinho com o calendário: comprar na época é mais barato, mais fresco e mais saboroso.',
+  custo:'Os preços são os do teu talão — a app nunca inventa um cêntimo. Com eles estima o custo por dose de cada receita, o da semana e o talão previsto da lista de compras, dizendo sempre quantos itens ficaram por preço.',
+  lote:'As preparações-base que a semana repete em dois ou mais dias, somadas para uma sessão única. As bases são uma lista curta e explícita (arroz, grão, feijão, batata, massa, refogado, legumes assados, frango) — a app não adivinha «preparação-base» pelo nome de um ingrediente, porque isso daria disparates.',
+  cozinha:'Um passo por vista, em letra grande, com as quantidades já escaladas a quem se senta à mesa. O ecrã fica aceso enquanto durar, os temporizadores sobrevivem a fechar a app (guardam o instante-alvo, não uma contagem) e no fim propõe descontar o que se usou na despensa. Sem servidor não há avisos com a app fechada — o alarme toca com ela aberta, e isso diz-se em vez de se fingir.',
+  convidados:'Mais gente à mesa sem criar perfis: as doses, os acompanhamentos e a lista de compras escalam já, e as alergias do convidado entram nos alertas e nas sugestões só naquela refeição. Passada a data, os convidados saem sozinhos do plano.',
   mesaCheia:'Uma refeição conta como «mesa cheia» quando toda a gente que estava prevista para ela confirmou que comeu. Não é uma pontuação: é o retrato de um hábito que os macros e as calorias escondem — comer juntos.',
   balanca:'Num prato o défice que veio da mesa, no outro o gasto que veio do movimento, nos últimos catorze dias com registo. O braço inclina com o que ficou REGISTADO, não com o que o plano previa — e sem registos suficientes a balança aparece pousada, porque um desenho não pode afirmar um equilíbrio que os dados não sustentam.',
   densidade:'«Folgado» é o espaçamento de sempre, bom para aprender. «Cerrado» aperta o conteúdo para caber mais no ecrã, sem nunca encolher os alvos de toque da barra do polegar — serve a quem já conhece a app e gere a semana de cinco pessoas.',
@@ -3656,6 +3766,7 @@ document.addEventListener('click',e=>{
 document.addEventListener('keydown',e=>{
   if(e.key!=='Escape') return;
   /* o que está por cima fecha primeiro */
+  if(S.ui.cozinha){ fecharCozinha(); return; }
   if(S.ui.mercado){ fecharMercado(); return; }
   if(folhaMesa()){ fecharFolha(); return; }
   if(modalAberto()){ fecharModal(); return; }
@@ -3933,6 +4044,427 @@ function montaMembrosFixos(){
   });
 }
 
+/* ================= SOBRAS =================
+   O jantar de hoje é o almoço de amanhã em quase todas as casas portuguesas.
+   Uma sobra é meia dose ou duas doses do que se cozinhou, guardada com a data
+   e com os macros que já se sabiam — não é um ingrediente novo, é a mesma
+   receita a viver mais dois dias. */
+const DIAS_SOBRA=3;
+function sobrasVivas(){
+  const h=hojeISO();
+  return (S.sobras||[]).filter(s=>s.doses>0 && diasEntre(s.d,h)<=DIAS_SOBRA && s.d<=h)
+    .sort((a,b)=> a.d<b.d? -1 : 1);
+}
+function limparSobra(x){
+  if(!x||typeof x!=='object') return null;
+  if(!dataValida(x.d) || x.d>hojeISO()) return null;
+  const rec=RECIPES.find(r=>r.id===x.r); if(!rec) return null;
+  const ac=[]; (Array.isArray(x.ac)? x.ac:[]).forEach(id=>{ const r=RECIPES.find(y=>y.id===id);
+    if(r && ehAcompanhamento(r) && ac.indexOf(id)<0 && ac.length<MAX_AC) ac.push(id); });
+  return {id:limparId(x.id), d:x.d, r:x.r, ac, doses:clampNum(parseFloat(x.doses)||0,0,12),
+    mk: MEALK.indexOf(x.mk)>=0? x.mk : 'j'};
+}
+function guardarSobra(d,mk,rid,ac,doses){
+  const s=limparSobra({id:uid(), d, mk, r:rid, ac, doses});
+  if(!s || !(s.doses>0)) return null;
+  if(!Array.isArray(S.sobras)) S.sobras=[];
+  /* a mesma receita no mesmo dia junta-se, em vez de criar duas entradas */
+  const igual=S.sobras.find(x=>x.d===d && x.r===rid);
+  if(igual){ igual.doses=Math.min(12, igual.doses+s.doses); return igual; }
+  S.sobras.push(s); return s;
+}
+function consumirSobra(id,doses){
+  const s=(S.sobras||[]).find(x=>x.id===id); if(!s) return false;
+  s.doses=Math.max(0, Math.round((s.doses-(doses||1))*100)/100);
+  if(s.doses<=0.01) S.sobras=S.sobras.filter(x=>x.id!==s.id);
+  return true;
+}
+function macrosSobra(s){
+  const rec=RECIPES.find(r=>r.id===s.r); if(!rec) return {k:0,c:0,p:0,f:0};
+  const acs=(s.ac||[]).map(id=>RECIPES.find(x=>x.id===id)).filter(Boolean);
+  return {k:rec.k+somaAc(acs,'k'), c:rec.c+somaAc(acs,'c'), p:rec.p+somaAc(acs,'p'), f:rec.f+somaAc(acs,'f')};
+}
+function comerSobra(mid,id){
+  const s=(S.sobras||[]).find(x=>x.id===id); if(!s) return;
+  const h=hojeISO();
+  /* a sobra come-se na refeição do dia que ainda não tem registo */
+  const jaTem=(S.regRef||[]).filter(r=>r.mid===mid&&r.d===h).map(r=>r.mk);
+  const mk=MEALK.find(k=>jaTem.indexOf(k)<0) || 'a';
+  registarRefeicao({d:h, mk, r:s.r, ac:s.ac, dose:1, sobra:true}, [mid], 'feita');
+  consumirSobra(id,1);
+  carimboAlvo='ref:'+h+':'+mk;
+  save('sobra comida');
+  const rec=RECIPES.find(x=>x.id===s.r);
+  flash('ok',(rec?rec.n:'Sobra')+' registada ao '+nomeRefeicao(mk).toLowerCase()+' — sem cozinhar nem comprar nada.');
+  render();
+}
+function perguntarSobra(d,mk,rid,ac){
+  S.ui.folha={tipo:'sobra', d, mk, r:rid, ac:ac||[], doses:1};
+  saveMeta(); render();
+}
+function setSobraDoses(v){ const f=folhaMesa(); if(!f) return; f.doses=clampNum(parseFloat(v)||0,0,12); saveMeta(); render(); }
+function guardarFolhaSobra(){
+  const f=folhaMesa(); if(!f) return;
+  if(f.doses>0){ guardarSobra(f.d,f.mk,f.r,f.ac,f.doses);
+    S.ui.folha=null; save('sobra guardada');
+    flash('ok', nPT(f.doses,2).replace(',00','')+' dose'+(f.doses===1?'':'s')+' no frigorífico — a app lembra-se durante '+DIAS_SOBRA+' dias.');
+  } else { S.ui.folha=null; saveMeta(); }
+  render();
+}
+function folhaSobraHtml(f){
+  const rec=RECIPES.find(x=>x.id===f.r);
+  const m=macrosSobra(f);
+  return `<div class="mfundo" onclick="fundoFolha(event)" style="align-items:flex-end;padding:0">
+    <div class="folha" role="dialog" aria-modal="true" aria-labelledby="fs-t">
+      <div class="folha-pega" aria-hidden="true"></div>
+      <span class="lbl">${nomeRefeicao(f.mk)} · ${rotuloData(f.d)}</span>
+      <h2 id="fs-t" style="margin-top:2px">Sobrou?</h2>
+      <p class="sub" style="margin-top:4px">${esc(rec?rec.n:'')} — o que sobrar fica no frigorífico durante ${DIAS_SOBRA} dias, com os macros já sabidos, e aparece nas sugestões de amanhã.</p>
+      <div class="row" style="margin-top:12px">
+        ${[0,0.5,1,2].map(x=>`<button class="chip ${f.doses===x?'on':''}" onclick="setSobraDoses(${x})">${x===0?'Não sobrou':x===0.5?'Meia dose':plural(x,'dose','doses')}</button>`).join('')}
+      </div>
+      ${f.doses>0? `<p class="sub" style="margin-top:10px">${Math.round(m.k*f.doses)} kcal guardadas · come-se com um toque no cartão «Hoje».</p>`:''}
+      <div class="row" style="margin-top:14px;justify-content:flex-end">
+        <button class="btn ghost small" onclick="fecharFolha()">Agora não</button>
+        <button class="btn" onclick="guardarFolhaSobra()">${f.doses>0?'Guardar no frigorífico':'Não sobrou'}</button>
+      </div>
+    </div></div>`;
+}
+
+/* ================= DA ÉPOCA =================
+   Tabela local: que ingredientes estão na época em Portugal, mês a mês.
+   Comprar na época é mais barato, mais fresco e mais saboroso — e dá à app
+   critério de mercado sem precisar de rede nenhuma. */
+const EPOCA={
+  /* peixe e marisco */
+  'Sardinha':[5,6,7,8,9], 'Carapau':[5,6,7,8,9,10], 'Cavala':[3,4,5,6,7,8],
+  'Chicharro':[6,7,8,9], 'Sarda':[3,4,5,6,7,8], 'Robalo':[1,2,3,10,11,12],
+  'Dourada':[5,6,7,8,9], 'Polvo':[1,2,3,4,10,11,12], 'Choco':[3,4,5,6],
+  'Amêijoa':[5,6,7,8,9], 'Berbigão':[5,6,7,8], 'Sapateira':[9,10,11,12],
+  'Lula':[6,7,8,9,10], 'Pescada':[1,2,3,4,11,12], 'Faneca':[1,2,11,12],
+  /* hortícolas */
+  'Grelos':[1,2,3,11,12], 'Couve portuguesa':[1,2,3,10,11,12], 'Couve-galega':[1,2,3,11,12],
+  'Nabo':[1,2,3,11,12], 'Couve-flor':[1,2,3,4,10,11,12], 'Brócolos':[1,2,3,4,10,11,12],
+  'Espinafres':[1,2,3,4,10,11,12], 'Alho-francês':[1,2,3,10,11,12], 'Cenoura':[1,2,3,4,5,6,7,8,9,10,11,12],
+  'Favas':[4,5,6], 'Ervilhas':[4,5,6], 'Espargos':[3,4,5], 'Feijão-verde':[6,7,8,9],
+  'Tomate':[6,7,8,9], 'Pimento':[7,8,9,10], 'Beringela':[7,8,9], 'Curgete':[6,7,8,9],
+  'Pepino':[6,7,8], 'Abóbora':[9,10,11,12], 'Batata-doce':[9,10,11,12],
+  'Alface':[4,5,6,7,8,9,10], 'Rúcula':[3,4,5,9,10,11], 'Couve-roxa':[10,11,12,1,2],
+  /* fruta */
+  'Laranja':[1,2,3,4,11,12], 'Tangerina':[11,12,1,2], 'Clementina':[11,12,1],
+  'Maçã':[9,10,11,12,1,2], 'Pera':[8,9,10,11], 'Cereja':[5,6], 'Ameixa':[7,8,9],
+  'Pêssego':[6,7,8], 'Nectarina':[6,7,8], 'Melão':[7,8,9], 'Melancia':[7,8],
+  'Morango':[3,4,5,6], 'Framboesa':[6,7,8], 'Mirtilo':[6,7,8], 'Figo':[7,8,9],
+  'Uva':[8,9,10], 'Romã':[10,11], 'Castanha':[10,11,12], 'Noz':[10,11,12],
+  'Kiwi':[11,12,1,2,3], 'Banana':[1,2,3,4,5,6,7,8,9,10,11,12], 'Nêspera':[4,5],
+  'Alperce':[6,7], 'Diospiro':[10,11,12], 'Marmelo':[9,10,11],
+};
+function daEpoca(nome,mes){
+  const m=mes||(new Date().getMonth()+1);
+  /* o nome do INSA costuma ser mais comprido do que a chave («Sardinha,
+     grelhada») — basta que comece por ela */
+  const chave=Object.keys(EPOCA).find(k=>{
+    const n=semAcentos(nome).toLowerCase(), c=semAcentos(k).toLowerCase();
+    return n===c || n.indexOf(c+',')===0 || n.indexOf(c+' ')===0;
+  });
+  return chave? EPOCA[chave].indexOf(m)>=0 : false;
+}
+function ingredientesDaEpoca(r,mes){ return (r.i||[]).filter(l=>daEpoca(l[0],mes)).map(l=>l[0]); }
+function selosEpoca(r){
+  const l=ingredientesDaEpoca(r);
+  if(!l.length) return '';
+  return `<span class="tag epoca" title="Da época agora: ${esc(l.join(', '))}">🌱 da época</span>`;
+}
+function receitaDaEpoca(r){ return ingredientesDaEpoca(r).length>0; }
+
+/* ================= CUSTO =================
+   Os preços são do talão de quem usa a app; a app não inventa um cêntimo, e
+   diz sempre quantos itens ficaram por preço. */
+function precoDe(nome){ const p=(S.precos||{})[nome]; return p&&p.v>0? p : null; }
+function setPreco(nome,v,un){
+  if(!S.precos||typeof S.precos!=='object') S.precos={};
+  const val=parseFloat(String(v).replace(',','.'));
+  if(!isFinite(val)||val<=0){ delete S.precos[nome]; return; }
+  S.precos[nome]={v:Math.round(val*100)/100, u: un||unidadeDe(nome)};
+}
+/* Custo de uma lista de ingredientes escalada. Devolve o que sabe e quantos
+   itens não têm preço — um total sem essa nota seria uma mentira arredondada. */
+function custoDe(linhas,n,fator){
+  let total=0, sem=0, com=0;
+  escalaIngredientes({i:linhas},n,fator).forEach(x=>{
+    const p=precoDe(x.n);
+    if(!p){ sem++; return; }
+    com++;
+    /* €/kg e €/L contam por grama e por mililitro; a unidade conta à peça */
+    const div = (x.u==='g'||x.u==='ml')? 1000 : 1;
+    total+=p.v*x.q/div;
+  });
+  return {total:Math.round(total*100)/100, sem, com};
+}
+function custoReceita(r,n){ return custoDe(r.i, n||1); }
+function textoCusto(c){
+  if(!c.com) return 'sem preços';
+  return nPT(c.total,2)+' €'+(c.sem? ' · faltam '+c.sem : '');
+}
+
+/* ================= MARMITAS =================
+   A refeição mais planeada e menos apoiada: faz-se à pressa, à noite. */
+function marmitasDe(di,mk){ const meal=(planWeek()[di]||{})[mk]; return acIdsMarmita(meal); }
+function acIdsMarmita(meal){ return (meal&&Array.isArray(meal.marmita))? meal.marmita.slice() : []; }
+function toggleMarmita(di,mk,mid){
+  const meal=planMeal(di,mk);
+  if(!Array.isArray(meal.marmita)) meal.marmita=[];
+  const i=meal.marmita.indexOf(mid);
+  i>=0? meal.marmita.splice(i,1) : meal.marmita.push(mid);
+  meal.marmita=meal.marmita.filter(id=>meal.m.indexOf(id)>=0);
+  save('marmita'); render();
+}
+/* As marmitas de amanhã preparam-se hoje à noite: é essa a tarefa útil. */
+function marmitasDeAmanha(){
+  const amanha=addDias(hojeISO(),1), wk=mondayISO(amanha), di=diaSemana(amanha);
+  const dia=(S.plans[wk]||{})[di]||{}, out=[];
+  MEALK.forEach(mk=>{ const meal=dia[mk];
+    if(!meal||!meal.r||!Array.isArray(meal.marmita)||!meal.marmita.length) return;
+    const quem=meal.marmita.filter(id=>S.members.some(m=>m.id===id) && !isCheat(id,amanha));
+    if(quem.length) out.push({d:amanha, mk, meal, quem});
+  });
+  return out;
+}
+
+/* ================= CONVIDADOS =================
+   O almoço de domingo com os avós é a mesa portuguesa por excelência. Entram
+   como comensais temporários — doses, acompanhamentos e compras escalam — e
+   saem sozinhos quando a data passa, sem poluir a família com perfis fantasma. */
+function convidadosDe(meal){ return (meal&&Array.isArray(meal.conv))? meal.conv : []; }
+function nConvidados(meal){ return convidadosDe(meal).reduce((t,c)=>t+(parseInt(c.n,10)||0),0); }
+function addConvidado(di,mk,tipo){
+  const meal=planMeal(di,mk);
+  if(!Array.isArray(meal.conv)) meal.conv=[];
+  const ex=meal.conv.find(c=>c.t===tipo && !(c.al||[]).length);
+  if(ex) ex.n=Math.min(12,(parseInt(ex.n,10)||0)+1);
+  else meal.conv.push({id:uid(), t: tipo==='crianca'?'crianca':'adulto', n:1, al:[]});
+  save('convidados'); render();
+}
+function delConvidado(di,mk,cid){
+  const meal=planMeal(di,mk); if(!Array.isArray(meal.conv)) return;
+  const c=meal.conv.find(x=>x.id===cid); if(!c) return;
+  c.n=(parseInt(c.n,10)||0)-1;
+  if(c.n<=0) meal.conv=meal.conv.filter(x=>x.id!==cid);
+  save('convidados'); render();
+}
+function toggleAlergiaConvidado(di,mk,cid,k){
+  if(!temChave(RESTR,k)) return;
+  const meal=planMeal(di,mk); const c=(meal.conv||[]).find(x=>x.id===cid); if(!c) return;
+  if(!Array.isArray(c.al)) c.al=[];
+  const i=c.al.indexOf(k); i>=0? c.al.splice(i,1) : c.al.push(k);
+  save('alergia de convidado'); render();
+}
+/* Um convidado com alergias comporta-se como um membro para efeito de
+   sugestões e alertas — mas só naquela refeição. */
+function membrosVirtuais(meal){
+  return convidadosDe(meal).filter(c=>(c.al||[]).length).map(c=>({
+    id:'conv_'+c.id, nome: c.t==='crianca'? 'Convidada' : 'Convidado',
+    sexo:'f', idade: c.t==='crianca'? 8:40, altura:170, peso:70,
+    atividade:'sedentario', desloc:'nenhum', desportos:[], dieta:'equilibrada',
+    objetivoPct:0, restricoes:(c.al||[]).slice(), convidado:true}));
+}
+function limparConvidados(){
+  /* passada a data, os convidados saem sozinhos do plano */
+  const h=hojeISO(); let n=0;
+  Object.keys(S.plans||{}).forEach(wk=>{
+    const dates=weekDates(wk);
+    Object.keys(S.plans[wk]).forEach(di=>{
+      if(dates[di]>=h) return;
+      MEALK.forEach(mk=>{ const meal=S.plans[wk][di][mk];
+        if(meal&&Array.isArray(meal.conv)&&meal.conv.length){ delete meal.conv; n++; } });
+    });
+  });
+  return n;
+}
+
+/* ================= MODO COZINHA =================
+   O momento em que a app está mesmo na bancada: mãos ocupadas, telemóvel
+   apoiado no escorredor. Um passo por vista, em letra grande, quantidades já
+   escaladas aos comensais, e o ecrã que não se apaga a meio do refogado. */
+function passosDaReceita(r,n){
+  /* a biblioteca não traz instruções escritas; os passos derivam-se dos
+     ingredientes e do género do prato, e dizem-se como quem dita a alguém */
+  const ing=escalaIngredientes(r,n);
+  const passos=[];
+  passos.push({t:'Reunir', d:'Põe tudo à mão antes de acender o lume: '+ing.map(x=>esc(x.n)+' '+fmtQtd(x.q,x.u)).join(', ')+'.'});
+  const temAlho=ing.some(x=>/alho|cebola/i.test(x.n));
+  const temForno=/assad|forno|gratin|tarte|bolo/i.test(r.n);
+  const temGrelha=/grelhad|brasa|bife|posta|picanha|secretos|plumas|costelet/i.test(r.n);
+  const temArroz=ing.some(x=>/arroz/i.test(x.n));
+  const temMassa=ing.some(x=>/massa|esparguete|talharim|penne/i.test(x.n));
+  if(temForno) passos.push({t:'Aquecer o forno', d:'Liga o forno a 200 °C e deixa-o chegar lá enquanto preparas o resto.', min:15});
+  if(temAlho) passos.push({t:'Refogado', d:'Alourar o alho e a cebola em azeite, em lume brando, até ficarem translúcidos.', min:6});
+  if(temArroz) passos.push({t:'Arroz', d:'Junta o arroz, envolve no refogado e acrescenta o dobro do volume em água a ferver. Tapa.', min:18});
+  if(temMassa) passos.push({t:'Massa', d:'Água a ferver com sal; a massa cozinha até estar al dente.', min:9});
+  if(temGrelha) passos.push({t:'Grelhar', d:'Grelha bem quente. Não mexer antes de descolar sozinho; virar uma vez só.', min:8});
+  if(temForno) passos.push({t:'No forno', d:'Leva ao forno já quente até corar.', min:35});
+  passos.push({t:'Temperar e servir', d:'Prova, acerta o sal, e serve '+plural(n,'dose','doses')+'.'});
+  return passos;
+}
+function abrirCozinha(rid,n,ctx){
+  const r=RECIPES.find(x=>x.id===rid); if(!r) return;
+  S.ui.cozinha={r:rid, n:clampNum(n||1,1,20), passo:0, feitos:[], ctx:ctx||null};
+  saveMeta(); render(); pedirEcraAceso();
+}
+function fecharCozinha(){
+  const c=S.ui.cozinha;
+  S.ui.cozinha=null; largarEcraAceso(); saveMeta(); render();
+  if(c && c.ctx){ /* ao sair da cozinha, a refeição fica a um toque de ser validada */
+    flash('ok','Bom proveito. A refeição está pronta a confirmar no cartão «Hoje».'); }
+}
+function passoCozinha(n){
+  const c=S.ui.cozinha; if(!c) return;
+  const total=passosDaReceita(RECIPES.find(x=>x.id===c.r),c.n).length;
+  c.passo=clampNum(c.passo+n,0,total-1); saveMeta(); render();
+}
+function toggleIngredienteCozinha(i){
+  const c=S.ui.cozinha; if(!c) return;
+  const j=c.feitos.indexOf(i); j>=0? c.feitos.splice(j,1) : c.feitos.push(i);
+  saveMeta(); render();
+}
+function descontarDespensa(){
+  const c=S.ui.cozinha; if(!c) return;
+  const r=RECIPES.find(x=>x.id===c.r); if(!r) return;
+  let n=0;
+  r.i.forEach(l=>{ if(S.despensa[l[0]]){ delete S.despensa[l[0]]; n++; } });
+  save('despensa depois de cozinhar');
+  flash('ok', n? plural(n,'ingrediente saiu da despensa','ingredientes saíram da despensa')+' — marca-os outra vez quando os repuseres.'
+    : 'Nenhum destes ingredientes estava marcado na despensa.');
+  render();
+}
+function cozinhaHtml(){
+  const c=S.ui.cozinha; const r=RECIPES.find(x=>x.id===c.r); if(!r) return '';
+  const passos=passosDaReceita(r,c.n), p=passos[c.passo]||passos[0];
+  const ing=escalaIngredientes(r,c.n);
+  const custo=custoReceita(r,c.n);
+  return `<div class="cozinha" role="dialog" aria-modal="true" aria-label="Modo cozinha">
+    <div class="cozinha-topo">
+      <button class="btn ghost small" onclick="fecharCozinha()">← Sair</button>
+      <div style="flex:1;min-width:0"><b>${esc(r.n)}</b>
+        <span class="sub" style="display:block">${plural(c.n,'dose','doses')} · ${r.k*c.n} kcal${custo.com? ' · ~'+textoCusto(custo):''}</span></div>
+      <span class="pill">${c.passo+1}/${passos.length}</span>
+    </div>
+    <div class="cozinha-corpo">
+      ${c.passo===0? `<ul class="coz-ing">${ing.map((x,i)=>`<li class="${c.feitos.indexOf(i)>=0?'done':''}">
+        <label><input type="checkbox" ${c.feitos.indexOf(i)>=0?'checked':''} onchange="toggleIngredienteCozinha(${i})">
+        <span>${esc(x.n)} <b>${fmtQtd(x.q,x.u)}</b></span></label></li>`).join('')}</ul>`
+      : `<h2 class="coz-t">${esc(p.t)}</h2><p class="coz-d">${esc(p.d)}</p>
+         ${p.min? `<button class="btn" style="margin-top:16px" onclick="novoTemporizador('${esc(p.t)}',${p.min})">⏲ ${p.min} min — pôr a contar</button>`:''}`}
+    </div>
+    <div class="cozinha-fundo">
+      <button class="btn ghost" onclick="passoCozinha(-1)" ${c.passo===0?'disabled style="opacity:.4"':''}>← Anterior</button>
+      <span class="sub" style="flex:1;text-align:center">${c.passo===0? 'Ingredientes' : esc(p.t)}</span>
+      ${c.passo>=passos.length-1
+        ? `<button class="btn" onclick="descontarDespensa();fecharCozinha()">Terminei</button>`
+        : `<button class="btn" onclick="passoCozinha(1)">Seguinte →</button>`}
+    </div>
+  </div>`;
+}
+
+/* ================= TEMPORIZADORES DE TACHO =================
+   Um jantar são três tachos ao mesmo tempo. Cada temporizador guarda o
+   instante-alvo, não uma contagem: sobrevive a navegar, a recarregar e a
+   fechar a app, porque ao voltar recalcula-se pelo relógio. Sem servidor não
+   há push — o alarme toca com a app aberta, e isso diz-se em vez de se fingir. */
+let temporizadores=[], tickTimer=null;
+function novoTemporizador(nome,min){
+  const t={id:uid(), n:String(nome||'Tacho').slice(0,24), fim:Date.now()+Math.max(1,min)*60000, tocou:false};
+  temporizadores.push(t);
+  try{ localStorage.setItem('ff-timers', JSON.stringify(temporizadores)); }catch(e){}
+  arrancaTick(); pintaTemporizadores();
+  toast(t.n+': '+min+' min a contar');
+}
+function lerTemporizadores(){
+  try{ const a=JSON.parse(localStorage.getItem('ff-timers')); if(Array.isArray(a)) temporizadores=a.filter(x=>x&&x.fim>Date.now()-3600000); }catch(e){}
+  if(temporizadores.length) arrancaTick();
+  pintaTemporizadores();
+}
+function pararTemporizador(id){
+  temporizadores=temporizadores.filter(t=>t.id!==id);
+  try{ localStorage.setItem('ff-timers', JSON.stringify(temporizadores)); }catch(e){}
+  pintaTemporizadores();
+}
+function arrancaTick(){ if(tickTimer) return; tickTimer=setInterval(()=>{
+  const agora=Date.now();
+  temporizadores.forEach(t=>{ if(!t.tocou && t.fim<=agora){ t.tocou=true; alarme(); toast('⏲ '+t.n+' — está pronto'); } });
+  if(!temporizadores.length){ clearInterval(tickTimer); tickTimer=null; }
+  pintaTemporizadores();
+},1000); }
+/* Alarme gerado, sem ficheiros externos: o CSP não deixa e o offline agradece. */
+function alarme(){
+  try{
+    const Ctx=window.AudioContext||window.webkitAudioContext; if(!Ctx) return;
+    const ctx=new Ctx();
+    [0,0.28,0.56].forEach(t0=>{
+      const o=ctx.createOscillator(), g=ctx.createGain();
+      o.type='sine'; o.frequency.value=880;
+      g.gain.setValueAtTime(0.0001,ctx.currentTime+t0);
+      g.gain.exponentialRampToValueAtTime(0.22,ctx.currentTime+t0+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+t0+0.2);
+      o.connect(g); g.connect(ctx.destination); o.start(ctx.currentTime+t0); o.stop(ctx.currentTime+t0+0.24);
+    });
+    setTimeout(()=>{ try{ ctx.close(); }catch(e){} }, 1500);
+  }catch(e){}
+  try{ if(navigator.vibrate) navigator.vibrate([180,90,180]); }catch(e){}
+}
+function pintaTemporizadores(){
+  let cx=document.getElementById('timers');
+  if(!temporizadores.length){ if(cx) cx.remove(); return; }
+  if(!cx){ cx=document.createElement('div'); cx.id='timers'; cx.className='timers'; document.body.appendChild(cx); }
+  const agora=Date.now();
+  cx.innerHTML=temporizadores.map(t=>{
+    const falta=Math.max(0,Math.round((t.fim-agora)/1000));
+    const mm=Math.floor(falta/60), ss=falta%60;
+    const total=Math.max(1,(t.fim-(t.inicio||t.fim-1))/1000);
+    return `<button class="timer ${t.tocou?'pronto':''}" onclick="pararTemporizador('${t.id}')"
+      aria-label="${esc(t.n)}: ${t.tocou?'pronto':mm+' minutos e '+ss+' segundos'}. Tocar para parar.">
+      <b>${t.tocou? 'pronto' : mm+':'+String(ss).padStart(2,'0')}</b><span>${esc(t.n)}</span></button>`;
+  }).join('');
+}
+
+/* ================= DOMINGO DE LOTE =================
+   Famílias com dois empregos cozinham ao domingo. A app agrupa as preparações-
+   base que se repetem na semana e propõe uma sessão única — sem adivinhar:
+   as bases são uma lista curta e explícita, não uma heurística sobre nomes. */
+const BASES_LOTE=[
+  {k:'arroz',   n:'Arroz cozido',        re:/^arroz/i,                      un:'g'},
+  {k:'grao',    n:'Grão cozido',         re:/gr[aã]o(-de-bico)?/i,          un:'g'},
+  {k:'feijao',  n:'Feijão cozido',       re:/^feij[aã]o (?!verde)/i,        un:'g'},
+  {k:'lentilha',n:'Lentilhas cozidas',   re:/lentilha/i,                    un:'g'},
+  {k:'batata',  n:'Batatas cozidas',     re:/^batata(?!-doce)/i,            un:'g'},
+  {k:'massa',   n:'Massa cozida',        re:/^(massa|esparguete|penne|talharim|macarr)/i, un:'g'},
+  {k:'refogado',n:'Refogado base',       re:/^cebola$/i,                    un:'g'},
+  {k:'legumes', n:'Legumes assados',     re:/^(cenoura|abóbora|curgete|beringela|pimento)/i, un:'g'},
+  {k:'frango',  n:'Frango cozido/assado',re:/^(peito de frango|frango)/i,   un:'g'},
+];
+function planoDeLote(){
+  const dates=weekDates(S.week), w=S.plans[S.week]||{};
+  const bases={};
+  for(let di=0;di<7;di++) MEALK.forEach(mk=>{
+    const meal=(w[di]||{})[mk]; if(!meal||!meal.r) return;
+    const rec=RECIPES.find(x=>x.id===meal.r); if(!rec) return;
+    const n=S.members.filter(m=>meal.m.includes(m.id)&&!isCheat(m.id,dates[di])).length + nConvidados(meal);
+    if(!n) return;
+    const acs=acompsDe(meal), q=acs.length?1/acs.length:0;
+    const junta=(lista,fator)=>lista.forEach(([nome,quant,un])=>{
+      const b=BASES_LOTE.find(x=>x.re.test(nome)); if(!b) return;
+      if(!bases[b.k]) bases[b.k]={base:b, g:0, dias:[], receitas:[]};
+      bases[b.k].g+=quant*n*fator;
+      if(bases[b.k].dias.indexOf(di)<0) bases[b.k].dias.push(di);
+      if(bases[b.k].receitas.indexOf(rec.n)<0) bases[b.k].receitas.push(rec.n);
+    });
+    junta(rec.i,1); acs.forEach(x=>junta(x.i,q));
+  });
+  /* só vale a pena cozinhar em lote o que serve dois dias ou mais */
+  return Object.values(bases).filter(b=>b.dias.length>=2)
+    .sort((a,b)=>b.dias.length-a.dias.length || b.g-a.g);
+}
+
 /* ================= PENDÊNCIAS DO DIA =================
    O que a casa tem por despachar, contado uma vez e reutilizado no crachá do
    ícone da PWA, nos pontos da barra e no «Correu como planeado». */
@@ -4043,11 +4575,14 @@ function guardarFolhaMesa(){
   const mids=f.sel.filter(mid=>!(S.regRef||[]).some(r=>r.mid===mid&&r.d===f.d&&r.mk===f.mk));
   if(!mids.length){ S.ui.folha=null; saveMeta(); return render(); }
   registarRefeicao({d:f.d, mk:f.mk, r:meal.r, ac:acIds(meal), dose:1, porMembro}, mids, 'feita');
-  S.ui.folha=null;
   carimboAlvo='ref:'+f.d+':'+f.mk;
   save('refeição registada à mesa');
+  /* o passo seguinte natural é o tacho: pergunta-se se sobrou, em vez de
+     obrigar a ir procurar onde se aponta isso */
+  const podeSobrar=(f.mk==='a'||f.mk==='j') && !(S.sobras||[]).some(s=>s.d===f.d && s.r===meal.r);
+  if(podeSobrar) perguntarSobra(f.d, f.mk, meal.r, acIds(meal));
+  else { S.ui.folha=null; render(); }
   flash('ok', plural(mids.length,'pessoa registada','pessoas registadas')+' — '+esc(rec?rec.n:'refeição')+'.');
-  render();
 }
 function outraCoisaNaFolha(mid){
   const f=folhaMesa(); if(!f) return;
@@ -4550,6 +5085,48 @@ function irHojePlano(){
   const alvo=document.querySelector('.day.hoje')||document.getElementById('dia-'+((new Date().getDay()+6)%7));
   if(alvo) scrollSuave(alvo);
 }
+/* O que está no frigorífico e o que sai de casa amanhã: as duas tarefas
+   domésticas que o plano nunca soube dizer. */
+function blocoSobrasHoje(){
+  const s=sobrasVivas(); if(!s.length) return '';
+  const h=hojeISO();
+  return `<div style="margin-top:10px;border-top:1px solid var(--line);padding-top:10px">
+    <div class="splabel"><span>No frigorífico ${dica('sobras')}</span></div>
+    <div class="row" style="margin-top:6px">${s.map(x=>{
+      const rec=RECIPES.find(y=>y.id===x.r); if(!rec) return '';
+      const dias=DIAS_SOBRA-diasEntre(x.d,h);
+      const m=macrosSobra(x);
+      return `<button class="sobra-chip" onclick="comerSobra(S.ui.mid||S.members[0].id,'${x.id}')"
+        title="${esc(rec.n)}, de ${rotuloData(x.d)} — ${Math.round(m.k)} kcal por dose"
+        aria-label="Comer ${esc(rec.n)} que sobrou de ${rotuloData(x.d)}">
+        🥡 ${esc(rec.n)} · ${nPT(x.doses,2).replace(',00','')}×
+        <span class="sub" style="color:${dias<=1?'var(--warn)':'var(--mut)'}">${dias<=0?'come hoje':dias===1?'último dia':dias+' dias'}</span></button>`;
+    }).join('')}</div>
+    <p class="sub" style="margin-top:6px">Um toque regista a sobra como refeição de hoje — sem cozinhar, sem comprar e com os macros já sabidos.</p>
+  </div>`;
+}
+function blocoMarmitasHoje(){
+  const l=marmitasDeAmanha(); if(!l.length) return '';
+  const total=l.reduce((t,x)=>t+x.quem.length,0);
+  return `<div style="margin-top:10px;border-top:1px solid var(--line);padding-top:10px">
+    <div class="splabel"><span>Para amanhã ${dica('marmitas')}</span>
+      <output>${plural(total,'marmita','marmitas')}</output></div>
+    ${l.map(x=>{ const rec=RECIPES.find(y=>y.id===x.meal.r); if(!rec) return '';
+      const acs=acompsDe(x.meal);
+      const sobra=sobrasVivas().find(s=>s.r===x.meal.r);
+      return `<div class="sub" style="margin-top:6px">🍱 <b>${esc(rec.n)}</b> para ${x.quem.map(id=>{
+          const m=S.members.find(y=>y.id===id); return m? esc(m.nome.split(' ')[0]) : ''; }).filter(Boolean).join(' e ')}
+        · ${x.quem.map(id=>{ const m=S.members.find(y=>y.id===id);
+            return m? nPT(doseSugerida(m,rec,x.mk),2).replace(',00','')+'×' : ''; }).join(' / ')} dose
+        ${acs.length? '· com '+acs.map(y=>esc(y.n)).join(' + ') : ''}
+        ${sobra? '<span style="color:var(--ok)"> · há sobra para encher</span>':''}
+        ${(function(){ const al=x.quem.map(id=>S.members.find(y=>y.id===id)).filter(Boolean)
+            .flatMap(m=>alergenicosDe(rec,m).map(a=>nomeCurto(m)+': '+a.nome.toLowerCase()));
+          return al.length? '<span style="color:var(--bad)"> · 🚨 '+esc(al.join(', '))+'</span>':''; })()}
+      </div>`;}).join('')}
+    <p class="sub" style="margin-top:6px">Prepara-se hoje à noite. As doses já vêm escaladas a cada pessoa.</p>
+  </div>`;
+}
 function cartaoHoje(){
   const hoje=new Date(), wk=mondayISO(hoje), di=(hoje.getDay()+6)%7, dataISO=iso(hoje);
   const w=S.plans[wk]||{};
@@ -4591,6 +5168,8 @@ function cartaoHoje(){
       <button class="btn" onclick="fecharDiaComoPlaneado()">✓ Correu como planeado</button>
       <span class="sub">${plural(fecho.total,'coisa por confirmar','coisas por confirmar')} — um toque fecha o dia. Desfaz-se num passo.</span>
     </div>`:''}
+    ${blocoSobrasHoje()}
+    ${blocoMarmitasHoje()}
     ${linhas.length? `<div class="hoje-lista">${linhas.join('')}</div>`
       : `<p class="sub" style="margin-top:4px">O dia de hoje está por planear — duas escolhas no Plano e a cozinha sabe o que a espera.</p>`}
     <div class="row" style="margin-top:12px">
@@ -5734,6 +6313,7 @@ function setBusca(v,el){
 }
 function setMealF(v){ S.ui.mealF=(v==='todas'||v==='ac'||MEALK.indexOf(v)>=0)? v:'todas'; S.ui.recLimite=LOTE_RECEITAS; saveMeta(); render(); }
 function toggleComp(){ S.ui.soComp=!S.ui.soComp; saveMeta(); render(); }
+function toggleEpoca(){ S.ui.soEpoca=!S.ui.soEpoca; S.ui.recLimite=LOTE_RECEITAS; saveMeta(); render(); }
 
 function macroBar(pct){ return `<div class="mbar">
     <div id="nu-bar-c" style="width:${pct.c}%;background:var(--mc)"></div>
@@ -6044,8 +6624,9 @@ function recipeCard(r,n){
   return `<div class="rc" data-rid="${r.id}">
     <div class="row" style="justify-content:space-between"><h3>${esc(r.n)}</h3><span class="kcal">${r.k} kcal</span></div>
     <div><span class="tag" style="border-color:var(--accent);color:var(--accent)">${r.mt.map(nomeRefeicao).join(' / ')}</span>
-      <span class="tag">${ICO_COZ[r.coz]||''} ${CUIS[r.coz]}</span>${r.dc.filter(d=>d!==r.coz).map(d=>`<span class="tag">${DIETS[d].n}</span>`).join('')}</div>
-    <div class="sub" style="font-variant-numeric:tabular-nums">H ${r.c} g · P ${r.p} g · G ${r.f} g</div>
+      <span class="tag">${ICO_COZ[r.coz]||''} ${CUIS[r.coz]}</span>${r.dc.filter(d=>d!==r.coz).map(d=>`<span class="tag">${DIETS[d].n}</span>`).join('')}${selosEpoca(r)}</div>
+    <div class="sub" style="font-variant-numeric:tabular-nums">H ${r.c} g · P ${r.p} g · G ${r.f} g${
+      (function(){ const c=custoReceita(r,n||1); return c.com? ' · ~'+nPT(c.total,2)+' €'+(c.sem?'*':'') : ''; })()}</div>
     <span class="pill ${disp.pronta?'ok':disp.tem?'warn':''}" style="align-self:flex-start">${disp.pronta?'Pronta a cozinhar':disp.tem+'/'+disp.total+' na despensa'}</span>
     <div class="ingr-lista">${listaIngredientesComEstado(r,n)}</div>
     ${S.members.length? `<div class="row" style="margin-top:2px"><span class="sub">Compatível:</span>
@@ -6053,11 +6634,13 @@ function recipeCard(r,n){
     ${avisoAlergia(r,S.members)}
     ${vetados.length? `<div class="sub" style="color:var(--warn)">⚠ ${vetados.map(x=>nomeCurto(x.m)+' não come '+x.itens.map(esc).join(', ')).join(' · ')}</div>`:''}
     <div class="row" style="margin-top:2px">
+      <button class="chip" onclick="abrirCozinha('${r.id}',${n||1})">👨‍🍳 Cozinhar</button>
       ${r.u? `<span class="tag" style="border-color:var(--accent);color:var(--accent)">da casa</span>
         <button class="chip" onclick="abrirEditor('${r.id}')">✏️ Editar</button>
         <button class="chip" onclick="apagarReceita('${r.id}')">Apagar</button>`
       : `<button class="chip" onclick="abrirEditor('${r.id}')">✏️ Copiar para editar</button>`}
     </div>
+    ${r.u? '<span class="fita-cola" aria-hidden="true"></span>':''}
   </div>`;
 }
 
@@ -7066,6 +7649,7 @@ function renderReceitas(){
   if(S.ui.dietaF!=='todas' && temChave(DIETS,S.ui.dietaF)) list=list.filter(r=>compat(r,S.ui.dietaF));
   if(S.ui.alergF && ehAlergenio(S.ui.alergF)) list=list.filter(r=>r.at.indexOf(S.ui.alergF)<0);
   if(S.ui.soComp && m) list=list.filter(r=>compat(r,chaveDieta(m))&&!ingredientesVetados(r,m).length);
+  if(S.ui.soEpoca) list=list.filter(receitaDaEpoca);
   const q=semAcentos(S.ui.busca||'').trim();
   if(q) list=list.filter(r=>correspondeBusca(r,q));
   const fam=S.members.length? RECIPES.filter(r=>compatAll(r,S.members)) : [];
@@ -7104,6 +7688,8 @@ function renderReceitas(){
     <button class="chip ${S.ui.mealF==='todas'?'on':''}" onclick="setMealF('todas')">Todas as refeições</button>
     ${MEALS.map(([kk,rot])=>`<button class="chip ${S.ui.mealF===kk?'on':''}" onclick="setMealF('${kk}')">${ICO_REF[kk]||''} ${rot}</button>`).join('')}
     <button class="chip ${S.ui.mealF==='ac'?'on':''}" onclick="setMealF('ac')">${ICO_REF.ac} Acompanhamentos</button>
+    <button class="chip ${S.ui.soEpoca?'on':''}" onclick="toggleEpoca()" aria-pressed="${!!S.ui.soEpoca}"
+      title="Receitas com pelo menos um ingrediente na época em Portugal, este mês">🌱 Da época agora</button>
   </div>
   ${list.length? `<div class="grid g3" id="rec-grelha">${mostradas.map(r=>recipeCard(r,n)).join('')}</div>
       ${list.length>mostradas.length? `<div class="row" style="justify-content:center;margin-top:16px">
@@ -7888,8 +8474,8 @@ const MOTIVO_CURTO={dieta:'dieta',ingredientes:'ingrediente',calorias:'calorias'
 /* O que se mostra depois de a receita estar escolhida: o que falta na
    despensa, quem é que ela não serve e — o número que ninguém quer fazer de
    cabeça — as quantidades já multiplicadas por quem se senta à mesa. */
-function blocoReceitaPlaneada(r,comem,mk,acs){
-  const n=comem.length, disp=disponibilidadeReceita(r), falta=disp.total-disp.tem;
+function blocoReceitaPlaneada(r,comem,mk,acs,extra){
+  const n=comem.length+(extra||0), disp=disponibilidadeReceita(r), falta=disp.total-disp.tem;
   const a=avaliaReceita(r,comem,mk,true);
   acs=acs||[];
   /* Com acompanhamento, o que interessa é o total do que vai para a mesa: um
@@ -7992,7 +8578,7 @@ function mealBlock(di,mk,label,date){
       ${v.alguma? carimbo('ref:'+date+':'+mk) : v.falhou? carimbo('ref:'+date+':'+mk,'falhou') : ''}
       ${r&&v.cheia&&comem.length>1? `<span class="mesa-cheia" title="Mesa cheia: comeram todos os que estavam previstos">${mesaSvg(comem.length,comem.length,30)}</span>`:''}
     </div>
-    ${r? [r].concat(acs).map(x=>avisoAlergia(x,comem,true)).join('') : ''}
+    ${r? [r].concat(acs).map(x=>avisoAlergia(x,comem.concat(membrosVirtuais(meal)),true)).join('') : ''}
     <select class="sel-receita ${r?'cheio':''}" data-di="${di}" data-mk="${mk}" data-tipo="r"
       aria-label="Receita de ${label.toLowerCase()} de ${DAYN[di].toLowerCase()}"
       onfocus="encheSelect(this)" onmousedown="encheSelect(this)"
@@ -8001,12 +8587,55 @@ function mealBlock(di,mk,label,date){
       ${r? `<option value="${r.id}" selected>${esc(r.n)} · ${r.k} kcal</option>`:''}
     </select>
     ${r&&(mk==='a'||mk==='j')? blocoAcomp(di,mk,acs,label) : ''}
-    ${r? blocoReceitaPlaneada(r,comem,mk,acs) : ''}
+    ${r? blocoReceitaPlaneada(r,comem,mk,acs,nConvidados(meal)) : ''}
     <div class="row" style="margin-top:7px">${members.map(m=>{
       const on=meal? meal.m.includes(m.id) : true, cheat=isCheat(m.id,date);
       return `<button class="chip ${on&&!cheat?'on':''}" ${cheat?'style="opacity:.45" title="Cheat day"':''}
         onclick="toggleEater(${di},'${mk}','${m.id}')">${avatar(m,20)} ${esc(m.nome.split(' ')[0])}${cheat?' 🎉':''}</button>`;}).join('')}
     </div>
+    ${r? blocoConvidados(di,mk,meal) : ''}
+    ${r&&(mk==='a'||mk==='j')? blocoMarmita(di,mk,meal,comem) : ''}
+    ${r? `<div class="row" style="margin-top:8px">
+      <button class="btn ghost small" onclick="abrirCozinha('${r.id}',${comem.length+nConvidados(meal)},'${date}|${mk}')">👨‍🍳 Cozinhar</button>
+      ${date<=hojeISO()? `<button class="btn ghost small" onclick="abrirFolhaMesa('${date}','${mk}')">✓ Quem comeu</button>`:''}
+    </div>`:''}
+  </div>`;
+}
+/* Convidados: mais dois à mesa sem criar perfis. As doses, os acompanhamentos
+   e a lista de compras escalam já; as alergias entram no filtro só desta
+   refeição, com o mesmo alerta a vermelho dos perfis. */
+function blocoConvidados(di,mk,meal){
+  const conv=convidadosDe(meal), n=nConvidados(meal);
+  return `<div class="conv-linha">
+    <span class="lbl" style="margin:0">Convidados</span>
+    <button class="chip" onclick="addConvidado(${di},'${mk}','adulto')" aria-label="Juntar um adulto convidado">＋ adulto</button>
+    <button class="chip" onclick="addConvidado(${di},'${mk}','crianca')" aria-label="Juntar uma criança convidada">＋ criança</button>
+    ${conv.map(c=>`<span class="chip on">${c.t==='crianca'?'🧒':'🧑'} ${c.n}
+      ${(c.al||[]).length? '<span class="tag alerg" title="'+esc((c.al||[]).map(k=>RESTR[k].n).join(', '))+'">🚨</span>':''}
+      <button style="background:none;border:none;cursor:pointer;color:inherit;padding:0 0 0 4px"
+        onclick="event.stopPropagation();delConvidado(${di},'${mk}','${c.id}')" aria-label="Tirar um convidado">✕</button>
+      <button style="background:none;border:none;cursor:pointer;color:inherit;padding:0 0 0 2px"
+        onclick="event.stopPropagation();abrirAlergiasConv('${di}|${mk}|${c.id}')" aria-label="Alergias deste convidado">⚕</button></span>`).join('')}
+    ${n? `<span class="sub">doses e compras já contam com ${plural(n,'convidado','convidados')}</span>`:''}
+  </div>
+  ${S.ui.convAberto&&S.ui.convAberto.indexOf(di+'|'+mk+'|')===0? (function(){
+    const cid=S.ui.convAberto.split('|')[2];
+    const c=conv.find(x=>x.id===cid); if(!c) return '';
+    return `<div class="val-item"><div class="lbl">Alergias do convidado — só nesta refeição</div>
+      <div class="row" style="margin-top:6px">${ALERGENIOS.map(([k,nome])=>
+        `<button class="chip ${(c.al||[]).indexOf(k)>=0?'on':''}" onclick="toggleAlergiaConvidado(${di},'${mk}','${cid}','${k}')">${RESTR[k].i} ${esc(nome)}</button>`).join('')}</div>
+      <button class="btn ghost small" style="margin-top:8px" onclick="abrirAlergiasConv(null)">Fechar</button></div>`;
+  })():''}`;
+}
+function abrirAlergiasConv(chave){ S.ui.convAberto = S.ui.convAberto===chave? null : chave; saveMeta(); render(); }
+function blocoMarmita(di,mk,meal,comem){
+  const mar=acIdsMarmita(meal);
+  return `<div class="conv-linha">
+    <span class="lbl" style="margin:0">Marmita 🍱</span>
+    ${comem.map(m=>`<button class="chip ${mar.indexOf(m.id)>=0?'on':''}"
+      onclick="toggleMarmita(${di},'${mk}','${m.id}')"
+      aria-pressed="${mar.indexOf(m.id)>=0}">${avatar(m,18)} ${esc(m.nome.split(' ')[0])}</button>`).join('')}
+    ${mar.length? `<span class="sub">prepara-se na véspera</span>`:''}
   </div>`;
 }
 function irParaDia(di){ scrollSuave(document.getElementById('dia-'+di)); }
@@ -8225,6 +8854,26 @@ function planearPartilhaRef(rid,mk,dir){
   setTimeout(()=>{ const el=document.getElementById('dia-'+di); if(el) scrollSuave(el); },0);
 }
 
+/* Cozinhar a semana numa sessão: as preparações-base que se repetem, somadas,
+   com os dias que servem. As bases são uma lista curta e explícita — adivinhar
+   «preparação-base» pelo nome de um ingrediente daria disparates. */
+function cartaoLote(){
+  const bases=planoDeLote();
+  if(!bases.length) return '';
+  const custoTotal=bases.reduce((t,b)=>{ const p=precoDe(b.base.n); return t; },0);
+  return `<div class="card" id="lote" data-col="pla-lote" style="margin-bottom:16px">
+    <h2>Cozinhar em lote ${dica('lote')}</h2>
+    <p class="sub" style="margin-top:4px">Preparações que a semana repete em dois ou mais dias. Feitas de uma vez, ao domingo, os dias em que servem passam de «cozinhar» a «aquecer».</p>
+    ${bases.map(b=>`<div class="val-item">
+      <div class="row" style="justify-content:space-between;gap:8px">
+        <div style="min-width:0"><b>${esc(b.base.n)}</b>
+          <span class="sub" style="display:block">${fmtQtd(b.g,b.base.un)} no total · serve ${b.dias.map(d=>DAYN[d].slice(0,3).toLowerCase()).join(', ')}</span>
+          <span class="sub" style="display:block">em: ${b.receitas.slice(0,3).map(esc).join(' · ')}${b.receitas.length>3? ' e mais '+(b.receitas.length-3):''}</span></div>
+        <span class="pill" style="flex:none">${plural(b.dias.length,'dia','dias')}</span>
+      </div></div>`).join('')}
+    <p class="sub" style="margin-top:10px">As quantidades já contam com quem se senta a cada mesa, convidados incluídos.</p>
+  </div>`;
+}
 function renderPlano(){
   if(!S.members.length) return noMembers();
   const dates=weekDates(S.week);
@@ -8241,6 +8890,7 @@ function renderPlano(){
     </div></div>
   <p class="sub" style="margin-bottom:14px">🎉 <b>Cheat days</b> ${dica('cheat')} clica no nome de um membro na linha «Cheat day» para marcar um dia livre (aniversários, festas…) — esse membro sai das contas e da lista de compras nesse dia.
     🍚 <b>Acompanhamentos</b> ${dica('acompanhamento')} ao almoço e ao jantar, por baixo do prato, há uma linha tracejada para escolher o que vai ao lado — o 🔀 troca-o por outro, e podes juntar até ${MAX_AC} a repartir a mesma dose.</p>
+  ${cartaoLote()}
   ${cartaoPartilhaRef()}
   ${cartaoSugestoes()}
   ${cartaoSemana(dates)}
@@ -8294,7 +8944,9 @@ function shoppingItems(){
   for(let di=0;di<7;di++) for(const mk of MEALK){
     const meal=w[di]?.[mk]; if(!meal||!meal.r) continue;
     const r=RECIPES.find(x=>x.id===meal.r); if(!r) continue;
-    const n=S.members.filter(m=>meal.m.includes(m.id)&&!isCheat(m.id,dates[di])).length;
+    /* os convidados comem do mesmo tacho: contam nas quantidades como qualquer
+       pessoa à mesa, mesmo não tendo perfil */
+    const n=S.members.filter(m=>meal.m.includes(m.id)&&!isCheat(m.id,dates[di])).length + nConvidados(meal);
     if(!n) continue; meals++;
     /* o acompanhamento entra na lista pela mesma porta que o prato: quem come
        arroz de tomate ao jantar tem de comprar o arroz e o tomate. E entra
@@ -8394,7 +9046,12 @@ function renderCompras(){
   return `<div class="row" style="justify-content:space-between;margin-bottom:4px">
     <div><h2>Lista de compras ${dica('compras')}</h2>
     <span class="sub">Semana de ${fmtShort(dates[0])} a ${fmtShort(dates[6])} · ${plural(meals,'refeição planeada','refeições planeadas')} ·
-      <span id="co-num" ${completo?'class="f-ok-txt"':''}>${completo?'tudo comprado ✓':done+'/'+items.length+' comprados'}</span></span></div>
+      <span id="co-num" ${completo?'class="f-ok-txt"':''}>${completo?'tudo comprado ✓':done+'/'+items.length+' comprados'}</span>${
+        (function(){ let t=0,sem=0,com=0;
+          items.forEach(it=>{ const p=precoDe(it.n); if(!p){ sem++; return; } com++;
+            t+=p.v*it.q/((it.u==='g'||it.u==='ml')?1000:1); });
+          if(!com) return ' · <button class="chip" style="padding:1px 8px" onclick="irPorPrecos()">💶 pôr preços</button>';
+          return ' · <b>talão previsto ~'+nPT(t,2)+' €</b>'+(sem? ' <span class="sub">(faltam '+sem+' preços)</span>':''); })()}</span></div>
     <div class="row">
       <button class="btn" onclick="abrirMercado()">🛒 Estou no supermercado</button>
       <button class="btn ghost small" onclick="copyList()">📋 Copiar lista</button></div></div>
@@ -8494,6 +9151,9 @@ function filtrarDespensa(el){
   });
 }
 function setAlergDesp(v){ S.ui.alergDesp=ehAlergenio(v)? v:''; saveMeta(); render(); }
+function togglePrecos(){ S.ui.precos=!S.ui.precos; saveMeta(); render(); }
+function irPorPrecos(){ S.ui.precos=true; go('despensa'); }
+function guardarPreco(nome,v){ setPreco(nome,v); save('preço de '+nome); }
 /* Os alergénios que os membros da casa têm marcados: são estes que valem a
    pena assinalar em cada ingrediente da despensa, e não os catorze todos. */
 function alergiasDaCasa(){
@@ -8600,9 +9260,16 @@ function renderDespensa(){
     <div><h2>A minha despensa ${dica('despensa')}</h2>
       <span class="sub">${tem} de ${catalogo.length} itens marcados como disponíveis</span></div>
     <div class="row">
+      <button class="chip ${S.ui.precos?'on':''}" onclick="togglePrecos()" aria-pressed="${!!S.ui.precos}">💶 Preços</button>
       <button class="btn ghost small" onclick="marcarTodaDespensa()">Marcar tudo</button>
       <button class="btn danger small" onclick="limparDespensa()">Esvaziar</button>
     </div></div>
+  ${S.ui.precos? `<div class="card" style="max-width:640px;margin-bottom:12px">
+    <h3>Preços do teu talão ${dica('custo')}</h3>
+    <p class="sub" style="margin-top:4px">Escreve o preço a que costumas comprar cada coisa — €/kg para o que se pesa, €/L para o que se mede, €/unidade para o resto. A app usa-os para estimar o custo de cada receita, da semana e da lista de compras. <b>Nunca inventa um preço</b>: o que não estiver aqui aparece como «faltam N».
+      ${(function(){ const n=Object.keys(S.precos||{}).length;
+        return n? '<br>Já tens '+plural(n,'preço guardado','preços guardados')+'.' : ''; })()}</p>
+  </div>`:''}
   <div class="row" style="margin:10px 0 14px">
     <input type="text" placeholder="Procurar ingrediente ou suplemento…" class="busca" aria-label="Procurar na despensa" oninput="filtrarDespensa(this)">
     <select style="width:auto" aria-label="Ver ingredientes com um alergénio" onchange="setAlergDesp(this.value)"><option value="">🚨 Ver por alergénio…</option>
@@ -8620,8 +9287,14 @@ function renderDespensa(){
         /* a etiqueta só aparece para os alergénios que alguém cá em casa tem:
            marcar os catorze em todos os ingredientes seria ruído */
         const al=atributosIng(nome).filter(t=>daCasa.indexOf(t)>=0);
+        const p=precoDe(nome), un=unidadeDe(nome);
+        const rot = un==='g'? '€/kg' : un==='ml'? '€/L' : '€/'+un;
         return `<li class="${ok?'done':''}"><label><input type="checkbox" ${ok?'checked':''} onchange="toggleDespensaIdx(${i})">
-          <span>${esc(nome)}${al.length? ' '+al.map(t=>`<span class="tag alerg" title="${esc(RESTR[t].n)}">${RESTR[t].i}</span>`).join(''):''}</span></label></li>`;
+          <span>${esc(nome)}${al.length? ' '+al.map(t=>`<span class="tag alerg" title="${esc(RESTR[t].n)}">${RESTR[t].i}</span>`).join(''):''}${
+            daEpoca(nome)? ' <span class="tag epoca">🌱</span>':''}</span></label>${
+          S.ui.precos? `<span class="preco"><input type="number" min="0" step="0.01" inputmode="decimal"
+            value="${p? p.v : ''}" placeholder="—" aria-label="Preço de ${esc(nome)} em ${rot}"
+            onchange="guardarPreco('${esc(nome).replace(/'/g,'&#39;')}',this.value)"><span class="sub">${rot}</span></span>`:''}</li>`;
       }).join('')}</ul>`).join('')}
     </div>
   </div>
@@ -8716,7 +9389,8 @@ function pacote(){
   return {app:APPID, formato:FORMATO, exportadoEm:new Date().toISOString(),
   dados:{members:S.members, cheats:S.cheats, plans:S.plans, bought:S.bought,
          prefCuisine:S.prefCuisine, week:S.week, objetivos:S.objetivos, despensa:S.despensa,
-         receitas:S.receitas, medicoes:S.medicoes, regAtiv:S.regAtiv, regRef:S.regRef}}; }
+         receitas:S.receitas, medicoes:S.medicoes, regAtiv:S.regAtiv, regRef:S.regRef,
+         sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa}}; }
 function textoCopia(){ return JSON.stringify(pacote(),null,2); }
 function marcarExportado(){ S.meta.exportadoEm=new Date().toISOString(); S.meta.semCopia=false; saveMeta(); }
 function nomeFicheiro(){ return 'familia-fit-'+iso(new Date())+'.json'; }
@@ -8947,8 +9621,10 @@ function lerPacote(txt){
   const acha=id=>receitas.find(x=>x.id===id) || RECIPES.find(x=>x.id===id&&!x.u);
   const regRef=(Array.isArray(d.regRef)? d.regRef : []).slice(0,20000)
     .map(r=>limparRegRef(remapa(r), idsOk, acha)).filter(Boolean);
+  const sobras=(Array.isArray(d.sobras)? d.sobras : []).slice(0,200).map(limparSobra).filter(Boolean);
+  const precos=limparPrecos(d.precos), festas=limparFestas(d.festas), casa=limparCasa(d.casa);
   return {d:{ members, cheats, plans, bought, objetivos, despensa, receitas,
-              medicoes, regAtiv, regRef,
+              medicoes, regAtiv, regRef, sobras, precos, festas, casa,
               prefCuisine:temChave(CUIS,d.prefCuisine)?d.prefCuisine:'todas',
               week:dataValida(d.week)? mondayISO(new Date(d.week+'T12:00:00')) : mondayISO(new Date()) }};
 }
@@ -9481,15 +10157,17 @@ function pintaModal(){
   let cx=document.getElementById('modal-raiz');
   if(!cx){ cx=document.createElement('div'); cx.id='modal-raiz'; document.body.appendChild(cx); }
   const mo=modalAberto(), fo=folhaMesa();
-  cx.innerHTML = S.ui.mercado? mercadoHtml()
+  cx.innerHTML = S.ui.cozinha? cozinhaHtml()
+    : S.ui.mercado? mercadoHtml()
     : mo? (mo.tipo==='peso'? modalPesoHtml(mo) : mo.tipo==='compras'? modalComprasHtml(mo) : '')
-    : fo? (fo.tipo==='mesa'? folhaMesaHtml(fo) : fo.tipo==='registo'? folhaRegistoHtml() : '')
+    : fo? (fo.tipo==='mesa'? folhaMesaHtml(fo) : fo.tipo==='registo'? folhaRegistoHtml()
+         : fo.tipo==='sobra'? folhaSobraHtml(fo) : '')
     : '';
   if(mo || (fo&&fo.tipo!=='mesa')){ const f=cx.querySelector('input,button'); if(f) setTimeout(()=>f.focus(),0); }
   /* o botão de registo vive fora do #main, para não piscar a cada redesenho
      de separador — mas some quando há uma folha ou um diálogo por cima */
   let fab=document.getElementById('fab-registo');
-  const querFab=S.members.length && !mo && !fo && !S.ui.mercado && !tourAtivo()
+  const querFab=S.members.length && !mo && !fo && !S.ui.mercado && !S.ui.cozinha && !tourAtivo()
     && ['familia','atividade','nutricao','plano'].indexOf(S.ui.tab)>=0;
   if(querFab){
     if(!fab){ fab=document.createElement('button'); fab.id='fab-registo'; fab.className='fab';
@@ -9550,6 +10228,7 @@ estadoAnterior=instantaneo();   /* base do histórico: o estado tal como foi car
 /* Atalhos do ícone da PWA: um toque longo no ícone traz o gesto certo antes de
    a app abrir. O parâmetro é lido uma vez e limpo do endereço, para um
    refresh não repetir a ação. */
+lerTemporizadores();   /* os tachos que ficaram a contar sobrevivem a fechar a app */
 let atalhoArranque=null;
 (function(){
   let ir=null;
