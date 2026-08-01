@@ -8,7 +8,7 @@ Ferramenta web para gerir a **alimentação e a atividade física de toda a fam�
 
 ## Começar
 
-A página de abertura tem uma **visita guiada** de 46 passos que percorre os nove separadores e todas as funcionalidades — perfis, data de nascimento e alergias, a evolução do peso, avatares, o mês em palavras, o plano de treinos e o registo do que se fez, treinar em conjunto, macros, suplementos, o registo das refeições, a biblioteca de receitas e o editor, a despensa, os objetivos, as sugestões por mesa, comer em conjunto, os acompanhamentos, as compras e os temas — com uma família de exemplo, já com duas semanas de histórico, para se ver tudo a funcionar. Os passos que falam de cartões que ainda não têm dados são saltados, em vez de apontarem para o vazio. Pode sair-se a qualquer momento, e o exemplo apaga-se no separador Dados. Quem preferir começar do zero cria o primeiro perfil ali ao lado; a visita fica sempre disponível em **Dados → Rever a visita guiada**.
+A página de abertura tem uma **visita guiada** de 47 passos que percorre os oito separadores e todas as funcionalidades — perfis, data de nascimento e alergias, a evolução do peso, avatares, o mês em palavras, o plano de treinos e o registo do que se fez, treinar em conjunto, macros, suplementos, o registo das refeições, a biblioteca de receitas e o editor, a despensa, os objetivos, as sugestões por mesa, comer em conjunto, os acompanhamentos, as compras e os temas — com uma família de exemplo, já com duas semanas de histórico, para se ver tudo a funcionar. Os passos que falam de cartões que ainda não têm dados são saltados, em vez de apontarem para o vazio. Pode sair-se a qualquer momento, e o exemplo apaga-se no separador Dados. Quem preferir começar do zero cria o primeiro perfil ali ao lado; a visita fica sempre disponível em **Dados → Rever a visita guiada**.
 
 ## Aspeto
 
@@ -20,9 +20,9 @@ A orientação nasce da hierarquia: cada separador abre com um **cartão-capa** 
 
 ### Temas
 
-Seis paletas — **Azulejo** (azul de louça e terracota), **Alecrim** (verdes de horta), **Figo** (roxos e magentas), **Maré** (azuis-esverdeados), **Brasa** (laranjas quentes) e **Tinta** (monocromático de alto contraste) — cada uma com modo claro e escuro. A paleta muda os acentos e o tom dos neutros; o modo é independente e pode seguir o sistema, mudando sozinho ao anoitecer. Escolhe-se em **Dados → Aspeto**.
+Sete paletas — **Azulejo** (azul de louça e terracota), **Alecrim** (verdes de horta), **Figo** (roxos e magentas), **Maré** (azuis-esverdeados), **Brasa** (laranjas quentes), **Tinta** (monocromático) e **Contraste** (todos os textos a 7:1, traço mais grosso e gráficos que se distinguem por padrão, não só por cor) — cada uma com modo claro e escuro. A paleta muda os acentos e o tom dos neutros; o modo é independente e pode seguir o sistema, mudando sozinho ao anoitecer. Escolhe-se em **Dados → Aspeto**.
 
-O contraste é medido, não estimado: cada cor que serve de texto foi passada pelo cálculo da WCAG contra o fundo onde assenta, nas doze combinações de paleta e modo, e todas chegam aos 4,5:1 — botões, chips, pills, etiquetas e números. Os textos e os gráficos também são verificados contra sobreposições: uma varredura compara linha a linha as caixas de todos os elementos com texto, incluindo os rótulos dentro dos SVG, em vários pesos, alturas e objetivos, e a três larguras de ecrã.
+O contraste é medido, não estimado: cada cor que serve de texto foi passada pelo cálculo da WCAG contra o fundo onde assenta, nas catorze combinações de paleta e modo, e todas chegam aos 4,5:1 — botões, chips, pills, etiquetas e números. Os textos e os gráficos também são verificados contra sobreposições: uma varredura compara linha a linha as caixas de todos os elementos com texto, incluindo os rótulos dentro dos SVG, em vários pesos, alturas e objetivos, e a três larguras de ecrã.
 
 Cada membro tem **emoji e cor próprios**, que aparecem no avatar, nos pontos do plano semanal e numa **aura** esbatida no topo do cabeçalho — a app fica com a cara de quem a usa. As secções mais pesadas são **colapsáveis com memória**: o que se fecha fica fechado, cartão a cartão, e há um botão para reabrir tudo.
 
@@ -78,7 +78,7 @@ O cartão de **alimentação passada** mostra 30 dias de calorias registadas, ve
 
 Os micronutrientes são comparados com a dose diária de referência e com o **limite superior tolerável** do Institute of Medicine, com aviso quando as doses o ultrapassam. Há avisos específicos por fase: ácido fólico na gravidez (e o cuidado com o retinol em dose alta), e a nota de que em crianças a suplementação segue indicação médica, com limites muito mais baixos — o ferro em excesso é das intoxicações mais frequentes nessa idade. Os suplementos entram também na despensa e na lista de compras, com as doses de sete dias.
 
-**🍳 Receitas** — separador próprio com **349 receitas** de dez cozinhas: portuguesa, mediterrânica, espanhola, italiana, francesa, mexicana, norte-americana, asiática, **brasileira** e **africana**, com pratos principais, pequenos-almoços e lanches em todas elas, e um conjunto grande desenhado para keto.
+**🍳 Receitas** — separador próprio com **347 receitas** de dez cozinhas: portuguesa, mediterrânica, espanhola, italiana, francesa, mexicana, norte-americana, asiática, **brasileira** e **africana**, com pratos principais, pequenos-almoços e lanches em todas elas, e um conjunto grande desenhado para keto.
 
 A cozinha lusófona tem casa própria: **cachupa** e **moamba de galinha** de África; **moqueca**, **feijoada brasileira**, **maminha grelhada**, **pastéis de vento**, **pastel de queijo e catupiry** e **pão de queijo** do Brasil. E a picanha e a fraldinha, que entraram pela churrasqueira portuguesa, passam a estar também onde nasceram — aparecem nas listas das duas cozinhas.
 

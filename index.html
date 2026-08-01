@@ -184,7 +184,7 @@ html[data-densidade="cerrado"] .spline{padding:10px 12px}
 .a-tinta{border-style:solid;border-color:color-mix(in srgb,var(--ink) 26%,var(--line));
   background-image:none}
 .a-tinta .mtitle{color:var(--ink)}
-.a-tinta .kcal, .a-tinta .reg-k{font-family:var(--fonte-display)}
+.a-tinta .kcal{font-family:var(--fonte-display)}
 @supports not (background:color-mix(in srgb,red 50%,blue)){
   .a-lapis{background-image:none}
   .a-tinta{border-color:var(--ink)}
@@ -365,7 +365,6 @@ nav button{position:relative}
 html[data-dispositivo="telefone"][data-orient="retrato"] .cracha{top:2px;right:calc(50% - 22px)}
 nav button.on .cracha{background:var(--on-accent);color:var(--accent)}
 
-/* Caixa de diálogo: só para o que a app precisa mesmo de perguntar ao entrar —
 *{box-sizing:border-box;margin:0}
 /* overflow-x:clip (e não hidden) impede que uma bolha de explicação ponha a
    página a deslizar na horizontal, sem criar um contentor de scroll — o
@@ -398,7 +397,7 @@ nav button{background:none;border:none;padding:8px 14px;border-radius:999px;curs
   font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:7px}
 nav button:hover{color:var(--ink)}
 /* O separador ativo é inconfundível: acento cheio, não um sublinhado tímido.
-   O par accent/on-accent já está verificado nas doze combinações. */
+   O par accent/on-accent já está verificado nas catorze combinações. */
 nav button.on{background:var(--accent);color:var(--on-accent)}
 .ico{width:22px;height:22px;flex:none}
 nav button .ico{width:20px;height:20px}
@@ -444,6 +443,9 @@ html[data-dispositivo="telefone"][data-orient="retrato"] .hwrap{
 html[data-dispositivo="telefone"][data-orient="retrato"] .brand small{display:none}
 html[data-dispositivo="telefone"][data-orient="retrato"] h1{font-size:18px}
 html[data-dispositivo="telefone"][data-orient="retrato"] .hist{margin-left:auto}
+/* No cabeçalho magro só cabe o led: o texto do estado de gravação saía do ecrã */
+html[data-dispositivo="telefone"][data-orient="retrato"] .savest-txt{display:none}
+html[data-dispositivo="telefone"][data-orient="retrato"] .savest{padding:8px}
 html[data-dispositivo="telefone"][data-orient="retrato"] .aura{opacity:.6}
 html[data-dispositivo="telefone"][data-orient="retrato"][data-modo="escuro"] .aura{opacity:.34}
 main{max-width:1100px;margin:0 auto;padding:24px 20px}
@@ -619,7 +621,7 @@ input[type=range]:focus-visible::-moz-range-thumb{box-shadow:0 0 0 3px var(--acc
 .s-acc{stroke:var(--accent)} .s-energy{stroke:var(--energy)} .s-mut{stroke:var(--mut)}
 .s-warn{stroke:var(--warn)} .s-bad{stroke:var(--bad)}
 .f-ok-txt{color:var(--ok)}
-.dt-ok{background:var(--ok)} .dt-warn{background:var(--warn)} .dt-bad{background:var(--bad)}
+.dt-ok{background:var(--ok)} .dt-warn{background:var(--warn)}
 .dt-line{background:var(--line)} .dt-party{background:var(--party)}
 .day{scroll-margin-top:calc(var(--hh,58px) + 68px)}
 .shop label{display:flex;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer}
@@ -1480,7 +1482,7 @@ function hcLiq(r){ return Math.max(0, r.c); }
    a sério (20-30 g/dia); low carb dá mais folga. */
 const HC_TETO={keto:10, lowcarb:25};
 const RECIPES = [
-R('bras','Bacalhau à Brás','portuguesa',['mediterranica'],520,38,32,26,[['Bacalhau desfiado',120,'g'],['Batata palha',60,'g'],['Ovo',2,'un'],['Cebola',0.5,'un'],['Azeitonas pretas',20,'g'],['Azeite',10,'ml'],['Salsa',5,'g']]),
+R('bras','Bacalhau à Brás','portuguesa',['mediterranica'],520,38,32,26,[['Bacalhau desfiado',120,'g'],['Batata palha',60,'g'],['Ovo',2,'un'],['Cebola',0.5,'un'],['Azeitonas pretas',20,'g'],['Azeite',10,'ml'],['Salsa',5,'g']],['a','j'],0,['pp']),
 R('caldoverde','Caldo verde','portuguesa',['lowfat','mediterranica'],230,30,8,9,[['Couve galega',80,'g'],['Batata',150,'g'],['Chouriço',20,'g'],['Cebola',0.5,'un'],['Alho',1,'dente'],['Azeite',8,'ml']]),
 R('frangopiri','Frango grelhado com salada','portuguesa',['keto','lowcarb','paleo','lowfat','mediterranica'],380,8,42,20,[['Peito de frango',180,'g'],['Alface',60,'g'],['Tomate',1,'un'],['Limão',0.5,'un'],['Azeite',10,'ml']],null,2),
 R('alentejana','Carne de porco à alentejana','portuguesa',[],560,35,38,28,[['Carne de porco',160,'g'],['Amêijoas',100,'g'],['Batata',150,'g'],['Pimento',0.5,'un'],['Alho',2,'dente'],['Coentros',5,'g'],['Azeite',10,'ml']]),
@@ -1545,7 +1547,7 @@ R('torradasqueijo','Torradas de centeio com queijo fresco','portuguesa',['lowfat
 R('ovosmex','Ovos mexidos com espinafres','portuguesa',['keto','lowcarb','vegetariana'],310,5,22,23,[['Ovo',3,'un'],['Espinafres',60,'g'],['Manteiga',10,'g']],['p'],2),
 R('ovosabacate','Ovos escalfados com abacate e tomate','mediterranica',['keto','lowcarb','paleo'],360,6,16,28,[['Ovo',2,'un'],['Abacate',0.5,'un'],['Tomate',1,'un'],['Azeite',8,'ml'],['Limão',0.25,'un']],['p'],5),
 R('panquecas','Panquecas de banana e aveia','portuguesa',[],420,48,26,12,[['Ovo',2,'un'],['Banana',1,'un'],['Aveia em flocos',40,'g'],['Iogurte grego',80,'g'],['Fermento em pó',3,'g']],['p']),
-R('iogurtegranola','Iogurte grego com granola e frutos vermelhos','mediterranica',['vegetariana','mediterranica'],380,42,20,14,[['Iogurte grego',200,'g'],['Granola',40,'g'],['Frutos vermelhos',80,'g'],['Mel',10,'g']],['p']),
+R('iogurtegranola','Iogurte grego com granola e frutos vermelhos','mediterranica',['vegetariana','mediterranica'],380,42,20,14,[['Iogurte grego',200,'g'],['Granola',40,'g'],['Frutos vermelhos',80,'g'],['Mel',10,'g']],['p','l'],0,['br','sn']),
 R('abacatetorrada','Torrada de abacate com ovo escalfado','mediterranica',['lowcarb','vegetariana','mediterranica'],420,28,18,26,[['Pão integral',60,'g'],['Abacate',0.5,'un'],['Ovo',1,'un'],['Limão',0.25,'un'],['Azeite',5,'ml']],['p'],7),
 R('chia','Pudim de chia com leite de coco','mediterranica',['keto','lowcarb','paleo','vegetariana'],330,16,9,27,[['Sementes de chia',30,'g'],['Leite de coco',150,'ml'],['Frutos vermelhos',60,'g'],['Baunilha',1,'g']],['p','l'],12),
 R('bowlfruta','Bowl de fruta com sementes e coco','mediterranica',['paleo','vegetariana','mediterranica'],350,38,8,20,[['Manga',150,'g'],['Frutos vermelhos',80,'g'],['Sementes de abóbora',20,'g'],['Coco ralado',15,'g'],['Amêndoa',15,'g']],['p','l']),
@@ -1774,10 +1776,12 @@ R('vgfeijoada','Feijoada vegetal de cogumelos portobello','portuguesa',[],0,0,0,
 
 /* ---------- Pequeno-almoço e brunch ---------- */
 R('ovoscebolinho','Ovos mexidos com cebolinho','portuguesa',[],0,0,0,0,[['Ovo',3,'un'],['Cebolinho',6,'g'],['Manteiga',8,'g'],['Nata para bater 35% gordura',15,'ml'],['Pimenta preta',0.5,'g']],['p','l'],0,['br']),
-R('ovosbacon','Ovos mexidos com bacon','americana',[],0,0,0,0,[['Ovo',3,'un'],['Bacon',40,'g'],['Manteiga',6,'g'],['Cebolinho',4,'g'],['Pimenta preta',0.5,'g']],['p','l'],0,['br']),
+R('ovosmexidosbacon','Ovos mexidos com bacon','americana',[],0,0,0,0,[['Ovo',3,'un'],['Bacon',40,'g'],['Manteiga',6,'g'],['Cebolinho',4,'g'],['Pimenta preta',0.5,'g']],['p','l'],0,['br']),
 R('ovosbenedict','Ovos Benedict','americana',[],0,0,0,0,[['Ovo',2,'un'],['Muffin inglês',60,'g'],['Fiambre',50,'g'],['Manteiga',30,'g'],['Gema de ovo de galinha, crua',18,'g'],['Limão',10,'ml'],['Vinagre de vinho',10,'ml'],['Cebolinho',3,'g']],['p'],0,['br']),
 R('ovosestrelados','Ovos estrelados','portuguesa',[],0,0,0,0,[['Ovo',2,'un'],['Azeite',12,'ml'],['Flor de sal',1,'g'],['Pimenta preta',0.5,'g']],['p','a','j'],0,['br']),
-R('iogurtegranola','Iogurte grego com granola e frutos vermelhos','mediterranica',['mediterranica'],0,0,0,0,[['Iogurte grego',170,'g'],['Granola',45,'g'],['Frutos vermelhos',80,'g'],['Mel',10,'g']],['p','l'],0,['br','sn']),
+/* O iogurte com granola já existe desde a primeira fornada com este mesmo id —
+   uma segunda entrada com id repetido não dá erro nenhum: o find() devolve
+   sempre a primeira e a segunda fica a assombrar as listas. */
 
 /* ---------- Entradas ---------- */
 R('camaraotigre','Camarão-tigre grelhado','portuguesa',['keto','lowcarb','paleo','mediterranica'],0,0,0,0,[['Camarão-tigre',180,'g'],['Alho',2,'dente'],['Azeite',12,'ml'],['Limão',15,'ml'],['Flor de sal',1,'g'],['Coentros',5,'g']],['a','j'],0,['ent']),
@@ -1795,7 +1799,8 @@ R('empadaocarne','Empadão de carne','portuguesa',[],0,0,0,0,[['Carne picada de 
 R('peixesal','Peixe ao sal no forno','portuguesa',['keto','lowcarb','paleo','mediterranica'],0,0,0,0,[['Dourada',350,'g'],['Sal grosso',400,'g'],['Limão',20,'ml'],['Azeite',12,'ml'],['Tomilho fresco',4,'g'],['Louro',1,'g']],['a','j'],0,['pp']),
 R('iscascebolada','Iscas de cebolada','portuguesa',['lowcarb'],0,0,0,0,[['Vaca, fígado cru',180,'g'],['Cebola',150,'g'],['Alho',3,'dente'],['Vinho branco',60,'ml'],['Louro',1,'g'],['Azeite',15,'ml'],['Colorau',2,'g'],['Pimenta preta',0.5,'g']],['a','j'],0,['pp']),
 R('feijoadatransmontana','Feijoada à transmontana','portuguesa',[],0,0,0,0,[['Feijão encarnado',180,'g'],['Porco, orelha cozida',60,'g'],['Porco, chispe',70,'g'],['Porco, entrecosto cru',80,'g'],['Chouriço',50,'g'],['Farinheira',40,'g'],['Couve galega',80,'g'],['Cenoura',60,'g'],['Cebola',70,'g'],['Alho',3,'dente'],['Azeite',12,'ml'],['Colorau',3,'g'],['Louro',1,'g']],['a','j'],0,['pp']),
-R('bacalhaubras','Bacalhau à Brás','portuguesa',[],0,0,0,0,[['Bacalhau desfiado',150,'g'],['Batata palha',80,'g'],['Ovo',3,'un'],['Cebola',100,'g'],['Alho',2,'dente'],['Azeite',18,'ml'],['Azeitonas pretas',20,'g'],['Salsa',6,'g']],['a','j'],0,['pp']),
+/* O Bacalhau à Brás já existe desde a primeira fornada com o id 'bras' — a
+   segunda entrada duplicava-o na biblioteca e na pesquisa. */
 R('arrozpolvo','Arroz de polvo','portuguesa',['mediterranica'],0,0,0,0,[['Polvo',180,'g'],['Arroz carolino branqueado cru',90,'g'],['Cebola',80,'g'],['Alho',3,'dente'],['Tomate pelado',100,'g'],['Pimento',50,'g'],['Vinho branco',50,'ml'],['Azeite',15,'ml'],['Coentros',8,'g'],['Louro',1,'g']],['a','j'],0,['pp']),
 R('bifemarrare','Bife à Marrare','portuguesa',['lowcarb'],0,0,0,0,[['Bife do lombo de vaca',180,'g'],['Nata para bater 35% gordura',60,'ml'],['Manteiga',15,'g'],['Alho',2,'dente'],['Pimenta preta',2,'g'],['Louro',1,'g']],['a','j'],0,['pp']),
 R('bifecervejeira','Bife à cervejeira','portuguesa',['lowcarb'],0,0,0,0,[['Bife de vaca',180,'g'],['Cerveja branca',100,'ml'],['Alho',3,'dente'],['Manteiga',15,'g'],['Mostarda',8,'g'],['Louro',1,'g'],['Pimenta preta',1,'g']],['a','j'],0,['pp']),
@@ -1812,7 +1817,7 @@ R('sopacoentros','Sopa de coentros','portuguesa',['lowfat','mediterranica'],0,0,
 R('sopacogumelos','Sopa de cogumelos','portuguesa',['lowcarb','mediterranica'],0,0,0,0,[['Cogumelos',250,'g'],['Cebola',70,'g'],['Alho',2,'dente'],['Alho-francês',80,'g'],['Nata para bater 35% gordura',40,'ml'],['Azeite',12,'ml'],['Tomilho fresco',3,'g'],['Caldo de legumes',300,'ml']],['a','j'],0,['pp']),
 R('sopafeijao','Sopa de feijão','portuguesa',['mediterranica'],0,0,0,0,[['Feijão encarnado',120,'g'],['Couve',100,'g'],['Cenoura',80,'g'],['Batata',120,'g'],['Cebola',70,'g'],['Alho',2,'dente'],['Chouriço',30,'g'],['Azeite',12,'ml'],['Louro',1,'g']],['a','j'],0,['pp']),
 R('cremaisco','Sopa creme de marisco','portuguesa',['lowcarb'],0,0,0,0,[['Camarão',150,'g'],['Amêijoas',100,'g'],['Cebola',70,'g'],['Alho',2,'dente'],['Tomate pelado',80,'g'],['Nata para bater 35% gordura',50,'ml'],['Arroz carolino branqueado cru',30,'g'],['Vinho branco',40,'ml'],['Azeite',12,'ml'],['Coentros',6,'g']],['a','j'],0,['pp']),
-R('sopapeixe','Sopa de peixe','portuguesa',['lowfat','mediterranica'],0,0,0,0,[['Pescada',180,'g'],['Batata',150,'g'],['Cebola',70,'g'],['Alho',2,'dente'],['Tomate',100,'g'],['Cenoura',60,'g'],['Azeite',12,'ml'],['Coentros',6,'g'],['Louro',1,'g']],['a','j'],0,['pp']),
+R('sopapeixept','Sopa de peixe','portuguesa',['lowfat','mediterranica'],0,0,0,0,[['Pescada',180,'g'],['Batata',150,'g'],['Cebola',70,'g'],['Alho',2,'dente'],['Tomate',100,'g'],['Cenoura',60,'g'],['Azeite',12,'ml'],['Coentros',6,'g'],['Louro',1,'g']],['a','j'],0,['pp']),
 R('vichyssoise','Sopa Vichyssoise','francesa',['lowcarb'],0,0,0,0,[['Alho-francês',200,'g'],['Batata',150,'g'],['Cebola',60,'g'],['Nata para bater 35% gordura',60,'ml'],['Manteiga',15,'g'],['Cebolinho',5,'g'],['Caldo de legumes',300,'ml']],['a','j'],0,['pp']),
 
 /* ---------- Outras cozinhas ---------- */
@@ -1893,10 +1898,14 @@ P('ovoscebolinho',[['Bater','Bate os ovos com a nata, uma pitada de sal e piment
  ['Lume brando','Derrete a manteiga numa frigideira antiaderente em lume muito brando e junta os ovos.',1],
  ['Mexer','Mexe devagar com uma espátula, trazendo o que coalha nas bordas para o centro. Tira do lume quando ainda estiverem ligeiramente cremosos — continuam a cozinhar no prato.',4],
  ['Cebolinho','Junta o cebolinho picado fora do lume, envolve e serve logo.']]);
-P('ovosbacon',[['Bacon','Frigideira fria, bacon em tiras, lume médio: assim a gordura derrete devagar e o bacon fica estaladiço sem queimar. Retira e reserva sobre papel.',6],
+P('ovosmexidosbacon',[['Bacon','Frigideira fria, bacon em tiras, lume médio: assim a gordura derrete devagar e o bacon fica estaladiço sem queimar. Retira e reserva sobre papel.',6],
  ['Ovos','Tira quase toda a gordura, deixa uma película e junta a manteiga. Bate os ovos com sal e pimenta e deita na frigideira em lume brando.'],
  ['Mexer','Mexe devagar até ficarem cremosos, sem secar.',4],
  ['Juntar','Volta a pôr o bacon, salpica com cebolinho e serve imediatamente.']]);
+P('ovosbacon',[['Cogumelos','Saltea os cogumelos em metade da manteiga, em lume vivo, até largarem e perderem a água. Reserva.',6],
+ ['Bacon','Na mesma frigideira, bacon em tiras até ficar dourado. Reserva com os cogumelos.',5],
+ ['Ovos','Baixa o lume, junta o resto da manteiga e os ovos batidos com sal e pimenta. Mexe devagar até cremosos.',4],
+ ['Servir','Envolve os cogumelos e o bacon e serve de imediato.']]);
 P('ovosbenedict',[['Molho holandês','Bate as gemas com sumo de limão em banho-maria brando, sem deixar a taça tocar na água. Junta a manteiga derretida morna em fio, sempre a bater, até engrossar. Sal e reserva morno.',8],
  ['Água do escalfado','Põe uma panela larga com água a fumegar (não a ferver) e junta o vinagre. É o vinagre que faz a clara agarrar-se à gema.'],
  ['Escalfar','Parte cada ovo numa taça e desliza-o para a água. Três minutos para a gema mole. Retira com escumadeira e escorre sobre papel.',3],
@@ -1959,11 +1968,6 @@ P('feijoadatransmontana',[['Demolhar','Feijão de molho de véspera, doze horas 
  ['Feijão','Coze o feijão no caldo das carnes.',40],
  ['Refogado','Aloura cebola e alho no azeite, junta o colorau fora do lume para não queimar, e depois o feijão com o caldo.',10],
  ['Juntar tudo','Carnes cortadas, enchidos em rodelas, cenoura e couve. Deixa apurar em lume brando até o caldo engrossar.',25]]);
-P('bacalhaubras',[['Bacalhau','Se for salgado, demolha 24 h com trocas de água. Desfia em lascas finas, tirando peles e espinhas.'],
- ['Cebolada','Estufa a cebola em meias-luas e o alho no azeite, em lume brando, até ficar translúcida.',15],
- ['Bacalhau na cebolada','Junta o bacalhau desfiado e deixa cozinhar uns minutos, mexendo.',5],
- ['Ligar','Fora do lume, junta a batata palha e os ovos batidos. Volta ao lume muito brando e mexe até os ovos ligarem sem secar — é este o ponto do prato.',2],
- ['Servir','Azeitonas e salsa por cima, imediatamente.']]);
 P('arrozpolvo',[['Cozer o polvo','Coze o polvo com louro e cebola, sem água, até um garfo entrar sem resistência. Guarda a água que ele largou.',45],
  ['Refogado','Aloura cebola, alho e pimento no azeite. Junta o tomate e deixa desfazer.',10],
  ['Arroz','Junta o arroz, envolve, refresca com o vinho branco e deixa evaporar. Acrescenta o dobro do volume em água do polvo, a ferver.',2],
@@ -2028,11 +2032,16 @@ P('cremaisco',[['Caldo','Coze as cascas e cabeças do camarão em água com lour
  ['Cozer','Arroz e caldo de marisco, a apurar. Junta as amêijoas lavadas e deixa abrir.',18],
  ['Triturar','Tritura tudo e passa por um passador fino, para ficar aveludado.'],
  ['Acabar','Nata fora do lume, o camarão descascado e salteado, e coentros.']]);
-P('sopapeixe',[['Caldo','Coze as cabeças e espinhas com cebola e louro; coa. É o caldo que faz esta sopa.',25],
+P('sopapeixept',[['Caldo','Coze as cabeças e espinhas com cebola e louro; coa. É o caldo que faz esta sopa.',25],
  ['Refogado','Azeite, cebola, alho e tomate a desfazer.',10],
  ['Cozer','Batata e cenoura no caldo, até estarem macias.',18],
  ['Peixe','Junta o peixe em pedaços e deixa cozinhar poucos minutos — mais do que isso desfaz-se.',6],
  ['Servir','Coentros picados fora do lume.']]);
+P('sopapeixe',[['Alho-francês','Corta a parte branca em rodelas e lava bem entre as camadas. Sua no azeite em lume brando, sem alourar.',8],
+ ['Tomate','Junta o tomate em pedaços e deixa desfazer.',6],
+ ['Cozer','Batata aos cubos, água ou caldo de peixe a cobrir, e o açafrão. Coze até a batata estar macia.',15],
+ ['Peixe','Pescada em pedaços, poucos minutos, para não desfazer.',5],
+ ['Servir','Retifica o sal. À francesa serve-se com pão torrado esfregado com alho, se houver.']]);
 P('vichyssoise',[['Alho-francês','Corta só a parte branca em rodelas e lava bem — traz terra entre as camadas.'],
  ['Suar','Manteiga em lume brando, alho-francês e cebola a suar sem ganhar cor. É importante que não alourem: a sopa deve ficar branca.',12],
  ['Cozer','Batata em cubos e caldo. Coze até desfazer.',20],
@@ -2218,7 +2227,7 @@ P('aclcouveroxa',[['Cortar','Couve-roxa em juliana muito fina e cenoura ralada g
  ['Temperar','Azeite e o resto do vinagre, envolvendo bem.']]);
 
 /* ================= PASSOS: COZINHA PORTUGUESA ================= */
-P('bras',[['Bacalhau','Desfia o bacalhau em lascas finas, sem peles nem espinhas.'],
+P('bras',[['Bacalhau','Se for salgado, demolha 24 h com trocas de água. Desfia em lascas finas, sem peles nem espinhas.'],
  ['Cebolada','Cebola em meias-luas e alho a estufar no azeite, em lume brando, até translúcidos.',15],
  ['Juntar','Bacalhau na cebolada, a cozinhar uns minutos.',5],
  ['Ligar','Fora do lume, batata palha e ovos batidos. Volta ao lume mínimo e mexe até ligar sem secar.',2],
@@ -3120,8 +3129,13 @@ P('bololaranja',[['Preparar','Raspa a laranja antes de a espremer — depois de 
 
    Campos: k kcal, c hidratos, p proteína, f gordura, fib fibra, un gramas de
    uma unidade (um ovo, um dente de alho — 0 quando não se conta às unidades),
-   s a secção do supermercado (índice de CATS, −1 quando não vem do INSA), u a
-   unidade em que se mede.
+   s a secção do supermercado, u a unidade em que se mede.
+
+   O s é um índice de CATS e tem de o ser: um valor fora da gama não dá erro
+   nenhum — cai calado na classificação por nome, e o corredor do supermercado
+   fica errado sem ninguém dar por isso. Já aconteceu aqui, em dezassete
+   ingredientes. O −1 é o único valor especial e quer dizer «classifica pelo
+   nome»: usa-se onde não há uma secção do INSA e o nome chega para acertar.
 
    Duas limitações ditas em voz alta: são ingredientes crus, e cozinhar muda o
    peso (a massa absorve água, a carne perde-a); e não há aqui perdas nem
@@ -3241,49 +3255,50 @@ NI('Camarão',77,0.3,17.6,0.6,0,0,0);
    restantes, convertidos para a convenção europeia de hidratos disponíveis.
    Os enchidos e as carnes de víscera vêm do INSA porque são pratos nossos e a
    composição muda muito de país para país. */
-NI('Vaca, fígado cru',130,1.1,20.6,4.9,0,0,2);
+NI('Vaca, fígado cru',130,1.1,20.6,4.9,0,0,1);
 NI('Alheira',301,22.5,12.8,17.4,1.1,0,1);
 NI('Farinheira',433,12.4,9.6,38.9,0.6,0,1);
-NI('Porco, orelha cozida',234,0,19.4,17.4,0,0,2);
-NI('Toucinho fumado',541,0.6,9.1,55.6,0,0,2);
+NI('Porco, orelha cozida',234,0,19.4,17.4,0,0,1);
+NI('Toucinho fumado',541,0.6,9.1,55.6,0,0,1);
 NI('Nata para bater 35% gordura',337,2.9,2.1,35,0,0,3);
 NI('Leite condensado açucarado',331,55.4,8.2,8.7,0,0,3);
-NI('Bolacha Maria',419,76.4,7.5,9.5,2.3,0,10);
-NI('Café expresso',2,0.3,0.2,0,0,0,10);
-NI('Vinho do Porto',155,12,0.1,0,0,0,10);
-NI('Cerveja branca',42,3.6,0.4,0,0,0,10);
-NI('Gelatina em folhas',338,0,84.4,0.1,0,0,10);
+NI('Bolacha Maria',419,76.4,7.5,9.5,2.3,0,4);
+NI('Café expresso',2,0.3,0.2,0,0,0,4);
+NI('Vinho do Porto',155,12,0.1,0,0,0,4);
+NI('Cerveja branca',42,3.6,0.4,0,0,0,4);
+NI('Gelatina em folhas',338,0,84.4,0.1,0,0,4);
 NI('Burrata',330,1.8,15.4,29.4,0,0,3);
 NI('Muffin inglês',235,44.4,8,1.8,2.7,0,4);
-NI('Polpa de tomate',32,4.4,1.5,0.3,1.2,0,6);
-NI('Morango',33,5.4,0.8,0.4,2,0,7);
-NI('Vinagre balsâmico',88,17,0.5,0,0,0,10);
-NI('Molho inglês',78,19.5,0,0,0,0,10);
-NI('Tinta de choco',52,0,10,1,0,0,10);
-NI('Colorau',282,34.9,14.1,12.9,34.9,0,10);
-NI('Molho piri-piri',40,4.8,1.6,1.2,1.5,0,10);
+NI('Polpa de tomate',32,4.4,1.5,0.3,1.2,0,4);
+NI('Morango',33,5.4,0.8,0.4,2,0,2);
+NI('Vinagre balsâmico',88,17,0.5,0,0,0,4);
+NI('Molho inglês',78,19.5,0,0,0,0,4);
+NI('Tinta de choco',52,0,10,1,0,0,4);
+NI('Colorau',282,19.1,14.1,12.9,34.9,0,4);  // USDA 171329 (paprika), hidratos disponiveis = totais - fibra
+NI('Molho piri-piri',40,4.8,1.6,1.2,1.5,0,4);
 NI('Camarão-tigre',85,0.2,20.1,0.5,0,0,0);
-NI('Bife do lombo de vaca',131,0,21.4,4.9,0,0,2);
+NI('Bife do lombo de vaca',131,0,21.4,4.9,0,0,1);
 NI('Queijo da ilha',390,1.5,26.5,31,0,0,3);
-NI('Sal grosso',0,0,0,0,0,0,10);
-NI('Raspa de limão',47,9.3,1.5,0.3,10.6,0,7);
-NI('Raspa de lima',30,10.5,0.7,0.2,2.8,0,7);
+NI('Sal grosso',0,0,0,0,0,0,4);
+NI('Raspa de limão',47,9.3,1.5,0.3,10.6,0,2);
+NI('Raspa de lima',30,10.5,0.7,0.2,2.8,0,2);
 /* ---- Cozinhas africana e brasileira ----
    Onde o INSA cobre (milho, feijão, mandioca, quiabo, óleo de palma), é ele.
    O resto — carne seca, polvilho, requeijão cremoso, cortes brasileiros —
    vem do FoodData Central do USDA e da TACO brasileira, convertidos para a
    convenção europeia de hidratos disponíveis. */
-NI('Milho, grão seco cru',362,64.7,9.4,4.7,9.6,0,4);
-NI('Carne seca (charque)',312,0,32.5,20.1,0,0,2);
-NI('Costela de vaca crua',277,0,18.9,22.2,0,0,2);
-NI('Rabo de porco',376,0,17.8,33.8,0,0,2);
-NI('Maminha de vaca crua',153,0,21.2,7.4,0,0,2);
+/* 'Milho, grão seco cru' não se repete aqui: já vem do bloco do INSA, mais
+   abaixo. Uma segunda declaração calava a primeira sem dar erro. */
+NI('Carne seca (charque)',312,0,32.5,20.1,0,0,1);
+NI('Costela de vaca crua',277,0,18.9,22.2,0,0,1);
+NI('Rabo de porco',376,0,17.8,33.8,0,0,1);
+NI('Maminha de vaca crua',153,0,21.2,7.4,0,0,1);
 NI('Polvilho azedo',351,86.7,0.4,0.1,0.9,0,4);
 NI('Requeijão cremoso (catupiry)',264,3.4,9.6,23.5,0,0,3);
 NI('Queijo minas frescal',264,3.2,17.4,20.2,0,0,3);
 NI('Massa de pastel crua',321,54.6,8.1,7.2,2.1,0,4);
-NI('Óleo de dendê',884,0,0,100,0,0,9);
-NI('Jindungo (piri-piri)',40,7.3,1.9,0.4,1.5,0,6);
+NI('Óleo de dendê',884,0,0,100,0,0,4);
+NI('Jindungo (piri-piri)',40,7.3,1.9,0.4,1.5,0,2);
 NI('Amêijoas',65,2.6,11.7,0.9,0,0,0);
 NI('Mexilhões',70,2,12.1,1.5,0,0,0);
 NI('Lulas',71,0,15.8,0.9,0,0,0);
@@ -3400,7 +3415,7 @@ NI('Noz-moscada',525,28,6,36,21,0,-1);  // USDA, hidratos convertidos para dispo
 NI('Orégãos',265,26.4,9,4.3,42.5,0,4);
 NI('Ervas de Provença',265,24,9,7,40,0,-1);  // USDA, hidratos convertidos para disponiveis
 NI('Pimenta preta',250,39,10,3.3,25,0,-1);  // USDA, hidratos convertidos para disponiveis
-NI('Pimentão-doce',358,35,14.8,13,20.9,0,4);
+NI('Pimentão-doce',282,19.1,14.1,12.9,34.9,0,4);  // USDA 171329 (paprika); mesmo alimento que 'Colorau'
 NI('Flor de sal',0,0,0,0,0,0,-1);  // USDA, hidratos convertidos para disponiveis
 
 /* ---- O resto da tabela portuguesa ----
@@ -3479,13 +3494,13 @@ NI('Chocolate, pó',469,63.8,4.2,20.3,7.3,0,4);
 NI('Chouriço de carne de porco, cru',476,0,20,44.1,0,0,1);
 NI('Chouriço de carne de porco, gordo, cru',544,0,15.4,53.6,0,0,1);
 NI('Chuchu',19,2.9,0.8,0.1,1.7,0,2);
-NI('Chucrute',15,1.1,1.3,0.3,1.1,0,2);
+NI('Chucrute',15,1.1,1.3,0.3,1.1,0,4);
 NI('Clara de ovo de galinha, crua',47,0,11,0.3,0,0,1);
 NI('Clara de ovo de galinha, pasteurizada',46,1,10.5,0,0,0,1);
 NI('Clementina',53,11.1,0.8,0.2,1.7,0,2);
 NI('Codorniz carne sem pele, crua',119,0,22.1,3.4,0,0,1);
 NI('Codorniz com pele, crua',170,0,21.5,9.3,0,0,1);
-NI('Cogumelos enlatados, escorridos',17,0,2.1,0.4,2.7,0,2);
+NI('Cogumelos enlatados, escorridos',17,0,2.1,0.4,2.7,0,4);
 NI('Cogumelos ostra (pleurotus)',27,2.7,2.4,0.2,2.3,0,2);
 NI('Corvina crua',94,0,20.4,1.4,0,0,0);
 NI('Couve-branca crua',28,3.5,1.4,0.4,2.4,0,2);
@@ -3497,7 +3512,7 @@ NI('Creme culinário',531,0,0,59,0,0,4);
 NI('Creme culinário líquido, 65% gordura, com sal',588,0,0,65.3,0,0,4);
 NI('Creme vegetal culinário, 75% gordura, sem sal',677,0.4,0.1,75,0,0,4);
 NI('Creme vegetal de soja para barrar',444,3.7,0.2,47.6,0,0,4);
-NI('Creme vegetal para barrar  72% gordura, 33% ácidos gordos polinsaturados',651,0.4,0.1,72.1,0,0,4);
+NI('Creme vegetal para barrar 72% gordura, 33% ácidos gordos polinsaturados',651,0.4,0.1,72.1,0,0,4);
 NI('Creme vegetal para barrar 35% gordura, com fitosteróis',328,3.2,0.1,35,0,0,4);
 NI('Creme vegetal para barrar 37% gordura',343,0.2,1.4,37.4,0,0,4);
 NI('Creme vegetal para barrar 58% gordura, com cálcio',525,0.5,0.3,58,0,0,4);
@@ -3514,7 +3529,7 @@ NI('Ervilhas, vagens cruas',33,3.9,3.1,0.2,1.5,0,2);
 NI('Estragão fresco',55,6.3,3.4,1.1,2.9,0,2);
 NI('Faneca crua',82,0.1,19,0.6,0,0,0);
 NI('Farelo de trigo',293,24.9,16.2,5.3,40.2,0,4);
-NI('Farinha de alfarroba',368,85.6,3.2,0.3,5,0,2);
+NI('Farinha de alfarroba',368,85.6,3.2,0.3,5,0,4);
 NI('Farinha de aveia',363,57,14.5,7.3,5.7,0,4);
 NI('Farinha de centeio',370,77.3,7.8,1.2,9.4,0,4);
 NI('Farinha de centeio tipo 70',364,78.5,6.6,1.1,7,0,4);
@@ -3522,7 +3537,7 @@ NI('Farinha de centeio tipo 85',375,76,9,1.3,11.7,0,4);
 NI('Farinha de cevada',330,64.4,8.8,2.5,7.6,0,4);
 NI('Farinha de espelta',339,61.8,14,2.3,7.4,0,4);
 NI('Farinha de milho tipo 70',359,75.3,8.3,2.2,2.6,0,4);
-NI('Farinha de pau (mandioca)',350,84.6,1.4,0.3,1.6,0,2);
+NI('Farinha de pau (mandioca)',350,84.6,1.4,0.3,1.6,0,4);
 NI('Farinha de trigo com fermento',343,72.5,9.7,1.1,2.3,0,4);
 NI('Farinha de trigo integral',338,65.2,9.6,2.4,8.6,0,4);
 NI('Farinha de trigo tipo 150',352,73,9.1,1.8,3.7,0,4);
@@ -3677,7 +3692,7 @@ NI('Pescada do Chile crua',86,0,18,1.5,0,0,0);
 NI('Pescada europeia crua',75,0,17,0.8,0,0,0);
 NI('Pescada, ovas cruas',83,0,14.3,2.9,0,0,0);
 NI('Pêssego (2 variedades)',50,10.6,0.8,0,1.2,0,2);
-NI('Picles de pepino',74,16.5,0.5,0.5,0.5,0,2);
+NI('Picles de pepino',74,16.5,0.5,0.5,0.5,0,4);
 NI('Pimenta branca',306,48.3,10.4,2.1,26.2,0,4);
 NI('Pimenta moída',273,38.3,10.7,2.7,26.5,0,4);
 NI('Pistácio torrado e salgado',616,12.6,18,53,8.5,0,4);
@@ -3775,7 +3790,7 @@ NI('Tamboril cru',73,0,17.9,0.2,0,0,0);
 NI('Tângera',41,7.8,0.7,0.1,1.7,0,2);
 NI('Tangerina',44,8.7,0.7,0.1,1.7,0,2);
 NI('Tapioca',356,87.5,0.3,0.2,1.7,0,4);
-NI('Tomate concentrado',82,14.3,3.7,0.3,3.9,0,2);
+NI('Tomate concentrado',82,14.3,3.7,0.3,3.9,0,4);
 NI('Tomilho fresco',52,7.4,1.5,1.2,3,0,2);
 NI('Toranja',36,6,0.9,0.1,1.6,0,2);
 NI('Tosta de trigo',377,69.7,12.5,4.2,5.4,0,4);
@@ -3840,6 +3855,16 @@ const CATS = [
   ['Laticínios',/leite\b|queijo|iogurte|manteiga|mozzarella|parmesão|feta|gruyère|ricotta|requeijão|nata|halloumi|manchego|cheddar/i],
   ['Mercearia & Outros',/./]
 ];
+/* Um s fora da gama de CATS não parte nada: cai calado na classificação por
+   nome e manda o ingrediente para o corredor errado. Assim ninguém dá por
+   isso — foi o que aconteceu a dezassete ingredientes. Aqui não se corrige
+   à socapa (adivinhar a secção certa seria pior do que não ter nenhuma):
+   diz-se em voz alta na consola de quem estiver a editar a tabela. */
+(function(){
+  const maus=Object.keys(NUTRI).filter(n=>{ const s=NUTRI[n].s;
+    return s!==-1 && !(Number.isInteger(s) && s>=0 && s<CATS.length); });
+  if(maus.length) console.warn('Família Fit — secção de supermercado fora da gama (0-'+(CATS.length-1)+' ou -1) em: '+maus.join(', '));
+})();
 /* A expressão acerta no corredor errado sempre que o nome de um produto de
    prateleira contém o de um fresco. Gnocchi não está ao lado das batatas,
    tomate pelado não está com os tomates e leite de coco não está com o leite
@@ -4006,7 +4031,21 @@ const ING_EXCECAO={
   'Passas':['sulfitos'], 'Sultanas':['sulfitos'], 'Batata palha':['sulfitos'],
   'Picles de pepino':['sulfitos','aipo'], 'Tomate seco':['sulfitos'],
   'Leite de cabra cru':['lacticinio'], 'Leite de ovelha cru':['lacticinio'],
-  'Grilo doméstico, pó':[], 'Molho para francesinha':['gluten','lacticinio','alcool','carne','porco'],
+  /* O grilo não está no anexo II, mas o regulamento que o autoriza como novo
+     alimento — Reg. de Execução (UE) 2022/188 — obriga o rótulo a dizer que
+     pode causar reação em quem é alérgico a crustáceos, moluscos e ácaros.
+     Não é invenção nossa: é a própria autorização que o manda declarar. */
+  'Grilo doméstico, pó':['crustaceos','moluscos'],
+  /* Enchidos onde o cereal é ingrediente e não contaminação: a alheira leva
+     pão na massa e a farinheira leva farinha de trigo — é o que lhes dá o
+     nome. Ambas levam gordura de porco. Nenhum dos dois nomes é apanhado
+     pelas expressões, e as duas ficavam sem etiqueta nenhuma. */
+  'Alheira':['carne','porco','gluten','cereal'],
+  'Farinheira':['carne','porco','gluten','cereal'],
+  'Pasta de aves (paté), caseira':['carne'],
+  'Bolacha Maria':['gluten','cereal'], 'Muffin inglês':['gluten','cereal'],
+  'Burrata':['lacticinio'],
+  'Molho para francesinha':['gluten','lacticinio','alcool','carne','porco'],
   'Molho branco com caldo de carne de vaca':['gluten','cereal','lacticinio','carne','aipo'],
   'Óleo "Becel"':[], 'Óleo alimentar':[], 'Óleo de girassol':[], 'Óleo de milho':[],
   'Óleo de palma':[], 'Óleo de linhaça':[], 'Óleo de amendoim':['amendoim','leguminosa'],
@@ -4367,12 +4406,18 @@ function hhmm(isoS){ if(!isoS) return '—'; const d=new Date(isoS);
   return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
 function dataHora(isoS){ if(!isoS) return 'nunca'; const d=new Date(isoS);
   return fmtShort(iso(d))+' às '+hhmm(isoS); }
+/* O texto vai num span próprio para o telemóvel em vertical o poder esconder:
+   nesse cabeçalho nowrap o rótulo inteiro não cabe e empurrava o botão para
+   fora do ecrã. O led fica sempre — a cor já diz o essencial, e o title conta
+   o resto a quem tocar. */
 function paintSave(){
   const el=document.getElementById('savest'); if(!el) return;
-  if(saveErr){ el.className='savest err'; el.innerHTML='<i class="led"></i> gravação bloqueada'; return; }
-  if(!S.members.length){ el.className='savest none'; el.innerHTML='<i class="led"></i> sem dados'; return; }
-  if(S.meta.semCopia){ el.className='savest pend'; el.innerHTML='<i class="led"></i> guardado '+hhmm(S.meta.gravadoEm)+' · sem cópia'; return; }
-  el.className='savest'; el.innerHTML='<i class="led"></i> guardado '+hhmm(S.meta.gravadoEm)+' · cópia feita';
+  const põeTexto=(cls,txt)=>{ el.className=cls; el.title=txt+' — ver dados e cópias de segurança';
+    el.innerHTML='<i class="led"></i><span class="savest-txt"> '+txt+'</span>'; };
+  if(saveErr) return põeTexto('savest err','gravação bloqueada');
+  if(!S.members.length) return põeTexto('savest none','sem dados');
+  if(S.meta.semCopia) return põeTexto('savest pend','guardado '+hhmm(S.meta.gravadoEm)+' · sem cópia');
+  põeTexto('savest','guardado '+hhmm(S.meta.gravadoEm)+' · cópia feita');
 }
 /* Rede de segurança: o estado é gravado a cada alteração, mas também
    periodicamente e sempre que o separador é escondido ou fechado. */
@@ -5152,7 +5197,7 @@ const DICAS={
   suplementos:'Regista o que tomas e quantas doses por dia. Um batido de proteína é comida: as calorias e os macros entram no plano do dia. Os suplementos vão também para a despensa e para a lista de compras, com as doses de sete dias.',
   suplMacros:'Quanto dos macros do dia já vem dos suplementos, e quanto sobra para a comida. É este segundo número que interessa a quem vai cozinhar — se um batido dá 48 g de proteína, faltam menos 48 g no prato.',
   suplMicros:'O que os suplementos dão de cada micronutriente, comparado com a dose diária de referência e com o limite superior tolerável do Institute of Medicine. Passar o limite deixa de ser inócuo — sobretudo em crianças e na gravidez.',
-  aspeto:'Seis paletas, cada uma com modo claro e escuro. A paleta muda os acentos e o tom dos neutros; o modo é independente e pode seguir o sistema. As secções que fechares ficam fechadas — a app lembra-se de cada uma.',
+  aspeto:'Sete paletas, cada uma com modo claro e escuro. A paleta muda os acentos e o tom dos neutros; o modo é independente e pode seguir o sistema. As secções que fechares ficam fechadas — a app lembra-se de cada uma.',
   resumoMes:'Um retrato dos últimos 30 dias escrito a partir do que registaste: refeições planeadas, dias completos, atividade, objetivos e evolução do peso de quem tem um objetivo a decorrer.',
   sugestoes:'Liga e desliga quem se senta à mesa. A lista mostra só as receitas que servem toda a gente ligada ao mesmo tempo: fora ficam as que chocam com a dieta de alguém, as que levam um ingrediente que alguém não come e as que passam a fatia de calorias daquela refeição. As quantidades já vêm multiplicadas pelo número de pessoas.',
   restricoes:'Exclusões que não são alergias: escolhas religiosas, éticas ou de gosto. Filtram as mesmas receitas, mas sem o peso de uma alergia. As alergias marcam-se no perfil, no separador Família.',
@@ -5205,7 +5250,7 @@ function setVistaMercearia(v){ S.ui.mercVista= v==='despensa'?'despensa':'compra
 /* ===== NAVEGAÇÃO =====
    Ícones de linha desenhados no mesmo traço dos gráficos e dos estados vazios
    da app — 24×24, contorno 1.8, sem preenchimento. Herdam currentColor, por
-   isso vestem as doze combinações de paleta e modo sem uma regra de cor. */
+   isso vestem as catorze combinações de paleta e modo sem uma regra de cor. */
 const ICONES_NAV={
   familia:'<circle cx="12" cy="7.6" r="3.4"/><path d="M5.4 19.5c1.2-3.5 3.7-5.3 6.6-5.3s5.4 1.8 6.6 5.3"/>',
   atividade:'<path d="M3 13.2h4.2l2.4-6.4 4.1 11 2.4-4.6H21"/>',
@@ -6440,18 +6485,27 @@ let _ixGlobal=null;
 function pesquisaGlobal(q){
   const s=semAcentos(q||'').trim().toLowerCase();
   if(s.length<2) return [];
+  /* Cada palavra procura por si, por qualquer ordem: «esparguete requeijão»
+     tem de encontrar «Esparguete com requeijão…» — quem pesquisa não sabe
+     as preposições do nome, nem tem de saber. */
+  const termos=s.split(/\s+/).filter(Boolean);
   if(!_ixGlobal) _ixGlobal=indiceGlobal();
   const out=[];
   for(const x of _ixGlobal){
     const n=semAcentos(x.t).toLowerCase();
-    const i=n.indexOf(s);
-    if(i<0) continue;
-    out.push({x, p: i===0? 0 : 1});
+    let pos=null;
+    for(const t of termos){ const i=n.indexOf(t); if(i<0){ pos=null; break; } if(pos===null) pos=i; }
+    if(pos===null) continue;
+    out.push({x, p: pos===0? 0 : 1});
     if(out.length>400) break;
   }
   return out.sort((a,b)=>a.p-b.p || a.x.t.length-b.x.t.length).slice(0,12).map(o=>o.x);
 }
-function abrirPesquisa(){ S.ui.pesqAberta=true; S.ui.pesqQ=''; saveMeta(); render();
+function abrirPesquisa(){ S.ui.pesqAberta=true; S.ui.pesqQ='';
+  /* o índice refaz-se ao abrir: um perfil criado há um minuto tem de aparecer,
+     e um apagado tem de desaparecer — reconstruir é barato, ficar velho não */
+  _ixGlobal=null;
+  saveMeta(); render();
   setTimeout(()=>{ const el=document.getElementById('pesq-campo'); if(el) el.focus(); },0); }
 function fecharPesquisa(){ S.ui.pesqAberta=false; saveMeta(); render(); }
 function setPesqQ(v){ S.ui.pesqQ=v; pintaPesquisa(); }
@@ -7820,9 +7874,9 @@ function blocoIdade(m){
       aria-label="Data de nascimento de ${esc(m.nome)}" onchange="setNascimento('${mid}',this.value)"></div>`;
   return `<div><label class="lbl">${bebe?'Idade (meses)':'Idade (anos)'}</label>
     <div class="row" style="flex-wrap:nowrap;gap:6px">
-      ${bebe? `<input type="number" id="in-${mid}-idade" min="0" max="24" step="1" value="${Math.round(idadeMeses(m))}"
+      ${bebe? `<input type="number" style="min-width:64px" id="in-${mid}-idade" min="0" max="24" step="1" value="${Math.round(idadeMeses(m))}"
           aria-label="Idade em meses" onchange="upd('${mid}','meses',this.value,1)">`
-        : `<input type="number" id="in-${mid}-idade" min="2" max="120" value="${Math.round(m.idade)}"
+        : `<input type="number" style="min-width:64px" id="in-${mid}-idade" min="2" max="120" value="${Math.round(m.idade)}"
           aria-label="Idade em anos" onchange="upd('${mid}','idade',this.value,1)">`}
       <button class="btn ghost small" style="flex:none" title="Usar a data de nascimento"
         aria-label="Definir a data de nascimento de ${esc(m.nome)}" onclick="abrirNasc('${mid}')">📅</button>
@@ -10067,7 +10121,7 @@ function linhaRegRef(m,r){
     </div>
     <div class="reg-acoes">
       ${r.estado!=='falhada'? `<button class="btn ghost small" aria-label="Editar ${esc(rec?rec.n:r.r)} de ${fmtShort(r.d)}"
-        onclick="abrirFormRef('${m.id}',{editar:'${r.id}',d:'${r.d}',mk:'${r.mk}',r:'${r.r}',ac:${JSON.stringify(r.ac||[])},dose:${r.dose||1}})">✎</button>`:''}
+        onclick="abrirFormRef('${m.id}',{editar:'${r.id}',d:'${r.d}',mk:'${r.mk}',r:'${r.r}',ac:${esc(JSON.stringify(r.ac||[]))},dose:${r.dose||1}})">✎</button>`:''}
       <button class="btn danger small" aria-label="Apagar ${esc(rec?rec.n:r.r)} de ${fmtShort(r.d)}" onclick="apagarRegRef('${r.id}')">✕</button>
     </div>
   </div>`;
@@ -12696,7 +12750,7 @@ const TOUR=[
    t:'O plano tem dias',
    d:'Cada desporto do plano diz em que dias da semana acontece, e o tempo de cada sessão é o volume semanal dividido por eles — o total não muda, só passa a haver treinos com data. É daqui que sai a semana que vem aí e, no fim do dia, o que há para confirmar.'},
   {tab:'atividade', sel:'.spline', quando:()=>S.members.length&&(curM().desportos||[]).length,
-   t:'43 desportos, esforço medido',
+   t:`${SPORTS.length} desportos, esforço medido`,
    d:'Nos desportos em que a velocidade manda no esforço (corrida, ciclismo, natação, remo, patinagem) indicam-se distância e ritmo em sliders, e o ponto laranja percorre a curva de esforço em direto. Nos restantes escolhe-se a intensidade pelo teste da conversa.'},
   {tab:'atividade', sel:'[data-col="atv-historico"]', quando:()=>S.members.length&&(curM().desportos||[]).length,
    t:'Atividade passada e histórico',
@@ -12722,12 +12776,17 @@ const TOUR=[
   {tab:'nutricao', sel:'#nu-plinha',
    t:'Projeção de peso',
    d:'Mostra para onde o peso caminha se o alvo se mantiver, recalculando o gasto a cada semana — por isso a curva achata. A faixa verde é a zona de índice de massa corporal saudável para a altura.'},
+  /* Os números vêm das próprias tabelas: um texto com a contagem escrita à mão
+     desatualiza-se na receita seguinte, e já desatualizou. */
   {tab:'receitas', sel:'#rec-busca',
-   t:'279 receitas, oito cozinhas',
-   d:'Peixe grelhado e no forno, marisco à portuguesa, carne na brasa com os cortes pelo nome, keto, vegan e muito mais. Pesquisa por nome ou por ingrediente, e filtra por refeição, cozinha, dieta — ou «sem» um alergénio.'},
+   t:`${RECIPES.length} receitas, ${Object.keys(CUIS).length} cozinhas`,
+   d:`Peixe grelhado e no forno, marisco à portuguesa, carne na brasa com os cortes pelo nome, keto, vegan e muito mais — de ${CUIS.portuguesa.toLowerCase()} a ${CUIS.africana.toLowerCase()} e ${CUIS.brasileira.toLowerCase()}. Pesquisa por nome ou por ingrediente, e filtra por refeição, cozinha, dieta, categoria — entradas, pratos principais, brunch, snacks e sobremesas — ou «sem» um alergénio.`},
   {tab:'receitas', sel:'.rc',
    t:'Macros que saem dos ingredientes',
    d:'As calorias e os macros de cada receita são calculados da composição de cada ingrediente (tabela do INSA), com as quantidades já multiplicadas pelas pessoas escolhidas. Os ✓ e ✗ mostram o que já tens na despensa.'},
+  {tab:'receitas', sel:'.rc',
+   t:'Toca na receita: os passos de preparação',
+   d:'Cada receita abre uma ficha com os ingredientes já na quantidade certa para quem vai comer, o que está e o que falta na despensa, e os passos de preparação escritos um a um, com os tempos. Daí segue-se para o modo Cozinha, um passo de cada vez em letra grande e com o ecrã impedido de adormecer — para se seguir a receita com as mãos na massa.'},
   {tab:'receitas', sel:'#btn-nova-receita',
    t:'As tuas receitas',
    d:'Escreve a receita da casa com ingredientes do catálogo: os macros por dose e as etiquetas de dieta aparecem enquanto escreves, e a receita entra na biblioteca como qualquer outra. Também podes copiar uma existente para a pôr a teu gosto.'},
@@ -12781,14 +12840,14 @@ const TOUR=[
    t:'Datas da casa',
    d:'Os aniversários já saem das datas de nascimento. Aqui juntam-se as outras — Santo António, o aniversário de casamento — e nesses dias o cartão «Hoje» amanhece com enfeites e propõe marcar dia livre, com os pratos que essa pessoa mais comeu no ano. Uma festa deixa de ser uma falha ao plano e passa a fazer parte dele.'},
   {tab:'dados', sel:'[data-col="dados-aspeto"]',
-   t:'Seis paletas, dois modos',
+   t:`${Object.keys(PALETAS).length} paletas, dois modos`,
    d:'Azulejo, Alecrim, Figo, Maré, Brasa, Tinta — e Contraste, que leva todos os textos a 7:1, engrossa o traço e faz as linhas dos gráficos distinguirem-se por padrão, não só por cor. Cada uma em claro e escuro. Ao lado ficam a densidade («Cerrado» para quem já conhece a app), o virar de folha e «Seguir as estações», que muda apontamentos e ilustrações com o calendário português — nunca a cor de um texto, porque a legibilidade não é sazonal.'},
   {tab:'dados', sel:'main .card',
    t:'Cópias de segurança',
    d:'Tudo fica gravado só neste browser, por isso o ficheiro de cópia é a única coisa que sobrevive a limpar o histórico ou trocar de telemóvel. Podes substituir tudo por uma cópia ou juntar duas, para combinar o que duas pessoas preencheram.'},
   {tab:'familia', sel:'#btn-pesq',
    t:'Procurar em toda a app',
-   d:'Um campo que atravessa os oito separadores: receitas, os 609 ingredientes, as 43 modalidades, os perfis — e os próprios cartões, para «onde é que se marcam as alergias?» deixar de exigir conhecer a arquitetura. Em teclado abre-se com a tecla «/».'},
+   d:`Um campo que atravessa os ${TABS.length} separadores: receitas, os ${Object.keys(NUTRI).length} ingredientes, as ${SPORTS.length} modalidades, os perfis — e os próprios cartões, para «onde é que se marcam as alergias?» deixar de exigir conhecer a arquitetura. Em teclado abre-se com a tecla «/».`},
   {tab:'familia', sel:'.hist',
    t:'Desfazer e explicações',
    d:'Qualquer alteração se desfaz com estes botões ou com Ctrl+Z — as últimas 30 ficam guardadas. E os pequenos «i» espalhados pela app explicam cada funcionalidade quando passas o rato ou lhes tocas. Já podes começar!'}
@@ -12986,7 +13045,11 @@ function pintaModal(){
   /* o botão de registo vive fora do #main, para não piscar a cada redesenho
      de separador — mas some quando há uma folha ou um diálogo por cima */
   let fab=document.getElementById('fab-registo');
-  const querFab=S.members.length && !mo && !fo && !fi && !S.ui.mercado && !S.ui.cozinha && !S.ui.pesqAberta && !tourAtivo()
+  /* A visita esconde o botão para não tapar o que está a explicar — exceto no
+     passo que fala do próprio botão, que sem isto apontava para coisa nenhuma. */
+  const passoFab=tourAtivo() && ((passosTour()[S.ui.tourPasso]||{}).sel==='#fab-registo');
+  const querFab=S.members.length && !mo && !fo && !fi && !S.ui.mercado && !S.ui.cozinha && !S.ui.pesqAberta
+    && (!tourAtivo() || passoFab)
     && ['familia','atividade','nutricao','plano'].indexOf(S.ui.tab)>=0;
   if(querFab){
     if(!fab){ fab=document.createElement('button'); fab.id='fab-registo'; fab.className='fab';
