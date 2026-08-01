@@ -405,6 +405,77 @@ ol.passos li span{color:var(--mut);font-size:14px;margin-top:2px}
    quem quer comer não pode congelar por engano, e vice-versa. */
 /* A barra da cobertura fala por três larguras, mas cada troço tem legenda com
    número: quem não distingue as cores lê na mesma «22 na despensa». */
+/* A régua dos meses e a linha do tempo: dois gráficos pequenos que vivem
+   dentro de texto, e por isso alinham pela linha de base e não estiram. */
+/* Barras horizontais com o valor sempre à direita: a barra dá a proporção de
+   relance, o número dá a precisão que a barra não pode dar. */
+.peso-linha{display:grid;grid-template-columns:minmax(0,1fr) 42% auto;align-items:center;
+  gap:10px;margin-top:6px}
+.peso-nome{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
+.peso-barra{height:10px;border-radius:999px;background:var(--line);overflow:hidden}
+.peso-barra i{display:block;height:100%;background:var(--accent)}
+.peso-barra i.quieta{background:var(--mut);opacity:.5}
+.peso-val{font-variant-numeric:tabular-nums;font-size:13px;white-space:nowrap}
+@media (max-width:520px){ .peso-linha{grid-template-columns:minmax(0,1fr) auto} .peso-barra{grid-column:1/-1} }
+/* ===== O RÓTULO DA FICHA =====
+   A ficha é o coração da app e o título era um h2 solto. A fonte display já
+   existia mas estava subaproveitada nos momentos de orgulho: isto dá às 349
+   receitas a dignidade de um livro de família, com filetes duplos e a cozinha
+   em versaletes espaçados. Só CSS e as variáveis de cor de sempre, por isso
+   comporta-se igual nas sete paletas e nos dois modos. */
+.rotulo{text-align:center;padding:2px 0 4px}
+.rotulo h2{font-family:var(--fonte-display);font-size:clamp(20px,4.6vw,27px);line-height:1.15;
+  margin:8px 0 2px;text-wrap:balance;display:flex;align-items:center;justify-content:center;gap:2px;
+  flex-wrap:wrap}
+.rotulo-coz{font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--mut);
+  margin:2px 0 0;font-weight:600}
+.rotulo-assina{font-family:var(--fonte-display);font-style:italic;font-size:13px;
+  color:var(--energy);margin:4px 0 0}
+.rotulo-filete{display:block;height:3px;border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);margin:0 auto;width:min(230px,72%)}
+/* ===== DELEITE =====
+   Três apontamentos ligados a dados reais: o coração que se borda nos dias de
+   festa, o brilho de uma estreia e o vapor ou a gota conforme o prato e a
+   estação. Todos obedecem a data-anim e a prefers-reduced-motion; quando as
+   animações estão desligadas, o desenho aparece parado — nunca desaparece. */
+.viana-cor{color:var(--party);display:inline-flex;flex:none}
+.viana path{stroke-dasharray:1;stroke-dashoffset:0}
+@media (prefers-reduced-motion: no-preference){
+  html[data-anim="on"] .viana path{stroke-dasharray:60;stroke-dashoffset:60;
+    animation:bordar 1.5s ease-out forwards}
+  html[data-anim="on"] .viana path:nth-child(2){animation-delay:.5s}
+  html[data-anim="on"] .viana path:nth-child(3){animation-delay:.75s}
+  @keyframes bordar{ to{stroke-dashoffset:0} }
+}
+.estreia{display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  font-family:var(--fonte-display);font-size:15.5px}
+.estreia .brilho{color:var(--energy);display:inline-flex;flex:none}
+@media (prefers-reduced-motion: no-preference){
+  html[data-anim="on"] .estreia .brilho{animation:cintila 2.4s ease-in-out 2}
+  @keyframes cintila{ 0%,100%{opacity:.55;transform:scale(1)} 50%{opacity:1;transform:scale(1.15)} }
+}
+/* Vapor nos pratos quentes fora do verão, gota nos frios em pleno verão. */
+.clima{display:inline-flex;flex:none;vertical-align:middle;margin-left:6px}
+.clima.vapor{color:var(--energy)} .clima.gota{color:var(--accent)}
+@media (prefers-reduced-motion: no-preference){
+  html[data-anim="on"] .clima.vapor path{animation:subirVapor 3.2s ease-in-out infinite}
+  html[data-anim="on"] .clima.vapor path:nth-child(2){animation-delay:.7s}
+  html[data-anim="on"] .clima.vapor path:nth-child(3){animation-delay:1.4s}
+  @keyframes subirVapor{ 0%{opacity:0;transform:translateY(3px)} 35%{opacity:.85}
+    100%{opacity:0;transform:translateY(-4px)} }
+  html[data-anim="on"] .clima.gota circle{animation:brilhaGota 4.5s ease-in-out infinite}
+  @keyframes brilhaGota{ 0%,80%,100%{opacity:.55} 88%{opacity:1} }
+}
+/* O mosaico rola sozinho quando não cabe, em vez de encolher os quadrados até
+   deixarem de se distinguir. */
+.mosaico{margin-top:10px;overflow-x:auto;padding-bottom:2px}
+.mosaico .svgfx{width:auto;min-width:320px}
+.dot.dot-pausa{background:transparent;border:1.5px dashed var(--mut)}
+.reguas{margin-top:12px;display:flex;flex-direction:column;gap:4px}
+.regua-linha{display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap}
+.regua-epoca svg{display:block}
+.linha-tempo{margin:8px 0 4px}
+.linha-tempo .svgfx{width:auto}
 /* Estar noutra semana tem de se ver antes de se marcar seja o que for. */
 .faixa-fora{display:flex;align-items:center;justify-content:space-between;gap:10px;
   flex-wrap:wrap;margin-bottom:12px;padding:9px 12px;border-radius:var(--r-sm);
@@ -644,6 +715,27 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border:3px solid var(
   background:var(--accent)}
 input[type=range]:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 3px var(--accent-soft)}
 input[type=range]:focus-visible::-moz-range-thumb{box-shadow:0 0 0 3px var(--accent-soft)}
+/* ===== DETENTES =====
+   Acertar «30%» ou «dose 1» às apalpadelas num ecrã pequeno é frustrante. Os
+   riscos desenham-se no fundo do próprio track — não são elementos novos, e
+   por isso não mexem no contrato de live update, que continua a escrever só a
+   variável --pct. O ressalto do polegar é uma classe que dura o tempo da
+   animação e sai sozinha. */
+input[type=range].com-detentes::-webkit-slider-runnable-track{
+  background:
+    repeating-linear-gradient(90deg, transparent 0, transparent calc(var(--passo,20%) - 1px),
+      color-mix(in srgb,var(--ink) 28%,transparent) calc(var(--passo,20%) - 1px), color-mix(in srgb,var(--ink) 28%,transparent) var(--passo,20%)),
+    linear-gradient(90deg,var(--accent) var(--pct,0%),var(--line) var(--pct,0%))}
+input[type=range].com-detentes::-moz-range-track{
+  background:
+    repeating-linear-gradient(90deg, transparent 0, transparent calc(var(--passo,20%) - 1px),
+      color-mix(in srgb,var(--ink) 28%,transparent) calc(var(--passo,20%) - 1px), color-mix(in srgb,var(--ink) 28%,transparent) var(--passo,20%)),
+    var(--line)}
+@media (prefers-reduced-motion: no-preference){
+  html[data-anim="on"] input[type=range].detente-tocado::-webkit-slider-thumb{animation:ressalto .16s ease-out}
+  html[data-anim="on"] input[type=range].detente-tocado::-moz-range-thumb{animation:ressalto .16s ease-out}
+  @keyframes ressalto{ 0%{transform:scale(1)} 45%{transform:scale(1.22)} 100%{transform:scale(1)} }
+}
 /* Sliders de macros com a cor do próprio macro. */
 .rgC::-webkit-slider-runnable-track{background:linear-gradient(90deg,var(--mc) var(--pct,0%),var(--line) var(--pct,0%))}
 .rgC::-webkit-slider-thumb{background:var(--mc)}
@@ -5473,6 +5565,8 @@ const DICAS={
   dobro:'Cozinhar a dobrar dá para dois dias. Dobra o PRATO — as quantidades dele sobem já na lista de compras, e o dia que só aquece não volta a comprá-lo. Os acompanhamentos ficam de fora da conta porque se fazem frescos em cada dia: ninguém reaquece uma salada. O prazo de guardar e a forma de reaquecer vêm por baixo, e são diferentes de prato para prato.',
   foodprep:'Preparação de ingredientes, não pratos feitos: descascar, picar, demolhar, lavar, marinar, porcionar. Cada tarefa diz que dias serve e quanto tempo leva, com as quantidades já somadas de toda a semana. Enquanto estiver ligado, as receitas que aproveitam uma preparação já planeada têm vantagem nas sugestões — é assim que uma tarde de domingo poupa cinco jantares à pressa.',
   genero:'Um gaspacho e uma feijoada não apetecem no mesmo dia. A app lê o género do prato do nome e dos ingredientes e pesa-o na sugestão: no verão os pratos frios ganham vantagem, sobretudo ao almoço; fora dele, os quentes.',
+  sons:'Três apontamentos sonoros gerados na hora com WebAudio, a mesma técnica do alarme dos temporizadores: nenhum ficheiro, nenhuma rede, e funciona offline. Desligado por defeito. Calam-se quando o separador está escondido e nunca tocam num erro — o som aqui serve para celebrar, não para repreender.',
+  pesoTalao:'O total previsto do talão é um número opaco: 47 € não diz onde cortar. Estas barras mostram os itens que mais pesam no custo desta lista, com a secção do supermercado ao lado. Ver que o salmão e o queijo são metade do talão transforma o número numa decisão. Só entram os itens que já têm preço no teu talão — os outros ficam de fora e a app diz quantos são.',
   regresso:'Voltar depois de férias ou de uma gripe e encontrar tudo vazio ou falhado é o momento em que se desiste de uma app destas. A pausa declarada — que congela a sequência sem a partir — já existia, mas escondida num chip que só encontrava quem já tinha voltado. Agora é oferecida no próprio regresso, com as semanas em falta já apontadas, e a app não faz juízo nenhum sobre a ausência.',
   urgencia:'A lista de compras trata igual o açafrão de domingo e o frango de amanhã. Este bloco separa o que é preciso hoje ou amanhã: é a única parte da lista onde falhar tem consequência física — uma mesa sem jantar. O dia vem de quando cada ingrediente é usado pela primeira vez no plano da semana.',
   substituicoes:'Quando falta um ingrediente que a receita pede, a app sugere o que se costuma pôr no lugar dele numa cozinha portuguesa, e diz o que muda no prato. São trocas de cozinha, não de tabela nutricional: os macros continuam a ser os dos ingredientes originais, porque a app não sabe qual das trocas foi feita. Uma troca nunca é sugerida se trouxer um alergénio marcado em alguém desta casa — essa é a regra que não se negoceia.',
@@ -5638,7 +5732,74 @@ const PALETAS={
   tinta:{n:'Tinta', d:'Monocromático, alto contraste', c:['#2B2B2B','#5C5C5C','#9A9A9A']},
   contraste:{n:'Contraste', d:'Máximo contraste, traço grosso', c:['#0033A0','#7A2E00','#6B004B']}
 };
-const MODOS={auto:'Segue o sistema',claro:'Claro',escuro:'Escuro'};
+const MODOS={auto:'Segue o sistema',claro:'Claro',escuro:'Escuro',sol:'Segue o sol'};
+/* ===== SEGUIR O SOL =====
+   O inverno a sentir-se na interface para lá da decoração: em dezembro a app
+   anoitece às 17h30, em junho aguenta clara até às 21h. Não é uma paleta nova
+   nem uma cor nova — alterna entre os dois modos que já estão auditados, por
+   isso as catorze combinações de paleta × modo e os contrastes garantidos
+   ficam exatamente como estavam.
+
+   As contas são as equações solares clássicas (NOAA), matemática pura sobre a
+   data: nada de rede, nada de geolocalização, nada de permissões. A latitude é
+   a de Portugal continental — Coimbra, mais ou menos a meio —, e o erro nos
+   extremos do país não chega a um quarto de hora, que para escurecer um ecrã
+   não tem importância nenhuma. */
+const LAT_PT=40.2, LON_PT=-8.4;
+function horasSolares(d){
+  const dt=d||new Date();
+  const inicio=Date.UTC(dt.getFullYear(),0,0);
+  const dia=Math.floor((Date.UTC(dt.getFullYear(),dt.getMonth(),dt.getDate())-inicio)/86400000);
+  const rad=Math.PI/180;
+  /* ângulo fracional do ano, equação do tempo e declinação */
+  const g=2*Math.PI/365*(dia-1);
+  const eqTempo=229.18*(0.000075+0.001868*Math.cos(g)-0.032077*Math.sin(g)
+    -0.014615*Math.cos(2*g)-0.040849*Math.sin(2*g));
+  const decl=0.006918-0.399912*Math.cos(g)+0.070257*Math.sin(g)
+    -0.006758*Math.cos(2*g)+0.000907*Math.sin(2*g)
+    -0.002697*Math.cos(3*g)+0.00148*Math.sin(3*g);
+  /* zénite de 90,833° inclui a refração atmosférica e o raio do disco solar */
+  const cosH=(Math.cos(90.833*rad)-Math.sin(LAT_PT*rad)*Math.sin(decl))
+    /(Math.cos(LAT_PT*rad)*Math.cos(decl));
+  if(cosH>1||cosH<-1) return null;   /* sol sempre acima ou sempre abaixo: não acontece cá, mas não se assume */
+  const H=Math.acos(cosH)/rad;
+  /* minutos UTC; o fuso vem do próprio browser, que já sabe do horário de verão */
+  const nascerUTC=720-4*(LON_PT+H)-eqTempo;
+  const porUTC   =720-4*(LON_PT-H)-eqTempo;
+  const offset=-dt.getTimezoneOffset();
+  const norm=x=>((x+offset)%1440+1440)%1440;
+  return {nascer:norm(nascerUTC), por:norm(porUTC)};
+}
+function ehDeDia(d){
+  const s=horasSolares(d); if(!s) return true;
+  const dt=d||new Date(), agora=dt.getHours()*60+dt.getMinutes();
+  return agora>=s.nascer && agora<s.por;
+}
+function hhmm(min){
+  const h=Math.floor(min/60), m=Math.round(min%60);
+  return String(h).padStart(2,'0')+'h'+String(m).padStart(2,'0');
+}
+function textoSol(){
+  const s=horasSolares(); if(!s) return '';
+  return ehDeDia()
+    ? 'hoje o sol põe-se às '+hhmm(s.por)+' — a app escurece com ele'
+    : 'o sol nasce às '+hhmm(s.nascer)+' — a app clareia com ele';
+}
+/* Reavalia quando o separador volta à frente e de dez em dez minutos: sem isto
+   a app só mudava de modo quando alguém a redesenhasse por outro motivo. */
+let _relogioSol=null;
+function vigiaSol(){
+  if(_relogioSol){ clearInterval(_relogioSol); _relogioSol=null; }
+  if((S.ui.tema||'auto')!=='sol') return;
+  let ultimo=ehDeDia();
+  _relogioSol=setInterval(()=>{
+    const agora=ehDeDia();
+    if(agora!==ultimo){ ultimo=agora; aplicarTema(); }
+  }, 600000);
+}
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden && (S.ui.tema||'auto')==='sol') aplicarTema();
+});
 /* ===== O ANO PORTUGUÊS =====
    O caderno acompanha as estações: muda o apontamento e o motivo dos estados
    vazios, nunca a cor de um texto — a legibilidade não é sazonal. */
@@ -5668,6 +5829,7 @@ const EMOJIS_MEMBRO=['🙂','😀','😎','🧑','👩','👨','👧','👦','�
 function modoEfetivo(){
   const t=S.ui.tema||'auto';
   if(t==='claro'||t==='escuro') return t;
+  if(t==='sol') return ehDeDia()? 'claro':'escuro';
   try{ return matchMedia('(prefers-color-scheme: dark)').matches? 'escuro':'claro'; }catch(e){ return 'claro'; }
 }
 function aplicarTema(){
@@ -5688,11 +5850,34 @@ function aplicarTema(){
   const bg=getComputedStyle(r).getPropertyValue('--bg').trim();
   document.querySelectorAll('meta[name="theme-color"]').forEach(m=>m.setAttribute('content',bg));
 }
-function setTema(t){ S.ui.tema=temChave(MODOS,t)? t:'auto'; saveMeta(); aplicarTema(); render(); }
+function setTema(t){ S.ui.tema=temChave(MODOS,t)? t:'auto'; saveMeta(); aplicarTema(); vigiaSol(); render(); }
 function setPaleta(p){ S.ui.paleta=temChave(PALETAS,p)? p:'azulejo'; saveMeta(); aplicarTema(); render(); }
 function setDensidade(d){ S.ui.densidade= d==='cerrado'? 'cerrado':'folgado'; saveMeta(); aplicarTema(); render(); }
 function setSazonal(v){ S.ui.sazonal=!!v; saveMeta(); aplicarTema(); render(); }
 function setAnim(v){ S.ui.anim=!!v; saveMeta(); aplicarTema(); render(); }
+/* ===== O ESTALIDO DO DETENTE =====
+   Chamado do oninput dos sliders que têm passos com significado. Não muta
+   estado nem redesenha nada: escreve uma classe e uma variável no próprio
+   elemento, que é exatamente o que o contrato de live update permite. */
+let _ultimoDetente={};
+function detente(el,passo){
+  if(!el) return;
+  const v=parseFloat(el.value), min=parseFloat(el.min)||0, max=parseFloat(el.max)||100;
+  const p=passo||5;
+  const idx=Math.round(v/p);
+  const chave=el.id||el.className;
+  if(_ultimoDetente[chave]===idx) return;
+  const primeiro=_ultimoDetente[chave]===undefined;
+  _ultimoDetente[chave]=idx;
+  if(primeiro || Math.abs(v-idx*p)>p*0.25) return;   /* só quando assenta mesmo no risco */
+  if(S.ui.anim===false) return;
+  el.classList.remove('detente-tocado');
+  void el.offsetWidth;                                /* reinicia a animação */
+  el.classList.add('detente-tocado');
+  setTimeout(()=>el.classList.remove('detente-tocado'),200);
+  /* o toque no telemóvel usa a mesma API do alarme dos temporizadores */
+  try{ if(ehToque() && navigator.vibrate) navigator.vibrate(8); }catch(e){}
+}
 /* Aura do cabeçalho a partir das cores dos membros. */
 function pintaAura(){
   let a=document.getElementById('aura');
@@ -5839,6 +6024,7 @@ function go(t){
   if(t==='despensa'||t==='compras'){ S.ui.mercVista=t; t='mercearia'; }
   const de=TABS.findIndex(x=>x[0]===S.ui.tab), para=TABS.findIndex(x=>x[0]===t);
   viraFolha = (de<0||para<0||de===para)? null : (para>de? 'vira-frente':'vira-tras');
+  if(viraFolha) som('folha');
   S.ui.tab=t; msg=null;
   /* histórico é uma vista dentro do separador, não um sítio onde se fica ao
      mudar de separador */
@@ -6240,14 +6426,24 @@ const EPOCA={
   'Kiwi':[11,12,1,2,3], 'Banana':[1,2,3,4,5,6,7,8,9,10,11,12], 'Nêspera':[4,5],
   'Alperce':[6,7], 'Diospiro':[10,11,12], 'Marmelo':[9,10,11],
 };
+/* A chave da tabela de época que corresponde a um nome de ingrediente.
+   O nome do INSA costuma ser mais comprido do que a chave («Sardinha,
+   grelhada») — basta que comece por ela. E as receitas escrevem o plural:
+   «Sardinhas», «Lulas», «Amêijoas», «Figos», «Castanhas», «Nozes». Sem esta
+   regra, o peixe mais sazonal do país nunca chegava a ser marcado como
+   de época — nem no selo, nem no filtro, nem nas sugestões. */
+function chaveEpocaDe(nome){
+  const n=semAcentos(String(nome||'')).toLowerCase();
+  return Object.keys(EPOCA).find(k=>{
+    const c=semAcentos(k).toLowerCase();
+    return n===c || n===c+'s' || n===c+'es'
+      || n.indexOf(c+',')===0 || n.indexOf(c+' ')===0
+      || n.indexOf(c+'s,')===0 || n.indexOf(c+'s ')===0;
+  })||null;
+}
 function daEpoca(nome,mes){
   const m=mes||(new Date().getMonth()+1);
-  /* o nome do INSA costuma ser mais comprido do que a chave («Sardinha,
-     grelhada») — basta que comece por ela */
-  const chave=Object.keys(EPOCA).find(k=>{
-    const n=semAcentos(nome).toLowerCase(), c=semAcentos(k).toLowerCase();
-    return n===c || n.indexOf(c+',')===0 || n.indexOf(c+' ')===0;
-  });
+  const chave=chaveEpocaDe(nome);
   return chave? EPOCA[chave].indexOf(m)>=0 : false;
 }
 function ingredientesDaEpoca(r,mes){ return (r.i||[]).filter(l=>daEpoca(l[0],mes)).map(l=>l[0]); }
@@ -6257,6 +6453,39 @@ function selosEpoca(r){
   return `<span class="tag epoca" title="Da época agora: ${esc(l.join(', '))}">🌱 da época</span>`;
 }
 function receitaDaEpoca(r){ return ingredientesDaEpoca(r).length>0; }
+/* ===== A RÉGUA DOS MESES =====
+   O selo «da época» é binário: está ou não está. A régua acrescenta o quando —
+   vê-se que a sardinha está no último mês dela e que os grelos vêm aí. Ensina
+   o calendário alimentar português sem uma linha de texto. */
+const INICIAIS_MES=['J','F','M','A','M','J','J','A','S','O','N','D'];
+function reguaEpoca(nome){
+  const k=chaveEpocaDe(nome); if(!k) return '';
+  const meses=EPOCA[k], agora=new Date().getMonth()+1;
+  const larg=13, alt=16;
+  const cel=meses.length? meses : [];
+  const ultimo=cel.indexOf(agora)>=0 && cel.indexOf(agora+1)<0 && cel.indexOf(agora)>=0;
+  return `<span class="regua-epoca" title="${esc(nome)} — de época em ${meses.map(x=>['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'][x-1]).join(', ')}">
+    <svg viewBox="0 0 ${larg*12} ${alt+9}" width="${larg*12}" height="${alt+9}" role="img"
+      aria-label="${esc(nome)}: de época em ${meses.length} meses do ano, ${cel.indexOf(agora)>=0? 'incluindo este' : 'não este'}">
+      ${INICIAIS_MES.map((ini,i)=>{ const mes=i+1, on=meses.indexOf(mes)>=0, hoje=mes===agora;
+        return `<rect x="${i*larg+1}" y="0" width="${larg-2}" height="${alt}" rx="2"
+            class="${on? (hoje?'f-ok':'f-acc') : 'f-line'}" opacity="${on?(hoje?1:.55):.3}"/>
+          ${hoje? `<rect x="${i*larg+1}" y="0" width="${larg-2}" height="${alt}" rx="2" fill="none"
+            class="s-ink" stroke-width="1.4"/>`:''}
+          <text x="${i*larg+larg/2}" y="${alt+8}" font-size="7.5" text-anchor="middle"
+            class="${hoje?'f-ink':'f-mut'}">${ini}</text>`; }).join('')}
+    </svg>
+  </span>`;
+}
+/* As réguas de todos os ingredientes de época de uma receita. */
+function reguasDaReceita(r){
+  const l=ingredientesDaEpoca(r);
+  if(!l.length) return '';
+  return `<div class="reguas">${l.slice(0,5).map(n=>
+    `<span class="regua-linha"><span class="sub">${esc(n)}</span>${reguaEpoca(n)}</span>`).join('')}
+    <p class="sub" style="margin-top:4px">Preenchido = mês de época; o mês com contorno é este.
+      Calendário de referência para Portugal continental.</p></div>`;
+}
 
 /* ================= CUSTO =================
    Os preços são do talão de quem usa a app; a app não inventa um cêntimo, e
@@ -6504,6 +6733,72 @@ function blocoSubstituicoes(r){
       os dos ingredientes originais. Nunca se sugere nada que traga um alergénio marcado nesta casa.</i></p>
   </div>`;
 }
+/* O género do prato já pesava nas sugestões mas não se sentia na interface.
+   Isto leva o inverno e o verão até ao prato: vapor a subir de um cozido em
+   janeiro, condensação numa salada em agosto. */
+function climaDoPrato(r){
+  if(!r) return '';
+  const g=generoPrato(r), verao=estacaoQuente();
+  if(g==='quente' && !verao) return `<span class="clima vapor" aria-hidden="true">
+    <svg viewBox="0 0 20 14" width="20" height="14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
+      <path d="M5 12c0-3 2-3 2-6"/><path d="M10 12c0-3.5 2-3.5 2-7"/><path d="M15 12c0-3 1.6-3 1.6-5.5"/>
+    </svg></span>`;
+  if(g==='frio' && verao) return `<span class="clima gota" aria-hidden="true">
+    <svg viewBox="0 0 20 14" width="20" height="14" fill="none" stroke="currentColor" stroke-width="1.3">
+      <circle cx="6" cy="5" r="2.1"/><circle cx="12.5" cy="8" r="2.6"/><circle cx="16.5" cy="4" r="1.5"/>
+    </svg></span>`;
+  return '';
+}
+/* ================= A LINHA DO TEMPO DA RECEITA =================
+   Os minutos por passo já existiam, mas só se liam passo a passo: ninguém
+   respondia a «quanto disto é espera?» sem somar de cabeça. A barra mostra que
+   a moussaka é 15 minutos de trabalho e 40 de forno — e isso muda a decisão de
+   a fazer num dia de semana. */
+const RE_ESPERA=/forno|assar|assa\b|cozer|cozinhar em lume brando|apurar|levedar|repousar|marinar|marinada|demolhar|de molho|arrefecer|refrigerar|frigorífico|congelar|descansar|infusionar|estufar|guisar|lume brando|em lume muito brando|em sal|sal grosso|salgar|curar|antes de|horas? antes|levantar fervura/i;
+/* Além das palavras, o relógio: ninguém passa meia hora seguida com as mãos na
+   massa num prato de casa. Um passo longo sem verbo de trabalho ativo é
+   espera, mesmo que o texto não o diga por essas palavras — foi assim que a
+   hora de sal das sardinhas deixou de contar como trabalho. */
+const MIN_ESPERA_IMPLICITA=25;
+const RE_ATIVO=/mexer|mexendo|bater|amassar|picar|cortar|fatiar|ralar|descascar|montar|empratar|refogar|saltear|virar|regar|temperar e servir/i;
+function passoDeEspera(p){
+  const txt=(p.t||'')+' '+(p.d||'');
+  if(RE_ESPERA.test(txt)) return true;
+  return (p.min||0)>=MIN_ESPERA_IMPLICITA && !RE_ATIVO.test(txt);
+}
+function linhaTempoReceita(passos){
+  const comTempo=passos.filter(p=>p.min>0);
+  if(comTempo.length<2) return '';
+  const total=comTempo.reduce((t,p)=>t+p.min,0);
+  if(!total) return '';
+  const espera=comTempo.filter(passoDeEspera).reduce((t,p)=>t+p.min,0);
+  const maos=total-espera;
+  let x=0;
+  const W=320, H=16;
+  const troços=passos.map((p,i)=>{
+    if(!(p.min>0)) return '';
+    const w=p.min/total*W, esp=passoDeEspera(p);
+    const g=`<rect x="${x.toFixed(1)}" y="0" width="${Math.max(1,w-1).toFixed(1)}" height="${H}" rx="2"
+      class="${esp?'f-line':'f-acc'}" opacity="${esp?'.75':'.9'}"><title>${esc(p.t)} — ${p.min} min${esp?' (espera)':''}</title></rect>
+      ${esp? `<rect x="${x.toFixed(1)}" y="0" width="${Math.max(1,w-1).toFixed(1)}" height="${H}" rx="2"
+        fill="url(#tramaEspera)" opacity=".5"/>`:''}`;
+    x+=w;
+    return g;
+  }).join('');
+  return `<div class="linha-tempo">
+    <svg class="svgfx" viewBox="0 0 ${W} ${H}" role="img" style="max-width:${W}px"
+      aria-label="Linha do tempo da receita: ${total} minutos no total, ${maos} de trabalho e ${espera} de espera">
+      <defs><pattern id="tramaEspera" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <line x1="0" y1="0" x2="0" y2="5" class="s-mut" stroke-width="1.6"/></pattern></defs>
+      ${troços}
+    </svg>
+    <div class="mleg" style="margin-top:4px">
+      <span><i class="dot" style="background:var(--accent)"></i>${maos} min de mãos na massa</span>
+      ${espera? `<span><i class="dot" style="background:var(--line)"></i>${espera} min de espera</span>`:''}
+      <span style="margin-left:auto"><b>${hmm(total/60)}</b> no total</span>
+    </div>
+  </div>`;
+}
 /* ===== A HISTÓRIA DA RECEITA =====
    Uma app de comida trata a receita da avó como trata um prato de catálogo.
    Uma frase de origem transforma repetir um prato em manter viva uma pessoa —
@@ -6544,9 +6839,15 @@ function fichaHtml(f){
   return `<div class="mfundo" onclick="fundoFicha(event)" style="align-items:flex-start;padding:4vh 12px">
     <div class="mcaixa ficha" role="dialog" aria-modal="true" aria-labelledby="fi-t">
       <div class="row" style="justify-content:space-between;align-items:flex-start;gap:10px">
-        <div style="min-width:0">
-          <h2 id="fi-t" style="margin:0">${esc(r.n)}</h2>
-          <div style="margin-top:4px"><span class="tag">${ICO_COZ[r.coz]||''} ${cozinhasDe(r).map(k=>CUIS[k]).join(' · ')}</span>${
+        <div style="min-width:0;flex:1">
+          <div class="rotulo">
+            <span class="rotulo-filete" aria-hidden="true"></span>
+            <h2 id="fi-t">${esc(r.n)}${climaDoPrato(r)}</h2>
+            <p class="rotulo-coz">${cozinhasDe(r).map(k=>CUIS[k]).join(' · ')}</p>
+            ${r.u? '<p class="rotulo-assina">Receita da casa</p>':''}
+            <span class="rotulo-filete" aria-hidden="true"></span>
+          </div>
+          <div style="margin-top:6px"><span class="tag">${ICO_COZ[r.coz]||''} ${cozinhasDe(r).map(k=>CUIS[k]).join(' · ')}</span>${
             selosCategoria(r)}${seloGenero(r)}${daEp.length? '<span class="tag epoca">🌱 da época</span>':''}</div>
         </div>
         <button class="btn ghost small" style="flex:none" onclick="fecharFicha()">✕</button>
@@ -6570,7 +6871,9 @@ function fichaHtml(f){
       <h3 style="margin-top:14px">Ingredientes</h3>
       <div class="ingr-lista">${listaIngredientesComEstado(r,f.n)}</div>
       ${blocoSubstituicoes(r)}
+      ${reguasDaReceita(r)}
       <h3 style="margin-top:16px">Preparação ${escritos?'':dica('passosDerivados')}</h3>
+      ${linhaTempoReceita(passos)}
       ${escritos? '' : `<p class="sub">Esta receita ainda não tem passos escritos: os que se seguem são <b>derivados dos ingredientes e do género do prato</b>, para servirem de guia. Não são uma receita de livro, e a app diz isso em vez de fingir que são.</p>`}
       <ol class="passos">${passos.map((p,i)=>`<li>
         <b>${esc(p.t)}</b>${p.min? ` <button class="chip" style="padding:1px 9px"
@@ -6728,6 +7031,51 @@ function alarme(){
   }catch(e){}
   try{ if(navigator.vibrate) navigator.vibrate([180,90,180]); }catch(e){}
 }
+/* ===== SONS DA CASA =====
+   O alarme dos temporizadores já provava que som sintetizado funciona offline
+   e com CSP restritiva. Estendê-lo a três momentos festivos dá corpo sonoro à
+   identidade — desligado por defeito, porque som é a coisa mais fácil de
+   tornar irritante. Três regras: um único AudioContext, criado só ao primeiro
+   gesto; silêncio com o separador escondido; e nunca nos erros, porque o som
+   aqui celebra, não repreende. */
+let _ctxSom=null;
+function ctxSom(){
+  if(_ctxSom) return _ctxSom;
+  try{ const Ctx=window.AudioContext||window.webkitAudioContext; if(!Ctx) return null;
+    _ctxSom=new Ctx(); }catch(e){ return null; }
+  return _ctxSom;
+}
+const SONS={
+  /* toc de madeira: uma mesa que passa a tinta */
+  tinta:{f:196, tipo:'triangle', dur:0.12, vol:0.16, queda:9},
+  /* tlim curto de talher: uma refeição registada */
+  registo:{f:1320, tipo:'sine', dur:0.16, vol:0.11, queda:14},
+  /* roçar de papel: virar a folha do caderno */
+  folha:{f:120, tipo:'sawtooth', dur:0.1, vol:0.045, queda:16},
+};
+function som(nome){
+  if(!S.ui.sons) return;
+  if(document.hidden) return;
+  const s=SONS[nome]; if(!s) return;
+  const ctx=ctxSom(); if(!ctx) return;
+  try{
+    if(ctx.state==='suspended') ctx.resume();
+    const t=ctx.currentTime;
+    const o=ctx.createOscillator(), g=ctx.createGain();
+    o.type=s.tipo; o.frequency.setValueAtTime(s.f,t);
+    o.frequency.exponentialRampToValueAtTime(Math.max(40,s.f*0.72), t+s.dur);
+    g.gain.setValueAtTime(0.0001,t);
+    g.gain.exponentialRampToValueAtTime(s.vol,t+0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+s.dur);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(t); o.stop(t+s.dur+0.02);
+  }catch(e){}
+}
+function setSons(v){
+  S.ui.sons=!!v; saveMeta();
+  if(v) som('registo');   /* uma amostra imediata, para se ouvir o que se ligou */
+  render();
+}
 function pintaTemporizadores(){
   let cx=document.getElementById('timers');
   if(!temporizadores.length){ if(cx) cx.remove(); return; }
@@ -6883,6 +7231,52 @@ function pratosFavoritos(mid,n){
   return Object.entries(conta).sort((a,b)=>b[1]-a[1]).slice(0,n||3)
     .map(([id,c])=>({r:RECIPES.find(x=>x.id===id), n:c})).filter(x=>x.r);
 }
+/* ===== ESTREIAS DA CASA =====
+   O passaporte celebra o indivíduo e as Descobertas olham para trás. A estreia
+   coletiva é o instante em que a mesa inteira alarga o gosto: a primeira vez
+   que um ingrediente entra em casa por via de alguém. Sem números nem tabelas
+   — é uma celebração do momento, não uma estatística. */
+function estreiasDoDia(d){
+  const dia=d||hojeISO();
+  const antes={}, hoje={};
+  S.members.forEach(m=>{
+    regRefDe(m.id).filter(r=>r.estado==='feita').forEach(r=>{
+      const recs=[RECIPES.find(x=>x.id===r.r)]
+        .concat((r.ac||[]).map(id=>RECIPES.find(y=>y.id===id))).filter(Boolean);
+      recs.forEach(rec=>(rec.i||[]).forEach(l=>{
+        if(r.d<dia) antes[l[0]]=1;
+        else if(r.d===dia && !hoje[l[0]]) hoje[l[0]]={quem:m, prato:rec.n};
+      }));
+    });
+  });
+  return Object.keys(hoje).filter(n=>!antes[n]).map(n=>({n, quem:hoje[n].quem, prato:hoje[n].prato}));
+}
+function blocoEstreias(){
+  const l=estreiasDoDia();
+  if(!l.length) return '';
+  const x=l[0];
+  return `<p class="estreia" style="margin-top:10px">
+    <span class="brilho" aria-hidden="true">
+      <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <path d="M8 1.5v3M8 11.5v3M1.5 8h3M11.5 8h3"/><path d="M8 5.4c.5 1.6 1 2.1 2.6 2.6-1.6.5-2.1 1-2.6 2.6-.5-1.6-1-2.1-2.6-2.6C7 7.5 7.5 7 8 5.4z"/>
+      </svg></span>
+    Estreia na casa: <b>primeiro ${esc(x.n.toLowerCase())} de sempre</b>${
+      l.length>1? ' <span class="sub">(e mais '+(l.length-1)+')</span>':''}.
+    <span class="sub">${esc(x.quem.nome.split(' ')[0])}, em ${esc(x.prato)}.</span></p>`;
+}
+/* Coração de Viana: um motivo bordado no traço da casa para os dias que a
+   casa festeja. Cose-se a si próprio uma vez ao abrir e no dia seguinte
+   desaparece sem deixar rasto. Com «reduzir movimento» aparece já bordado. */
+function coracaoViana(tam){
+  const t=tam||26;
+  return `<svg class="viana" viewBox="0 0 24 24" width="${t}" height="${t}" fill="none"
+      stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+      aria-hidden="true">
+    <path d="M12 21C7 17.2 3.5 14.1 3.5 10.3 3.5 7.4 5.7 5.3 8.4 5.3c1.7 0 3 .8 3.6 2 .6-1.2 1.9-2 3.6-2 2.7 0 4.9 2.1 4.9 5 0 3.8-3.5 6.9-8.5 10.7z"/>
+    <path d="M12 8.6v4.2M10 10.4h4" opacity=".75"/>
+    <path d="M12 3.2c1.1.7 1.6 1.4 1.6 2.1" opacity=".75"/>
+  </svg>`;
+}
 function blocoFestas(){
   const hoje=festasDoDia(hojeISO());
   const proximos=[];
@@ -6891,12 +7285,14 @@ function blocoFestas(){
   if(!hoje.length && !proximos.length) return '';
   return `<div style="margin-top:10px;border-top:1px solid var(--line);padding-top:10px">
     ${hoje.map(f=>{
-      if(f.tipo==='festa') return `<p style="font-family:var(--fonte-display);font-size:17px">🎈 Hoje é ${esc(f.n)}.</p>`;
+      if(f.tipo==='festa') return `<p style="font-family:var(--fonte-display);font-size:17px;display:flex;align-items:center;gap:8px">
+        <span class="viana-cor">${coracaoViana(28)}</span> Hoje é ${esc(f.n)}.</p>`;
       const favs=pratosFavoritos(f.m.id,2);
       return `<div class="row" style="gap:10px;align-items:center">
         ${avatar(f.m,34)}
         <div style="flex:1;min-width:0">
-          <p style="font-family:var(--fonte-display);font-size:17px;margin:0">🎂 Hoje ${esc(f.m.nome.split(' ')[0])} faz ${plural(f.anos,'ano','anos')}.</p>
+          <p style="font-family:var(--fonte-display);font-size:17px;margin:0;display:flex;align-items:center;gap:8px">
+            <span class="viana-cor">${coracaoViana(26)}</span> Hoje ${esc(f.m.nome.split(' ')[0])} faz ${plural(f.anos,'ano','anos')}.</p>
           ${favs.length? `<span class="sub">o que mais comeu este ano: ${favs.map(x=>esc(x.r.n)).join(', ')}</span>`:''}
         </div>
         ${isCheat(f.m.id,hojeISO())? '<span class="pill" style="background:var(--party-soft);color:var(--party)">dia livre ✓</span>'
@@ -7594,6 +7990,62 @@ function sequenciaCasa(){
   }
   return n;
 }
+/* ===== O MOSAICO DO ANO =====
+   A sequência é um número; o mosaico é a textura por trás dele. Vê-se de
+   relance o mês mau, a pausa que congelou a contagem e o padrão que as
+   Descobertas anunciam em texto. A pausa distingue-se por tracejado e não só
+   por cor, como manda a regra da casa. */
+const SEMANAS_MOSAICO=26;
+function estadoDoDia(d){
+  const wk=mondayISO(new Date(d+'T12:00:00'));
+  if((S.pausas||[]).some(p=>p.wk===wk && p.mid==='casa')) return 'pausa';
+  let prev=0, feitos=0;
+  S.members.forEach(m=>{
+    regRefDe(m.id).filter(r=>r.d===d).forEach(r=>{ prev++; if(r.estado==='feita') feitos++; });
+    regAtivDe(m.id).filter(r=>r.d===d).forEach(r=>{ prev++; if(r.estado==='feita') feitos++; });
+  });
+  if(!prev) return 'nada';
+  if(feitos===prev) return 'tudo';
+  return feitos? 'parte' : 'falhou';
+}
+function mosaicoDoAno(){
+  const hoje=hojeISO();
+  /* começa na segunda-feira da semana de há 26 semanas, para as colunas
+     ficarem alinhadas por semana e as linhas por dia da semana */
+  const inicio=mondayISO(addDias(hoje,-7*(SEMANAS_MOSAICO-1)));
+  const cel=12, gap=2.5, W=SEMANAS_MOSAICO*(cel+gap), H=7*(cel+gap);
+  const cls={tudo:'f-ok', parte:'f-warn', falhou:'f-bad', nada:'f-line', pausa:'f-line'};
+  let quadros='', comDados=0;
+  for(let s=0;s<SEMANAS_MOSAICO;s++){
+    for(let dd=0;dd<7;dd++){
+      const d=addDias(inicio, s*7+dd);
+      if(d>hoje) continue;
+      const e=estadoDoDia(d);
+      if(e!=='nada') comDados++;
+      const x=s*(cel+gap), y=dd*(cel+gap);
+      quadros+=`<rect x="${x}" y="${y}" width="${cel}" height="${cel}" rx="2.5"
+        class="${cls[e]}" opacity="${e==='nada'?'.32':e==='pausa'?'.22':'.9'}"/>`;
+      if(e==='pausa') quadros+=`<rect x="${x}" y="${y}" width="${cel}" height="${cel}" rx="2.5"
+        fill="none" class="s-mut" stroke-width="1.2" stroke-dasharray="2 2"/>`;
+      quadros+=`<rect x="${x}" y="${y}" width="${cel}" height="${cel}" fill="transparent"><title>${fmtLongo(d)} — ${
+        e==='tudo'?'tudo cumprido':e==='parte'?'cumprido em parte':e==='falhou'?'nada cumprido':e==='pausa'?'semana em pausa':'sem registos'}</title></rect>`;
+    }
+  }
+  if(comDados<14) return '';   /* duas semanas de dados é o mínimo para haver textura */
+  return `<div class="mosaico">
+    <svg class="svgfx" viewBox="0 0 ${W} ${H}" role="img" style="max-width:${W}px"
+      aria-label="Mosaico dos últimos ${SEMANAS_MOSAICO} semanas: cada quadrado é um dia, com o estado do que estava planeado">
+      ${quadros}
+    </svg>
+    <div class="mleg" style="margin-top:4px">
+      <span><i class="dot" style="background:var(--ok)"></i>tudo</span>
+      <span><i class="dot" style="background:var(--warn)"></i>em parte</span>
+      <span><i class="dot" style="background:var(--bad)"></i>nada</span>
+      <span><i class="dot dot-pausa"></i>pausa</span>
+      <span style="margin-left:auto">últimos ${Math.round(SEMANAS_MOSAICO/4.33)} meses</span>
+    </div>
+  </div>`;
+}
 function pausaDeclarada(mid,wk){
   if(!Array.isArray(S.pausas)) S.pausas=[];
   const i=S.pausas.findIndex(p=>p.wk===wk && p.mid===mid);
@@ -7913,7 +8365,7 @@ function guardarFolhaMesa(){
   const mids=f.sel.filter(mid=>!(S.regRef||[]).some(r=>r.mid===mid&&r.d===f.d&&r.mk===f.mk));
   if(!mids.length){ S.ui.folha=null; saveMeta(); return render(); }
   registarRefeicao({d:f.d, mk:f.mk, r:meal.r, ac:acIds(meal), dose:1, porMembro}, mids, 'feita');
-  carimboAlvo='ref:'+f.d+':'+f.mk;
+  carimboAlvo='ref:'+f.d+':'+f.mk; som('tinta');
   save('refeição registada à mesa');
   /* o passo seguinte natural é o fecho da mesa: sobrou, repete-se e quem
      cozinhou — as três perguntas que só se respondem logo a seguir a comer */
@@ -8679,6 +9131,7 @@ function cartaoHoje(){
     ${blocoSobrasVencidas()}
     ${blocoComerPrimeiro()}
     ${blocoMarmitasHoje()}
+    ${blocoEstreias()}
     ${blocoFestas()}
     ${(function(){ const mem=memoriaDoDia();
       return mem? `<p class="sub" style="margin-top:10px;font-style:italic">🕰 ${esc(mem)}</p>`:''; })()}
@@ -8690,7 +9143,8 @@ function cartaoHoje(){
       return `<p class="sub" style="margin-top:8px">🔁 ${seq? '<b>A casa leva '+textoSequencia(seq)+'</b> a cumprir o que planeou. '
         : ''}${eu.length? eu.slice(0,3).map(x=>nomeCurto(x.m)+' '+textoSequencia(x.n)).join(' · ') : ''} ${dica('sequencia')}
         <button class="chip" style="margin-left:6px;padding:1px 9px" onclick="pausaDeclarada('casa','${wkAnt}')"
-          aria-pressed="${emPausa}">${emPausa? '✓ semana passada em pausa' : 'declarar pausa na semana passada'}</button></p>`; })()}
+          aria-pressed="${emPausa}">${emPausa? '✓ semana passada em pausa' : 'declarar pausa na semana passada'}</button></p>
+        ${mosaicoDoAno()}`; })()}
     ${linhas.length? `<div class="hoje-lista">${linhas.join('')}</div>`
       : `<p class="sub" style="margin-top:4px">O dia de hoje está por planear — duas escolhas no Plano e a cozinha sabe o que a espera.</p>`}
     <div class="row" style="margin-top:12px">
@@ -10540,9 +10994,32 @@ function graficoPercentil(m){
     <text x="30" y="12" font-size="9" text-anchor="end" class="f-mut">kg</text>
     <text x="330" y="164" font-size="9" text-anchor="end" class="f-mut">meses</text>
     ${curvas}
+    ${rastoPercentil(m,X,Y)}
     <line id="bb-vl" x1="${cx.toFixed(1)}" y1="14" x2="${cx.toFixed(1)}" y2="150" class="s-energy" stroke-dasharray="2 3" opacity=".5"/>
     <circle id="bb-dot" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="5.5" style="fill:var(--energy);stroke:var(--card);stroke-width:2"/>
   </svg>`;
+}
+/* O rasto das pesagens passadas por cima das curvas da OMS. A pergunta dos
+   pais nunca foi «em que percentil está» — é «está a seguir o canal dele ou a
+   cruzar percentis?», e só uma linha responde a isso. Os dados já cá estavam
+   todos: as medições e a data de nascimento. Cada ponto vai à idade em meses
+   que a criança tinha NAQUELE dia, não à de hoje. */
+function rastoPercentil(m,X,Y){
+  const meds=medicoesDe(m.id);
+  if(!meds || meds.length<2) return '';
+  /* sem data de nascimento não há forma de saber que idade a criança tinha em
+     cada pesagem, e um rasto colocado à idade de hoje mentiria */
+  if(!nascValida(m.nasc)) return '';
+  const pts=meds.map(x=>{
+    const mm=mesesDesde(m.nasc, x.d);
+    if(mm<0 || mm>24) return null;
+    return {x:X(mm), y:Y(x.p), d:x.d, p:x.p};
+  }).filter(Boolean);
+  if(pts.length<2) return '';
+  return `<polyline points="${pts.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ')}"
+      fill="none" class="s-energy" stroke-width="1.6" opacity=".75" vector-effect="non-scaling-stroke"/>
+    ${pts.slice(0,-1).map(p=>`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="2.6"
+      style="fill:var(--energy);opacity:.65"><title>${fmtShort(p.d)}: ${nPT(p.p,2)} kg</title></circle>`).join('')}`;
 }
 /* Linha do dia com as tomadas marcadas. */
 function graficoHorario(m){
@@ -10954,7 +11431,7 @@ function registarOCostume(mid,mk){
   if((S.regRef||[]).some(r=>r.mid===mid&&r.d===d&&r.mk===mk))
     return flash('warn','Esta refeição já está registada hoje.');
   registarRefeicao({d, mk, r:c.r, ac:c.ac, dose:c.dose}, [mid], 'feita');
-  carimboAlvo='ref:'+d+':'+mk;
+  carimboAlvo='ref:'+d+':'+mk; som('registo');
   save('registo do costume');
   flash('ok', esc(rec.n)+' ao '+nomeRefeicao(mk).toLowerCase()+', '
     +nPT(c.dose,2).replace(',00','')+'× dose — como de costume.', {rot:'Anular', fn:'desfazer()'});
@@ -11292,9 +11769,10 @@ function renderNutricao(){
         ${[['c','Hidratos','rgC'],['p','Proteína','rgP'],['f','Gordura','rgF']].map(([kk,rot,cls])=>`
         <div>
           <div class="splabel"><span>${rot}</span><output id="nu-out-${kk}" style="min-width:11ch;text-align:right">${d[kk]}% · ${mk[kk]} g</output></div>
-          <input type="range" id="nu-sl-${kk}" class="${cls}" min="0" max="100" step="1" value="${d[kk]}" style="--pct:${d[kk]}%"
+          <input type="range" id="nu-sl-${kk}" class="${cls} com-detentes" min="0" max="100" step="1" value="${d[kk]}"
+            style="--pct:${d[kk]}%;--passo:5%"
             aria-label="Percentagem de ${rot.toLowerCase()} na dieta"
-            oninput="slideMacro('${m.id}','${kk}',this)" onchange="commitMacro('${m.id}',this)"></div>`).join('')}
+            oninput="slideMacro('${m.id}','${kk}',this);detente(this,5)" onchange="commitMacro('${m.id}',this)"></div>`).join('')}
       </div>
       <div class="row" style="margin:4px 0 10px">${Object.entries(DIETS).map(([kk,v])=>
         `<button class="chip" onclick="presetMacro('${m.id}',${v.c},${v.p},${v.f})">${v.n} ${v.c}/${v.p}/${v.f}</button>`).join('')}</div>`:''}
@@ -13129,6 +13607,7 @@ function renderCompras(){
   <div class="co-topo"><div class="mbar" style="height:10px;max-width:640px;margin:0">
     <div id="co-bar" style="background:${completo?'var(--ok)':'var(--accent)'};width:${items.length? done/items.length*100:0}%"></div></div></div>
   ${blocoPrimeiroAAcabar(items,bought)}
+  ${ondePesaOTalao(items)}
   <div class="card" style="max-width:640px">
     ${grouped.filter(([,arr])=>arr.length).map(([cat,arr])=>{
       const iSec=grupos.indexOf(cat);
@@ -13144,6 +13623,43 @@ function renderCompras(){
   <p class="sub" style="margin-top:12px">Quantidades = receita por pessoa × nº de comensais em cada refeição (membros em cheat day não contam nesse dia).</p>
   ${cartaoFaltaComprar(items)}
   ${cartaoPalpites()}`;
+}
+/* ===== ONDE PESA O TALÃO =====
+   O total previsto já existia mas era opaco: 47 € não diz onde cortar. Ver que
+   o salmão e o queijo são metade do talão transforma o número numa decisão —
+   «esta semana troco por cavala, que até está na época». */
+function ondePesaOTalao(items){
+  const comPreco=items.map(it=>{ const p=precoDe(it.n); if(!p) return null;
+    const div=(it.u==='g'||it.u==='ml')? 1000 : 1;
+    return {n:it.n, u:it.u, q:it.q, custo:p.v*it.q/div, sec:grupoDoItem(it)}; }).filter(Boolean);
+  if(comPreco.length<4) return '';
+  const total=comPreco.reduce((t,x)=>t+x.custo,0);
+  if(!(total>0)) return '';
+  const ord=comPreco.slice().sort((a,b)=>b.custo-a.custo);
+  const topo=ord.slice(0,7), resto=ord.slice(7);
+  const outros=resto.reduce((t,x)=>t+x.custo,0);
+  const semPreco=items.length-comPreco.length;
+  const max=topo[0].custo;
+  const grupos=gruposCompras();
+  return `<div class="card" style="max-width:640px;margin-bottom:12px" data-col="me-peso">
+    <div class="splabel"><span>Onde pesa o talão ${dica('pesoTalao')}</span>
+      <output>${nPT(total,2)} €</output></div>
+    <div style="margin-top:8px">${topo.map(x=>`
+      <div class="peso-linha">
+        <span class="peso-nome">${esc(x.n)}<span class="sub"> · ${grupos[x.sec]||''}</span></span>
+        <span class="peso-barra"><i style="width:${(x.custo/max*100).toFixed(1)}%"></i></span>
+        <b class="peso-val">${nPT(x.custo,2)} €</b>
+      </div>`).join('')}
+      ${outros>0? `<div class="peso-linha">
+        <span class="peso-nome sub">os outros ${resto.length}</span>
+        <span class="peso-barra"><i class="quieta" style="width:${(outros/max*100).toFixed(1)}%"></i></span>
+        <b class="peso-val sub">${nPT(outros,2)} €</b>
+      </div>`:''}
+    </div>
+    <p class="sub" style="margin-top:8px">${topo.length? 'Os '+topo.length+' itens mais pesados são '
+      +Math.round(topo.reduce((t,x)=>t+x.custo,0)/total*100)+'% do talão.':''}
+      ${semPreco? plural(semPreco,'item ainda sem preço','itens ainda sem preço')+' — ficam de fora desta conta. <button class="chip" onclick="irPorPrecos()">Pôr preços</button>':''}</p>
+  </div>`;
 }
 /* ===== PRIMEIRO A ACABAR NO CARRINHO =====
    A lista agregada trata igual o açafrão de domingo e o frango de amanhã. Mas
@@ -13959,7 +14475,13 @@ function cartaoAspeto(){
     <h3>Aspeto ${dica('aspeto')}</h3>
     <div class="splabel" style="margin-top:10px"><span>Modo</span></div>
     <div class="row">${Object.entries(MODOS).map(([k,v])=>
-      `<button class="chip ${modo===k?'on':''}" onclick="setTema('${k}')">${k==='claro'?'☀️':k==='escuro'?'🌙':'🖥️'} ${v}</button>`).join('')}</div>
+      `<button class="chip ${modo===k?'on':''}" onclick="setTema('${k}')">${
+        k==='claro'?'☀️':k==='escuro'?'🌙':k==='sol'?'🌅':'🖥️'} ${v}</button>`).join('')}</div>
+    ${modo==='sol'? `<p class="sub" style="margin-top:6px">🌅 ${esc(textoSol())}.
+      As horas saem das equações solares para Portugal continental — contas feitas aqui, sem rede e sem saber onde estás.
+      Só alterna entre o claro e o escuro que já conheces: as cores não mudam.</p>`
+      : `<p class="sub" style="margin-top:6px">«Segue o sol» acompanha o nascer e o pôr do sol em Portugal:
+        em dezembro a app anoitece por volta das 17h30, em junho aguenta clara até perto das 21h.</p>`}
     <div class="splabel" style="margin-top:14px"><span>Paleta</span></div>
     <div class="tema-grelha">${Object.entries(PALETAS).map(([k,p])=>
       `<button class="tema-op ${pal===k?'on':''}" onclick="setPaleta('${k}')" aria-pressed="${pal===k}">
@@ -13984,6 +14506,11 @@ function cartaoAspeto(){
     <label class="toggle"><input type="checkbox" ${S.ui.anim!==false?'checked':''} onchange="setAnim(this.checked)">
       <span>Virar de folha ao mudar de separador</span></label>
     <p class="sub" style="margin-top:6px">Quem tem «reduzir movimento» ligado no sistema nunca vê animações, independentemente desta escolha.</p>
+    <div class="splabel" style="margin-top:14px"><span>Sons da casa ${dica('sons')}</span></div>
+    <label class="toggle"><input type="checkbox" ${S.ui.sons?'checked':''} onchange="setSons(this.checked)">
+      <span>Um toc quando uma mesa passa a tinta, um tlim ao registar, papel ao virar a folha</span></label>
+    <p class="sub" style="margin-top:6px">Desligado por defeito. Os sons são gerados na hora, sem ficheiros nem rede,
+      calam-se com o separador escondido e nunca tocam num erro — servem para celebrar, não para repreender.</p>
     ${nFechados? `<div class="row" style="margin-top:10px">
       <span class="sub">${plural(nFechados,'secção fechada','secções fechadas')} nesta app</span>
       <button class="btn ghost small" onclick="abrirTodasSeccoes()">Abrir todas</button></div>`:''}
