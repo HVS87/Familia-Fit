@@ -964,10 +964,11 @@ function migraRegistos(s){
   Object.keys(s.medicoes).forEach(mid=>{
     if(ids.indexOf(mid)<0){ delete s.medicoes[mid]; return; }
     const arr=Array.isArray(s.medicoes[mid])? s.medicoes[mid] : [];
-    const vistos={}, limpo=[];
-    arr.forEach(x=>{ if(!x||!dataValida(x.d)||vistos[x.d]) return;
-      const p=clampNum(parseFloat(x.p)||0,1,400); if(!(p>0)) return;
-      vistos[x.d]=1; limpo.push({d:x.d,p}); });
+    const vistos={}, limpo=[], hoje=iso(new Date());
+    /* uma pesagem com data futura não é uma pesagem: ninguém se pesou ainda */
+    arr.forEach(x=>{ if(!x||!dataValida(x.d)||x.d>hoje||vistos[x.d]) return;
+      const p=parseFloat(x.p); if(!isFinite(p)||p<1||p>400) return;
+      vistos[x.d]=1; limpo.push({d:x.d,p:Math.round(p*10)/10}); });
     limpo.sort((a,b)=> a.d<b.d? -1 : a.d>b.d? 1 : 0);
     s.medicoes[mid]=limpo;
   });
@@ -985,9 +986,13 @@ function limparRegAtiv(r,ids){
   if(!dataValida(r.d)) return null;
   if(ids && ids.indexOf(r.mid)<0) return null;
   const sp=SPORT[r.s];
+  /* só o que está agendado pode ter data futura: um treino «feito» amanhã
+     ainda não aconteceu, e entraria a somar num gasto que não existe */
+  const estado = ESTADOS_REG.indexOf(r.estado)>=0? r.estado : 'feita';
+  if(estado!=='agendada' && r.d>hojeISO()) return null;
   const out={id:limparId(r.id), mid:r.mid, d:r.d, s:r.s,
     min:clampNum(Math.round(parseFloat(r.min)||0),1,1440),
-    estado: ESTADOS_REG.indexOf(r.estado)>=0? r.estado : 'feita',
+    estado,
     grupo: /^[A-Za-z0-9_-]{1,32}$/.test(String(r.grupo||''))? r.grupo : null,
     plano: /^[A-Za-z0-9_-]{1,32}$/.test(String(r.plano||''))? r.plano : null,
     nota: String(r.nota||'').slice(0,120)};
@@ -1009,9 +1014,11 @@ function limparRegRef(r,ids,lookup){
   const ac=[]; (Array.isArray(r.ac)? r.ac : []).forEach(id=>{
     const rec=lookup(id);
     if(rec && ehAcompanhamento(rec) && ac.indexOf(id)<0 && ac.length<MAX_AC) ac.push(id); });
+  /* uma refeição não se come no futuro */
+  if(r.d>hojeISO()) return null;
   return {id:limparId(r.id), mid:r.mid, d:r.d, mk:r.mk, r:r.r, ac,
     dose:clampNum(parseFloat(r.dose)||1,0.25,4),
-    estado: ESTADOS_REG.indexOf(r.estado)>=0? r.estado : 'feita',
+    estado: ESTADOS_REG.indexOf(r.estado)>=0 && r.estado!=='agendada'? r.estado : 'feita',
     grupo: /^[A-Za-z0-9_-]{1,32}$/.test(String(r.grupo||''))? r.grupo : null,
     subst: !!r.subst,
     nota: String(r.nota||'').slice(0,120)};
@@ -3243,7 +3250,6 @@ function alvoDoDia(m,d){
   if(semEstimativa(m)) return 0;
   return Math.max(bmr(m)*0.8, targetKcal(m)+extraAtivDia(m,d));
 }
-function temRegistos(mid){ return regAtivDe(mid).length>0 || regRefDe(mid).length>0; }
 
 /* ================= VALIDAÇÃO DO QUE FICOU POR CONFIRMAR =================
    Ao entrar no perfil, o que estava marcado para trás e nunca foi confirmado
@@ -3530,10 +3536,18 @@ function montaColapsaveis(){
   document.querySelectorAll('#main .card[data-col]').forEach(card=>{
     const chave=card.getAttribute('data-col');
     if(card.querySelector(':scope > .card-cab')) return;
-    const tit=card.querySelector(':scope > h2, :scope > h3');
+    /* O título é normalmente filho direto, mas há cartões em que ele vive
+       numa linha com um botão ao lado («ver histórico», «registar pesagem»).
+       Nesses, a linha inteira é que passa a ser o cabeçalho — sem isto, o
+       data-col prometia um cartão dobrável que nunca dobrava. */
+    let tit=card.querySelector(':scope > h2, :scope > h3'), cabeca=tit;
+    if(!tit){
+      const linha=[...card.children].slice(0,3).find(c=>c.nodeType===1 && c.querySelector('h2,h3'));
+      if(linha){ tit=linha.querySelector('h2,h3'); cabeca=linha; }
+    }
     if(!tit) return;
     const cab=document.createElement('div'); cab.className='card-cab';
-    card.insertBefore(cab,tit); cab.appendChild(tit);
+    card.insertBefore(cab,cabeca); cab.appendChild(cabeca);
     const corpo=document.createElement('div'); corpo.className='card-corpo';
     while(cab.nextSibling) corpo.appendChild(cab.nextSibling);
     card.appendChild(corpo);
@@ -3564,20 +3578,10 @@ const ILUS={
   familia:`<path d="M34 74c0-11 9-20 20-20s20 9 20 20" fill="none"/><circle cx="54" cy="38" r="14" fill="none"/>
     <path d="M78 74c0-8 5-15 13-17" fill="none"/><circle cx="88" cy="42" r="9" fill="none"/>
     <path d="M8 74c0-8 5-15 13-17" fill="none"/><circle cx="20" cy="42" r="9" fill="none"/>`,
-  prato:`<circle cx="54" cy="46" r="30" fill="none"/><circle cx="54" cy="46" r="20" fill="none" opacity=".5"/>
-    <path d="M92 22v48M92 22c5 4 5 14 0 18" fill="none"/><path d="M16 22v14a5 5 0 0 0 10 0V22M21 36v34" fill="none"/>`,
   cesto:`<path d="M20 38h68l-7 34a6 6 0 0 1-6 5H33a6 6 0 0 1-6-5z" fill="none"/>
     <path d="M38 38l8-20M70 38l-8-20" fill="none"/><path d="M40 52v14M54 52v14M68 52v14" fill="none" opacity=".55"/>`,
   alvo:`<circle cx="50" cy="48" r="28" fill="none"/><circle cx="50" cy="48" r="17" fill="none" opacity=".6"/>
     <circle cx="50" cy="48" r="6" fill="none"/><path d="M50 48 92 14M92 14l-2 12 12-2z" fill="none"/>`,
-  calendario:`<rect x="16" y="24" width="76" height="58" rx="7" fill="none"/><path d="M16 42h76" fill="none"/>
-    <path d="M34 14v16M74 14v16" fill="none"/><path d="M32 56h10M50 56h10M68 56h10M32 70h10M50 70h10" fill="none" opacity=".55"/>`,
-  despensa:`<rect x="20" y="16" width="68" height="72" rx="6" fill="none"/><path d="M20 40h68M20 64h68" fill="none"/>
-    <rect x="30" y="22" width="12" height="14" rx="3" fill="none" opacity=".6"/>
-    <rect x="50" y="46" width="12" height="14" rx="3" fill="none" opacity=".6"/>
-    <rect x="66" y="70" width="12" height="12" rx="3" fill="none" opacity=".6"/>`,
-  trofeu:`<path d="M36 18h36v20a18 18 0 0 1-36 0z" fill="none"/><path d="M36 24H24a10 10 0 0 0 12 12M72 24h12a10 10 0 0 1-12 12" fill="none"/>
-    <path d="M54 56v14M40 82h28l-3-12H43z" fill="none"/>`,
   grafico:`<path d="M18 16v62h72" fill="none"/><path d="M30 66v-14M46 66v-28M62 66v-20M78 66v-38" fill="none"/>
     <path d="M30 40l16-16 16 8 16-18" fill="none" opacity=".5"/>`,
   balanca:`<rect x="18" y="34" width="72" height="48" rx="8" fill="none"/>
@@ -3612,11 +3616,21 @@ function avColor(m){
   const i=S.members.indexOf(m);
   return AVCOLORS[(i<0?0:i)%AVCOLORS.length];
 }
+/* As iniciais escolhem a tinta pela luminância do fundo: branco nas cores
+   escuras, tinta escura nas claras. A cor é do utilizador — a legibilidade
+   não pode depender do gosto dele. */
+function tintaSobre(hex){
+  const h=String(hex||'').replace('#',''); if(h.length<6) return '#fff';
+  const f=v=>{ v/=255; return v<=0.03928? v/12.92 : Math.pow((v+0.055)/1.055,2.4); };
+  const L=0.2126*f(parseInt(h.slice(0,2),16))+0.7152*f(parseInt(h.slice(2,4),16))+0.0722*f(parseInt(h.slice(4,6),16));
+  /* contraste contra branco vs. contra tinta escura: ganha o maior */
+  return (1.05/(L+0.05)) >= ((L+0.05)/0.055)? '#fff' : '#10151B';
+}
 function avatar(m,sz){
   const tam=sz||26;
   if(m && m.emoji) return `<span class="av av-emoji" style="background:${avColor(m)}22;border:1.5px solid ${avColor(m)};width:${tam}px;height:${tam}px;font-size:${Math.round(tam*0.58)}px">${esc(m.emoji)}</span>`;
   const ini=(m.nome||'?').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
-  return `<span class="av" style="background:${avColor(m)};width:${tam}px;height:${tam}px">${esc(ini)}</span>`;
+  return `<span class="av" style="background:${avColor(m)};color:${tintaSobre(avColor(m))};width:${tam}px;height:${tam}px">${esc(ini)}</span>`;
 }
 /* O seletor de membro acompanha o scroll: em páginas compridas (Nutrição,
    Atividade) nunca se perde de vista de quem são os números. O sentinela de
@@ -4179,32 +4193,12 @@ function slidePerfil(mid,campo,el){
   if(inp && document.activeElement!==inp) inp.value=el.value;
   aoVivo('fam:'+mid, ()=>atualizarFamilia(mid));
 }
-/* Slider de idade em meses (0-24): durante o gesto só se mexe em m.meses —
-   a troca de controlo (para o slider em anos) só acontece no commit, para o
-   dedo nunca perder o slider a meio do arrasto. */
-function slideIdadeMeses(mid,el){
-  const m=S.members.find(x=>x.id===mid); if(!m) return;
-  m.meses=clampNum(Math.round(parseFloat(el.value)||0),0,24);
-  m.idade=m.meses/12;
-  pintaRange(el);
-  const inp=document.getElementById('in-'+mid+'-idade');
-  if(inp && document.activeElement!==inp) inp.value=m.meses;
-  aoVivo('fam:'+mid, ()=>atualizarFamilia(mid));
-}
-/* Ao soltar, se o valor chegou aos 24 meses (dois anos), converte-se para a
-   representação em anos — dois anos é o valor mínimo medido em anos. */
-function commitIdadeMeses(mid,el){
-  const m=S.members.find(x=>x.id===mid); if(!m) return;
-  normalizaIdadeMeses(m);
-  if(m.bebe){ delete m.bebe.pctLeite; m.bebe.ml=null; }
-  save('idade de '+m.nome); render();
-}
+/* O único slider que sobrou no perfil é o do peso: a idade vem da data de
+   nascimento e a altura escreve-se uma vez, num campo. */
 function atualizarFamilia(mid){
   const m=S.members.find(x=>x.id===mid); if(!m) return;
   const v=bmi(m), [cls,tone]=bmiClass(v);
   põe('f-'+mid+'-o-peso', nPT(m.peso,1)+' kg');
-  põe('f-'+mid+'-o-altura', Math.round(m.altura)+' cm');
-  põe('f-'+mid+'-o-idade', idadeAnos(m)<2? Math.round(idadeMeses(m))+' meses' : Math.round(m.idade)+' anos');
   põe('f-'+mid+'-imc', nPT(v,1)); põe('f-'+mid+'-imcv', nPT(v,1));
   põe('f-'+mid+'-bmr', Math.round(bmr(m)));
   põe('f-'+mid+'-tdee', Math.round(tdee(m)));
@@ -8204,8 +8198,8 @@ function lerPacote(txt){
   if(d.medicoes && typeof d.medicoes==='object') Object.keys(d.medicoes).forEach(k=>{
     const mid=mapa[k]||k; if(idsOk.indexOf(mid)<0) return;
     const arr=Array.isArray(d.medicoes[k])? d.medicoes[k] : [];
-    const vistos={}, limpo=[];
-    arr.forEach(x=>{ if(!x||!dataValida(x.d)||vistos[x.d]) return;
+    const vistos={}, limpo=[], hoje=hojeISO();
+    arr.forEach(x=>{ if(!x||!dataValida(x.d)||x.d>hoje||vistos[x.d]) return;
       const p=parseFloat(x.p); if(!isFinite(p)||p<1||p>400) return;
       vistos[x.d]=1; limpo.push({d:x.d, p:Math.round(p*10)/10}); });
     limpo.sort((a,b)=> a.d<b.d? -1 : a.d>b.d? 1 : 0);
