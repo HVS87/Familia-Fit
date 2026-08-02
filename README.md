@@ -278,6 +278,8 @@ O service worker usa a estratégia *rede primeiro, cache como reserva*: com liga
 | `sw.js` | Funcionamento sem rede |
 | `icon.svg`, `icon-180.png`, `icon-512.png` | Ícones (o de 180 px é o do iOS) |
 
+Não há caixas de diálogo do browser a pedir dados: tudo o que se escreve escreve-se em campos da própria app, que seguem o tema, falam a mesma língua e funcionam dentro de um iframe com *sandbox*. O `confirm()` fica reservado ao que apaga — e, se o browser o bloquear, o que não acontece é o apagar.
+
 Os valores calóricos, os METs por modalidade e os macros das receitas são **estimativas** para orientar o planeamento. Os METs seguem o *Compendium of Physical Activities*, e o gasto calcula-se por MET × peso × horas — a fórmula habitual, que ignora diferenças de eficiência, altitude ou temperatura. Nada disto substitui o acompanhamento de um nutricionista ou médico, sobretudo em caso de condições de saúde, gravidez ou planos alimentares para crianças.
 
 ### As fontes, uma a uma
@@ -302,6 +304,8 @@ Nenhum número de saúde nesta app foi inventado ou arredondado por conveniênci
 | Kosher e halal | Regras de exclusão aplicadas aos ingredientes. **A app não verifica abate nem certificação**, e di-lo |
 | Eletrólitos em jejum | Ingestões Adequadas da **EFSA** (sódio 2019, potássio 2016, magnésio 2015). A app repete-as; **não as adapta ao jejum**, porque isso é um ato clínico |
 | Nascer e pôr do sol | Equações solares clássicas (**NOAA**), calculadas no dispositivo |
+
+O **vinagre de vinho** passa no filtro halal: a fermentação acética transforma o álcool, e a posição maioritária trata o vinagre como distinto do vinho de que veio. Quem siga uma leitura mais estrita pode marcá-lo nas exclusões da despensa, e ele sai das sugestões. A app diz isto no próprio filtro, em vez de decidir em silêncio.
 
 O que a app **não** tem fonte para dizer, e por isso não diz: doses de eletrólitos durante um jejum prolongado (são um ato clínico), prazos de validade (vêm da embalagem, escritos à mão), preços (vêm do talão de quem a usa), uma meta para a contagem de plantas diferentes na semana (não existe nenhuma oficial), e um valor de fibra abaixo de um ano de idade (a EFSA não o define). Os prazos de conservação de sobras são genéricos e conservadores, e a app repete em cada ecrã que não substituem o cheiro, o aspeto e o bom senso.
 

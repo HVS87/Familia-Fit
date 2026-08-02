@@ -547,7 +547,11 @@ nav button.on .cracha{background:var(--on-accent);color:var(--accent)}
 *{box-sizing:border-box;margin:0}
 /* overflow-x:clip (e não hidden) impede que uma bolha de explicação ponha a
    página a deslizar na horizontal, sem criar um contentor de scroll — o
-   cabeçalho fixo continua a colar-se ao topo. */
+   cabeçalho fixo continua a colar-se ao topo.
+   Tem de estar também no <html>: o clip do <body> não chega para conter o
+   translateX de 14 px com que a folha entra, e num telemóvel de 360 px isso
+   fazia piscar uma barra horizontal a cada troca de separador. */
+html{overflow-x:clip}
 body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--fonte-ui);
   padding-bottom:60px;overflow-x:clip}
 h1,h2,h3,.dhead b{font-family:var(--fonte-display);font-weight:600;text-wrap:balance}
@@ -614,7 +618,9 @@ html[data-dispositivo="telefone"][data-orient="retrato"] body{
 html[data-dispositivo="telefone"][data-orient="retrato"] #toast{
   bottom:calc(74px + max(14px,env(safe-area-inset-bottom)))}
 html[data-dispositivo="telefone"][data-orient="retrato"] .tour-cartao{
-  bottom:calc(74px + max(14px,env(safe-area-inset-bottom)))}
+  bottom:calc(74px + max(14px,env(safe-area-inset-bottom)));
+  /* subiu 74 px por causa da nav de baixo: o teto tem de descer outro tanto */
+  max-height:calc(100vh - 102px);max-height:calc(100dvh - 102px)}
 /* Cabeçalho magro no mesmo modo: a nav já não vive lá, sobra a marca e o
    desfazer. A aura ganha um pouco mais de presença no topo agora baixo. */
 html[data-dispositivo="telefone"][data-orient="retrato"] .hwrap{
@@ -708,6 +714,10 @@ input[type=text],input[type=number],input[type=date],input[type=search],select{
 .mtitle{display:flex;align-items:center;gap:8px}
 .mtitle::after{content:"";flex:1;height:1px;background:var(--line)}
 .pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700}
+/* Um pill é normalmente só uma etiqueta, mas quando é botão (o «🚨 2 alertas»
+   do dia do plano) tem de ser tocável — daí a altura mínima só nesse caso. */
+button.pill{min-height:24px;display:inline-flex;align-items:center;cursor:pointer;border:none}
+@media (hover:none) and (pointer:coarse){ button.pill{min-height:30px;padding:4px 12px} }
 .pill.ok{background:color-mix(in srgb,var(--ok) 14%,transparent);color:var(--ok)}
 .pill.warn{background:color-mix(in srgb,var(--warn) 16%,transparent);color:var(--warn)}
 .pill.bad{background:color-mix(in srgb,var(--bad) 14%,transparent);color:var(--bad)}
@@ -834,7 +844,11 @@ input[type=range].com-detentes::-moz-range-track{
 .dt-ok{background:var(--ok)} .dt-warn{background:var(--warn)}
 .dt-line{background:var(--line)} .dt-party{background:var(--party)}
 .day{scroll-margin-top:calc(var(--hh,58px) + 68px)}
-.shop label{display:flex;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer}
+/* A linha inteira é o alvo do toque, e não apenas a caixinha de 13 px: com
+   min-height fica nos 24 px que a WCAG 2.5.8 pede, e mais folgada ainda num
+   ecrã tátil, onde acertar numa lista de duzentos ingredientes custa. */
+.shop label{display:flex;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer;min-height:24px}
+@media (hover:none) and (pointer:coarse){ .shop label{min-height:30px} .shop li{padding:8px 4px} }
 @media (prefers-reduced-motion: no-preference){
   #co-bar{transition:width .2s,background-color .2s}
   .anel-arco{transition:stroke-dashoffset .6s ease, stroke .3s ease}
@@ -844,7 +858,12 @@ input[type=range].com-detentes::-moz-range-track{
 .tour-cartao{position:fixed;left:50%;transform:translateX(-50%);
   bottom:max(14px,env(safe-area-inset-bottom));width:min(560px,calc(100vw - 24px));
   background:var(--card);border:1px solid var(--accent);border-radius:14px;
-  box-shadow:0 8px 30px rgba(0,0,0,.3);padding:16px 18px;z-index:80}
+  box-shadow:0 8px 30px rgba(0,0,0,.3);padding:16px 18px;z-index:80;
+  /* O passo do jejum tem 1364 caracteres e, num telefone de 740 px de altura,
+     o cartão crescia para 770 e enterrava o título acima do ecrã. Ancorado em
+     baixo, o que transborda é sempre o topo — logo, teto e scroll próprio. */
+  max-height:calc(100vh - 28px);max-height:calc(100dvh - 28px);
+  overflow-y:auto;overscroll-behavior:contain}
 .tour-cartao h3{font-size:16.5px;margin-bottom:4px}
 .tour-cartao .sub{line-height:1.5}
 .tour-progresso{display:flex;gap:4px;margin:10px 0 12px}
@@ -1864,7 +1883,7 @@ R('ovosabacate','Ovos escalfados com abacate e tomate','mediterranica',['keto','
 R('panquecas','Panquecas de banana e aveia','portuguesa',[],420,48,26,12,[['Ovo',2,'un'],['Banana',1,'un'],['Aveia em flocos',40,'g'],['Iogurte grego',80,'g'],['Fermento em pó',3,'g']],['p']),
 R('iogurtegranola','Iogurte grego com granola e frutos vermelhos','mediterranica',['vegetariana','mediterranica'],380,42,20,14,[['Iogurte grego',200,'g'],['Granola',40,'g'],['Frutos vermelhos',80,'g'],['Mel',10,'g']],['p','l'],0,['br','sn']),
 R('abacatetorrada','Torrada de abacate com ovo escalfado','mediterranica',['lowcarb','vegetariana','mediterranica'],420,28,18,26,[['Pão integral',60,'g'],['Abacate',0.5,'un'],['Ovo',1,'un'],['Limão',0.25,'un'],['Azeite',5,'ml']],['p'],7),
-R('chia','Pudim de chia com leite de coco','mediterranica',['keto','lowcarb','paleo','vegetariana'],330,16,9,27,[['Sementes de chia',30,'g'],['Leite de coco',150,'ml'],['Frutos vermelhos',60,'g'],['Baunilha',1,'g']],['p','l'],12),
+R('chia','Pudim de chia com leite de coco','mediterranica',['keto','lowcarb','paleo','vegetariana'],330,16,9,27,[['Sementes de chia',30,'g'],['Leite de coco',150,'ml'],['Frutos vermelhos',60,'g'],['Baunilha',1,'g']],['p','l'],12,['sob','br','sn']),
 R('bowlfruta','Bowl de fruta com sementes e coco','mediterranica',['paleo','vegetariana','mediterranica'],350,38,8,20,[['Manga',150,'g'],['Frutos vermelhos',80,'g'],['Sementes de abóbora',20,'g'],['Coco ralado',15,'g'],['Amêndoa',15,'g']],['p','l']),
 R('omeletequeijo','Omelete de queijo e ervas','francesa',['keto','lowcarb','vegetariana'],340,3,24,26,[['Ovo',3,'un'],['Queijo ralado',30,'g'],['Cebolinho',5,'g'],['Manteiga',10,'g']],['p']),
 R('crepesaveia','Crepes de aveia com banana','francesa',['lowfat','vegetariana'],400,60,16,10,[['Aveia em flocos',50,'g'],['Ovo',2,'un'],['Banana',1,'un'],['Leite',80,'ml'],['Canela',1,'g']],['p']),
@@ -5010,6 +5029,35 @@ const ING_EXCECAO={
   /* Fiambre de aves é de aves. A expressão do porco tem «fiambre» porque o
      fiambre corrente é de porco — mas estes dois dizem no nome que não são. */
   'Fiambre de aves':['carne'], 'Fiambre, peito de frango':['carne'],
+  /* ---- Correções encontradas na auditoria de alergénios ----
+     Metade destes falha no sentido perigoso (alergénio em falta) e a outra
+     metade no sentido que destrói a confiança (alergénio a mais). Os dois
+     contam, e é por isso que a auditoria corre um detetor escrito de raiz,
+     mais largo do que as regras da app, e compara os dois. */
+  /* Ghee é manteiga clarificada: sai a água e os sólidos, mas as proteínas do
+     leite não desaparecem por completo — quem é alérgico ao leite reage. */
+  'Ghee':['lacticinio'],
+  /* Surimi é peixe desfibrado, e o do comércio leva amido de trigo quase
+     sempre. Aqui o lado seguro do erro é declarar os dois. */
+  'Delícias do mar (surimi)':['peixe','gluten','cereal'],
+  'Tempeh':['soja','leguminosa'],
+  'Bolacha de água e sal':['gluten','cereal'],
+  'Missô branco':['soja','gluten','leguminosa'],
+  'Molho sriracha':['picante'], 'Kimchi':['picante'],
+  /* «Manteiga de» seguido de um fruto seco não é manteiga. A expressão do
+     lacticínio apanha a palavra e marcava leite onde não há nenhum — e um
+     alergénio inventado tira credibilidade a todos os outros. */
+  'Manteiga de caju':['frutosecos'], 'Manteiga de amêndoa':['frutosecos'],
+  /* Iogurte e leite de soja, aveia ou coco não são laticínios: é precisamente
+     por isso que existem. */
+  'Iogurte de soja natural':['soja','leguminosa'], 'Leite de coco light':[],
+  /* Farinha de coco e de grão-de-bico não têm glúten nem são cereais — são o
+     que se usa exatamente para os evitar. */
+  'Farinha de coco':[], 'Farinha de grão-de-bico':['leguminosa'],
+  /* Massa de pimentão é pasta de pimento. A expressão do glúten tem «massa». */
+  'Massa de pimentão':[],
+  /* Mais um ovo do INSA com a ave no nome, apanhado pela expressão da carne. */
+  'Ovo de galinha cozido':['ovo'],
   'Vinagre de vinho':['sulfitos'], 'Vinagre':['sulfitos'], 'Vinagre balsâmico':['sulfitos'],
   'Vinho branco':['alcool','sulfitos'], 'Vinho tinto':['alcool','sulfitos'],
   'Passas':['sulfitos'], 'Sultanas':['sulfitos'], 'Batata palha':['sulfitos'],
@@ -14206,7 +14254,10 @@ function renderReceitas(){
       <p class="sub" style="margin-top:8px"><b>Kosher e halal:</b> a app exclui o que é claramente incompatível —
       porco, marisco, peixe sem barbatanas e escamas, álcool, carne e leite no mesmo prato — mas
       <b>não consegue verificar o abate nem a certificação</b>, que é o que verdadeiramente determina se um
-      alimento é kosher ou halal. A etiqueta diz «compatível à partida»; o rótulo e o talho é que mandam.</p>`:''}
+      alimento é kosher ou halal. A etiqueta diz «compatível à partida»; o rótulo e o talho é que mandam.<br>
+      <b>Vinagre de vinho</b> passa: a fermentação acética transforma o álcool, e a posição maioritária
+      trata o vinagre como distinto do vinho de que veio. Há quem siga leitura mais estrita — quem a siga
+      pode marcar o vinagre de vinho nas exclusões da despensa e ele sai das sugestões.</p>`:''}
   </details>
   <div class="row" style="margin-bottom:12px;align-items:center">
     <span class="sub">Quantidades para ${dica('porcoes')}</span>
@@ -15379,18 +15430,30 @@ function cartaoEquilibrio(dates){
         <p class="sub" style="margin-top:4px">${nPT(custo.total,2)} € de ${nPT(orc,2)} €.
           ${custo.total>orc? 'Já passou o teto.' : custo.total>orc*0.85? 'Perto do teto — as sugestões passam a pesar o custo por dose.' : ''}
           ${custo.sem? plural(custo.sem,'ingrediente sem preço','ingredientes sem preço')+' — a conta é por baixo. <button class="chip" onclick="irPorPrecos()">Pôr preços</button>' : ''}</p>`
-      : `<p class="sub" style="margin-top:4px">Sem teto definido. ${custo.sem? plural(custo.sem,'ingrediente sem preço','ingredientes sem preço')+'. ':''}
-          <button class="chip" onclick="pedirOrcamento()">Definir um orçamento semanal</button></p>`}
+      : `<p class="sub" style="margin-top:4px">Sem teto definido. ${custo.sem? plural(custo.sem,'ingrediente sem preço','ingredientes sem preço')+'. ':''}</p>`}
+      <div class="row" style="margin-top:8px;align-items:center;gap:8px">
+        <label for="orc-campo" class="sub">Teto semanal</label>
+        <input id="orc-campo" type="number" min="0" max="9999" step="1" inputmode="decimal"
+          style="max-width:110px" placeholder="sem teto" value="${orc||''}"
+          oninput="orcamentoAoVivo(this.value)" onchange="orcamentoGuarda(this.value)">
+        <span class="sub">€</span>
+        ${orc? `<button class="chip" onclick="orcamentoGuarda('')">Tirar o teto</button>`:''}
+      </div>
     </div>
   </div>`;
 }
-function pedirOrcamento(){
-  const v=prompt('Orçamento semanal para a comida, em euros (deixa vazio para tirar):',
-    orcamentoSemanal()||'');
-  if(v===null) return;
-  if(!S.casa||typeof S.casa!=='object') S.casa={nome:'',lema:'',orcamento:0,vezPtr:0};
-  const n=parseFloat(String(v).replace(',','.'));
-  S.casa.orcamento = isFinite(n)&&n>0? Math.min(9999,Math.round(n*100)/100) : 0;
+/* O orçamento era o único sítio da app com prompt(): uma caixa do browser, que
+   não se temifica, não fala a língua do resto e é bloqueada em iframes com
+   sandbox. Passa a campo em linha, com o contrato do costume — oninput mexe no
+   estado e reescreve só o que muda, onchange é que grava. */
+function casaCfg(){ if(!S.casa||typeof S.casa!=='object') S.casa={nome:'',lema:'',orcamento:0,vezPtr:0}; return S.casa; }
+function orcamentoLido(v){ const n=parseFloat(String(v).replace(',','.'));
+  return isFinite(n)&&n>0? Math.min(9999,Math.round(n*100)/100) : 0; }
+/* Enquanto se escreve só se mexe no estado: um render() a meio de um gesto
+   rouba o cursor ao campo. A barra e o texto redesenham-se no onchange. */
+function orcamentoAoVivo(v){ casaCfg().orcamento=orcamentoLido(v); }
+function orcamentoGuarda(v){
+  casaCfg().orcamento=orcamentoLido(v);
   save('orçamento da semana');
   flash('ok', S.casa.orcamento? 'Orçamento de '+nPT(S.casa.orcamento,2)+' € por semana. Acima de 85% do teto, as sugestões passam a pesar o custo.' : 'Orçamento removido.');
   render();
@@ -17046,7 +17109,7 @@ function renderDados(){
         : `<button class="btn" onclick="descarregar()">⬇ Transferir ficheiro</button>`}
         <button class="btn ghost" onclick="mostrarCopia()">📋 Mostrar e copiar dados</button>
       </div>
-      <textarea id="bkOut" style="margin-top:12px" readonly placeholder="O texto da cópia aparece aqui quando carregas em «Mostrar e copiar dados» — útil se o browser bloquear transferências."></textarea>
+      <textarea id="bkOut" style="margin-top:12px" readonly aria-label="Texto da cópia de segurança, para copiar" placeholder="O texto da cópia aparece aqui quando carregas em «Mostrar e copiar dados» — útil se o browser bloquear transferências."></textarea>
     </div>
 
     <div class="card">
@@ -17060,7 +17123,7 @@ function renderDados(){
         <span class="btn ghost filebtn">Juntar ficheiro…<input type="file" accept=".json,application/json"
           aria-label="Escolher ficheiro de cópia para juntar aos dados atuais" onchange="importarFicheiro(this,'juntar')"></span>
       </div>
-      <textarea id="bkIn" style="margin-top:12px" placeholder="…ou cola aqui o texto de uma cópia e escolhe uma das opções abaixo."></textarea>
+      <textarea id="bkIn" style="margin-top:12px" aria-label="Colar aqui o texto de uma cópia de segurança" placeholder="…ou cola aqui o texto de uma cópia e escolhe uma das opções abaixo."></textarea>
       <div class="row" style="margin-top:10px">
         <button class="btn small" onclick="importarCaixa('substituir')">Substituir com o texto colado</button>
         <button class="btn ghost small" onclick="importarCaixa('juntar')">Juntar o texto colado</button>
