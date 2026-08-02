@@ -342,6 +342,37 @@ html[data-dispositivo="telefone"][data-orient="retrato"] .fab{bottom:calc(84px +
 .desliza-corpo{position:relative;background:var(--bg);border-radius:var(--r-sm)}
 @media (prefers-reduced-motion: no-preference){ .desliza-corpo.volta{transition:transform .16s ease-out} }
 
+/* ===== O FIO DO DIA =====
+   A coluna do relógio à esquerda, alinhada por tabular-nums para as horas
+   caírem umas por baixo das outras; o traço vertical fá-las ler como um fio
+   e não como uma lista qualquer. */
+.fio{list-style:none;margin:12px 0 0;padding:0;position:relative}
+.fio::before{content:'';position:absolute;left:13px;top:10px;bottom:10px;width:2px;
+  background:var(--line);border-radius:2px}
+.fio-linha{position:relative;touch-action:pan-y;margin:0 0 2px}
+.fio-corpo,.fio-linha:not(.desliza){display:flex;align-items:center;gap:10px;padding:8px 4px;
+  background:var(--bg);border-radius:var(--r-sm)}
+.fio-ico{flex:none;width:28px;height:28px;display:flex;align-items:center;justify-content:center;
+  border-radius:50%;background:var(--card);border:1.5px solid var(--line);font-size:14px;z-index:1}
+.fio-txt{flex:1;min-width:0;font-size:14px}
+.fio-txt b{font-variant-numeric:tabular-nums}
+.fio-accoes{flex:none;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.fio-linha.feito .fio-txt{opacity:.55}
+.fio-linha.feito .fio-txt b{text-decoration:line-through;text-decoration-thickness:1px}
+.fio-linha.alerta .fio-ico{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 16%,var(--card))}
+.memoria{border-top:1px dashed var(--line);padding-top:10px;font-style:italic}
+
+/* ===== O BALCÃO RÁPIDO =====
+   Uma linha só, à altura do polegar, que aceita «Ana 62,4» ou «jantar feito».
+   O eco por baixo mostra o que entendeu antes de gravar seja o que for — a
+   linha reserva a altura à partida para o cartão não saltar a cada tecla. */
+.balcao{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.balcao input{width:100%}
+.balcao .sub{margin:0}
+#balcao-eco.ok{color:var(--ok);font-weight:600}
+#balcao-eco.nada{color:var(--mut)}
+
 /* ===== MODO COZINHA ===== */
 .cozinha{position:fixed;inset:0;z-index:66;background:var(--bg);display:flex;flex-direction:column}
 /* ---- A bancada ----
@@ -1883,6 +1914,24 @@ const JEJUM_MAX_H=8*24;
    saneadores que os leem correm no arranque, dentro de migraRegistos(). */
 const PRECO_HIST_MAX=40;
 const VISITA_MAX=12;
+/* O estado do histórico de navegação. Aqui em cima porque sincronizaHistorico()
+   corre no fim de cada desenho, incluindo o primeiro, e a declaração vive no
+   bloco do botão voltar, muito mais abaixo. */
+let _camadas=0, _recuando=false, _camadaAntes=false;
+/* A tabela das bebidas vive aqui pela mesma razão: limparBebidas() valida
+   cada registo contra ela e corre no arranque. Deixada lá em baixo, junto ao
+   resto do módulo do álcool, dava ecrã em branco a quem tivesse uma bebida
+   guardada. Os volumes são as medidas de casa e de café em Portugal; a
+   graduação é a corrente de cada categoria. */
+const BEBIDAS=[
+  {k:'imperial', n:'Imperial / fino', ml:200, abv:5.0,  i:'🍺'},
+  {k:'cerveja',  n:'Cerveja 33 cl',   ml:330, abv:5.0,  i:'🍺'},
+  {k:'vinho',    n:'Copo de vinho',   ml:150, abv:12.5, i:'🍷'},
+  {k:'vinhogr',  n:'Copo grande de vinho', ml:250, abv:12.5, i:'🍷'},
+  {k:'porto',    n:'Cálice de Porto', ml:75,  abv:19.0, i:'🥃'},
+  {k:'shot',     n:'Shot de destilado', ml:40, abv:40.0, i:'🥃'},
+  {k:'gt',       n:'Gin tónico',      ml:50,  abv:40.0, i:'🍸'},
+];
 function nomeRefeicao(k){ if(k==='ac') return 'Acompanhamento';
   const m=MEALS.find(x=>x[0]===k); return m? m[1] : k; }
 
@@ -7041,15 +7090,8 @@ function semanaDeAtaques(mid){
    nível de consumo isento de risco.
    Em gravidez, amamentação e menores a ferramenta não aparece, como o jejum. */
 const ETANOL_DENSIDADE=0.789, ETANOL_KCAL_G=7, UNIDADE_ETANOL_G=10;
-const BEBIDAS=[
-  {k:'imperial', n:'Imperial / fino', ml:200, abv:5.0,  i:'🍺'},
-  {k:'cerveja',  n:'Cerveja 33 cl',   ml:330, abv:5.0,  i:'🍺'},
-  {k:'vinho',    n:'Copo de vinho',   ml:150, abv:12.5, i:'🍷'},
-  {k:'vinhogr',  n:'Copo grande de vinho', ml:250, abv:12.5, i:'🍷'},
-  {k:'porto',    n:'Cálice de Porto', ml:75,  abv:19.0, i:'🥃'},
-  {k:'shot',     n:'Shot de destilado', ml:40, abv:40.0, i:'🥃'},
-  {k:'gt',       n:'Gin tónico',      ml:50,  abv:40.0, i:'🍸'},
-];
+/* A tabela BEBIDAS está lá em cima, com o MAX_AC: é lida por um saneador de
+   arranque e daqui ainda estaria na zona morta temporal. */
 function etanolDe(ml,abv){ return ml*(abv/100)*ETANOL_DENSIDADE; }
 function unidadesDe(ml,abv){ return etanolDe(ml,abv)/UNIDADE_ETANOL_G; }
 function kcalAlcool(ml,abv){ return Math.round(etanolDe(ml,abv)*ETANOL_KCAL_G); }
@@ -7466,6 +7508,10 @@ function confirmaPartilha(irmaos,verbo){
 /* Explicadores. Ficam todos aqui para o texto ser escrito uma vez e revisto
    de uma assentada, em vez de andar espalhado pelos templates. */
 const DICAS={
+  fio:'O dia por ordem de relógio: pesagens, refeições, treinos, compras e sobras, tudo numa linha só. Cada item traz o botão que o resolve sem sair daqui, e no telemóvel deslizar para a direita faz o mesmo que carregar no botão.',
+  bandeja:'A fila do que ficou por confirmar, um cartão de cada vez. Aparece uma vez por dia ao abrir a aplicação. «Logo vejo» adia até amanhã sem apagar nada — o que fica por confirmar não conta como feito em nenhuma estatística.',
+  balcao:'Escrever em vez de navegar. Aceita uma pesagem («Ana 62,4»), um treino («corri 8 km»), uma refeição («jantar feito») ou uma compra («comprei azeite»). Mostra sempre o que entendeu antes de gravar, e nada sai daqui para fora.',
+  pessoa:'A folha de uma pessoa: o dia dela, os números dela, o que lhe falta confirmar. Abre-se com pressão longa no avatar, ou com o botão direito no computador.',
   imc:'Peso a dividir pela altura ao quadrado. É uma medida de rastreio para adultos: não distingue músculo de gordura, por isso um atleta pode aparecer em «excesso de peso» sem o estar. Em crianças lê-se por percentil para a idade, não por estes limites.',
   basal:'As calorias que o corpo gasta em repouso absoluto, só para se manter vivo. Calculado por Mifflin-St Jeor nos adultos e por Schofield abaixo dos 19 anos.',
   gasto:'O gasto total do dia: o metabolismo basal multiplicado pelo nível de atividade, mais as deslocações, mais o desporto e, em quem está a crescer ou grávida, a energia dessa fase.',
@@ -7692,6 +7738,19 @@ document.addEventListener('keydown',e=>{
   if(a && (a.tagName==='INPUT'||a.tagName==='TEXTAREA'||a.tagName==='SELECT'||a.isContentEditable)) return;
   if(S.ui.pesqAberta||S.ui.cozinha||S.ui.mercado||tourAtivo()) return;
   e.preventDefault(); abrirPesquisa();
+});
+/* Na bandeja, quem está ao teclado despacha a fila sem tirar a mão de lá:
+   1 resolve, 2 adia. Só com a bandeja aberta e fora de qualquer campo. */
+document.addEventListener('keydown',e=>{
+  if(e.key!=='1'&&e.key!=='2') return;
+  if(e.ctrlKey||e.metaKey||e.altKey) return;
+  const a=document.activeElement;
+  if(a && (a.tagName==='INPUT'||a.tagName==='TEXTAREA'||a.tagName==='SELECT'||a.isContentEditable)) return;
+  const mo=modalAberto(); if(!mo||mo.tipo!=='bandeja') return;
+  const x=filaDaBandeja()[mo.i]; if(!x) return;
+  e.preventDefault();
+  if(e.key==='2') return adiarBandeja(x.k);
+  (new Function(x.accao.fn))();
 });
 document.addEventListener('keydown',e=>{
   if(e.key!=='Escape') return;
@@ -8033,6 +8092,7 @@ function go(t){
   if(t!=='atividade') S.ui.histAtiv=null;
   if(t!=='nutricao') S.ui.histRef=null;
   saveMeta(); render();
+  marcarSeparadorNoHistorico(t);
   if(t==='mercearia') talvezPerguntarCompras();
 }
 function pickM(id){ S.ui.mid=id; macroLive=null; saveMeta(); render(); }
@@ -8053,11 +8113,15 @@ function tintaSobre(hex){
   /* contraste contra branco vs. contra tinta escura: ganha o maior */
   return (1.05/(L+0.05)) >= ((L+0.05)/0.055)? '#fff' : '#10151B';
 }
+/* O avatar carrega o id do membro: é ele a porta do Modo pessoa, aberta com
+   pressão longa no telemóvel ou com o menu de contexto no computador. Um
+   convidado ou uma visita não têm perfil, e por isso não têm porta. */
 function avatar(m,sz){
   const tam=sz||26;
-  if(m && m.emoji) return `<span class="av av-emoji" style="background:${avColor(m)}22;border:1.5px solid ${avColor(m)};width:${tam}px;height:${tam}px;font-size:${Math.round(tam*0.58)}px">${esc(m.emoji)}</span>`;
+  const dm=(m&&m.id&&!m.convidado)? ` data-membro="${m.id}"` : '';
+  if(m && m.emoji) return `<span class="av av-emoji"${dm} style="background:${avColor(m)}22;border:1.5px solid ${avColor(m)};width:${tam}px;height:${tam}px;font-size:${Math.round(tam*0.58)}px">${esc(m.emoji)}</span>`;
   const ini=(m.nome||'?').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
-  return `<span class="av" style="background:${avColor(m)};color:${tintaSobre(avColor(m))};width:${tam}px;height:${tam}px">${esc(ini)}</span>`;
+  return `<span class="av"${dm} style="background:${avColor(m)};color:${tintaSobre(avColor(m))};width:${tam}px;height:${tam}px">${esc(ini)}</span>`;
 }
 /* O seletor de membro acompanha o scroll: em páginas compridas (Nutrição,
    Atividade) nunca se perde de vista de quem são os números. O sentinela de
@@ -8998,7 +9062,7 @@ function cartaoProvas(m){
       const p=provasDe(m.id,ing), gostou=p.some(x=>x.r==='gostou');
       return `<div class="row" style="margin-top:10px;align-items:center;gap:8px">
         <span style="flex:1;min-width:0"><b>${esc(ing)}</b>
-          <span class="sub" style="display:block">${p.length? plural(p.length,'1 prova','$n provas').replace('$n',p.length)+(gostou?' · já gostou 🎉':'') : 'ainda sem provas'}</span></span>
+          <span class="sub" style="display:block">${p.length? plural(p.length,'prova','provas')+(gostou?' · já gostou 🎉':'') : 'ainda sem provas'}</span></span>
         <button class="chip" style="flex:none" onclick="registarProva('${m.id}','${esc(ing).replace(/'/g,'&#39;')}','provou')">Provou</button>
         <button class="chip" style="flex:none" onclick="registarProva('${m.id}','${esc(ing).replace(/'/g,'&#39;')}','recusou')">Recusou</button>
         <button class="chip" style="flex:none" onclick="registarProva('${m.id}','${esc(ing).replace(/'/g,'&#39;')}','gostou')">Gostou!</button>
@@ -9273,7 +9337,7 @@ function cartaoTrocasBaratas(dates){
   if(!t.top.length) return '';
   return `<div class="card secgap" id="trocas-baratas" data-col="mer-trocas">
     <h2>Esta semana por menos ${nPT(t.total,2)} € ${dica('trocasBaratas')}</h2>
-    <p class="sub">${plural(t.top.length,'Uma troca de cozinha','$n trocas de cozinha').replace('$n',t.top.length)} com o mesmo papel no prato. Aplicar cria uma variante — a receita original fica como está.</p>
+    <p class="sub">${plural(t.top.length,'troca de cozinha','trocas de cozinha')} com o mesmo papel no prato. Aplicar cria uma variante — a receita original fica como está.</p>
     ${t.top.map((x,i)=>`<div class="row" style="margin-top:10px;align-items:flex-start;gap:10px">
       <span class="pill ok" style="flex:none">−${nPT(x.poupa,2)} €</span>
       <div style="min-width:0;flex:1">
@@ -9282,7 +9346,7 @@ function cartaoTrocasBaratas(dates){
       </div>
       <button class="chip" style="flex:none" onclick="aplicarTroca(${i})">Trocar</button>
     </div>`).join('')}
-    ${t.semPreco? `<p class="sub" style="margin-top:10px">${plural(t.semPreco,'1 ingrediente da semana ainda não tem preço','$n ingredientes da semana ainda não têm preço').replace('$n',t.semPreco)} — a poupança possível é maior do que esta.</p>`:''}
+    ${t.semPreco? `<p class="sub" style="margin-top:10px">${plural(t.semPreco,'ingrediente da semana ainda não tem preço','ingredientes da semana ainda não têm preço')} — a poupança possível é maior do que esta.</p>`:''}
   </div>`;
 }
 /* Aplicar a troca em todas as receitas da semana onde o ingrediente caro
@@ -9301,7 +9365,7 @@ function aplicarTroca(i){
   if(!n) return flash('warn','Nenhum prato desta semana usa '+x.de.toLowerCase()+'.');
   save('troca por '+x.por.toLowerCase());
   render();
-  flash('ok', plural(n,'1 prato passou','$n pratos passaram').replace('$n',n)+' a levar '+x.por.toLowerCase()
+  flash('ok', plural(n,'prato passou','pratos passaram')+' a levar '+x.por.toLowerCase()
     +' — poupança estimada de '+nPT(x.poupa,2)+' €.', {rot:'Anular', fn:'desfazer()'});
 }
 /* A variante nasce como receita da casa, com a origem escrita na história —
@@ -9431,7 +9495,7 @@ function textoTalaoMes(a,dif,nAntes){
     +(dif!==null? ', '+(dif>0? nPT(dif,0)+'% mais' : nPT(-dif,0)+'% menos')+' que a média dos '+nAntes+' meses anteriores' : '')+'.');
   if(a.porRefeicao!==null) p.push('Foram '+nPT(a.porRefeicao,2)+' € por refeição servida.');
   if(a.pctLixo!==null && a.lixo>0) p.push(nPT(a.pctLixo,0)+'% do que se comprou acabou no lixo — '+nPT(a.lixo,2)+' €.');
-  if(a.sem) p.push(plural(a.sem,'1 item comprado ficou sem preço','$n itens comprados ficaram sem preço').replace('$n',a.sem)+', por isso a conta é por baixo.');
+  if(a.sem) p.push(plural(a.sem,'item comprado ficou sem preço','itens comprados ficaram sem preço')+', por isso a conta é por baixo.');
   if(dif===null && nAntes) p.push('Não se compara com os meses anteriores: a cobertura de preços mudou demasiado entre eles.');
   return p.join(' ');
 }
@@ -9944,7 +10008,7 @@ function guardarAjustes(){
   const c=S.ui.cozinha; if(!c||!Array.isArray(c.ajustes)) return;
   c.ajustes.forEach(a=>{ setNotaPasso(c.r,{t:a.t},'delta',(notaDoPasso(c.r,{t:a.t})||{}).delta||0 ? ((notaDoPasso(c.r,{t:a.t})||{}).delta+a.delta) : a.delta); });
   const n=c.ajustes.length; c.ajustes=[];
-  flash('ok', plural(n,'1 tempo guardado','$n tempos guardados').replace('$n',n)+' para a próxima vez.');
+  flash('ok', plural(n,'tempo guardado','tempos guardados')+' para a próxima vez.');
 }
 /* ---- Enquanto o forno trabalha ----
    A espera é onde os jantares descarrilam — e é o único tempo livre que uma
@@ -11268,10 +11332,10 @@ function cartaoResgate(){
     <span class="lbl">Missão resgate</span>
     <h2 style="margin-top:2px">${m.valor>0? 'Tens '+nPT(m.valor,2)+' € a chegar ao prazo' : 'Há coisas a chegar ao prazo'} ${dica('resgate')}</h2>
     <p class="sub">${m.urgentes.map(x=>esc(x.n)+' ('+(x.dias<=0?'hoje':'em '+x.dias+'d')+')').join(' · ')}${
-      m.semPreco? ' — '+plural(m.semPreco,'1 sem preço, por isso o valor é por baixo','$n sem preço, por isso o valor é por baixo').replace('$n',m.semPreco) : ''}.</p>
+      m.semPreco? ' — '+plural(m.semPreco,'sem preço, por isso o valor é por baixo','sem preço, por isso o valor é por baixo') : ''}.</p>
     ${m.receitas.length? `<p class="sub" style="margin-top:10px">O que gasta mais destes de uma vez:</p>
       ${m.receitas.map(x=>`<div class="row" style="margin-top:8px;align-items:center;gap:8px">
-        <span style="flex:1;min-width:0"><b>${esc(x.r.n)}</b><span class="sub" style="display:block">usa ${plural(x.usa,'1 deles','$n deles').replace('$n',x.usa)}</span></span>
+        <span style="flex:1;min-width:0"><b>${esc(x.r.n)}</b><span class="sub" style="display:block">usa ${plural(x.usa,'deles','deles')}</span></span>
         ${m.vazios.length? `<button class="chip" style="flex:none" onclick="plantarResgate('${x.r.id}')">Pôr no plano</button>`:''}
         <button class="chip" style="flex:none" onclick="abrirFicha('${x.r.id}')">Ver</button>
       </div>`).join('')}`
@@ -11292,7 +11356,7 @@ function cartaoDesperdicioAviso(){
   if(!l.length) return '';
   return `<div class="card secgap" data-col="mer-detetive">
     <h2>O que costuma ir ao lixo ${dica('detetive')}</h2>
-    ${l.map(x=>`<p class="sub" style="margin-top:8px"><b>${esc(x.nome)}</b> — ${x.lixo} de ${plural(x.compras,'1 compra','$n compras').replace('$n',x.compras)} nas últimas doze semanas acabaram no lixo. Comprar menos de uma vez chega?</p>`).join('')}
+    ${l.map(x=>`<p class="sub" style="margin-top:8px"><b>${esc(x.nome)}</b> — ${x.lixo} de ${plural(x.compras,'compra','compras')} nas últimas doze semanas acabaram no lixo. Comprar menos de uma vez chega?</p>`).join('')}
   </div>`;
 }
 function cartaoAlbum(){
@@ -11304,7 +11368,7 @@ function cartaoAlbum(){
     ${l.map(x=>`<div class="row" style="margin-top:9px;align-items:center;gap:8px">
       <span class="pill ${x.nota>=80?'ok':x.nota>=60?'warn':''}" style="flex:none">${x.nota}</span>
       <span style="flex:1;min-width:0"><b>Semana de ${fmtShort(x.wk)}</b>
-        <span class="sub" style="display:block">${x.pct}% cumprida${x.lixo? ' · '+plural(x.lixo,'1 ida ao lixo','$n idas ao lixo').replace('$n',x.lixo):' · sem desperdício'}${x.vered? ' · '+x.bons+' de '+x.vered+' aprovados à mesa':''}</span></span>
+        <span class="sub" style="display:block">${x.pct}% cumprida${x.lixo? ' · '+plural(x.lixo,'ida ao lixo','idas ao lixo'):' · sem desperdício'}${x.vered? ' · '+x.bons+' de '+x.vered+' aprovados à mesa':''}</span></span>
       <button class="chip" style="flex:none" onclick="repetirSemana('${x.wk}')">Fazer outra vez</button>
     </div>`).join('')}
   </div>`;
@@ -11324,8 +11388,8 @@ function repetirSemana(wk){
     registaCombo(meal.r, acIds(meal)); n++;
   });
   save('semana repetida'); render();
-  flash('ok', plural(n,'1 refeição copiada','$n refeições copiadas').replace('$n',n)
-    +(fora? ' — '+plural(fora,'1 ficou de fora por já não servir esta mesa','$n ficaram de fora por já não servirem esta mesa').replace('$n',fora) : '.'),
+  flash('ok', plural(n,'refeição copiada','refeições copiadas')
+    +(fora? ' — '+plural(fora,'ficou de fora por já não servir esta mesa','ficaram de fora por já não servirem esta mesa') : '.'),
     {rot:'Anular',fn:'desfazer()'});
 }
 function cartaoDoCesto(){
@@ -11338,7 +11402,7 @@ function cartaoDoCesto(){
     <p class="sub">Os dias ainda vazios, a gastar primeiro o que estraga primeiro.</p>
     ${p.props.map(x=>`<div class="row" style="margin-top:9px;align-items:center;gap:8px">
       <span class="sub" style="flex:none;min-width:64px">${DAYN[x.di].slice(0,3)}. ${nomeRefeicao(x.mk).toLowerCase()}</span>
-      <span style="flex:1;min-width:0"><b>${esc(x.r.n)}</b><span class="sub" style="display:block">gasta ${plural(x.usa,'1 do cesto','$n do cesto').replace('$n',x.usa)}</span></span>
+      <span style="flex:1;min-width:0"><b>${esc(x.r.n)}</b><span class="sub" style="display:block">gasta ${plural(x.usa,'do cesto','do cesto')}</span></span>
     </div>`).join('')}
     <div class="row" style="margin-top:12px">
       <button class="btn" onclick="aplicarPlanoDoCesto()">Pôr tudo no plano</button>
@@ -11352,7 +11416,7 @@ function aplicarPlanoDoCesto(){
   if(!p.props.length) return flash('warn','Não há dias vazios para preencher.');
   p.props.forEach(x=>{ const meal=planMeal(x.di,x.mk); meal.r=x.r.id; registaCombo(meal.r, acIds(meal)); });
   save('plano a partir do cesto'); render();
-  flash('ok', plural(p.props.length,'1 refeição planeada','$n refeições planeadas').replace('$n',p.props.length)
+  flash('ok', plural(p.props.length,'refeição planeada','refeições planeadas')
     +' com o que veio das compras.', {rot:'Anular',fn:'desfazer()'});
 }
 
@@ -12120,6 +12184,428 @@ function pendentesPorSeparador(){
   return out;
 }
 
+/* ================= O FIO DO DIA =================
+   Às sete da tarde, uma família não quer navegar oito separadores densos:
+   quer saber o que vai para a mesa, se falta passar no supermercado e se o
+   miúdo tem futebol. O cartão «Hoje» respondia a duas dessas perguntas e não
+   à terceira, e cada resposta obrigava a uma viagem até outro separador para
+   agir.
+
+   O fio é uma coluna cronológica do dia inteiro da casa, e cada linha AGE no
+   próprio lugar. Nenhum estado novo: deriva-se do plano, dos treinos, da
+   lista, das sobras e das pesagens em atraso. Os geradores são preguiçosos de
+   propósito — a abertura é onde o orçamento dos 100 ms se perde. */
+const HORA_LINHA={pesagem:7, p:8, l:16, a:13, j:20, treino:18, sobra:21, congelador:21, compras:11};
+function fioDoDia(){
+  if(!S.members.length) return [];
+  const d=hojeISO(), di=diaSemana(d), out=[];
+  /* pesagens em atraso: de manhã, antes de tudo */
+  S.members.forEach(m=>{ if(!precisaPesagem(m)) return;
+    out.push({k:'pesagem', h:HORA_LINHA.pesagem, mid:m.id, ico:'⚖',
+      t:'Pesar '+nomeCurto(m), d:'a última pesagem já tem tempo',
+      accao:{rot:'Pesar', fn:"abrirPesagens('"+m.id+"')"}});
+  });
+  /* as refeições do dia, com quem come e o que vai ao lado */
+  const wk=(S.plans[S.week]||{})[di]||{};
+  MEALK.forEach(mk=>{
+    const meal=wk[mk]; if(!meal||!meal.r) return;
+    const r=RECIPES.find(x=>x.id===meal.r); if(!r) return;
+    const comem=S.members.filter(m=>meal.m.includes(m.id)&&!isCheat(m.id,d));
+    if(!comem.length) return;
+    const jaFeita=comem.every(m=>(S.regRef||[]).some(x=>x.mid===m.id&&x.d===d&&x.mk===mk&&x.estado==='feita'));
+    const acs=acompsDe(meal);
+    out.push({k:'ref', h:HORA_LINHA[mk]||12, mk, ico:ICO_REF[mk]||'🍽️',
+      t:nomeDaRefeicao(meal)||r.n,
+      d:comem.map(m=>nomeCurto(m)).join(', ')+(acs.length>1? ' · '+notaDivisao(acs.length) : ''),
+      alerta:avisoAlergia(r, comem.concat(membrosVirtuais(meal)), true)? true:false,
+      feito:jaFeita,
+      accao: jaFeita? null : {rot:'Comi', fn:"confirmarRefFio('"+mk+"')"},
+      extra: jaFeita? null : {rot:'Cozinhar', fn:"cozinharRefeicao("+di+",'"+mk+"','"+d+"')"}});
+  });
+  /* treinos marcados para hoje */
+  S.members.forEach(m=>{
+    planeadasNoDia(m,d).forEach(p=>{
+      const feito=(S.regAtiv||[]).some(r=>r.mid===m.id&&r.d===d&&r.plano===p.s.id&&r.estado!=='agendada');
+      out.push({k:'treino', h:HORA_LINHA.treino, mid:m.id, ico:ICO_SPORT[p.s.cat]||'🏃',
+        t:p.s.nome+' — '+nomeCurto(m), d:p.min+' min',
+        feito,
+        accao: feito? null : {rot:'Fiz', fn:"confirmarTreinoFio('"+m.id+"','"+p.s.id+"',"+p.min+")"}});
+    });
+  });
+  /* o que falta comprar, uma linha só */
+  const falta=itensEmFalta(shoppingItems().items).filter(i=>!((S.bought[S.week]||{})[i.n+'|'+i.u])).length;
+  if(falta) out.push({k:'compras', h:HORA_LINHA.compras, ico:'🛒',
+    t:plural(falta,'coisa por comprar','coisas por comprar'),
+    d:'para as refeições que faltam esta semana',
+    accao:{rot:'Ver a lista', fn:"go('mercearia')"}});
+  /* sobras a vencer e o que tirar do congelador */
+  (S.sobras||[]).forEach(s=>{
+    const dias=diasDeSobra(s); if(dias===null||dias>1) return;
+    const r=RECIPES.find(x=>x.id===s.r); if(!r) return;
+    out.push({k:'sobra', h:HORA_LINHA.sobra, ico:'🥡',
+      t:'Sobra de '+r.n.toLowerCase(), d:dias<=0? 'é hoje ou nunca' : 'vence amanhã',
+      accao:{rot:'Ver sobras', fn:"go('mercearia')"}});
+  });
+  out.sort((a,b)=>a.h-b.h);
+  return out;
+}
+function confirmarRefFio(mk){
+  const d=hojeISO(), di=diaSemana(d), meal=(S.plans[S.week]||{})[di]&&(S.plans[S.week])[di][mk];
+  if(!meal||!meal.r) return;
+  const comem=S.members.filter(m=>meal.m.includes(m.id)&&!isCheat(m.id,d));
+  registarRefeicao({d, mk, r:meal.r, ac:acIds(meal), dose:1}, comem.map(m=>m.id), 'feita');
+  save('refeição confirmada'); render();
+  flash('ok','Registada para '+plural(comem.length,'pessoa','pessoas')+'.',
+    {rot:'Anular', fn:'desfazer()'});
+}
+function confirmarTreinoFio(mid,sid,min){
+  const s=SPORTS.find(x=>x.id===sid); if(!s) return;
+  const m=S.members.find(x=>x.id===mid); if(!m) return;
+  if(!Array.isArray(S.regAtiv)) S.regAtiv=[];
+  S.regAtiv.push(limparRegAtiv({id:uid(), mid, d:hojeISO(), plano:sid, s:sid, min, int:1, estado:'feita'},
+    S.members.map(x=>x.id)));
+  S.regAtiv=S.regAtiv.filter(Boolean);
+  save('treino confirmado'); render();
+  flash('ok',s.nome+' registado para '+nomeCurto(m)+'.',{rot:'Anular', fn:'desfazer()'});
+}
+function cartaoFioDoDia(){
+  if(!S.members.length) return '';
+  const fio=fioDoDia();
+  const mem=memoriaDeHoje();
+  if(!fio.length) return `<div class="card card--capa" id="fio" data-col="fam-fio">
+    <span class="lbl">${fmtLongo(hojeISO())}</span>
+    <h2 style="margin-top:2px">O fio do dia ${dica('fio')}</h2>
+    <p class="sub" style="margin-top:8px">Hoje não há nada marcado. Planeia a semana e o dia aparece aqui, hora a hora.</p>
+    <div class="row" style="margin-top:10px"><button class="btn" onclick="go('plano')">Ir ao plano</button></div>
+    ${mem? `<p class="sub memoria" style="margin-top:12px">🕰 ${esc(mem)}</p>`:''}
+  </div>`;
+  return `<div class="card card--capa" id="fio" data-col="fam-fio">
+    <span class="lbl">${fmtLongo(hojeISO())}</span>
+    <h2 style="margin-top:2px">O fio do dia ${dica('fio')}</h2>
+    <ol class="fio">${fio.map(x=>{
+      /* A linha por despachar entra no sistema de deslize da casa — o mesmo
+         das validações, com o mesmo feitio e o mesmo código por baixo do
+         botão. A que já está feita não desliza: não há nada a confirmar. */
+      const desliza = !!x.accao && !x.feito;
+      const dentro=`<span class="fio-ico" aria-hidden="true">${x.ico}</span>
+        <span class="fio-txt"><b>${esc(x.t)}</b>${x.alerta? ' <span class="tag alerg">🚨</span>':''}
+          <span class="sub" style="display:block">${esc(x.d)}</span></span>
+        ${x.feito? '<span class="pill ok" style="flex:none">✓</span>'
+         : `<span class="fio-accoes">
+            ${x.extra? `<button class="chip" onclick="${x.extra.fn}">${x.extra.rot}</button>`:''}
+            ${x.accao? `<button class="chip" onclick="${x.accao.fn}">${x.accao.rot}</button>`:''}
+          </span>`}`;
+      const cls=`fio-linha ${x.feito?'feito':''} ${x.alerta?'alerta':''}`;
+      if(!desliza) return `<li class="${cls}">${dentro}</li>`;
+      return `<li class="${cls} desliza" data-sim="${esc(x.accao.fn)}">
+        <span class="desliza-fundo sim" aria-hidden="true">✓ ${esc(x.accao.rot.toLowerCase())}</span>
+        <span class="desliza-corpo fio-corpo">${dentro}</span>
+      </li>`;}).join('')}</ol>
+    ${mem? `<p class="sub memoria" style="margin-top:12px">🕰 ${esc(mem)}</p>`:''}
+  </div>`;
+}
+
+/* ================= A BANDEJA DA MANHÃ =================
+   As pendências emboscavam o utilizador espalhadas por cinco sítios: a
+   pesagem ao abrir, as refeições no perfil, os treinos na Atividade, as
+   compras na despensa. Quem abre a app na fila do café tem noventa segundos —
+   ou resolve uma e esquece quatro, ou não resolve nenhuma, e os históricos
+   ficam furados, o que estraga tudo o que depende deles.
+
+   A bandeja é uma fila única: um cartão de cada vez, «logo vejo» adia até
+   amanhã. Reutiliza os mesmos detetores de pendências que cada separador já
+   usa — não duplica lógica, que era o risco óbvio. */
+function bandejaCfg(){ if(!S.ui.bandeja||typeof S.ui.bandeja!=='object') S.ui.bandeja={}; return S.ui.bandeja; }
+function bandejaAdiada(k){
+  const b=bandejaCfg();
+  return b[k]===hojeISO();
+}
+function filaDaBandeja(){
+  if(!S.members.length) return [];
+  const p=pendenciasHoje(), out=[];
+  S.members.forEach(m=>{ if(precisaPesagem(m) && !bandejaAdiada('peso|'+m.id))
+    out.push({k:'peso|'+m.id, ico:'⚖', t:'Quanto pesa '+nomeCurto(m)+' hoje?',
+      d:'A última pesagem já tem tempo — o alvo do dia depende dela.',
+      accao:{rot:'Pesar agora', fn:"fecharBandeja();abrirPesagens('"+m.id+"')"}});
+  });
+  /* refeições e treinos de ONTEM por confirmar: hoje já não se adivinham */
+  const ontem=addDias(hojeISO(),-1);
+  S.members.forEach(m=>{
+    const semReg=MEALK.filter(mk=>{
+      const di=diaSemana(ontem), wk=mondayISO(ontem);
+      const meal=((S.plans[wk]||{})[di]||{})[mk];
+      if(!meal||!meal.r||!meal.m.includes(m.id)) return false;
+      return !(S.regRef||[]).some(r=>r.mid===m.id&&r.d===ontem&&r.mk===mk);
+    });
+    if(semReg.length && !bandejaAdiada('ref|'+m.id))
+      out.push({k:'ref|'+m.id, ico:'🍽️', t:nomeCurto(m)+': '+plural(semReg.length,'refeição de ontem por confirmar','refeições de ontem por confirmar'),
+        d:'Confirmar mantém o histórico vivo — é dele que sai tudo o resto.',
+        accao:{rot:'Confirmar todas', fn:"confirmarOntem('"+m.id+"')"},
+        extra:{rot:'Ver uma a uma', fn:"fecharBandeja();go('nutricao')"}});
+  });
+  if(p.compras && !bandejaAdiada('compras'))
+    out.push({k:'compras', ico:'🛒', t:plural(p.compras,'coisa por comprar','coisas por comprar'),
+      d:'Para as refeições que faltam esta semana.',
+      accao:{rot:'Ver a lista', fn:"fecharBandeja();go('mercearia')"}});
+  const res=missaoResgate();
+  if(res && res.urgentes.length && !bandejaAdiada('resgate'))
+    out.push({k:'resgate', ico:'⏳', t:res.valor>0? nPT(res.valor,2)+' € a chegar ao prazo' : 'Coisas a chegar ao prazo',
+      d:res.urgentes.map(x=>x.n).join(', ')+'.',
+      accao:{rot:'Ver o resgate', fn:"fecharBandeja();go('mercearia')"}});
+  return out;
+}
+function abrirBandeja(){
+  const f=filaDaBandeja();
+  if(!f.length) return flash('ok','Está tudo em dia. Bom proveito.');
+  S.ui.modal={tipo:'bandeja', i:0};
+  /* marca-se à abertura e não ao fecho: quem a dispensa com Escape ou com o
+     voltar também já a viu hoje, e vê-la outra vez ao recarregar irritaria */
+  S.ui.ultimaTriagem=hojeISO();
+  saveMeta(); render();
+}
+function fecharBandeja(){ S.ui.modal=null; S.ui.ultimaTriagem=hojeISO(); saveMeta(); render(); }
+function bandejaSeguinte(){
+  const mo=modalAberto(); if(!mo||mo.tipo!=='bandeja') return;
+  mo.i++; saveMeta(); render();
+}
+function adiarBandeja(k){
+  bandejaCfg()[k]=hojeISO();
+  saveMeta(); bandejaSeguinte();
+}
+function confirmarOntem(mid){
+  const ontem=addDias(hojeISO(),-1), wk=mondayISO(ontem), di=diaSemana(ontem);
+  let n=0;
+  MEALK.forEach(mk=>{
+    const meal=((S.plans[wk]||{})[di]||{})[mk];
+    if(!meal||!meal.r||!meal.m.includes(mid)) return;
+    if((S.regRef||[]).some(r=>r.mid===mid&&r.d===ontem&&r.mk===mk)) return;
+    registarRefeicao({d:ontem, mk, r:meal.r, ac:acIds(meal), dose:1},[mid],'feita'); n++;
+  });
+  save('refeições de ontem'); bandejaSeguinte();
+  flash('ok', plural(n,'refeição confirmada','refeições confirmadas')+'.',
+    {rot:'Anular', fn:'desfazer()'});
+}
+function modalBandejaHtml(mo){
+  const f=filaDaBandeja();
+  const x=f[mo.i];
+  if(!x) return `<div class="mfundo" onclick="fundoModal(event)">
+    <div class="mcaixa" role="dialog" aria-modal="true" aria-labelledby="bd-t" style="max-width:440px;text-align:center">
+      <div style="font-size:40px">☀️</div>
+      <h2 id="bd-t" style="margin-top:6px">Está tudo em dia</h2>
+      <p class="sub" style="margin-top:8px">Nada por confirmar, nada por comprar. O dia é teu.</p>
+      <div class="row" style="margin-top:14px;justify-content:center">
+        <button class="btn" onclick="fecharBandeja();go('familia')">Ver o fio do dia</button></div>
+    </div></div>`;
+  return `<div class="mfundo" onclick="fundoModal(event)">
+    <div class="mcaixa" role="dialog" aria-modal="true" aria-labelledby="bd-t" style="max-width:440px">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <span class="lbl">Bandeja da manhã ${dica('bandeja')}</span>
+        <span class="pill">${mo.i+1} de ${f.length}</span>
+      </div>
+      <div style="font-size:34px;margin-top:10px">${x.ico}</div>
+      <h2 id="bd-t" style="margin-top:4px">${esc(x.t)}</h2>
+      <p class="sub" style="margin-top:6px">${esc(x.d)}</p>
+      <div class="row" style="margin-top:16px">
+        <button class="btn" onclick="${x.accao.fn}">${esc(x.accao.rot)}</button>
+        ${x.extra? `<button class="btn ghost" onclick="${x.extra.fn}">${esc(x.extra.rot)}</button>`:''}
+        <button class="btn ghost" style="margin-left:auto" onclick="adiarBandeja('${x.k}')">Logo vejo</button>
+      </div>
+      <p class="sub" style="margin-top:10px">No computador: <b>1</b> resolve, <b>2</b> adia.</p>
+    </div></div>`;
+}
+
+/* ================= BALCÃO RÁPIDO =================
+   A pesquisa global ENCONTRA coisas; isto FAZ coisas. Os gestos mais
+   frequentes de uma casa — pesar, confirmar, registar — repetem-se centenas
+   de vezes por mês e cada um custa uma navegação até ao formulário certo.
+   Quem sai da balança com o número na cabeça quer despejá-lo em três segundos.
+   Parser local de meia dúzia de padrões: sem NLP, sem rede, e nunca grava sem
+   mostrar antes o que entendeu. */
+/* Como cada desporto se diz no dia-a-dia. A ordem dentro de cada lista não
+   importa; a ordem dos desportos em SPORTS é que decide os empates, e é por
+   isso que «corri» está só na corrida e a caminhada tem «andei» e «caminhei».
+   Prefixos: apanham «corri», «corria», «corremos» de uma vez. */
+const VERBOS_TREINO={
+  caminhada:['andei','andar','caminhei','caminhar','passeei','dei uma volta'],
+  corrida:['corri','correr','corremos','fui correr','jogging'],
+  trail:['trail','corri no trilho'],
+  ciclismo:['pedalei','pedalar','bicicleta','bike','fui de bici'],
+  btt:['btt'],
+  natacao:['nadei','nadar','piscina','fui nadar'],
+  remo:['remei','remar','canoagem','caiaque'],
+  musculacao:['pesos','musculacao','fiz pesos','levantei pesos'],
+  ginasio:['ginasio','fui ao ginasio'],
+  calistenia:['flexoes','abdominais','barras'],
+  funcional:['funcional','crossfit'],
+  yoga:['ioga','yoga'],
+  pilates:['pilates'],
+  alongamentos:['alonguei','alongamentos','estiquei'],
+  futebol:['joguei a bola','bolinha','pelada'],
+  padel:['padel'],
+  tenis:['tenis'],
+  boxe:['boxe','saco de boxe'],
+  danca:['dancei','dancar','baile'],
+  hiking:['fiz uma caminhada na serra','serra','montanha'],
+  jardinagem:['jardim','quintal','cavei','podei'],
+  escadas:['subi escadas','escadas'],
+};
+function interpretarBalcao(txt){
+  const t=semAcentos(String(txt||'').trim().toLowerCase());
+  if(!t) return null;
+  const nome=m=>semAcentos(m.nome.split(' ')[0]).toLowerCase();
+  /* Quem: o nome escrito manda; sem nome, é a pessoa que está selecionada no
+     seletor de membro. Não é adivinhação — o eco escreve sempre o nome antes
+     de gravar seja o que for, e quem se enganar tem o anular à mão. */
+  const quem=S.members.find(m=>t.indexOf(nome(m))>=0)
+    || S.members.find(m=>m.id===S.ui.mid) || S.members[0] || null;
+  /* pesagem: «ana 62,4» ou «62,4 kg» */
+  const kg=/(\d{2,3}[.,]?\d?)\s*(kg)?\b/.exec(t);
+  if(kg && (/(kg|pes)/.test(t) || (quem && t.replace(nome(quem),'').trim()===kg[0].trim()))){
+    const v=parseFloat(kg[1].replace(',','.'));
+    if(quem && v>=20 && v<=300)
+      return {t:'Pesagem de '+nPT(v,1)+' kg para '+nomeCurto(quem), fn:()=>{
+        registarMedicao(quem.id, hojeISO(), v); save('pesagem'); render();
+        flash('ok','Pesagem registada.',{rot:'Anular',fn:'desfazer()'}); }};
+  }
+  /* treino: «corri 8 km», «nadei 30 min». Ninguém escreve «Natação 30 min» —
+     escreve «nadei». Daí a tabela de verbos: é curta, é explícita e é
+     revista à mão, que vale mais do que adivinhar radicais de conjugação
+     portuguesa (nadei/nadar não partilham as quatro primeiras letras). */
+  const sp=SPORTS.find(s=>{ const n=semAcentos(s.nome).toLowerCase();
+    if(t.indexOf(n)>=0) return true;
+    return (VERBOS_TREINO[s.id]||[]).some(v=>new RegExp('(^|\\s)'+v).test(t)); });
+  if(sp && quem){
+    const min=/(\d{1,3})\s*(min|minutos)/.exec(t);
+    const km=/(\d{1,3}([.,]\d)?)\s*km/.exec(t);
+    const dur=min? parseInt(min[1],10) : (km? Math.round(parseFloat(km[1].replace(',','.'))*6) : 30);
+    return {t:sp.nome+' de '+dur+' min para '+nomeCurto(quem)+(km? ' ('+km[1]+' km)':''), fn:()=>{
+      confirmarTreinoFio(quem.id, sp.id, dur); }};
+  }
+  /* refeição: «jantar feito», «almoco comido» */
+  const mk=MEALK.find(k=>t.indexOf(semAcentos(nomeRefeicao(k)).toLowerCase())>=0);
+  if(mk && /(feit|comi|pront|ok)/.test(t)){
+    return {t:'Confirmar o '+nomeRefeicao(mk).toLowerCase()+' de hoje para a mesa toda', fn:()=>{
+      confirmarRefFio(mk); }};
+  }
+  /* comprado: «comprei azeite» */
+  if(/(compr)/.test(t)){
+    const ing=Object.keys(NUTRI).find(n=>t.indexOf(semAcentos(n).toLowerCase())>=0);
+    if(ing) return {t:'Marcar '+ing+' como comprado e passar à despensa', fn:()=>{
+      S.despensa[ing]=true; save('comprado'); render();
+      flash('ok',ing+' está na despensa.',{rot:'Anular',fn:'desfazer()'}); }};
+  }
+  return null;
+}
+/* O eco é texto e nada mais: põe() escreve por textContent, que é o que
+   protege um campo livre de virar injeção de HTML. O botão de confirmar já
+   está no molde e aqui só se acende ou apaga. */
+function balcaoAoVivo(v){
+  const r=interpretarBalcao(v);
+  _balcaoAccao = r? r.fn : null;
+  const tem=!!String(v||'').trim();
+  põe('balcao-eco', r? r.t
+    : (tem? 'Não percebi. Tenta «Ana 62,4», «corri 8 km», «jantar feito» ou «comprei azeite».' : ''));
+  const eco=document.getElementById('balcao-eco');
+  if(eco) eco.className='sub'+(r? ' ok' : (tem? ' nada':''));
+  const b=document.getElementById('balcao-ok');
+  if(b){ b.disabled=!r; b.setAttribute('aria-disabled', r? 'false':'true'); }
+}
+let _balcaoAccao=null;
+function balcaoConfirmar(){
+  if(!_balcaoAccao) return;
+  const f=_balcaoAccao; _balcaoAccao=null;
+  const el=document.getElementById('balcao'); if(el) el.value='';
+  balcaoAoVivo('');
+  f();
+}
+function blocoBalcao(){
+  if(!S.members.length) return '';
+  return `<div class="balcao">
+    <label for="balcao" class="lbl" style="margin:0">Escrever e despachar ${dica('balcao')}</label>
+    <div class="row" style="gap:8px;flex-wrap:nowrap">
+      <input id="balcao" type="text" placeholder="Ana 62,4 · corri 8 km · jantar feito · comprei azeite"
+        aria-label="Balcão rápido: escreve o que aconteceu" aria-describedby="balcao-eco"
+        oninput="balcaoAoVivo(this.value)"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();balcaoConfirmar();}">
+      <button class="btn" id="balcao-ok" style="flex:none" disabled aria-disabled="true"
+        onclick="balcaoConfirmar()">Registar</button>
+    </div>
+    <p class="sub" id="balcao-eco" aria-live="polite" style="min-height:1.2em"></p>
+  </div>`;
+}
+
+/* ================= MODO PESSOA =================
+   A app organiza-se por função, mas metade das perguntas de uma casa fazem-se
+   por pessoa: «a Ana já lanchou?», «o que come a avó hoje?». Hoje isso
+   responde-se saltando três separadores e mudando o seletor de membro em cada
+   um. Esta é uma vista transversal — não substitui nada. */
+function abrirPessoa(mid){
+  if(!S.members.some(m=>m.id===mid)) return;
+  S.ui.folha={tipo:'pessoa', mid};
+  saveMeta(); render();
+}
+function folhaPessoaHtml(fo){
+  const m=S.members.find(x=>x.id===fo.mid); if(!m) return '';
+  const d=hojeISO(), di=diaSemana(d);
+  const refs=MEALK.map(mk=>{
+    const meal=((S.plans[S.week]||{})[di]||{})[mk];
+    if(!meal||!meal.r||!meal.m.includes(m.id)) return null;
+    const r=RECIPES.find(x=>x.id===meal.r); if(!r) return null;
+    const feita=(S.regRef||[]).some(x=>x.mid===m.id&&x.d===d&&x.mk===mk&&x.estado==='feita');
+    return {mk, r, meal, feita};
+  }).filter(Boolean);
+  const treinos=planeadasNoDia(m,d);
+  const alvo=alvoDoDia(m,d), comido=ingeridoRealDia(m.id,d).k;
+  const al=(m.restricoes||[]).filter(ehAlergenio);
+  return `<div class="mfundo" onclick="fundoFolha(event)" style="align-items:flex-start;padding:4vh 12px">
+    <div class="mcaixa folha" role="dialog" aria-modal="true" aria-labelledby="fp-t">
+      <div class="row" style="justify-content:space-between;align-items:center;gap:10px">
+        <div class="row" style="gap:10px;align-items:center;min-width:0">
+          ${avatar(m,40)}
+          <div style="min-width:0"><h2 id="fp-t" style="margin:0">${esc(m.nome)}</h2>
+            <span class="sub">${textoIdade(m)} · ${esc(DIETS[chaveDieta(m)].n)}</span></div>
+        </div>
+        <button class="btn ghost small" style="flex:none" onclick="fecharFolha()">✕</button>
+      </div>
+      ${al.length? `<p class="sub" style="margin-top:8px">🚨 ${al.map(k=>esc(RESTR[k].n)).join(', ')}</p>`:''}
+      <div class="row" style="margin-top:12px">
+        <div class="stat"><b>${comido}</b><span>kcal hoje</span></div>
+        ${alvo? `<div class="stat"><b>${alvo}</b><span>alvo do dia</span></div>`:''}
+        ${m.peso? `<div class="stat"><b>${nPT(m.peso,1)} kg</b><span>peso</span></div>`:''}
+      </div>
+      <h3 style="margin-top:16px">O dia de ${esc(nomeCurto(m))}</h3>
+      ${refs.length? `<ul class="fio" style="margin-top:8px">${refs.map(x=>`
+        <li class="fio-linha ${x.feita?'feito':''}">
+          <span class="fio-ico" aria-hidden="true">${ICO_REF[x.mk]||'🍽️'}</span>
+          <span class="fio-txt"><b>${esc(nomeDaRefeicao(x.meal)||x.r.n)}</b>
+            <span class="sub" style="display:block">${nomeRefeicao(x.mk)}</span></span>
+          ${x.feita? '<span class="pill ok" style="flex:none">✓</span>'
+           : `<button class="chip" style="flex:none" onclick="confirmarRefPessoa('${m.id}','${x.mk}')">Comeu</button>`}
+        </li>`).join('')}</ul>`
+      : '<p class="sub">Nenhuma refeição marcada para hoje.</p>'}
+      ${treinos.length? `<h3 style="margin-top:14px">Treino</h3>
+        <ul class="fio">${treinos.map(p=>{
+          const feito=(S.regAtiv||[]).some(r=>r.mid===m.id&&r.d===d&&r.plano===p.s.id&&r.estado!=='agendada');
+          return `<li class="fio-linha ${feito?'feito':''}">
+            <span class="fio-ico" aria-hidden="true">${ICO_SPORT[p.s.cat]||'🏃'}</span>
+            <span class="fio-txt"><b>${esc(p.s.nome)}</b><span class="sub" style="display:block">${p.min} min</span></span>
+            ${feito? '<span class="pill ok" style="flex:none">✓</span>'
+             : `<button class="chip" style="flex:none" onclick="confirmarTreinoFio('${m.id}','${p.s.id}',${p.min})">Fez</button>`}
+          </li>`;}).join('')}</ul>`:''}
+      <div class="row" style="margin-top:16px">
+        <button class="btn ghost" onclick="fecharFolha();S.ui.mid='${m.id}';go('nutricao')">Nutrição de ${esc(nomeCurto(m))}</button>
+        <button class="btn ghost" onclick="fecharFolha();S.ui.mid='${m.id}';go('atividade')">Atividade</button>
+      </div>
+    </div></div>`;
+}
+function confirmarRefPessoa(mid,mk){
+  const d=hojeISO(), di=diaSemana(d);
+  const meal=((S.plans[S.week]||{})[di]||{})[mk]; if(!meal||!meal.r) return;
+  registarRefeicao({d, mk, r:meal.r, ac:acIds(meal), dose:1},[mid],'feita');
+  save('refeição confirmada'); render();
+  flash('ok','Registada.',{rot:'Anular', fn:'desfazer()'});
+}
+
 /* ================= «CORREU COMO PLANEADO» =================
    Um toque fecha o dia inteiro — mas só depois da hora da última refeição
    planeada. Aparecer de manhã seria convidar a registar o que ainda não
@@ -12310,44 +12796,65 @@ function mercadoHtml(){
   </div>`;
 }
 
-/* ================= DESLIZAR PARA VALIDAR =================
+/* ================= DESLIZAR PARA DESPACHAR =================
    Direita confirma a opção principal, esquerda abre as alternativas. O
-   desfazer de 30 passos é a rede para o dedo que escorrega. */
+   desfazer de 30 passos é a rede para o dedo que escorrega.
+
+   Um só sistema de deslize em toda a aplicação — dois sistemas com feitios
+   diferentes seriam pior do que nenhum. Está delegado no documento: não se
+   volta a ligar nada a cada desenho (eram centenas de listeners por render
+   nas listas compridas) e as linhas que nascem depois já respondem. Qualquer
+   elemento com a classe .desliza e um data-sim/data-nao entra no sistema.
+   O botão nunca desaparece: isto é um atalho por cima, não o único caminho,
+   e por isso nunca se põe aqui uma ação destrutiva. */
+let _sw=null;
 function ligaDeslize(){
-  document.querySelectorAll('#main .desliza:not([data-liga])').forEach(el=>{
-    el.setAttribute('data-liga','1');
-    const corpo=el.querySelector('.desliza-corpo');
-    const sim=el.querySelector('.desliza-fundo.sim'), nao=el.querySelector('.desliza-fundo.nao');
-    if(!corpo) return;
-    let x0=null, dx=0, larg=1;
-    const fim=()=>{
-      corpo.classList.add('volta'); corpo.style.transform='';
-      if(sim) sim.style.opacity=0; if(nao) nao.style.opacity=0;
-      setTimeout(()=>corpo.classList.remove('volta'),180);
-      x0=null; dx=0;
-    };
-    corpo.addEventListener('pointerdown',e=>{
-      if(e.target.closest('button,select,input,a')) return;
-      x0=e.clientX; larg=el.getBoundingClientRect().width||1; corpo.setPointerCapture(e.pointerId);
-    });
-    corpo.addEventListener('pointermove',e=>{
-      if(x0===null) return;
-      dx=e.clientX-x0;
-      if(Math.abs(dx)<6) return;
-      corpo.style.transform='translateX('+dx.toFixed(0)+'px)';
-      const p=Math.min(1,Math.abs(dx)/(larg*0.4));
-      if(sim) sim.style.opacity = dx>0? p : 0;
-      if(nao) nao.style.opacity = dx<0? p : 0;
-    });
-    corpo.addEventListener('pointerup',()=>{
-      if(x0===null) return;
-      const limiar=larg*0.4, d=dx;
-      fim();
-      if(d>limiar && el.dataset.sim) { const f=new Function(el.dataset.sim); f(); }
-      else if(d<-limiar && el.dataset.nao){ const f=new Function(el.dataset.nao); f(); }
-    });
-    corpo.addEventListener('pointercancel',fim);
+  if(document.body.dataset.deslizar) return;
+  document.body.dataset.deslizar='1';
+  const fim=(volta)=>{
+    if(!_sw) return;
+    const s=_sw; _sw=null;
+    if(volta!==false) s.corpo.classList.add('volta');
+    s.corpo.style.transform='';
+    if(s.sim) s.sim.style.opacity=0;
+    if(s.nao) s.nao.style.opacity=0;
+    setTimeout(()=>s.corpo.classList.remove('volta'),180);
+    return s;
+  };
+  document.addEventListener('pointerdown',e=>{
+    if(e.pointerType==='mouse') return;      /* no rato, o botão é melhor */
+    if(!e.target.closest) return;
+    if(e.target.closest('button,select,input,a,textarea')) return;
+    const el=e.target.closest('.desliza'); if(!el) return;
+    const corpo=el.querySelector('.desliza-corpo'); if(!corpo) return;
+    _sw={el, corpo, sim:el.querySelector('.desliza-fundo.sim'), nao:el.querySelector('.desliza-fundo.nao'),
+      x0:e.clientX, y0:e.clientY, dx:0, larg:el.getBoundingClientRect().width||1, decidiu:null};
+  },{passive:true});
+  document.addEventListener('pointermove',e=>{
+    if(!_sw) return;
+    const dx=e.clientX-_sw.x0, dy=e.clientY-_sw.y0;
+    /* Desambiguar do scroll: enquanto não for claramente horizontal não se
+       mexe nada, e um movimento vertical primeiro entrega o gesto à página. */
+    if(_sw.decidiu===null){
+      if(Math.abs(dy)>10 && Math.abs(dy)>Math.abs(dx)){ _sw=null; return; }
+      if(Math.abs(dx)<8) return;
+      _sw.decidiu='h';
+    }
+    _sw.dx=dx;
+    _sw.corpo.style.transform='translateX('+dx.toFixed(0)+'px)';
+    const p=Math.min(1,Math.abs(dx)/(_sw.larg*0.4));
+    if(_sw.sim) _sw.sim.style.opacity = dx>0? p : 0;
+    if(_sw.nao) _sw.nao.style.opacity = dx<0? p : 0;
+  },{passive:true});
+  document.addEventListener('pointerup',()=>{
+    const s=fim(); if(!s) return;
+    const limiar=s.larg*0.4;
+    const codigo = s.dx>limiar? s.el.dataset.sim : (s.dx<-limiar? s.el.dataset.nao : null);
+    if(!codigo) return;
+    try{ if(navigator.vibrate) navigator.vibrate(10); }catch(x){}
+    (new Function(codigo)).call(s.el);
   });
+  document.addEventListener('pointercancel',()=>fim());
 }
 
 /* ================= REGISTAR SEMPRE À MÃO =================
@@ -13006,7 +13513,7 @@ function cartaoHoje(){
 }
 function renderFamilia(){
   if(!S.members.length) return cartaoBoasVindas();
-  return cartaoCapa()+cartaoPrimeirosPassos()+cartaoFecho()+cartaoHoje()
+  return cartaoCapa()+cartaoPrimeirosPassos()+blocoBalcao()+cartaoFioDoDia()+cartaoFecho()+cartaoHoje()
     +`<div class="row" style="justify-content:space-between;margin-bottom:16px">
       <div><h2>Perfis da família</h2><span class="sub">${S.members.length} membro${S.members.length>1?'s':''} · os dados guardam-se automaticamente neste dispositivo</span></div>
       <button class="btn" onclick="addMember()">+ Adicionar membro</button></div>
@@ -16019,7 +16526,7 @@ function cartaoDentes(m){
       </div>`).join('')}
     </div>
     <p class="sub" style="margin-top:10px">${totalEntre
-      ? plural(totalEntre,'1 dessas exposições foi fora das refeições','$n dessas exposições foram fora das refeições').replace('$n',totalEntre)
+      ? plural(totalEntre,'dessas exposições foi fora das refeições','dessas exposições foram fora das refeições')
         +' — é aí que a orientação manda cortar primeiro: o doce à sobremesa faz menos estrago do que o mesmo doce a meio da tarde.'
       : 'Nenhuma exposição fora das refeições esta semana — é exatamente o que a orientação pede.'}</p>
     <p class="sub" style="margin-top:8px">A app conta o que está <b>registado</b>: um doce que não passou por aqui também não aparece no espelho.</p>
@@ -19157,7 +19664,7 @@ function textoContaTalao(c){
   if(Math.abs(dif)<0.5) return 'Previa '+nPT(c.previsto,2)+' €, pagaste '+nPT(c.total,2)+' € — bateu certo.';
   return 'Previa '+nPT(c.previsto,2)+' €, pagaste '+nPT(c.total,2)+' € — '
     +(dif>0? nPT(dif,2)+' € a mais' : nPT(-dif,2)+' € a menos')+'. '
-    +(c.sem? 'A diferença está sobretudo em '+plural(c.sem,'1 item sem preço registado','$n itens sem preço registado').replace('$n',c.sem)+(maior? ' e na secção '+maior : '')+'.'
+    +(c.sem? 'A diferença está sobretudo em '+plural(c.sem,'item sem preço registado','itens sem preço registado')+(maior? ' e na secção '+maior : '')+'.'
            : (maior? 'A secção que mais pesa é '+maior+'.' : ''));
 }
 function precoTalao(nome,v){
@@ -20499,6 +21006,7 @@ function render(){
   /* a bancada liga o toque de cotovelo depois de cada desenho, e le o passo
      em voz alta se a voz estiver ligada */
   if(S.ui.cozinha){ ligarCotovelo(); if(S.ui.voz && S.ui.cozinha.vista==='passos') lerPassoAtual(); }
+  ligarLongPress(); sincronizaHistorico();
   /* o virar de folha e o carimbo correm uma vez, logo a seguir ao gesto que os
      provocou — não a cada redesenho */
   if(viraFolha){ el.classList.remove('vira-frente','vira-tras');
@@ -20520,8 +21028,10 @@ function pintaModal(){
     : S.ui.mercado? mercadoHtml()
     : mo? (mo.tipo==='peso'? modalPesoHtml(mo) : mo.tipo==='compras'? modalComprasHtml(mo)
          : mo.tipo==='fimVisita'? modalFimVisitaHtml()
-         : mo.tipo==='jejum'? modalJejumHtml(mo) : '')
+         : mo.tipo==='jejum'? modalJejumHtml(mo)
+         : mo.tipo==='bandeja'? modalBandejaHtml(mo) : '')
     : fo? (fo.tipo==='mesa'? folhaMesaHtml(fo) : fo.tipo==='registo'? folhaRegistoHtml()
+         : fo.tipo==='pessoa'? folhaPessoaHtml(fo)
          : fo.tipo==='sobra'? folhaSobraHtml(fo) : '')
     : '';
   if(S.ui.pesqAberta) pintaPesquisa();
@@ -20613,10 +21123,66 @@ let atalhoArranque=null;
   try{ history.replaceState(null,'',location.pathname+location.hash); }catch(e){}
   atalhoArranque=ir;
 })();
+/* ================= O BOTÃO VOLTAR QUE VOLTA =================
+   Numa aplicação instalada no telemóvel, o botão voltar do Android despejar
+   o utilizador para fora a meio de um modal é a frustração número um. Aqui
+   cada camada que se abre empurra um degrau no histórico e o voltar fecha
+   essa camada; quando não há camadas, o voltar recua um separador, porque é
+   isso que o endereço passa a dizer.
+
+   Um só dono do histórico — este bloco — para não haver duas verdades. A
+   sincronização é feita depois de cada desenho, em vez de em cada função que
+   abre uma camada: são dezoito e esquecer uma seria o mesmo que não ter isto. */
+/* os três vivem no topo, com o MAX_AC: sincronizaHistorico() corre no fim de
+   cada render, e o primeiro render acontece antes desta linha */
+function camadaAberta(){
+  return !!(modalAberto()||folhaMesa()||fichaAberta()||S.ui.cozinha||S.ui.pesqAberta||S.ui.mercado);
+}
+function fecharCamadaDeCima(){
+  /* a mesma ordem do Escape: fecha sempre o que está por cima */
+  if(S.ui.pesqAberta) return fecharPesquisa();
+  if(S.ui.cozinha) return fecharCozinha();
+  if(fichaAberta()) return fecharFicha();
+  if(S.ui.mercado) return fecharMercado();
+  if(folhaMesa()) return fecharFolha();
+  if(modalAberto()) return fecharModal();
+}
+function separadorDoEndereco(){
+  const h=String(location.hash||'').replace(/^#/,'');
+  return TABS.some(x=>x[0]===h)? h : null;
+}
+function marcarSeparadorNoHistorico(t){
+  if(separadorDoEndereco()===t) return;   /* já lá estamos: não empilhar */
+  try{ history.pushState({tab:t},'','#'+t); }catch(e){}
+}
+window.addEventListener('popstate', e=>{
+  /* o recuo que fomos nós a pedir, para equilibrar a pilha: não fazer nada */
+  if(_recuando){ _recuando=false; return; }
+  if(camadaAberta()){ _camadas=Math.max(0,_camadas-1); _camadaAntes=false; return fecharCamadaDeCima(); }
+  const t=(e.state&&e.state.tab)||separadorDoEndereco();
+  if(t&&t!==S.ui.tab){ S.ui.tab=t; msg=null; saveMeta(); render(); }
+});
+function sincronizaHistorico(){
+  const agora=camadaAberta();
+  if(agora && !_camadaAntes){
+    try{ history.pushState({ff:++_camadas},''); }catch(e){}
+  } else if(!agora && _camadaAntes && _camadas>0){
+    /* a camada fechou-se por um botão e não pelo voltar: o degrau que ela
+       empurrou tem de sair da pilha, senão o próximo voltar não faz nada */
+    _camadas--; _recuando=true;
+    try{ history.back(); }catch(e){ _recuando=false; }
+  }
+  _camadaAntes=agora;
+}
+
 /* A data da última abertura lê-se ANTES do primeiro desenho e só se escreve
    depois: se a escrevesse já, o cartão de regresso nunca chegaria a aparecer,
    porque a ausência media-se contra o próprio dia de hoje. */
 const _ausencia=diasDesdeUltimaAbertura();
+/* Um endereço com #plano abre no plano: serve para o atalho do ecrã inicial,
+   para um favorito e para a partilha de uma ligação entre dois telemóveis
+   da casa. Se o separador não existir, ignora-se em silêncio. */
+(function(){ const t=separadorDoEndereco(); if(t) S.ui.tab=t; })();
 render();
 /* Quem esteve fora vê o convite hoje; a data só avança quando o dispensar ou
    quando a ausência já não conta. */
@@ -20635,6 +21201,34 @@ function correrAtalho(){
    app e vê uma caixa antes de ver a app não sabe o que está a responder. E
    nunca por cima da visita guiada nem de um ecrã ainda sem ninguém. */
 if(S.members.length && !tourAtivo()) setTimeout(()=>{ correrAtalho(); talvezPerguntarPeso(); }, 700);
+/* A bandeja da manhã: uma vez por dia, e nunca por cima da visita guiada nem
+   de um ecrã ainda sem ninguém. */
+if(S.members.length && !tourAtivo() && S.ui.ultimaTriagem!==hojeISO())
+  setTimeout(()=>{ if(!modalAberto() && !folhaMesa() && !fichaAberta() && filaDaBandeja().length) abrirBandeja(); }, 1400);
+
+/* ================= MODO PESSOA: A PORTA ================= */
+function ligarLongPress(){
+  if(document.body.dataset.longpress) return;
+  document.body.dataset.longpress='1';
+  let t=null, alvo=null;
+  const cancelar=()=>{ if(t){ clearTimeout(t); t=null; } alvo=null; };
+  document.addEventListener('pointerdown',e=>{
+    const av=e.target.closest && e.target.closest('[data-membro]');
+    if(!av) return;
+    alvo=av.getAttribute('data-membro');
+    t=setTimeout(()=>{ t=null;
+      try{ if(navigator.vibrate) navigator.vibrate(12); }catch(x){}
+      abrirPessoa(alvo); }, 520);
+  });
+  ['pointerup','pointercancel','pointermove','scroll'].forEach(ev=>
+    document.addEventListener(ev,cancelar,{passive:true}));
+  /* no computador, o menu de contexto é o gesto equivalente */
+  document.addEventListener('contextmenu',e=>{
+    const av=e.target.closest && e.target.closest('[data-membro]');
+    if(!av) return;
+    e.preventDefault(); abrirPessoa(av.getAttribute('data-membro'));
+  });
+}
 
 /* Instalável no ecrã principal e utilizável sem rede (útil para a lista de
    compras no supermercado). Só corre em http/https — via file:// é ignorado. */
