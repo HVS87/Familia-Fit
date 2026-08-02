@@ -344,6 +344,56 @@ html[data-dispositivo="telefone"][data-orient="retrato"] .fab{bottom:calc(84px +
 
 /* ===== MODO COZINHA ===== */
 .cozinha{position:fixed;inset:0;z-index:66;background:var(--bg);display:flex;flex-direction:column}
+/* ---- A bancada ----
+   Três vistas do mesmo momento: os passos em letra grande, o Maestro com dois
+   tachos numa linha do tempo, e o relógio para ler a dois metros. */
+.coz-vistas{display:flex;gap:6px;padding:8px 16px;background:var(--card);border-bottom:1px solid var(--line);flex:none}
+/* metade tocada acende meio segundo: sem isto, o toque cego não confirma nada */
+.coz-flash{position:absolute;top:0;bottom:0;width:50%;background:var(--accent);opacity:.10;
+  pointer-events:none;animation:coz-apaga .3s ease-out forwards}
+.coz-flash.esq{left:0} .coz-flash.dir{right:0}
+@keyframes coz-apaga{ to{opacity:0} }
+.cozinha-corpo{position:relative}
+.coz-nota{margin-top:12px;padding:8px 12px;border-left:3px solid var(--accent);background:var(--bg);
+  font-size:14.5px;color:var(--ink)}
+.coz-espera{margin-top:22px;padding-top:16px;border-top:1px dashed var(--line)}
+.coz-espera h3{font-size:15px;margin-bottom:8px}
+.coz-esp-item{display:flex;gap:10px;align-items:flex-start;padding:7px 0;cursor:pointer;min-height:30px}
+.coz-esp-item.done{opacity:.5;text-decoration:line-through;text-decoration-thickness:1.5px}
+.coz-mais{margin-top:18px}
+.coz-mais summary{cursor:pointer;min-height:24px}
+.coz-mais input{margin-top:8px;width:100%;max-width:520px}
+/* A versão oral: itálico e um filete, para se ler como o que é — a voz de
+   quem ditou, ao lado da conta. */
+.nota-historia .oral{margin-top:8px;padding-left:10px;border-left:2px solid var(--accent);
+  font-style:italic;line-height:1.6;white-space:normal}
+/* O Maestro */
+.maestro-lista{list-style:none;padding:0;margin:0}
+.maestro-lista li{display:flex;gap:10px;align-items:flex-start;padding:9px 0 9px 12px;
+  border-left:3px solid var(--accent);margin-bottom:6px;background:var(--card);border-radius:0 8px 8px 0}
+.maestro-lista li.espera{opacity:.62;border-left-style:dashed}
+.maestro-hora{flex:none;font-variant-numeric:tabular-nums;font-weight:700;min-width:52px;font-size:14px}
+.maestro-txt{flex:1;min-width:0}
+/* O relógio de tachos: números de meio ecrã, legível do outro lado da cozinha */
+.relogio-tachos{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:min(60vh,420px)}
+.rt-arco{position:absolute;width:min(70vw,min(52vh,340px));height:min(70vw,min(52vh,340px))}
+.rt-centro{position:relative;text-align:center;z-index:1}
+.rt-centro b{display:block;font:700 clamp(44px,17vw,110px)/1 var(--fonte-display);
+  font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.rt-legenda{list-style:none;padding:0;margin:min(30vh,220px) 0 0;display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+.rt-legenda li{display:flex;align-items:center;gap:6px;font-size:14px}
+.rt-legenda i{width:10px;height:10px;border-radius:50%;display:inline-block}
+@media (prefers-reduced-motion: no-preference){
+  .rt-pulsa{animation:rt-bate 1s ease-in-out infinite}
+  @keyframes rt-bate{ 50%{opacity:.45} }
+}
+/* O bloqueio anti-salpicos */
+.coz-tranca{position:absolute;inset:0;z-index:3;background:color-mix(in srgb,var(--bg) 88%,transparent);
+  display:flex;align-items:center;justify-content:center;padding:20px;touch-action:none}
+.coz-tranca-caixa{text-align:center;max-width:320px}
+.coz-tranca-caixa p{margin-top:10px}
+.cozinha.trancada .cozinha-fundo,.cozinha.trancada .coz-vistas{opacity:.35;pointer-events:none}
 .cozinha-topo{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--card);
   border-bottom:1px solid var(--line);flex:none}
 .cozinha-corpo{flex:1;overflow:auto;padding:22px 20px;display:flex;flex-direction:column;justify-content:center;
@@ -5942,6 +5992,8 @@ function blank(){ return {members:[],cheats:{},plans:{},bought:{},prefCuisine:'t
   visitas:[], ementas:{}, anos:{}, provas:{},
   /* bebidas: o alcool registado, que nao vem de receita nenhuma. */
   bebidas:[],
+  /* notasCozinha: o que esta casa aprendeu sobre o proprio forno. */
+  notasCozinha:{},
   /* jejum: im é o horário por pessoa (intermitente), pontuais são os jejuns
      com data marcada. Os dois contam para o alvo do dia e para a projeção. */
   jejum:{im:{}, pontuais:[], renutricao:{}, renutRecusada:{}},
@@ -6046,7 +6098,7 @@ function instantaneo(){ return JSON.stringify({members:S.members, cheats:S.cheat
   sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa, pausas:S.pausas, diario:S.diario, cozPref:S.cozPref,
   validades:S.validades, veredictos:S.veredictos, brigada:S.brigada, desperdicio:S.desperdicio,
   gostos:S.gostos, jejum:S.jejum, combos:S.combos, rituais:S.rituais, extras:S.extras, aindaHa:S.aindaHa,
-  visitas:S.visitas, ementas:S.ementas, anos:S.anos, provas:S.provas, bebidas:S.bebidas}); }
+  visitas:S.visitas, ementas:S.ementas, anos:S.anos, provas:S.provas, bebidas:S.bebidas, notasCozinha:S.notasCozinha}); }
 function aplicaInstantaneo(js){
   const d=JSON.parse(js);
   S.members=d.members; S.cheats=d.cheats; S.plans=d.plans; S.bought=d.bought;
@@ -6069,7 +6121,7 @@ function aplicaInstantaneo(js){
   S.gostos=d.gostos&&typeof d.gostos==='object'? d.gostos : {};
   S.combos=limparCombos(d.combos);
   S.rituais=limparRituais(d.rituais); S.extras=limparExtras(d.extras); S.aindaHa=limparAindaHa(d.aindaHa);
-  S.visitas=limparVisitas(d.visitas); S.ementas=limparEmentas(d.ementas); S.anos=limparAnos(d.anos); S.provas=limparProvas(d.provas); S.bebidas=limparBebidas(d.bebidas);
+  S.visitas=limparVisitas(d.visitas); S.ementas=limparEmentas(d.ementas); S.anos=limparAnos(d.anos); S.provas=limparProvas(d.provas); S.bebidas=limparBebidas(d.bebidas); S.notasCozinha=limparNotasCozinha(d.notasCozinha);
   S.jejum=limparJejum(d.jejum, S.members.map(m=>m.id));
   sincronizaReceitas(); sincronizaCombos();
   S.members.forEach(normalizaMembro);
@@ -7517,6 +7569,11 @@ const DICAS={
   marmitas:'Qualquer almoço se pode marcar «em marmita», pessoa a pessoa. Na véspera à noite o cartão «Hoje» lembra-o, com a dose já escalada a cada um, os alergénios da escola assinalados e as sobras disponíveis para a encher.',
   epoca:'Que ingredientes estão na época em Portugal, este mês — carapau no verão, grelos no inverno, cereja em junho. A tabela é local e o selo muda sozinho com o calendário: comprar na época é mais barato, mais fresco e mais saboroso.',
   custo:'Os preços são os do teu talão — a app nunca inventa um cêntimo. Com eles estima o custo por dose de cada receita, o da semana e o talão previsto da lista de compras, dizendo sempre quantos itens ficaram por preço. Cada preço escrito fica com a data: ao fim de três, aparece ao lado uma linha com a história dele, e a app passa a saber dizer se o preço de hoje está abaixo ou acima do costume desta casa.',
+  oral:'As receitas dos avós não vêm em gramas. Vêm em «um fio de azeite», «um punhado de farinha», «sal q.b.», «farinha até dar ponto» — e a exigência de só aceitar ingredientes do catálogo com quantidades obrigava a traduzir no momento e a perder o original. A versão oral É a receita; os números são só a conta que a app precisa de fazer para a despensa e para os macros. Guardam-se as duas: os gramas alimentam o cálculo, a versão oral aparece na ficha, no modo cozinha e imprime-se no Livro da casa tal e qual foi ditada.',
+  espera:'A espera é onde os jantares descarrilam — é quando se abre o telemóvel e o refogado queima — e é também o único tempo livre que uma casa tem para adiantar a semana. Quando um passo liberta as mãos por oito minutos ou mais, a app propõe o que cabe nessa janela, por ordem de valor: primeiro o que serve este jantar (o passo seguinte, o acompanhamento que ainda não começou), depois o que adianta a semana (uma tarefa do food prep de domingo que caiba no tempo), e por fim pôr a mesa com quem está de brigada hoje. Cada sugestão traz o tempo que pede.',
+  maestro:'Um jantar são dois ou três tachos, não uma receita de cada vez. Escolhe-se a hora de servir e o Maestro funde os passos do prato e dos acompanhamentos numa sequência única, calculada de trás para a frente: o prato mais demorado começa primeiro, e os passos ativos dos outros encaixam-se dentro das esperas dele. Os passos que libertam as mãos aparecem esbatidos — é dentro deles que o resto avança. Cada linha traz a hora a que se começa e o temporizador a um toque.',
+  relogioTachos:'Os temporizadores normais são chips pequenos, pensados para o telemóvel na mão. Mas na hora de cozinhar o telemóvel está pousado contra o azulejo e a pessoa está a dois metros, a mexer o tacho — e um relance por cima do ombro devia chegar. Esta vista desenha cada temporizador como um arco à volta de um mostrador central, com os minutos em números de meio ecrã. O que está mais perto do fim engrossa e, no último minuto, pulsa.',
+  fornoForte:'Nenhum forno é o do livro: o de casa é forte, o tacho é de fundo fino, «lume médio» nunca é o mesmo. Cada família recalibra os mesmos passos vezes sem conta e a correção evapora-se. Quando um temporizador leva «+5 min» — ou se carrega em «já estava» —, a app pergunta uma vez no fim se aquilo é o forno cá de casa, e da próxima o tempo aparece acertado, com a origem à vista: «o livro diz 35; cá em casa são 40». Nunca reescreve o passo do livro; é uma camada da casa por cima. A correção fica presa ao título do passo e não ao número dele, para não saltar para o passo errado quando a receita é editada.',
   salacucar:'Duas contas que os ingredientes sempre tiveram e que nunca eram somadas ao dia. O sódio vem de uma tabela do INSA que é <b>deliberadamente parcial</b>: estão lá os alimentos onde o sal português mora — pão, queijo, fumeiro, conservas, molhos — e a app diz quando há ingredientes sem valor, porque uma conta por baixo com a omissão declarada é mais honesta do que um total inventado. O limite é o da OMS (2012): menos de 2 g de sódio por dia, que são 5 g de sal; nas crianças ajusta-se em baixa pela necessidade energética, como a própria guideline manda. O açúcar livre segue a definição da OMS (2015) — a fruta inteira e a lactose do leite não contam, o açúcar de adição, o mel, os xaropes e os sumos contam — e compara-se com os 10% da energia, com o benefício adicional abaixo dos 5%.',
   acucarLivre:'«Açúcares livres» não são todos os açúcares: são os adicionados pelo fabricante, pelo cozinheiro ou por quem come, mais os que estão naturalmente no mel, nos xaropes e nos sumos de fruta. Uma maçã não conta; um sumo de maçã conta, mesmo sendo 100% fruta. É a distinção que quase todas as apps erram, e a app faz a conta a partir dos próprios ingredientes de cada receita registada.',
   dentes:'Para a cárie, a frequência conta tanto como a quantidade: cada exposição a açúcar livre deixa o esmalte em meia hora de pH ácido. Os pais controlam «quanto açúcar»; ninguém controla «quantas vezes» — e é essa a variável que a orientação oficial manda vigiar, com o conselho concreto de guardar o doce para a refeição em vez do intervalo. A app conta apenas o que está registado, e di-lo: um doce que não passou pelo registo também não aparece aqui. Fontes: OMS (2015) e o Programa Nacional de Promoção da Saúde Oral da DGS. Não substitui o dentista.',
@@ -9467,11 +9524,12 @@ function linhaTempoReceita(passos){
    Uma frase de origem transforma repetir um prato em manter viva uma pessoa —
    e é o que faz os miúdos pedirem «conta outra vez». */
 function notaHistoria(r){
-  if(!r || (!r.de && !r.hist)) return '';
+  if(!r || (!r.de && !r.hist && !r.oral)) return '';
   return `<div class="nota-historia">
     <span class="fita-cola" aria-hidden="true"></span>
     ${r.de? `<b>Veio de ${esc(r.de)}</b>`:''}
     ${r.hist? `<span style="display:block">«${esc(r.hist)}»</span>`:''}
+    ${r.oral? `<div class="oral">${esc(r.oral).replace(/\n/g,'<br>')}</div>`:''}
   </div>`;
 }
 function toggleVerVariantes(){ S.ui.verVariantes=!S.ui.verVariantes; S.ui.recLimite=LOTE_RECEITAS; saveMeta(); render(); }
@@ -9739,10 +9797,240 @@ function passosDerivados(r,n){
   passos.push({t:'Temperar e servir', d:'Prova, acerta o sal, e serve '+plural(n,'dose','doses')+'.'});
   return passos;
 }
-function abrirCozinha(rid,n,ctx){
+function abrirCozinha(rid,n,ctx,acs){
   const r=RECIPES.find(x=>x.id===rid); if(!r) return;
-  S.ui.cozinha={r:rid, n:clampNum(n||1,1,20), passo:0, feitos:[], ctx:ctx||null};
+  S.ui.cozinha={r:rid, n:clampNum(n||1,1,20), passo:0, feitos:[], ctx:ctx||null,
+    ac:Array.isArray(acs)? acs.slice(0,MAX_AC) : [], vista:'passos', trancado:false, feitosEspera:[]};
   saveMeta(); render(); pedirEcraAceso();
+}
+/* ================= O MAESTRO =================
+   O prato e os acompanhamentos não se cozinham em série: enquanto a moussaka
+   está 40 minutos no forno, faz-se a salada e põe-se o arroz. O Maestro parte
+   da hora a que se quer sentar à mesa e monta uma sequência única, encaixando
+   os passos ativos de um prato dentro das esperas do outro.
+
+   O algoritmo é simples de propósito, porque um escalonamento «ótimo» que
+   ninguém consegue prever é pior do que um bom e legível: para cada prato,
+   calcula-se quando tem de começar (hora da mesa menos o seu tempo total) e
+   depois ordenam-se todos os passos pelo instante em que começam. Um passo de
+   espera liberta as mãos; um passo ativo ocupa-as. */
+/* passoDeEspera() já existe lá em cima, na barra de trabalho/espera: é a mesma
+   pergunta — este passo liberta as mãos? — e ter duas respostas diferentes
+   para ela seria pior do que reutilizar uma. */
+function linhaDoMaestro(rid,acIds,n,horaMesa){
+  const pratos=[RECIPES.find(x=>x.id===rid)].concat((acIds||[]).map(id=>RECIPES.find(x=>x.id===id))).filter(Boolean);
+  if(!pratos.length) return null;
+  const cores=['var(--accent)','var(--energy)','var(--ok)','var(--party)'];
+  const blocos=pratos.map((r,idx)=>{
+    const passos=passosDaReceita(r,n);
+    const total=passos.reduce((t,p)=>t+(p.min||0),0);
+    return {r, idx, passos, total, cor:cores[idx%cores.length]};
+  });
+  const maisLongo=Math.max.apply(null,blocos.map(b=>b.total))||0;
+  /* minuto zero = quando o prato mais demorado tem de começar */
+  const linha=[];
+  blocos.forEach(b=>{
+    let t=maisLongo-b.total;    /* atraso de arranque deste prato */
+    b.passos.forEach((p,i)=>{
+      linha.push({prato:b.r, cor:b.cor, idx:b.idx, i, p, inicio:t, dur:p.min||0,
+        espera:passoDeEspera(p)});
+      t+=p.min||0;
+    });
+  });
+  linha.sort((a,b)=>a.inicio-b.inicio || a.idx-b.idx);
+  return {linha, total:maisLongo, blocos, horaMesa:horaMesa||null};
+}
+function horaDoPasso(x,total,horaMesa){
+  if(!horaMesa) return null;
+  const [hh,mm]=horaMesa.split(':').map(Number);
+  if(!Number.isFinite(hh)) return null;
+  const fim=hh*60+mm, ini=fim-total+x.inicio;
+  const h=Math.floor(((ini%1440)+1440)%1440/60), m=Math.round(((ini%60)+60)%60);
+  return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
+}
+function setHoraMesa(v){
+  const c=S.ui.cozinha; if(!c) return;
+  c.horaMesa=/^\d{2}:\d{2}$/.test(v)? v : null;
+  saveMeta(); render();
+}
+function trocarVistaCozinha(v){
+  const c=S.ui.cozinha; if(!c) return;
+  c.vista=['passos','maestro','relogio'].indexOf(v)>=0? v : 'passos';
+  saveMeta(); render();
+}
+function trancarCozinha(v){
+  const c=S.ui.cozinha; if(!c) return;
+  c.trancado=!!v; saveMeta(); render();
+  if(v) flash('ok','Ecrã trancado. Para destrancar, mantém o dedo no cadeado dois segundos.');
+}
+/* ---- Navegação de cotovelo ----
+   Com as mãos na carne picada ninguém quer mirar num botão de 44 px. Metade
+   direita do ecrã avança, metade esquerda recua — dá para tocar com o nó do
+   dedo, o pulso ou o cotovelo. Os botões continuam todos lá. */
+function ligarCotovelo(){
+  const corpo=document.querySelector('.cozinha-corpo');
+  if(!corpo || corpo.dataset.cotovelo) return;
+  corpo.dataset.cotovelo='1';
+  let x0=0, y0=0, moveu=false;
+  corpo.addEventListener('pointerdown',e=>{ x0=e.clientX; y0=e.clientY; moveu=false; });
+  corpo.addEventListener('pointermove',e=>{
+    if(Math.abs(e.clientY-y0)>12 || Math.abs(e.clientX-x0)>12) moveu=true; });
+  corpo.addEventListener('pointerup',e=>{
+    /* um deslize para ler um passo longo não pode virar avanço acidental */
+    if(moveu) return;
+    if(e.target.closest('button,input,label,a,select')) return;
+    const r=corpo.getBoundingClientRect();
+    const dir=(e.clientX-r.left) < r.width/2 ? -1 : 1;
+    const meia=document.createElement('div');
+    meia.className='coz-flash '+(dir<0?'esq':'dir');
+    corpo.appendChild(meia);
+    setTimeout(()=>meia.remove(),300);
+    passoCozinha(dir);
+  });
+}
+/* ---- O nosso forno é forte ----
+   Nenhum forno é o do livro. A correção fica agarrada ao passo daquela
+   receita, ancorada pelo TÍTULO do passo e não pelo índice: editar a receita
+   muda os índices, e uma correção que salta para o passo errado é pior do que
+   nenhuma. */
+function notasCozinhaCfg(){ if(!S.notasCozinha||typeof S.notasCozinha!=='object') S.notasCozinha={}; return S.notasCozinha; }
+function chavePasso(p){ return semAcentos(String(p.t||'')).toLowerCase().slice(0,24); }
+function notaDoPasso(rid,p){ return (notasCozinhaCfg()[rid]||{})[chavePasso(p)]||null; }
+function setNotaPasso(rid,p,campo,v){
+  const c=notasCozinhaCfg();
+  if(!c[rid]) c[rid]={};
+  const k=chavePasso(p);
+  if(!c[rid][k]) c[rid][k]={};
+  if(campo==='delta') c[rid][k].delta=clampNum(parseInt(v,10)||0,-60,120);
+  else if(campo==='nota') c[rid][k].nota=String(v||'').slice(0,120);
+  if(!c[rid][k].delta && !c[rid][k].nota) delete c[rid][k];
+  if(!Object.keys(c[rid]).length) delete c[rid];
+  save('nota de bancada');
+}
+function minutosDoPasso(rid,p){
+  const n=notaDoPasso(rid,p);
+  return Math.max(0,(p.min||0)+((n&&n.delta)||0));
+}
+function limparNotasCozinha(o,acha){
+  const out={};
+  if(!o||typeof o!=='object') return out;
+  Object.keys(o).slice(0,300).forEach(rid=>{
+    if(acha && !acha(rid)) return;
+    const dentro={};
+    Object.keys(o[rid]||{}).slice(0,40).forEach(k=>{
+      if(typeof k!=='string'||k.length>24) return;
+      const v=o[rid][k]; if(!v||typeof v!=='object') return;
+      const d=parseInt(v.delta,10), nota=String(v.nota||'').slice(0,120);
+      const obj={};
+      if(Number.isFinite(d)&&d>=-60&&d<=120&&d!==0) obj.delta=d;
+      if(nota) obj.nota=nota;
+      if(Object.keys(obj).length) dentro[k]=obj;
+    });
+    if(Object.keys(dentro).length) out[rid]=dentro;
+  });
+  return out;
+}
+/* Ao acrescentar tempo a um temporizador, fica pendente; no «Terminei»
+   pergunta-se de uma vez se aquilo é o forno cá de casa. */
+function ajustePendente(rid,p,min){
+  const c=S.ui.cozinha; if(!c) return;
+  if(!Array.isArray(c.ajustes)) c.ajustes=[];
+  const k=chavePasso(p);
+  const j=c.ajustes.findIndex(x=>x.k===k);
+  if(j>=0) c.ajustes[j].delta+=min; else c.ajustes.push({k, t:p.t, delta:min});
+  saveMeta();
+}
+function guardarAjustes(){
+  const c=S.ui.cozinha; if(!c||!Array.isArray(c.ajustes)) return;
+  c.ajustes.forEach(a=>{ setNotaPasso(c.r,{t:a.t},'delta',(notaDoPasso(c.r,{t:a.t})||{}).delta||0 ? ((notaDoPasso(c.r,{t:a.t})||{}).delta+a.delta) : a.delta); });
+  const n=c.ajustes.length; c.ajustes=[];
+  flash('ok', plural(n,'1 tempo guardado','$n tempos guardados').replace('$n',n)+' para a próxima vez.');
+}
+/* ---- Enquanto o forno trabalha ----
+   A espera é onde os jantares descarrilam — e é o único tempo livre que uma
+   casa tem para adiantar a semana. */
+function oQueFazerNaEspera(p){
+  const c=S.ui.cozinha; if(!c) return [];
+  const min=minutosDoPasso(c.r,p);
+  if(min<8) return [];
+  const out=[];
+  const r=RECIPES.find(x=>x.id===c.r);
+  const passos=passosDaReceita(r,c.n);
+  /* 1. mise en place do passo seguinte: serve este jantar, por isso vem primeiro */
+  const seg=passos[c.passo+1];
+  if(seg && !passoDeEspera(seg)) out.push({k:'prox', t:'Adiantar o passo seguinte', d:seg.t+' — '+String(seg.d||'').slice(0,70)});
+  /* 2. os acompanhamentos que ainda não começaram */
+  (c.ac||[]).forEach(id=>{ const a=RECIPES.find(x=>x.id===id); if(!a) return;
+    const tot=(PASSOS[a.id]||[]).reduce((t,x)=>t+(x[2]||0),0);
+    if(tot && tot<=min-3) out.push({k:'ac', t:'Fazer '+nomeCurtoAc(a), d:'leva '+tot+' min ao todo — cabe nesta espera'});
+  });
+  /* 3. food prep da semana que caiba na janela */
+  (querPrep()? planoFoodPrep(S.week) : []).forEach(t=>{
+    const dur=parseInt(t.min,10)||0;
+    if(dur && dur<=min-3) out.push({k:'prep', t:'Adiantar: '+(t.n||t.tarefa||'tarefa da semana'), d:dur+' min do food prep de domingo'});
+  });
+  /* 4. a brigada de hoje */
+  const b=(S.brigada||[]).filter(x=>x.d===hojeISO());
+  if(b.length) out.push({k:'mesa', t:'Pôr a mesa', d:'hoje está de brigada: '+b.map(x=>{
+    const m=S.members.find(y=>y.id===x.mid); return m? nomeCurto(m):''; }).filter(Boolean).join(', ')});
+  return out.slice(0,3);
+}
+function riscarEspera(k){
+  const c=S.ui.cozinha; if(!c) return;
+  if(!Array.isArray(c.feitosEspera)) c.feitosEspera=[];
+  const i=c.feitosEspera.indexOf(k);
+  if(i>=0) c.feitosEspera.splice(i,1); else c.feitosEspera.push(k);
+  saveMeta(); render();
+}
+/* ---- A app lê a receita alto ----
+   speechSynthesis é uma API local: as vozes vivem no sistema operativo e
+   funcionam offline quando instaladas — nenhuma chamada de rede, coerente com
+   a CSP. As vozes de rede (localService=false) são filtradas de propósito:
+   sem isso a leitura falhava offline apesar de a app não pedir nada. */
+let _vozPT=null, _vozLida=false;
+function vozPortuguesa(){
+  if(_vozLida) return _vozPT;
+  try{
+    const vs=(window.speechSynthesis? speechSynthesis.getVoices() : [])||[];
+    if(!vs.length) return null;                 /* getVoices() ainda não respondeu */
+    _vozLida=true;
+    _vozPT=vs.find(v=>/^pt[-_]PT/i.test(v.lang) && v.localService!==false)
+      || vs.find(v=>/^pt/i.test(v.lang) && v.localService!==false)
+      || vs.find(v=>/^pt[-_]PT/i.test(v.lang)) || null;
+  }catch(e){ _vozLida=true; _vozPT=null; }
+  return _vozPT;
+}
+function lerAlto(txt){
+  if(!window.speechSynthesis || !txt) return false;
+  const v=vozPortuguesa(); if(!v) return false;
+  try{
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(String(txt).slice(0,400));
+    u.voice=v; u.lang=v.lang; u.rate=0.95;
+    speechSynthesis.speak(u); return true;
+  }catch(e){ return false; }
+}
+function toggleVoz(){
+  S.ui.voz=!S.ui.voz; saveMeta();
+  if(S.ui.voz && !vozPortuguesa()){
+    S.ui.voz=false; saveMeta(); render();
+    return flash('warn','Este aparelho não tem uma voz portuguesa instalada. As vozes vêm do sistema, não da app — instala uma nas definições de acessibilidade e volta aqui.');
+  }
+  render();
+  if(S.ui.voz) flash('ok','A app passa a ler cada passo em voz alta.');
+}
+function lerPassoAtual(){
+  const c=S.ui.cozinha; if(!c||!S.ui.voz) return;
+  const r=RECIPES.find(x=>x.id===c.r); if(!r) return;
+  const p=passosDaReceita(r,c.n)[c.passo]; if(!p) return;
+  lerAlto(p.t+'. '+p.d);
+}
+/* Cozinhar uma refeição do plano leva o prato E o que vai ao lado: é isso que
+   dá ao Maestro dois tachos para orquestrar. */
+function cozinharRefeicao(di,mk,date){
+  const meal=planMeal(di,mk); if(!meal.r) return;
+  const comem=S.members.filter(m=>meal.m.includes(m.id)&&!isCheat(m.id,date));
+  abrirCozinha(meal.r, comem.length+nExtraMesa(meal), date+'|'+mk, acIds(meal));
 }
 function fecharCozinha(){
   const c=S.ui.cozinha;
@@ -9775,28 +10063,139 @@ function cozinhaHtml(){
   const passos=passosDaReceita(r,c.n), p=passos[c.passo]||passos[0];
   const ing=escalaIngredientes(r,c.n);
   const custo=custoReceita(r,c.n);
-  return `<div class="cozinha" role="dialog" aria-modal="true" aria-label="Modo cozinha">
+  const nota=notaDoPasso(r.id,p), min=minutosDoPasso(r.id,p);
+  const espera=c.passo>0? oQueFazerNaEspera(p) : [];
+  return `<div class="cozinha ${c.trancado?'trancada':''}" role="dialog" aria-modal="true" aria-label="Modo cozinha">
     <div class="cozinha-topo">
       <button class="btn ghost small" onclick="fecharCozinha()">← Sair</button>
       <div style="flex:1;min-width:0"><b>${esc(r.n)}</b> ${dica('cozinha')}
         <span class="sub" style="display:block">${plural(c.n,'dose','doses')} · ${r.k*c.n} kcal${custo.com? ' · ~'+textoCusto(custo):''}</span></div>
+      <button class="btn ghost small" onclick="toggleVoz()" aria-pressed="${!!S.ui.voz}"
+        title="Ler os passos em voz alta">${S.ui.voz?'🔊':'🔈'}</button>
+      <button class="btn ghost small" onclick="trancarCozinha(true)" title="Trancar contra salpicos" aria-label="Trancar o ecrã">🔒</button>
       <span class="pill">${c.passo+1}/${passos.length}</span>
     </div>
+    <div class="coz-vistas" role="tablist" aria-label="Vista do modo cozinha">
+      ${[['passos','Passos','📖'],['maestro','Maestro','🎼'],['relogio','Tachos','⏱']].map(([k,rot,ic])=>
+        `<button class="chip ${c.vista===k?'on':''}" role="tab" aria-selected="${c.vista===k}"
+          onclick="trocarVistaCozinha('${k}')">${ic} ${rot}</button>`).join('')}
+    </div>
     <div class="cozinha-corpo">
-      ${c.passo===0? `${notaHistoria(r)}<ul class="coz-ing">${ing.map((x,i)=>`<li class="${c.feitos.indexOf(i)>=0?'done':''}">
-        <label><input type="checkbox" ${c.feitos.indexOf(i)>=0?'checked':''} onchange="toggleIngredienteCozinha(${i})">
-        <span>${esc(x.n)} <b>${fmtQtd(x.q,x.u)}</b></span></label></li>`).join('')}</ul>`
-      : `<h2 class="coz-t">${esc(p.t)}</h2><p class="coz-d">${esc(p.d)}</p>
-         ${p.min? `<button class="btn" style="margin-top:16px" onclick="novoTemporizador('${esc(p.t)}',${p.min})">⏲ ${p.min} min — pôr a contar</button>`:''}`}
+      ${c.vista==='relogio'? relogioDeTachos()
+       : c.vista==='maestro'? vistaMaestro(c,r)
+       : c.passo===0? `${notaHistoria(r)}<ul class="coz-ing">${ing.map((x,i)=>`<li class="${c.feitos.indexOf(i)>=0?'done':''}">
+          <label><input type="checkbox" ${c.feitos.indexOf(i)>=0?'checked':''} onchange="toggleIngredienteCozinha(${i})">
+          <span>${esc(x.n)} <b>${fmtQtd(x.q,x.u)}</b></span></label></li>`).join('')}</ul>`
+       : `<h2 class="coz-t">${esc(p.t)}</h2><p class="coz-d">${esc(p.d)}</p>
+          ${nota&&nota.nota? `<p class="coz-nota">📌 ${esc(nota.nota)}</p>`:''}
+          ${min? `<button class="btn" style="margin-top:16px" onclick="novoTemporizador('${esc(p.t)}',${min},'${esc(p.t)}')">⏲ ${min} min — pôr a contar</button>
+            ${nota&&nota.delta? `<span class="sub" style="display:block;margin-top:6px">O livro diz ${p.min}; cá em casa são ${min}.</span>`:''}`:''}
+          ${espera.length? `<div class="coz-espera">
+            <h3>Enquanto isso ${dica('espera')}</h3>
+            ${espera.map(x=>`<label class="coz-esp-item ${(c.feitosEspera||[]).indexOf(x.k)>=0?'done':''}">
+              <input type="checkbox" ${(c.feitosEspera||[]).indexOf(x.k)>=0?'checked':''} onchange="riscarEspera('${x.k}')">
+              <span><b>${esc(x.t)}</b><span class="sub" style="display:block">${esc(x.d)}</span></span></label>`).join('')}
+          </div>`:''}
+          <details class="coz-mais"><summary class="sub">Nota de bancada</summary>
+            <input type="text" maxlength="120" placeholder="usar a forma pequena; o Tomás gosta mais passado"
+              value="${nota&&nota.nota? esc(nota.nota):''}" aria-label="Nota de bancada para este passo"
+              onchange="setNotaPasso('${r.id}',{t:'${esc(p.t).replace(/'/g,'&#39;')}'},'nota',this.value);render()">
+          </details>`}
     </div>
     <div class="cozinha-fundo">
       <button class="btn ghost ${c.passo===0?'inativo':''}" onclick="passoCozinha(-1)" ${c.passo===0?'disabled':''}>← Anterior</button>
       <span class="sub" style="flex:1;text-align:center">${c.passo===0? 'Ingredientes' : esc(p.t)}</span>
       ${c.passo>=passos.length-1
-        ? `<button class="btn" onclick="descontarDespensa();fecharCozinha()">Terminei</button>`
+        ? `<button class="btn" onclick="terminarCozinha()">Terminei</button>`
         : `<button class="btn" onclick="passoCozinha(1)">Seguinte →</button>`}
     </div>
+    ${c.trancado? `<div class="coz-tranca" role="alertdialog" aria-label="Ecrã trancado contra salpicos"
+      onpointerdown="iniciaDestranca(event)" onpointerup="cancelaDestranca()" onpointercancel="cancelaDestranca()"
+      onpointerleave="cancelaDestranca()">
+      <div class="coz-tranca-caixa">
+        <svg viewBox="0 0 64 64" width="64" height="64" aria-hidden="true">
+          <circle cx="32" cy="32" r="27" fill="none" stroke="var(--line)" stroke-width="4"/>
+          <circle id="coz-anel" cx="32" cy="32" r="27" fill="none" stroke="var(--accent)" stroke-width="4"
+            stroke-dasharray="170" stroke-dashoffset="170" transform="rotate(-90 32 32)" stroke-linecap="round"/>
+        </svg>
+        <p><b>Ecrã trancado</b></p>
+        <p class="sub">Mantém o dedo aqui dois segundos para destrancar. Os temporizadores continuam a contar.</p>
+        ${temporizadores.length? `<p class="sub" style="margin-top:8px">${temporizadores.map(t=>esc(t.n)+': '+restaTexto(t)).join(' · ')}</p>`:''}
+      </div>
+    </div>`:''}
   </div>`;
+}
+/* O Maestro desenhado: uma faixa por prato, os passos por ordem de início. */
+function vistaMaestro(c,r){
+  const m=linhaDoMaestro(c.r, c.ac, c.n, c.horaMesa);
+  if(!m) return '';
+  return `<div class="maestro">
+    <div class="row" style="align-items:center;gap:8px;margin-bottom:10px">
+      <label for="coz-hora" class="lbl" style="margin:0">Servir às</label>
+      <input id="coz-hora" type="time" value="${c.horaMesa||''}" style="max-width:120px"
+        onchange="setHoraMesa(this.value)" aria-label="Hora a que se quer servir">
+      <span class="sub">${m.total} min ao todo${m.blocos.length>1? ', com '+m.blocos.length+' panelas':''}</span>
+    </div>
+    ${m.blocos.length>1? `<div class="row" style="margin-bottom:8px">${m.blocos.map(b=>
+      `<span class="chip" style="border-color:${b.cor};color:${b.cor}">${esc(b.r.n)}</span>`).join('')}</div>`:''}
+    <ol class="maestro-lista">${m.linha.map((x,i)=>`
+      <li class="${x.espera?'espera':''}" style="border-left-color:${x.cor}">
+        <span class="maestro-hora">${horaDoPasso(x,m.total,m.horaMesa)||('+'+x.inicio+'m')}</span>
+        <span class="maestro-txt"><b>${esc(x.p.t)}</b>
+          ${m.blocos.length>1? `<span class="sub"> · ${esc(x.prato.n)}</span>`:''}
+          <span class="sub" style="display:block">${esc(String(x.p.d||'').slice(0,110))}</span></span>
+        ${x.dur? `<button class="chip" style="flex:none" onclick="novoTemporizador('${esc(x.p.t)}',${x.dur},'${esc(x.p.t)}')">⏲ ${x.dur}m</button>`:''}
+      </li>`).join('')}</ol>
+    <p class="sub" style="margin-top:10px">Os passos que libertam as mãos aparecem esbatidos: é dentro deles que os outros pratos avançam. A conta é de trás para a frente, a partir da hora da mesa.</p>
+  </div>`;
+}
+/* O relógio de tachos: para ler do outro lado da cozinha. */
+function restaTexto(t){
+  const s=Math.max(0,Math.round((t.fim-Date.now())/1000));
+  return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+}
+function relogioDeTachos(){
+  if(!temporizadores.length) return `<div class="vazio"><p class="sub">Nenhum tacho a contar. Põe um temporizador num passo e ele aparece aqui, grande.</p></div>`;
+  const cores=['var(--accent)','var(--energy)','var(--ok)','var(--party)'];
+  return `<div class="relogio-tachos">${temporizadores.slice(0,4).map((t,i)=>{
+    const resta=Math.max(0,t.fim-Date.now()), total=Math.max(resta,60000);
+    const pct=resta/total;
+    const raio=64-i*15, circ=2*Math.PI*raio;
+    return `<svg class="rt-arco" viewBox="0 0 150 150" aria-hidden="true">
+      <circle cx="75" cy="75" r="${raio}" fill="none" stroke="var(--line)" stroke-width="9"/>
+      <circle cx="75" cy="75" r="${raio}" fill="none" stroke="${cores[i%4]}" stroke-width="${resta<60000?11:9}"
+        stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${(circ*(1-pct)).toFixed(1)}"
+        transform="rotate(-90 75 75)" stroke-linecap="round" class="${resta<60000?'rt-pulsa':''}"/>
+    </svg>`;}).join('')}
+    <div class="rt-centro">
+      <b id="rt-num">${restaTexto(temporizadores[0])}</b>
+      <span class="sub">${esc(temporizadores[0].n)}</span>
+    </div>
+    <ul class="rt-legenda">${temporizadores.slice(0,4).map((t,i)=>
+      `<li><i style="background:${cores[i%4]}"></i>${esc(t.n)} <b>${restaTexto(t)}</b></li>`).join('')}</ul>
+  </div>`;
+}
+/* Destrancar por pressão longa: o único gesto que a água não faz sozinha. */
+let _destrancaT=null;
+function iniciaDestranca(e){
+  cancelaDestranca();
+  const anel=document.getElementById('coz-anel');
+  if(anel){ anel.style.transition='stroke-dashoffset 2s linear'; anel.style.strokeDashoffset='0'; }
+  _destrancaT=setTimeout(()=>{ trancarCozinha(false); }, 2000);
+}
+function cancelaDestranca(){
+  if(_destrancaT){ clearTimeout(_destrancaT); _destrancaT=null; }
+  const anel=document.getElementById('coz-anel');
+  if(anel){ anel.style.transition='none'; anel.style.strokeDashoffset='170'; }
+}
+function terminarCozinha(){
+  const c=S.ui.cozinha;
+  if(c && Array.isArray(c.ajustes) && c.ajustes.length){
+    const txt=c.ajustes.map(a=>a.t+(a.delta>0?' +':' ')+a.delta+' min').join(', ');
+    if(confirm('O forno cá de casa pediu outros tempos ('+txt+'). Guardo para a próxima vez?')) guardarAjustes();
+    else c.ajustes=[];
+  }
+  descontarDespensa(); fecharCozinha();
 }
 
 /* ================= TEMPORIZADORES DE TACHO =================
@@ -9805,12 +10204,30 @@ function cozinhaHtml(){
    fechar a app, porque ao voltar recalcula-se pelo relógio. Sem servidor não
    há push — o alarme toca com a app aberta, e isso diz-se em vez de se fingir. */
 let temporizadores=[], tickTimer=null;
-function novoTemporizador(nome,min){
-  const t={id:uid(), n:String(nome||'Tacho').slice(0,24), fim:Date.now()+Math.max(1,min)*60000, tocou:false};
+function novoTemporizador(nome,min,passo){
+  const t={id:uid(), n:String(nome||'Tacho').slice(0,24), fim:Date.now()+Math.max(1,min)*60000,
+    tocou:false, passo:passo||null};
   temporizadores.push(t);
   try{ localStorage.setItem('ff-timers', JSON.stringify(temporizadores)); }catch(e){}
   arrancaTick(); pintaTemporizadores();
   toast(t.n+': '+min+' min a contar');
+}
+/* «Mais cinco minutos» é conhecimento sobre o forno desta casa, e não um
+   acidente: guarda-se pendente e pergunta-se uma vez, no fim. */
+function maisCinco(id){
+  const t=temporizadores.find(x=>x.id===id); if(!t) return;
+  t.fim+=5*60000; t.tocou=false;
+  try{ localStorage.setItem('ff-timers', JSON.stringify(temporizadores)); }catch(e){}
+  if(t.passo) ajustePendente(null,{t:t.passo},5);
+  arrancaTick(); pintaTemporizadores();
+  toast(t.n+': mais 5 minutos');
+}
+function jaEstava(id){
+  const t=temporizadores.find(x=>x.id===id); if(!t) return;
+  const faltavam=Math.round((t.fim-Date.now())/60000);
+  if(t.passo && faltavam>0) ajustePendente(null,{t:t.passo},-faltavam);
+  pararTemporizador(id);
+  toast(t.n+': já estava'+(faltavam>0? ' — menos '+faltavam+' min para a próxima':''));
 }
 function lerTemporizadores(){
   try{ const a=JSON.parse(localStorage.getItem('ff-timers')); if(Array.isArray(a)) temporizadores=a.filter(x=>x&&x.fim>Date.now()-3600000); }catch(e){}
@@ -9824,9 +10241,16 @@ function pararTemporizador(id){
 }
 function arrancaTick(){ if(tickTimer) return; tickTimer=setInterval(()=>{
   const agora=Date.now();
-  temporizadores.forEach(t=>{ if(!t.tocou && t.fim<=agora){ t.tocou=true; alarme(); toast('⏲ '+t.n+' — está pronto'); } });
+  temporizadores.forEach(t=>{ if(!t.tocou && t.fim<=agora){ t.tocou=true; alarme();
+    /* saber QUAL dos três alarmes tocou sem largar a colher */
+    if(S.ui.voz) lerAlto('O '+t.n.toLowerCase()+' está pronto.');
+    toast('⏲ '+t.n+' — está pronto', {rot:'+5 min', fn:"maisCinco('"+t.id+"')"});
+  } });
   if(!temporizadores.length){ clearInterval(tickTimer); tickTimer=null; }
   pintaTemporizadores();
+  /* o relógio de tachos redesenha-se sozinho, sem passar por render() */
+  const n=document.getElementById('rt-num');
+  if(n && temporizadores.length) n.textContent=restaTexto(temporizadores[0]);
 },1000); }
 /* Alarme gerado, sem ficheiros externos: o CSP não deixa e o offline agradece. */
 function alarme(){
@@ -14033,6 +14457,11 @@ function limparReceita(x){
      mostra. Uma receita sem história continua a ser uma receita. */
   const de=String(x.de||'').trim().slice(0,40); if(de) out.de=de;
   const hist=String(x.hist||'').trim().slice(0,240); if(hist) out.hist=hist;
+  /* A versão oral: a receita como ela se diz — «um fio de azeite», «farinha
+     até dar ponto». É ESTA a receita que se herda; os gramas são só a conta.
+     Guardam-se as duas: a formal alimenta a despensa e os macros, a oral
+     aparece na ficha e imprime-se no Livro tal e qual. */
+  const oral=String(x.oral||'').trim().slice(0,1200); if(oral) out.oral=oral;
   /* base: a receita de que esta é variante. Uma receita não pode ser variante
      de si própria, e o id tem de ter forma de id — o resto valida-se na
      sincronização, quando a biblioteca já está montada. */
@@ -14052,6 +14481,7 @@ function sincronizaReceitas(){
       f:Math.round(m.f), fib:Math.round(m.fib), i:x.i.map(l=>[l[0], Math.round(l[1]/Math.max(1,x.doses)*100)/100, l[2]]),
       mt:x.mt, u:true, doses:x.doses};
     if(x.de) r.de=x.de;
+    if(x.oral) r.oral=x.oral;
     if(x.hist) r.hist=x.hist;
     if(x.base) r.base=x.base;
     const s=[]; r.i.forEach(l=>atributosIng(l[0]).forEach(t=>{ if(s.indexOf(t)<0) s.push(t); }));
@@ -14251,14 +14681,15 @@ function abrirEditor(rid){
     const orig=S.receitas.find(x=>x.id===base.id);
     S.ui.editor={id:base.id, n:base.n, coz:base.coz, mt:base.mt.slice(), doses:orig? orig.doses:1,
       i:(orig? orig.i : base.i).map(l=>l.slice()),
-      de:(orig&&orig.de)||'', hist:(orig&&orig.hist)||'', base:(orig&&orig.base)||''};
+      de:(orig&&orig.de)||'', hist:(orig&&orig.hist)||'', base:(orig&&orig.base)||'',
+      oral:(orig&&orig.oral)||''};
   } else if(base){
     /* uma receita da biblioteca copia-se para editar: o original fica intacto
        para quem quiser voltar a ele, e a cópia é da casa */
     S.ui.editor={id:null, n:base.n+' (a meu gosto)', coz:base.coz, mt:base.mt.slice(), doses:1,
-      i:base.i.map(l=>l.slice()), de:'', hist:'', base:''};
+      i:base.i.map(l=>l.slice()), de:'', hist:'', base:'', oral:''};
   } else {
-    S.ui.editor={id:null, n:'', coz:'portuguesa', mt:['a','j'], doses:2, i:[], de:'', hist:'', base:''};
+    S.ui.editor={id:null, n:'', coz:'portuguesa', mt:['a','j'], doses:2, i:[], de:'', hist:'', base:'', oral:''};
   }
   S.ui.tab='receitas'; saveMeta(); render();
   const el=document.getElementById('editor'); if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
@@ -14287,6 +14718,7 @@ function edSet(campo,valor){
   else if(campo==='coz') e.coz=temChave(CUIS,valor)? valor : e.coz;
   else if(campo==='de') e.de=String(valor).slice(0,40);
   else if(campo==='hist') e.hist=String(valor).slice(0,240);
+  else if(campo==='oral') e.oral=String(valor).slice(0,1200);
   else if(campo==='doses') e.doses=clampNum(Math.round(parseFloat(valor)||1),1,12);
   saveMeta();
   if(campo==='doses') atualizarEditor();
@@ -14358,7 +14790,7 @@ function guardarReceita(comoVariante){
       : (k? (VARIANTES.find(f=>f.k===k)||{ids:[e.id]}).ids[0] : e.id);
   }
   const limpa=limparReceita({id, n:e.n.trim(), coz:e.coz, mt:e.mt, doses:e.doses, i:e.i,
-    de:e.de, hist:e.hist, base});
+    de:e.de, hist:e.hist, base, oral:e.oral});
   if(!limpa){ flash('bad','Não foi possível guardar: os ingredientes não são válidos.'); return; }
   const idx=(!guardaComoNova && e.id)? S.receitas.findIndex(x=>x.id===e.id) : -1;
   if(idx>=0) S.receitas[idx]=limpa; else S.receitas.push(limpa);
@@ -14455,6 +14887,11 @@ function cartaoEditor(){
       <div style="grid-column:span 2"><label class="lbl">A história (opcional)</label>
         <input type="text" value="${esc(e.hist||'')}" maxlength="240"
           placeholder="Ex.: fazia-se sempre no Natal, em Trás-os-Montes" onchange="edSet('hist',this.value)"></div>
+      <div style="grid-column:span 2"><label class="lbl">Como a avó diz ${dica('oral')}</label>
+        <textarea maxlength="1200" rows="4" style="width:100%"
+          placeholder="Um fio de azeite, um punhado de farinha, sal q.b., mexer até dar ponto…&#10;Escreve a receita como ela se diz. Os gramas em cima são a conta; isto é a receita."
+          onchange="edSet('oral',this.value)">${esc(e.oral||'')}</textarea>
+        <p class="sub" style="margin-top:4px">Guardam-se as duas versões: os gramas alimentam a despensa e os macros, esta aparece na ficha e imprime-se no Livro tal e qual foi ditada.</p></div>
     </div>
     <div style="margin-top:12px"><label class="lbl">Encaixa em</label>
       <div class="row">${MEALS.concat([['ac','Acompanhamento']]).map(([k,rot])=>`<button class="chip ${e.mt.indexOf(k)>=0?'on':''}" onclick="edToggleRef('${k}')">${ICO_REF[k]||''} ${rot}</button>`).join('')}</div>
@@ -17557,7 +17994,7 @@ function mealBlock(di,mk,label,date){
     ${r? blocoPorcoes(di,mk,meal,r) : ''}
     ${r&&(mk==='a'||mk==='j')? blocoMarmita(di,mk,meal,comem) : ''}
     ${r? `<div class="row" style="margin-top:8px">
-      <button class="btn ghost small" onclick="abrirCozinha('${r.id}',${comem.length+nExtraMesa(meal)},'${date}|${mk}')">👨‍🍳 Cozinhar</button>
+      <button class="btn ghost small" onclick="cozinharRefeicao(${di},'${mk}','${date}')">👨‍🍳 Cozinhar</button>
       ${date<=hojeISO()? `<button class="btn ghost small" onclick="abrirFolhaMesa('${date}','${mk}')">✓ Quem comeu</button>`:''}
     </div>`:''}
   </div>`;
@@ -18933,7 +19370,7 @@ function pacote(){
          sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa, pausas:S.pausas, diario:S.diario, cozPref:S.cozPref,
          validades:S.validades, veredictos:S.veredictos, brigada:S.brigada, desperdicio:S.desperdicio,
          gostos:S.gostos, jejum:S.jejum, combos:S.combos, rituais:S.rituais, extras:S.extras, aindaHa:S.aindaHa,
-         visitas:S.visitas, ementas:S.ementas, anos:S.anos, provas:S.provas, bebidas:S.bebidas}}; }
+         visitas:S.visitas, ementas:S.ementas, anos:S.anos, provas:S.provas, bebidas:S.bebidas, notasCozinha:S.notasCozinha}}; }
 function textoCopia(){ return JSON.stringify(pacote(),null,2); }
 function marcarExportado(){ S.meta.exportadoEm=new Date().toISOString(); S.meta.semCopia=false; saveMeta(); }
 function nomeFicheiro(){ return 'familia-fit-'+iso(new Date())+'.json'; }
@@ -19196,6 +19633,7 @@ function lerPacote(txt){
     Object.keys(o||{}).forEach(mid0=>{ out[mapa[mid0]||mid0]=o[mid0]; }); return out; };
   const anos=limparAnos(remapMapa(d.anos), idsOk, acha), provas=limparProvas(remapMapa(d.provas), idsOk);
   const bebidas=limparBebidas((Array.isArray(d.bebidas)? d.bebidas:[]).map(remapa), idsOk);
+  const notasCozinha=limparNotasCozinha(d.notasCozinha, acha);
   /* As estruturas novas passam pelo mesmo crivo das antigas: datas verificadas,
      ids remapeados para os perfis que sobreviveram à importação, e receitas
      que têm mesmo de existir deste lado. */
@@ -19231,7 +19669,7 @@ function lerPacote(txt){
   const combos=limparCombos(d.combos).filter(c=>acha(c.base) && c.ac.some(acha));
   return {d:{ members, cheats, plans, bought, objetivos, despensa, receitas,
               medicoes, regAtiv, regRef, sobras, precos, festas, casa, pausas, diario, cozPref,
-              validades, veredictos, brigada, desperdicio, gostos, jejum, combos, rituais, extras, aindaHa, visitas, ementas, anos, provas, bebidas,
+              validades, veredictos, brigada, desperdicio, gostos, jejum, combos, rituais, extras, aindaHa, visitas, ementas, anos, provas, bebidas, notasCozinha,
               prefCuisine:temChave(CUIS,d.prefCuisine)?d.prefCuisine:'todas',
               week:dataValida(d.week)? mondayISO(new Date(d.week+'T12:00:00')) : mondayISO(new Date()) }};
 }
@@ -20058,6 +20496,9 @@ function render(){
   if(S.ui.tab==='nutricao' && S.members.length && !S.ui.histRef) atualizarNutricao();
   pintaModal();
   montaColapsaveis(); pintaAura(); montaMembrosFixos();
+  /* a bancada liga o toque de cotovelo depois de cada desenho, e le o passo
+     em voz alta se a voz estiver ligada */
+  if(S.ui.cozinha){ ligarCotovelo(); if(S.ui.voz && S.ui.cozinha.vista==='passos') lerPassoAtual(); }
   /* o virar de folha e o carimbo correm uma vez, logo a seguir ao gesto que os
      provocou — não a cada redesenho */
   if(viraFolha){ el.classList.remove('vira-frente','vira-tras');
