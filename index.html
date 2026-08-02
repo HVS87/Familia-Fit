@@ -396,6 +396,11 @@ ol.passos li::marker{font-family:var(--fonte-display);font-weight:700;color:var(
 ol.passos li b{font-family:var(--fonte-display);font-size:15.5px}
 ol.passos li span{color:var(--mut);font-size:14px;margin-top:2px}
 .preco{display:inline-flex;align-items:center;gap:5px;margin-left:auto;flex:none}
+/* O talão: a caixa onde a compra confirmada vira preços guardados. Fundo
+   ligeiramente recuado para se ler como um recibo dentro do diálogo. */
+.talao{margin-top:12px;padding:10px 12px;border:1px dashed var(--line);border-radius:10px;background:var(--bg)}
+.talao .lbl{white-space:nowrap}
+.spark-preco{flex:none;margin-left:2px;opacity:.9}
 .preco input{width:76px;text-align:right;padding:4px 6px;font-size:13px}
 .shop li:has(.preco){display:flex;align-items:center;gap:8px}
 .conv-linha{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px}
@@ -1530,7 +1535,17 @@ function limparPrecos(o){
     if(!temChave(NUTRI,k)) return;
     const v=parseFloat(o[k]&&o[k].v!==undefined? o[k].v : o[k]);
     if(!isFinite(v)||v<=0||v>10000) return;
-    out[k]={v:Math.round(v*100)/100};
+    /* a história é opcional: uma cópia gravada antes da memória de talão só
+       traz o valor, e continua a valer */
+    const hb=(o[k]&&Array.isArray(o[k].hist))? o[k].hist : [];
+    const hist=[]; const vistos={};
+    hb.slice(-PRECO_HIST_MAX).forEach(x=>{
+      if(!x||typeof x!=='object'||!dataValida(x.d)||x.d>hojeISO()||vistos[x.d]) return;
+      const hv=parseFloat(x.v); if(!isFinite(hv)||hv<=0||hv>10000) return;
+      vistos[x.d]=1; hist.push({d:x.d, v:Math.round(hv*100)/100});
+    });
+    hist.sort((a,b)=> a.d<b.d? -1 : a.d>b.d? 1 : 0);
+    out[k]={v:Math.round(v*100)/100, hist};
   });
   return out;
 }
@@ -1788,6 +1803,9 @@ const MAX_AC=3;   /* acompanhamentos por prato: passado isto deixa de ser acompa
    ainda está na zona morta temporal nesse momento — o que dava um ecrã em
    branco, sem nada na consola, a quem tivesse um jejum guardado. */
 const JEJUM_MAX_H=8*24;
+/* Quantos preços se guardam por ingrediente na memória de talão. Vive aqui
+   pela mesma razão dos dois de cima: limparPrecos() corre no arranque. */
+const PRECO_HIST_MAX=40;
 function nomeRefeicao(k){ if(k==='ac') return 'Acompanhamento';
   const m=MEALS.find(x=>x[0]===k); return m? m[1] : k; }
 
@@ -2227,7 +2245,7 @@ R('nasigoreng','Nasi Goreng','asiatica',[],0,0,0,0,[['Arroz jasmim',90,'g'],['Pe
 R('uvaslima','Uvas com raspas de lima','portuguesa',['lowfat','vegan','mediterranica'],0,0,0,0,[['Uva de mesa (branca e tinta)',180,'g'],['Raspa de lima',3,'g'],['Lima',10,'ml'],['Hortelã',3,'g']],['p','l'],0,['sob','sn','br']),
 R('pannacotta','Panna cotta','italiana',[],0,0,0,0,[['Nata para bater 35% gordura',90,'ml'],['Leite',40,'ml'],['Açúcar branco',20,'g'],['Gelatina em folhas',2,'g'],['Baunilha',1,'g'],['Frutos vermelhos',60,'g']],['l'],0,['sob']),
 R('abadepriscos','Pudim Abade de Priscos','portuguesa',[],0,0,0,0,[['Açúcar branco',34,'g'],['Gema de ovo de galinha, crua',36,'g'],['Toucinho fumado',8,'g'],['Vinho do Porto',12,'ml'],['Limão',2,'g'],['Canela',0.4,'g']],['l'],0,['sob']),
-R('leitecreme','Leite creme','portuguesa',[],0,0,0,0,[['Leite',200,'ml'],['Gema de ovo de galinha, crua',54,'g'],['Açúcar branco',50,'g'],['Milho, amido (pó)',15,'g'],['Limão',5,'g'],['Canela',1,'g']],['l'],0,['sob']),
+R('leitecreme','Leite creme','portuguesa',[],0,0,0,0,[['Leite',110,'ml'],['Gema de ovo de galinha, crua',26,'g'],['Açúcar branco',24,'g'],['Milho, amido (pó)',7,'g'],['Limão',3,'g'],['Canela',0.5,'g']],['l'],0,['sob']),
 R('babacamelo','Baba de camelo','portuguesa',[],0,0,0,0,[['Leite condensado açucarado',70,'g'],['Ovo',1,'un'],['Amêndoa',8,'g']],['l'],0,['sob']),
 R('bolobolacha','Bolo de bolacha','portuguesa',[],0,0,0,0,[['Bolacha Maria',30,'g'],['Manteiga',22,'g'],['Açúcar branco',18,'g'],['Café expresso',22,'ml'],['Gema de ovo de galinha, crua',7,'g']],['l'],0,['sob']),
 R('sericaia','Sericaia','portuguesa',[],0,0,0,0,[['Leite',90,'ml'],['Ovo',1.5,'un'],['Açúcar branco',35,'g'],['Farinha',13,'g'],['Canela',1,'g'],['Limão',3,'g']],['l'],0,['sob']),
@@ -2251,7 +2269,7 @@ R('moamba','Moamba de galinha','africana',[],0,0,0,0,[['Frango inteiro com pele,
 /* ---------- Cozinha brasileira ---------- */
 R('moqueca','Moqueca de peixe','brasileira',['lowcarb'],0,0,0,0,[['Pescada',200,'g'],['Leite de coco',120,'ml'],['Óleo de dendê',15,'ml'],['Tomate',120,'g'],['Pimento',80,'g'],['Cebola',80,'g'],['Alho',3,'dente'],['Coentros',10,'g'],['Lima',15,'ml'],['Jindungo (piri-piri)',3,'g']],['a','j'],0,['pp']),
 R('feijoadabr','Feijoada brasileira','brasileira',[],0,0,0,0,[['Feijão preto',90,'g'],['Carne seca (charque)',30,'g'],['Paio de lombo',20,'g'],['Linguiça',20,'g'],['Costela de vaca crua',40,'g'],['Rabo de porco',20,'g'],['Cebola',40,'g'],['Alho',2,'dente'],['Louro',1,'g'],['Laranja',60,'g'],['Couve galega',60,'g'],['Farinha de pau (mandioca)',15,'g'],['Azeite',8,'ml']],['a','j'],0,['pp']),
-R('maminha','Maminha grelhada','brasileira',['keto','lowcarb','paleo'],0,0,0,0,[['Maminha de vaca crua',220,'g'],['Sal grosso',6,'g'],['Alho',2,'dente'],['Azeite',10,'ml']],['a','j'],0,['pp']),
+R('maminha','Maminha grelhada','brasileira',['keto','lowcarb','paleo'],0,0,0,0,[['Maminha de vaca crua',220,'g'],['Sal grosso',2,'g'],['Alho',2,'dente'],['Azeite',10,'ml']],['a','j'],0,['pp']),
 R('pasteisvento','Pastéis de vento','brasileira',[],0,0,0,0,[['Massa de pastel crua',90,'g'],['Óleo alimentar',18,'ml'],['Flor de sal',1,'g']],['l','a','j'],0,['ent','sn']),
 R('pastelcatupiry','Pastel de queijo e catupiry','brasileira',[],0,0,0,0,[['Massa de pastel crua',45,'g'],['Mozzarella',25,'g'],['Requeijão cremoso (catupiry)',20,'g'],['Óleo alimentar',9,'ml'],['Orégãos',1,'g']],['l','a','j'],0,['ent','sn']),
 R('paodequeijo','Pão de queijo','brasileira',[],0,0,0,0,[['Polvilho azedo',35,'g'],['Queijo minas frescal',20,'g'],['Parmesão',7,'g'],['Ovo',0.35,'un'],['Leite',20,'ml'],['Óleo alimentar',7,'ml'],['Flor de sal',1,'g']],['p','l'],0,['br','sn']),
@@ -5103,6 +5121,37 @@ function macrosDeIngredientes(lista,doses){
   const r1=v=>Math.round(v/d*10)/10;
   return {k:Math.round(k/d), c:r1(c), p:r1(p), f:r1(f), fib:r1(fib), semDados};
 }
+/* O sódio e o açúcar livre de uma lista de ingredientes. Devolvem sempre
+   quantos ingredientes ficaram sem valor, porque é isso que permite à app
+   dizer «a conta é por baixo» em vez de fingir um total exato. */
+function sodioDeIngredientes(lista,doses,rid){
+  const d=Math.max(1,parseFloat(doses)||1);
+  const fora=(rid && NA_DESCARTADO[rid])||[];
+  let na=0; const semValor=[];
+  (lista||[]).forEach(x=>{
+    const nome=x[0];
+    if(fora.indexOf(nome)>=0) return;   /* crosta ou água de cozer: não se come */
+    const g=gramasDe(nome,x[1],x[2]);
+    if(g===null){ semValor.push(nome); return; }
+    const v=sodioDe(nome);
+    if(v===null){ semValor.push(nome); return; }
+    na+=v*g/100;
+  });
+  return {mg:Math.round(na/d), semValor, descartado:fora.length>0};
+}
+function sodioReceita(r){ return r? sodioDeIngredientes(r.i,1,r.id) : {mg:0,semValor:[]}; }
+function acucarLivreDeIngredientes(lista,doses){
+  const d=Math.max(1,parseFloat(doses)||1);
+  let g=0;
+  (lista||[]).forEach(x=>{
+    const gr=gramasDe(x[0],x[1],x[2]); if(gr===null) return;
+    g+=acucarLivreDe(x[0])*gr/100;
+  });
+  return Math.round(g/d*10)/10;
+}
+/* Uma receita «tem açúcar livre» a partir de um grama por dose — abaixo disso
+   é vestígio de tempero e contá-lo como exposição seria alarmismo. */
+function temAcucarLivre(r){ return acucarLivreDeIngredientes(r.i,1)>=1; }
 
 const CATS = [
   ['Peixe & Marisco',/bacalhau|salm|sardinha|polvo|camar|atum|dourada|robalo|amêijoa|marisco|peixe|pescada|espadarte|anchova|carapau|cavala|lulas|mexilh|truta|choco/i],
@@ -5365,6 +5414,152 @@ const ING_EXCECAO={
    silêncio. Já aconteceu aqui: 'Picles de pepino' ficou declarado duas vezes
    e os sulfitos evaporaram-se. A bateria de testes verifica as repetições
    sobre o próprio ficheiro; ao acrescentar um nome, procura-o primeiro. */
+/* ================= SÓDIO =================
+   Em Portugal come-se quase o dobro do sal recomendado, e quase nada vem do
+   saleiro da mesa: vem do pão, do queijo, do fumeiro, das conservas e dos
+   molhos — tudo coisas que já estão nestas receitas.
+
+   A tabela é DELIBERADAMENTE PARCIAL. Transcrever setecentos valores de sódio
+   à mão era garantir erros de digitação num número de saúde que ninguém
+   voltaria a conferir; em vez disso estão aqui os alimentos onde o sódio
+   português realmente mora, e a app conta e diz quantos ingredientes ficaram
+   sem valor — exatamente como já faz com os preços. Um número em falta é
+   honesto; um número inventado não é.
+
+   Valores em mg de sódio por 100 g (ou 100 ml), INSA/PortFIR salvo indicação.
+   O sal é estequiometria, não medição: o cloreto de sódio puro tem 39,3 % de
+   sódio em massa. */
+const NA_MG={
+  /* o sal, e o que é quase só sal */
+  'Sal grosso':38700, 'Flor de sal':38700,
+  'Molho de soja':5500, 'Molho de peixe':7800, 'Pasta de miso':3700, 'Missô branco':3700,
+  'Molho teriyaki':3500, 'Anchovas':3500, 'Alcaparras':2350,
+  /* fumeiro e charcutaria — a maior fonte isolada numa casa portuguesa */
+  'Presunto':2300, 'Carne seca (charque)':2000, 'Salame':1800,
+  'Paio de lombo':1600, 'Paio de lombo entremeado':1600, 'Salpicão':1600,
+  'Chouriço':1500, 'Chouriço de carne de porco':1500, 'Toucinho fumado':1500,
+  'Bacon':1500, 'Linguiça':1400, 'Mortadela':1100,
+  'Salsicha tipo Frankfurt':900, 'Salsicha fresca crua':750,
+  'Alheira':900, 'Farinheira':800, 'Fiambre':900, 'Fiambre, pá':900,
+  'Fiambre, perna':900, 'Fiambre de aves':900, 'Fiambre, peito de frango':900,
+  'Bresaola':1600,
+  /* queijos */
+  'Queijo ralado':1600, 'Parmesão':1600, 'Queijo manchego':1200, 'Queijo feta':1140,
+  'Queijo da ilha':800, 'Queijo halloumi':1500, 'Queijo azul':1400,
+  'Queijo de Azeitão':700, 'Queijo Serra da Estrela':700, 'Queijo de Évora':1400,
+  'Queijo de Nisa':900, 'Queijo Serpa':800, 'Queijo de Castelo Branco':800,
+  'Queijo flamengo':700, 'Queijo cheddar':620, 'Queijo Gouda':800,
+  'Queijo Emmental':450, 'Queijo gruyère':550, 'Queijo Brie':600, 'Queijo Camembert':840,
+  'Queijo Raclette':600, 'Queijo fundido 40% gordura':1300, 'Queijo São Jorge':800,
+  'Mozzarella':490, 'Mozzarella fresca':200, 'Burrata':200, 'Queijo creme':300,
+  'Queijo de cabra':500, 'Queijo Mascarpone':35, 'Ricotta':85,
+  'Queijo fresco':40, 'Requeijão':50, 'Queijo minas frescal':30, 'Queijo Quark natural':40,
+  /* pão e panificação */
+  'Pão de forma':490, 'Pão alentejano':580, 'Pão de mistura':520, 'Pão rústico':540,
+  'Pão integral':490, 'Pão de centeio':560, 'Pão de centeio integral':560,
+  'Pão de leite (trigo)':420, 'Pão de trigo com redução de sal':240, 'Broa de milho':430,
+  'Tosta de trigo':600, 'Tosta de trigo integral':600, 'Tosta de trigo sem sal':20,
+  'Pão ralado':700, 'Pão pita':520, 'Pão de hambúrguer':490, 'Bagel':490,
+  'Bolacha de água e sal':700, 'Bolacha Maria':300, 'Muffin inglês':480,
+  /* conservas e picles */
+  'Azeitonas':1500, 'Azeitonas pretas':2000, 'Picles de pepino':1200, 'Chucrute':660,
+  'Atum em conserva':300, 'Sardinhas em conserva':400, 'Tomate pelado':200,
+  'Tomate concentrado':400, 'Tomate seco':2100, 'Batata palha':600,
+  'Delícias do mar (surimi)':800, 'Cogumelos enlatados, escorridos':400,
+  /* o bacalhau demolhado guarda sal: é a razão de ser do prato */
+  'Bacalhau (posta)':570, 'Bacalhau desfiado':600, 'Bacalhau, ovas cruas':320,
+  /* molhos e caldos */
+  'Ketchup':1000, 'Mostarda':1200, 'Mostarda de Dijon':1900, 'Molho de mostarda':1100,
+  'Maionese':600, 'Molho inglês':1000, 'Molho barbecue':1000, 'Molho picante':2200,
+  'Molho piri-piri':1500, 'Molho sriracha':2100, 'Molho para francesinha':700,
+  'Molho de tomate':400, 'Molho de vinagrete':900, 'Molho verde':600,
+  'Caldo de galinha':300, 'Caldo de legumes':300, 'Massa de pimentão':2900,
+  'Pesto':800, 'Tahini':35, 'Kimchi':500, 'Raita de pepino e hortelã':180,
+  /* manteigas: a diferença entre com e sem sal é o ponto todo */
+  'Manteiga':450, 'Manteiga sem sal':5, 'Margarina':700, 'Minarina (meia margarina)':700,
+  'Margarina 3/4, de girassol':700,
+  /* frutos secos salgados */
+  'Amendoim, miolo, torrado com sal':400, 'Amendoim, miolo, torrado sem sal':5,
+  'Pistácio torrado e salgado':400, 'Pistácio torrado, sem sal':5,
+  'Castanha de caju torrada e salgada':400,
+  /* lacticínios e ovos correntes, para a conta fechar */
+  'Leite':44, 'Leite gordo, UHT':44, 'Leite magro, UHT':44, 'Leite meio gordo, pó':400,
+  'Iogurte natural':50, 'Iogurte grego':45, 'Nata':35, 'Ovo':130,
+  'Clara de ovo de galinha, crua':170, 'Gema de ovo de galinha, crua':50,
+  /* bebidas */
+  'Cerveja branca':4, 'Vinho branco':5, 'Vinho tinto':4, 'Vinho do Porto':10,
+};
+/* Os alimentos onde o sódio é residual e a ausência de valor não engana
+   ninguém: hortofrutícolas, cereais crus, carne e peixe frescos, azeite. A
+   app não os conta como «sem valor» — conta-os como praticamente zero, que é
+   o que o INSA diz deles. Sem isto, a cobertura parecia má sem o ser. */
+const NA_RESIDUAL=/^(abacate|abóbora|acelga|agrião|aipo|alcachofra|alface|alho|alperce|ameixa|amora|ananás|anona|arroz|aveia|banana|batata|beldroega|beringela|beterraba|brócolos|cebola|cenoura|cereja|chicória|chuchu|clementina|coentros|cogumelos|courgette|couve|dióspiro|endívia|ervilhas|espargos|espinafres|estragão|farinha|favas|feijão|figo|framboesa|frutos vermelhos|funcho|gengibre|ginja|goiaba|grelos|groselha|hortelã|inhame|kiwi|laranja|lentilhas|lichia|lima|limão|maçã|malagueta|mandioca|manga|manjericão|maracujá|marmelo|medronho|melancia|melão|meloa|milho|mirtilo|morango|nabo|nectarina|nêspera|noz|nozes|óleo|orégãos|papaia|pepino|pêra|pêssego|pimento|quiabo|quinoa|rabanete|romã|rúcula|salsa|tâmara|tangerina|tomate|toranja|uva|azeite|vinagre|água|açúcar|mel|canela|cravinho|cominhos|colorau|louro|tomilho|alecrim|salva|cardamomo|cúrcuma|curcuma|açafrão|pimenta|noz-moscada|baunilha|chá|café)/i;
+/* Compostos que herdariam o valor errado de um nome mais curto. Estão aqui
+   escritos por extenso de propósito: a primeira versão desta tabela procurava
+   o nome mais longo que fosse prefixo, e o «Mel» dava 82 g de açúcar livre ao
+   «Melão». Num número de saúde, adivinhar por prefixo é uma armadilha — vale
+   mais uma lista comprida e literal. */
+Object.assign(NA_MG,{
+  'Leite de coco':15, 'Leite de coco light':15,
+  'Manteiga de amendoim':400, 'Manteiga de caju':10, 'Manteiga de amêndoa':5,
+  'Nata para bater 35% gordura':30, 'Nata para bater pasteurizada 34% gordura':30,
+  'Nata pasteurizada 33% gordura':30, 'Nata pasteurizada 36% gordura':30,
+  'Nata maturada pasteurizada 30% gordura':40,
+  'Requeijão cremoso (catupiry)':400, 'Requeijão de cabra':50,
+  'Leite condensado açucarado':130, 'Leite achocolatado, UHT':60,
+  'Leite gordo, pasteurizado':44, 'Leite magro de pastagem':44,
+  'Leite gordo, pó':400, 'Leite magro, pó':480, 'Leite de cabra cru':38, 'Leite de ovelha cru':44,
+  'Iogurte de soja natural':35, 'Iogurte magro, natural':55, 'Iogurte grego magro':45,
+  'Queijo fresco de cabra':40, 'Queijo fresco de ovelha':40, 'Queijo fresco magro':40,
+  'Queijo de cabra "Puro"':500, 'Queijo Amarelo da Beira Baixa':900,
+  'Queijo de ovelha curado':1100, 'Queijo de ovelha, amanteigado':900,
+  'Queijo de vaca curado':900, 'Queijo de vaca, amanteigado':700,
+  'Queijo flamengo light (-50% gordura)':700, 'Queijo Mestiço de Tolosa':1000,
+  'Molho de mostarda':1100, 'Massa de pastel crua':500, 'Massa folhada, congelada':420,
+  'Massa quebrada':400, 'Massa para pizza':480, 'Massa de arroz':10,
+});
+/* ---- O sal que não chega ao prato ----
+   Há sal que se mede na receita e nunca se come: a crosta do peixe ao sal vai
+   inteira para o lixo, e o sal da água de cozer fica na água. Contá-lo dava
+   pratos com duzentas mil miligramas de sódio — um absurdo que destruía a
+   credibilidade da conta toda. A app prefere ficar por baixo e dizê-lo:
+   o sal absorvido pelo alimento durante a cozedura existe, mas não há aqui
+   fonte oficial para o quantificar, e inventar um coeficiente de absorção
+   seria pior do que assumir a omissão. */
+const NA_DESCARTADO={
+  peixeaosal:['Sal grosso'],   /* crosta: parte-se e deita-se fora */
+  peixesal:['Sal grosso'],
+  camaraocozido:['Sal grosso'], /* água de cozer */
+  polvocozido:['Sal grosso'], batatascozidas:['Sal grosso'],
+  acbcoz:['Sal grosso'], acbmurro:['Sal grosso'],
+};
+function sodioDe(nome){
+  return temChave(NA_MG,nome)? NA_MG[nome] : (NA_RESIDUAL.test(nome)? 0 : null);
+}
+/* ================= AÇÚCARES LIVRES =================
+   A definição é da OMS (Guideline: Sugars intake for adults and children,
+   2015): açúcares livres são os adicionados pelo fabricante, cozinheiro ou
+   consumidor, mais os naturalmente presentes no mel, nos xaropes e nos sumos
+   de fruta. NÃO conta o açúcar da fruta inteira nem a lactose do leite — é
+   precisamente a distinção que quase todas as apps erram, e é o que separa
+   uma maçã de um sumo de maçã.
+
+   Guarda-se a fração de açúcar livre em g por 100 g, para a conta ser
+   quantitativa e não um simples sim/não. */
+const ACUCAR_LIVRE={
+  'Açúcar branco':100, 'Açúcar amarelo':100, 'Mel':82, 'Mel de cana':75, 'Melaço':60,
+  'Xarope de ácer':60, 'Leite condensado açucarado':56, 'Marmelada':60,
+  'Chocolate de leite, tablete':52, 'Chocolate de culinária':45, 'Chocolate, pó':60,
+  'Ketchup':22, 'Molho barbecue':35, 'Molho teriyaki':16, 'Molho de vinagrete':8,
+  'Bolacha Maria':22, 'Granola':20, 'Cacau em pó':2,
+  'Leite achocolatado, UHT':9, 'Pastilha elástica':60,
+  /* sumos: a OMS conta-os, mesmo os de 100 % fruta */
+  'Sumo de laranja natural':8, 'Sumo de maçã':10,
+};
+/* Sem correspondência por prefixo, pela mesma razão do sódio: «Mel» não pode
+   dar açúcar livre ao «Melão», nem «Chocolate, pó» ao chocolate de culinária
+   que já cá está com valor próprio. Exato ou nada. */
+function acucarLivreDe(nome){ return temChave(ACUCAR_LIVRE,nome)? ACUCAR_LIVRE[nome] : 0; }
 const _atribIng=Object.create(null);
 function atributosIng(nome){
   if(nome in _atribIng) return _atribIng[nome];
@@ -7109,7 +7304,10 @@ const DICAS={
   sobras:'O jantar de hoje é o almoço de amanhã em quase todas as casas. Ao confirmar uma refeição, a app pergunta se sobrou: a sobra fica no frigorífico durante três dias, com os macros que já se sabiam da receita, e come-se com um toque — sem cozinhar, sem comprar e sem duplicar contas.',
   marmitas:'Qualquer almoço se pode marcar «em marmita», pessoa a pessoa. Na véspera à noite o cartão «Hoje» lembra-o, com a dose já escalada a cada um, os alergénios da escola assinalados e as sobras disponíveis para a encher.',
   epoca:'Que ingredientes estão na época em Portugal, este mês — carapau no verão, grelos no inverno, cereja em junho. A tabela é local e o selo muda sozinho com o calendário: comprar na época é mais barato, mais fresco e mais saboroso.',
-  custo:'Os preços são os do teu talão — a app nunca inventa um cêntimo. Com eles estima o custo por dose de cada receita, o da semana e o talão previsto da lista de compras, dizendo sempre quantos itens ficaram por preço.',
+  custo:'Os preços são os do teu talão — a app nunca inventa um cêntimo. Com eles estima o custo por dose de cada receita, o da semana e o talão previsto da lista de compras, dizendo sempre quantos itens ficaram por preço. Cada preço escrito fica com a data: ao fim de três, aparece ao lado uma linha com a história dele, e a app passa a saber dizer se o preço de hoje está abaixo ou acima do costume desta casa.',
+  trocasBaratas:'As mesmas trocas de cozinha que a app propõe quando falta um ingrediente, aplicadas agora ao que pesa no talão: cavala em vez de salmão no mesmo prato do forno, frango em vez de novilho no estufado. Só entram pares com preço registado dos dois lados, e o cartão diz quantos ingredientes ficaram de fora — a poupança possível é sempre maior do que a mostrada. Aplicar cria uma variante da casa: a receita original fica intacta, os macros recalculam-se do catálogo, e uma troca nunca traz um alergénio marcado nesta casa.',
+  proteinaPreco:'Quanto custa uma dose de 20 g de proteína em cada coisa que compras, cruzando a composição do INSA com os preços do teu talão. Quando o orçamento aperta, a primeira coisa que se corta é a proteína cara — e este número mostra com nomes concretos que se come a mesma proteína por um terço do preço. O preço é de produto cru: não desconta osso, espinha nem o que se perde a cozinhar, e a app di-lo em vez de fingir precisão.',
+  talaoMes:'O orçamento semanal diz se esta semana passou do teto; isto diz se a casa está a gastar mais do que gastava. Três números que não existiam: o total do mês, o custo por refeição efetivamente servida — o número que se compara de cabeça com encomendar comida — e a percentagem do talão que acabou no lixo. A comparação com os meses anteriores só aparece quando a cobertura de preços foi parecida; se mudou muito, a app recusa-se a comparar em vez de apresentar ruído como tendência.',
   lote:'As preparações-base que a semana repete em dois ou mais dias, somadas para uma sessão única. As bases são uma lista curta e explícita (arroz, grão, feijão, batata, massa, refogado, legumes assados, frango) — a app não adivinha «preparação-base» pelo nome de um ingrediente, porque isso daria disparates.',
   cozinha:'Um passo por vista, em letra grande, com as quantidades já escaladas a quem se senta à mesa. O ecrã fica aceso enquanto durar, os temporizadores sobrevivem a fechar a app (guardam o instante-alvo, não uma contagem) e no fim propõe descontar o que se usou na despensa. Sem servidor não há avisos com a app fechada — o alarme toca com ela aberta, e isso diz-se em vez de se fingir.',
   convidados:'Mais gente à mesa sem criar perfis: as doses, os acompanhamentos e a lista de compras escalam já, e as alergias do convidado entram nos alertas e nas sugestões só naquela refeição. Passada a data, os convidados saem sozinhos do plano.',
@@ -8021,11 +8219,55 @@ function reguasDaReceita(r){
    diz sempre quantos itens ficaram por preço. */
 function precoDe(nome){ const p=(S.precos||{})[nome];
   return p&&p.v>0? {v:p.v, u:unidadeDe(nome)} : null; }
-function setPreco(nome,v){
+/* ===== MEMÓRIA DE TALÃO =====
+   Escrever um preço deixa de apagar o anterior. Cada preço fica com a data, e
+   o ingrediente ganha história: dá para ver se o azeite subiu, se os grelos
+   estão mais baratos em janeiro, e se o preço de hoje está abaixo do costume
+   desta casa. Nenhum destes números vem de fora — são todos do talão de quem
+   usa a app, que é o único observatório de preços de que uma família precisa.
+   O campo `v` mantém-se com o valor atual, para tudo o que já o lê continuar
+   a funcionar sem saber que existe história. */
+/* PRECO_HIST_MAX está declarado lá em cima, com o MAX_AC e o JEJUM_MAX_H:
+   limparPrecos() precisa dele no arranque, antes deste ponto do ficheiro. */
+function setPreco(nome,v,quando){
   if(!S.precos||typeof S.precos!=='object') S.precos={};
   const val=parseFloat(String(v).replace(',','.'));
   if(!isFinite(val)||val<=0||val>10000){ delete S.precos[nome]; return; }
-  S.precos[nome]={v:Math.round(val*100)/100};
+  const arred=Math.round(val*100)/100, d=quando||hojeISO();
+  const ja=S.precos[nome], hist=(ja&&Array.isArray(ja.hist))? ja.hist.slice() : [];
+  /* dois preços no mesmo dia são a mesma ida às compras: fica o último */
+  const i=hist.findIndex(x=>x.d===d);
+  if(i>=0) hist[i]={d,v:arred}; else hist.push({d,v:arred});
+  hist.sort((a,b)=> a.d<b.d? -1 : a.d>b.d? 1 : 0);
+  while(hist.length>PRECO_HIST_MAX) hist.shift();
+  S.precos[nome]={v:arred, hist};
+}
+function histPreco(nome){ const p=(S.precos||{})[nome];
+  return p&&Array.isArray(p.hist)? p.hist : []; }
+function medianaPreco(nome){
+  const h=histPreco(nome).map(x=>x.v).sort((a,b)=>a-b);
+  if(!h.length) return null;
+  return h.length%2? h[(h.length-1)/2] : Math.round((h[h.length/2-1]+h[h.length/2])/2*100)/100;
+}
+/* «Abaixo do teu costume» só se diz com amostra: quatro registos, a mesma
+   exigência das Descobertas. Com menos, a app cala-se em vez de inventar
+   tendência. */
+function precoContraCostume(nome){
+  const h=histPreco(nome); if(h.length<4) return null;
+  const med=medianaPreco(nome), atual=h[h.length-1].v;
+  if(!med) return null;
+  const dif=(atual-med)/med;
+  if(Math.abs(dif)<0.07) return {estado:'igual', med, atual, pct:0};
+  return {estado:dif<0? 'abaixo':'acima', med, atual, pct:Math.round(Math.abs(dif)*100)};
+}
+/* O preço médio por mês do ano, para provar (ou desmentir) que a época é mais
+   barata. Precisa de dois anos de registos para dizer alguma coisa de um mês,
+   e di-lo quando não tem. */
+function precoPorMes(nome){
+  const h=histPreco(nome); if(h.length<6) return null;
+  const m=Array.from({length:12},()=>[]);
+  h.forEach(x=>{ const mes=parseInt(x.d.slice(5,7),10); if(mes>=1&&mes<=12) m[mes-1].push(x.v); });
+  return m.map(a=>a.length? Math.round(a.reduce((t,v)=>t+v,0)/a.length*100)/100 : null);
 }
 /* ===== VALIDADES =====
    O prazo não é calculado: é copiado da embalagem por quem arrumou a compra.
@@ -8076,6 +8318,13 @@ function custoDe(linhas,n,fator){
   return {total:Math.round(total*100)/100, sem, com};
 }
 function custoReceita(r,n){ return custoDe(r.i, n||1); }
+/* O custo de uma linha da lista de compras, com o preço já resolvido. Mesma
+   aritmética do custoDe(), isolada para quem já tem o preço na mão. */
+function custoLinha(it,p){
+  if(!p||!(p.v>0)) return null;
+  const div=(it.u==='g'||it.u==='ml')? 1000 : 1;
+  return Math.round(p.v*it.q/div*100)/100;
+}
 function textoCusto(c){
   if(!c.com) return 'sem preços';
   return nPT(c.total,2)+' €'+(c.sem? ' · faltam '+c.sem : '');
@@ -8262,6 +8511,240 @@ function blocoSubstituicoes(r){
       os dos ingredientes originais. Nunca se sugere nada que traga um alergénio marcado nesta casa.</i></p>
   </div>`;
 }
+/* ================= ESTA SEMANA POR MENOS X € =================
+   A tabela de substituições acima só dispara quando FALTA um ingrediente.
+   Aqui dispara quando ele PESA: no fim do mês, a diferença entre cumprir e
+   rebentar o orçamento raramente está em comer menos — está em dois ou três
+   ingredientes caros que têm gémeos mais baratos com o mesmo papel no prato.
+
+   Só entram pares com preço registado dos dois lados, e o cartão diz quantos
+   ficaram de fora: a mesma honestidade contabilística do orçamento. E uma
+   troca nunca traz um alergénio da casa — essa regra não se negoceia. */
+function trocasBaratas(dates){
+  const semana=dates||weekDates(S.week);
+  const usados={};   /* nome → quantidade total da semana, na unidade do item */
+  const wk=planWeek();
+  for(let di=0;di<7;di++) MEALK.forEach(mk=>{
+    const meal=wk[di]&&wk[di][mk]; if(!meal||!meal.r) return;
+    const comem=S.members.filter(m=>meal.m.includes(m.id)&&!isCheat(m.id,semana[di]));
+    if(!comem.length) return;
+    const pratos=[RECIPES.find(x=>x.id===meal.r)].concat(acompsDe(meal)).filter(Boolean);
+    pratos.forEach((rec,idx)=>{
+      const fatia=idx===0? 1 : fatiaAc(acompsDe(meal));
+      escalaIngredientes(rec, comem.length, fatia).forEach(x=>{
+        const k=x.n+'|'+x.u;
+        usados[k]=(usados[k]||0)+x.q;
+      });
+    });
+  });
+  const veta=[]; S.members.forEach(m=>restricoesDe(m).forEach(k=>{ if(veta.indexOf(k)<0) veta.push(k); }));
+  const pares=[]; let semPreco=0;
+  Object.keys(usados).forEach(k=>{
+    const [nome,un]=k.split('|'), q=usados[k];
+    const p=precoDe(nome); if(!p){ semPreco++; return; }
+    const regra=SUBSTITUICOES.find(s=>s.de.test(nome)); if(!regra) return;
+    regra.por.forEach(alt=>{
+      if(!temChave(NUTRI,alt)) return;
+      if(unidadeDe(alt)!==un) return;                     /* só troca o que se mede igual */
+      if(atributosIng(alt).some(t=>veta.indexOf(t)>=0)) return;   /* nunca um alergénio da casa */
+      const pa=precoDe(alt); if(!pa || pa.v>=p.v) return;
+      const div=(un==='g'||un==='ml')? 1000 : 1;
+      const poupa=Math.round((p.v-pa.v)*q/div*100)/100;
+      if(poupa<0.30) return;                              /* trocar por trinta cêntimos não é conselho */
+      pares.push({de:nome, por:alt, poupa, q, un, nota:regra.nota});
+    });
+  });
+  /* o melhor substituto de cada ingrediente, e depois as três maiores poupanças */
+  const melhor={};
+  pares.forEach(x=>{ if(!melhor[x.de] || x.poupa>melhor[x.de].poupa) melhor[x.de]=x; });
+  const top=Object.keys(melhor).map(k=>melhor[k]).sort((a,b)=>b.poupa-a.poupa).slice(0,3);
+  return {top, semPreco, total:Math.round(top.reduce((t,x)=>t+x.poupa,0)*100)/100};
+}
+function cartaoTrocasBaratas(dates){
+  const t=trocasBaratas(dates);
+  if(!t.top.length) return '';
+  return `<div class="card secgap" id="trocas-baratas" data-col="mer-trocas">
+    <h2>Esta semana por menos ${nPT(t.total,2)} € ${dica('trocasBaratas')}</h2>
+    <p class="sub">${plural(t.top.length,'Uma troca de cozinha','$n trocas de cozinha').replace('$n',t.top.length)} com o mesmo papel no prato. Aplicar cria uma variante — a receita original fica como está.</p>
+    ${t.top.map((x,i)=>`<div class="row" style="margin-top:10px;align-items:flex-start;gap:10px">
+      <span class="pill ok" style="flex:none">−${nPT(x.poupa,2)} €</span>
+      <div style="min-width:0;flex:1">
+        <b>${esc(x.de)}</b> → <b>${esc(x.por)}</b>
+        <span class="sub" style="display:block">${esc(x.nota)}</span>
+      </div>
+      <button class="chip" style="flex:none" onclick="aplicarTroca(${i})">Trocar</button>
+    </div>`).join('')}
+    ${t.semPreco? `<p class="sub" style="margin-top:10px">${plural(t.semPreco,'1 ingrediente da semana ainda não tem preço','$n ingredientes da semana ainda não têm preço').replace('$n',t.semPreco)} — a poupança possível é maior do que esta.</p>`:''}
+  </div>`;
+}
+/* Aplicar a troca em todas as receitas da semana onde o ingrediente caro
+   aparece, criando variantes da casa — a original nunca se toca. */
+function aplicarTroca(i){
+  const t=trocasBaratas();
+  const x=t.top[i]; if(!x) return;
+  const wk=planWeek(); let n=0;
+  for(let di=0;di<7;di++) MEALK.forEach(mk=>{
+    const meal=wk[di]&&wk[di][mk]; if(!meal||!meal.r) return;
+    const rec=RECIPES.find(y=>y.id===meal.r);
+    if(!rec || !rec.i.some(l=>l[0]===x.de)) return;
+    const nova=variantePorTroca(rec, x.de, x.por);
+    if(nova){ meal.r=nova.id; n++; }
+  });
+  if(!n) return flash('warn','Nenhum prato desta semana usa '+x.de.toLowerCase()+'.');
+  save('troca por '+x.por.toLowerCase());
+  render();
+  flash('ok', plural(n,'1 prato passou','$n pratos passaram').replace('$n',n)+' a levar '+x.por.toLowerCase()
+    +' — poupança estimada de '+nPT(x.poupa,2)+' €.', {rot:'Anular', fn:'desfazer()'});
+}
+/* A variante nasce como receita da casa, com a origem escrita na história —
+   os macros recalculam-se do catálogo, como em qualquer receita da casa. */
+function variantePorTroca(base, de, por){
+  const id='tr-'+base.id+'-'+semAcentos(por).toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,10);
+  const ja=(S.receitas||[]).find(x=>x.id===id);
+  if(ja) return RECIPES.find(x=>x.id===id)||null;
+  const doses=base.doses||1;
+  const nova={id, n:base.n.replace(new RegExp(de,'i'),por).slice(0,60)===base.n
+      ? base.n+' com '+por.toLowerCase() : base.n.replace(new RegExp(de,'i'),por).slice(0,60),
+    coz:base.coz, mt:base.mt.slice(), doses,
+    i:base.i.map(l=>[l[0]===de? por : l[0], Math.round(l[1]*doses*100)/100, l[2]]),
+    base:base.id, de:'Troca de '+de.toLowerCase()+' por '+por.toLowerCase()+', por preço',
+    hist:'Nasceu de «'+base.n+'» quando o '+de.toLowerCase()+' pesava no talão.'};
+  if(!Array.isArray(S.receitas)) S.receitas=[];
+  S.receitas.push(nova);
+  sincronizaReceitas(); sincronizaCombos();
+  return RECIPES.find(x=>x.id===id)||null;
+}
+
+/* ================= PROTEÍNA AO PREÇO CERTO =================
+   Cruza as duas tabelas que a app já tem e nunca apresentou juntas: a
+   composição do INSA e os preços do talão. Quando o orçamento aperta, a
+   primeira coisa que se corta é a proteína cara — e este número mostra que se
+   come a mesma proteína por um terço do preço, com nomes concretos.
+
+   O preço é de produto cru e não desconta osso, espinha nem perdas de
+   confeção: a app di-lo, em vez de fingir uma precisão que não tem. */
+function custoNutriente(campo, alvo){
+  const out=[];
+  Object.keys(NUTRI).forEach(n=>{
+    const c=NUTRI[n], p=precoDe(n);
+    if(!p || !c || !(c[campo]>0)) return;
+    const un=unidadeDe(n);
+    /* €/kg e €/L → € por 100 g/ml; à peça, o peso típico da unidade */
+    const por100 = (un==='g'||un==='ml')? p.v/10 : (c.un? p.v*100/c.un : null);
+    if(por100===null) return;
+    out.push({n, custo:Math.round(por100*alvo/c[campo]*100)/100,
+      tem:temNaDespensa(n), epoca:daEpoca(n)});
+  });
+  return out.sort((a,b)=>a.custo-b.custo);
+}
+function cartaoProteinaBarata(){
+  const l=custoNutriente('p',20);
+  if(l.length<4) return '';
+  return `<div class="card secgap" data-col="mer-proteina">
+    <h2>Proteína ao preço certo ${dica('proteinaPreco')}</h2>
+    <p class="sub">Quanto custa uma dose de 20 g de proteína em cada coisa que compras — pelos teus preços e pela composição do INSA.</p>
+    ${barrasCusto(l.slice(0,10),'€ por 20 g de proteína')}
+    <p class="sub" style="margin-top:8px">Preço de produto cru: não desconta osso, espinha nem o que se perde a cozinhar.
+      ${l.length<12? 'Só entram os '+l.length+' ingredientes com preço escrito — quantos mais preços, mais útil.' : ''}</p>
+  </div>`;
+}
+function barrasCusto(l,rot){
+  if(!l.length) return '';
+  const max=Math.max.apply(null,l.map(x=>x.custo))||1;
+  return `<div style="margin-top:10px">${l.map(x=>`
+    <div class="row" style="align-items:center;gap:8px;margin-top:5px">
+      <span class="sub" style="flex:none;min-width:0;max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.n)}${x.tem?' ✓':''}${x.epoca?' 🌱':''}</span>
+      <span class="mbar" style="flex:1;height:12px"><span style="display:block;height:100%;width:${(x.custo/max*100).toFixed(1)}%;background:var(--accent);border-radius:inherit"></span></span>
+      <span class="sub" style="flex:none;font-variant-numeric:tabular-nums">${nPT(x.custo,2)} €</span>
+    </div>`).join('')}
+    <p class="sub" style="margin-top:6px">${esc(rot)}</p></div>`;
+}
+
+/* ================= O TALÃO DO MÊS =================
+   O orçamento semanal diz se esta semana passou do teto; nenhum ecrã dizia se
+   a casa está a gastar mais do que gastava, nem quanto custa de facto pôr um
+   prato na mesa — que é o número que se compara de cabeça com «encomendar».
+   Tudo derivado do que já existe; nenhum campo novo. */
+function talaoDoMes(ym){
+  const mes=ym||hojeISO().slice(0,7);
+  let gasto=0, sem=0, refs=0;
+  Object.keys(S.bought||{}).forEach(wk=>{
+    const guarda=S.week; S.week=wk;
+    let items=[]; try{ items=shoppingItems().items; }catch(e){}
+    S.week=guarda;
+    items.forEach(it=>{
+      if(!(S.bought[wk]||{})[it.n+'|'+it.u]) return;
+      /* a compra pertence ao mês da semana em que foi marcada */
+      if(wk.slice(0,7)!==mes) return;
+      const p=precoDe(it.n); if(!p){ sem++; return; }
+      const c=custoLinha(it,p); if(c===null){ sem++; return; }
+      gasto+=c;
+    });
+  });
+  (S.regRef||[]).forEach(r=>{ if(r.estado==='feita' && r.d.slice(0,7)===mes) refs++; });
+  let lixo=0;
+  (S.desperdicio||[]).forEach(d=>{
+    if(d.d.slice(0,7)!==mes) return;
+    const rec=RECIPES.find(x=>x.id===d.r); if(!rec) return;
+    const c=custoReceita(rec, d.doses||1);
+    lixo+=c.total;
+  });
+  return {mes, gasto:Math.round(gasto*100)/100, sem, refs,
+    porRefeicao: refs? Math.round(gasto/refs*100)/100 : null,
+    lixo:Math.round(lixo*100)/100,
+    pctLixo: gasto>0? Math.round(lixo/gasto*100) : null};
+}
+function cartaoTalaoMes(){
+  const agora=talaoDoMes();
+  if(!agora.gasto) return '';
+  const antes=[1,2,3].map(k=>{
+    const d=new Date(agora.mes+'-15T12:00:00'); d.setMonth(d.getMonth()-k);
+    return talaoDoMes(iso(d).slice(0,7));
+  }).filter(x=>x.gasto>0);
+  const media=antes.length? antes.reduce((t,x)=>t+x.gasto,0)/antes.length : null;
+  const dif=media? Math.round((agora.gasto-media)/media*100) : null;
+  /* meses com cobertura de preços muito diferente não se comparam: dizê-lo é
+     melhor do que apresentar uma tendência que é só ruído de cobertura */
+  const compara = dif!==null && antes.every(x=>Math.abs(x.sem-agora.sem)<=Math.max(3,agora.sem*0.5));
+  return `<div class="card secgap" data-col="des-talao">
+    <h2>O talão do mês ${dica('talaoMes')}</h2>
+    <div class="row" style="margin-top:8px">
+      <div class="stat"><b>${nPT(agora.gasto,2)} €</b><span>este mês</span></div>
+      ${agora.porRefeicao!==null? `<div class="stat"><b>${nPT(agora.porRefeicao,2)} €</b><span>por refeição servida</span></div>`:''}
+      ${agora.pctLixo!==null? `<div class="stat"><b style="color:var(--${agora.pctLixo>5?'warn':'ok'})">${agora.pctLixo}%</b><span>foi para o lixo</span></div>`:''}
+      ${compara? `<div class="stat"><b style="color:var(--${dif>0?'warn':'ok'})">${dif>0?'+':''}${dif}%</b><span>contra os meses antes</span></div>`:''}
+    </div>
+    <p class="sub" style="margin-top:10px">${textoTalaoMes(agora,compara?dif:null,antes.length)}</p>
+  </div>`;
+}
+function textoTalaoMes(a,dif,nAntes){
+  const p=[];
+  p.push('Em '+nomeMes(parseInt(a.mes.slice(5,7),10))+' a comida custou '+nPT(a.gasto,2)+' €'
+    +(dif!==null? ', '+(dif>0? nPT(dif,0)+'% mais' : nPT(-dif,0)+'% menos')+' que a média dos '+nAntes+' meses anteriores' : '')+'.');
+  if(a.porRefeicao!==null) p.push('Foram '+nPT(a.porRefeicao,2)+' € por refeição servida.');
+  if(a.pctLixo!==null && a.lixo>0) p.push(nPT(a.pctLixo,0)+'% do que se comprou acabou no lixo — '+nPT(a.lixo,2)+' €.');
+  if(a.sem) p.push(plural(a.sem,'1 item comprado ficou sem preço','$n itens comprados ficaram sem preço').replace('$n',a.sem)+', por isso a conta é por baixo.');
+  if(dif===null && nAntes) p.push('Não se compara com os meses anteriores: a cobertura de preços mudou demasiado entre eles.');
+  return p.join(' ');
+}
+function nomeMes(m){ return ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'][m-1]||''; }
+/* A linha de vida do preço de um ingrediente, do tamanho de uma palavra. Só
+   aparece com três registos — com dois, uma «tendência» é um acidente. */
+function sparkPreco(nome){
+  const h=histPreco(nome); if(h.length<3) return '';
+  const v=h.map(x=>x.v), mn=Math.min.apply(null,v), mx=Math.max.apply(null,v);
+  const amp=(mx-mn)||1, L=54, A=16;
+  const pts=v.map((y,i)=>[(i/(v.length-1)*(L-2)+1).toFixed(1), (A-2-(y-mn)/amp*(A-4)).toFixed(1)]);
+  const c=precoContraCostume(nome);
+  const cor=c&&c.estado==='abaixo'? 'var(--ok)' : c&&c.estado==='acima'? 'var(--warn)' : 'var(--mut)';
+  const tit=nome+': '+v.length+' preços, de '+nPT(mn,2)+' € a '+nPT(mx,2)+' €'
+    +(c? '. Hoje '+(c.estado==='igual'? 'no teu costume' : c.pct+'% '+c.estado+' do teu costume ('+nPT(c.med,2)+' €)') : '');
+  return `<svg class="spark-preco" viewBox="0 0 ${L} ${A}" width="${L}" height="${A}" role="img" aria-label="${esc(tit)}"><title>${esc(tit)}</title>
+    <polyline points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="${cor}" stroke-width="1.5"
+      stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+    <circle cx="${pts[pts.length-1][0]}" cy="${pts[pts.length-1][1]}" r="2" fill="${cor}"/></svg>`;
+}
+
 /* O género do prato já pesava nas sugestões mas não se sentia na interface.
    Isto leva o inverno e o verão até ao prato: vapor a subir de um cozido em
    janeiro, condensação numa salada em agosto. */
@@ -16605,6 +17088,9 @@ function renderCompras(){
   <textarea id="co-txt" style="display:none;max-width:640px;margin-top:12px" readonly aria-label="Lista de compras em texto"></textarea>
   <p class="sub" style="margin-top:12px">Quantidades = receita por pessoa × nº de comensais em cada refeição (membros em cheat day não contam nesse dia).</p>
   ${cartaoFaltaComprar(items)}
+  ${cartaoTrocasBaratas(dates)}
+  ${cartaoProteinaBarata()}
+  ${cartaoTalaoMes()}
   ${cartaoPalpites()}`;
 }
 /* ===== ONDE PESA O TALÃO =====
@@ -16824,11 +17310,22 @@ function guardarComprasConf(){
     const nome=chave.split('|')[0];
     if(nome){ S.despensa[nome]=true; n++; }
   });
+  /* os preços escritos com o talão na mão entram agora no histórico, com a
+     data de hoje — é este o momento em que eles existem */
+  let np=0;
+  Object.keys(mo.precos||{}).forEach(nome=>{
+    const v=parseFloat(String(mo.precos[nome]).replace(',','.'));
+    if(!isFinite(v)||v<=0) return;
+    const antes=(S.precos||{})[nome];
+    if(antes && antes.v===Math.round(v*100)/100 && (antes.hist||[]).some(x=>x.d===hojeISO())) return;
+    setPreco(nome,v); np++;
+  });
   S.ui.modal=null;
-  if(!n){ saveMeta(); return render(); }
+  if(!n && !np){ saveMeta(); return render(); }
   save(plural(n,'item comprado','itens comprados'));
   render();
-  flash('ok', plural(n,'item passou','itens passaram')+' para a despensa.');
+  flash('ok', plural(n,'item passou','itens passaram')+' para a despensa.'
+    +(np? ' '+plural(np,'preço guardado','preços guardados')+' no histórico.' : ''));
 }
 function modalComprasHtml(mo){
   const guarda=S.week; S.week=mo.wk;
@@ -16847,15 +17344,94 @@ function modalComprasHtml(mo){
       </div>
       <ul class="shop" style="margin-top:10px">${items.map(it=>{
         const chave=it.n+'|'+it.u, on=!!mo.marcados[chave];
+        const un=unidadeDe(it.n), rot=un==='g'?'€/kg':un==='ml'?'€/L':'€/'+un;
+        const p=precoDe(it.n), esc1=esc(chave).replace(/'/g,'&#39;');
         return `<li class="${on?'done':''}"><label><input type="checkbox" ${on?'checked':''}
-          onchange="toggleCompraConf('${esc(chave).replace(/'/g,'&#39;')}')">
-          <span>${esc(it.n)} <span class="q">${fmtQ(it)}</span></span></label></li>`;}).join('')}</ul>
+          onchange="toggleCompraConf('${esc1}')">
+          <span>${esc(it.n)} <span class="q">${fmtQ(it)}</span></span></label>
+          <span class="preco"><input type="number" min="0" step="0.01" inputmode="decimal"
+            value="${(mo.precos&&mo.precos[it.n]!==undefined)? mo.precos[it.n] : (p? p.v : '')}"
+            placeholder="—" aria-label="Preço de ${esc(it.n)} em ${rot}"
+            oninput="precoTalao('${esc(it.n).replace(/'/g,'&#39;')}',this.value)"><span class="sub">${rot}</span></span>
+        </li>`;}).join('')}</ul>
+      ${(function(){
+        /* ---- Passar o talão ----
+           O calcanhar de Aquiles de todo o módulo de preços é a entrada de
+           dados: ninguém abre a despensa para escrever preços. O único
+           momento em que uma pessoa tem o talão na mão e dois minutos mortos
+           é logo a seguir às compras — e é exatamente quando a app já lhe
+           está a perguntar «compraste isto?». Juntar as duas perguntas custa
+           zero fricção. Tudo opcional: quem só quer confirmar, confirma. */
+        const c=contaTalao(mo,items);
+        return `<div class="talao">
+          <div class="row" style="align-items:center;gap:8px">
+            <label for="talao-total" class="lbl" style="margin:0">Quanto deu o talão?</label>
+            <input id="talao-total" type="number" min="0" step="0.01" inputmode="decimal" style="max-width:110px"
+              value="${mo.total!==undefined? mo.total : ''}" placeholder="opcional"
+              oninput="totalTalaoAoVivo(this.value)" onchange="totalTalaoGuarda(this.value)">
+            <span class="sub">€</span>
+          </div>
+          <p class="sub" id="talao-conta" style="margin-top:6px">${textoContaTalao(c)}</p>
+        </div>`;
+      })()}
       <div class="row" style="margin-top:14px;justify-content:flex-end">
         <button class="btn ghost" onclick="fecharModal()">Ainda não comprei</button>
         <button class="btn" onclick="guardarComprasConf()">Passar para a despensa</button>
       </div>
     </div></div>`;
 }
+/* A conta do talão: previsto contra pago, e onde está a diferença. Nunca
+   adivinha — o que não tem preço fica contado à parte, dito por extenso. */
+function contaTalao(mo,items){
+  let previsto=0, sem=0; const porSeccao={};
+  (items||[]).forEach(it=>{
+    if(!mo.marcados[it.n+'|'+it.u]) return;
+    const escrito=mo.precos&&mo.precos[it.n]!==undefined? parseFloat(String(mo.precos[it.n]).replace(',','.')) : null;
+    const p=(isFinite(escrito)&&escrito>0)? {v:escrito,u:unidadeDe(it.n)} : precoDe(it.n);
+    if(!p){ sem++; return; }
+    const c=custoLinha(it,p);
+    if(c===null){ sem++; return; }
+    previsto+=c;
+    const s=CATS[grupoDoItem(it)][0]; porSeccao[s]=(porSeccao[s]||0)+c;
+  });
+  const total=parseFloat(String(mo.total===undefined?'':mo.total).replace(',','.'));
+  return {previsto:Math.round(previsto*100)/100, sem,
+    total:isFinite(total)&&total>0? Math.round(total*100)/100 : null, porSeccao};
+}
+function textoContaTalao(c){
+  if(c.total===null) return c.previsto>0
+    ? 'Pelos preços que já tens, esta compra deve dar cerca de '+nPT(c.previsto,2)+' €'
+      +(c.sem? ' — '+plural(c.sem,'item sem preço','itens sem preço')+', por isso a conta é por baixo.' : '.')
+    : 'Escreve os preços ao lado de cada item e a app faz a conta — e guarda-os para a semana que vem.';
+  const dif=Math.round((c.total-c.previsto)*100)/100;
+  const maior=Object.keys(c.porSeccao).sort((a,b)=>c.porSeccao[b]-c.porSeccao[a])[0];
+  if(c.previsto<=0) return 'Talão de '+nPT(c.total,2)+' €. Sem preços registados não dá para dizer onde ele pesa — escreve alguns ao lado dos itens.';
+  if(Math.abs(dif)<0.5) return 'Previa '+nPT(c.previsto,2)+' €, pagaste '+nPT(c.total,2)+' € — bateu certo.';
+  return 'Previa '+nPT(c.previsto,2)+' €, pagaste '+nPT(c.total,2)+' € — '
+    +(dif>0? nPT(dif,2)+' € a mais' : nPT(-dif,2)+' € a menos')+'. '
+    +(c.sem? 'A diferença está sobretudo em '+plural(c.sem,'1 item sem preço registado','$n itens sem preço registado').replace('$n',c.sem)+(maior? ' e na secção '+maior : '')+'.'
+           : (maior? 'A secção que mais pesa é '+maior+'.' : ''));
+}
+function precoTalao(nome,v){
+  const mo=modalAberto(); if(!mo) return;
+  if(!mo.precos) mo.precos={};
+  mo.precos[nome]=v;
+  /* ao vivo só se reescreve a linha da conta — um render aqui roubava o
+     cursor a quem está a escrever o preço seguinte */
+  const guarda=S.week; S.week=mo.wk;
+  const items=shoppingItems().items.filter(it=>mo.marcados[it.n+'|'+it.u]!==undefined);
+  S.week=guarda;
+  põe('talao-conta', textoContaTalao(contaTalao(mo,items)));
+}
+function totalTalaoAoVivo(v){
+  const mo=modalAberto(); if(!mo) return;
+  mo.total=v;
+  const guarda=S.week; S.week=mo.wk;
+  const items=shoppingItems().items.filter(it=>mo.marcados[it.n+'|'+it.u]!==undefined);
+  S.week=guarda;
+  põe('talao-conta', textoContaTalao(contaTalao(mo,items)));
+}
+function totalTalaoGuarda(v){ totalTalaoAoVivo(v); saveMeta(); }
 
 /* A Mercearia: duas vistas dos mesmos dados, com o comutador no topo. O fluxo
    natural (ver o que falta → comprar → arrumar) acontece sem trocar de
@@ -16938,7 +17514,8 @@ function renderDespensa(){
             val&&!S.ui.validades? ` <span class="tag ${classeValidade(dv)}" title="Validade: ${rotuloData(val)}">${rotuloValidade(dv)}</span>`:''}</span></label>${
           S.ui.precos? `<span class="preco"><input type="number" min="0" step="0.01" inputmode="decimal"
             value="${p? p.v : ''}" placeholder="—" aria-label="Preço de ${esc(nome)} em ${rot}"
-            onchange="guardarPreco('${esc(nome).replace(/'/g,'&#39;')}',this.value)"><span class="sub">${rot}</span></span>`:''}${
+            onchange="guardarPreco('${esc(nome).replace(/'/g,'&#39;')}',this.value)"><span class="sub">${rot}</span>${
+            sparkPreco(nome)}</span>`:''}${
           S.ui.validades? `<span class="preco"><input type="date" max="${iso(new Date(Date.now()+5*365*24*3600*1000))}"
             value="${val||''}" aria-label="Validade de ${esc(nome)}"
             onchange="guardarValidade('${esc(nome).replace(/'/g,'&#39;')}',this.value)">${
