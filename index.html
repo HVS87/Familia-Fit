@@ -1507,6 +1507,8 @@ function migraRegistos(s){
   s.diario = limparDiario(s.diario, ids);
   s.cozPref = limparCozPref(s.cozPref);
   s.rituais = limparRituais(s.rituais); s.extras = limparExtras(s.extras); s.aindaHa = limparAindaHa(s.aindaHa);
+  s.visitas = limparVisitas(s.visitas); s.ementas = limparEmentas(s.ementas);
+  s.anos = limparAnos(s.anos, ids); s.provas = limparProvas(s.provas, ids);
   /* Os dois filtros eram uma escolha só e passaram a listas. Uma cópia antiga
      traz uma string, e uma string tem .indexOf — passaria sem dar erro e
      filtraria por letras em vez de por dietas. */
@@ -1826,9 +1828,11 @@ const MAX_AC=3;   /* acompanhamentos por prato: passado isto deixa de ser acompa
    ainda está na zona morta temporal nesse momento — o que dava um ecrã em
    branco, sem nada na consola, a quem tivesse um jejum guardado. */
 const JEJUM_MAX_H=8*24;
-/* Quantos preços se guardam por ingrediente na memória de talão. Vive aqui
-   pela mesma razão dos dois de cima: limparPrecos() corre no arranque. */
+/* Quantos preços se guardam por ingrediente na memória de talão, e quantas
+   visitas cabem no livro. Vivem aqui pela mesma razão dos dois de cima: os
+   saneadores que os leem correm no arranque, dentro de migraRegistos(). */
 const PRECO_HIST_MAX=40;
+const VISITA_MAX=12;
 function nomeRefeicao(k){ if(k==='ac') return 'Acompanhamento';
   const m=MEALS.find(x=>x[0]===k); return m? m[1] : k; }
 
@@ -5932,6 +5936,10 @@ function blank(){ return {members:[],cheats:{},plans:{},bought:{},prefCuisine:'t
   /* rituais: o que a casa confirmou sobre os seus proprios ritmos. extras: o
      que se juntou a mao a lista de compras de uma semana. */
   rituais:{}, extras:{}, aindaHa:{},
+  /* visitas: quem se senta a mesa com regularidade sem viver ca. ementas: a
+     ementa da casa para cada festa, por ano. anos: o prato que cada um
+     escolheu no dia dos anos. provas: a reintroducao de alimentos recusados. */
+  visitas:[], ementas:{}, anos:{}, provas:{},
   /* jejum: im é o horário por pessoa (intermitente), pontuais são os jejuns
      com data marcada. Os dois contam para o alvo do dia e para a projeção. */
   jejum:{im:{}, pontuais:[], renutricao:{}, renutRecusada:{}},
@@ -6035,7 +6043,8 @@ function instantaneo(){ return JSON.stringify({members:S.members, cheats:S.cheat
   receitas:S.receitas, medicoes:S.medicoes, regAtiv:S.regAtiv, regRef:S.regRef,
   sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa, pausas:S.pausas, diario:S.diario, cozPref:S.cozPref,
   validades:S.validades, veredictos:S.veredictos, brigada:S.brigada, desperdicio:S.desperdicio,
-  gostos:S.gostos, jejum:S.jejum, combos:S.combos, rituais:S.rituais, extras:S.extras, aindaHa:S.aindaHa}); }
+  gostos:S.gostos, jejum:S.jejum, combos:S.combos, rituais:S.rituais, extras:S.extras, aindaHa:S.aindaHa,
+  visitas:S.visitas, ementas:S.ementas, anos:S.anos, provas:S.provas}); }
 function aplicaInstantaneo(js){
   const d=JSON.parse(js);
   S.members=d.members; S.cheats=d.cheats; S.plans=d.plans; S.bought=d.bought;
@@ -6058,6 +6067,7 @@ function aplicaInstantaneo(js){
   S.gostos=d.gostos&&typeof d.gostos==='object'? d.gostos : {};
   S.combos=limparCombos(d.combos);
   S.rituais=limparRituais(d.rituais); S.extras=limparExtras(d.extras); S.aindaHa=limparAindaHa(d.aindaHa);
+  S.visitas=limparVisitas(d.visitas); S.ementas=limparEmentas(d.ementas); S.anos=limparAnos(d.anos); S.provas=limparProvas(d.provas);
   S.jejum=limparJejum(d.jejum, S.members.map(m=>m.id));
   sincronizaReceitas(); sincronizaCombos();
   S.members.forEach(normalizaMembro);
@@ -7332,6 +7342,11 @@ const DICAS={
   marmitas:'Qualquer almoço se pode marcar «em marmita», pessoa a pessoa. Na véspera à noite o cartão «Hoje» lembra-o, com a dose já escalada a cada um, os alergénios da escola assinalados e as sobras disponíveis para a encher.',
   epoca:'Que ingredientes estão na época em Portugal, este mês — carapau no verão, grelos no inverno, cereja em junho. A tabela é local e o selo muda sozinho com o calendário: comprar na época é mais barato, mais fresco e mais saboroso.',
   custo:'Os preços são os do teu talão — a app nunca inventa um cêntimo. Com eles estima o custo por dose de cada receita, o da semana e o talão previsto da lista de compras, dizendo sempre quantos itens ficaram por preço. Cada preço escrito fica com a data: ao fim de três, aparece ao lado uma linha com a história dele, e a app passa a saber dizer se o preço de hoje está abaixo ou acima do costume desta casa.',
+  visitas:'Os convidados de uma refeição criam-se e deitam-se fora — servem para quem vem uma vez só. O livro de visitas é para quem volta sempre: a avó do almoço de domingo, o padrinho, o melhor amigo do filho. A alergia dela fica escrita uma vez, em vez de se reescrever todas as semanas com o risco de um dia ficar por marcar. Uma visita não é um membro: não tem alvos, nem pesagens, nem nutrição — tem nome, cara, o que não pode comer e um hábito de aparecer. Marcada numa refeição, conta nas doses, nas compras e sobretudo nos alertas de alergénio, como qualquer pessoa da casa.',
+  festas:'O calendário gastronómico português — Reis, Carnaval, Páscoa, os Santos Populares, S. Martinho, a Consoada, o Ano Novo — e, por cima dele, a ementa que ESTA casa repete em cada um. Há casas de bacalhau cozido e casas de polvo, e essa memória perde-se quando quem a guardava já cá não está. As datas móveis saem do mesmo cálculo astronómico que já serve a Quaresma: o Carnaval são 47 dias antes da Páscoa. No ano seguinte a app pergunta se se repete.',
+  pratoAnos:'Em Portugal quem faz anos escolhe o jantar, e a app passa a honrar essa lei não escrita. A data de nascimento já cá estava a envelhecer o perfil sozinha; agora avisa uma semana antes. A lista filtra só pelas alergias da mesa — o teto de calorias fica de fora, que é festa — e a escolha fica no plano, intocável pelo preenchimento automático. Ano após ano, o perfil ganha a linha dos anos: uma infância contada em jantares.',
+  provas:'O conflito alimentar mais desgastante de uma casa com crianças é o prato recusado, e a resposta instintiva — desistir ou forçar — falha das duas maneiras. A abordagem é a do manual da DGS «Alimentação Saudável dos 0 aos 6 anos»: oferecer outra vez, em pequena quantidade, sem pressão, ao lado de um prato seguro. A app faz o que os pais exaustos não conseguem — lembrar-se e contar. Mas não fixa um número de tentativas, porque a fonte também não o fixa, e uma meta inventada transformava paciência em pressão. Alergias nunca entram aqui: isso é assunto do médico.',
+  discordia:'Hoje o conflito de gostos é resolvido em silêncio pelo algoritmo: o prato que uns adoram e outros recusam simplesmente deixa de aparecer, e o pai fica sem a sua feijoada sem saber a quem reclamar. Este cartão torna o desacordo visível e negociável — com as caras dos dois lados e saídas concretas. Quando há rejeições que cheguem, a app tenta dizer qual é o ingrediente em causa cruzando o que essa pessoa rejeita noutros pratos; quando não há amostra, di-lo em vez de acusar o ingrediente errado.',
   rituais:'As casas portuguesas têm ritmos que ninguém escreveu em lado nenhum — o peixe à sexta, a sopa todos os dias, o assado ao domingo. A app repara neles nas refeições que já confirmaste e propõe-nos; um ritmo só passa a valer quando a família diz que sim, e descarta-se com um toque. Confirmado, o preenchimento automático dá vantagem aos pratos que o cumprem — mas sempre depois de as alergias, as dietas e o teto de calorias já terem decidido. Um ritual nunca põe na mesa um prato que alguém não pode comer.',
   compasso:'Monotonia numa casa não é repetir; é repetir antes do tempo. A sopa pode ser diária e o cozido mensal, e por isso a app mede o compasso de cada prato — a mediana dos intervalos com que ESTA casa o repete, com o maior intervalo posto de lado para as férias não estragarem a conta. Um prato que volta antes do seu compasso desce nas sugestões; um que já passou dele sobe. E os favoritos que caíram no esquecimento, acima do dobro do compasso, ganham um sítio próprio — é a perda mais silenciosa de um receituário de família.',
   ritmoCompra:'A falta que dá mais trabalho é a dos básicos que «há sempre»: ninguém verifica o azeite antes de fritar. A app mede o intervalo com que cada mantimento volta à lista de compras e avisa quando esse intervalo está a fechar-se. É uma estimativa do histórico e não uma medição da garrafa — «ainda há» adia a pergunta duas semanas e a app aprende com isso. Precisa de três compras registadas para dizer alguma coisa.',
@@ -8393,6 +8408,9 @@ function marmitasDeAmanha(){
    saem sozinhos quando a data passa, sem poluir a família com perfis fantasma. */
 function convidadosDe(meal){ return (meal&&Array.isArray(meal.conv))? meal.conv : []; }
 function nConvidados(meal){ return convidadosDe(meal).reduce((t,c)=>t+(parseInt(c.n,10)||0),0); }
+/* Quantas bocas mais a mesa tem sem ter perfil: convidados de uma vez e
+   visitas do livro. Doses, compras e alertas contam-nas a todas. */
+function nExtraMesa(meal){ return nConvidados(meal)+visitasDe(meal).length; }
 function addConvidado(di,mk,tipo){
   const meal=planMeal(di,mk);
   if(!Array.isArray(meal.conv)) meal.conv=[];
@@ -8417,12 +8435,432 @@ function toggleAlergiaConvidado(di,mk,cid,k){
 }
 /* Um convidado com alergias comporta-se como um membro para efeito de
    sugestões e alertas — mas só naquela refeição. */
+/* Toda a gente à mesa que não tem perfil próprio: os convidados de uma vez e
+   as visitas do livro. Entram nos alertas de alergénio e nas sugestões como
+   qualquer comensal — que é o único ponto de os registar. */
 function membrosVirtuais(meal){
   return convidadosDe(meal).filter(c=>(c.al||[]).length).map(c=>({
     id:'conv_'+c.id, nome: c.t==='crianca'? 'Convidada' : 'Convidado',
     sexo:'f', idade: c.t==='crianca'? 8:40, altura:170, peso:70,
     atividade:'sedentario', desloc:'nenhum', desportos:[], dieta:'equilibrada',
-    objetivoPct:0, restricoes:(c.al||[]).slice(), convidado:true}));
+    objetivoPct:0, restricoes:(c.al||[]).slice(), convidado:true}))
+   .concat(membrosDeVisita(meal));
+}
+
+/* ================= O LIVRO DE VISITAS =================
+   Os convidados que já existem criam-se e deitam-se fora — servem para o
+   almoço de sábado com gente que não volta. Mas a mesa de domingo de uma casa
+   portuguesa raramente é só o agregado: a avó vem todas as semanas, o padrinho
+   ao almoço de domingo, o melhor amigo do filho ao lanche de quarta. Obrigar a
+   reescrever a alergia ao marisco da avó todas as semanas não é só maçador —
+   é o caminho mais curto para um dia ela ficar por marcar.
+
+   Uma visita não é um membro: não tem alvos, nem pesagens, nem nutrição. Tem
+   nome, cara, o que não pode comer, e um hábito de aparecer. */
+/* VISITA_MAX está declarado lá em cima, com o MAX_AC: limparVisitas() corre no
+   arranque, a partir de migraRegistos(). */
+function visitasCfg(){ if(!Array.isArray(S.visitas)) S.visitas=[]; return S.visitas; }
+function visitaPorId(id){ return visitasCfg().find(v=>v.id===id)||null; }
+function limparVisitas(a){
+  if(!Array.isArray(a)) return [];
+  return a.slice(0,VISITA_MAX).map(v=>{
+    if(!v||typeof v!=='object') return null;
+    const nome=String(v.nome||'').trim().slice(0,40); if(!nome) return null;
+    const al=(Array.isArray(v.al)? v.al : []).filter(k=>temChave(RESTR,k)).slice(0,20);
+    const di=Number.isFinite(+v.di)&&+v.di>=0&&+v.di<=6? +v.di : null;
+    return {id:limparId(v.id), nome, emoji:String(v.emoji||'🧑').slice(0,4),
+      cor:/^#[0-9a-f]{6}$/i.test(String(v.cor||''))? v.cor : AVCOLORS[0],
+      al, di, mk: MEALK.indexOf(v.mk)>=0? v.mk : null,
+      crianca: !!v.crianca};
+  }).filter(Boolean);
+}
+function addVisita(){
+  const l=visitasCfg();
+  if(l.length>=VISITA_MAX) return flash('warn','Doze visitas chegam para uma casa — apaga uma para juntar outra.');
+  l.push({id:uid(), nome:'Visita', emoji:'🧑', cor:AVCOLORS[l.length%AVCOLORS.length], al:[], di:null, mk:null, crianca:false});
+  save('visita nova'); render();
+}
+function setVisita(id,campo,v){
+  const x=visitaPorId(id); if(!x) return;
+  if(campo==='nome') x.nome=String(v).slice(0,40);
+  else if(campo==='emoji') x.emoji=String(v).slice(0,4);
+  else if(campo==='cor') x.cor=v;
+  else if(campo==='crianca') x.crianca=!!v;
+  else if(campo==='di') x.di=(v===''||v===null)? null : clampNum(parseInt(v,10),0,6);
+  else if(campo==='mk') x.mk=MEALK.indexOf(v)>=0? v : null;
+  save('visita'); render();
+}
+function setVisitaAoVivo(id,campo,v){
+  const x=visitaPorId(id); if(!x) return;
+  if(campo==='nome') x.nome=String(v).slice(0,40);
+  põe('vis-nome-'+id, esc(x.nome));
+}
+function toggleAlergiaVisita(id,k){
+  const x=visitaPorId(id); if(!x||!temChave(RESTR,k)) return;
+  const i=x.al.indexOf(k);
+  if(i>=0) x.al.splice(i,1); else x.al.push(k);
+  save('alergias da visita'); render();
+}
+function delVisita(id){
+  const x=visitaPorId(id); if(!x) return;
+  if(!confirm('Apagar a visita «'+x.nome+'»? As refeições onde ela está marcada deixam de a contar.')) return;
+  S.visitas=visitasCfg().filter(v=>v.id!==id);
+  /* e sai das mesas onde estava sentada */
+  Object.values(S.plans||{}).forEach(sem=>Object.values(sem).forEach(dia=>MEALK.forEach(mk=>{
+    const m=dia[mk]; if(m&&Array.isArray(m.vis)) m.vis=m.vis.filter(v=>v!==id); })));
+  save('visita apagada'); render();
+}
+/* Quem está sentado nesta refeição, do livro de visitas. */
+function visitasDe(meal){
+  if(!meal||!Array.isArray(meal.vis)) return [];
+  return meal.vis.map(visitaPorId).filter(Boolean);
+}
+function toggleVisitaNaMesa(di,mk,id){
+  const meal=planMeal(di,mk);
+  if(!Array.isArray(meal.vis)) meal.vis=[];
+  const i=meal.vis.indexOf(id);
+  if(i>=0) meal.vis.splice(i,1); else meal.vis.push(id);
+  save('visita à mesa'); render();
+}
+/* Uma visita entra nas contas como comensal de pleno direito: nas doses, nas
+   compras e — sobretudo — nos alertas de alergénio. É esse o ponto todo. */
+function membrosDeVisita(meal){
+  return visitasDe(meal).filter(v=>v.al.length).map(v=>({
+    id:'vis_'+v.id, nome:v.nome, sexo:'f', idade:v.crianca?8:40, altura:170, peso:70,
+    atividade:'sedentario', desloc:'nenhum', desportos:[], dieta:'equilibrada',
+    objetivoPct:0, restricoes:v.al.slice(), convidado:true}));
+}
+/* A visita que costuma vir amanhã, para o «Hoje» poder perguntar. */
+function visitasEsperadas(data){
+  const di=(new Date(data+'T12:00:00').getDay()+6)%7;
+  return visitasCfg().filter(v=>v.di===di);
+}
+
+/* ================= AS FESTAS DA CASA =================
+   As datas em que mais se cozinha e mais gente se senta à mesa, e que a app
+   tratava como uma quarta-feira qualquer. Por cima do calendário, a ementa que
+   ESTA casa repete: há casas de bacalhau cozido e casas de polvo, e essa
+   memória perde-se quando quem a guardava já cá não está.
+   As datas móveis saem do mesmo algoritmo de Meeus que já serve a Quaresma. */
+const FESTAS_PT=[
+  {k:'reis',    n:'Dia de Reis',        md:'01-06', i:'👑'},
+  {k:'carnaval',n:'Carnaval',           movel:'carnaval', i:'🎭'},
+  {k:'pascoa',  n:'Páscoa',             movel:'pascoa', i:'🐑'},
+  {k:'stoantonio',n:'Santo António',    md:'06-13', i:'🌿'},
+  {k:'sjoao',   n:'São João',           md:'06-24', i:'🔨'},
+  {k:'spedro',  n:'São Pedro',          md:'06-29', i:'🐟'},
+  {k:'smartinho',n:'São Martinho',      md:'11-11', i:'🌰'},
+  {k:'consoada',n:'Consoada',           md:'12-24', i:'🎄'},
+  {k:'natal',   n:'Dia de Natal',       md:'12-25', i:'🎁'},
+  {k:'anonovo', n:'Ano Novo',           md:'01-01', i:'🥂'},
+];
+function dataDaFesta(f,ano){
+  if(f.movel==='pascoa') return domingoDePascoa(ano);
+  /* Carnaval é 47 dias antes da Páscoa — a terça-feira gorda */
+  if(f.movel==='carnaval') return addDias(domingoDePascoa(ano),-47);
+  return ano+'-'+f.md;
+}
+function proximasFestas(dias){
+  const lim=dias||10, h=hojeISO(), ano=+h.slice(0,4), out=[];
+  FESTAS_PT.forEach(f=>{
+    [ano,ano+1].forEach(a=>{
+      const d=dataDaFesta(f,a), falta=diasEntre(h,d);
+      if(falta>=0 && falta<=lim) out.push({f, data:d, falta, ano:a});
+    });
+  });
+  return out.sort((a,b)=>a.falta-b.falta);
+}
+function ementaCfg(){ if(!S.ementas||typeof S.ementas!=='object') S.ementas={}; return S.ementas; }
+function ementaDe(k,ano){ return (ementaCfg()[k+'|'+ano]||[]).slice(); }
+function ementaAnterior(k,ano){
+  for(let a=ano-1;a>=ano-6;a--){ const e=ementaDe(k,a); if(e.length) return {ano:a, pratos:e}; }
+  return null;
+}
+function toggleNaEmenta(k,ano,rid){
+  const c=ementaCfg(), chave=k+'|'+ano;
+  if(!Array.isArray(c[chave])) c[chave]=[];
+  const i=c[chave].indexOf(rid);
+  if(i>=0) c[chave].splice(i,1); else if(c[chave].length<8) c[chave].push(rid);
+  save('ementa da festa'); render();
+}
+function limparEmentas(o,acha){
+  const out={};
+  if(!o||typeof o!=='object') return out;
+  Object.keys(o).slice(0,120).forEach(k=>{
+    if(!/^[a-z]{3,12}\|\d{4}$/.test(k)) return;
+    const l=(Array.isArray(o[k])? o[k]:[]).filter(id=>typeof id==='string' && (acha? acha(id) : true)).slice(0,8);
+    if(l.length) out[k]=l;
+  });
+  return out;
+}
+function cartaoFestas(){
+  const prox=proximasFestas(12);
+  if(!prox.length) return '';
+  const p=prox[0], ant=ementaAnterior(p.f.k,p.ano), atual=ementaDe(p.f.k,p.ano);
+  const comem=S.members;
+  const sugestoes=RECIPES.filter(r=>!ehCombo(r)&&!ehAcompanhamento(r)&&r.coz==='portuguesa')
+    .filter(r=>compatAll(r,comem))
+    .sort((a,b)=>saldoGostos(b.id,comem)-saldoGostos(a.id,comem)).slice(0,6);
+  return `<div class="card card--capa secgap" id="festas" data-col="pla-festas">
+    <span class="lbl">${p.falta===0? 'É hoje' : p.falta===1? 'É amanhã' : 'Daqui a '+p.falta+' dias'}</span>
+    <h2 style="margin-top:2px">${p.f.i} ${esc(p.f.n)} ${dica('festas')}</h2>
+    ${ant? `<p class="sub">Em ${ant.ano} a ementa foi ${ant.pratos.map(id=>{const r=RECIPES.find(x=>x.id===id);return r?esc(r.n):'—';}).join(', ')}.
+      ${atual.length? '' : botaoRepetirEmenta(p.f.k,p.ano,ant.ano)}</p>`
+     : `<p class="sub">A ementa desta casa para esta festa ainda não está escrita. Escolhe os pratos e no ano que vem a app lembra-se.</p>`}
+    ${atual.length? `<p class="sub" style="margin-top:8px"><b>Este ano:</b> ${
+        atual.map(id=>chipDaEmenta(p.f.k,p.ano,id)).join('')}</p>`:''}
+    <details style="margin-top:8px"><summary class="sub" style="cursor:pointer">Juntar um prato à ementa</summary>
+      <div class="row" style="margin-top:8px">${sugestoes.map(r=>
+        `<button class="chip" onclick="toggleNaEmenta('${p.f.k}',${p.ano},'${r.id}')">${esc(r.n)}</button>`).join('')}</div>
+      <p class="sub" style="margin-top:6px">Só pratos que servem as dietas e as alergias de quem cá vive. Para outros, usa a pesquisa e abre a ficha.</p>
+    </details>
+  </div>`;
+}
+/* Estes dois saem para funções próprias porque montar HTML com aspas dentro
+   de aspas dentro de um template literal é a receita mais rápida para partir
+   o ficheiro inteiro — e já partiu uma vez. */
+function botaoRepetirEmenta(k,ano,deAno){
+  return `<button class="chip" onclick="repetirEmenta('${k}',${ano},${deAno})">Repete-se</button>`;
+}
+function chipDaEmenta(k,ano,rid){
+  const r=RECIPES.find(x=>x.id===rid); if(!r) return '';
+  return `<span class="chip on" style="margin:2px 4px 2px 0">${esc(r.n)}<button
+    style="background:none;border:none;cursor:pointer;color:inherit;padding:0 0 0 4px"
+    onclick="toggleNaEmenta('${k}',${ano},'${rid}')" aria-label="Tirar ${esc(r.n)} da ementa">✕</button></span>`;
+}
+function repetirEmenta(k,ano,deAno){
+  const e=ementaDe(k,deAno); if(!e.length) return;
+  ementaCfg()[k+'|'+ano]=e.slice();
+  save('ementa repetida'); render();
+  flash('ok','A ementa de '+deAno+' voltou.',{rot:'Anular',fn:'desfazer()'});
+}
+
+/* ================= O PRATO DE ANOS =================
+   Em Portugal quem faz anos escolhe o jantar. A app já sabe as datas de
+   nascimento — envelhece os perfis sozinha — mas o dia dos anos, o ritual
+   alimentar mais universal de uma família, passava-lhe ao lado. */
+function diasAteAnos(m){
+  const meses=idadeMeses(m); if(!Number.isFinite(meses)) return null;
+  const nasc=m.nasc; if(!dataValida(nasc)) return null;
+  const h=hojeISO(), ano=+h.slice(0,4);
+  let d=ano+'-'+nasc.slice(5);
+  if(!dataValida(d)) return null;
+  if(d<h) d=(ano+1)+'-'+nasc.slice(5);
+  return {dias:diasEntre(h,d), data:d, faz:(+d.slice(0,4))-(+nasc.slice(0,4))};
+}
+function aniversariosProximos(dias){
+  const lim=dias||8;
+  return S.members.map(m=>({m, a:diasAteAnos(m)}))
+    .filter(x=>x.a && x.a.dias<=lim).sort((a,b)=>a.a.dias-b.a.dias);
+}
+function pratoDeAnosCfg(){ if(!S.anos||typeof S.anos!=='object') S.anos={}; return S.anos; }
+function pratoDeAnos(mid,ano){ return (pratoDeAnosCfg()[mid]||[]).find(x=>x.ano===ano)||null; }
+function setPratoDeAnos(mid,ano,rid){
+  const c=pratoDeAnosCfg();
+  if(!Array.isArray(c[mid])) c[mid]=[];
+  const i=c[mid].findIndex(x=>x.ano===ano);
+  if(i>=0) c[mid][i].r=rid; else c[mid].push({ano, r:rid});
+  c[mid].sort((a,b)=>a.ano-b.ano);
+  save('prato de anos'); render();
+}
+function limparAnos(o,ids,acha){
+  const out={};
+  if(!o||typeof o!=='object') return out;
+  Object.keys(o).slice(0,32).forEach(mid=>{
+    if(ids && ids.indexOf(mid)<0) return;
+    /* «ano» aqui é a IDADE que se fez — «6: lasanha, 7: pizza» é a linha dos
+       anos de uma criança, não uma lista de anos civis. */
+    const l=(Array.isArray(o[mid])? o[mid]:[]).map(x=>{
+      if(!x||typeof x!=='object') return null;
+      const ano=parseInt(x.ano,10); if(!(ano>=0&&ano<=120)) return null;
+      if(typeof x.r!=='string'||!x.r) return null;
+      if(acha && !acha(x.r)) return null;
+      return {ano, r:x.r};
+    }).filter(Boolean).slice(0,40);
+    if(l.length) out[mid]=l;
+  });
+  return out;
+}
+function cartaoAniversario(){
+  const l=aniversariosProximos(8);
+  if(!l.length) return '';
+  const x=l[0], ja=pratoDeAnos(x.m.id, x.a.faz);
+  const comem=S.members;
+  /* é festa: o teto de calorias não manda aqui, só as alergias */
+  const cand=receitasDe('j').filter(r=>compatAll(r,comem))
+    .sort((a,b)=>saldoGostos(b.id,[x.m])-saldoGostos(a.id,[x.m])).slice(0,6);
+  return `<div class="card secgap" id="anos" data-col="pla-anos">
+    <h2>🎂 ${esc(nomeCurto(x.m))} faz ${x.a.faz} ${x.a.dias===0?'hoje':x.a.dias===1?'amanhã':'em '+x.a.dias+' dias'} ${dica('pratoAnos')}</h2>
+    ${ja? `<p class="sub">O jantar escolhido é <b>${esc((RECIPES.find(r=>r.id===ja.r)||{n:'—'}).n)}</b>. Está no plano e o preenchimento automático não lhe toca.</p>`
+    : `<p class="sub">Quem faz anos escolhe o jantar. Só as alergias da mesa filtram a lista — o teto de calorias fica de fora, que é festa.</p>
+      <div class="row" style="margin-top:8px">${cand.map(r=>
+        `<button class="chip" onclick="setPratoDeAnos('${x.m.id}',${x.a.faz},'${r.id}')">${esc(r.n)}</button>`).join('')}</div>`}
+    ${(pratoDeAnosCfg()[x.m.id]||[]).length>1? `<p class="sub" style="margin-top:10px"><b>A linha dos anos:</b> ${
+      (pratoDeAnosCfg()[x.m.id]||[]).map(y=>{const r=RECIPES.find(z=>z.id===y.r);return y.ano+': '+(r?esc(r.n):'—');}).join(' · ')}</p>`:''}
+  </div>`;
+}
+
+/* ================= A MESA DAS PROVAS =================
+   O conflito alimentar mais desgastante de uma casa com crianças é o prato
+   recusado, e a resposta instintiva — desistir ou forçar — falha das duas
+   maneiras. O manual da DGS «Alimentação Saudável dos 0 aos 6 anos» fala da
+   necessidade de oferecer um alimento novo várias vezes; NÃO fixa um número,
+   e por isso a app também não o fixa. Conta as provas e cala-se sobre metas. */
+function provasCfg(){ if(!S.provas||typeof S.provas!=='object') S.provas={}; return S.provas; }
+function provasDe(mid,ing){ return ((provasCfg()[mid]||{})[ing]||[]).slice(); }
+function registarProva(mid,ing,resultado){
+  const c=provasCfg();
+  if(!c[mid]) c[mid]={};
+  if(!Array.isArray(c[mid][ing])) c[mid][ing]=[];
+  c[mid][ing].push({d:hojeISO(), r:resultado});
+  if(c[mid][ing].length>40) c[mid][ing].shift();
+  /* provou e gostou: o «não gosto» sai, e é uma pequena festa */
+  if(resultado==='gostou'){
+    const m=S.members.find(x=>x.id===mid);
+    if(m && Array.isArray(m.restricoes)){
+      const i=m.restricoes.indexOf(ing); if(i>=0) m.restricoes.splice(i,1);
+    }
+  }
+  save('prova de '+ing.toLowerCase()); render();
+  if(resultado==='gostou') flash('ok','Boa! '+ing+' deixou de ser um não. Isto fica escrito.');
+}
+function limparProvas(o,ids){
+  const out={}, h=hojeISO();
+  if(!o||typeof o!=='object') return out;
+  Object.keys(o).slice(0,32).forEach(mid=>{
+    if(ids && ids.indexOf(mid)<0) return;
+    const dentro={};
+    Object.keys(o[mid]||{}).slice(0,120).forEach(ing=>{
+      if(!temChave(NUTRI,ing)) return;
+      const l=(Array.isArray(o[mid][ing])? o[mid][ing]:[]).map(x=>{
+        if(!x||typeof x!=='object'||!dataValida(x.d)||x.d>h) return null;
+        if(['provou','recusou','gostou'].indexOf(x.r)<0) return null;
+        return {d:x.d, r:x.r};
+      }).filter(Boolean).slice(-40);
+      if(l.length) dentro[ing]=l;
+    });
+    if(Object.keys(dentro).length) out[mid]=dentro;
+  });
+  return out;
+}
+/* Os candidatos a prova: o que esta criança marcou como não-come e que não é
+   uma alergia — uma alergia não se «reintroduz» numa app. */
+function candidatosAProva(m){
+  if(!m||!Array.isArray(m.restricoes)) return [];
+  return m.restricoes.filter(k=>!ehAlergenio(k) && temChave(NUTRI,k));
+}
+function cartaoProvas(m){
+  if(!m || faseDe(m)!=='crianca') return '';
+  const cand=candidatosAProva(m);
+  const comProvas=Object.keys((provasCfg()[m.id]||{}));
+  if(!cand.length && !comProvas.length) return '';
+  const lista=cand.length? cand : comProvas;
+  return `<div class="card secgap" data-col="nu-provas">
+    <h2>A mesa das provas ${dica('provas')}</h2>
+    <p class="sub">Uma dose-mini ao lado de um prato seguro, sem substituir o jantar e sem drama. A app conta as vezes; não conta metas.</p>
+    ${lista.slice(0,5).map(ing=>{
+      const p=provasDe(m.id,ing), gostou=p.some(x=>x.r==='gostou');
+      return `<div class="row" style="margin-top:10px;align-items:center;gap:8px">
+        <span style="flex:1;min-width:0"><b>${esc(ing)}</b>
+          <span class="sub" style="display:block">${p.length? plural(p.length,'1 prova','$n provas').replace('$n',p.length)+(gostou?' · já gostou 🎉':'') : 'ainda sem provas'}</span></span>
+        <button class="chip" style="flex:none" onclick="registarProva('${m.id}','${esc(ing).replace(/'/g,'&#39;')}','provou')">Provou</button>
+        <button class="chip" style="flex:none" onclick="registarProva('${m.id}','${esc(ing).replace(/'/g,'&#39;')}','recusou')">Recusou</button>
+        <button class="chip" style="flex:none" onclick="registarProva('${m.id}','${esc(ing).replace(/'/g,'&#39;')}','gostou')">Gostou!</button>
+      </div>`;}).join('')}
+    <p class="sub" style="margin-top:10px">Alergias nunca entram aqui — isso é assunto do médico, não de uma app. Fonte da abordagem: DGS, «Alimentação Saudável dos 0 aos 6 anos». O número de tentativas não vem escrito em lado nenhum oficial, e por isso a app não o inventa.</p>
+  </div>`;
+}
+
+/* ================= HÁ UM ANO NESTA MESA =================
+   A app está sentada em cima de um álbum de família que ninguém folheia.
+   Devolver uma memória certeira no dia certo é o gesto que transforma uma
+   ferramenta num objeto de estimação. Zero estado novo: é tudo cálculo sobre
+   o que já está registado — com uma guarda essencial, que é não afirmar
+   «primeira vez» sobre dados anteriores ao início do registo. */
+/* A primeira refeição alguma vez registada. Nome próprio para não colidir com
+   primeiroRegisto(), que olha para o histórico todo (pesagens, treinos,
+   planos) e serve outra pergunta. */
+function primeiraRefeicaoRegistada(){
+  let min=null;
+  (S.regRef||[]).forEach(r=>{ if(!min||r.d<min) min=r.d; });
+  return min;
+}
+function memoriaDeHoje(){
+  const h=hojeISO(), ini=primeiraRefeicaoRegistada();
+  if(!ini) return null;
+  const cand=[];
+  [1,2,3].forEach(anos=>{
+    const alvo=(+h.slice(0,4)-anos)+h.slice(4);
+    if(!dataValida(alvo) || alvo<ini) return;
+    /* uma «primeira vez» só se pode afirmar se houver pelo menos um mês de
+       registo antes dela — senão é só o princípio do histórico */
+    (S.regRef||[]).filter(r=>r.d===alvo && r.estado==='feita').forEach(r=>{
+      const rec=RECIPES.find(x=>x.id===r.r); if(!rec) return;
+      const antes=(S.regRef||[]).some(y=>y.r===r.r && y.d<alvo);
+      const podeAfirmar=diasEntre(ini,alvo)>=30;
+      if(!antes && podeAfirmar) cand.push({peso:3, txt:'Há '+(anos===1?'um ano':anos+' anos')+' comeram '+rec.n.toLowerCase()+' pela primeira vez.'});
+      const v=(S.veredictos||[]).find(x=>x.d===alvo && x.r===r.r && x.v==='rep');
+      if(v) cand.push({peso:2, txt:'Há '+(anos===1?'um ano':anos+' anos')+', '+rec.n.toLowerCase()+' foi dos pratos que a mesa quis repetir.'});
+    });
+    /* festas passadas */
+    FESTAS_PT.forEach(f=>{
+      const d=dataDaFesta(f,+alvo.slice(0,4));
+      if(d!==alvo) return;
+      const e=ementaDe(f.k,+alvo.slice(0,4));
+      if(e.length) cand.push({peso:4, txt:'Há '+(anos===1?'um ano':anos+' anos'), extra:', no '+f.n+', a mesa foi '+e.map(id=>{const r=RECIPES.find(x=>x.id===id);return r?r.n.toLowerCase():'';}).filter(Boolean).join(', ')+'.'});
+    });
+  });
+  if(!cand.length) return null;
+  cand.sort((a,b)=>b.peso-a.peso);
+  const m=cand[0];
+  return m.extra? m.txt+m.extra : m.txt;
+}
+
+/* ================= O PRATO DA DISCÓRDIA =================
+   Hoje o conflito de gostos é resolvido em silêncio pelo algoritmo: o prato
+   simplesmente deixa de aparecer, e o pai fica sem a sua feijoada sem saber a
+   quem reclamar. Tornar o desacordo visível e negociável é mais honesto do
+   que arbitrá-lo às escondidas. */
+function pratosDaDiscordia(){
+  const out=[];
+  Object.keys(S.gostos||{}).forEach(rid=>{
+    const g=S.gostos[rid]||{};
+    const amam=S.members.filter(m=>g[m.id]===1), odeiam=S.members.filter(m=>g[m.id]===-1);
+    if(!amam.length||!odeiam.length) return;
+    const r=RECIPES.find(x=>x.id===rid); if(!r) return;
+    /* o ingrediente polémico: o que este membro rejeita noutras receitas e que
+       também está nesta. Com amostra pequena não se acusa ninguém. */
+    let culpado=null;
+    const rejeitadas=Object.keys(S.gostos).filter(k=>(S.gostos[k]||{})[odeiam[0].id]===-1)
+      .map(k=>RECIPES.find(x=>x.id===k)).filter(Boolean);
+    if(rejeitadas.length>=3){
+      const cont={};
+      rejeitadas.forEach(x=>x.i.forEach(l=>{ cont[l[0]]=(cont[l[0]]||0)+1; }));
+      const nesta=r.i.map(l=>l[0]).filter(n=>cont[n]>=rejeitadas.length*0.8);
+      if(nesta.length===1) culpado=nesta[0];
+    }
+    out.push({r, amam, odeiam, culpado});
+  });
+  return out.slice(0,3);
+}
+function cartaoDiscordia(){
+  const l=pratosDaDiscordia();
+  if(!l.length) return '';
+  return `<div class="card secgap" data-col="pla-discordia">
+    <h2>Pratos que dividem a casa ${dica('discordia')}</h2>
+    <p class="sub">A app propõe; a mesa decide. Estes pratos não desaparecem em silêncio das sugestões — ficam aqui, com saídas.</p>
+    ${l.map(x=>`<div style="margin-top:12px">
+      <b>${esc(x.r.n)}</b>
+      <span class="sub" style="display:block">⭐ ${x.amam.map(m=>esc(nomeCurto(m))).join(', ')} · 🚫 ${x.odeiam.map(m=>esc(nomeCurto(m))).join(', ')}</span>
+      <div class="row" style="margin-top:6px">
+        ${x.culpado? `<button class="chip" onclick="abrirEditor('${x.r.id}')">Variante sem ${esc(x.culpado.toLowerCase())}</button>`:''}
+        <button class="chip" onclick="abrirFicha('${x.r.id}')">Ver a receita</button>
+      </div>
+      ${x.culpado? `<span class="sub" style="display:block;margin-top:4px">O que ${esc(nomeCurto(x.odeiam[0]))} costuma rejeitar nestes pratos é <b>${esc(x.culpado.toLowerCase())}</b>.</span>`
+        : `<span class="sub" style="display:block;margin-top:4px">Ainda não há rejeições que cheguem para dizer qual é o ingrediente em causa — a app prefere não adivinhar.</span>`}
+    </div>`).join('')}
+    <p class="sub" style="margin-top:10px">A rotativa de quem escolhe o jantar é a outra saída: esta semana à maneira de um, para a semana à do outro.</p>
+  </div>`;
 }
 
 /* ================= A FICHA DA RECEITA =================
@@ -9309,7 +9747,7 @@ function planoDeLote(){
   for(let di=0;di<7;di++) MEALK.forEach(mk=>{
     const meal=(w[di]||{})[mk]; if(!meal||!meal.r) return;
     const rec=RECIPES.find(x=>x.id===meal.r); if(!rec) return;
-    const n=S.members.filter(m=>meal.m.includes(m.id)&&!isCheat(m.id,dates[di])).length + nConvidados(meal);
+    const n=S.members.filter(m=>meal.m.includes(m.id)&&!isCheat(m.id,dates[di])).length + nExtraMesa(meal);
     if(!n) return;
     const acs=acompsDe(meal), q=acs.length?1/acs.length:0;
     const junta=(lista,fator)=>lista.forEach(([nome,quant,un])=>{
@@ -10811,7 +11249,7 @@ function planoFoodPrep(wk){
   for(let di=0;di<7;di++) MEALK.forEach(mk=>{
     const meal=(w[di]||{})[mk]; if(!meal||!meal.r) return;
     const rec=RECIPES.find(x=>x.id===meal.r); if(!rec) return;
-    const n=S.members.filter(m=>meal.m.includes(m.id)&&!isCheat(m.id,dates[di])).length + nConvidados(meal);
+    const n=S.members.filter(m=>meal.m.includes(m.id)&&!isCheat(m.id,dates[di])).length + nExtraMesa(meal);
     if(!n) return;
     const acs=acompsDe(meal), q=acs.length?1/acs.length:0, dob=fatorDobro(meal);
     const junta=(lista,fator)=>lista.forEach(([nome,quant,un])=>{
@@ -12082,9 +12520,51 @@ function renderFamilia(){
           <button class="chip" onclick="pickM('${mid}');go('nutricao')">→ macros de ${esc(m.nome.split(' ')[0])}</button>
         </div>
       </div>`;}).join('')}</div>
+    ${cartaoVisitas()}
     ${cartaoPeso()}
     ${cartaoResumoMes()}
     ${cartaoDiario()}`;
+}
+/* O livro de visitas vive por baixo dos perfis e não entre eles: são gente da
+   mesa, não gente da casa — sem alvos, sem pesagens, sem nutrição. */
+function cartaoVisitas(){
+  const l=visitasCfg();
+  return `<div class="card secgap" data-col="fam-visitas">
+    <div class="row" style="justify-content:space-between;align-items:flex-start">
+      <div><h2>Livro de visitas ${dica('visitas')}</h2>
+        <span class="sub">Quem se senta à mesa com regularidade sem viver cá — a alergia fica escrita uma vez.</span></div>
+      <button class="btn ghost small" style="flex:none" onclick="addVisita()">+ Visita</button>
+    </div>
+    ${!l.length? `<p class="sub" style="margin-top:10px">Sem visitas no livro. Para gente que vem uma vez só, usa os convidados na própria refeição do plano.</p>`
+    : `<div class="grid g2" style="margin-top:12px">${l.map(v=>`
+      <div class="card" style="border-color:${v.cor}">
+        <div class="row" style="justify-content:space-between;align-items:center;gap:8px">
+          <span style="font-size:22px;flex:none">${esc(v.emoji)}</span>
+          <input value="${esc(v.nome)}" aria-label="Nome da visita" style="flex:1;min-width:0"
+            oninput="setVisitaAoVivo('${v.id}','nome',this.value)" onchange="setVisita('${v.id}','nome',this.value)">
+          <button class="btn danger small" style="flex:none" onclick="delVisita('${v.id}')" aria-label="Apagar a visita ${esc(v.nome)}">✕</button>
+        </div>
+        <div class="emoji-grelha">${['🧓','👵','👴','🧑','👦','👧','🐣','🌻'].map(e=>
+          `<button class="emoji-op ${v.emoji===e?'on':''}" onclick="setVisita('${v.id}','emoji','${e}')" aria-label="Cara ${e}">${e}</button>`).join('')}</div>
+        <div class="cor-grelha">${AVCOLORS.map(c=>
+          `<button class="cor-op ${v.cor===c?'on':''}" style="background:${c}" onclick="setVisita('${v.id}','cor','${c}')" aria-label="Cor ${c}"></button>`).join('')}</div>
+        <label class="lbl" style="margin-top:10px">Costuma vir</label>
+        <div class="row">
+          <select style="width:auto" aria-label="Dia em que ${esc(v.nome)} costuma vir" onchange="setVisita('${v.id}','di',this.value)">
+            <option value="">— sem hábito —</option>
+            ${DAYN.map((d,i)=>`<option value="${i}" ${v.di===i?'selected':''}>${d}</option>`).join('')}</select>
+          <select style="width:auto" aria-label="Refeição em que ${esc(v.nome)} costuma vir" onchange="setVisita('${v.id}','mk',this.value)">
+            <option value="">—</option>
+            ${MEALS.map(([k,r])=>`<option value="${k}" ${v.mk===k?'selected':''}>${r}</option>`).join('')}</select>
+          <button class="chip ${v.crianca?'on':''}" onclick="setVisita('${v.id}','crianca',${!v.crianca})" aria-pressed="${v.crianca}">🧒 criança</button>
+        </div>
+        <label class="lbl" style="margin-top:10px">O que não pode comer ${dica('alergias')}</label>
+        <div class="row">${ALERGENIOS.map(([k,nome,ico])=>
+          `<button class="chip ${v.al.indexOf(k)>=0?'on':''}" onclick="toggleAlergiaVisita('${v.id}','${k}')"
+            aria-pressed="${v.al.indexOf(k)>=0}">${ico} ${esc(nome)}</button>`).join('')}</div>
+        ${v.al.length? `<p class="sub" style="margin-top:8px">Nas refeições onde ${esc(v.nome)} estiver marcada, estes alergénios entram nos alertas e nas sugestões como os de qualquer pessoa da casa.</p>`:''}
+      </div>`).join('')}</div>`}
+  </div>`;
 }
 /* A idade deixou de ser um slider: ou vem da data de nascimento e envelhece
    sozinha, ou se escreve à mão enquanto essa data não existir. */
@@ -16791,7 +17271,7 @@ function mealBlock(di,mk,label,date){
       ${r? `<option value="${r.id}" selected>${esc(r.n)} · ${r.k} kcal</option>`:''}
     </select>
     ${r&&(mk==='a'||mk==='j')? blocoAcomp(di,mk,acs,label) : ''}
-    ${r? blocoReceitaPlaneada(r,comem,mk,acs,nConvidados(meal)) : ''}
+    ${r? blocoReceitaPlaneada(r,comem,mk,acs,nExtraMesa(meal)) : ''}
     <div class="row" style="margin-top:7px">${members.map(m=>{
       const on=meal? meal.m.includes(m.id) : true, cheat=isCheat(m.id,date);
       return `<button class="chip ${on&&!cheat?'on':''}" ${cheat?'style="opacity:.45" title="Cheat day"':''}
@@ -16801,7 +17281,7 @@ function mealBlock(di,mk,label,date){
     ${r? blocoPorcoes(di,mk,meal,r) : ''}
     ${r&&(mk==='a'||mk==='j')? blocoMarmita(di,mk,meal,comem) : ''}
     ${r? `<div class="row" style="margin-top:8px">
-      <button class="btn ghost small" onclick="abrirCozinha('${r.id}',${comem.length+nConvidados(meal)},'${date}|${mk}')">👨‍🍳 Cozinhar</button>
+      <button class="btn ghost small" onclick="abrirCozinha('${r.id}',${comem.length+nExtraMesa(meal)},'${date}|${mk}')">👨‍🍳 Cozinhar</button>
       ${date<=hojeISO()? `<button class="btn ghost small" onclick="abrirFolhaMesa('${date}','${mk}')">✓ Quem comeu</button>`:''}
     </div>`:''}
   </div>`;
@@ -16811,7 +17291,15 @@ function mealBlock(di,mk,label,date){
    refeição, com o mesmo alerta a vermelho dos perfis. */
 function blocoConvidados(di,mk,meal){
   const conv=convidadosDe(meal), n=nConvidados(meal);
-  return `<div class="conv-linha">
+  const livro=visitasCfg(), naMesa=visitasDe(meal);
+  return `${livro.length? `<div class="conv-linha">
+    <span class="lbl" style="margin:0">Visitas ${dica('visitas')}</span>
+    ${livro.map(v=>{ const on=naMesa.some(x=>x.id===v.id);
+      return `<button class="chip ${on?'on':''}" onclick="toggleVisitaNaMesa(${di},'${mk}','${v.id}')"
+        aria-pressed="${on}">${esc(v.emoji)} ${esc(v.nome)}${v.al.length? ' <span class="tag alerg" title="'+esc(v.al.map(k=>RESTR[k].n).join(', '))+'">🚨</span>':''}</button>`;
+    }).join('')}
+  </div>`:''}
+  <div class="conv-linha">
     <span class="lbl" style="margin:0">Convidados ${dica('convidados')}</span>
     <button class="chip" onclick="addConvidado(${di},'${mk}','adulto')" aria-label="Juntar um adulto convidado">＋ adulto</button>
     <button class="chip" onclick="addConvidado(${di},'${mk}','crianca')" aria-label="Juntar uma criança convidada">＋ criança</button>
@@ -17426,7 +17914,10 @@ function renderPlano(){
   ${cartaoLote()}
   ${cartaoPartilhaRef()}
   ${cartaoSugestoes()}
+  ${cartaoFestaGastronomica()}
+  ${cartaoAniversario()}
   ${cartaoRituais()}
+  ${cartaoDiscordia()}
   ${cartaoAlbum()}
   ${cartaoEquilibrio(dates)}
   ${cartaoSemana(dates)}
@@ -17483,7 +17974,7 @@ function shoppingItems(){
     const r=RECIPES.find(x=>x.id===meal.r); if(!r) continue;
     /* os convidados comem do mesmo tacho: contam nas quantidades como qualquer
        pessoa à mesa, mesmo não tendo perfil */
-    const n=S.members.filter(m=>meal.m.includes(m.id)&&!isCheat(m.id,dates[di])).length + nConvidados(meal);
+    const n=S.members.filter(m=>meal.m.includes(m.id)&&!isCheat(m.id,dates[di])).length + nExtraMesa(meal);
     if(!n) continue; meals++;
     /* Dobrar dobra o PRATO; os acompanhamentos fazem-se frescos em cada dia —
        é assim na cozinha, e o lugar do acompanhamento já é um slot próprio.
@@ -18165,7 +18656,8 @@ function pacote(){
          receitas:S.receitas, medicoes:S.medicoes, regAtiv:S.regAtiv, regRef:S.regRef,
          sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa, pausas:S.pausas, diario:S.diario, cozPref:S.cozPref,
          validades:S.validades, veredictos:S.veredictos, brigada:S.brigada, desperdicio:S.desperdicio,
-         gostos:S.gostos, jejum:S.jejum, combos:S.combos, rituais:S.rituais, extras:S.extras, aindaHa:S.aindaHa}}; }
+         gostos:S.gostos, jejum:S.jejum, combos:S.combos, rituais:S.rituais, extras:S.extras, aindaHa:S.aindaHa,
+         visitas:S.visitas, ementas:S.ementas, anos:S.anos, provas:S.provas}}; }
 function textoCopia(){ return JSON.stringify(pacote(),null,2); }
 function marcarExportado(){ S.meta.exportadoEm=new Date().toISOString(); S.meta.semCopia=false; saveMeta(); }
 function nomeFicheiro(){ return 'familia-fit-'+iso(new Date())+'.json'; }
@@ -18329,6 +18821,7 @@ function lerPacote(txt){
     const dias=arr.filter(dataValida);
     if(dias.length) cheats[alvo]=(cheats[alvo]||[]).concat(dias);
   });
+  const visitas=limparVisitas(d.visitas);
   const plans={};
   if(d.plans && typeof d.plans==='object') Object.keys(d.plans).forEach(wk=>{
     if(!dataValida(wk)) return;
@@ -18350,6 +18843,10 @@ function lerPacote(txt){
           const al=(Array.isArray(c.al)? c.al : []).filter(k=>temChave(RESTR,k)&&ehAlergenio(k));
           return {id:limparId(c.id), t: c.t==='crianca'?'crianca':'adulto', n, al}; }).filter(Boolean).slice(0,8);
           if(cv.length) o.conv=cv; }
+        /* as visitas sentadas nesta refeição só valem se vierem no livro */
+        if(Array.isArray(r.vis)){
+          const vs=r.vis.filter(id=>typeof id==='string' && visitas.some(v=>v.id===id)).slice(0,8);
+          if(vs.length) o.vis=vs; }
         or[mk]=o; });
       if(Object.keys(or).length) od[di]=or;
     });
@@ -18417,6 +18914,11 @@ function lerPacote(txt){
   const diario=limparDiario(d.diario, idsOk);
   const cozPref=limparCozPref(d.cozPref);
   const rituais=limparRituais(d.rituais), extras=limparExtras(d.extras), aindaHa=limparAindaHa(d.aindaHa);
+  const ementas=limparEmentas(d.ementas,acha);
+  /* os anos e as provas são por pessoa: os ids remapeiam-se como tudo o resto */
+  const remapMapa=o=>{ const out={};
+    Object.keys(o||{}).forEach(mid0=>{ out[mapa[mid0]||mid0]=o[mid0]; }); return out; };
+  const anos=limparAnos(remapMapa(d.anos), idsOk, acha), provas=limparProvas(remapMapa(d.provas), idsOk);
   /* As estruturas novas passam pelo mesmo crivo das antigas: datas verificadas,
      ids remapeados para os perfis que sobreviveram à importação, e receitas
      que têm mesmo de existir deste lado. */
@@ -18452,7 +18954,7 @@ function lerPacote(txt){
   const combos=limparCombos(d.combos).filter(c=>acha(c.base) && c.ac.some(acha));
   return {d:{ members, cheats, plans, bought, objetivos, despensa, receitas,
               medicoes, regAtiv, regRef, sobras, precos, festas, casa, pausas, diario, cozPref,
-              validades, veredictos, brigada, desperdicio, gostos, jejum, combos, rituais, extras, aindaHa,
+              validades, veredictos, brigada, desperdicio, gostos, jejum, combos, rituais, extras, aindaHa, visitas, ementas, anos, provas,
               prefCuisine:temChave(CUIS,d.prefCuisine)?d.prefCuisine:'todas',
               week:dataValida(d.week)? mondayISO(new Date(d.week+'T12:00:00')) : mondayISO(new Date()) }};
 }
@@ -18714,7 +19216,7 @@ function cartaoAspeto(){
 /* As datas da casa que não são aniversários: Santo António, o aniversário de
    casamento, o dia em que se mudaram. Guarda-se dia e mês — o ano não
    interessa a uma data que se repete. */
-function cartaoFestas(){
+function cartaoFestaGastronomica(){
   return `<div class="card" data-col="dados-festas">
     <h3>Datas da casa ${dica('festas')}</h3>
     <p class="sub" style="margin-top:4px">Os aniversários já saem das datas de nascimento dos perfis. Aqui juntam-se as outras: nesses dias o cartão «Hoje» amanhece com enfeites e propõe marcar dia livre.</p>
