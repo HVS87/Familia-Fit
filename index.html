@@ -1506,6 +1506,7 @@ function migraRegistos(s){
   s.pausas = limparPausas(s.pausas, ids);
   s.diario = limparDiario(s.diario, ids);
   s.cozPref = limparCozPref(s.cozPref);
+  s.rituais = limparRituais(s.rituais); s.extras = limparExtras(s.extras); s.aindaHa = limparAindaHa(s.aindaHa);
   /* Os dois filtros eram uma escolha só e passaram a listas. Uma cópia antiga
      traz uma string, e uma string tem .indexOf — passaria sem dar erro e
      filtraria por letras em vez de por dietas. */
@@ -1552,6 +1553,28 @@ function limparPrecos(o){
 /* A validade é a data impressa na embalagem, escrita à mão por quem arrumou a
    compra. Aceita-se passado (é precisamente o que interessa assinalar) mas não
    um futuro absurdo: mais de cinco anos é gralha de quem escreveu o ano. */
+/* Rituais: a resposta da casa a um ritmo que a app propôs. A chave é
+   «dia|refeição|eixo» e o valor é sim, não ou sugerido — nada mais. */
+function limparRituais(o){
+  const out={};
+  if(!o||typeof o!=='object') return out;
+  Object.keys(o).slice(0,64).forEach(k=>{
+    if(!/^[0-6]\|[a-z]{1,3}\|[a-z]{3,14}$/.test(k)) return;
+    if(o[k]==='sim'||o[k]==='nao') out[k]=o[k];
+  });
+  return out;
+}
+/* Extras: nomes do catálogo juntos à mão à lista de uma semana. */
+function limparExtras(o){
+  const out={};
+  if(!o||typeof o!=='object') return out;
+  Object.keys(o).slice(0,60).forEach(wk=>{
+    if(!dataValida(wk)) return;
+    const l=(Array.isArray(o[wk])? o[wk] : []).filter(n=>typeof n==='string'&&temChave(NUTRI,n)).slice(0,40);
+    if(l.length) out[wk]=l;
+  });
+  return out;
+}
 function limparValidades(o){
   const out={};
   if(!o||typeof o!=='object') return out;
@@ -5906,6 +5929,9 @@ function blank(){ return {members:[],cheats:{},plans:{},bought:{},prefCuisine:'t
      escolhidos. Não guardam macros nem passos: isso recalcula-se sempre a
      partir das receitas, para uma correção na biblioteca chegar às variantes. */
   combos:[],
+  /* rituais: o que a casa confirmou sobre os seus proprios ritmos. extras: o
+     que se juntou a mao a lista de compras de uma semana. */
+  rituais:{}, extras:{}, aindaHa:{},
   /* jejum: im é o horário por pessoa (intermitente), pontuais são os jejuns
      com data marcada. Os dois contam para o alvo do dia e para a projeção. */
   jejum:{im:{}, pontuais:[], renutricao:{}, renutRecusada:{}},
@@ -6009,7 +6035,7 @@ function instantaneo(){ return JSON.stringify({members:S.members, cheats:S.cheat
   receitas:S.receitas, medicoes:S.medicoes, regAtiv:S.regAtiv, regRef:S.regRef,
   sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa, pausas:S.pausas, diario:S.diario, cozPref:S.cozPref,
   validades:S.validades, veredictos:S.veredictos, brigada:S.brigada, desperdicio:S.desperdicio,
-  gostos:S.gostos, jejum:S.jejum, combos:S.combos}); }
+  gostos:S.gostos, jejum:S.jejum, combos:S.combos, rituais:S.rituais, extras:S.extras, aindaHa:S.aindaHa}); }
 function aplicaInstantaneo(js){
   const d=JSON.parse(js);
   S.members=d.members; S.cheats=d.cheats; S.plans=d.plans; S.bought=d.bought;
@@ -6031,6 +6057,7 @@ function aplicaInstantaneo(js){
   S.desperdicio=Array.isArray(d.desperdicio)? d.desperdicio : [];
   S.gostos=d.gostos&&typeof d.gostos==='object'? d.gostos : {};
   S.combos=limparCombos(d.combos);
+  S.rituais=limparRituais(d.rituais); S.extras=limparExtras(d.extras); S.aindaHa=limparAindaHa(d.aindaHa);
   S.jejum=limparJejum(d.jejum, S.members.map(m=>m.id));
   sincronizaReceitas(); sincronizaCombos();
   S.members.forEach(normalizaMembro);
@@ -7305,6 +7332,13 @@ const DICAS={
   marmitas:'Qualquer almoço se pode marcar «em marmita», pessoa a pessoa. Na véspera à noite o cartão «Hoje» lembra-o, com a dose já escalada a cada um, os alergénios da escola assinalados e as sobras disponíveis para a encher.',
   epoca:'Que ingredientes estão na época em Portugal, este mês — carapau no verão, grelos no inverno, cereja em junho. A tabela é local e o selo muda sozinho com o calendário: comprar na época é mais barato, mais fresco e mais saboroso.',
   custo:'Os preços são os do teu talão — a app nunca inventa um cêntimo. Com eles estima o custo por dose de cada receita, o da semana e o talão previsto da lista de compras, dizendo sempre quantos itens ficaram por preço. Cada preço escrito fica com a data: ao fim de três, aparece ao lado uma linha com a história dele, e a app passa a saber dizer se o preço de hoje está abaixo ou acima do costume desta casa.',
+  rituais:'As casas portuguesas têm ritmos que ninguém escreveu em lado nenhum — o peixe à sexta, a sopa todos os dias, o assado ao domingo. A app repara neles nas refeições que já confirmaste e propõe-nos; um ritmo só passa a valer quando a família diz que sim, e descarta-se com um toque. Confirmado, o preenchimento automático dá vantagem aos pratos que o cumprem — mas sempre depois de as alergias, as dietas e o teto de calorias já terem decidido. Um ritual nunca põe na mesa um prato que alguém não pode comer.',
+  compasso:'Monotonia numa casa não é repetir; é repetir antes do tempo. A sopa pode ser diária e o cozido mensal, e por isso a app mede o compasso de cada prato — a mediana dos intervalos com que ESTA casa o repete, com o maior intervalo posto de lado para as férias não estragarem a conta. Um prato que volta antes do seu compasso desce nas sugestões; um que já passou dele sobe. E os favoritos que caíram no esquecimento, acima do dobro do compasso, ganham um sítio próprio — é a perda mais silenciosa de um receituário de família.',
+  ritmoCompra:'A falta que dá mais trabalho é a dos básicos que «há sempre»: ninguém verifica o azeite antes de fritar. A app mede o intervalo com que cada mantimento volta à lista de compras e avisa quando esse intervalo está a fechar-se. É uma estimativa do histórico e não uma medição da garrafa — «ainda há» adia a pergunta duas semanas e a app aprende com isso. Precisa de três compras registadas para dizer alguma coisa.',
+  detetive:'O diário de desperdício deixa de ser só espelho: quando um ingrediente vai parar ao lixo repetidamente, a app di-lo onde a decisão se toma, que é na lista de compras. Toda a gente sabe que deita coentros fora; ninguém se lembra disso na loja. Só fala com um mínimo de amostra — três compras e duas idas ao lixo nas últimas doze semanas.',
+  resgate:'As validades já ordenavam o que comer primeiro, mas de forma passiva. Isto põe um valor em euros na urgência — «o requeijão está a acabar» é um encolher de ombros, «tens 2,30 € a expirar» é uma decisão — e fecha o ciclo num toque: as receitas que gastam mais desses ingredientes de uma vez, prontas a entrar num jantar ainda vazio da semana. O valor conta uma embalagem típica por item e diz quantos ficaram sem preço.',
+  album:'A app avalia cada semana passada com números que já tinha: quanto do plano se cumpriu tal como estava escrito, quantas idas ao lixo houve, e o que a mesa achou. As melhores ficam num álbum, e «fazer outra vez» copia-a para a semana atual — passando tudo pelas dietas e alergias de agora, porque uma semana boa de março pode ter deixado de servir esta casa. Só entram semanas com pelo menos oito refeições planeadas: uma semana quase vazia não é uma semana boa, é uma semana sem dados.',
+  doTalao:'Muita casa planeia ao contrário da app: primeiro compra-se o que estava bem de preço na peixaria, depois decide-se o que se cozinha. Isto fecha o sentido inverso. A partir do que acabaste de marcar como comprado, a app preenche os dias ainda vazios gastando primeiro o que estraga primeiro — o peixe fresco já, a mercearia para o fim da semana — e diz o que ficou de fora.',
   trocasBaratas:'As mesmas trocas de cozinha que a app propõe quando falta um ingrediente, aplicadas agora ao que pesa no talão: cavala em vez de salmão no mesmo prato do forno, frango em vez de novilho no estufado. Só entram pares com preço registado dos dois lados, e o cartão diz quantos ingredientes ficaram de fora — a poupança possível é sempre maior do que a mostrada. Aplicar cria uma variante da casa: a receita original fica intacta, os macros recalculam-se do catálogo, e uma troca nunca traz um alergénio marcado nesta casa.',
   proteinaPreco:'Quanto custa uma dose de 20 g de proteína em cada coisa que compras, cruzando a composição do INSA com os preços do teu talão. Quando o orçamento aperta, a primeira coisa que se corta é a proteína cara — e este número mostra com nomes concretos que se come a mesma proteína por um terço do preço. O preço é de produto cru: não desconta osso, espinha nem o que se perde a cozinhar, e a app di-lo em vez de fingir precisão.',
   talaoMes:'O orçamento semanal diz se esta semana passou do teto; isto diz se a casa está a gastar mais do que gastava. Três números que não existiam: o total do mês, o custo por refeição efetivamente servida — o número que se compara de cabeça com encomendar comida — e a percentagem do talão que acabou no lixo. A comparação com os meses anteriores só aparece quando a cobertura de preços foi parecida; se mudou muito, a app recusa-se a comparar em vez de apresentar ruído como tendência.',
@@ -9799,6 +9833,487 @@ function pesquisaHtml(){
     </div></div>`;
 }
 function fundoPesquisa(e){ if(e&&e.target&&e.target.classList.contains('mfundo')) fecharPesquisa(); }
+
+/* ================= O QUE A CASA ENSINA À APP =================
+   Tudo o que se segue é aprendizagem local sobre registos que já existem:
+   nenhum campo novo, nenhuma chamada de rede, nenhum modelo. São medianas e
+   contagens sobre o que esta casa fez — e por isso a app pode explicar cada
+   número em português, que é o que a distingue de uma caixa preta.
+
+   Duas regras atravessam a secção: nada fala sem amostra mínima, e nada do
+   que se aprende passa à frente de uma alergia, de uma dieta ou de um teto de
+   calorias. O que se aprende é preferência, não regra. */
+
+/* ---- O compasso dos pratos ----
+   Monotonia numa casa não é repetir; é repetir antes do tempo. A sopa pode ser
+   diária e o cozido mensal — um prazo fixo igual para todos erra nos dois
+   sentidos. O compasso de um prato é a mediana dos intervalos com que esta
+   casa o repete, com poda dos extremos: férias e mudanças de vida deixam
+   buracos que, sem poda, davam compassos absurdos. */
+const _compasso={}; let _compassoSelo=null;
+function compassosDaCasa(){
+  const selo=(S.regRef||[]).length+'|'+((S.regRef||[])[(S.regRef||[]).length-1]||{}).d;
+  if(_compassoSelo===selo) return _compasso;
+  _compassoSelo=selo;
+  Object.keys(_compasso).forEach(k=>delete _compasso[k]);
+  const porReceita={};
+  (S.regRef||[]).forEach(r=>{ if(r.estado!=='feita'||!r.r) return;
+    (porReceita[r.r]=porReceita[r.r]||{})[r.d]=1; });
+  Object.keys(porReceita).forEach(rid=>{
+    const datas=Object.keys(porReceita[rid]).sort();
+    if(datas.length<3) return;
+    const ints=[]; for(let i=1;i<datas.length;i++) ints.push(diasEntre(datas[i-1],datas[i]));
+    ints.sort((a,b)=>a-b);
+    /* poda: fora o maior intervalo quando há de onde tirar, que é onde as
+       férias e as doenças se escondem */
+    const poda=ints.length>=4? ints.slice(0,-1) : ints;
+    const med=poda.length%2? poda[(poda.length-1)/2]
+      : Math.round((poda[poda.length/2-1]+poda[poda.length/2])/2);
+    _compasso[rid]={dias:Math.max(1,med), n:datas.length, ultima:datas[datas.length-1]};
+  });
+  return _compasso;
+}
+function compassoDe(rid){ return compassosDaCasa()[rid]||null; }
+/* Multiplicador para a pontuação das sugestões: abaixo de 1 antes do compasso,
+   sobe até um teto depois dele. Sem compasso, não interfere. */
+function fatorCompasso(rid){
+  const c=compassoDe(rid); if(!c) return 1;
+  const desde=diasEntre(c.ultima,hojeISO());
+  if(desde<0) return 1;
+  return Math.max(0.25, Math.min(1.6, desde/c.dias));
+}
+/* Os pratos amados que caíram no esquecimento: acima do dobro do compasso. */
+function esquecidos(membros){
+  const c=compassosDaCasa(), h=hojeISO(), out=[];
+  Object.keys(c).forEach(rid=>{
+    const r=RECIPES.find(x=>x.id===rid); if(!r) return;
+    const desde=diasEntre(c[rid].ultima,h);
+    if(desde < c[rid].dias*2) return;
+    const saldo=saldoGostos(rid,membros||S.members);
+    out.push({r, desde, compasso:c[rid].dias, saldo});
+  });
+  return out.sort((a,b)=>(b.saldo-a.saldo) || (b.desde/b.compasso - a.desde/a.compasso)).slice(0,8);
+}
+
+/* ---- Os dias frágeis ----
+   Um plano que ignora o cansaço real da casa ensina a família a ignorar o
+   plano. A app já sabe onde ele quebra: as confirmações e as substituições
+   estão registadas. Nos buracos, põe pratos à prova de cansaço em vez do
+   prato ambicioso que vai falhar outra vez.
+   O decaimento temporal é essencial: sem ele, um mês atípico marcava a quinta
+   como frágil para sempre. */
+const FRAGIL_MIN=4, FRAGIL_LIMIAR=0.5;
+function slotsFrageis(){
+  const h=hojeISO(), out={};
+  const peso=d=>{ const s=diasEntre(d,h); return s<=28? 1 : s<=56? 0.6 : 0.3; };
+  const acc={};
+  (S.regRef||[]).forEach(r=>{
+    const s=diasEntre(r.d,h); if(s<0||s>84) return;
+    const di=(new Date(r.d+'T12:00:00').getDay()+6)%7;   /* segunda = 0 */
+    const k=di+'|'+r.mk;
+    const a=acc[k]=acc[k]||{n:0, bom:0};
+    const w=peso(r.d);
+    a.n+=w;
+    if(r.estado==='feita' && !r.subst) a.bom+=w;
+  });
+  Object.keys(acc).forEach(k=>{
+    if(acc[k].n<FRAGIL_MIN) return;
+    const taxa=acc[k].bom/acc[k].n;
+    if(taxa<FRAGIL_LIMIAR) out[k]={taxa:Math.round(taxa*100), n:Math.round(acc[k].n)};
+  });
+  return out;
+}
+function ehSlotFragil(di,mk){ return !!slotsFrageis()[di+'|'+mk]; }
+/* Um prato «à prova de cansaço»: pouco trabalho de mãos, despensa quase
+   completa e sem rejeições à mesa. */
+function resistente(r){
+  const p=PASSOS[r.id]||[];
+  const mins=p.reduce((t,x)=>t+(x[2]||0),0);
+  const d=disponibilidadeReceita(r);
+  return mins<=25 && (d.total? d.tem/d.total>=0.7 : true);
+}
+
+/* ---- Rituais da casa ----
+   As casas portuguesas têm ritmos que ninguém escreveu: o peixe à sexta, o
+   cozido ao domingo. Aprendem-se do histórico e propõem-se para confirmação —
+   um ritmo só vale quando a família diz que sim. */
+const RITUAL_MIN=4, RITUAL_DOMINIO=0.6;
+function eixoDoPrato(r){
+  if(!r) return null;
+  const a=r.at||[];
+  if(a.indexOf('peixe')>=0||a.indexOf('crustaceos')>=0||a.indexOf('moluscos')>=0) return {k:'peixe', n:'peixe'};
+  if(a.indexOf('carne')>=0) return {k:'carne', n:'carne'};
+  if(categoriasDe(r).indexOf('sop')>=0) return {k:'sopa', n:'sopa'};
+  if((r.dc||[]).indexOf('vegetariana')>=0) return {k:'vegetariana', n:'prato vegetariano'};
+  return null;
+}
+function rituaisAprendidos(){
+  const acc={};
+  const h=hojeISO(), ini=addDias(h,-56);
+  (S.regRef||[]).forEach(r=>{
+    if(r.estado!=='feita'||r.d<ini) return;
+    if(r.mk!=='a'&&r.mk!=='j') return;
+    const rec=RECIPES.find(x=>x.id===r.r), e=eixoDoPrato(rec); if(!e) return;
+    const di=(new Date(r.d+'T12:00:00').getDay()+6)%7, k=di+'|'+r.mk;
+    const a=acc[k]=acc[k]||{n:0, eixos:{}};
+    a.n++; a.eixos[e.k]=(a.eixos[e.k]||0)+1;
+  });
+  const out=[];
+  Object.keys(acc).forEach(k=>{
+    const a=acc[k]; if(a.n<RITUAL_MIN) return;
+    const melhor=Object.keys(a.eixos).sort((x,y)=>a.eixos[y]-a.eixos[x])[0];
+    if(a.eixos[melhor]/a.n < RITUAL_DOMINIO) return;
+    const [di,mk]=k.split('|');
+    out.push({slot:k, di:+di, mk, eixo:melhor, n:a.eixos[melhor], total:a.n});
+  });
+  return out.sort((a,b)=>a.di-b.di);
+}
+function rituaisCfg(){ if(!S.rituais||typeof S.rituais!=='object') S.rituais={}; return S.rituais; }
+function estadoRitual(slot,eixo){ return rituaisCfg()[slot+'|'+eixo]||'sugerido'; }
+function setRitual(slot,eixo,v){
+  rituaisCfg()[slot+'|'+eixo]= (v==='sim'||v==='nao')? v : 'sugerido';
+  save('ritual da casa'); render();
+}
+function rituaisConfirmados(){
+  return rituaisAprendidos().filter(x=>estadoRitual(x.slot,x.eixo)==='sim');
+}
+/* Bónus de pontuação — pequeno de propósito, e sempre depois de a receita já
+   ter passado por alergias, dietas e teto. Cumprir um ritual não é razão para
+   pôr na mesa um prato que alguém não pode comer. */
+function bonusRitual(r,di,mk){
+  const e=eixoDoPrato(r); if(!e) return 0;
+  return rituaisConfirmados().some(x=>x.di===di && x.mk===mk && x.eixo===e.k)? 1.5 : 0;
+}
+
+/* ---- O azeite acaba para a semana ----
+   A falta que dá mais trabalho é a dos básicos que «há sempre». O ritmo de
+   compra de cada mantimento mede-se nas próprias marcações de comprado. */
+const RITMO_MIN_COMPRAS=3;
+function ritmoDeCompra(nome){
+  const semanas=[];
+  Object.keys(S.bought||{}).sort().forEach(wk=>{
+    if(!dataValida(wk)) return;
+    const marcou=Object.keys(S.bought[wk]||{}).some(ch=>ch.split('|')[0]===nome && S.bought[wk][ch]);
+    if(marcou) semanas.push(wk);
+  });
+  if(semanas.length<RITMO_MIN_COMPRAS) return null;
+  const ints=[]; for(let i=1;i<semanas.length;i++) ints.push(diasEntre(semanas[i-1],semanas[i]));
+  ints.sort((a,b)=>a-b);
+  const med=ints.length%2? ints[(ints.length-1)/2] : Math.round((ints[ints.length/2-1]+ints[ints.length/2])/2);
+  const desde=diasEntre(semanas[semanas.length-1],hojeISO());
+  return {mediana:Math.max(7,med), desde, ultima:semanas[semanas.length-1], n:semanas.length};
+}
+function deveEstarAAcabar(){
+  const out=[];
+  Object.keys(S.despensa||{}).forEach(nome=>{
+    if(!S.despensa[nome]) return;
+    if((S.aindaHa||{})[nome] && diasEntre(S.aindaHa[nome],hojeISO())<14) return;
+    const r=ritmoDeCompra(nome); if(!r) return;
+    if(r.desde < r.mediana*0.9) return;
+    out.push({nome, ritmo:r});
+  });
+  return out.sort((a,b)=>(b.ritmo.desde/b.ritmo.mediana)-(a.ritmo.desde/a.ritmo.mediana)).slice(0,6);
+}
+/* «Ainda há» não é uma preferência de ecrã: é um facto sobre a despensa desta
+   casa, e por isso vive no estado que vai na cópia de segurança e no desfazer,
+   e não em S.ui. Adiar num telemóvel tem de valer no tablet. */
+function aindaHa(nome){
+  if(!S.aindaHa||typeof S.aindaHa!=='object') S.aindaHa={};
+  S.aindaHa[nome]=hojeISO();
+  save('ainda há '+nome.toLowerCase()); render();
+  flash('ok','Combinado — a app volta a perguntar por '+nome.toLowerCase()+' daqui a duas semanas.',
+    {rot:'Anular', fn:'desfazer()'});
+}
+function limparAindaHa(o){
+  const out={}, h=hojeISO();
+  if(!o||typeof o!=='object') return out;
+  Object.keys(o).slice(0,200).forEach(n=>{
+    if(!temChave(NUTRI,n)) return;
+    if(!dataValida(o[n])||o[n]>h) return;
+    out[n]=o[n];
+  });
+  return out;
+}
+
+/* ---- O detetive do desperdício ----
+   Toda a gente sabe que deita coentros fora; ninguém se lembra disso na loja.
+   O padrão está registado num sítio e a decisão toma-se noutro. */
+function indiceDesperdicio(){
+  const ini=addDias(hojeISO(),-84), porIng={};
+  (S.desperdicio||[]).forEach(d=>{
+    if(d.d<ini || d.destino!=='lixo') return;
+    const rec=RECIPES.find(x=>x.id===d.r); if(!rec) return;
+    rec.i.forEach(l=>{ porIng[l[0]]=(porIng[l[0]]||0)+1; });
+  });
+  const compras={};
+  Object.keys(S.bought||{}).forEach(wk=>{ if(wk<ini) return;
+    Object.keys(S.bought[wk]||{}).forEach(ch=>{ if(!S.bought[wk][ch]) return;
+      const n=ch.split('|')[0]; compras[n]=(compras[n]||0)+1; }); });
+  const out=[];
+  Object.keys(porIng).forEach(n=>{
+    const c=compras[n]||0;
+    if(c<3 || porIng[n]<2) return;
+    out.push({nome:n, lixo:porIng[n], compras:c, razao:porIng[n]/c});
+  });
+  return out.filter(x=>x.razao>=0.4).sort((a,b)=>b.razao-a.razao);
+}
+
+/* ---- Missão resgate ----
+   O desperdício não acontece por ignorância, acontece por fricção: o
+   requeijão está no frigorífico, a receita está na app, e ninguém fez a ponte
+   na terça às sete. Pôr um valor em euros muda a decisão. */
+function missaoResgate(){
+  const urgentes=comerPrimeiro(7);
+  if(!urgentes.length) return null;
+  let valor=0, semPreco=0;
+  const nomes=urgentes.map(x=>x.n);
+  urgentes.forEach(x=>{
+    const p=precoDe(x.n);
+    if(!p){ semPreco++; return; }
+    /* sem quantidade guardada, conta-se uma embalagem típica: 250 g ou uma
+       unidade. Está dito no cartão que é uma ordem de grandeza. */
+    const un=unidadeDe(x.n);
+    valor += (un==='g'||un==='ml')? p.v*0.25 : p.v;
+  });
+  const cand=RECIPES.filter(r=>!ehCombo(r) && !ehAcompanhamento(r))
+    .map(r=>({r, usa:r.i.filter(l=>nomes.indexOf(l[0])>=0).length}))
+    .filter(x=>x.usa>0)
+    .filter(x=>compatAll(x.r,S.members))
+    .sort((a,b)=>b.usa-a.usa || disponibilidadeReceita(b.r).tem-disponibilidadeReceita(a.r).tem)
+    .slice(0,2);
+  const vazios=[];
+  const wk=planWeek();
+  for(let di=0;di<7;di++) MEALK.forEach(mk=>{
+    if((mk==='a'||mk==='j') && !(wk[di]&&wk[di][mk]&&wk[di][mk].r)) vazios.push({di,mk});
+  });
+  return {urgentes:urgentes.slice(0,3), valor:Math.round(valor*100)/100, semPreco, receitas:cand, vazios};
+}
+
+/* ---- Dobrar só o que a casa reaquece ----
+   Cozinhar em dobro só poupa tempo se a segunda metade se comer. */
+function taxaReaquecimento(rid){
+  let bom=0, mau=0;
+  (S.desperdicio||[]).forEach(d=>{ if(d.r!==rid) return;
+    if(d.destino==='lixo') mau++; else bom++; });
+  const n=bom+mau;
+  return n>=3? {taxa:bom/n, n} : null;
+}
+function valeADobra(rid){ const t=taxaReaquecimento(rid); return t? t.taxa>=0.7 : null; }
+
+/* ---- O álbum das semanas boas ----
+   «Usar como base» já existe, mas obriga a lembrar qual foi a semana boa. As
+   famílias não se lembram — a app tem os números para as encontrar. */
+function notaDaSemana(wk){
+  const dates=weekDates(wk);
+  let planeadas=0, cumpridas=0;
+  const plano=S.plans[wk]||{};
+  for(let di=0;di<7;di++) MEALK.forEach(mk=>{
+    const m=plano[di]&&plano[di][mk]; if(!m||!m.r) return;
+    planeadas++;
+    const fez=(S.regRef||[]).some(r=>r.d===dates[di] && r.mk===mk && r.r===m.r && r.estado==='feita');
+    if(fez) cumpridas++;
+  });
+  if(planeadas<8) return null;   /* uma semana com três refeições não é «boa», é vazia */
+  const lixo=(S.desperdicio||[]).filter(d=>dates.indexOf(d.d)>=0 && d.destino==='lixo').length;
+  const vered=(S.veredictos||[]).filter(v=>dates.indexOf(v.d)>=0);
+  const bons=vered.filter(v=>v.v==='rep'||v.v==='gostou').length;
+  const cumpr=cumpridas/planeadas;
+  const nota=Math.round((cumpr*60 + Math.max(0,1-lixo/3)*20 + (vered.length? bons/vered.length:0.5)*20));
+  return {wk, nota, planeadas, cumpridas, pct:Math.round(cumpr*100), lixo, bons, vered:vered.length};
+}
+function albumSemanas(){
+  return Object.keys(S.plans||{}).map(notaDaSemana).filter(Boolean)
+    .filter(x=>x.wk<mondayISO(hojeISO()))
+    .sort((a,b)=>b.nota-a.nota).slice(0,5);
+}
+
+/* ---- Do talão ao tacho ----
+   Muita casa planeia ao contrário da app: primeiro compra-se o que estava bem
+   de preço na peixaria, depois decide-se o que se cozinha. Isto fecha o
+   sentido inverso, que é o mais comum, e ataca o desperdício na raiz. */
+function ordemPerecivel(nome){
+  const a=atributosIng(nome);
+  if(a.indexOf('peixe')>=0||a.indexOf('crustaceos')>=0||a.indexOf('moluscos')>=0) return 0;
+  if(a.indexOf('carne')>=0) return 1;
+  if(a.indexOf('lacticinio')>=0) return 2;
+  if(CATS[grupoDoItem({n:nome,u:unidadeDe(nome)})][0]==='Frutas & Legumes') return 2;
+  return 3;
+}
+function planoDoCesto(cesto){
+  const porUsar={}; (cesto||[]).forEach(n=>{ porUsar[n]=true; });
+  const wk=planWeek(), dates=weekDates(S.week), h=hojeISO();
+  const vazios=[];
+  for(let di=0;di<7;di++){ if(dates[di]<h) continue;
+    ['a','j'].forEach(mk=>{ if(!(wk[di]&&wk[di][mk]&&wk[di][mk].r)) vazios.push({di,mk}); }); }
+  const props=[];
+  vazios.forEach(v=>{
+    const restantes=Object.keys(porUsar).filter(n=>porUsar[n]);
+    if(!restantes.length) return;
+    /* o mais perecível primeiro: o peixe fresco hoje, a mercearia para o fim */
+    restantes.sort((a,b)=>ordemPerecivel(a)-ordemPerecivel(b));
+    const alvo=restantes[0];
+    const comem=S.members;
+    const cand=receitasDe(v.mk)
+      .filter(r=>r.i.some(l=>l[0]===alvo))
+      .filter(r=>compatAll(r,comem))
+      .map(r=>({r, usa:r.i.filter(l=>porUsar[l[0]]).length, comp:fatorCompasso(r.id)}))
+      .sort((a,b)=>(b.usa-a.usa) || (b.comp-a.comp) || (saldoGostos(b.r.id,comem)-saldoGostos(a.r.id,comem)));
+    if(!cand.length){ delete porUsar[alvo]; return; }
+    const esc=cand[0];
+    esc.r.i.forEach(l=>{ delete porUsar[l[0]]; });
+    props.push({di:v.di, mk:v.mk, r:esc.r, usa:esc.usa});
+  });
+  return {props, sobra:Object.keys(porUsar).filter(n=>porUsar[n])};
+}
+
+/* ---- Os cartões que dão cara a tudo isto ---- */
+function cartaoRituais(){
+  const l=rituaisAprendidos().filter(x=>estadoRitual(x.slot,x.eixo)!=='nao');
+  if(!l.length) return '';
+  const NOME={peixe:'peixe', carne:'carne', sopa:'sopa', vegetariana:'prato vegetariano'};
+  return `<div class="card secgap" id="rituais" data-col="pla-rituais">
+    <h2>Rituais da casa ${dica('rituais')}</h2>
+    <p class="sub">Ritmos que a app reparou no que já comeram. Confirma os que são mesmo desta casa — o preenchimento automático passa a respeitá-los.</p>
+    ${l.map(x=>{
+      const est=estadoRitual(x.slot,x.eixo);
+      return `<div class="row" style="margin-top:10px;align-items:center;gap:8px">
+        <span style="flex:1;min-width:0"><b>${DAYN[x.di]}</b> ao ${nomeRefeicao(x.mk).toLowerCase()}: <b>${NOME[x.eixo]||x.eixo}</b>
+          <span class="sub" style="display:block">${x.n} das últimas ${x.total} vezes</span></span>
+        <button class="chip ${est==='sim'?'on':''}" style="flex:none" onclick="setRitual('${x.slot}','${x.eixo}','${est==='sim'?'sugerido':'sim'}')"
+          aria-pressed="${est==='sim'}">${est==='sim'?'✓ é assim':'É assim'}</button>
+        <button class="chip" style="flex:none" onclick="setRitual('${x.slot}','${x.eixo}','nao')" aria-label="Descartar este ritual">✕</button>
+      </div>`; }).join('')}
+  </div>`;
+}
+function cartaoEsquecidos(){
+  const l=esquecidos(S.members).filter(x=>x.saldo>=0).slice(0,4);
+  if(!l.length) return '';
+  return `<div class="card secgap" data-col="rec-esquecidos">
+    <h2>Há quanto tempo não fazem… ${dica('compasso')}</h2>
+    <p class="sub">Pratos que esta casa costuma repetir e que já passaram muito do seu ritmo.</p>
+    ${l.map(x=>`<div class="row" style="margin-top:9px;align-items:center;gap:8px">
+      <span style="flex:1;min-width:0"><b>${esc(x.r.n)}</b>
+        <span class="sub" style="display:block">há ${x.desde} dias · costuma voltar a cada ${x.compasso}</span></span>
+      <button class="chip" style="flex:none" onclick="abrirFicha('${x.r.id}')">Ver</button>
+    </div>`).join('')}
+  </div>`;
+}
+function cartaoAAcabar(){
+  const l=deveEstarAAcabar();
+  if(!l.length) return '';
+  return `<div class="card secgap" data-col="mer-acabar">
+    <h2>Deve estar a acabar ${dica('ritmoCompra')}</h2>
+    <p class="sub">Pelo ritmo a que esta casa costuma comprar — uma estimativa do histórico, não uma medição.</p>
+    ${l.map(x=>`<div class="row" style="margin-top:9px;align-items:center;gap:8px">
+      <span style="flex:1;min-width:0"><b>${esc(x.nome)}</b>
+        <span class="sub" style="display:block">costuma voltar a cada ${x.ritmo.mediana} dias; vão ${x.ritmo.desde}</span></span>
+      <button class="chip" style="flex:none" onclick="juntarAListaExtra('${esc(x.nome).replace(/'/g,'&#39;')}')">Juntar à lista</button>
+      <button class="chip" style="flex:none" onclick="aindaHa('${esc(x.nome).replace(/'/g,'&#39;')}')">Ainda há</button>
+    </div>`).join('')}
+  </div>`;
+}
+function juntarAListaExtra(nome){
+  if(!S.extras||typeof S.extras!=='object') S.extras={};
+  if(!Array.isArray(S.extras[S.week])) S.extras[S.week]=[];
+  if(S.extras[S.week].indexOf(nome)<0) S.extras[S.week].push(nome);
+  S.despensa[nome]=false;
+  save('junta '+nome.toLowerCase()+' à lista'); render();
+  flash('ok',nome+' juntou-se à lista desta semana.',{rot:'Anular',fn:'desfazer()'});
+}
+function cartaoResgate(){
+  const m=missaoResgate();
+  if(!m||!m.urgentes.length) return '';
+  return `<div class="card card--capa secgap" id="resgate" data-col="mer-resgate">
+    <span class="lbl">Missão resgate</span>
+    <h2 style="margin-top:2px">${m.valor>0? 'Tens '+nPT(m.valor,2)+' € a chegar ao prazo' : 'Há coisas a chegar ao prazo'} ${dica('resgate')}</h2>
+    <p class="sub">${m.urgentes.map(x=>esc(x.n)+' ('+(x.dias<=0?'hoje':'em '+x.dias+'d')+')').join(' · ')}${
+      m.semPreco? ' — '+plural(m.semPreco,'1 sem preço, por isso o valor é por baixo','$n sem preço, por isso o valor é por baixo').replace('$n',m.semPreco) : ''}.</p>
+    ${m.receitas.length? `<p class="sub" style="margin-top:10px">O que gasta mais destes de uma vez:</p>
+      ${m.receitas.map(x=>`<div class="row" style="margin-top:8px;align-items:center;gap:8px">
+        <span style="flex:1;min-width:0"><b>${esc(x.r.n)}</b><span class="sub" style="display:block">usa ${plural(x.usa,'1 deles','$n deles').replace('$n',x.usa)}</span></span>
+        ${m.vazios.length? `<button class="chip" style="flex:none" onclick="plantarResgate('${x.r.id}')">Pôr no plano</button>`:''}
+        <button class="chip" style="flex:none" onclick="abrirFicha('${x.r.id}')">Ver</button>
+      </div>`).join('')}`
+    : '<p class="sub" style="margin-top:8px">Nenhuma receita da biblioteca serve esta mesa com estes ingredientes — no congelador podem durar mais.</p>'}
+  </div>`;
+}
+function plantarResgate(rid){
+  const m=missaoResgate(); if(!m||!m.vazios.length) return flash('warn','A semana já está toda planeada.');
+  const v=m.vazios[0], meal=planMeal(v.di,v.mk);
+  meal.r=rid; registaCombo(rid, acIds(meal));
+  save('resgate no plano'); render();
+  const r=RECIPES.find(x=>x.id===rid);
+  flash('ok',(r?r.n:'A receita')+' entrou em '+DAYN[v.di].toLowerCase()+', ao '+nomeRefeicao(v.mk).toLowerCase()+'.',
+    {rot:'Anular',fn:'desfazer()'});
+}
+function cartaoDesperdicioAviso(){
+  const l=indiceDesperdicio().slice(0,3);
+  if(!l.length) return '';
+  return `<div class="card secgap" data-col="mer-detetive">
+    <h2>O que costuma ir ao lixo ${dica('detetive')}</h2>
+    ${l.map(x=>`<p class="sub" style="margin-top:8px"><b>${esc(x.nome)}</b> — ${x.lixo} de ${plural(x.compras,'1 compra','$n compras').replace('$n',x.compras)} nas últimas doze semanas acabaram no lixo. Comprar menos de uma vez chega?</p>`).join('')}
+  </div>`;
+}
+function cartaoAlbum(){
+  const l=albumSemanas();
+  if(l.length<2) return '';
+  return `<div class="card secgap" data-col="pla-album">
+    <h2>O álbum das semanas boas ${dica('album')}</h2>
+    <p class="sub">As semanas que correram melhor, pelos números que a app já guardava.</p>
+    ${l.map(x=>`<div class="row" style="margin-top:9px;align-items:center;gap:8px">
+      <span class="pill ${x.nota>=80?'ok':x.nota>=60?'warn':''}" style="flex:none">${x.nota}</span>
+      <span style="flex:1;min-width:0"><b>Semana de ${fmtShort(x.wk)}</b>
+        <span class="sub" style="display:block">${x.pct}% cumprida${x.lixo? ' · '+plural(x.lixo,'1 ida ao lixo','$n idas ao lixo').replace('$n',x.lixo):' · sem desperdício'}${x.vered? ' · '+x.bons+' de '+x.vered+' aprovados à mesa':''}</span></span>
+      <button class="chip" style="flex:none" onclick="repetirSemana('${x.wk}')">Fazer outra vez</button>
+    </div>`).join('')}
+  </div>`;
+}
+function repetirSemana(wk){
+  const origem=S.plans[wk]; if(!origem) return flash('warn','Essa semana já não está guardada.');
+  const dates=weekDates(S.week); let n=0, fora=0;
+  for(let di=0;di<7;di++) MEALK.forEach(mk=>{
+    const m0=origem[di]&&origem[di][mk]; if(!m0||!m0.r) return;
+    const r=RECIPES.find(x=>x.id===m0.r); if(!r){ fora++; return; }
+    const meal=planMeal(di,mk);
+    const comem=S.members.filter(x=>meal.m.includes(x.id)&&!isCheat(x.id,dates[di]));
+    /* a semana boa é de outro tempo: as dietas e as alergias de agora mandam */
+    if(comem.length && !avaliaReceita(r,comem,mk,false).ok){ fora++; return; }
+    meal.r=r.id; meal.ac=acIds(m0).filter(id=>{
+      const a=RECIPES.find(x=>x.id===id); return a&&ehAcompanhamento(a); });
+    registaCombo(meal.r, acIds(meal)); n++;
+  });
+  save('semana repetida'); render();
+  flash('ok', plural(n,'1 refeição copiada','$n refeições copiadas').replace('$n',n)
+    +(fora? ' — '+plural(fora,'1 ficou de fora por já não servir esta mesa','$n ficaram de fora por já não servirem esta mesa').replace('$n',fora) : '.'),
+    {rot:'Anular',fn:'desfazer()'});
+}
+function cartaoDoCesto(){
+  const cesto=Object.keys(S.bought[S.week]||{}).filter(k=>S.bought[S.week][k]).map(k=>k.split('|')[0]);
+  if(cesto.length<3) return '';
+  const p=planoDoCesto(cesto);
+  if(!p.props.length) return '';
+  return `<div class="card secgap" data-col="mer-cesto">
+    <h2>Planear com o que comprei ${dica('doTalao')}</h2>
+    <p class="sub">Os dias ainda vazios, a gastar primeiro o que estraga primeiro.</p>
+    ${p.props.map(x=>`<div class="row" style="margin-top:9px;align-items:center;gap:8px">
+      <span class="sub" style="flex:none;min-width:64px">${DAYN[x.di].slice(0,3)}. ${nomeRefeicao(x.mk).toLowerCase()}</span>
+      <span style="flex:1;min-width:0"><b>${esc(x.r.n)}</b><span class="sub" style="display:block">gasta ${plural(x.usa,'1 do cesto','$n do cesto').replace('$n',x.usa)}</span></span>
+    </div>`).join('')}
+    <div class="row" style="margin-top:12px">
+      <button class="btn" onclick="aplicarPlanoDoCesto()">Pôr tudo no plano</button>
+      ${p.sobra.length? `<span class="sub">Fica de fora: ${p.sobra.slice(0,4).map(esc).join(', ')}${p.sobra.length>4?'…':''}</span>`:''}
+    </div>
+  </div>`;
+}
+function aplicarPlanoDoCesto(){
+  const cesto=Object.keys(S.bought[S.week]||{}).filter(k=>S.bought[S.week][k]).map(k=>k.split('|')[0]);
+  const p=planoDoCesto(cesto);
+  if(!p.props.length) return flash('warn','Não há dias vazios para preencher.');
+  p.props.forEach(x=>{ const meal=planMeal(x.di,x.mk); meal.r=x.r.id; registaCombo(meal.r, acIds(meal)); });
+  save('plano a partir do cesto'); render();
+  flash('ok', plural(p.props.length,'1 refeição planeada','$n refeições planeadas').replace('$n',p.props.length)
+    +' com o que veio das compras.', {rot:'Anular',fn:'desfazer()'});
+}
 
 /* ================= DESCOBERTAS =================
    Meses de registo transformados em duas ou três frases úteis por semana. Cada
@@ -15278,6 +15793,7 @@ function renderReceitas(){
         `<button class="btn ghost" onclick="setCuis('todas')">Todas as cozinhas</button>
          <button class="btn ghost" onclick="setMealF('todas')">Todas as refeições</button>`)}
 
+  ${cartaoEsquecidos()}
   ${S.members.length>1? `<div class="secgap">
     <h2>Compatíveis com toda a família</h2>
     <p class="sub" style="margin-bottom:10px">${fam.length? '<b>'+fam.length+'</b> receitas servem':'Nenhuma receita serve'} as dietas e as exclusões de todos os ${S.members.length} membros — ideais para a mesma panela.${fam.length>12? ' Ficam aqui doze; para as ver todas e escolher quem se senta à mesa, vai ao ':' Para escolher quem se senta à mesa e planear a semana, vai ao '}<a href="#" onclick="go('plano');return false">Plano</a>.</p>
@@ -15900,6 +16416,11 @@ function autoFill(){
     /* «Só ingredientes de época» é um filtro que pode esvaziar a lista: se
        esvaziar, cede — mais vale um jantar fora de época do que nenhum. */
     if(querSazonal()){ const ep=pool.filter(receitaDaEpoca); if(ep.length) pool=ep; }
+    /* Num dia frágil — daqueles em que o plano quase nunca se cumpre — a
+       ambição sai e entra a resistência: pouco trabalho de mãos e despensa
+       quase completa. Se não houver nenhum assim, cede, como tudo o resto:
+       mais vale um jantar ambicioso do que nenhum. */
+    if(ehSlotFragil(di,mk)){ const res=pool.filter(resistente); if(res.length) pool=res; }
     if(!pool.length){ semSolucao++; continue; }
     /* Repetir é uma escolha da casa: quando está ligada, o que já entrou na
        semana ganha peso em vez de o perder — cozinha-se uma vez, come-se duas. */
@@ -15910,13 +16431,17 @@ function autoFill(){
       : (fresh.length? fresh : pool);
     /* o género do prato pesa com a estação e a refeição: no verão, ao almoço,
        um gaspacho vale mais do que uma feijoada */
-    const notas=alvo.map(r=>({r, p:pesoGenero(r,mk)+(querPrep()? Math.min(2,encaixaNoPrep(r,prepAtual)*0.5):0)}));
+    const notas=alvo.map(r=>({r, p:(pesoGenero(r,mk)+(querPrep()? Math.min(2,encaixaNoPrep(r,prepAtual)*0.5):0)
+      +bonusRitual(r,di,mk))*fatorCompasso(r.id)}));
     const maxP=Math.max(...notas.map(x=>x.p));
     const melhores=notas.filter(x=>x.p>=maxP-0.5).map(x=>x.r);
     const escolhida=melhores[Math.floor(Math.random()*melhores.length)];
     meal.r=escolhida.id; used.add(meal.r);
-    /* repetir só faz sentido se a primeira vez cozinhar a dobrar */
-    if(querRepetir() && querDobro()){
+    /* Repetir só faz sentido se a primeira vez cozinhar a dobrar — e dobrar
+       só faz sentido se esta casa reaquecer mesmo aquele prato. O destino das
+       sobras está registado: dobrar a jardineira que desaparece ao segundo
+       dia, não o grelhado que acaba sempre no diário de desperdício. */
+    if(querRepetir() && querDobro() && valeADobra(meal.r)!==false){
       const anterior=ehAquecer(di,mk);
       if(anterior){ const m0=planMeal(anterior.di,anterior.mk); m0.dobro=Math.min(4,fatorDobro(m0)+1); }
       else if(!fatorDobro(meal)>1) { /* fica por marcar; marca-se quando a repetição aparecer */ }
@@ -15996,8 +16521,13 @@ function sugestoes(){
      teto definido e só a partir dos 85% — abaixo disso, mandar poupar seria
      resolver um problema que a casa não tem. */
   const aperta=orcamentoApertado();
-  const bonus=r=>(receitaDaEpoca(r)?2:0)+pesoGenero(r,mk)+Math.min(2,encaixaNoPrep(r,prep)*0.5)
-    +usaOQueVaiAcabar(r)+pesoVeredicto(r)+saldoGostos(r.id,membros)+(aperta? pesoCusto(r) : 0);
+  /* O compasso entra como multiplicador e não como parcela: um prato que
+     voltou antes do tempo desce proporcionalmente ao seu próprio ritmo, e um
+     que já passou dele sobe — é o que evita que a sopa diária e o cozido
+     mensal sejam medidos pela mesma régua. */
+  const bonus=r=>((receitaDaEpoca(r)?2:0)+pesoGenero(r,mk)+Math.min(2,encaixaNoPrep(r,prep)*0.5)
+    +usaOQueVaiAcabar(r)+pesoVeredicto(r)+saldoGostos(r.id,membros)+(aperta? pesoCusto(r) : 0))
+    *fatorCompasso(r.id);
   /* A chave de cada receita calcula-se UMA vez, antes de ordenar. O bónus
      chama sete funções — época, género, food prep, validades, veredictos,
      gostos, custo — e a disponibilidade percorre a despensa toda; dentro do
@@ -16896,6 +17426,8 @@ function renderPlano(){
   ${cartaoLote()}
   ${cartaoPartilhaRef()}
   ${cartaoSugestoes()}
+  ${cartaoRituais()}
+  ${cartaoAlbum()}
   ${cartaoEquilibrio(dates)}
   ${cartaoSemana(dates)}
   ${reguaDias(dates)}
@@ -16982,6 +17514,14 @@ function shoppingItems(){
     if(!agg[key]) agg[key]={n:sp.nome,u:'dose',q:0};
     agg[key].q += (parseFloat(s.doses)||0)*7;
   }));
+  /* Os extras: o que a casa juntou à mão à lista desta semana — o azeite que
+     deve estar a acabar, o pacote de café. Não vêm de receita nenhuma, por
+     isso entram com uma unidade de embalagem, e é isso que a lista diz. */
+  ((S.extras||{})[S.week]||[]).forEach(nome=>{
+    const u=unidadeDe(nome), key=nome+'|'+u;
+    if(agg[key]) return;                 /* já vem de uma receita: não se duplica */
+    agg[key]={n:nome, u, q:(u==='g'?250:u==='ml'?250:1), extra:true};
+  });
   return {items:Object.values(agg),meals};
 }
 /* Marcar um item não redesenha a lista: no supermercado, com o telemóvel numa
@@ -17088,7 +17628,11 @@ function renderCompras(){
   <textarea id="co-txt" style="display:none;max-width:640px;margin-top:12px" readonly aria-label="Lista de compras em texto"></textarea>
   <p class="sub" style="margin-top:12px">Quantidades = receita por pessoa × nº de comensais em cada refeição (membros em cheat day não contam nesse dia).</p>
   ${cartaoFaltaComprar(items)}
+  ${cartaoDoCesto()}
+  ${cartaoResgate()}
+  ${cartaoAAcabar()}
   ${cartaoTrocasBaratas(dates)}
+  ${cartaoDesperdicioAviso()}
   ${cartaoProteinaBarata()}
   ${cartaoTalaoMes()}
   ${cartaoPalpites()}`;
@@ -17621,7 +18165,7 @@ function pacote(){
          receitas:S.receitas, medicoes:S.medicoes, regAtiv:S.regAtiv, regRef:S.regRef,
          sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa, pausas:S.pausas, diario:S.diario, cozPref:S.cozPref,
          validades:S.validades, veredictos:S.veredictos, brigada:S.brigada, desperdicio:S.desperdicio,
-         gostos:S.gostos, jejum:S.jejum, combos:S.combos}}; }
+         gostos:S.gostos, jejum:S.jejum, combos:S.combos, rituais:S.rituais, extras:S.extras, aindaHa:S.aindaHa}}; }
 function textoCopia(){ return JSON.stringify(pacote(),null,2); }
 function marcarExportado(){ S.meta.exportadoEm=new Date().toISOString(); S.meta.semCopia=false; saveMeta(); }
 function nomeFicheiro(){ return 'familia-fit-'+iso(new Date())+'.json'; }
@@ -17872,6 +18416,7 @@ function lerPacote(txt){
   const pausas=limparPausas(d.pausas, idsOk.concat(['casa']));
   const diario=limparDiario(d.diario, idsOk);
   const cozPref=limparCozPref(d.cozPref);
+  const rituais=limparRituais(d.rituais), extras=limparExtras(d.extras), aindaHa=limparAindaHa(d.aindaHa);
   /* As estruturas novas passam pelo mesmo crivo das antigas: datas verificadas,
      ids remapeados para os perfis que sobreviveram à importação, e receitas
      que têm mesmo de existir deste lado. */
@@ -17907,7 +18452,7 @@ function lerPacote(txt){
   const combos=limparCombos(d.combos).filter(c=>acha(c.base) && c.ac.some(acha));
   return {d:{ members, cheats, plans, bought, objetivos, despensa, receitas,
               medicoes, regAtiv, regRef, sobras, precos, festas, casa, pausas, diario, cozPref,
-              validades, veredictos, brigada, desperdicio, gostos, jejum, combos,
+              validades, veredictos, brigada, desperdicio, gostos, jejum, combos, rituais, extras, aindaHa,
               prefCuisine:temChave(CUIS,d.prefCuisine)?d.prefCuisine:'todas',
               week:dataValida(d.week)? mondayISO(new Date(d.week+'T12:00:00')) : mondayISO(new Date()) }};
 }
