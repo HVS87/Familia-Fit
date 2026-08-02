@@ -635,6 +635,30 @@ html[data-dispositivo="telefone"][data-orient="retrato"] .savest{padding:8px}
 html[data-dispositivo="telefone"][data-orient="retrato"] .aura{opacity:.6}
 html[data-dispositivo="telefone"][data-orient="retrato"][data-modo="escuro"] .aura{opacity:.34}
 main{max-width:1100px;margin:0 auto;padding:24px 20px}
+/* ---- Medida de leitura ----
+   Esta app explica-se por escrito, e num monitor de 1920 px um parágrafo
+   esticado até aos 1100 px do contentor dava linhas de 150 caracteres — o
+   dobro do que o olho aguenta sem perder a linha ao voltar à esquerda. O
+   texto corrido passa a ter um teto próprio; o resto (grelhas, tabelas,
+   gráficos) continua a usar a largura toda, que é onde ela serve.
+   Só nos filhos diretos: uma nota solta dentro de uma linha de botões não é
+   texto corrido e não deve encolher. */
+:root{ --medida:72ch }
+#main p, #main .sub, .mcaixa p, .mcaixa .sub, .ficha p, .ficha .sub{ max-width:var(--medida) }
+/* Três exceções, todas por serem layout e não prosa: o que está centrado
+   ficaria encostado à esquerda dentro de uma caixa estreita; os estados
+   vazios e os rótulos são blocos centrados por natureza; e uma nota que
+   partilha uma linha flexível com outra coisa tem de poder crescer com ela.
+   As listas ficam de fora por inteiro: aqui um <li> é quase sempre uma linha
+   de interface com preço ou caixa de seleção à direita, não um parágrafo. */
+#main [style*="text-align:center"], .mcaixa [style*="text-align:center"],
+.vazio p, .vazio .sub, .rotulo p, .rotulo .sub,
+.row > .sub, .ac-linha .sub, .mleg .sub{ max-width:none }
+/* Num ecrã grande a largura que sobra vale mais em colunas do que em margem:
+   a 1500 px cabem cinco cartões de receita ou quatro dias do plano lado a
+   lado, e continua a ler-se bem porque o texto tem teto próprio. */
+@media (min-width:1500px){ main,.hwrap{max-width:1400px} }
+@media (min-width:1800px){ main,.hwrap{max-width:1560px} }
 /* Um único dialeto de hierarquia: o cartão normal fica quieto (sem sombra),
    a «capa» de cada separador flutua com sombra e um gradiente suave do
    acento, e o auxiliar recua para o fundo. É a diferença entre resumo e
@@ -697,7 +721,10 @@ input[type=text],input[type=number],input[type=date],input[type=search],select{
 .btn.ghost{background:none;color:var(--accent);border:1px solid var(--accent)}
 .btn.small{padding:5px 11px;font-size:13px}
 .btn.danger{background:none;border:1px solid var(--line);color:var(--bad)}
-.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:4px 12px;background:var(--bg);cursor:pointer;font-size:13.5px;font-weight:600}
+/* min-height em vez de só padding: com um texto de uma linha curta o chip
+   ficava nos 23 px, um abaixo do mínimo da WCAG 2.5.8. */
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:4px 12px;background:var(--bg);cursor:pointer;font-size:13.5px;font-weight:600;min-height:24px}
+@media (hover:none) and (pointer:coarse){ .chip{min-height:32px;padding:6px 14px} }
 .chip.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
 .chip.party{border-color:var(--party);color:var(--party)}
 .chip.party.on{background:var(--party-soft)}
@@ -1033,7 +1060,15 @@ ul.fora li{margin:2px 0}
 .meal{padding:10px 14px;border-bottom:1px solid var(--line)}
 .meal:last-child{border-bottom:none}
 .mtitle{font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--mut);font-weight:700;margin-bottom:5px}
-.shop li{list-style:none;display:flex;align-items:center;gap:10px;padding:6px 4px;border-bottom:1px dashed var(--line)}
+.shop li{list-style:none;display:flex;align-items:center;gap:10px;padding:6px 4px;border-bottom:1px dashed var(--line);
+  /* A despensa tem quase setecentas linhas, e o browser fazia o cálculo de
+     layout das setecentas a cada redesenho — 174 ms num portátil, bem mais
+     num telemóvel. Com content-visibility só desenha as que estão à vista; as
+     outras ficam no DOM (é o que permite a procura instantânea escondê-las
+     sem redesenhar nada, e o Ctrl+F do browser continua a encontrá-las) mas
+     não custam layout. O tamanho declarado é a altura de uma linha, para a
+     barra de deslocamento não andar aos saltos enquanto se rola. */
+  content-visibility:auto;contain-intrinsic-size:auto 34px}
 .shop li.done span{text-decoration:line-through;color:var(--mut)}
 .shop .q{margin-left:auto;color:var(--mut);font-variant-numeric:tabular-nums;white-space:nowrap;font-size:13.5px}
 /* Talão de mercearia: os corredores são carimbos com fio tracejado e um
@@ -1507,7 +1542,11 @@ function limparValidades(o){
   if(!o||typeof o!=='object') return out;
   const limite=iso(new Date(Date.now()+5*365*24*3600*1000));
   Object.keys(o).slice(0,2000).forEach(k=>{
-    if(!temChave(NUTRI,k) && !(typeof SUPLEMENTOS!=='undefined' && SUPLEMENTOS.some(s=>s.nome===k))) return;
+    /* O typeof aqui era uma falsa segurança: num const ainda por inicializar,
+       typeof lança ReferenceError em vez de devolver 'undefined'. A tabela dos
+       suplementos passou a estar declarada antes do load() — que é o que
+       resolve mesmo o problema — e a guarda deixa de ser precisa. */
+    if(!temChave(NUTRI,k) && !SUPLEMENTOS.some(s=>s.nome===k)) return;
     const d=String(o[k]&&o[k].d!==undefined? o[k].d : o[k]);
     if(!dataValida(d) || d>limite) return;
     out[k]={d};
@@ -1743,6 +1782,12 @@ const GOALS = {perder:['Perder peso',-0.15],manter:['Manter peso',0],ganhar:['Ga
 const MEALS=[['p','Pequeno-almoço',0.25],['a','Almoço',0.35],['l','Lanche',0.10],['j','Jantar',0.30]];
 const MEALK=MEALS.map(x=>x[0]);
 const MAX_AC=3;   /* acompanhamentos por prato: passado isto deixa de ser acompanhamento */
+/* Oito dias, o teto de um jejum pontual. Vive aqui em cima, longe do resto do
+   código de jejum, pela mesma razão que o MAX_AC: os saneadores correm no
+   arranque, a partir de migraRegistos(), e um const declarado mais abaixo
+   ainda está na zona morta temporal nesse momento — o que dava um ecrã em
+   branco, sem nada na consola, a quem tivesse um jejum guardado. */
+const JEJUM_MAX_H=8*24;
 function nomeRefeicao(k){ if(k==='ac') return 'Acompanhamento';
   const m=MEALS.find(x=>x[0]===k); return m? m[1] : k; }
 
@@ -2016,7 +2061,7 @@ R('bourguignon','Boeuf bourguignon','francesa',['lowcarb'],560,22,44,32,[['Carne
 R('dauphinois','Gratin dauphinois','francesa',['vegetariana'],480,42,12,30,[['Batata',220,'g'],['Nata',100,'ml'],['Leite',60,'ml'],['Queijo gruyère',30,'g'],['Alho',1,'dente'],['Noz-moscada',0.5,'g']],null,4),
 R('papillote','Salmão en papillote com alho-francês','francesa',['keto','lowcarb'],460,10,36,30,[['Salmão',170,'g'],['Alho-francês',120,'g'],['Cenoura',60,'g'],['Limão',0.5,'un'],['Endro',3,'g'],['Azeite',10,'ml']],null,4),
 R('blanquette','Blanquette de vitela','francesa',[],520,24,42,28,[['Vitela',180,'g'],['Cenoura',80,'g'],['Cogumelos',80,'g'],['Alho-francês',60,'g'],['Nata',60,'ml'],['Ovo',0.5,'un'],['Manteiga',10,'g']],null,4),
-R('chevrechaud','Salada de queijo de cabra quente','francesa',['lowcarb','vegetariana'],430,22,18,30,[['Queijo de cabra',80,'g'],['Pão rústico',40,'g'],['Alface',60,'g'],['Nozes',20,'g'],['Mel',6,'g'],['Azeite',12,'ml']],['a','j','l'],3),
+R('chevrechaud','Salada de queijo de cabra quente','francesa',['lowcarb','vegetariana'],430,22,18,30,[['Queijo de cabra',80,'g'],['Pão rústico',40,'g'],['Alface',60,'g'],['Nozes',20,'g'],['Mel',6,'g'],['Azeite',12,'ml']],['a','j','l'],3,['pp']),
 R('moules','Mexilhões à marinière','francesa',['lowcarb','mediterranica'],330,14,34,14,[['Mexilhões',400,'g'],['Vinho branco',100,'ml'],['Chalota',1,'un'],['Salsa',8,'g'],['Manteiga',15,'g']],null,1),
 R('croquemadame','Croque-madame','francesa',[],560,42,32,30,[['Pão de forma',70,'g'],['Fiambre',50,'g'],['Queijo gruyère',40,'g'],['Ovo',1,'un'],['Leite',60,'ml'],['Manteiga',10,'g']],['p','a'],3),
 R('veloute','Velouté de alho-francês e batata','francesa',['vegetariana'],280,34,8,12,[['Alho-francês',200,'g'],['Batata',120,'g'],['Caldo de legumes',300,'ml'],['Nata',30,'ml'],['Manteiga',8,'g']],['a','j','l'],5),
@@ -2037,7 +2082,7 @@ R('rancheros','Huevos rancheros','mexicana',['vegetariana'],470,38,24,26,[['Ovo'
 R('carnitas','Carnitas de porco com salada de repolho','mexicana',['keto','lowcarb','paleo'],480,12,42,30,[['Carne de porco',180,'g'],['Repolho',100,'g'],['Laranja',0.5,'un'],['Lima',0.5,'un'],['Cominhos',2,'g'],['Coentros',6,'g'],['Azeite',8,'ml']],null,4),
 R('saladafeijaopreto','Salada de feijão preto, milho e abacate','mexicana',['vegetariana'],420,48,16,18,[['Feijão preto',130,'g'],['Milho',80,'g'],['Abacate',0.5,'un'],['Tomate',1,'un'],['Cebola roxa',0.25,'un'],['Lima',0.5,'un'],['Coentros',6,'g'],['Azeite',8,'ml']],['a','j','l'],15),
 R('tacospeixe','Tacos de peixe com molho de iogurte','mexicana',[],460,42,34,16,[['Pescada',160,'g'],['Tortilhas de milho',2,'un'],['Repolho',80,'g'],['Iogurte natural',50,'g'],['Lima',0.5,'un'],['Coentros',6,'g'],['Azeite',6,'ml']],null,7),
-R('quesadilla','Quesadilla de legumes e queijo','mexicana',['vegetariana'],480,46,22,24,[['Tortilhas de trigo',2,'un'],['Queijo cheddar',50,'g'],['Pimento',0.5,'un'],['Courgette',80,'g'],['Cebola',0.5,'un'],['Azeite',8,'ml']],['a','j','l'],5),
+R('quesadilla','Quesadilla de legumes e queijo','mexicana',['vegetariana'],480,46,22,24,[['Tortilhas de trigo',2,'un'],['Queijo cheddar',50,'g'],['Pimento',0.5,'un'],['Courgette',80,'g'],['Cebola',0.5,'un'],['Azeite',8,'ml']],['a','j','l'],5,['pp']),
 R('picodegallo','Pico de gallo com tortilhas','mexicana',['vegetariana'],220,30,6,9,[['Tomate',2,'un'],['Cebola roxa',0.25,'un'],['Tortilhas de milho',1,'un'],['Lima',0.5,'un'],['Coentros',6,'g'],['Azeite',6,'ml']],['l'],5),
 R('esquites','Milho salteado com lima e queijo','mexicana',['vegetariana'],260,34,8,11,[['Milho',150,'g'],['Queijo feta',25,'g'],['Maionese',10,'g'],['Lima',0.5,'un'],['Chili em pó',2,'g']],['l'],5),
 R('licuado','Batido de banana, aveia e canela','mexicana',['vegetariana','lowfat'],340,56,14,7,[['Leite',250,'ml'],['Banana',1,'un'],['Aveia em flocos',30,'g'],['Mel',8,'g'],['Canela',1,'g']],['p','l'],5),
@@ -2137,7 +2182,7 @@ R('camaraotigre','Camarão-tigre grelhado','portuguesa',['keto','lowcarb','paleo
 R('camaraocozido','Camarão cozido','portuguesa',['keto','lowcarb','paleo','mediterranica'],0,0,0,0,[['Camarão',200,'g'],['Sal grosso',8,'g'],['Louro',1,'g'],['Limão',10,'ml']],['a','j'],0,['ent']),
 R('chouricoassado','Chouriço assado','portuguesa',['keto','lowcarb'],0,0,0,0,[['Chouriço',90,'g'],['Pão rústico',40,'g']],['a','j'],0,['ent']),
 R('saladapolvoent','Salada de polvo','portuguesa',['lowcarb','paleo','mediterranica'],0,0,0,0,[['Polvo',180,'g'],['Cebola roxa',60,'g'],['Pimento',60,'g'],['Salsa',6,'g'],['Azeite',15,'ml'],['Vinagre de vinho',8,'ml'],['Louro',1,'g']],['a','j'],0,['ent']),
-R('burratalimao','Burrata com raspas de limão','italiana',['keto','lowcarb','mediterranica'],0,0,0,0,[['Burrata',125,'g'],['Raspa de limão',3,'g'],['Azeite',12,'ml'],['Pimenta preta',0.5,'g'],['Manjericão',4,'g'],['Pão rústico',30,'g']],['a','j'],0,['ent']),
+R('burratalimao','Burrata com raspas de limão','italiana',['keto','lowcarb','mediterranica'],0,0,0,0,[['Burrata',60,'g'],['Raspa de limão',2,'g'],['Azeite',8,'ml'],['Pimenta preta',0.5,'g'],['Manjericão',3,'g'],['Pão rústico',25,'g']],['a','j'],0,['ent']),
 R('presuntoent','Presunto','espanhola',['keto','lowcarb','paleo'],0,0,0,0,[['Presunto',70,'g'],['Pão rústico',30,'g'],['Azeite',6,'ml']],['a','j','l'],0,['ent','sn']),
 
 /* ---------- Cozinha portuguesa ---------- */
@@ -2147,7 +2192,7 @@ R('francesinha','Francesinha','portuguesa',[],0,0,0,0,[['Pão de forma',80,'g'],
 R('empadaocarne','Empadão de carne','portuguesa',[],0,0,0,0,[['Carne picada de vaca',180,'g'],['Batata',300,'g'],['Cebola',70,'g'],['Alho',2,'dente'],['Tomate pelado',80,'g'],['Leite',60,'ml'],['Manteiga',15,'g'],['Azeite',10,'ml'],['Noz-moscada',0.5,'g'],['Salsa',5,'g']],['a','j'],0,['pp']),
 R('peixesal','Peixe ao sal no forno','portuguesa',['keto','lowcarb','paleo','mediterranica'],0,0,0,0,[['Dourada',350,'g'],['Sal grosso',400,'g'],['Limão',20,'ml'],['Azeite',12,'ml'],['Tomilho fresco',4,'g'],['Louro',1,'g']],['a','j'],0,['pp']),
 R('iscascebolada','Iscas de cebolada','portuguesa',['lowcarb'],0,0,0,0,[['Vaca, fígado cru',180,'g'],['Cebola',150,'g'],['Alho',3,'dente'],['Vinho branco',60,'ml'],['Louro',1,'g'],['Azeite',15,'ml'],['Colorau',2,'g'],['Pimenta preta',0.5,'g']],['a','j'],0,['pp']),
-R('feijoadatransmontana','Feijoada à transmontana','portuguesa',[],0,0,0,0,[['Feijão encarnado',180,'g'],['Porco, orelha cozida',60,'g'],['Porco, chispe',70,'g'],['Porco, entrecosto cru',80,'g'],['Chouriço',50,'g'],['Farinheira',40,'g'],['Couve galega',80,'g'],['Cenoura',60,'g'],['Cebola',70,'g'],['Alho',3,'dente'],['Azeite',12,'ml'],['Colorau',3,'g'],['Louro',1,'g']],['a','j'],0,['pp']),
+R('feijoadatransmontana','Feijoada à transmontana','portuguesa',[],0,0,0,0,[['Feijão encarnado',90,'g'],['Porco, orelha cozida',25,'g'],['Porco, chispe',30,'g'],['Porco, entrecosto cru',40,'g'],['Chouriço',20,'g'],['Farinheira',15,'g'],['Couve galega',70,'g'],['Cenoura',50,'g'],['Cebola',50,'g'],['Alho',2,'dente'],['Azeite',8,'ml'],['Colorau',2,'g'],['Louro',1,'g']],['a','j'],0,['pp']),
 /* O Bacalhau à Brás já existe desde a primeira fornada com o id 'bras' — a
    segunda entrada duplicava-o na biblioteca e na pesquisa. */
 R('arrozpolvo','Arroz de polvo','portuguesa',['mediterranica'],0,0,0,0,[['Polvo',180,'g'],['Arroz carolino branqueado cru',90,'g'],['Cebola',80,'g'],['Alho',3,'dente'],['Tomate pelado',100,'g'],['Pimento',50,'g'],['Vinho branco',50,'ml'],['Azeite',15,'ml'],['Coentros',8,'g'],['Louro',1,'g']],['a','j'],0,['pp']),
@@ -2157,7 +2202,7 @@ R('bifemostarda','Bife com molho de mostarda','francesa',['keto','lowcarb'],0,0,
 R('bifecafe','Bife com molho de café','portuguesa',['keto','lowcarb'],0,0,0,0,[['Bife de vaca',180,'g'],['Café expresso',40,'ml'],['Nata para bater 35% gordura',50,'ml'],['Manteiga',12,'g'],['Alho',2,'dente'],['Pimenta preta',1,'g']],['a','j'],0,['pp']),
 R('bitoque','Bitoque','portuguesa',[],0,0,0,0,[['Bife de vaca',150,'g'],['Ovo',1,'un'],['Batata',180,'g'],['Arroz carolino branqueado cru',60,'g'],['Alho',2,'dente'],['Manteiga',10,'g'],['Azeite',12,'ml'],['Vinho branco',30,'ml'],['Louro',1,'g']],['a','j'],0,['pp']),
 R('alheiraovo','Alheira com ovo','portuguesa',[],0,0,0,0,[['Alheira',150,'g'],['Ovo',1,'un'],['Batata',180,'g'],['Grelos',100,'g'],['Azeite',15,'ml'],['Alho',2,'dente']],['a','j'],0,['pp']),
-R('saladarussa','Salada russa','portuguesa',[],0,0,0,0,[['Batata',200,'g'],['Cenoura',100,'g'],['Ervilhas',80,'g'],['Atum em conserva',80,'g'],['Maionese',45,'g'],['Ovo',1,'un'],['Picles de pepino',30,'g'],['Salsa',5,'g']],['a','j','l'],0,['pp','ent']),
+R('saladarussa','Salada russa','portuguesa',[],0,0,0,0,[['Batata',140,'g'],['Cenoura',70,'g'],['Ervilhas',55,'g'],['Atum em conserva',55,'g'],['Maionese',22,'g'],['Ovo',0.5,'un'],['Picles de pepino',20,'g'],['Salsa',4,'g']],['a','j','l'],0,['pp','ent']),
 
 /* ---------- Sopas ---------- */
 R('sopatomate','Sopa de tomate','portuguesa',['lowfat','mediterranica'],0,0,0,0,[['Tomate',350,'g'],['Cebola',80,'g'],['Alho',3,'dente'],['Batata',120,'g'],['Pão rústico',40,'g'],['Ovo',1,'un'],['Azeite',12,'ml'],['Orégãos',2,'g'],['Louro',1,'g']],['a','j'],0,['sop']),
@@ -2170,29 +2215,29 @@ R('sopapeixept','Sopa de peixe','portuguesa',['lowfat','mediterranica'],0,0,0,0,
 R('vichyssoise','Sopa Vichyssoise','francesa',['lowcarb'],0,0,0,0,[['Alho-francês',200,'g'],['Batata',150,'g'],['Cebola',60,'g'],['Nata para bater 35% gordura',60,'ml'],['Manteiga',15,'g'],['Cebolinho',5,'g'],['Caldo de legumes',300,'ml']],['a','j'],0,['sop']),
 
 /* ---------- Outras cozinhas ---------- */
-R('lasanharagu','Lasanha de ragu','italiana',[],0,0,0,0,[['Placas de lasanha',90,'g'],['Carne picada de vaca',140,'g'],['Carne de porco',60,'g'],['Tomate pelado',150,'g'],['Cebola',70,'g'],['Cenoura',50,'g'],['Alho',2,'dente'],['Leite',80,'ml'],['Manteiga',15,'g'],['Farinha',15,'g'],['Parmesão',25,'g'],['Azeite',12,'ml'],['Noz-moscada',0.5,'g']],['a','j'],0,['pp']),
+R('lasanharagu','Lasanha de ragu','italiana',[],0,0,0,0,[['Placas de lasanha',70,'g'],['Carne picada de vaca',110,'g'],['Carne de porco',45,'g'],['Tomate pelado',150,'g'],['Cebola',70,'g'],['Cenoura',50,'g'],['Alho',2,'dente'],['Leite',80,'ml'],['Manteiga',15,'g'],['Farinha',15,'g'],['Parmesão',25,'g'],['Azeite',12,'ml'],['Noz-moscada',0.5,'g']],['a','j'],0,['pp']),
 R('assassina',"Spaghetti all'assassina",'italiana',['mediterranica'],0,0,0,0,[['Esparguete',100,'g'],['Polpa de tomate',180,'g'],['Alho',3,'dente'],['Malagueta',2,'g'],['Azeite',20,'ml']],['a','j'],0,['pp']),
 R('nerocamarao','Spaghetti nero di seppia com camarão','italiana',['mediterranica'],0,0,0,0,[['Esparguete',100,'g'],['Tinta de choco',6,'g'],['Camarão',150,'g'],['Alho',3,'dente'],['Malagueta',1,'g'],['Vinho branco',50,'ml'],['Azeite',18,'ml'],['Salsa',6,'g']],['a','j'],0,['pp']),
 R('magretpato','Magret de pato','francesa',['keto','lowcarb','paleo'],0,0,0,0,[['Peito de pato',200,'g'],['Mel',10,'g'],['Vinagre balsâmico',15,'ml'],['Laranja',60,'g'],['Tomilho fresco',3,'g'],['Flor de sal',1,'g'],['Pimenta preta',1,'g']],['a','j'],0,['pp']),
-R('quesadillafrango','Quesadillas de frango','mexicana',[],0,0,0,0,[['Tortilhas de trigo',100,'g'],['Peito de frango',150,'g'],['Queijo cheddar',60,'g'],['Pimento',60,'g'],['Cebola',50,'g'],['Coentros',5,'g'],['Cominhos',2,'g'],['Azeite',10,'ml']],['a','j','l'],0,['pp','sn']),
+R('quesadillafrango','Quesadillas de frango','mexicana',[],0,0,0,0,[['Tortilhas de trigo',100,'g'],['Peito de frango',150,'g'],['Queijo cheddar',60,'g'],['Pimento',60,'g'],['Cebola',50,'g'],['Coentros',5,'g'],['Cominhos',2,'g'],['Azeite',10,'ml']],['a','j','l'],0,['pp']),
 R('chickenparm','Chicken Parmesan','americana',[],0,0,0,0,[['Peito de frango',180,'g'],['Pão ralado',40,'g'],['Ovo',1,'un'],['Farinha',20,'g'],['Polpa de tomate',150,'g'],['Mozzarella',70,'g'],['Parmesão',20,'g'],['Alho',2,'dente'],['Manjericão',5,'g'],['Azeite',15,'ml']],['a','j'],0,['pp']),
 R('nasigoreng','Nasi Goreng','asiatica',[],0,0,0,0,[['Arroz jasmim',90,'g'],['Peito de frango',120,'g'],['Ovo',1,'un'],['Molho de soja',20,'ml'],['Alho',3,'dente'],['Cebola',60,'g'],['Malagueta',2,'g'],['Ervilhas',50,'g'],['Cenoura',50,'g'],['Óleo de sésamo',10,'ml'],['Açúcar amarelo',5,'g']],['a','j'],0,['pp']),
 
 /* ---------- Sobremesas ---------- */
 R('uvaslima','Uvas com raspas de lima','portuguesa',['lowfat','vegan','mediterranica'],0,0,0,0,[['Uva de mesa (branca e tinta)',180,'g'],['Raspa de lima',3,'g'],['Lima',10,'ml'],['Hortelã',3,'g']],['p','l'],0,['sob','sn','br']),
-R('pannacotta','Panna cotta','italiana',[],0,0,0,0,[['Nata para bater 35% gordura',150,'ml'],['Açúcar branco',30,'g'],['Gelatina em folhas',3,'g'],['Baunilha',1,'g'],['Frutos vermelhos',60,'g']],['l'],0,['sob']),
-R('abadepriscos','Pudim Abade de Priscos','portuguesa',[],0,0,0,0,[['Açúcar branco',80,'g'],['Gema de ovo de galinha, crua',90,'g'],['Toucinho fumado',20,'g'],['Vinho do Porto',30,'ml'],['Limão',5,'g'],['Canela',1,'g']],['l'],0,['sob']),
+R('pannacotta','Panna cotta','italiana',[],0,0,0,0,[['Nata para bater 35% gordura',90,'ml'],['Leite',40,'ml'],['Açúcar branco',20,'g'],['Gelatina em folhas',2,'g'],['Baunilha',1,'g'],['Frutos vermelhos',60,'g']],['l'],0,['sob']),
+R('abadepriscos','Pudim Abade de Priscos','portuguesa',[],0,0,0,0,[['Açúcar branco',34,'g'],['Gema de ovo de galinha, crua',36,'g'],['Toucinho fumado',8,'g'],['Vinho do Porto',12,'ml'],['Limão',2,'g'],['Canela',0.4,'g']],['l'],0,['sob']),
 R('leitecreme','Leite creme','portuguesa',[],0,0,0,0,[['Leite',200,'ml'],['Gema de ovo de galinha, crua',54,'g'],['Açúcar branco',50,'g'],['Milho, amido (pó)',15,'g'],['Limão',5,'g'],['Canela',1,'g']],['l'],0,['sob']),
-R('babacamelo','Baba de camelo','portuguesa',[],0,0,0,0,[['Leite condensado açucarado',120,'g'],['Ovo',2,'un'],['Amêndoa',15,'g']],['l'],0,['sob']),
-R('bolobolacha','Bolo de bolacha','portuguesa',[],0,0,0,0,[['Bolacha Maria',80,'g'],['Manteiga',60,'g'],['Açúcar branco',50,'g'],['Café expresso',60,'ml'],['Gema de ovo de galinha, crua',18,'g']],['l'],0,['sob']),
-R('sericaia','Sericaia','portuguesa',[],0,0,0,0,[['Leite',180,'ml'],['Ovo',3,'un'],['Açúcar branco',70,'g'],['Farinha',25,'g'],['Canela',2,'g'],['Limão',5,'g']],['l'],0,['sob']),
+R('babacamelo','Baba de camelo','portuguesa',[],0,0,0,0,[['Leite condensado açucarado',70,'g'],['Ovo',1,'un'],['Amêndoa',8,'g']],['l'],0,['sob']),
+R('bolobolacha','Bolo de bolacha','portuguesa',[],0,0,0,0,[['Bolacha Maria',30,'g'],['Manteiga',22,'g'],['Açúcar branco',18,'g'],['Café expresso',22,'ml'],['Gema de ovo de galinha, crua',7,'g']],['l'],0,['sob']),
+R('sericaia','Sericaia','portuguesa',[],0,0,0,0,[['Leite',90,'ml'],['Ovo',1.5,'un'],['Açúcar branco',35,'g'],['Farinha',13,'g'],['Canela',1,'g'],['Limão',3,'g']],['l'],0,['sob']),
 
 /* ---------- Burritos e tacos ---------- */
 R('burritocarne','Burrito de carne picada com feijão','mexicana',[],0,0,0,0,[['Tortilhas de trigo',90,'g'],['Carne picada de vaca',140,'g'],['Feijão preto',90,'g'],['Arroz agulha',60,'g'],['Queijo cheddar',40,'g'],['Tomate',60,'g'],['Cebola',40,'g'],['Coentros',5,'g'],['Cominhos',2,'g'],['Azeite',10,'ml']],['a','j'],0,['pp']),
 R('burritofrango','Burrito de frango com abacate','mexicana',[],0,0,0,0,[['Tortilhas de trigo',90,'g'],['Peito de frango',150,'g'],['Abacate',70,'g'],['Arroz agulha',60,'g'],['Feijão preto',70,'g'],['Alface',30,'g'],['Lima',10,'ml'],['Coentros',5,'g'],['Azeite',10,'ml']],['a','j'],0,['pp']),
 R('burritovegan','Burrito vegan de feijão preto e batata-doce','mexicana',['vegan','vegetariana'],0,0,0,0,[['Tortilhas de trigo',90,'g'],['Feijão preto',120,'g'],['Batata doce crua',150,'g'],['Arroz agulha',60,'g'],['Abacate',60,'g'],['Pimento',50,'g'],['Cominhos',2,'g'],['Coentros',5,'g'],['Azeite',12,'ml']],['a','j'],0,['pp']),
 R('burritocamarao','Burrito de camarão com lima','mexicana',[],0,0,0,0,[['Tortilhas de trigo',90,'g'],['Camarão',150,'g'],['Arroz agulha',60,'g'],['Couve-roxa crua',50,'g'],['Abacate',50,'g'],['Lima',12,'ml'],['Coentros',5,'g'],['Malagueta',1,'g'],['Azeite',10,'ml']],['a','j'],0,['pp']),
-R('burritopequeno','Burrito de pequeno-almoço com ovo','mexicana',[],0,0,0,0,[['Tortilhas de trigo',80,'g'],['Ovo',2,'un'],['Bacon',40,'g'],['Feijão preto',60,'g'],['Queijo cheddar',35,'g'],['Tomate',50,'g'],['Coentros',4,'g']],['p','l'],0,['br','sn']),
+R('burritopequeno','Burrito de pequeno-almoço com ovo','mexicana',[],0,0,0,0,[['Tortilhas de trigo',80,'g'],['Ovo',2,'un'],['Bacon',40,'g'],['Feijão preto',60,'g'],['Queijo cheddar',35,'g'],['Tomate',50,'g'],['Coentros',4,'g']],['p','l'],0,['br']),
 R('tacocarnitas','Tacos de carnitas de porco','mexicana',[],0,0,0,0,[['Tortilhas de milho',80,'g'],['Carne de porco',160,'g'],['Cebola',50,'g'],['Coentros',6,'g'],['Lima',12,'ml'],['Cominhos',2,'g'],['Laranja',40,'g'],['Azeite',10,'ml']],['a','j'],0,['pp']),
 R('tacopeixe','Tacos de peixe à Baja','mexicana',[],0,0,0,0,[['Tortilhas de milho',80,'g'],['Pescada',160,'g'],['Couve-roxa crua',60,'g'],['Maionese',20,'g'],['Lima',12,'ml'],['Farinha',20,'g'],['Coentros',5,'g'],['Malagueta',1,'g'],['Azeite',12,'ml']],['a','j'],0,['pp']),
 R('tacofrango','Tacos de frango com abacate','mexicana',[],0,0,0,0,[['Tortilhas de milho',80,'g'],['Peito de frango',150,'g'],['Abacate',60,'g'],['Cebola roxa',40,'g'],['Coentros',5,'g'],['Lima',10,'ml'],['Colorau',2,'g'],['Azeite',10,'ml']],['a','j'],0,['pp']),
@@ -2200,23 +2245,23 @@ R('tacocogumelos','Tacos de cogumelos e feijão preto','mexicana',['vegan','vege
 R('tacocamarao','Tacos de camarão com molho picante','mexicana',[],0,0,0,0,[['Tortilhas de milho',80,'g'],['Camarão',160,'g'],['Alface',40,'g'],['Molho piri-piri',10,'ml'],['Maionese',15,'g'],['Lima',10,'ml'],['Coentros',5,'g'],['Azeite',10,'ml']],['a','j'],0,['pp']),
 
 /* ---------- Cozinha africana ---------- */
-R('cachupa','Cachupa','africana',[],0,0,0,0,[['Milho, grão seco cru',90,'g'],['Feijão encarnado',70,'g'],['Feijão branco',40,'g'],['Couve galega',80,'g'],['Batata doce crua',100,'g'],['Abóbora',80,'g'],['Mandioca crua',80,'g'],['Carne de porco',80,'g'],['Chouriço',40,'g'],['Linguiça',40,'g'],['Toucinho fumado',25,'g'],['Cebola',70,'g'],['Alho',3,'dente'],['Azeite',15,'ml'],['Louro',1,'g']],['a','j'],0,['pp']),
+R('cachupa','Cachupa','africana',[],0,0,0,0,[['Milho, grão seco cru',45,'g'],['Feijão encarnado',35,'g'],['Feijão branco',20,'g'],['Couve galega',70,'g'],['Batata doce crua',70,'g'],['Abóbora',70,'g'],['Mandioca crua',50,'g'],['Carne de porco',50,'g'],['Chouriço',20,'g'],['Linguiça',20,'g'],['Toucinho fumado',10,'g'],['Cebola',50,'g'],['Alho',2,'dente'],['Azeite',8,'ml'],['Louro',1,'g']],['a','j'],0,['pp']),
 R('moamba','Moamba de galinha','africana',[],0,0,0,0,[['Frango inteiro com pele, cru',220,'g'],['Óleo de palma',20,'ml'],['Quiabo cru',100,'g'],['Abóbora',120,'g'],['Amendoim',30,'g'],['Tomate',120,'g'],['Cebola',80,'g'],['Alho',3,'dente'],['Jindungo (piri-piri)',5,'g'],['Louro',1,'g']],['a','j'],0,['pp']),
 
 /* ---------- Cozinha brasileira ---------- */
 R('moqueca','Moqueca de peixe','brasileira',['lowcarb'],0,0,0,0,[['Pescada',200,'g'],['Leite de coco',120,'ml'],['Óleo de dendê',15,'ml'],['Tomate',120,'g'],['Pimento',80,'g'],['Cebola',80,'g'],['Alho',3,'dente'],['Coentros',10,'g'],['Lima',15,'ml'],['Jindungo (piri-piri)',3,'g']],['a','j'],0,['pp']),
-R('feijoadabr','Feijoada brasileira','brasileira',[],0,0,0,0,[['Feijão preto',180,'g'],['Carne seca (charque)',70,'g'],['Paio de lombo',50,'g'],['Linguiça',50,'g'],['Costela de vaca crua',80,'g'],['Rabo de porco',50,'g'],['Cebola',80,'g'],['Alho',4,'dente'],['Louro',2,'g'],['Laranja',80,'g'],['Couve galega',80,'g'],['Farinha de pau (mandioca)',30,'g'],['Azeite',15,'ml']],['a','j'],0,['pp']),
+R('feijoadabr','Feijoada brasileira','brasileira',[],0,0,0,0,[['Feijão preto',90,'g'],['Carne seca (charque)',30,'g'],['Paio de lombo',20,'g'],['Linguiça',20,'g'],['Costela de vaca crua',40,'g'],['Rabo de porco',20,'g'],['Cebola',40,'g'],['Alho',2,'dente'],['Louro',1,'g'],['Laranja',60,'g'],['Couve galega',60,'g'],['Farinha de pau (mandioca)',15,'g'],['Azeite',8,'ml']],['a','j'],0,['pp']),
 R('maminha','Maminha grelhada','brasileira',['keto','lowcarb','paleo'],0,0,0,0,[['Maminha de vaca crua',220,'g'],['Sal grosso',6,'g'],['Alho',2,'dente'],['Azeite',10,'ml']],['a','j'],0,['pp']),
 R('pasteisvento','Pastéis de vento','brasileira',[],0,0,0,0,[['Massa de pastel crua',90,'g'],['Óleo alimentar',18,'ml'],['Flor de sal',1,'g']],['l','a','j'],0,['ent','sn']),
-R('pastelcatupiry','Pastel de queijo e catupiry','brasileira',[],0,0,0,0,[['Massa de pastel crua',90,'g'],['Mozzarella',50,'g'],['Requeijão cremoso (catupiry)',40,'g'],['Óleo alimentar',18,'ml'],['Orégãos',1,'g']],['l','a','j'],0,['ent','sn']),
-R('paodequeijo','Pão de queijo','brasileira',[],0,0,0,0,[['Polvilho azedo',100,'g'],['Queijo minas frescal',60,'g'],['Parmesão',20,'g'],['Ovo',1,'un'],['Leite',60,'ml'],['Óleo alimentar',20,'ml'],['Flor de sal',2,'g']],['p','l'],0,['br','sn']),
+R('pastelcatupiry','Pastel de queijo e catupiry','brasileira',[],0,0,0,0,[['Massa de pastel crua',45,'g'],['Mozzarella',25,'g'],['Requeijão cremoso (catupiry)',20,'g'],['Óleo alimentar',9,'ml'],['Orégãos',1,'g']],['l','a','j'],0,['ent','sn']),
+R('paodequeijo','Pão de queijo','brasileira',[],0,0,0,0,[['Polvilho azedo',35,'g'],['Queijo minas frescal',20,'g'],['Parmesão',7,'g'],['Ovo',0.35,'un'],['Leite',20,'ml'],['Óleo alimentar',7,'ml'],['Flor de sal',1,'g']],['p','l'],0,['br','sn']),
 
 /* ---------- Italianas e mediterrânicas novas ---------- */
 R('espguetepesto','Esparguete com pesto','italiana',['vegetariana','mediterranica'],0,0,0,0,[['Esparguete',100,'g'],['Pesto',45,'g'],['Parmesão',20,'g'],['Pinhões',12,'g'],['Manjericão',6,'g'],['Azeite',8,'ml']],['a','j'],0,['pp']),
 R('espgueterequeijao','Esparguete com requeijão, tomate cereja e azeitonas','mediterranica',['vegetariana','mediterranica'],0,0,0,0,[['Esparguete',100,'g'],['Requeijão',80,'g'],['Tomate cereja',150,'g'],['Alho',3,'dente'],['Azeitonas pretas',35,'g'],['Manjericão',6,'g'],['Azeite',18,'ml'],['Vinagre de vinho',8,'ml']],['a','j'],0,['pp']),
 
 /* ---------- Sobremesa portuguesa ---------- */
-R('bololaranja','Bolo de laranja','portuguesa',[],0,0,0,0,[['Farinha',90,'g'],['Açúcar branco',90,'g'],['Ovo',2,'un'],['Óleo alimentar',50,'ml'],['Laranja',110,'g'],['Raspa de limão',3,'g'],['Fermento em pó',4,'g']],['l','p'],0,['sob','sn']),
+R('bololaranja','Bolo de laranja','portuguesa',[],0,0,0,0,[['Farinha',26,'g'],['Açúcar branco',26,'g'],['Ovo',0.55,'un'],['Óleo alimentar',14,'ml'],['Laranja',32,'g'],['Raspa de limão',1,'g'],['Fermento em pó',1,'g']],['l','p'],0,['sob','sn']),
 
 /* ---------- Acompanhamentos: batata ---------- */
 R('acbcoz','Batatas cozidas com salsa','portuguesa',[],0,0,0,0,[['Batata',180,'g'],['Salsa',5,'g'],['Manteiga',10,'g'],['Azeite',5,'ml']],['ac']),
@@ -2287,7 +2332,7 @@ R('carilcamarao','Caril de camarão','indiana',[],0,0,0,0,[['Camarão',180,'g'],
 R('vindaloo','Vindaloo de porco','indiana',[],0,0,0,0,[['Porco, lombo cru',170,'g'],['Vinagre de vinho',30,'ml'],['Alho',5,'dente'],['Malagueta',4,'g'],['Cominhos',2,'g'],['Cravinho',0.5,'g'],['Canela',1,'g'],['Colorau',3,'g'],['Cebola',0.5,'un'],['Gengibre',6,'g'],['Óleo alimentar',15,'ml'],['Açúcar amarelo',4,'g']],['a','j'],0,['pp']),
 R('sarapatelgoa','Sarapatel de Goa','indiana',[],0,0,0,0,[['Porco, lombo cru',110,'g'],['Vaca, fígado cru',50,'g'],['Sangue de porco',30,'g'],['Vinagre de vinho',35,'ml'],['Alho',5,'dente'],['Malagueta',4,'g'],['Cominhos',2,'g'],['Cravinho',0.5,'g'],['Canela',1,'g'],['Curcuma em pó',2,'g'],['Cebola',0.5,'un'],['Tamarindo pasta',10,'g'],['Óleo alimentar',12,'ml']],['a','j'],0,['pp']),
 R('biryani','Biryani de frango','indiana',[],0,0,0,0,[['Coxas de frango',150,'g'],['Arroz basmati',80,'g'],['Iogurte natural',60,'g'],['Cebola',0.75,'un'],['Ghee',15,'g'],['Açafrão',0.1,'g'],['Cardamomo',1,'g'],['Canela',1,'g'],['Cravinho',0.3,'g'],['Garam masala',4,'g'],['Gengibre',8,'g'],['Alho',3,'dente'],['Coentros',8,'g'],['Hortelã',5,'g']],['a','j'],0,['pp']),
-R('naanqueijo','Naan de alho e queijo','indiana',[],0,0,0,0,[['Farinha',80,'g'],['Iogurte natural',40,'g'],['Mozzarella',45,'g'],['Alho',3,'dente'],['Manteiga',12,'g'],['Fermento de padeiro',3,'g'],['Coentros',4,'g'],['Açúcar branco',3,'g']],['ac']),
+R('naanqueijo','Naan de alho e queijo','indiana',[],0,0,0,0,[['Farinha',45,'g'],['Iogurte natural',22,'g'],['Mozzarella',25,'g'],['Alho',2,'dente'],['Manteiga',7,'g'],['Fermento de padeiro',2,'g'],['Coentros',3,'g'],['Açúcar branco',2,'g']],['ac']),
 R('daltarka','Dal tarka de lentilhas','indiana',[],0,0,0,0,[['Lentilhas',90,'g'],['Cebola',0.5,'un'],['Alho',3,'dente'],['Gengibre',6,'g'],['Tomate',1,'un'],['Curcuma em pó',2,'g'],['Cominhos',2,'g'],['Ghee',12,'g'],['Malagueta',1,'g'],['Coentros',8,'g']],['a','j'],0,['pp']),
 R('palakpaneer','Palak paneer de espinafres e queijo','indiana',[],0,0,0,0,[['Espinafres',200,'g'],['Queijo fresco',110,'g'],['Cebola',0.5,'un'],['Alho',3,'dente'],['Gengibre',8,'g'],['Nata para bater 35% gordura',30,'ml'],['Ghee',12,'g'],['Garam masala',3,'g'],['Cominhos',2,'g']],['a','j'],0,['pp']),
 R('chanamasala','Chana masala de grão','indiana',[],0,0,0,0,[['Grão-de-bico seco cru',80,'g'],['Cebola',0.5,'un'],['Tomate',1.5,'un'],['Alho',3,'dente'],['Gengibre',8,'g'],['Garam masala',4,'g'],['Cominhos',2,'g'],['Curcuma em pó',2,'g'],['Coentros',8,'g'],['Óleo alimentar',12,'ml'],['Lima',0.25,'un']],['a','j'],0,['pp']),
@@ -2325,7 +2370,7 @@ R('robalobeurreblanc','Robalo com beurre blanc','francesa',[],0,0,0,0,[['Robalo'
 R('pescadabeurreblanc','Pescada com beurre blanc e alcaparras','francesa',[],0,0,0,0,[['Pescada',190,'g'],['Manteiga',40,'g'],['Vinho branco',60,'ml'],['Vinagre de vinho',15,'ml'],['Chalota',30,'g'],['Alcaparras',12,'g'],['Salsa',5,'g'],['Limão',0.25,'un']],['a','j'],0,['pp']),
 R('salmaobeurreblanc','Salmão com beurre blanc de endro','francesa',[],0,0,0,0,[['Salmão',175,'g'],['Manteiga',42,'g'],['Vinho branco',60,'ml'],['Vinagre de vinho',15,'ml'],['Chalota',30,'g'],['Endro',5,'g'],['Nata para bater 35% gordura',20,'ml']],['a','j'],0,['pp']),
 /* ---- Sobremesas de colher ---- */
-R('tiramisu','Tiramisu','italiana',[],0,0,0,0,[['Queijo Mascarpone',70,'g'],['Gema de ovo de galinha, crua',20,'g'],['Clara de ovo de galinha, crua',25,'g'],['Açúcar branco',25,'g'],['Café expresso',40,'ml'],['Bolacha Maria',30,'g'],['Cacau em pó',4,'g']],['l'],0,['sob']),
+R('tiramisu','Tiramisu','italiana',[],0,0,0,0,[['Queijo Mascarpone',55,'g'],['Gema de ovo de galinha, crua',16,'g'],['Clara de ovo de galinha, crua',20,'g'],['Açúcar branco',18,'g'],['Café expresso',40,'ml'],['Bolacha Maria',24,'g'],['Cacau em pó',3,'g']],['l'],0,['sob']),
 R('bavaroise','Bavaroise de morango','francesa',[],0,0,0,0,[['Morango',80,'g'],['Nata para bater 35% gordura',60,'ml'],['Leite',50,'ml'],['Gema de ovo de galinha, crua',18,'g'],['Açúcar branco',25,'g'],['Gelatina em folhas',2,'g']],['l'],0,['sob']),
 R('moussechoc','Mousse de chocolate','portuguesa',[],0,0,0,0,[['Chocolate de culinária',35,'g'],['Ovo',1,'un'],['Açúcar branco',12,'g'],['Manteiga',8,'g']],['l'],0,['sob']),
 R('bolochoc','Bolo de chocolate','portuguesa',[],0,0,0,0,[['Farinha',35,'g'],['Açúcar branco',40,'g'],['Cacau em pó',12,'g'],['Ovo',0.75,'un'],['Manteiga',25,'g'],['Leite',35,'ml'],['Fermento em pó',2,'g']],['l'],0,['sob']),
@@ -2558,7 +2603,7 @@ P('uvaslima',[['Preparar','Lava as uvas e corta ao meio se forem graúdas; tira 
  ['Temperar','Sumo de lima por cima e envolve.'],
  ['Servir','Raspa de lima e hortelã picada à saída. Melhor bem fresco.']]);
 P('pannacotta',[['Gelatina','Demolha as folhas de gelatina em água muito fria até amolecerem.',5],
- ['Aquecer','Aquece a nata com o açúcar e a baunilha sem deixar ferver — se ferver, a nata talha.',5],
+ ['Aquecer','Aquece a nata com o leite, o açúcar e a baunilha sem deixar ferver — se ferver, a nata talha.',5],
  ['Dissolver','Fora do lume, junta a gelatina bem escorrida e mexe até desaparecer por completo.'],
  ['Frio','Deita em taças e leva ao frigorífico pelo menos quatro horas.',240],
  ['Servir','Frutos vermelhos por cima, à saída.']]);
@@ -5211,6 +5256,11 @@ const ING_EXCECAO={
   'Farinha de pau (mandioca)':[], 'Farinha de alfarroba':['leguminosa'],
   'Farinha de aveia':['gluten','cereal'], 'Flocos de arroz':['cereal'], 'Massa de arroz':['cereal'],
   'Milho, amido (pó)':['cereal'], 'Sêmola de milho':['cereal'], 'Tapioca':[],
+  /* Amidos sem glúten, escritos aqui de propósito. Já não eram apanhados por
+     nenhuma regra, mas «não ser apanhado» é uma garantia frágil quando o que
+     está em causa é dizer a um celíaco que o pão de queijo é seguro: se um dia
+     alguém alargar a regra do glúten, estas linhas seguram-nos. */
+  'Polvilho azedo':[], 'Batata, fécula':[],
   'Trigo Sarraceno (grão) cru':['cereal'], 'Millet, cru, seco':['cereal'],
   'Sementes de mostarda':['mostarda'], 'Molho de mostarda':['mostarda'],
   'Castanha de caju torrada e salgada':['frutosecos'], 'Castanha do Brasil':['frutosecos'],
@@ -5685,6 +5735,46 @@ function blank(){ return {members:[],cheats:{},plans:{},bought:{},prefCuisine:'t
       validades:false, sons:false, ultimaAbertura:null, votacao:null, ajudante:null},
   week:mondayISO(new Date()),
   meta:{gravadoEm:null,exportadoEm:null,semCopia:false,avisarAoSair:true,desdeRegisto:null}}; }
+
+/* ===== SUPLEMENTOS =====
+   Cada suplemento traz o que uma dose acrescenta: macros (que entram no
+   simulador, porque um batido de proteína é comida) e micronutrientes (que
+   se comparam com a dose de referência e com o limite superior tolerável).
+   Valores típicos de rótulos comerciais e das doses habituais — cada marca
+   tem os seus, e a app diz para confirmar na embalagem.
+   Micros: vitD µg, ferro mg, calcio mg, magnesio mg, b12 µg, folato µg,
+   vitC mg, zinco mg, omega3 mg de EPA+DHA. */
+const CAT_SUPL={proteico:'Proteicos',vitaminico:'Vitaminas',mineral:'Minerais',composto:'Compostos e outros'};
+function SUP(id,nome,cat,dose,macros,micros,nota){
+  return {id,nome,cat,dose,
+    kcal:macros[0]||0, c:macros[1]||0, p:macros[2]||0, f:macros[3]||0,
+    micros:micros||{}, nota:nota||null};
+}
+const SUPLEMENTOS=[
+  SUP('whey','Proteína whey','proteico','1 doseador (30 g)',[120,3,24,1.5],{}),
+  SUP('caseina','Proteína caseína','proteico','1 doseador (30 g)',[110,3,24,0.5],{}),
+  SUP('protVegetal','Proteína vegetal (ervilha ou soja)','proteico','1 doseador (30 g)',[115,4,22,2],{}),
+  SUP('ganhador','Hipercalórico (gainer)','proteico','1 dose (100 g)',[380,70,20,3],{},
+    'Muito denso em açúcares — pensado para quem não consegue comer o suficiente, não como reforço diário.'),
+  SUP('multivit','Multivitamínico','vitaminico','1 comprimido',[0,0,0,0],
+    {vitD:5,b12:2.5,folato:200,vitC:80,ferro:14,zinco:10}),
+  SUP('vitD1000','Vitamina D 1000 UI','vitaminico','1 comprimido',[0,0,0,0],{vitD:25}),
+  SUP('vitD400','Vitamina D 400 UI (gotas)','vitaminico','1 dose',[0,0,0,0],{vitD:10},
+    'A dose que a Norma 004/2019 da Direção-Geral da Saúde recomenda para bebés até aos 12 meses.'),
+  SUP('b12','Vitamina B12','vitaminico','1 comprimido',[0,0,0,0],{b12:1000},
+    'Relevante sobretudo em dietas vegetarianas ou vegan estritas.'),
+  SUP('vitC','Vitamina C','vitaminico','1 comprimido',[0,0,0,0],{vitC:500}),
+  SUP('folico','Ácido fólico 400 µg','vitaminico','1 comprimido',[0,0,0,0],{folato:400},
+    'Recomendado antes da conceção e no 1.º trimestre, para reduzir o risco de defeitos do tubo neural.'),
+  SUP('ferro','Ferro','mineral','1 comprimido',[0,0,0,0],{ferro:14}),
+  SUP('magnesio','Magnésio','mineral','1 comprimido',[0,0,0,0],{magnesio:300}),
+  SUP('calcio','Cálcio','mineral','1 comprimido',[0,0,0,0],{calcio:500}),
+  SUP('zinco','Zinco','mineral','1 comprimido',[0,0,0,0],{zinco:15}),
+  SUP('omega3','Ómega 3 (óleo de peixe)','composto','1 cápsula (1 g)',[9,0,0,1],{omega3:300}),
+  SUP('creatina','Creatina monohidratada','composto','1 dose (5 g)',[0,0,0,0],{}),
+  SUP('fibra','Fibra (psílio)','composto','1 dose (5 g)',[15,4,0,0],{})
+];
+
 let S = load();
 sincronizaReceitas();   /* as receitas da casa entram na biblioteca antes do primeiro render */
 /* Os pratos compostos NÃO se sincronizam aqui, e é de propósito: precisam de
@@ -6030,45 +6120,9 @@ function hidratosMin(m){ if(idadeAnos(m)<1) return 0; return gravida(m)? 175 : 1
    grávidas — o slider de objetivo fica limitado a manutenção ou acima. */
 function permiteDefice(m){ return faseDe(m)==='adulto' && !gravida(m); }
 function permiteProjecao(m){ return permiteDefice(m); }
-
-/* ===== SUPLEMENTOS =====
-   Cada suplemento traz o que uma dose acrescenta: macros (que entram no
-   simulador, porque um batido de proteína é comida) e micronutrientes (que
-   se comparam com a dose de referência e com o limite superior tolerável).
-   Valores típicos de rótulos comerciais e das doses habituais — cada marca
-   tem os seus, e a app diz para confirmar na embalagem.
-   Micros: vitD µg, ferro mg, calcio mg, magnesio mg, b12 µg, folato µg,
-   vitC mg, zinco mg, omega3 mg de EPA+DHA. */
-const CAT_SUPL={proteico:'Proteicos',vitaminico:'Vitaminas',mineral:'Minerais',composto:'Compostos e outros'};
-function SUP(id,nome,cat,dose,macros,micros,nota){
-  return {id,nome,cat,dose,
-    kcal:macros[0]||0, c:macros[1]||0, p:macros[2]||0, f:macros[3]||0,
-    micros:micros||{}, nota:nota||null};
-}
-const SUPLEMENTOS=[
-  SUP('whey','Proteína whey','proteico','1 doseador (30 g)',[120,3,24,1.5],{}),
-  SUP('caseina','Proteína caseína','proteico','1 doseador (30 g)',[110,3,24,0.5],{}),
-  SUP('protVegetal','Proteína vegetal (ervilha ou soja)','proteico','1 doseador (30 g)',[115,4,22,2],{}),
-  SUP('ganhador','Hipercalórico (gainer)','proteico','1 dose (100 g)',[380,70,20,3],{},
-    'Muito denso em açúcares — pensado para quem não consegue comer o suficiente, não como reforço diário.'),
-  SUP('multivit','Multivitamínico','vitaminico','1 comprimido',[0,0,0,0],
-    {vitD:5,b12:2.5,folato:200,vitC:80,ferro:14,zinco:10}),
-  SUP('vitD1000','Vitamina D 1000 UI','vitaminico','1 comprimido',[0,0,0,0],{vitD:25}),
-  SUP('vitD400','Vitamina D 400 UI (gotas)','vitaminico','1 dose',[0,0,0,0],{vitD:10},
-    'A dose que a Norma 004/2019 da Direção-Geral da Saúde recomenda para bebés até aos 12 meses.'),
-  SUP('b12','Vitamina B12','vitaminico','1 comprimido',[0,0,0,0],{b12:1000},
-    'Relevante sobretudo em dietas vegetarianas ou vegan estritas.'),
-  SUP('vitC','Vitamina C','vitaminico','1 comprimido',[0,0,0,0],{vitC:500}),
-  SUP('folico','Ácido fólico 400 µg','vitaminico','1 comprimido',[0,0,0,0],{folato:400},
-    'Recomendado antes da conceção e no 1.º trimestre, para reduzir o risco de defeitos do tubo neural.'),
-  SUP('ferro','Ferro','mineral','1 comprimido',[0,0,0,0],{ferro:14}),
-  SUP('magnesio','Magnésio','mineral','1 comprimido',[0,0,0,0],{magnesio:300}),
-  SUP('calcio','Cálcio','mineral','1 comprimido',[0,0,0,0],{calcio:500}),
-  SUP('zinco','Zinco','mineral','1 comprimido',[0,0,0,0],{zinco:15}),
-  SUP('omega3','Ómega 3 (óleo de peixe)','composto','1 cápsula (1 g)',[9,0,0,1],{omega3:300}),
-  SUP('creatina','Creatina monohidratada','composto','1 dose (5 g)',[0,0,0,0],{}),
-  SUP('fibra','Fibra (psílio)','composto','1 dose (5 g)',[15,4,0,0],{})
-];
+/* A tabela dos SUPLEMENTOS está declarada lá em cima, antes do load(): o
+   saneador limparValidades() precisa dos nomes e corre no arranque. Ver
+   «SUPLEMENTOS».  */
 const SUPL={}; SUPLEMENTOS.forEach(s=>{ SUPL[s.id]=s; });
 const MICROS=[['vitD','Vitamina D','µg'],['ferro','Ferro','mg'],['calcio','Cálcio','mg'],
   ['magnesio','Magnésio','mg'],['b12','Vitamina B12','µg'],['folato','Folato','µg'],
@@ -6707,7 +6761,8 @@ function refeicaoNaJanela(mid,mk){
    cobre por inteiro são dias sem comida; o dia em que começa e o dia em que
    acaba são parciais, e a app conta-os proporcionalmente em vez de os arredondar
    — arredondar um dia de jejum para cima ou para baixo são 2000 kcal de erro. */
-const JEJUM_MAX_H=8*24;
+/* JEJUM_MAX_H está declarado lá em cima, com o MAX_AC: os saneadores do
+   arranque precisam dele antes deste ponto do ficheiro. */
 function limparJejumPontual(x,ids){
   if(!x||typeof x!=='object') return null;
   if(!dataValida(x.d)) return null;
@@ -6725,7 +6780,15 @@ function limparJejum(o,ids){
     const c=o.im[mid]; if(!c||typeof c!=='object') return;
     d.im[mid]={ativo:!!c.ativo, h:clampNum(Math.round(parseFloat(c.h)||16),12,23),
                 inicio:clampNum(Math.round(parseFloat(c.inicio)||12),0,23)};
-    if(temChave(OBJETIVOS_JEJUM,c.obj)) d.im[mid].obj=c.obj;
+    /* O objetivo guarda-se como texto curto e é validado na leitura, por
+       objetivoJejum(), que já rejeita o que não está na tabela. Validá-lo aqui
+       lia OBJETIVOS_JEJUM, que é declarado mil linhas abaixo — e como este
+       saneador corre no arranque, a partir de migraRegistos(), quem tivesse
+       ligado o jejum intermitente abria a app num ecrã em branco, sem nada na
+       consola. É um erro de zona morta temporal, e a cura é não depender da
+       ordem das declarações: sanear a forma aqui, validar o conteúdo à
+       chegada. */
+    if(typeof c.obj==='string' && c.obj && c.obj.length<=20) d.im[mid].obj=c.obj;
     if(c.ramadao && dataValida(c.ramadao.ini) && dataValida(c.ramadao.fim))
       d.im[mid].ramadao={ini:c.ramadao.ini, fim:c.ramadao.fim};
   });
@@ -7887,14 +7950,25 @@ const EPOCA={
    «Sardinhas», «Lulas», «Amêijoas», «Figos», «Castanhas», «Nozes». Sem esta
    regra, o peixe mais sazonal do país nunca chegava a ser marcado como
    de época — nem no selo, nem no filtro, nem nas sugestões. */
+/* A tabela das épocas não muda, e o nome de um ingrediente também não: a
+   correspondência entre os dois calcula-se uma vez e fica guardada. Sem isto,
+   cada ingrediente de cada receita percorria a tabela toda a tirar acentos, a
+   cada redesenho — eram 41 ms só nisto no separador do plano, e num telemóvel
+   bem mais. As chaves da tabela também se preparam uma vez. */
+const _epocaCache=new Map();
+let _epocaChaves=null;
 function chaveEpocaDe(nome){
-  const n=semAcentos(String(nome||'')).toLowerCase();
-  return Object.keys(EPOCA).find(k=>{
-    const c=semAcentos(k).toLowerCase();
-    return n===c || n===c+'s' || n===c+'es'
-      || n.indexOf(c+',')===0 || n.indexOf(c+' ')===0
-      || n.indexOf(c+'s,')===0 || n.indexOf(c+'s ')===0;
-  })||null;
+  const bruto=String(nome||'');
+  if(_epocaCache.has(bruto)) return _epocaCache.get(bruto);
+  if(!_epocaChaves) _epocaChaves=Object.keys(EPOCA).map(k=>[k, semAcentos(k).toLowerCase()]);
+  const n=semAcentos(bruto).toLowerCase();
+  const achado=_epocaChaves.find(([,c])=>
+    n===c || n===c+'s' || n===c+'es'
+    || n.indexOf(c+',')===0 || n.indexOf(c+' ')===0
+    || n.indexOf(c+'s,')===0 || n.indexOf(c+'s ')===0);
+  const r=achado? achado[0] : null;
+  _epocaCache.set(bruto,r);
+  return r;
 }
 function daEpoca(nome,mes){
   const m=mes||(new Date().getMonth()+1);
@@ -8440,7 +8514,7 @@ function fichaHtml(f){
             <h2 id="fi-t">${esc(r.n)}${climaDoPrato(r)}</h2>
             <p class="rotulo-coz">${cozinhasDe(r).map(k=>CUIS[k]).join(' · ')}</p>
             ${r.u? '<p class="rotulo-assina">Receita da casa</p>':''}
-            ${r.co? `<p class="rotulo-assina">Prato com acompanhamento</p>`:''}
+            ${ehCombo(r)? `<p class="rotulo-assina">Prato com acompanhamento</p>`:''}
             <span class="rotulo-filete" aria-hidden="true"></span>
           </div>
           <div style="margin-top:6px"><span class="tag">${ICO_COZ[r.coz]||''} ${cozinhasDe(r).map(k=>CUIS[k]).join(' · ')}</span>${
@@ -8448,7 +8522,7 @@ function fichaHtml(f){
         </div>
         <button class="btn ghost small" style="flex:none" onclick="fecharFicha()">✕</button>
       </div>
-      ${r.co? `<p class="sub" style="margin-top:8px">Feito de
+      ${ehCombo(r)? `<p class="sub" style="margin-top:8px">Feito de
         <button class="linkish" onclick="abrirFicha('${r.base}',${f.n})">${esc((RECIPES.find(x=>x.id===r.base)||{}).n||'')}</button>
         ${(r.acIds||[]).length===1? 'com' : 'com'}
         ${(r.acIds||[]).map(id=>{ const a=RECIPES.find(x=>x.id===id); return a
@@ -9842,7 +9916,7 @@ const VAR_NOME={}; VARIANTES.forEach(f=>{ VAR_NOME[f.k]=f.n; });
 function chaveFamilia(rid){
   /* um prato composto pertence à família do prato que lhe deu origem: é o
      que põe «Bife com batatas fritas» e «Bife com salada» no mesmo cartão */
-  const c=RECIPES.find(x=>x.id===rid && x.co);
+  const c=RECIPES.find(x=>x.id===rid && ehCombo(x));
   if(c) return VAR_INDICE[c.base] || ('u:'+c.base);
   const u=(S.receitas||[]).find(x=>x.id===rid);
   if(u && u.base && u.base!==rid) return VAR_INDICE[u.base] || ('u:'+u.base);
@@ -9854,7 +9928,7 @@ function familiaDe(rid){
   const k=chaveFamilia(rid);
   if(k) return k;
   if((S.receitas||[]).some(x=>x.base===rid)) return 'u:'+rid;
-  return RECIPES.some(x=>x.co && x.base===rid)? ('u:'+rid) : null;
+  return RECIPES.some(x=>ehCombo(x) && x.base===rid)? ('u:'+rid) : null;
 }
 function nomeFamilia(k){
   if(!k) return '';
@@ -12432,16 +12506,20 @@ function passosCompostos(prato,acs){
    faz às receitas da casa: a partir daqui o resto da app não precisa de saber
    que eles existem — são receitas como as outras. */
 function sincronizaCombos(){
-  for(let i=RECIPES.length-1;i>=0;i--) if(RECIPES[i].co){ delete PASSOS[RECIPES[i].id]; RECIPES.splice(i,1); }
+  for(let i=RECIPES.length-1;i>=0;i--) if(ehCombo(RECIPES[i])){ delete PASSOS[RECIPES[i].id]; RECIPES.splice(i,1); }
   /* apagar uma receita da casa deixava aqui um par pendurado para sempre: um
      combo cuja base ou cujo acompanhamento já não existem deixa de fazer
-     sentido, e sai da lista em vez de ficar a ser ignorado em silêncio */
-  const vivo=x=>RECIPES.some(r=>r.id===x && !r.co);
-  S.combos=combosCfg().filter(c=>c && vivo(c.base) && (c.ac||[]).some(vivo));
+     sentido, e sai da lista em vez de ficar a ser ignorado em silêncio.
+     O mesmo para um par que nunca poderia existir — um acompanhamento como
+     prato, que uma cópia estragada pode trazer: era ignorado na hora de
+     desenhar, mas ficava a ocupar lugar na lista para sempre. */
+  const pratoVivo=x=>{ const p=RECIPES.find(r=>r.id===x && !ehCombo(r)); return !!p && !ehAcompanhamento(p); };
+  const acVivo=x=>{ const a=RECIPES.find(r=>r.id===x && !ehCombo(r)); return !!a && ehAcompanhamento(a); };
+  S.combos=combosCfg().filter(c=>c && pratoVivo(c.base) && (c.ac||[]).some(acVivo));
   S.combos.forEach(c=>{
-    const prato=RECIPES.find(x=>x.id===c.base && !x.co);
+    const prato=RECIPES.find(x=>x.id===c.base && !ehCombo(x));
     if(!prato || ehAcompanhamento(prato)) return;
-    const acs=(c.ac||[]).map(id=>RECIPES.find(x=>x.id===id && !x.co)).filter(x=>ehAcompanhamento(x));
+    const acs=(c.ac||[]).map(id=>RECIPES.find(x=>x.id===id && !ehCombo(x))).filter(x=>ehAcompanhamento(x));
     if(!acs.length) return;
     const id=idCombo(prato.id,acs.map(a=>a.id));
     if(RECIPES.some(x=>x.id===id)) return;
@@ -12470,7 +12548,7 @@ function sincronizaCombos(){
    para quem quiser dizer ao utilizador em que é que o prato se tornou. */
 function registaCombo(baseId,ids){
   if(!baseId || !Array.isArray(ids) || !ids.length) return null;
-  const prato=RECIPES.find(x=>x.id===baseId && !x.co);
+  const prato=RECIPES.find(x=>x.id===baseId && !ehCombo(x));
   if(!prato || ehAcompanhamento(prato)) return null;
   const ac=ids.slice().sort(), id=idCombo(baseId,ac);
   const lista=combosCfg();
@@ -13431,7 +13509,7 @@ function setFormRef(campo,val){
   }
   /* um combo não pode ser o prato de um registo: ele já traz o acompanhamento
      dentro, e o registo tem o seu campo próprio para isso — entrava duas vezes */
-  else if(campo==='r'){ if(RECIPES.some(x=>x.id===val && !x.co)) f.r=val; }
+  else if(campo==='r'){ if(RECIPES.some(x=>x.id===val && !ehCombo(x))) f.r=val; }
   else if(campo==='dose'){ f.dose=clampNum(Math.round((parseFloat(val)||1)*100)/100,0.25,4); }
   saveMeta(); render();
 }
@@ -15202,7 +15280,7 @@ function planMeal(di,mk){ const w=planWeek(); if(!w[di]) w[di]={}; if(!w[di][mk]
 function setMeal(di,mk,rid){
   /* um prato composto nunca é o prato de uma refeição: os acompanhamentos
      dele já estão no campo próprio, e aceitá-lo aqui contava-os duas vezes */
-  if(rid && (RECIPES.find(x=>x.id===rid)||{}).co) return;
+  if(rid && ehCombo(RECIPES.find(x=>x.id===rid))) return;
   const meal=planMeal(di,mk); meal.r=rid;
   if(!rid) meal.ac=[];   /* tirar o prato tira os acompanhamentos: um arroz sozinho não é plano */
   /* mudar o prato com acompanhamentos já postos é um par novo: «Bife com
@@ -15239,7 +15317,7 @@ function clearWeek(){ if(confirm('Limpar todas as refeições desta semana?')){ 
    já vai ao lado, e escolher um como prato de uma refeição que também tem
    acompanhamentos contava o acompanhamento duas vezes. Esta é a única porta
    por onde se escolhe um prato — fechá-la aqui fecha-a em todo o lado. */
-function receitasDe(mk){ return RECIPES.filter(r=>r.mt.indexOf(mk)>=0 && r.mt.indexOf('ac')<0 && !r.co); }
+function receitasDe(mk){ return RECIPES.filter(r=>r.mt.indexOf(mk)>=0 && r.mt.indexOf('ac')<0 && !ehCombo(r)); }
 function acompanhamentos(){ return RECIPES.filter(r=>r.mt.indexOf('ac')>=0); }
 function ehAcompanhamento(r){ return !!r && r.mt.indexOf('ac')>=0; }
 
@@ -15437,12 +15515,21 @@ function sugestoes(){
   const aperta=orcamentoApertado();
   const bonus=r=>(receitaDaEpoca(r)?2:0)+pesoGenero(r,mk)+Math.min(2,encaixaNoPrep(r,prep)*0.5)
     +usaOQueVaiAcabar(r)+pesoVeredicto(r)+saldoGostos(r.id,membros)+(aperta? pesoCusto(r) : 0);
+  /* A chave de cada receita calcula-se UMA vez, antes de ordenar. O bónus
+     chama sete funções — época, género, food prep, validades, veredictos,
+     gostos, custo — e a disponibilidade percorre a despensa toda; dentro do
+     comparador isso corria duas vezes por comparação, ou seja, umas 2400
+     vezes para 169 receitas em vez de 169. Era o que fazia o separador do
+     plano levar quatro décimos de segundo a redesenhar a cada clique, e num
+     telemóvel mais de um segundo. */
+  const chave=new Map();
+  ok.forEach(r=>chave.set(r, {pronta:disponibilidadeReceita(r).pronta, b:bonus(r),
+                              dist:medio? Math.abs(r.k-medio) : 0}));
   ok.sort((a,b)=>{
-    const da=disponibilidadeReceita(a), db=disponibilidadeReceita(b);
-    if(da.pronta!==db.pronta) return da.pronta? -1:1;
-    const ba=bonus(a), bb=bonus(b);
-    if(Math.abs(ba-bb)>0.4) return bb-ba;
-    if(medio) return Math.abs(a.k-medio)-Math.abs(b.k-medio);
+    const ka=chave.get(a), kb=chave.get(b);
+    if(ka.pronta!==kb.pronta) return ka.pronta? -1:1;
+    if(Math.abs(ka.b-kb.b)>0.4) return kb.b-ka.b;
+    if(medio) return ka.dist-kb.dist;
     return a.n.localeCompare(b.n,'pt');
   });
   return {mk,membros,ok,fora,base};
@@ -15678,7 +15765,7 @@ function mealBlock(di,mk,label,date){
          passo-a-passo dos dois lados escrito de seguida. */
       if(!r || !acs.length) return '';
       const cb=RECIPES.find(x=>x.id===idCombo(r.id,acs.map(a=>a.id)));
-      const nome=esc(nomeComposto(r,acs));
+      const nome=esc(nomeDaRefeicao(meal));
       return `<p class="prato-composto">${cb
         ? `<button class="linkish" onclick="irReceita('${cb.id}')" title="Abrir a variante, com os passos dos dois">🍽️ ${nome}</button>`
         : `🍽️ ${nome}`}</p>`;
@@ -17093,7 +17180,7 @@ function lerPacote(txt){
     if(vistosRec[lr.id]) lr.id='u_'+uid();
     vistosRec[lr.id]=1; receitas.push(lr);
   });
-  const receitaExiste=id=>vistosRec[id] || RECIPES.some(x=>x.id===id&&!x.u&&!x.co);
+  const receitaExiste=id=>vistosRec[id] || RECIPES.some(x=>x.id===id&&!x.u&&!ehCombo(x));
   /* A lista de acompanhamentos de uma refeição vinda de fora: só ids que
      existem mesmo, sem repetições e sem passar o lugar que há no prato. Aceita
      a forma antiga (um id só) das cópias gravadas antes de o lugar se poder
@@ -18153,6 +18240,13 @@ aplicarEcra();
 /* Agora sim: já cá estão todas as constantes de que os combos precisam, e
    ainda falta o primeiro render. */
 sincronizaCombos();
+/* O botão de ajuda do desfazer está escrito à mão no cabeçalho e não passa
+   por dica(), por isso nascia sem data-dica e abria uma bolha vazia. O texto
+   sempre existiu em DICAS — faltava ligá-lo. Aqui e não dentro de pintaHist():
+   pintaHist() corre a partir de save(), que corre durante o arranque, muito
+   antes de DICAS existir — ler lá a constante deixava a app em branco. */
+(function(){ const d=document.getElementById('dica-desfazer');
+  if(d) d.setAttribute('data-dica', DICAS.desfazer||''); })();
 aplicarTema();
 /* Em modo automático, seguir o sistema quando ele muda a meio da sessão. */
 try{ const mq=matchMedia('(prefers-color-scheme: dark)');

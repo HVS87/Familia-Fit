@@ -284,6 +284,8 @@ O service worker usa a estratégia *rede primeiro, cache como reserva*: com liga
 
 Não há caixas de diálogo do browser a pedir dados: tudo o que se escreve escreve-se em campos da própria app, que seguem o tema, falam a mesma língua e funcionam dentro de um iframe com *sandbox*. O `confirm()` fica reservado ao que apaga — e, se o browser o bloquear, o que não acontece é o apagar.
 
+**Feita para os três ecrãs.** No telemóvel, a navegação desce para uma barra ao alcance do polegar, os alvos de toque respeitam os mínimos da WCAG (24 px, 30+ em ecrã tátil), e nada desliza na horizontal. No tablet, as grelhas reorganizam-se por orientação. No monitor grande, a app usa a largura — até cinco colunas de receitas a 1920 px — mas o texto corrido tem um teto de 72 caracteres por linha, porque ler parágrafos de 150 caracteres é perder a linha de cada vez que o olho volta à esquerda. E é rápida onde custa: a lista das quase setecentas linhas da despensa só desenha as que estão à vista (`content-visibility`), e as ordenações caras calculam a chave uma vez em vez de a recalcular a cada comparação — o separador do plano passou de quatro décimos de segundo para menos de um, num portátil, e a diferença num telemóvel é maior.
+
 Os valores calóricos, os METs por modalidade e os macros das receitas são **estimativas** para orientar o planeamento. Os METs seguem o *Compendium of Physical Activities*, e o gasto calcula-se por MET × peso × horas — a fórmula habitual, que ignora diferenças de eficiência, altitude ou temperatura. Nada disto substitui o acompanhamento de um nutricionista ou médico, sobretudo em caso de condições de saúde, gravidez ou planos alimentares para crianças.
 
 ### As fontes, uma a uma
