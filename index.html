@@ -1508,7 +1508,7 @@ function migraRegistos(s){
   s.cozPref = limparCozPref(s.cozPref);
   s.rituais = limparRituais(s.rituais); s.extras = limparExtras(s.extras); s.aindaHa = limparAindaHa(s.aindaHa);
   s.visitas = limparVisitas(s.visitas); s.ementas = limparEmentas(s.ementas);
-  s.anos = limparAnos(s.anos, ids); s.provas = limparProvas(s.provas, ids);
+  s.anos = limparAnos(s.anos, ids); s.provas = limparProvas(s.provas, ids); s.bebidas = limparBebidas(s.bebidas, ids);
   /* Os dois filtros eram uma escolha só e passaram a listas. Uma cópia antiga
      traz uma string, e uma string tem .indexOf — passaria sem dar erro e
      filtraria por letras em vez de por dietas. */
@@ -5940,6 +5940,8 @@ function blank(){ return {members:[],cheats:{},plans:{},bought:{},prefCuisine:'t
      ementa da casa para cada festa, por ano. anos: o prato que cada um
      escolheu no dia dos anos. provas: a reintroducao de alimentos recusados. */
   visitas:[], ementas:{}, anos:{}, provas:{},
+  /* bebidas: o alcool registado, que nao vem de receita nenhuma. */
+  bebidas:[],
   /* jejum: im é o horário por pessoa (intermitente), pontuais são os jejuns
      com data marcada. Os dois contam para o alvo do dia e para a projeção. */
   jejum:{im:{}, pontuais:[], renutricao:{}, renutRecusada:{}},
@@ -6044,7 +6046,7 @@ function instantaneo(){ return JSON.stringify({members:S.members, cheats:S.cheat
   sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa, pausas:S.pausas, diario:S.diario, cozPref:S.cozPref,
   validades:S.validades, veredictos:S.veredictos, brigada:S.brigada, desperdicio:S.desperdicio,
   gostos:S.gostos, jejum:S.jejum, combos:S.combos, rituais:S.rituais, extras:S.extras, aindaHa:S.aindaHa,
-  visitas:S.visitas, ementas:S.ementas, anos:S.anos, provas:S.provas}); }
+  visitas:S.visitas, ementas:S.ementas, anos:S.anos, provas:S.provas, bebidas:S.bebidas}); }
 function aplicaInstantaneo(js){
   const d=JSON.parse(js);
   S.members=d.members; S.cheats=d.cheats; S.plans=d.plans; S.bought=d.bought;
@@ -6067,7 +6069,7 @@ function aplicaInstantaneo(js){
   S.gostos=d.gostos&&typeof d.gostos==='object'? d.gostos : {};
   S.combos=limparCombos(d.combos);
   S.rituais=limparRituais(d.rituais); S.extras=limparExtras(d.extras); S.aindaHa=limparAindaHa(d.aindaHa);
-  S.visitas=limparVisitas(d.visitas); S.ementas=limparEmentas(d.ementas); S.anos=limparAnos(d.anos); S.provas=limparProvas(d.provas);
+  S.visitas=limparVisitas(d.visitas); S.ementas=limparEmentas(d.ementas); S.anos=limparAnos(d.anos); S.provas=limparProvas(d.provas); S.bebidas=limparBebidas(d.bebidas);
   S.jejum=limparJejum(d.jejum, S.members.map(m=>m.id));
   sincronizaReceitas(); sincronizaCombos();
   S.members.forEach(normalizaMembro);
@@ -6833,9 +6835,14 @@ function gastoRealDia(m,d){
   return {base, desp, total:base+desp};
 }
 function ingeridoRealDia(mid,d){
-  return regRefDe(mid).filter(r=>r.d===d&&r.estado==='feita')
+  const t=regRefDe(mid).filter(r=>r.d===d&&r.estado==='feita')
     .reduce((t,r)=>{ const x=macrosRegRef(r);
       return {k:t.k+x.k,c:t.c+x.c,p:t.p+x.p,f:t.f+x.f,fib:t.fib+(x.fib||0)}; },{k:0,c:0,p:0,f:0,fib:0});
+  /* O álcool não é um macronutriente e não entra em nenhuma das três barras —
+     mas são calorias que o corpo conta, a 7 kcal por grama. Somam-se ao total
+     do dia e ficam de fora dos macros, que é exatamente o que ele é. */
+  t.k += kcalAlcoolDia(mid,d);
+  return t;
 }
 /* ================= FIBRA =================
    O valor estava em todos os 646 ingredientes desde o princípio, vindo do
@@ -6871,6 +6878,174 @@ function fibraMedia(mid,dias){
    expressamente batata e outras raízes ricas em amido dessa conta. É a
    exclusão que mais se erra, e a que mais muda o número numa casa portuguesa. */
 const OMS_HORTOFRUTICOLAS=400;
+
+/* ================= O SALEIRO INVISÍVEL =================
+   Portugal come quase o dobro do sal recomendado, e quase nada vem do saleiro
+   da mesa: vem do pão, do queijo, do fumeiro e das conservas que já estão nas
+   receitas. Nenhuma família faz esta conta de cabeça.
+
+   Fonte: OMS, «Guideline: Sodium intake for adults and children» (2012) —
+   menos de 2 g de sódio (5 g de sal) por dia no adulto. Para as crianças, a
+   própria guideline manda ajustar em baixa na proporção das necessidades
+   energéticas, e é exatamente isso que se faz aqui, a partir do alvo
+   energético que a app já calcula. Abaixo de um ano não há recomendação e a
+   app não inventa uma. */
+const OMS_SODIO_ADULTO=2000, SAL_POR_SODIO=2.5;
+function alvoSodio(m){
+  if(!m) return null;
+  const fase=faseDe(m);
+  if(fase==='bebe') return null;
+  if(fase==='adulto'||fase==='idoso') return OMS_SODIO_ADULTO;
+  const kcal=alvoDoDia(m,hojeISO());
+  if(!(kcal>0)) return null;
+  /* a proporção é contra a necessidade energética de um adulto de referência */
+  return Math.round(OMS_SODIO_ADULTO*Math.min(1,kcal/2000));
+}
+function sodioRegRef(r){
+  const rec=RECIPES.find(x=>x.id===r.r); if(!rec) return {mg:0,semValor:[]};
+  const dose=parseFloat(r.dose)||1;
+  const base=sodioDeIngredientes(rec.i,1,rec.id);
+  let mg=base.mg*dose; const sem=base.semValor.slice();
+  /* o acompanhamento vai à mesa com o prato: o sódio dele conta */
+  (r.ac||[]).forEach(id=>{ const a=RECIPES.find(x=>x.id===id); if(!a) return;
+    const s=sodioDeIngredientes(a.i,1,a.id);
+    mg+=s.mg*dose/Math.max(1,(r.ac||[]).length); s.semValor.forEach(n=>sem.push(n)); });
+  return {mg:Math.round(mg), semValor:sem};
+}
+function sodioMedia(mid,dias){
+  const h=hojeISO(); let soma=0, n=0, sem=0;
+  for(let i=0;i<(dias||7);i++){ const d=addDias(h,-i);
+    const refs=regRefDe(mid).filter(r=>r.d===d&&r.estado==='feita');
+    if(!refs.length) continue;
+    refs.forEach(r=>{ const s=sodioRegRef(r); soma+=s.mg; sem+=s.semValor.length; });
+    n++;
+  }
+  return n? {media:soma/n, dias:n, sem} : null;
+}
+
+/* ================= AÇÚCARES LIVRES =================
+   Fonte: OMS, «Guideline: Sugars intake for adults and children» (2015) —
+   abaixo de 10 % da energia total, e um benefício adicional abaixo de 5 %.
+   A distinção que quase todas as apps erram: a fruta inteira e a lactose do
+   leite NÃO contam; o açúcar de adição, o mel, os xaropes e os sumos contam,
+   mesmo os de 100 % fruta. */
+const OMS_ACUCAR_PCT=10, OMS_ACUCAR_IDEAL=5, KCAL_POR_G_ACUCAR=4;
+function acucarLivreRegRef(r){
+  const rec=RECIPES.find(x=>x.id===r.r); if(!rec) return 0;
+  const dose=parseFloat(r.dose)||1;
+  let g=acucarLivreDeIngredientes(rec.i,1)*dose;
+  (r.ac||[]).forEach(id=>{ const a=RECIPES.find(x=>x.id===id); if(!a) return;
+    g+=acucarLivreDeIngredientes(a.i,1)*dose/Math.max(1,(r.ac||[]).length); });
+  return g;
+}
+function acucarLivreMedia(mid,dias){
+  const h=hojeISO(); let g=0, kcal=0, n=0;
+  for(let i=0;i<(dias||7);i++){ const d=addDias(h,-i);
+    const refs=regRefDe(mid).filter(r=>r.d===d&&r.estado==='feita');
+    if(!refs.length) continue;
+    refs.forEach(r=>{ g+=acucarLivreRegRef(r); });
+    kcal+=ingeridoRealDia(mid,d).k; n++;
+  }
+  if(!n||!kcal) return null;
+  return {g:g/n, pct:(g*KCAL_POR_G_ACUCAR)/kcal*100, dias:n};
+}
+/* ---- Os dentes contam os ataques ----
+   Para a cárie, a frequência conta tanto como a quantidade: cada exposição é
+   meia hora de pH ácido no esmalte. As orientações oficiais mandam reduzir as
+   duas coisas — quantidade e frequência — e guardar o doce para a refeição em
+   vez do intervalo. Fontes: OMS (2015); Direção-Geral da Saúde, Programa
+   Nacional de Promoção da Saúde Oral.
+   A app conta o que está registado, e diz isso: um doce não registado não
+   aparece aqui, e o espelho seria falsamente tranquilizador se não o dissesse. */
+function ataquesDeAcucar(mid,d){
+  const refs=regRefDe(mid).filter(r=>r.d===d&&r.estado==='feita');
+  let refeicao=0, entre=0;
+  refs.forEach(r=>{
+    const rec=RECIPES.find(x=>x.id===r.r); if(!rec) return;
+    if(acucarLivreRegRef(r)<1) return;      /* vestígio de tempero não é ataque */
+    if(r.mk==='l') entre++; else refeicao++;
+  });
+  return {total:refeicao+entre, refeicao, entre};
+}
+function semanaDeAtaques(mid){
+  const h=hojeISO(), out=[];
+  for(let i=6;i>=0;i--){ const d=addDias(h,-i);
+    const tem=regRefDe(mid).some(r=>r.d===d&&r.estado==='feita');
+    out.push(Object.assign({d, semRegisto:!tem}, ataquesDeAcucar(mid,d)));
+  }
+  return out;
+}
+
+/* ================= O COPO ÀS CLARAS =================
+   O vinho do jantar e a imperial do fim de semana são a maior fonte de
+   calorias invisíveis de um adulto português: não estão em receita nenhuma,
+   logo a app não as via, e o défice do objetivo saía furado sem se perceber
+   porquê.
+
+   A unidade-padrão portuguesa é de cerca de 10 g de etanol (SICAD). O etanol
+   calcula-se por volume × graduação × 0,789 — a densidade do etanol, que é
+   química e não estimativa — e rende 7 kcal por grama, o fator de Atwater que
+   ninguém aplica. A app escreve por extenso a posição da OMS (2023): não há
+   nível de consumo isento de risco.
+   Em gravidez, amamentação e menores a ferramenta não aparece, como o jejum. */
+const ETANOL_DENSIDADE=0.789, ETANOL_KCAL_G=7, UNIDADE_ETANOL_G=10;
+const BEBIDAS=[
+  {k:'imperial', n:'Imperial / fino', ml:200, abv:5.0,  i:'🍺'},
+  {k:'cerveja',  n:'Cerveja 33 cl',   ml:330, abv:5.0,  i:'🍺'},
+  {k:'vinho',    n:'Copo de vinho',   ml:150, abv:12.5, i:'🍷'},
+  {k:'vinhogr',  n:'Copo grande de vinho', ml:250, abv:12.5, i:'🍷'},
+  {k:'porto',    n:'Cálice de Porto', ml:75,  abv:19.0, i:'🥃'},
+  {k:'shot',     n:'Shot de destilado', ml:40, abv:40.0, i:'🥃'},
+  {k:'gt',       n:'Gin tónico',      ml:50,  abv:40.0, i:'🍸'},
+];
+function etanolDe(ml,abv){ return ml*(abv/100)*ETANOL_DENSIDADE; }
+function unidadesDe(ml,abv){ return etanolDe(ml,abv)/UNIDADE_ETANOL_G; }
+function kcalAlcool(ml,abv){ return Math.round(etanolDe(ml,abv)*ETANOL_KCAL_G); }
+function podeBeber(m){
+  if(!m) return false;
+  const fase=faseDe(m);
+  if(fase!=='adulto'&&fase!=='idoso') return false;
+  if(gravida(m)) return false;
+  if(posparto(m)&&semanasPosParto(m)<26) return false;   /* amamentação provável */
+  return true;
+}
+function bebidasCfg(){ if(!Array.isArray(S.bebidas)) S.bebidas=[]; return S.bebidas; }
+function registarBebida(mid,k,n){
+  const b=BEBIDAS.find(x=>x.k===k); if(!b) return;
+  const m=S.members.find(x=>x.id===mid); if(!podeBeber(m)) return;
+  const l=bebidasCfg();
+  l.push({id:uid(), mid, d:hojeISO(), k, n:clampNum(parseInt(n,10)||1,1,12)});
+  while(l.length>800) l.shift();
+  save('bebida registada'); render();
+  const u=unidadesDe(b.ml,b.abv)*(parseInt(n,10)||1);
+  flash('ok', b.n+' — '+nPT(u,1)+' '+(u<1.05?'unidade':'unidades')+', '+kcalAlcool(b.ml,b.abv)*(parseInt(n,10)||1)+' kcal.',
+    {rot:'Anular', fn:'desfazer()'});
+}
+function apagarBebida(id){
+  S.bebidas=bebidasCfg().filter(x=>x.id!==id);
+  save('bebida apagada'); render();
+}
+function limparBebidas(a,ids){
+  if(!Array.isArray(a)) return [];
+  const h=hojeISO();
+  return a.slice(-800).map(x=>{
+    if(!x||typeof x!=='object'||!dataValida(x.d)||x.d>h) return null;
+    if(ids && ids.indexOf(x.mid)<0) return null;
+    if(!BEBIDAS.some(b=>b.k===x.k)) return null;
+    return {id:limparId(x.id), mid:x.mid, d:x.d, k:x.k, n:clampNum(parseInt(x.n,10)||1,1,12)};
+  }).filter(Boolean);
+}
+function bebidasDoDia(mid,d){ return bebidasCfg().filter(x=>x.mid===mid&&x.d===d); }
+function kcalAlcoolDia(mid,d){
+  return bebidasDoDia(mid,d).reduce((t,x)=>{ const b=BEBIDAS.find(y=>y.k===x.k);
+    return t+(b? kcalAlcool(b.ml,b.abv)*x.n : 0); },0);
+}
+function unidadesDaSemana(mid){
+  const h=hojeISO(), ini=addDias(h,-6);
+  return bebidasCfg().filter(x=>x.mid===mid&&x.d>=ini&&x.d<=h)
+    .reduce((t,x)=>{ const b=BEBIDAS.find(y=>y.k===x.k);
+      return t+(b? unidadesDe(b.ml,b.abv)*x.n : 0); },0);
+}
 const AMILACEAS=/batata|mandioca|inhame|farinha de pau|tapioca|milho, grão|batata doce/i;
 function gramasHortofruticolas(r){
   if(!r||!r.i) return 0;
@@ -7342,6 +7517,10 @@ const DICAS={
   marmitas:'Qualquer almoço se pode marcar «em marmita», pessoa a pessoa. Na véspera à noite o cartão «Hoje» lembra-o, com a dose já escalada a cada um, os alergénios da escola assinalados e as sobras disponíveis para a encher.',
   epoca:'Que ingredientes estão na época em Portugal, este mês — carapau no verão, grelos no inverno, cereja em junho. A tabela é local e o selo muda sozinho com o calendário: comprar na época é mais barato, mais fresco e mais saboroso.',
   custo:'Os preços são os do teu talão — a app nunca inventa um cêntimo. Com eles estima o custo por dose de cada receita, o da semana e o talão previsto da lista de compras, dizendo sempre quantos itens ficaram por preço. Cada preço escrito fica com a data: ao fim de três, aparece ao lado uma linha com a história dele, e a app passa a saber dizer se o preço de hoje está abaixo ou acima do costume desta casa.',
+  salacucar:'Duas contas que os ingredientes sempre tiveram e que nunca eram somadas ao dia. O sódio vem de uma tabela do INSA que é <b>deliberadamente parcial</b>: estão lá os alimentos onde o sal português mora — pão, queijo, fumeiro, conservas, molhos — e a app diz quando há ingredientes sem valor, porque uma conta por baixo com a omissão declarada é mais honesta do que um total inventado. O limite é o da OMS (2012): menos de 2 g de sódio por dia, que são 5 g de sal; nas crianças ajusta-se em baixa pela necessidade energética, como a própria guideline manda. O açúcar livre segue a definição da OMS (2015) — a fruta inteira e a lactose do leite não contam, o açúcar de adição, o mel, os xaropes e os sumos contam — e compara-se com os 10% da energia, com o benefício adicional abaixo dos 5%.',
+  acucarLivre:'«Açúcares livres» não são todos os açúcares: são os adicionados pelo fabricante, pelo cozinheiro ou por quem come, mais os que estão naturalmente no mel, nos xaropes e nos sumos de fruta. Uma maçã não conta; um sumo de maçã conta, mesmo sendo 100% fruta. É a distinção que quase todas as apps erram, e a app faz a conta a partir dos próprios ingredientes de cada receita registada.',
+  dentes:'Para a cárie, a frequência conta tanto como a quantidade: cada exposição a açúcar livre deixa o esmalte em meia hora de pH ácido. Os pais controlam «quanto açúcar»; ninguém controla «quantas vezes» — e é essa a variável que a orientação oficial manda vigiar, com o conselho concreto de guardar o doce para a refeição em vez do intervalo. A app conta apenas o que está registado, e di-lo: um doce que não passou pelo registo também não aparece aqui. Fontes: OMS (2015) e o Programa Nacional de Promoção da Saúde Oral da DGS. Não substitui o dentista.',
+  alcool:'O vinho do jantar e a imperial do fim de semana não estão em receita nenhuma — logo a app não os via, e o défice do objetivo saía furado sem se perceber porquê. Uma unidade-padrão portuguesa são cerca de 10 g de etanol (SICAD); o etanol calcula-se por volume × graduação × 0,789, que é a densidade do etanol, e rende 7 kcal por grama. Essas calorias somam-se ao total do dia mas ficam fora das três barras de macros, porque o álcool não é um macronutriente. A app escreve por extenso a posição da OMS de 2023 — não há nível de consumo isento de risco — e por isso não define nenhum limite «seguro». Em gravidez, amamentação e menores de idade a ferramenta nem aparece.',
   visitas:'Os convidados de uma refeição criam-se e deitam-se fora — servem para quem vem uma vez só. O livro de visitas é para quem volta sempre: a avó do almoço de domingo, o padrinho, o melhor amigo do filho. A alergia dela fica escrita uma vez, em vez de se reescrever todas as semanas com o risco de um dia ficar por marcar. Uma visita não é um membro: não tem alvos, nem pesagens, nem nutrição — tem nome, cara, o que não pode comer e um hábito de aparecer. Marcada numa refeição, conta nas doses, nas compras e sobretudo nos alertas de alergénio, como qualquer pessoa da casa.',
   festas:'O calendário gastronómico português — Reis, Carnaval, Páscoa, os Santos Populares, S. Martinho, a Consoada, o Ano Novo — e, por cima dele, a ementa que ESTA casa repete em cada um. Há casas de bacalhau cozido e casas de polvo, e essa memória perde-se quando quem a guardava já cá não está. As datas móveis saem do mesmo cálculo astronómico que já serve a Quaresma: o Carnaval são 47 dias antes da Páscoa. No ano seguinte a app pergunta se se repete.',
   pratoAnos:'Em Portugal quem faz anos escolhe o jantar, e a app passa a honrar essa lei não escrita. A data de nascimento já cá estava a envelhecer o perfil sozinha; agora avisa uma semana antes. A lista filtra só pelas alergias da mesa — o teto de calorias fica de fora, que é festa — e a escolha fica no plano, intocável pelo preenchimento automático. Ano após ano, o perfil ganha a linha dos anos: uma infância contada em jantares.',
@@ -15349,6 +15528,99 @@ function cartaoFibra(m){
       São referências de população saudável, não conselho clínico.</i></p>
   </div>`;
 }
+/* ---- O saleiro invisível e os açúcares livres ----
+   Duas contas que os ingredientes sempre tiveram e que ninguém somava. */
+function cartaoSalAcucar(m){
+  const sm=sodioMedia(m.id,7), am=acucarLivreMedia(m.id,7);
+  if(!sm && !am) return '';
+  const alvoNa=alvoSodio(m);
+  const sPct=alvoNa&&sm? Math.min(100, sm.media/alvoNa*100) : 0;
+  const sOk=alvoNa&&sm? sm.media<=alvoNa : null;
+  const aOk=am? am.pct<OMS_ACUCAR_PCT : null;
+  const aIdeal=am? am.pct<OMS_ACUCAR_IDEAL : false;
+  return `<div class="card" data-col="nu-salacucar" style="margin-top:16px">
+    <h2>Sal e açúcares livres — média de 7 dias ${dica('salacucar')}</h2>
+    ${sm? `<div style="margin-top:12px">
+      <div class="splabel"><span>Sódio ${alvoNa? '· limite '+nPT(alvoNa/1000,1)+' g/dia ('+nPT(alvoNa*SAL_POR_SODIO/1000,1)+' g de sal)':''}</span>
+        <output>${nPT(sm.media/1000,2)} g/dia</output></div>
+      <div class="mbar" style="height:12px"><div style="width:${sPct.toFixed(1)}%;background:${sOk?'var(--ok)':'var(--warn)'}"></div></div>
+      <p class="sub" style="margin-top:6px">${alvoNa
+        ? (sOk? '✓ Abaixo do limite da OMS, na média dos '+plural(sm.dias,'dia com registo','dias com registo')+'.'
+              : '↑ '+nPT((sm.media-alvoNa)/1000,2)+' g de sódio por dia acima do limite. O sal português mora no pão, no queijo e no fumeiro — não no saleiro.')
+        : 'Sem recomendação oficial para esta idade — fica o número, sem veredicto.'}
+        ${sm.sem? ' Há ingredientes sem valor de sódio na tabela, por isso a conta é <b>por baixo</b>.':''}</p>
+    </div>`:''}
+    ${am? `<div style="margin-top:14px">
+      <div class="splabel"><span>Açúcares livres · abaixo de ${OMS_ACUCAR_PCT}% da energia ${dica('acucarLivre')}</span>
+        <output>${nPT(am.pct,1)}% · ${nPT(am.g,0)} g/dia</output></div>
+      <div class="mbar" style="height:12px">
+        <div style="width:${Math.min(100,am.pct/15*100).toFixed(1)}%;background:${aIdeal?'var(--ok)':aOk?'var(--warn)':'var(--bad)'}"></div></div>
+      <p class="sub" style="margin-top:6px">${aIdeal? '✓ Abaixo dos 5%, que é o patamar de benefício adicional da OMS.'
+        : aOk? '✓ Abaixo dos 10%. A OMS aponta um benefício adicional abaixo dos 5%.'
+             : '↑ Acima dos 10% da energia. '}
+        A fruta inteira e a lactose do leite <b>não contam</b> — é a própria definição da OMS. Contam o açúcar de adição, o mel, os xaropes e os sumos.</p>
+    </div>`:''}
+    <p class="sub" style="margin-top:12px"><i>Sódio: OMS, «Guideline: Sodium intake for adults and children» (2012);
+      nas crianças o limite ajusta-se em baixa pela necessidade energética, como a própria guideline manda.
+      Açúcares livres: OMS, «Guideline: Sugars intake for adults and children» (2015).</i></p>
+  </div>`;
+}
+/* ---- Os dentes contam os ataques ---- */
+function cartaoDentes(m){
+  if(!m || (faseDe(m)!=='crianca' && faseDe(m)!=='adolescente')) return '';
+  const sem=semanaDeAtaques(m.id);
+  if(sem.every(x=>x.semRegisto)) return '';
+  const totalEntre=sem.reduce((t,x)=>t+x.entre,0);
+  return `<div class="card" data-col="nu-dentes" style="margin-top:16px">
+    <h2>Os dentes contam os ataques ${dica('dentes')}</h2>
+    <p class="sub">Para a cárie, a frequência conta tanto como a quantidade: cada exposição a açúcar livre é meia hora de ácido no esmalte.</p>
+    <div class="row" style="margin-top:12px;gap:10px;flex-wrap:nowrap;overflow-x:auto">
+      ${sem.map(x=>`<div style="text-align:center;flex:none;min-width:38px">
+        <div style="font-size:22px" title="${x.semRegisto? 'sem registo' : x.total+' exposições'}">${
+          x.semRegisto? '·' : x.total===0? '🦷' : x.total<=1? '🟡' : '🔴'}</div>
+        <span class="sub" style="font-size:11px">${DAYN[(new Date(x.d+'T12:00:00').getDay()+6)%7].slice(0,3)}</span>
+      </div>`).join('')}
+    </div>
+    <p class="sub" style="margin-top:10px">${totalEntre
+      ? plural(totalEntre,'1 dessas exposições foi fora das refeições','$n dessas exposições foram fora das refeições').replace('$n',totalEntre)
+        +' — é aí que a orientação manda cortar primeiro: o doce à sobremesa faz menos estrago do que o mesmo doce a meio da tarde.'
+      : 'Nenhuma exposição fora das refeições esta semana — é exatamente o que a orientação pede.'}</p>
+    <p class="sub" style="margin-top:8px">A app conta o que está <b>registado</b>: um doce que não passou por aqui também não aparece no espelho.</p>
+    <p class="sub" style="margin-top:8px"><i>OMS, «Guideline: Sugars intake» (2015); Direção-Geral da Saúde,
+      Programa Nacional de Promoção da Saúde Oral. Isto não substitui a consulta no dentista.</i></p>
+  </div>`;
+}
+/* ---- O copo às claras ----
+   O chip sai para função própria: montar um onclick com aspas dentro de uma
+   string dentro de um template é como se parte um ficheiro de 1,4 MB, e já
+   aconteceu duas vezes nesta sessão. */
+function chipBebida(x){
+  const b=BEBIDAS.find(y=>y.k===x.k); if(!b) return '';
+  return `${x.n>1? x.n+'× ':''}${esc(b.n)} <button
+    style="background:none;border:none;cursor:pointer;color:inherit;padding:0 2px"
+    onclick="apagarBebida('${x.id}')" aria-label="Apagar ${esc(b.n)}">✕</button>`;
+}
+function cartaoAlcool(m){
+  if(!podeBeber(m)) return '';
+  const u=unidadesDaSemana(m.id);
+  const hoje=bebidasDoDia(m.id,hojeISO());
+  const kcalHoje=kcalAlcoolDia(m.id,hojeISO());
+  return `<div class="card" data-col="nu-alcool" style="margin-top:16px">
+    <h2>O copo às claras ${dica('alcool')}</h2>
+    <p class="sub">O vinho do jantar e a imperial não estão em receita nenhuma — e são a maior fonte de calorias invisíveis de um adulto. Aqui contam-se.</p>
+    <div class="row" style="margin-top:10px">
+      ${BEBIDAS.map(b=>`<button class="chip" onclick="registarBebida('${m.id}','${b.k}',1)"
+        title="${b.ml} ml a ${nPT(b.abv,1)}% — ${nPT(unidadesDe(b.ml,b.abv),1)} unidades, ${kcalAlcool(b.ml,b.abv)} kcal">${b.i} ${esc(b.n)}</button>`).join('')}
+    </div>
+    ${hoje.length? `<p class="sub" style="margin-top:10px"><b>Hoje:</b> ${
+      hoje.map(chipBebida).join(' · ')} — ${kcalHoje} kcal somadas ao dia.</p>`:''}
+    <div class="splabel" style="margin-top:12px"><span>Unidades nos últimos 7 dias</span><output>${nPT(u,1)}</output></div>
+    <div class="mbar" style="height:12px"><div style="width:${Math.min(100,u/20*100).toFixed(1)}%;background:${u<=10?'var(--ok)':u<=20?'var(--warn)':'var(--bad)'}"></div></div>
+    <p class="sub" style="margin-top:8px">Uma unidade são cerca de 10 g de etanol (SICAD). As calorias entram no dia a 7 kcal por grama — o fator que quase ninguém aplica.</p>
+    <p class="sub" style="margin-top:8px"><i><b>A OMS é explícita (2023): não existe um nível de consumo de álcool isento de risco para a saúde.</b>
+      A app conta e mostra; não define um limite «seguro», porque não há nenhum que uma fonte oficial sustente como tal.</i></p>
+  </div>`;
+}
 function cartaoGraficoRef(m){
   if(!regRefDe(m.id).length) return `<div class="card" data-col="nu-historico">
     <h2>Alimentação passada</h2>
@@ -16136,6 +16408,10 @@ function renderNutricao(){
   ${definido? cartaoGraficoRef(m) : ''}
   ${cartaoJejum(m)}
   ${definido? cartaoFibra(m) : ''}
+  ${definido? cartaoSalAcucar(m) : ''}
+  ${definido? cartaoDentes(m) : ''}
+  ${definido? cartaoAlcool(m) : ''}
+  ${cartaoProvas(m)}
   ${definido? `<div class="grid g2" style="margin-top:16px">${cartaoDescobertas(m)}${cartaoPassaporte(m)}</div>` : ''}
   ${cartaoFase(m)}
   <div class="row" style="margin-top:16px">
@@ -18657,7 +18933,7 @@ function pacote(){
          sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa, pausas:S.pausas, diario:S.diario, cozPref:S.cozPref,
          validades:S.validades, veredictos:S.veredictos, brigada:S.brigada, desperdicio:S.desperdicio,
          gostos:S.gostos, jejum:S.jejum, combos:S.combos, rituais:S.rituais, extras:S.extras, aindaHa:S.aindaHa,
-         visitas:S.visitas, ementas:S.ementas, anos:S.anos, provas:S.provas}}; }
+         visitas:S.visitas, ementas:S.ementas, anos:S.anos, provas:S.provas, bebidas:S.bebidas}}; }
 function textoCopia(){ return JSON.stringify(pacote(),null,2); }
 function marcarExportado(){ S.meta.exportadoEm=new Date().toISOString(); S.meta.semCopia=false; saveMeta(); }
 function nomeFicheiro(){ return 'familia-fit-'+iso(new Date())+'.json'; }
@@ -18919,6 +19195,7 @@ function lerPacote(txt){
   const remapMapa=o=>{ const out={};
     Object.keys(o||{}).forEach(mid0=>{ out[mapa[mid0]||mid0]=o[mid0]; }); return out; };
   const anos=limparAnos(remapMapa(d.anos), idsOk, acha), provas=limparProvas(remapMapa(d.provas), idsOk);
+  const bebidas=limparBebidas((Array.isArray(d.bebidas)? d.bebidas:[]).map(remapa), idsOk);
   /* As estruturas novas passam pelo mesmo crivo das antigas: datas verificadas,
      ids remapeados para os perfis que sobreviveram à importação, e receitas
      que têm mesmo de existir deste lado. */
@@ -18954,7 +19231,7 @@ function lerPacote(txt){
   const combos=limparCombos(d.combos).filter(c=>acha(c.base) && c.ac.some(acha));
   return {d:{ members, cheats, plans, bought, objetivos, despensa, receitas,
               medicoes, regAtiv, regRef, sobras, precos, festas, casa, pausas, diario, cozPref,
-              validades, veredictos, brigada, desperdicio, gostos, jejum, combos, rituais, extras, aindaHa, visitas, ementas, anos, provas,
+              validades, veredictos, brigada, desperdicio, gostos, jejum, combos, rituais, extras, aindaHa, visitas, ementas, anos, provas, bebidas,
               prefCuisine:temChave(CUIS,d.prefCuisine)?d.prefCuisine:'todas',
               week:dataValida(d.week)? mondayISO(new Date(d.week+'T12:00:00')) : mondayISO(new Date()) }};
 }
