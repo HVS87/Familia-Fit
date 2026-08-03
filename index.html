@@ -22215,7 +22215,11 @@ const TOUR=[
   {tab:'familia', sel:'#peso-hist',
    t:'O peso ao longo do tempo',
    d:'Cada pesagem fica com a sua data — as de hoje e as antigas que tenhas anotadas. A app pergunta por medições novas quando abre, e aqui vês a linha em 14 dias, 8 semanas, 6 meses ou 2 anos, com a atividade registada e as calorias ingeridas sobrepostas em toggles, para veres a forma de umas ao lado da outra.'},
+  /* O botão de registo desaparece quando há uma camada por cima — e a bandeja
+     da manhã pode estar aberta quando a visita começa. A visita manda no ecrã
+     enquanto durar: fecha o que estiver à frente antes de apontar. */
   {tab:'familia', sel:'#fab-registo', quando:()=>S.members.length,
+   antes:()=>{ S.ui.modal=null; S.ui.folha=null; },
    t:'Registar, sempre debaixo do polegar',
    d:'O botão flutuante abre uma folha com as duas ou três ações mais prováveis para a hora que é: às 13h o almoço de hoje, em dia de treino o treino, de manhã a pesagem se a última já tem uma semana. Tocar numa refeição do cartão «Hoje» abre a mesa: um toque por pessoa que comeu e está registado — o prato, a dose e os acompanhamentos vêm do plano.'},
   {tab:'familia', sel:'.card-alergia',
