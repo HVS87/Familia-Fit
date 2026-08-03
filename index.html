@@ -1809,9 +1809,10 @@ function normalizaMembro(m){
        segue caminho para dentro de uma multiplicação. Aqui não há caminho
        do meio — ou o número é finito e limita-se, ou volta ao valor de
        recurso, que é o mesmo que limparMembro usa. */
-    m.peso   = Number.isFinite(parseFloat(m.peso))?   clampNum(parseFloat(m.peso),1,400)   : 70;
-    m.altura = Number.isFinite(parseFloat(m.altura))? clampNum(parseFloat(m.altura),30,250): 170;
-    m.idade  = Number.isFinite(parseFloat(m.idade))?  clampNum(Math.round(parseFloat(m.idade)),0,120) : 35;
+    ['peso','altura','idade'].forEach(k=>{
+      const [lo,hi,,,recurso]=LIMITES_CORPO[k], n=parseFloat(m[k]);
+      m[k] = Number.isFinite(n)? clampNum(k==='idade'? Math.round(n) : n, lo, hi) : recurso;
+    });
     if(m.sexo!=='f'&&m.sexo!=='m') m.sexo='m';
     if(Array.isArray(m.restricoes)) m.restricoes=m.restricoes.filter((k,i,a)=>a.indexOf(k)===i);
   }
@@ -2196,6 +2197,16 @@ const VISITA_MAX=12;
 /* Quantas idas ao supermercado se guardam para aprender o percurso. Está aqui
    com os outros tetos pela mesma razão: limparTrilhos() corre no arranque. */
 const TRILHO_MAX=12;
+/* Os limites do corpo, num sítio só: [mínimo, máximo, nome, unidade, recurso].
+   Estão aqui em cima porque normalizaMembro() os lê e corre dentro de load(),
+   no arranque — a mesma zona morta temporal que apanhou o MAX_AC. São os
+   limites dos cursores e dos campos, e agora também os que upd() faz cumprir
+   quando o número é escrito à mão ou colado. */
+const LIMITES_CORPO={
+  peso:  [1,400,'O peso','kg',70],
+  altura:[30,250,'A altura','cm',170],
+  idade: [0,120,'A idade','anos',35]
+};
 /* O estado do histórico de navegação. Aqui em cima porque sincronizaHistorico()
    corre no fim de cada desenho, incluindo o primeiro, e a declaração vive no
    bloco do botão voltar, muito mais abaixo. */
@@ -14509,7 +14520,20 @@ function upd(id,field,val,num){ const m=S.members.find(x=>x.id===id); if(!m) ret
   if(field==='dieta' && val==='personalizada' && m.dieta!=='personalizada' && !m.macros){
     const d=dietaDe(m); m.macros={c:d.c,p:d.p,f:d.f};
   }
-  m[field]=num?parseFloat(val)||0:val;
+  if(num){
+    /* O min/max do <input> trava as setas do browser e mais nada: escrever à
+       mão, colar, ou um teclado de telemóvel passam por cima dele. O peso já
+       era travado em commitPesoCampo e a idade em normalizaIdadeMeses, mas a
+       altura entrava como estava escrita — «-999» e «1e40» ficavam gravados,
+       e daí seguiam para o índice de massa corporal e para a Mifflin-St Jeor.
+       Os limites são os mesmos de normalizaMembro, num sítio só. */
+    const n=parseFloat(val), lim=LIMITES_CORPO[field];
+    if(lim){
+      if(!Number.isFinite(n) || n<lim[0] || n>lim[1])
+        return flash('bad', lim[2]+' tem de estar entre '+lim[0]+' e '+lim[1]+' '+lim[3]+'.'), render();
+      m[field]=n;
+    } else m[field]=Number.isFinite(n)? n : 0;
+  } else m[field]=val;
   if(field==='idade'||field==='meses'){
     normalizaIdadeMeses(m);   /* decide meses vs anos e ajusta a fronteira dos 2 anos */
     /* mudar de idade repõe a fatia de leite e o volume nos padrões do escalão */
