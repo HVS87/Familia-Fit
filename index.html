@@ -487,6 +487,54 @@ html[data-dispositivo="telefone"][data-orient="retrato"] .fab{bottom:calc(84px +
 #balcao-eco.ok{color:var(--ok);font-weight:600}
 #balcao-eco.nada{color:var(--mut)}
 
+/* ===== O AVISO DE RESPONSABILIDADE =====
+   Visível sem ser um alarme. Um aviso vermelho e gritado num sítio onde
+   aparece sempre deixa de ser lido ao fim de dois dias — este usa o tom de
+   atenção, uma barra à esquerda e tipo pequeno, e conta com a repetição
+   calma em vez do susto. O que não faz é esconder-se. */
+.aviso-resp{display:flex;gap:10px;align-items:flex-start;margin:0 0 16px;padding:11px 14px;
+  border:1px solid color-mix(in srgb,var(--warn) 30%,var(--line));
+  border-left:4px solid var(--warn);border-radius:var(--r-sm);
+  background:color-mix(in srgb,var(--warn) 7%,var(--card));
+  font-size:12.5px;line-height:1.55;color:var(--ink)}
+.aviso-resp .ar-ico{flex:none;font-size:15px;line-height:1.3}
+.aviso-resp.compacto{font-size:12px;padding:9px 12px}
+.aviso-lista{list-style:none;margin:14px 0 0;padding:0}
+.aviso-lista li{display:flex;gap:11px;align-items:flex-start;padding:11px 0;border-bottom:1px dashed var(--line)}
+.aviso-lista li:last-child{border-bottom:0}
+.aviso-lista .al-ico{flex:none;font-size:20px;line-height:1.2;width:26px;text-align:center}
+@media print{ .aviso-resp{break-inside:avoid} }
+
+/* ===== AS TRÊS EQUAÇÕES DO METABOLISMO BASAL =====
+   Cada opção é um botão que se explica sozinho ao passar o rato. O balão usa
+   a mesma linguagem das dicas — mesma tinta, mesmo raio, mesma sombra —
+   porque é a mesma promessa: aqui explica-se, não se vende. É mais largo do
+   que o das dicas por levar fonte e limitação, e sobe em vez de descer
+   quando não há espaço por baixo. */
+.metodo-bmr{margin:4px 0 2px}
+.metodo-ops{display:flex;gap:8px;flex-wrap:wrap}
+.metodo-op{position:relative;flex:1 1 150px;min-width:130px;display:flex;flex-direction:column;
+  align-items:flex-start;gap:1px;padding:9px 11px;border:1px solid var(--line);border-radius:var(--r-sm);
+  background:var(--card);color:var(--ink);cursor:pointer;text-align:left;font:inherit}
+.metodo-op:hover{border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
+.metodo-op.on{border-color:var(--accent);background:var(--accent-soft)}
+.mo-nome{font-weight:700;font-size:13px;line-height:1.25}
+.mo-sel{display:inline-block;font:700 9.5px/1.6 var(--fonte-ui);text-transform:uppercase;letter-spacing:.05em;
+  padding:0 5px;border-radius:999px;background:var(--accent);color:var(--on-accent);vertical-align:1px}
+.metodo-op.on .mo-sel{background:var(--on-accent);color:var(--accent)}
+.mo-val{font-family:var(--fonte-display);font-size:16px;font-variant-numeric:tabular-nums}
+.mo-ano{font-size:11px;color:var(--mut)}
+.metodo-op::after{content:attr(data-dica);position:absolute;left:0;top:calc(100% + 8px);z-index:20;
+  width:max-content;max-width:min(340px,calc(100vw - 32px));
+  background:var(--ink);color:var(--card);padding:10px 13px;border-radius:9px;
+  font:400 12.5px/1.5 var(--fonte-ui);text-align:left;white-space:normal;
+  box-shadow:var(--elev);display:none;pointer-events:none}
+.metodo-op:hover::after,.metodo-op:focus-visible::after{display:block}
+/* A última coluna abriria o balão para fora da janela: ancora-se à direita. */
+.metodo-ops .metodo-op:last-child::after{left:auto;right:0}
+@media (max-width:560px){ .metodo-op::after{left:0;right:0;max-width:none} }
+@media print{ .metodo-op::after{display:none !important} }
+
 /* ===== A CALCULADORA DOS PEQUENOS =====
    O selo da fonte anda colado a cada afirmação sobre saúde infantil: quem lê
    tem de conseguir ver de onde vem a frase sem ir procurar. O selo não
@@ -6428,6 +6476,9 @@ function blank(){ return {members:[],cheats:{},plans:{},bought:{},prefCuisine:'t
   /* preferências de cozinha da casa: repetir pratos na semana, cozinhar em
      dobro, seguir a época e preparar de véspera — o que muda como se sugere */
   cozPref:{repetir:false, dobro:false, sazonal:false, prep:true, cartaoEpoca:true},
+  /* Qual das equacoes de metabolismo basal a casa usa. Vive aqui e nao em
+     S.ui porque muda NUMEROS, nao aparencia: entra no desfazer e na copia. */
+  metodoBMR:'henry',
   ui:{tab:'familia',mid:null,cuis:'todas',soComp:false,mealF:'todas',dietaF:[],busca:'',editor:null,
       objForm:{membros:[],tipo:'perder',delta:5,semanas:12,split:50,desporto:null,banda:2},
       objExpandido:null, objAdj:null, celebrando:null, tourPasso:null, tourVisto:false,
@@ -6524,7 +6575,7 @@ function instantaneo(){ return JSON.stringify({members:S.members, cheats:S.cheat
   bought:S.bought, week:S.week, prefCuisine:S.prefCuisine, objetivos:S.objetivos, despensa:S.despensa,
   corredores:S.corredores, trilhos:S.trilhos, talhoes:S.talhoes,
   receitas:S.receitas, medicoes:S.medicoes, regAtiv:S.regAtiv, regRef:S.regRef,
-  sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa, pausas:S.pausas, diario:S.diario, cozPref:S.cozPref,
+  sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa, pausas:S.pausas, diario:S.diario, cozPref:S.cozPref, metodoBMR:S.metodoBMR,
   validades:S.validades, veredictos:S.veredictos, brigada:S.brigada, desperdicio:S.desperdicio,
   gostos:S.gostos, jejum:S.jejum, combos:S.combos, rituais:S.rituais, extras:S.extras, aindaHa:S.aindaHa,
   visitas:S.visitas, ementas:S.ementas, anos:S.anos, provas:S.provas, bebidas:S.bebidas, notasCozinha:S.notasCozinha}); }
@@ -6543,6 +6594,7 @@ function aplicaInstantaneo(js){
   S.pausas=Array.isArray(d.pausas)? d.pausas : [];
   S.diario=Array.isArray(d.diario)? d.diario : [];
   S.cozPref=limparCozPref(d.cozPref);
+  S.metodoBMR=temChave(METODOS_BMR,d.metodoBMR)? d.metodoBMR : METODO_BMR_PADRAO;
   S.validades=d.validades&&typeof d.validades==='object'? d.validades : {};
   S.veredictos=Array.isArray(d.veredictos)? d.veredictos : [];
   S.brigada=Array.isArray(d.brigada)? d.brigada : [];
@@ -6772,17 +6824,124 @@ function nomeFase(m){ return gravida(m)? (FASES[faseDe(m)]+' · grávida') : FAS
    recomendações são construídas. O peso atual serve para acompanhar o ganho. */
 function pesoRef(m){ const p=parseFloat(m.pesoPre);
   return gravida(m) && isFinite(p) && p>0 ? p : m.peso; }
-/* Metabolismo basal: Schofield abaixo dos 19 anos, Mifflin-St Jeor a partir
-   daí — os perfis adultos que já existiam mantêm o valor exato. */
-function bmr(m){
-  const a=idadeAnos(m), p=pesoRef(m), f=m.sexo==='f';
-  if(a<19){
-    if(a<3)  return f? 58.317*p-31.1 : 59.512*p-30.4;
-    if(a<10) return f? 20.315*p+485.9 : 22.706*p+504.3;
-    return   f? 13.384*p+692.6 : 17.686*p+658.2;
+/* ================= METABOLISMO BASAL: TRÊS ESCOLAS =================
+   O metabolismo basal não tem uma fórmula certa — tem equações de regressão
+   feitas sobre populações diferentes, em décadas diferentes, e que dão
+   valores diferentes para a mesma pessoa. Escolher uma e calar as outras é
+   fingir uma certeza que não existe; por isso a app mostra as três, diz de
+   onde vêm, e recomenda a mais recente.
+
+   As diferenças não são académicas: para uma mulher de 60 kg e 35 anos, a
+   Schofield dá cerca de 1333 kcal e a Henry cerca de 1278 — 55 kcal por dia,
+   que ao fim de um ano são perto de 2,5 kg de diferença no que a app sugere
+   comer. Quem usa isto tem direito a saber que a escolha existe.
+
+   TODAS as constantes abaixo foram conferidas contra a fonte primária:
+   - Schofield (1985), na forma em kcal/dia publicada pela FAO/WHO/UNU,
+     «Human energy requirements» (2004), tabela 5.2. Conferida em
+     fao.org/4/y5686e/y5686e07.htm.
+   - Henry (2005), «Basal metabolic rate studies in humans: measurement and
+     development of new equations», Public Health Nutrition 8(7A):1133-1152,
+     na forma em kcal/dia que a British Dietetic Association usa. As bandas
+     pediátricas foram conferidas contra a revisão sistemática em
+     PMC8685418; as de adulto contra a tabela citada pela BDA.
+   - Mifflin-St Jeor (1990), Am J Clin Nutr 51(2):241-247.
+
+   Nota sobre o que cada uma pede: Schofield e Henry usam SÓ o peso — foram
+   construídas assim, e acrescentar-lhes a altura seria outra equação. A
+   Mifflin-St Jeor usa peso, altura e idade, e só existe para adultos. */
+const METODOS_BMR={
+  henry:{
+    n:'Henry (2005)', curto:'Henry', ano:2005, recomendada:true,
+    fonte:'Henry CJK, Public Health Nutrition 8(7A):1133-1152 (2005) — as «equações de Oxford»',
+    resumo:'A mais recente das três, e a que a Autoridade Europeia para a Segurança dos Alimentos e o serviço nacional de saúde britânico adotaram. Foi construída sobre uma base de 10 502 pessoas, com metade dos participantes fora da Europa e da América do Norte — as anteriores eram quase todas europeias, e havia um excesso de italianos que puxava os valores para cima. Usa só o peso, por escalão de idade e sexo. Dá valores um pouco mais baixos do que a Schofield na maioria dos adultos.',
+    limite:'Como todas, é uma média de população: não conhece a massa muscular de ninguém. Duas pessoas com o mesmo peso e composições diferentes recebem o mesmo número.',
+    /* [declive, constante] em kcal/dia, por peso em kg */
+    m:[[3,61.0,-33.7],[10,23.3,514],[18,18.4,581],[30,16.0,545],[60,14.2,593],[70,13.0,567],[999,13.7,481]],
+    f:[[3,58.9,-23.1],[10,20.1,507],[18,11.1,761],[30,13.1,558],[60,9.74,694],[70,10.2,572],[999,10.0,577]]
+  },
+  schofield:{
+    n:'Schofield (1985)', curto:'Schofield', ano:1985, recomendada:false,
+    fonte:'Schofield WN (1985), na forma publicada pela FAO/WHO/UNU em «Human energy requirements» (2004), tabela 5.2',
+    resumo:'O padrão histórico, e ainda a base de muitas tabelas oficiais — foi a equação que a FAO, a OMS e a Universidade das Nações Unidas usaram durante duas décadas. Usa só o peso, por escalão de idade e sexo. Sabe-se hoje que a amostra tinha muitos italianos e poucos participantes de fora da Europa, e que por isso sobrestima o metabolismo de algumas populações.',
+    limite:'Tende a dar valores mais altos do que as medições modernas, sobretudo em mulheres adultas. Continua a ser uma referência legítima e comparável com literatura mais antiga.',
+    m:[[3,59.512,-30.4],[10,22.706,504.3],[18,17.686,658.2],[30,15.057,692.2],[60,11.472,873.1],[999,11.711,587.7]],
+    f:[[3,58.317,-31.1],[10,20.315,485.9],[18,13.384,692.6],[30,14.818,486.6],[60,8.126,845.6],[999,9.082,658.5]]
+  },
+  mifflin:{
+    n:'Mifflin-St Jeor (1990)', curto:'Mifflin-St Jeor', ano:1990, recomendada:false, soAdulto:true,
+    fonte:'Mifflin MD, St Jeor ST et al., Am J Clin Nutr 51(2):241-247 (1990)',
+    resumo:'A única das três que usa a <b>altura</b> além do peso e da idade, e por isso a que distingue duas pessoas com o mesmo peso e alturas diferentes. Foi feita sobre 498 adultos norte-americanos, saudáveis, com e sem excesso de peso. É a mais usada em aplicações de contagem de calorias, e vários estudos de validação em adultos dão-lhe o menor erro médio.',
+    limite:'Só existe para adultos: não foi construída para quem está a crescer. Escolhendo-a, as crianças e os adolescentes da casa continuam calculados pela Henry, e a aplicação di-lo.'
   }
+};
+const METODO_BMR_PADRAO='henry';
+function metodoBMR(){ return temChave(METODOS_BMR,S.metodoBMR)? S.metodoBMR : METODO_BMR_PADRAO; }
+function setMetodoBMR(k){
+  if(!temChave(METODOS_BMR,k)) return;
+  S.metodoBMR=k; save('método do metabolismo basal'); render();
+}
+/* Uma tabela de escalões é [idadeMaxima, declive, constante], e lê-se de cima
+   para baixo até a idade caber. O último escalão tem 999 para apanhar tudo. */
+function bmrPorEscaloes(tabela,idade,peso){
+  for(const [ate,decl,cons] of tabela) if(idade<ate) return decl*peso+cons;
+  const u=tabela[tabela.length-1];
+  return u[1]*peso+u[2];
+}
+function bmrMifflin(m,p){
   /* pesoRef é o peso do próprio, exceto na gravidez, onde é o pré-gestacional */
-  return f ? 10*p+6.25*m.altura-5*m.idade-161 : 10*p+6.25*m.altura-5*m.idade+5;
+  return m.sexo==='f' ? 10*p+6.25*m.altura-5*m.idade-161 : 10*p+6.25*m.altura-5*m.idade+5;
+}
+function bmrCom(metodo,m){
+  const a=idadeAnos(m), p=pesoRef(m), f=m.sexo==='f';
+  const M=METODOS_BMR[metodo]||METODOS_BMR[METODO_BMR_PADRAO];
+  /* A Mifflin-St Jeor não existe para quem está a crescer: nessas idades cai
+     para a recomendada, e a interface diz que caiu. Um número inventado a
+     partir de uma equação fora do seu domínio seria pior do que a troca. */
+  if(M.soAdulto) return a<19? bmrCom(METODO_BMR_PADRAO,m) : bmrMifflin(m,p);
+  return bmrPorEscaloes(f? M.f : M.m, a, p);
+}
+function bmr(m){ return bmrCom(metodoBMR(), m); }
+/* ===== A ESCOLHA, À VISTA =====
+   O seletor mostra o que CADA método daria para esta pessoa, em kcal, e não
+   só o nome. Sem os números lado a lado, escolher entre «Henry» e
+   «Schofield» é escolher entre duas palavras — com eles, vê-se logo que a
+   diferença é de dezenas de calorias e percebe-se porque é que a app não
+   finge que há uma resposta única.
+
+   O explicador aparece ao passar o rato por cima de cada opção. Quem usa
+   toque não tem rato: aí o explicador aparece ao tocar (o foco também o
+   abre), e há um «i» no título com o resumo dos três. */
+function blocoMetodoBMR(m){
+  const atual=metodoBMR();
+  return `<div class="metodo-bmr">
+    <div class="splabel" style="margin:0 0 6px"><span>Metabolismo basal por ${dica('metodoBmr')}</span>
+      <output>${Math.round(bmr(m))} kcal/dia</output></div>
+    <div class="metodo-ops" role="radiogroup" aria-label="Equação do metabolismo basal">
+      ${Object.entries(METODOS_BMR).map(([k,M])=>{
+        const val=Math.round(bmrCom(k,m));
+        const on=atual===k;
+        const troca=M.soAdulto && idadeAnos(m)<19;
+        const txt=`<b>${esc(M.n)}</b>${M.recomendada? ' — recomendada':''}<br>${M.resumo}<br><br><b>Limitação:</b> ${M.limite}<br><br><b>Fonte:</b> ${esc(M.fonte)}`
+          + (troca? '<br><br><b>Nesta idade não se aplica:</b> este perfil continua calculado pela '+METODOS_BMR[METODO_BMR_PADRAO].curto+'.' : '');
+        return `<button class="metodo-op ${on?'on':''}" role="radio" aria-checked="${on}"
+          data-dica="${esc(txt)}" onclick="setMetodoBMR('${k}')">
+          <span class="mo-nome">${esc(M.curto)}${M.recomendada? ' <span class="mo-sel">recomendada</span>':''}</span>
+          <span class="mo-val">${val} kcal${troca? ' *':''}</span>
+          <span class="mo-ano">${M.ano}</span>
+        </button>`;
+      }).join('')}
+    </div>
+    ${bmrSubstituido(m)? `<p class="sub" style="margin-top:6px">* A Mifflin-St Jeor não foi construída para quem está a crescer:
+      abaixo dos 19 anos este perfil continua calculado pela <b>${METODOS_BMR[METODO_BMR_PADRAO].curto}</b>.</p>`:''}
+    <p class="sub" style="margin-top:6px">Passa o rato por cima de cada uma para ver de onde vem e o que lhe falta.
+      A escolha é da casa inteira e muda os alvos de toda a gente.</p>
+  </div>`;
+}
+/* Quando um método não se aplica à idade e outro entrou no lugar dele. */
+function bmrSubstituido(m){
+  const M=METODOS_BMR[metodoBMR()];
+  return !!(M && M.soAdulto && idadeAnos(m)<19);
 }
 /* Energia de crescimento, que só existe enquanto o corpo está a crescer. */
 function crescimentoKcal(m){
@@ -8079,6 +8238,8 @@ function confirmaPartilha(irmaos,verbo){
 /* Explicadores. Ficam todos aqui para o texto ser escrito uma vez e revisto
    de uma assentada, em vez de andar espalhado pelos templates. */
 const DICAS={
+  responsabilidade:'Esta é uma ferramenta simples e gratuita, e destina-se a um uso responsável. Tudo o que calcula sai de tabelas oficiais — INSA, EFSA, Organização Mundial de Saúde — construídas para populações <b>saudáveis</b>: são médias de gente, não medições de ninguém, e não conhecem a história clínica, a medicação nem a composição corporal de quem as lê. Todas as indicações e todos os números são <b>sugestões</b>, e devem ser alvo de verificação independente. Qualquer alteração drástica na alimentação, ou o início de uma nova atividade física, deve ter <b>acompanhamento médico</b> — muito em especial em crianças, na gravidez e na amamentação, e em quem tenha qualquer doença diagnosticada ou esteja sob medicação. O autor <b>não se responsabiliza</b> pelo impacto do uso desta aplicação.',
+  metodoBmr:'O metabolismo basal — as calorias que o corpo gasta só para se manter vivo — não tem uma fórmula certa. Tem equações de regressão feitas sobre populações diferentes, em décadas diferentes, que dão valores diferentes para a mesma pessoa. A aplicação mostra as três mais usadas com o resultado de cada uma ao lado, para a escolha ser informada em vez de invisível: <b>Henry (2005)</b>, a mais recente e a que a EFSA e o serviço nacional de saúde britânico adotaram, é a recomendada; <b>Schofield (1985)</b> é o padrão histórico da FAO e da OMS; <b>Mifflin-St Jeor (1990)</b> é a única que usa a altura, e só existe para adultos. A escolha vale para a casa toda e muda os alvos de calorias — passa o rato por cada uma para saber de onde vem e o que lhe falta.',
   instalar:'A app instala-se como qualquer aplicação: ícone no ecrã principal, ecrã inteiro sem barra do browser, e funciona sem rede. Cada plataforma tem o seu caminho — no Chrome e Edge é um botão de um toque; no iPhone e iPad é Partilhar → «Adicionar ao ecrã principal», porque a Apple não dá outro; no Firefox do Android é pelo menu. No iPhone instalar também protege os dados: o Safari apaga o armazenamento de sites que não se abrem há semanas, e a app instalada escapa a essa limpeza. Os dados continuam a ser só deste aparelho — instalar não cria conta nenhuma.',
   taberna:'Depois das nove da noite, quem abre a aplicação está a fechar o dia — a registar o jantar, a ver o que sobrou. A aplicação baixa a voz: as superfícies aquecem um pouco, como uma luz ao fundo da sala. Não mexe em nenhuma cor de texto nem troca o modo claro pelo escuro, e desliga-se sozinha às seis da manhã. Na paleta «Contraste» não se aplica.',
   frigorifico:'Uma folha A4 deitada com a semana toda, para pôr na porta com um íman. Quem chega a casa às sete da tarde não vai desbloquear um telemóvel para saber o que há para o jantar. Leva quem come em cada refeição e a lista do que falta comprar no rodapé. No telemóvel mostra-se no ecrã em vez de ir direita à impressora, porque aí quase nunca há impressora à mão.',
@@ -14185,7 +14346,66 @@ function removerMedicao(mid,d){
 }
 
 /* ================= FAMÍLIA ================= */
+/* ================= O AVISO QUE ABRE A PORTA =================
+   Criar um perfil é o momento em que esta app deixa de ser uma curiosidade e
+   passa a dar números sobre uma pessoa concreta — e às vezes sobre uma
+   criança. É aí que o aviso tem de estar, e não escondido num rodapé que
+   ninguém lê depois de já ter começado.
+
+   O texto vive num sítio só. Repetido à mão em quatro ecrãs, a certa altura
+   quatro versões diferentes diziam quatro coisas diferentes — e num aviso de
+   responsabilidade isso é pior do que não o ter. */
+const AVISO_TITULO='Antes de começar, três coisas honestas';
+const AVISO_PONTOS=[
+  ['📊','As contas são de uma pessoa saudável',
+   'Tudo o que esta aplicação calcula sai de tabelas oficiais — INSA, EFSA, Organização Mundial de Saúde — construídas para <b>populações saudáveis</b>. São médias de gente, não medições desta pessoa: não conhecem a massa muscular, a história clínica, a medicação nem nada que um exame diga. Todas as indicações e todos os números são <b>sugestões</b>, e devem ser alvo de verificação independente.'],
+  ['🩺','Mudanças a sério pedem acompanhamento médico',
+   'Qualquer <b>alteração drástica na alimentação</b> ou o <b>início de uma nova atividade física</b> deve ser acompanhado por um profissional de saúde. Isto vale a dobrar em <b>crianças</b>, em quem está grávida ou a amamentar, e em quem tem <b>doença diagnosticada</b> — do diabetes à doença renal, passando por alergias, perturbações do comportamento alimentar e qualquer condição sob medicação.'],
+  ['🤝','É uma ferramenta simples e gratuita',
+   'Foi feita para ajudar uma família a organizar-se, e usa-se sob <b>responsabilidade de quem a usa</b>. O autor <b>não se responsabiliza</b> pelo impacto do seu uso. Não substitui médico, nutricionista, pediatra nem enfermeiro de família — substitui o papel e a caneta onde se apontava o que se ia comer.']
+];
+function avisoAceite(){ return !!(S.meta && S.meta.avisoAceite); }
+function aceitarAviso(){
+  if(!S.meta) S.meta={};
+  S.meta.avisoAceite=new Date().toISOString();
+  fecharModal();
+  criarMembro();
+}
+/* O cartão curto, para ficar sempre à vista onde se gerem os perfis. */
+function avisoResponsabilidade(compacto){
+  return `<div class="aviso-resp ${compacto?'compacto':''}" role="note">
+    <span class="ar-ico" aria-hidden="true">⚠️</span>
+    <span><b>Ferramenta gratuita, para uso responsável.</b> As contas assentam em tabelas oficiais para
+      <b>pessoas saudáveis</b> e são apenas <b>sugestões</b>, a verificar de forma independente. Qualquer mudança
+      drástica na alimentação ou o início de nova atividade física deve ter <b>acompanhamento médico</b> —
+      sobretudo em crianças e em quem tem doença diagnosticada. O autor não se responsabiliza pelo impacto do
+      seu uso. ${dica('responsabilidade')}</span>
+  </div>`;
+}
+function modalAvisoHtml(){
+  return `<div class="mfundo" onclick="fundoModal(event)">
+    <div class="mcaixa" role="dialog" aria-modal="true" aria-labelledby="av-t" style="max-width:560px">
+      <span class="lbl">Novo perfil</span>
+      <h2 id="av-t" style="margin-top:2px">${AVISO_TITULO}</h2>
+      <ul class="aviso-lista">${AVISO_PONTOS.map(([i,t,d])=>`<li>
+        <span class="al-ico" aria-hidden="true">${i}</span>
+        <span><b>${t}</b><span class="sub" style="display:block;margin-top:2px">${d}</span></span></li>`).join('')}</ul>
+      <div class="row" style="margin-top:18px;justify-content:flex-end">
+        <button class="btn ghost" onclick="fecharModal()">Agora não</button>
+        <button class="btn" onclick="aceitarAviso()">Compreendo — criar o perfil</button>
+      </div>
+      <p class="sub" style="margin-top:10px">Este aviso aparece uma vez. Fica sempre disponível no separador
+        <b>Dados</b> e por baixo dos perfis.</p>
+    </div></div>`;
+}
 function addMember(){
+  /* Na primeira vez, o aviso vem antes do perfil — e o perfil só nasce se a
+     pessoa disser que compreendeu. Nas seguintes não se repete a caixa: o
+     aviso continua fixo por baixo dos perfis e no separador Dados. */
+  if(!avisoAceite()) return abrirModal('aviso',{});
+  criarMembro();
+}
+function criarMembro(){
   const m={id:uid(),nome:'Novo membro',sexo:'m',idade:35,altura:172,peso:75,atividade:'sedentario',desloc:'nenhum',desportos:[],dieta:'equilibrada',objetivo:'manter',objetivoPct:0};
   S.members.push(m); S.ui.mid=m.id; save('novo perfil'); render();
 }
@@ -14603,9 +14823,10 @@ function cartaoHoje(){
 function renderFamilia(){
   if(!S.members.length) return cartaoBoasVindas();
   return cartaoCapa()+cartaoPrimeirosPassos()+blocoBalcao()+cartaoFioDoDia()+cartaoFecho()+cartaoHoje()
-    +`<div class="row" style="justify-content:space-between;margin-bottom:16px">
+    +`<div class="row" style="justify-content:space-between;margin-bottom:10px">
       <div><h2>Perfis da família</h2><span class="sub">${S.members.length} membro${S.members.length>1?'s':''} · os dados guardam-se automaticamente neste dispositivo</span></div>
       <button class="btn" onclick="addMember()">+ Adicionar membro</button></div>
+    ${avisoResponsabilidade()}
     <div class="grid g2">${S.members.map(m=>{
       const mid=m.id, v=bmi(m),[cls,tone]=bmiClass(v);
       const fase=faseDe(m), bebe=fase==='bebe';
@@ -16935,7 +17156,7 @@ function cartaoFase(m){
     </g>`; }).join('') : '';
   return `<div class="card secgap">
     <h2>O que muda nesta fase — ${nomeFase(m)} ${dica('amdr')}</h2>
-    <div class="kv"><span>Metabolismo basal por</span><b>${idadeAnos(m)<19?'Schofield (pediátrica)':'Mifflin-St Jeor'}</b></div>
+    ${blocoMetodoBMR(m)}
     ${crescimentoKcal(m)? `<div class="kv"><span>Energia de crescimento</span><b>+${crescimentoKcal(m)} kcal/dia</b></div>`:''}
     ${gravida(m)&&!semEstimativa(m)? `<div class="kv"><span>Acréscimo da gravidez (${trimestre(m)}.º trimestre${fetos(m)===2?', gémeos':''})</span><b>+${gravidezKcal(m)} kcal/dia</b></div>`:''}
     <div class="kv"><span>Proteína de referência ${dica('proteinaKg')}</span><b>${nPT(pkg,2)} g/kg → ${pAlvo} g/dia</b></div>
@@ -16944,7 +17165,7 @@ function cartaoFase(m){
     <svg class="svgfx" viewBox="0 0 340 76" role="img" aria-label="Faixas aceitáveis de macronutrientes">${barras}</svg>
     ${aj.ajustado? `<div class="msg warn-msg" style="margin-top:10px">A dieta escolhida sai da faixa recomendada para esta fase, por isso as percentagens foram encostadas ao limite — ${aj.c} % de hidratos, ${aj.p} % de proteína e ${aj.f} % de gordura. Dietas de restrição de hidratos não são adequadas a crianças, adolescentes em crescimento nem à gravidez.</div>`:''}`
     : `<p class="sub" style="margin-top:12px">Abaixo de 1 ano não estão definidas faixas de distribuição de macronutrientes: a referência é o leite materno ou a fórmula, e a diversificação alimentar segue a orientação do pediatra.</p>`}
-    <p class="sub" style="margin-top:12px">Referências: Dietary Reference Values da <b>EFSA</b> para energia e nutrientes, equações de Schofield para o metabolismo em idade de crescimento, e orientações da <b>Organização Mundial de Saúde</b>. São referências populacionais para planeamento familiar — não substituem consulta.</p>
+    <p class="sub" style="margin-top:12px">Referências: Dietary Reference Values da <b>EFSA</b> para energia e nutrientes, a equação de metabolismo basal escolhida acima — <b>${esc(METODOS_BMR[metodoBMR()].n)}</b> —, e orientações da <b>Organização Mundial de Saúde</b>. São referências populacionais para planeamento familiar — não substituem consulta.</p>
   </div>`;
 }
 /* ================= INTRODUÇÃO ALIMENTAR =================
@@ -21507,7 +21728,7 @@ function pacote(){
   dados:{members:S.members, cheats:S.cheats, plans:S.plans, bought:S.bought,
          prefCuisine:S.prefCuisine, week:S.week, objetivos:S.objetivos, despensa:S.despensa,
          receitas:S.receitas, medicoes:S.medicoes, regAtiv:S.regAtiv, regRef:S.regRef,
-         sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa, pausas:S.pausas, diario:S.diario, cozPref:S.cozPref,
+         sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa, pausas:S.pausas, diario:S.diario, cozPref:S.cozPref, metodoBMR:S.metodoBMR,
          validades:S.validades, veredictos:S.veredictos, brigada:S.brigada, desperdicio:S.desperdicio,
          gostos:S.gostos, jejum:S.jejum, combos:S.combos, rituais:S.rituais, extras:S.extras, aindaHa:S.aindaHa,
          visitas:S.visitas, ementas:S.ementas, anos:S.anos, provas:S.provas, bebidas:S.bebidas, notasCozinha:S.notasCozinha}}; }
@@ -22206,6 +22427,7 @@ function renderDados(){
     neste browser, mas só neste. Para não perderes nada ao mudar de computador, limpar o histórico ou trocar de
     telemóvel, exporta um ficheiro de cópia de vez em quando — é ele que devolve tudo ao estado em que estava.</p>
 
+  ${avisoResponsabilidade()}
   <div class="grid g2">
     ${cartaoInstalarApp()}
     <div class="card card--quieto">
@@ -22743,6 +22965,7 @@ function cartaoBoasVindas(){
     </div>
     <p class="sub" style="margin-top:12px">A visita percorre os ${TABS.length} separadores em ${TOUR.length} passos, com uma família
       de exemplo para veres tudo a funcionar. Podes sair a qualquer momento e apagar o exemplo no separador Dados.</p>
+    <div style="max-width:62ch;margin:16px auto 0;text-align:left">${avisoResponsabilidade()}</div>
   </div>`;
 }
 
@@ -22859,7 +23082,8 @@ function pintaModal(){
     : mo? (mo.tipo==='peso'? modalPesoHtml(mo) : mo.tipo==='compras'? modalComprasHtml(mo)
          : mo.tipo==='fimVisita'? modalFimVisitaHtml()
          : mo.tipo==='jejum'? modalJejumHtml(mo)
-         : mo.tipo==='bandeja'? modalBandejaHtml(mo) : '')
+         : mo.tipo==='bandeja'? modalBandejaHtml(mo)
+         : mo.tipo==='aviso'? modalAvisoHtml() : '')
     : fo? (fo.tipo==='mesa'? folhaMesaHtml(fo) : fo.tipo==='registo'? folhaRegistoHtml()
          : fo.tipo==='pessoa'? folhaPessoaHtml(fo)
          : fo.tipo==='sobra'? folhaSobraHtml(fo)
