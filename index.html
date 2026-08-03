@@ -6556,12 +6556,42 @@ function load(){
   return Object.assign(b, s, {ui:Object.assign(b.ui,s.ui||{}), meta:Object.assign(b.meta,s.meta||{})});
 }
 function writeLS(){
-  try{ localStorage.setItem(KEY,JSON.stringify(S)); saveErr=''; }
+  try{ localStorage.setItem(KEY,JSON.stringify(S)); saveErr='';
+    /* fica a saber-se o que ESTE separador gravou por último: é a única
+       forma de distinguir uma gravação nossa de uma de outro separador */
+    _ultimaGravacaoNossa=S.meta.gravadoEm||'';
+  }
   catch(e){ saveErr = e.name==='QuotaExceededError'
     ? 'Não há espaço para gravar mais dados neste browser. Exporta uma cópia e apaga semanas antigas.'
     : 'O browser está a bloquear a gravação local. Em janela privada os dados perdem-se ao fechar — exporta uma cópia.'; }
   paintSave();
 }
+/* ================= DOIS SEPARADORES, UMA CASA =================
+   O localStorage é partilhado por todos os separadores da mesma origem, mas
+   a memória não é: cada separador tem o seu S carregado no arranque. Abrir a
+   app em dois sítios — o telemóvel com dois separadores, o computador com
+   uma janela esquecida de ontem — e escrever em ambos fazia com que o último
+   a gravar apagasse o trabalho do outro, sem um aviso.
+
+   Não se resolve isto sozinho a fundir estados: fundir sem perguntar é
+   inventar decisões sobre dados de saúde. O que se faz é o que um editor de
+   texto faz — dizer que o ficheiro mudou noutro lado, e deixar a pessoa
+   escolher: ficar com o que tem à frente ou recarregar. */
+let _ultimaGravacaoNossa='';
+let _outroSeparador=false;
+window.addEventListener('storage', e=>{
+  if(e.key!==KEY || !e.newValue) return;
+  let quando='';
+  try{ quando=(JSON.parse(e.newValue).meta||{}).gravadoEm||''; }catch(err){ return; }
+  /* se foi este separador a gravar, o eco não conta */
+  if(quando && quando===_ultimaGravacaoNossa) return;
+  if(_outroSeparador) return;              /* já está avisado, não insiste */
+  _outroSeparador=true;
+  paintSave();
+  toast('Esta app está aberta noutro separador, e foi lá que se gravou por último. '
+    +'O que tens aqui à frente ainda não foi perdido — mas se gravares, escreve por cima do outro.',
+    {rot:'Recarregar com a versão nova', fn:'location.reload()'}, 'warn');
+});
 /* save() = alteração de dados: grava e marca que ainda não há cópia exportada.
    saveMeta() = alteração só de definições: grava sem mexer nesse estado. */
 /* ===== DESFAZER =====
@@ -6687,6 +6717,9 @@ function paintSave(){
   const põeTexto=(cls,txt)=>{ el.className=cls; el.title=txt+' — ver dados e cópias de segurança';
     el.innerHTML='<i class="led"></i><span class="savest-txt"> '+txt+'</span>'; };
   if(saveErr) return põeTexto('savest err','gravação bloqueada');
+  /* o aviso de outro separador fica no indicador enquanto durar a sessão:
+     um toast desaparece, e esta é uma informação que não deve desaparecer */
+  if(_outroSeparador) return põeTexto('savest pend','aberta noutro separador');
   if(!S.members.length) return põeTexto('savest none','sem dados');
   if(S.meta.semCopia) return põeTexto('savest pend','guardado '+hhmm(S.meta.gravadoEm)+' · sem cópia');
   põeTexto('savest','guardado '+hhmm(S.meta.gravadoEm)+' · cópia feita');
