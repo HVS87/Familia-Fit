@@ -526,6 +526,10 @@ table.marcos thead th:first-child,table.marcos tbody th{text-align:left}
   font-variant-numeric:tabular-nums}
 .corredores .chip{flex:none;min-width:34px;justify-content:center}
 .corredores .chip[disabled]{opacity:.3;pointer-events:none}
+/* Uma visita que costuma vir neste dia da semana: um traço por baixo, não
+   uma cor — a cor já significa «está à mesa», e dois significados na mesma
+   propriedade é como não ter nenhum. */
+.chip.costuma{border-bottom:2px solid var(--accent)}
 .talhoes{list-style:none;margin:12px 0 0;padding:0}
 .talhoes li{display:flex;align-items:center;gap:8px;padding:6px 0}
 /* O dono de cada item na lista: um alvo de dedo, não um ícone decorativo. */
@@ -639,8 +643,6 @@ html[data-dispositivo="telefone"][data-orient="retrato"] .timers{bottom:calc(70p
 
 /* ===== DA ÉPOCA E CONVIDADOS ===== */
 .tag.epoca{border-color:var(--ok);color:var(--ok)}
-.tag.genero-quente{border-color:var(--energy);color:var(--energy)}
-.tag.genero-frio{border-color:var(--accent);color:var(--accent)}
 .tag.cat-ent{border-color:var(--ok);color:var(--ok)}
 .tag.cat-sop{border-color:var(--energy);color:var(--energy)}
 .tag.cat-sob{border-color:var(--party);color:var(--party)}
@@ -5460,7 +5462,7 @@ function macrosDeIngredientes(lista,doses){
 function sodioDeIngredientes(lista,doses,rid){
   const d=Math.max(1,parseFloat(doses)||1);
   const fora=(rid && NA_DESCARTADO[rid])||[];
-  let na=0; const semValor=[];
+  let na=0; const semValor=[], estimados=[];
   (lista||[]).forEach(x=>{
     const nome=x[0];
     if(fora.indexOf(nome)>=0) return;   /* crosta ou água de cozer: não se come */
@@ -5468,11 +5470,11 @@ function sodioDeIngredientes(lista,doses,rid){
     if(g===null){ semValor.push(nome); return; }
     const v=sodioDe(nome);
     if(v===null){ semValor.push(nome); return; }
+    if(sodioEstimado(nome)) estimados.push(nome);
     na+=v*g/100;
   });
-  return {mg:Math.round(na/d), semValor, descartado:fora.length>0};
+  return {mg:Math.round(na/d), semValor, estimados, descartado:fora.length>0};
 }
-function sodioReceita(r){ return r? sodioDeIngredientes(r.i,1,r.id) : {mg:0,semValor:[]}; }
 function acucarLivreDeIngredientes(lista,doses){
   const d=Math.max(1,parseFloat(doses)||1);
   let g=0;
@@ -5482,9 +5484,6 @@ function acucarLivreDeIngredientes(lista,doses){
   });
   return Math.round(g/d*10)/10;
 }
-/* Uma receita «tem açúcar livre» a partir de um grama por dose — abaixo disso
-   é vestígio de tempero e contá-lo como exposição seria alarmismo. */
-function temAcucarLivre(r){ return acucarLivreDeIngredientes(r.i,1)>=1; }
 
 const CATS = [
   ['Peixe & Marisco',/bacalhau|salm|sardinha|polvo|camar|atum|dourada|robalo|amêijoa|marisco|peixe|pescada|espadarte|anchova|carapau|cavala|lulas|mexilh|truta|choco/i],
@@ -5762,66 +5761,217 @@ const ING_EXCECAO={
    Valores em mg de sódio por 100 g (ou 100 ml), INSA/PortFIR salvo indicação.
    O sal é estequiometria, não medição: o cloreto de sódio puro tem 39,3 % de
    sódio em massa. */
-const NA_MG={
-  /* o sal, e o que é quase só sal */
-  'Sal grosso':38700, 'Flor de sal':38700,
-  'Molho de soja':5500, 'Molho de peixe':7800, 'Pasta de miso':3700, 'Missô branco':3700,
-  'Molho teriyaki':3500, 'Anchovas':3500, 'Alcaparras':2350,
-  /* fumeiro e charcutaria — a maior fonte isolada numa casa portuguesa */
-  'Presunto':2300, 'Carne seca (charque)':2000, 'Salame':1800,
-  'Paio de lombo':1600, 'Paio de lombo entremeado':1600, 'Salpicão':1600,
-  'Chouriço':1500, 'Chouriço de carne de porco':1500, 'Toucinho fumado':1500,
-  'Bacon':1500, 'Linguiça':1400, 'Mortadela':1100,
-  'Salsicha tipo Frankfurt':900, 'Salsicha fresca crua':750,
-  'Alheira':900, 'Farinheira':800, 'Fiambre':900, 'Fiambre, pá':900,
-  'Fiambre, perna':900, 'Fiambre de aves':900, 'Fiambre, peito de frango':900,
-  'Bresaola':1600,
-  /* queijos */
-  'Queijo ralado':1600, 'Parmesão':1600, 'Queijo manchego':1200, 'Queijo feta':1140,
-  'Queijo da ilha':800, 'Queijo halloumi':1500, 'Queijo azul':1400,
-  'Queijo de Azeitão':700, 'Queijo Serra da Estrela':700, 'Queijo de Évora':1400,
-  'Queijo de Nisa':900, 'Queijo Serpa':800, 'Queijo de Castelo Branco':800,
-  'Queijo flamengo':700, 'Queijo cheddar':620, 'Queijo Gouda':800,
-  'Queijo Emmental':450, 'Queijo gruyère':550, 'Queijo Brie':600, 'Queijo Camembert':840,
-  'Queijo Raclette':600, 'Queijo fundido 40% gordura':1300, 'Queijo São Jorge':800,
-  'Mozzarella':490, 'Mozzarella fresca':200, 'Burrata':200, 'Queijo creme':300,
-  'Queijo de cabra':500, 'Queijo Mascarpone':35, 'Ricotta':85,
-  'Queijo fresco':40, 'Requeijão':50, 'Queijo minas frescal':30, 'Queijo Quark natural':40,
-  /* pão e panificação */
-  'Pão de forma':490, 'Pão alentejano':580, 'Pão de mistura':520, 'Pão rústico':540,
-  'Pão integral':490, 'Pão de centeio':560, 'Pão de centeio integral':560,
-  'Pão de leite (trigo)':420, 'Pão de trigo com redução de sal':240, 'Broa de milho':430,
-  'Tosta de trigo':600, 'Tosta de trigo integral':600, 'Tosta de trigo sem sal':20,
-  'Pão ralado':700, 'Pão pita':520, 'Pão de hambúrguer':490, 'Bagel':490,
-  'Bolacha de água e sal':700, 'Bolacha Maria':300, 'Muffin inglês':480,
-  /* conservas e picles */
-  'Azeitonas':1500, 'Azeitonas pretas':2000, 'Picles de pepino':1200, 'Chucrute':660,
-  'Atum em conserva':300, 'Sardinhas em conserva':400, 'Tomate pelado':200,
-  'Tomate concentrado':400, 'Tomate seco':2100, 'Batata palha':600,
-  'Delícias do mar (surimi)':800, 'Cogumelos enlatados, escorridos':400,
-  /* o bacalhau demolhado guarda sal: é a razão de ser do prato */
-  'Bacalhau (posta)':570, 'Bacalhau desfiado':600, 'Bacalhau, ovas cruas':320,
-  /* molhos e caldos */
-  'Ketchup':1000, 'Mostarda':1200, 'Mostarda de Dijon':1900, 'Molho de mostarda':1100,
-  'Maionese':600, 'Molho inglês':1000, 'Molho barbecue':1000, 'Molho picante':2200,
-  'Molho piri-piri':1500, 'Molho sriracha':2100, 'Molho para francesinha':700,
-  'Molho de tomate':400, 'Molho de vinagrete':900, 'Molho verde':600,
-  'Caldo de galinha':300, 'Caldo de legumes':300, 'Massa de pimentão':2900,
-  'Pesto':800, 'Tahini':35, 'Kimchi':500, 'Raita de pepino e hortelã':180,
-  /* manteigas: a diferença entre com e sem sal é o ponto todo */
-  'Manteiga':450, 'Manteiga sem sal':5, 'Margarina':700, 'Minarina (meia margarina)':700,
-  'Margarina 3/4, de girassol':700,
-  /* frutos secos salgados */
-  'Amendoim, miolo, torrado com sal':400, 'Amendoim, miolo, torrado sem sal':5,
-  'Pistácio torrado e salgado':400, 'Pistácio torrado, sem sal':5,
-  'Castanha de caju torrada e salgada':400,
-  /* lacticínios e ovos correntes, para a conta fechar */
-  'Leite':44, 'Leite gordo, UHT':44, 'Leite magro, UHT':44, 'Leite meio gordo, pó':400,
-  'Iogurte natural':50, 'Iogurte grego':45, 'Nata':35, 'Ovo':130,
-  'Clara de ovo de galinha, crua':170, 'Gema de ovo de galinha, crua':50,
-  /* bebidas */
-  'Cerveja branca':4, 'Vinho branco':5, 'Vinho tinto':4, 'Vinho do Porto':10,
+/* As duas tabelas do sódio, e a diferença entre elas é a razão de existirem.
+
+   NA_INSA são valores transcritos da Tabela de Composição de Alimentos do
+   INSA (BDCA v7.1, 2026), coluna «Sal [g] por 100 g», convertidos para
+   miligramas de sódio pelo fator de 2,5 que a própria tabela usa. Onde o
+   nome da app não é igual ao do INSA, o nome da linha usada fica escrito em
+   comentário ao lado — para se poder ir conferir sem adivinhar qual foi.
+
+   NA_ESTIMADO são os que o INSA não tem: molhos asiáticos, queijos
+   estrangeiros, produtos de marca. O valor continua lá porque um molho de
+   soja sem sódio seria pior do que uma estimativa, mas a app SABE que é uma
+   estimativa e di-lo em voz alta — o cartão do sal conta quantos ingredientes
+   do dia vieram daqui. Sem esta separação, a app dizia «fonte: INSA» sobre
+   números que o INSA nunca publicou, que é a única coisa pior do que não ter
+   número nenhum.
+
+   Uma auditoria contra o ficheiro oficial encontrou 72 valores fora do que o
+   INSA diz — o paio de lombo a 1600 quando são 3520, o tomate seco a 2100
+   quando são 160. Estavam todos errados na mesma direção: eram estimativas
+   internacionais com etiqueta portuguesa. Ficam aqui corrigidos, e fica aqui
+   escrito porque é o tipo de erro que volta sozinho.
+
+   Valores em mg de sódio por 100 g (ou 100 ml de bebida). */const NA_INSA={
+  'Alcaparras':2960,   /* Alcaparras (picles) */
+  'Alheira':680,   /* Alheira crua */
+  'Amendoim, miolo, torrado com sal':400,
+  'Amendoim, miolo, torrado sem sal':0,
+  'Atum em conserva':440,   /* Atum conserva em óleo */
+  'Azeitonas':2120,   /* Azeitona */
+  'Azeitonas pretas':2120,   /* Azeitona */
+  'Bacalhau (posta)':1480,   /* Bacalhau seco e salgado, demolhado cru */
+  'Bacalhau desfiado':1480,   /* Bacalhau seco e salgado, demolhado cru */
+  'Bacalhau, ovas cruas':120,
+  'Bacon':1200,
+  'Bolacha de água e sal':560,   /* Bolacha água e sal */
+  'Bolacha Maria':440,
+  'Caldo de galinha':320,   /* Caldo preparado com cubo de carne de galinha (diluição 2%) */
+  'Castanha de caju torrada e salgada':320,
+  'Cerveja branca':0,
+  'Chouriço':2480,   /* Chouriço de carne de porco, cru */
+  'Chouriço de carne de porco':2480,   /* Chouriço de carne de porco, cru */
+  'Chucrute':480,
+  'Clara de ovo de galinha, crua':200,
+  'Cogumelos enlatados, escorridos':360,
+  'Farinheira':960,   /* Farinheira crua */
+  'Fiambre':920,   /* Fiambre, perna */
+  'Fiambre de aves':920,
+  'Fiambre, pá':960,
+  'Fiambre, peito de frango':960,
+  'Fiambre, perna':920,
+  'Flor de sal':40000,
+  'Gema de ovo de galinha, crua':40,
+  'Iogurte grego':40,   /* Iogurte grego natural */
+  'Iogurte grego magro':0,   /* Iogurte grego magro natural  */
+  'Iogurte magro, natural':80,   /* Iogurte magro, natural  */
+  'Iogurte natural':80,   /* Iogurte magro, natural  */
+  'Ketchup':1240,   /* Molho de tomate, "ketchup" */
+  'Leite':40,   /* Leite meio gordo, UHT */
+  'Leite achocolatado, UHT':40,   /* Leite achocolatado, UHT  */
+  'Leite condensado açucarado':160,   /* Leite condensado */
+  'Leite de cabra cru':40,
+  'Leite de coco':0,   /* Leite de coco, enlatado */
+  'Leite de ovelha cru':40,
+  'Leite gordo, pasteurizado':40,
+  'Leite gordo, pó':360,
+  'Leite gordo, UHT':40,
+  'Leite magro de pastagem':40,   /* Leite magro de pastagem, UHT  */
+  'Leite magro, pó':520,
+  'Leite magro, UHT':40,
+  'Leite meio gordo, pó':440,
+  'Linguiça':2920,
+  'Maionese':120,   /* Maionese caseira, com ovo e óleo de soja */
+  'Manteiga':760,   /* Manteiga com sal */
+  'Manteiga sem sal':0,
+  'Margarina':1120,
+  'Margarina 3/4, de girassol':240,
+  'Massa de pimentão':1320,
+  'Massa folhada, congelada':0,
+  'Massa para pizza':280,
+  'Massa quebrada':480,   /* Massa quebrada para quiche */
+  'Minarina (meia margarina)':160,
+  'Missô branco':3960,   /* Miso, pasta de soja fermentada com arroz integral e cevada */
+  'Molho de mostarda':320,   /* Molho de mostarda  */
+  'Molho de soja':5600,
+  'Molho de tomate':200,
+  'Molho de vinagrete':720,
+  'Molho para francesinha':280,
+  'Molho verde':320,
+  'Mortadela':1560,
+  'Mostarda':760,   /* Condimento de mostarda */
+  'Mostarda de Dijon':760,   /* Condimento de mostarda */
+  'Mozzarella':160,   /* Queijo Mozzarella fresco */
+  'Mozzarella fresca':160,   /* Queijo Mozzarella fresco */
+  'Nata':40,   /* Nata UHT 35% gordura */
+  'Nata maturada pasteurizada 30% gordura':40,
+  'Nata para bater 35% gordura':40,   /* Nata para bater pasteurizada 34% gordura */
+  'Nata para bater pasteurizada 34% gordura':40,
+  'Nata pasteurizada 33% gordura':40,
+  'Nata pasteurizada 36% gordura':40,
+  'Ovo':0,   /* Ovo de galinha inteiro, cru */
+  'Paio de lombo':3520,
+  'Paio de lombo entremeado':1760,
+  'Pão alentejano':600,   /* Pão de trigo */
+  'Pão de centeio':520,
+  'Pão de centeio integral':240,
+  'Pão de forma':400,   /* Pão de forma, de trigo enriquecido */
+  'Pão de leite (trigo)':440,
+  'Pão de mistura':600,   /* Pão de mistura de trigo e centeio */
+  'Pão de trigo com redução de sal':80,
+  'Pão integral':480,   /* Pão de trigo integral */
+  'Pão pita':440,
+  'Pão ralado':440,
+  'Pão rústico':600,   /* Pão de trigo */
+  'Parmesão':760,   /* Queijo Parmesão */
+  'Pasta de miso':3960,   /* Miso, pasta de soja fermentada com arroz integral e cevada */
+  'Picles de pepino':280,
+  'Pistácio torrado e salgado':640,
+  'Pistácio torrado, sem sal':0,
+  'Presunto':2560,
+  'Queijo Amarelo da Beira Baixa':600,
+  'Queijo Brie':560,
+  'Queijo Camembert':600,
+  'Queijo cheddar':720,
+  'Queijo creme':1000,   /* Queijo creme para barrar */
+  'Queijo de Azeitão':600,
+  'Queijo de cabra':600,   /* Queijo de cabra curado */
+  'Queijo de Castelo Branco':640,
+  'Queijo de Évora':520,
+  'Queijo de Nisa':600,
+  'Queijo de ovelha curado':600,
+  'Queijo de ovelha, amanteigado':600,
+  'Queijo de vaca curado':520,
+  'Queijo de vaca, amanteigado':600,
+  'Queijo Emmental':400,
+  'Queijo flamengo':520,
+  'Queijo flamengo light (-50% gordura)':560,
+  'Queijo fresco':320,   /* Queijo fresco magro */
+  'Queijo fresco de cabra':400,
+  'Queijo fresco de ovelha':320,
+  'Queijo fresco magro':320,
+  'Queijo fundido 40% gordura':1400,
+  'Queijo Gouda':920,
+  'Queijo gruyère':680,
+  'Queijo Mascarpone':80,
+  'Queijo Mestiço de Tolosa':840,
+  'Queijo Quark natural':40,   /* Queijo Quark natural meio gordo */
+  'Queijo Raclette':680,
+  'Queijo ralado':760,   /* Queijo Parmesão */
+  'Queijo São Jorge':720,
+  'Queijo Serpa':800,
+  'Queijo Serra da Estrela':600,
+  'Requeijão':200,   /* Requeijão de vaca */
+  'Requeijão de cabra':0,
+  'Salame':2320,
+  'Salpicão':4400,
+  'Salsicha fresca crua':720,
+  'Salsicha tipo Frankfurt':1000,
+  'Sardinhas em conserva':40,   /* Sardinha meio gorda conserva em água, sem espinha e sem pele */
+  'Tahini':40,   /* Tahini  */
+  'Tomate concentrado':120,
+  'Tomate seco':160,
+  'Tosta de trigo':400,
+  'Tosta de trigo integral':440,
+  'Tosta de trigo sem sal':40,
+  'Vinho branco':0,   /* Vinho maduro branco, teor alcoólico ≥12,5% vol. */
+  'Vinho do Porto':0,   /* Vinho do Porto, seco */
+  'Vinho tinto':0,   /* Vinho maduro tinto, teor alcoólico <12,5% vol. */
 };
+const NA_ESTIMADO={
+  'Anchovas':3500,
+  'Bagel':490,
+  'Batata palha':600,
+  'Bresaola':1600,
+  'Broa de milho':430,
+  'Burrata':200,
+  'Caldo de legumes':300,
+  'Carne seca (charque)':2000,
+  'Delícias do mar (surimi)':800,
+  'Iogurte de soja natural':35,
+  'Kimchi':500,
+  'Leite de coco light':15,
+  'Manteiga de amêndoa':5,
+  'Manteiga de amendoim':400,
+  'Manteiga de caju':10,
+  'Massa de arroz':10,
+  'Massa de pastel crua':500,
+  'Molho barbecue':1000,
+  'Molho de peixe':7800,
+  'Molho inglês':1000,
+  'Molho picante':2200,
+  'Molho piri-piri':1500,
+  'Molho sriracha':2100,
+  'Molho teriyaki':3500,
+  'Muffin inglês':480,
+  'Pão de hambúrguer':490,
+  'Pesto':800,
+  'Queijo azul':1400,
+  'Queijo da ilha':800,
+  'Queijo de cabra "Puro"':500,
+  'Queijo feta':1140,
+  'Queijo halloumi':1500,
+  'Queijo manchego':1200,
+  'Queijo minas frescal':30,
+  'Raita de pepino e hortelã':180,
+  'Requeijão cremoso (catupiry)':400,
+  'Ricotta':85,
+  'Sal grosso':38700,
+  'Tomate pelado':200,
+  'Toucinho fumado':1500,
+};
+
 /* Os alimentos onde o sódio é residual e a ausência de valor não engana
    ninguém: hortofrutícolas, cereais crus, carne e peixe frescos, azeite. A
    app não os conta como «sem valor» — conta-os como praticamente zero, que é
@@ -5832,25 +5982,6 @@ const NA_RESIDUAL=/^(abacate|abóbora|acelga|agrião|aipo|alcachofra|alface|alho
    o nome mais longo que fosse prefixo, e o «Mel» dava 82 g de açúcar livre ao
    «Melão». Num número de saúde, adivinhar por prefixo é uma armadilha — vale
    mais uma lista comprida e literal. */
-Object.assign(NA_MG,{
-  'Leite de coco':15, 'Leite de coco light':15,
-  'Manteiga de amendoim':400, 'Manteiga de caju':10, 'Manteiga de amêndoa':5,
-  'Nata para bater 35% gordura':30, 'Nata para bater pasteurizada 34% gordura':30,
-  'Nata pasteurizada 33% gordura':30, 'Nata pasteurizada 36% gordura':30,
-  'Nata maturada pasteurizada 30% gordura':40,
-  'Requeijão cremoso (catupiry)':400, 'Requeijão de cabra':50,
-  'Leite condensado açucarado':130, 'Leite achocolatado, UHT':60,
-  'Leite gordo, pasteurizado':44, 'Leite magro de pastagem':44,
-  'Leite gordo, pó':400, 'Leite magro, pó':480, 'Leite de cabra cru':38, 'Leite de ovelha cru':44,
-  'Iogurte de soja natural':35, 'Iogurte magro, natural':55, 'Iogurte grego magro':45,
-  'Queijo fresco de cabra':40, 'Queijo fresco de ovelha':40, 'Queijo fresco magro':40,
-  'Queijo de cabra "Puro"':500, 'Queijo Amarelo da Beira Baixa':900,
-  'Queijo de ovelha curado':1100, 'Queijo de ovelha, amanteigado':900,
-  'Queijo de vaca curado':900, 'Queijo de vaca, amanteigado':700,
-  'Queijo flamengo light (-50% gordura)':700, 'Queijo Mestiço de Tolosa':1000,
-  'Molho de mostarda':1100, 'Massa de pastel crua':500, 'Massa folhada, congelada':420,
-  'Massa quebrada':400, 'Massa para pizza':480, 'Massa de arroz':10,
-});
 /* ---- O sal que não chega ao prato ----
    Há sal que se mede na receita e nunca se come: a crosta do peixe ao sal vai
    inteira para o lixo, e o sal da água de cozer fica na água. Contá-lo dava
@@ -5867,8 +5998,13 @@ const NA_DESCARTADO={
   acbcoz:['Sal grosso'], acbmurro:['Sal grosso'],
 };
 function sodioDe(nome){
-  return temChave(NA_MG,nome)? NA_MG[nome] : (NA_RESIDUAL.test(nome)? 0 : null);
+  if(temChave(NA_INSA,nome)) return NA_INSA[nome];
+  if(temChave(NA_ESTIMADO,nome)) return NA_ESTIMADO[nome];
+  return NA_RESIDUAL.test(nome)? 0 : null;
 }
+/* Se o número veio do INSA ou de uma estimativa. Quem lê um valor de saúde
+   tem direito a saber a diferença, e a app não tem o direito de a esconder. */
+function sodioEstimado(nome){ return temChave(NA_ESTIMADO,nome); }
 /* ================= AÇÚCARES LIVRES =================
    A definição é da OMS (Guideline: Sugars intake for adults and children,
    2015): açúcares livres são os adicionados pelo fabricante, cozinheiro ou
@@ -6813,7 +6949,6 @@ function normalCDF(z){
   const y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-0.284496736)*t+0.254829592)*t*Math.exp(-x*x);
   return 0.5*(1+s*y);
 }
-function pesosPercentis(sexo,meses){ return PERCENTIS_Z.map(z=>pesoNoZ(sexo,meses,z)); }
 /* Percentil do peso atual, calculado (não interpolado entre curvas). */
 function percentilDe(m){
   const meses=idadeMeses(m);
@@ -6876,29 +7011,39 @@ function macroPctInfantil(meses){
   return {gord:[20,35], gordNota:'intervalo de referência 20–35 %', hc:[45,60], fibra:14};
 }
 /* Micronutrientes por escalão etário da EFSA. r = rótulo do tipo de valor,
-   porque uma AI e uma PRI não se leem da mesma maneira. */
+   porque uma AI e uma PRI não se leem da mesma maneira.
+
+   Os escalões são CINCO e não três, e isso não é preciosismo: a EFSA não usa
+   as mesmas fronteiras para todos os nutrientes. O ferro e o cálcio têm uma
+   só banda dos 1 aos 3 anos; o magnésio e a vitamina E sobem aos 3 anos; o
+   DHA sobe aos 2. Juntar tudo num «1 a 3 anos» dava um magnésio 26% abaixo
+   do devido a uma criança de três anos e um DHA de 250 mg a um bebé de doze
+   meses, a quem a EFSA atribui 100. Onde a EFSA não separa, as colunas
+   repetem-se — não se perde nada e não se inventa nada. */
 const EFSA_MICRO=[
-  {k:'ferro',   n:'Ferro',           u:'mg',  b:{'7-11m':[11,'PRI'], '1-3a':[7,'PRI'],   '4-6a':[7,'PRI']}},
-  {k:'calcio',  n:'Cálcio',          u:'mg',  b:{'7-11m':[280,'AI'], '1-3a':[450,'PRI'], '4-6a':[800,'PRI']}},
-  {k:'vitD',    n:'Vitamina D',      u:'µg',  b:{'7-11m':[10,'AI'],  '1-3a':[15,'AI'],   '4-6a':[15,'AI']}},
-  {k:'iodo',    n:'Iodo',            u:'µg',  b:{'7-11m':[70,'AI'],  '1-3a':[90,'AI'],   '4-6a':[90,'AI']}},
-  {k:'zinco',   n:'Zinco',           u:'mg',  b:{'7-11m':[2.9,'PRI'],'1-3a':[4.3,'PRI'], '4-6a':[5.5,'PRI']}},
-  {k:'vitA',    n:'Vitamina A',      u:'µg ER', b:{'7-11m':[250,'PRI'],'1-3a':[250,'PRI'],'4-6a':[300,'PRI']}},
-  {k:'vitC',    n:'Vitamina C',      u:'mg',  b:{'7-11m':[20,'PRI'], '1-3a':[20,'PRI'],  '4-6a':[30,'PRI']}},
-  {k:'folato',  n:'Folato',          u:'µg EFD', b:{'7-11m':[80,'AI'],'1-3a':[120,'PRI'],'4-6a':[140,'PRI']}},
-  {k:'b12',     n:'Vitamina B12',    u:'µg',  b:{'7-11m':[1.5,'AI'], '1-3a':[1.5,'AI'],  '4-6a':[1.5,'AI']}},
-  {k:'vitE',    n:'Vitamina E',      u:'mg',  b:{'7-11m':[5,'AI'],   '1-3a':[6,'AI'],    '4-6a':[9,'AI']}},
-  {k:'vitK',    n:'Vitamina K',      u:'µg',  b:{'7-11m':[10,'AI'],  '1-3a':[12,'AI'],   '4-6a':[20,'AI']}},
-  {k:'selenio', n:'Selénio',         u:'µg',  b:{'7-11m':[15,'AI'],  '1-3a':[15,'AI'],   '4-6a':[20,'AI']}},
-  {k:'magnesio',n:'Magnésio',        u:'mg',  b:{'7-11m':[80,'AI'],  '1-3a':[170,'AI'],  '4-6a':[230,'AI']}},
-  {k:'potassio',n:'Potássio',        u:'mg',  b:{'7-11m':[750,'AI'], '1-3a':[800,'AI'],  '4-6a':[1100,'AI']}},
-  {k:'dha',     n:'DHA (+EPA)',      u:'mg',  b:{'7-11m':[100,'AI'], '1-3a':[250,'AI'],  '4-6a':[250,'AI']}}
+  {k:'ferro',   n:'Ferro',        u:'mg',  b:{'7-11m':[11,'PRI'], '1a':[7,'PRI'],   '2a':[7,'PRI'],   '3a':[7,'PRI'],   '4-6a':[7,'PRI']}},
+  {k:'calcio',  n:'Cálcio',       u:'mg',  b:{'7-11m':[280,'AI'], '1a':[450,'PRI'], '2a':[450,'PRI'], '3a':[450,'PRI'], '4-6a':[800,'PRI']}},
+  {k:'vitD',    n:'Vitamina D',   u:'µg',  b:{'7-11m':[10,'AI'],  '1a':[15,'AI'],   '2a':[15,'AI'],   '3a':[15,'AI'],   '4-6a':[15,'AI']}},
+  {k:'iodo',    n:'Iodo',         u:'µg',  b:{'7-11m':[70,'AI'],  '1a':[90,'AI'],   '2a':[90,'AI'],   '3a':[90,'AI'],   '4-6a':[90,'AI']}},
+  {k:'zinco',   n:'Zinco',        u:'mg',  b:{'7-11m':[2.9,'PRI'],'1a':[4.3,'PRI'], '2a':[4.3,'PRI'], '3a':[4.3,'PRI'], '4-6a':[5.5,'PRI']}},
+  {k:'vitA',    n:'Vitamina A',   u:'µg ER', b:{'7-11m':[250,'PRI'],'1a':[250,'PRI'],'2a':[250,'PRI'],'3a':[250,'PRI'],'4-6a':[300,'PRI']}},
+  {k:'vitC',    n:'Vitamina C',   u:'mg',  b:{'7-11m':[20,'PRI'], '1a':[20,'PRI'],  '2a':[20,'PRI'],  '3a':[20,'PRI'],  '4-6a':[30,'PRI']}},
+  {k:'folato',  n:'Folato',       u:'µg EFD', b:{'7-11m':[80,'AI'],'1a':[120,'PRI'],'2a':[120,'PRI'],'3a':[120,'PRI'],'4-6a':[140,'PRI']}},
+  {k:'b12',     n:'Vitamina B12', u:'µg',  b:{'7-11m':[1.5,'AI'], '1a':[1.5,'AI'],  '2a':[1.5,'AI'],  '3a':[1.5,'AI'],  '4-6a':[1.5,'AI']}},
+  {k:'vitE',    n:'Vitamina E',   u:'mg',  b:{'7-11m':[5,'AI'],   '1a':[6,'AI'],    '2a':[6,'AI'],    '3a':[9,'AI'],    '4-6a':[9,'AI']}},
+  {k:'vitK',    n:'Vitamina K',   u:'µg',  b:{'7-11m':[10,'AI'],  '1a':[12,'AI'],   '2a':[12,'AI'],   '3a':[12,'AI'],   '4-6a':[20,'AI']}},
+  {k:'selenio', n:'Selénio',      u:'µg',  b:{'7-11m':[15,'AI'],  '1a':[15,'AI'],   '2a':[15,'AI'],   '3a':[15,'AI'],   '4-6a':[20,'AI']}},
+  {k:'magnesio',n:'Magnésio',     u:'mg',  b:{'7-11m':[80,'AI'],  '1a':[170,'AI'],  '2a':[170,'AI'],  '3a':[230,'AI'],  '4-6a':[230,'AI']}},
+  {k:'potassio',n:'Potássio',     u:'mg',  b:{'7-11m':[750,'AI'], '1a':[800,'AI'],  '2a':[800,'AI'],  '3a':[800,'AI'],  '4-6a':[1100,'AI']}},
+  {k:'dha',     n:'DHA (+EPA)',   u:'mg',  b:{'7-11m':[100,'AI'], '1a':[100,'AI'],  '2a':[250,'AI'],  '3a':[250,'AI'],  '4-6a':[250,'AI']}}
 ];
 /* O sódio é o único que se lê ao contrário: é um teto, não uma meta. */
-const EFSA_SODIO={'7-11m':[0.2,'AI'], '1-3a':[1.1,'SSI'], '4-6a':[1.3,'SSI']};
-const EFSA_AGUA={'7-11m':'0,8 a 1,0 L', '1-3a':'1,1 a 1,3 L', '4-6a':'1,6 L'};
-function escalaoEfsa(meses){ return meses<12? '7-11m' : meses<48? '1-3a' : '4-6a'; }
-const ESCALAO_ROT={'7-11m':'7 a 11 meses','1-3a':'1 a 3 anos','4-6a':'4 a 6 anos'};
+const EFSA_SODIO={'7-11m':[0.2,'AI'], '1a':[1.1,'SSI'], '2a':[1.1,'SSI'], '3a':[1.1,'SSI'], '4-6a':[1.3,'SSI']};
+const EFSA_AGUA={'7-11m':'0,8 a 1,0 L', '1a':'1,1 a 1,2 L', '2a':'1,3 L', '3a':'1,3 L', '4-6a':'1,6 L'};
+function escalaoEfsa(meses){
+  return meses<12? '7-11m' : meses<24? '1a' : meses<36? '2a' : meses<48? '3a' : '4-6a';
+}
+const ESCALAO_ROT={'7-11m':'7 a 11 meses','1a':'1 ano','2a':'2 anos','3a':'3 anos','4-6a':'4 a 6 anos'};
 /* A EFSA publica os micronutrientes em escalões, e o primeiro só começa aos
    7 meses. Aos 6, a app mostra os do escalão seguinte e diz que o está a
    fazer — é a leitura honesta de uma tabela que não tem a linha pedida. */
@@ -7353,6 +7498,11 @@ function fibraMedia(mid,dias){
    expressamente batata e outras raízes ricas em amido dessa conta. É a
    exclusão que mais se erra, e a que mais muda o número numa casa portuguesa. */
 const OMS_HORTOFRUTICOLAS=400;
+/* «Everyone older than 10 years of age should aim for at least 400 grams»:
+   a recomendação traz a idade escrita, e abaixo dela a app mostra o número
+   sem barra e sem veredicto. Julgar uma criança de quatro anos contra um
+   valor que não é dela seria pior do que não medir nada. */
+function vale400(m){ return !!m && idadeAnos(m)>10; }
 
 /* ================= O SALEIRO INVISÍVEL =================
    Portugal come quase o dobro do sal recomendado, e quase nada vem do saleiro
@@ -7366,15 +7516,30 @@ const OMS_HORTOFRUTICOLAS=400;
    energético que a app já calcula. Abaixo de um ano não há recomendação e a
    app não inventa uma. */
 const OMS_SODIO_ADULTO=2000, SAL_POR_SODIO=2.5;
+/* O teto de sódio muda de autoridade com a idade, e isso está escrito nas
+   próprias recomendações. A OMS diz «menos de 2000 mg/dia» para adultos e
+   manda ajustar em baixo, pela energia, dos 2 aos 15 anos — mas diz também,
+   em letra clara, que a recomendação NÃO se aplica dos 0 aos 24 meses. Aí
+   quem tem valor publicado é a EFSA: 0,2 g de AI dos 7 aos 11 meses e 1,1 g
+   de ingestão segura e adequada a partir do ano. Antes dos 7 meses ninguém
+   fixa nada, e a app diz «sem valor» em vez de inventar. */
 function alvoSodio(m){
   if(!m) return null;
   const fase=faseDe(m);
-  if(fase==='bebe') return null;
+  if(fase==='bebe'){
+    const meses=idadeMeses(m);
+    if(meses<7) return null;
+    return Math.round(EFSA_SODIO[escalaoEfsa(meses)][0]*1000);
+  }
   if(fase==='adulto'||fase==='idoso') return OMS_SODIO_ADULTO;
   const kcal=alvoDoDia(m,hojeISO());
   if(!(kcal>0)) return null;
   /* a proporção é contra a necessidade energética de um adulto de referência */
   return Math.round(OMS_SODIO_ADULTO*Math.min(1,kcal/2000));
+}
+/* Quem assina o número, para o cartão não atribuir à OMS o que é da EFSA. */
+function fonteAlvoSodio(m){
+  return (m && faseDe(m)==='bebe')? 'EFSA' : 'OMS';
 }
 function sodioRegRef(r){
   const rec=RECIPES.find(x=>x.id===r.r); if(!rec) return {mg:0,semValor:[]};
@@ -7388,14 +7553,15 @@ function sodioRegRef(r){
   return {mg:Math.round(mg), semValor:sem};
 }
 function sodioMedia(mid,dias){
-  const h=hojeISO(); let soma=0, n=0, sem=0;
+  const h=hojeISO(); let soma=0, n=0, sem=0; const est=new Set();
   for(let i=0;i<(dias||7);i++){ const d=addDias(h,-i);
     const refs=regRefDe(mid).filter(r=>r.d===d&&r.estado==='feita');
     if(!refs.length) continue;
-    refs.forEach(r=>{ const s=sodioRegRef(r); soma+=s.mg; sem+=s.semValor.length; });
+    refs.forEach(r=>{ const s=sodioRegRef(r); soma+=s.mg; sem+=s.semValor.length;
+      (s.estimados||[]).forEach(x=>est.add(x)); });
     n++;
   }
-  return n? {media:soma/n, dias:n, sem} : null;
+  return n? {media:soma/n, dias:n, sem, estimados:[...est]} : null;
 }
 
 /* ================= AÇÚCARES LIVRES =================
@@ -7921,7 +8087,7 @@ const DICAS={
   juntar:'«Substituir» troca tudo pelo conteúdo da cópia. «Juntar» acrescenta o que falta sem apagar nada — é a opção para combinar o que duas pessoas preencheram em dispositivos diferentes.',
   desfazer:'Anula a última alteração aos dados. Guarda as últimas 30 e funciona também com Ctrl+Z; mudar de separador não conta como alteração.',
   bebePerc:'As curvas de peso para a idade da Organização Mundial de Saúde (2006), do percentil 3 ao 97. O ponto laranja é o teu bebé; a linha azul é a mediana. O percentil diz a posição entre bebés da mesma idade e sexo — não é uma nota.',
-  bebeDdr:'As doses diárias de referência do escalão etário: energia pelas equações da IOM, proteína e hidratos pelas RDA, gordura e água pelas ingestões adequadas. São referências populacionais, não metas individuais.',
+  bebeDdr:'Os valores de referência do escalão etário, todos da Autoridade Europeia para a Segurança dos Alimentos (EFSA, Dietary Reference Values 2017–2019): energia como necessidade média (AR), proteína como dose recomendada por quilo de peso (PRI), e o resto como ingestões adequadas (AI) ou intervalos de referência. São referências de população, não metas individuais — e abaixo dos 6 meses a EFSA não publica nenhuma, pelo que a aplicação também não mostra.',
   bebeLeite:'A conta parte de 67 kcal por 100 ml — o valor clássico de 20 kcal/onça, dentro do intervalo de 60 a 70 kcal/100 ml do Codex Alimentarius para fórmulas de início e próximo do leite materno maduro. O volume por omissão sai das necessidades de energia; a referência de ml por quilo desce com a idade, à medida que entram os sólidos.',
   bebeHorario:'O intervalo e a hora da primeira tomada geram a grelha do dia. As zonas sombreadas são a noite — tomadas nesse período aparecem com a lua. Serve de apoio, não de relógio: sinais de fome mandam mais do que horários.',
   bebeRef:'A partir dos 6 meses a energia divide-se entre o leite e os sólidos. A repartição sugerida segue o padrão habitual da diversificação em Portugal: papa ou fruta a meio da manhã, sopa e prato ao almoço, e por aí em diante.',
@@ -7985,7 +8151,7 @@ const DICAS={
   validades:'A data que vem impressa na embalagem, escrita por ti. A app não a calcula nem a adivinha: só ordena o que está mais perto de acabar e o põe à frente, no «Hoje» e na Mercearia. Nas sugestões de receitas, quem usa o que está a acabar ganha vantagem — é a forma mais direta de não deitar comida fora.',
   desperdicio:'Quando uma sobra passa o prazo, a app pergunta uma vez o que lhe aconteceu: comeu-se, congelou-se ou foi para o lixo. Só a terceira conta como desperdício. Serve para haver espelho em vez de amnésia — ao fim de um mês vê-se quanto foi para o lixo e em que dias, e isso muda mais comportamentos do que qualquer aviso.',
   fibra:'A fibra de cada ingrediente vem da tabela do INSA e sempre esteve na app — o que passou a haver é a soma ao dia. A referência é a Ingestão Adequada da EFSA: 25 g por dia num adulto e 2 g por cada MJ de energia numa criança, que é como a EFSA a define nessas idades. Julga-se à média da semana, porque um dia de sopa e outro de bife não são um problema. Abaixo de um ano não há referência e a app não inventa nenhuma.',
-  hortofruticolas:'A OMS recomenda pelo menos 400 g de fruta e hortícolas por dia. A batata, a batata-doce, a mandioca e o inhame não contam para esses 400 g — é a própria recomendação que exclui as raízes ricas em amido, e é o erro que mais se faz nesta conta. As gramas saem do peso real dos ingredientes de cada receita registada, já com a dose.',
+  hortofruticolas:'A OMS recomenda pelo menos 400 g de fruta e hortícolas por dia <b>a partir dos 10 anos</b> — a idade vem escrita na própria recomendação, e por isso abaixo dela a aplicação mostra o número mas não dá veredicto. A batata, a batata-doce, a mandioca e o inhame não contam para esses 400 g — é a própria recomendação que exclui as raízes ricas em amido, e é o erro que mais se faz nesta conta. As gramas saem do peso real dos ingredientes de cada receita registada, já com a dose.',
   conserva:'Quanto tempo a comida aguenta no frigorífico e como se reaquece, por família de prato — o arroz é o que tem menos folga, as sopas e os cozidos os que têm mais. São prazos genéricos e conservadores para sobras refrigeradas a 4 °C ou menos: servem de referência, não substituem o cheiro, o aspeto e o bom senso.',
   descobertas:'Detetores que correm sobre os teus registos das últimas oito semanas — o jantar que nunca se cumpre, o dia com mais treinos ignorados, o prato que domina. Cada sinal só aparece se passar um mínimo de amostra, vem com os números à vista e traz um gesto ao lado. Sem sinais fiáveis, a app di-lo em vez de inventar um.',
   leque:'A tendência das pesagens das últimas oito semanas prolongada num intervalo, nunca numa data única: a largura vem da dispersão real da tua balança. Precisa de seis pesagens ao longo de quatro semanas, e nunca aparece em bebés, crianças ou gravidez — nessas fases o peso muda porque o corpo está a crescer.',
@@ -10065,6 +10231,23 @@ function textoTalaoMes(a,dif,nAntes){
 function nomeMes(m){ return ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'][m-1]||''; }
 /* A linha de vida do preço de um ingrediente, do tamanho de uma palavra. Só
    aparece com três registos — com dois, uma «tendência» é um acidente. */
+/* Com um ano de preços registados, a média por mês diz coisas que a média
+   geral esconde: o pimento em agosto e o pimento em fevereiro não são o
+   mesmo produto. Só fala quando há pelo menos meia dúzia de registos e
+   quando a diferença entre o mês mais barato e o mais caro passa os 15% —
+   abaixo disso é ruído de talão, não sazonalidade. */
+const MESES_PT=['janeiro','fevereiro','março','abril','maio','junho','julho',
+  'agosto','setembro','outubro','novembro','dezembro'];
+function mesBarato(nome){
+  const m=precoPorMes(nome); if(!m) return '';
+  const comDados=m.map((v,i)=>v==null?null:[i,v]).filter(Boolean);
+  if(comDados.length<3) return '';
+  const barato=comDados.reduce((a,b)=>b[1]<a[1]?b:a);
+  const caro=comDados.reduce((a,b)=>b[1]>a[1]?b:a);
+  if(caro[1]<=0 || (caro[1]-barato[1])/caro[1] < 0.15) return '';
+  return '. Mais barato em '+MESES_PT[barato[0]]+' ('+nPT(barato[1],2)+' €), mais caro em '
+    +MESES_PT[caro[0]]+' ('+nPT(caro[1],2)+' €)';
+}
 function sparkPreco(nome){
   const h=histPreco(nome); if(h.length<3) return '';
   const v=h.map(x=>x.v), mn=Math.min.apply(null,v), mx=Math.max.apply(null,v);
@@ -10073,7 +10256,8 @@ function sparkPreco(nome){
   const c=precoContraCostume(nome);
   const cor=c&&c.estado==='abaixo'? 'var(--ok)' : c&&c.estado==='acima'? 'var(--warn)' : 'var(--mut)';
   const tit=nome+': '+v.length+' preços, de '+nPT(mn,2)+' € a '+nPT(mx,2)+' €'
-    +(c? '. Hoje '+(c.estado==='igual'? 'no teu costume' : c.pct+'% '+c.estado+' do teu costume ('+nPT(c.med,2)+' €)') : '');
+    +(c? '. Hoje '+(c.estado==='igual'? 'no teu costume' : c.pct+'% '+c.estado+' do teu costume ('+nPT(c.med,2)+' €)') : '')
+    +mesBarato(nome);
   return `<svg class="spark-preco" viewBox="0 0 ${L} ${A}" width="${L}" height="${A}" role="img" aria-label="${esc(tit)}"><title>${esc(tit)}</title>
     <polyline points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="${cor}" stroke-width="1.5"
       stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
@@ -10602,11 +10786,17 @@ function ajustePendente(rid,p,min){
   if(j>=0) c.ajustes[j].delta+=min; else c.ajustes.push({k, t:p.t, delta:min});
   saveMeta();
 }
-function guardarAjustes(){
-  const c=S.ui.cozinha; if(!c||!Array.isArray(c.ajustes)) return;
-  c.ajustes.forEach(a=>{ setNotaPasso(c.r,{t:a.t},'delta',(notaDoPasso(c.r,{t:a.t})||{}).delta||0 ? ((notaDoPasso(c.r,{t:a.t})||{}).delta+a.delta) : a.delta); });
-  const n=c.ajustes.length; c.ajustes=[];
-  flash('ok', plural(n,'tempo guardado','tempos guardados')+' para a próxima vez.');
+/* Recebe a receita e a lista em vez de as ir buscar ao estado da cozinha:
+   os ajustes podem ser guardados DEPOIS de a cozinha fechar, e um estado que
+   já não existe não serve de fonte. Somam-se ao que a casa já tinha
+   aprendido daquele passo, em vez de o substituírem. */
+function guardarAjustes(rid,lista){
+  if(!rid || !Array.isArray(lista) || !lista.length) return;
+  lista.forEach(a=>{
+    const jaTinha=(notaDoPasso(rid,{t:a.t})||{}).delta||0;
+    setNotaPasso(rid,{t:a.t},'delta', jaTinha+a.delta);
+  });
+  flash('ok', plural(lista.length,'tempo guardado','tempos guardados')+' para a próxima vez.');
 }
 /* ---- Enquanto o forno trabalha ----
    A espera é onde os jantares descarrilam — e é o único tempo livre que uma
@@ -10741,6 +10931,7 @@ function cozinhaHtml(){
       ${[['passos','Passos','📖'],['maestro','Maestro','🎼'],['relogio','Tachos','⏱']].map(([k,rot,ic])=>
         `<button class="chip ${c.vista===k?'on':''}" role="tab" aria-selected="${c.vista===k}"
           onclick="trocarVistaCozinha('${k}')">${ic} ${rot}</button>`).join('')}
+      ${c.vista==='maestro'? dica('maestro') : c.vista==='relogio'? dica('relogioTachos') : dica('fornoForte')}
     </div>
     <div class="cozinha-corpo">
       ${c.vista==='relogio'? relogioDeTachos()
@@ -10834,7 +11025,10 @@ function relogioDeTachos(){
       <span class="sub">${esc(temporizadores[0].n)}</span>
     </div>
     <ul class="rt-legenda">${temporizadores.slice(0,4).map((t,i)=>
-      `<li><i style="background:${cores[i%4]}"></i>${esc(t.n)} <b>${restaTexto(t)}</b></li>`).join('')}</ul>
+      `<li><i style="background:${cores[i%4]}"></i><span style="flex:1;min-width:0">${esc(t.n)}</span>
+        <b>${restaTexto(t)}</b>
+        <button class="chip" onclick="jaEstava('${t.id}')"
+          title="Parar este tempo e ensinar à app que este passo demora menos">já estava</button></li>`).join('')}</ul>
   </div>`;
 }
 /* Destrancar por pressão longa: o único gesto que a água não faz sozinha. */
@@ -10850,14 +11044,30 @@ function cancelaDestranca(){
   const anel=document.getElementById('coz-anel');
   if(anel){ anel.style.transition='none'; anel.style.strokeDashoffset='170'; }
 }
+/* Ao sair da cozinha, o que o forno cá de casa pediu a mais. Isto era um
+   confirm() do browser, e estava errado por duas razões: a app reserva o
+   confirm ao que apaga, e este não apaga nada — e uma caixa do sistema com
+   as mãos sujas, a meio de servir, é a pior altura possível para uma
+   decisão. Passa a ser um aviso com botão: quem não lhe tocar não perde
+   nada de importante, e o passo do livro fica como estava. */
+let _ajustesPendentes=null;
 function terminarCozinha(){
   const c=S.ui.cozinha;
-  if(c && Array.isArray(c.ajustes) && c.ajustes.length){
-    const txt=c.ajustes.map(a=>a.t+(a.delta>0?' +':' ')+a.delta+' min').join(', ');
-    if(confirm('O forno cá de casa pediu outros tempos ('+txt+'). Guardo para a próxima vez?')) guardarAjustes();
-    else c.ajustes=[];
-  }
+  const ajustes=(c && Array.isArray(c.ajustes))? c.ajustes.slice() : [];
+  const rid=c? c.r : null;
   descontarDespensa(); fecharCozinha();
+  if(rid && ajustes.length){
+    _ajustesPendentes={rid, lista:ajustes};
+    const txt=ajustes.map(a=>a.t+(a.delta>0?' +':' ')+a.delta+' min').join(', ');
+    toast('O forno cá de casa pediu outros tempos: '+txt,
+      {rot:'Guardar para a próxima', fn:'guardarAjustesPendentes()'});
+  }
+}
+function guardarAjustesPendentes(){
+  const p=_ajustesPendentes; _ajustesPendentes=null;
+  if(!p) return;
+  guardarAjustes(p.rid,p.lista);
+  save('tempos do forno da casa'); render();
 }
 
 /* ================= TEMPORIZADORES DE TACHO =================
@@ -13166,7 +13376,7 @@ function folhaPessoaHtml(fo){
       <div class="row" style="justify-content:space-between;align-items:center;gap:10px">
         <div class="row" style="gap:10px;align-items:center;min-width:0">
           ${avatar(m,40)}
-          <div style="min-width:0"><h2 id="fp-t" style="margin:0">${esc(m.nome)}</h2>
+          <div style="min-width:0"><h2 id="fp-t" style="margin:0">${esc(m.nome)} ${dica('pessoa')}</h2>
             <span class="sub">${textoIdade(m)} · ${esc(DIETS[chaveDieta(m)].n)}</span></div>
         </div>
         <button class="btn ghost small" style="flex:none" onclick="fecharFolha()">✕</button>
@@ -16690,7 +16900,7 @@ function cartaoFase(m){
     <svg class="svgfx" viewBox="0 0 340 76" role="img" aria-label="Faixas aceitáveis de macronutrientes">${barras}</svg>
     ${aj.ajustado? `<div class="msg warn-msg" style="margin-top:10px">A dieta escolhida sai da faixa recomendada para esta fase, por isso as percentagens foram encostadas ao limite — ${aj.c} % de hidratos, ${aj.p} % de proteína e ${aj.f} % de gordura. Dietas de restrição de hidratos não são adequadas a crianças, adolescentes em crescimento nem à gravidez.</div>`:''}`
     : `<p class="sub" style="margin-top:12px">Abaixo de 1 ano não estão definidas faixas de distribuição de macronutrientes: a referência é o leite materno ou a fórmula, e a diversificação alimentar segue a orientação do pediatra.</p>`}
-    <p class="sub" style="margin-top:12px">Referências: valores de ingestão dietética de referência do Institute of Medicine, equações de Schofield e orientações da Organização Mundial de Saúde. São referências populacionais para planeamento familiar — não substituem consulta.</p>
+    <p class="sub" style="margin-top:12px">Referências: Dietary Reference Values da <b>EFSA</b> para energia e nutrientes, equações de Schofield para o metabolismo em idade de crescimento, e orientações da <b>Organização Mundial de Saúde</b>. São referências populacionais para planeamento familiar — não substituem consulta.</p>
   </div>`;
 }
 /* ================= INTRODUÇÃO ALIMENTAR =================
@@ -17331,7 +17541,7 @@ function moduloBebe(m){
       alergias, refluxo ou qualquer doença. A Organização Mundial de Saúde recomenda leite materno exclusivo até aos 6 meses e a sua continuação,
       com alimentos complementares, até aos 2 anos ou mais. Procura ajuda se o bebé não ganha peso, recusa as refeições, faz menos chichi do que
       é habitual ou está apático.</div>
-    <p class="sub" style="margin-top:12px">Fontes: peso para a idade — Organização Mundial de Saúde, <i>WHO Child Growth Standards</i> (2006). Doses de referência — Institute of Medicine / National Academies, <i>Dietary Reference Intakes</i> para energia, hidratos, proteína, gordura e água (2002/2005), ferro (2001) e cálcio e vitamina D (2011). Densidade energética do leite — Codex Alimentarius CXS 72-1981 e ESPGHAN (Koletzko <i>et al.</i>, 2005). Aleitamento — Estratégia Global da OMS/UNICEF para a Alimentação de Lactentes e Crianças Pequenas. Recomendações portuguesas — Direção-Geral da Saúde: Norma n.º 004/2019 (vitamina D), Programa Nacional de Saúde Infantil e Juvenil/Norma n.º 010/2013 (diversificação alimentar) e o manual <i>Alimentação Saudável dos 0 aos 6 anos</i> (PNPAS, 2020/2024) para sal, açúcar, mel e leite de vaca.</p>
+    <p class="sub" style="margin-top:12px">Fontes: peso para a idade — Organização Mundial de Saúde, <i>WHO Child Growth Standards</i> (2006), a partir dos parâmetros L, M e S oficiais. Valores de energia e nutrientes — <b>EFSA</b>, <i>Dietary Reference Values</i> (2017–2019), por escalão etário. Volume de leite antes dos 6 meses — OMS, <i>Infant and Young Child Feeding: Model Chapter</i> (2009): 150 ml por quilo e por dia num bebé de termo saudável; abaixo dessa idade a EFSA não fixa valores de energia nem de nutrientes, e a app não os inventa. Densidade energética do leite — Codex Alimentarius CXS 72-1981 e ESPGHAN (Koletzko <i>et al.</i>, 2005). Aleitamento e alimentação complementar — OMS, <i>Guideline for complementary feeding of infants and young children 6–23 months</i> (2023) e Estratégia Global OMS/UNICEF. Idade de introdução — EFSA (2019). Recomendações portuguesas — Direção-Geral da Saúde: Norma n.º 004/2019 (vitamina D), Programa Nacional de Saúde Infantil e Juvenil/Norma n.º 010/2013 (diversificação alimentar) e o manual <i>Alimentação Saudável dos 0 aos 6 anos</i> (PNPAS) para sal, açúcar, mel e leite de vaca.</p>
   </div>`;
 }
 /* ================= REGISTAR, VALIDAR E REVER REFEIÇÕES =================
@@ -17765,11 +17975,14 @@ function cartaoFibra(m){
         : 'Sem referência oficial para esta idade — fica o número, sem veredicto.'}</p>
     </div>`:''}
     ${hfDias? `<div style="margin-top:14px">
-      <div class="splabel"><span>Fruta e hortícolas · recomendação ${OMS_HORTOFRUTICOLAS} g/dia ${dica('hortofruticolas')}</span>
+      <div class="splabel"><span>Fruta e hortícolas${vale400(m)? ' · recomendação '+OMS_HORTOFRUTICOLAS+' g/dia':''} ${dica('hortofruticolas')}</span>
         <output>${Math.round(hfMedia)} g/dia</output></div>
-      <div class="mbar" style="height:12px"><div style="width:${hPct.toFixed(1)}%;background:${hOk?'var(--ok)':'var(--warn)'}"></div></div>
+      ${vale400(m)? `<div class="mbar" style="height:12px"><div style="width:${hPct.toFixed(1)}%;background:${hOk?'var(--ok)':'var(--warn)'}"></div></div>
       <p class="sub" style="margin-top:6px">${hOk? '✓ Acima dos '+OMS_HORTOFRUTICOLAS+' g.' : '↑ Faltam '+Math.round(OMS_HORTOFRUTICOLAS-hfMedia)+' g por dia.'}
-        A batata e outras raízes ricas em amido não entram nesta conta — é a própria OMS que as exclui.</p>
+        A batata e outras raízes ricas em amido não entram nesta conta — é a própria OMS que as exclui.</p>`
+      : `<p class="sub" style="margin-top:6px">Os ${OMS_HORTOFRUTICOLAS} g da OMS são <b>para maiores de 10 anos</b>: a própria
+        recomendação o diz, e por isso não se põe aqui uma barra que daria uma nota indevida. Fica o número, que continua
+        a servir para ver se sobe. A batata e outras raízes ricas em amido não entram na conta.</p>`}
     </div>`:''}
     ${plantas.length? `<div style="margin-top:14px">
       <div class="splabel"><span>Plantas diferentes esta semana</span><output>${plantas.length}</output></div>
@@ -17800,10 +18013,12 @@ function cartaoSalAcucar(m){
         <output>${nPT(sm.media/1000,2)} g/dia</output></div>
       <div class="mbar" style="height:12px"><div style="width:${sPct.toFixed(1)}%;background:${sOk?'var(--ok)':'var(--warn)'}"></div></div>
       <p class="sub" style="margin-top:6px">${alvoNa
-        ? (sOk? '✓ Abaixo do limite da OMS, na média dos '+plural(sm.dias,'dia com registo','dias com registo')+'.'
+        ? (sOk? '✓ Abaixo do limite da '+fonteAlvoSodio(m)+', na média dos '+plural(sm.dias,'dia com registo','dias com registo')+'.'
               : '↑ '+nPT((sm.media-alvoNa)/1000,2)+' g de sódio por dia acima do limite. O sal português mora no pão, no queijo e no fumeiro — não no saleiro.')
         : 'Sem recomendação oficial para esta idade — fica o número, sem veredicto.'}
-        ${sm.sem? ' Há ingredientes sem valor de sódio na tabela, por isso a conta é <b>por baixo</b>.':''}</p>
+        ${sm.sem? ' Há ingredientes sem valor de sódio na tabela, por isso a conta é <b>por baixo</b>.':''}
+        ${(sm.estimados||[]).length? ' '+plural(sm.estimados.length,'ingrediente não está na tabela do INSA e entrou com um valor estimado','ingredientes não estão na tabela do INSA e entraram com valores estimados')
+          +' <span class="sub">('+esc(sm.estimados.slice(0,4).join(', '))+(sm.estimados.length>4? ' e mais '+(sm.estimados.length-4):'')+')</span>.':''}</p>
     </div>`:''}
     ${am? `<div style="margin-top:14px">
       <div class="splabel"><span>Açúcares livres · abaixo de ${OMS_ACUCAR_PCT}% da energia ${dica('acucarLivre')}</span>
@@ -19833,11 +20048,18 @@ function mealBlock(di,mk,label,date){
 function blocoConvidados(di,mk,meal){
   const conv=convidadosDe(meal), n=nConvidados(meal);
   const livro=visitasCfg(), naMesa=visitasDe(meal);
+  /* Quem costuma vir a esta casa neste dia da semana aparece sublinhado: o
+     livro das visitas guarda o dia de cada uma, e ao domingo ao almoço é
+     mais provável que a avó venha do que na terça à noite. É só um destaque
+     — quem se senta à mesa continua a decidir-se com um toque. */
+  const dataDia=weekDates(S.week)[di];
+  const espera=dataDia? visitasEsperadas(dataDia).map(v=>v.id) : [];
   return `${livro.length? `<div class="conv-linha">
     <span class="lbl" style="margin:0">Visitas ${dica('visitas')}</span>
-    ${livro.map(v=>{ const on=naMesa.some(x=>x.id===v.id);
-      return `<button class="chip ${on?'on':''}" onclick="toggleVisitaNaMesa(${di},'${mk}','${v.id}')"
-        aria-pressed="${on}">${esc(v.emoji)} ${esc(v.nome)}${v.al.length? ' <span class="tag alerg" title="'+esc(v.al.map(k=>RESTR[k].n).join(', '))+'">🚨</span>':''}</button>`;
+    ${livro.map(v=>{ const on=naMesa.some(x=>x.id===v.id), costuma=espera.indexOf(v.id)>=0;
+      return `<button class="chip ${on?'on':''} ${costuma&&!on?'costuma':''}" onclick="toggleVisitaNaMesa(${di},'${mk}','${v.id}')"
+        aria-pressed="${on}"${costuma? ' title="Costuma vir neste dia da semana"':''}>${esc(v.emoji)} ${esc(v.nome)}${
+        costuma&&!on? ' <span aria-hidden="true">·</span>':''}${v.al.length? ' <span class="tag alerg" title="'+esc(v.al.map(k=>RESTR[k].n).join(', '))+'">🚨</span>':''}</button>`;
     }).join('')}
   </div>`:''}
   <div class="conv-linha">
