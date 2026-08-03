@@ -633,11 +633,18 @@ table.marcos thead th:first-child,table.marcos tbody th{text-align:left}
    Três vistas do mesmo momento: os passos em letra grande, o Maestro com dois
    tachos numa linha do tempo, e o relógio para ler a dois metros. */
 .coz-vistas{display:flex;gap:6px;padding:8px 16px;background:var(--card);border-bottom:1px solid var(--line);flex:none}
-/* metade tocada acende meio segundo: sem isto, o toque cego não confirma nada */
+/* metade tocada acende meio segundo: sem isto, o toque cego não confirma nada.
+   A confirmação tem de existir mesmo para quem pediu menos movimento — o que
+   muda é ela apagar-se sozinha ou ficar até ao toque seguinte. Era a única
+   animação do ficheiro fora de um bloco prefers-reduced-motion, e é das que
+   mais dispara: uma vez por cada toque na bancada. */
 .coz-flash{position:absolute;top:0;bottom:0;width:50%;background:var(--accent);opacity:.10;
-  pointer-events:none;animation:coz-apaga .3s ease-out forwards}
+  pointer-events:none}
+@media (prefers-reduced-motion: no-preference){
+  .coz-flash{animation:coz-apaga .3s ease-out forwards}
+  @keyframes coz-apaga{ to{opacity:0} }
+}
 .coz-flash.esq{left:0} .coz-flash.dir{right:0}
-@keyframes coz-apaga{ to{opacity:0} }
 .cozinha-corpo{position:relative}
 .coz-nota{margin-top:12px;padding:8px 12px;border-left:3px solid var(--accent);background:var(--bg);
   font-size:14.5px;color:var(--ink)}
@@ -1264,7 +1271,7 @@ input[type=range].com-detentes::-moz-range-track{
 /* Estados vazios ilustrados. */
 .vazio{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;padding:30px 20px}
 .vazio svg{width:110px;height:auto;margin-bottom:6px;opacity:.9}
-.vazio h3{font-size:17px}
+.vazio h2,.vazio h3{font-size:17px}
 .vazio p{color:var(--mut);font-size:13.5px;max-width:46ch;line-height:1.5}
 .vazio .row{margin-top:12px;justify-content:center}
 /* Seletor de tema. */
@@ -1609,7 +1616,7 @@ html[data-orient="paisagem"][data-dispositivo="tablet"] .gdias{grid-template-col
       <h1>Família <em>Fit</em></h1>
       <small>alimentação &amp; movimento</small>
     </div>
-    <nav id="nav"></nav>
+    <nav id="nav" aria-label="Separadores"></nav>
     <div class="hist">
       <button id="btn-pesq" onclick="abrirPesquisa()" aria-label="Procurar em toda a app (tecla /)" title="Procurar — tecla /">⌕</button>
       <button id="btn-undo" onclick="desfazer()" aria-label="Desfazer" disabled>↶</button>
@@ -8824,6 +8831,33 @@ function pintaAura(){
 }
 /* Cartões colapsáveis: o template só marca data-col="chave"; a estrutura do
    cabeçalho e o corpo dobrável são montados aqui, depois de cada render. */
+/* ---- Os chips dizem qual está escolhido ----
+   Um chip com a classe «on» distingue-se por fundo e contorno: vê-se num
+   relance, e não se ouve. Quem usa leitor de ecrã atravessava setenta e três
+   botões de filtro sem saber qual estava a valer — a dieta escolhida, o
+   objetivo, a janela de jejum, quem come a refeição.
+
+   Marcar isto à mão em quarenta sítios era garantir que o quadragésimo
+   primeiro nascia esquecido. Faz-se depois de cada desenho, a partir da
+   classe que já lá está, e respeita quem já traz a sua própria marca de
+   estado: role=tab usa aria-selected, e a ficha aberta usa aria-current.
+
+   Nem todo o chip é um alternador: há-os que são acções («ver receitas»,
+   «pôr a contar»), e dizer que uma acção está «não premida» é pior do que
+   não dizer nada. Distinguem-se pelo grupo — num conjunto de irmãos onde
+   algum está «on», todos são escolhas do mesmo conjunto. */
+function marcaChipsPremidos(){
+  const feitos=new Set();
+  document.querySelectorAll('button.chip.on').forEach(ativo=>{
+    const pai=ativo.parentElement; if(!pai||feitos.has(pai)) return;
+    feitos.add(pai);
+    pai.querySelectorAll(':scope > button.chip').forEach(b=>{
+      if(b.hasAttribute('aria-pressed')||b.hasAttribute('aria-current')
+        ||b.hasAttribute('aria-selected')||b.getAttribute('role')==='tab') return;
+      b.setAttribute('aria-pressed', String(b.classList.contains('on')));
+    });
+  });
+}
 function montaColapsaveis(){
   document.querySelectorAll('#main .card[data-col]').forEach(card=>{
     const chave=card.getAttribute('data-col');
@@ -9024,8 +9058,11 @@ const GLIFO_CAT={'Sopas':'sopa','Peixe & Marisco':'peixe','Carne & Ovos':'carne'
   'Frutas & Legumes':'legumes','Laticínios':'leite','Mercearia & Outros':'cesto','Suplementos':'gota'};
 function icoCat(cat,tam){ const g=GLIFO_CAT[cat]; return g? glifo(g,tam) : (ICO_CAT[cat]||''); }
 function estadoVazio(ilus,titulo,texto,botoes){
+  /* h2 e não h3: em seis separadores este cartão é o conteúdo inteiro de quem
+     ainda não tem perfis, e o esquema de títulos saltava de h1 para h3
+     logo na primeira utilização */
   return `<div class="card"><div class="vazio">${ilustracao(ilus)}
-    <h3>${titulo}</h3><p>${texto}</p>
+    <h2>${titulo}</h2><p>${texto}</p>
     ${botoes? `<div class="row">${botoes}</div>`:''}</div></div>`;
 }
 /* Virar de folha: a direção vem da ordem dos separadores na barra, para a
@@ -19460,15 +19497,15 @@ function renderReceitas(){
     ${S.members.length&&n!==S.members.length? `<button class="chip" onclick="setPorcoes(${S.members.length})">Repor: a família (${S.members.length})</button>`:''}
   </div>
   <div class="row" style="margin-bottom:12px">
-    <button class="chip ${S.ui.mealF==='todas'?'on':''}" onclick="setMealF('todas')">Todas as refeições</button>
-    ${MEALS.map(([kk,rot])=>`<button class="chip ${S.ui.mealF===kk?'on':''}" onclick="setMealF('${kk}')">${ICO_REF[kk]||''} ${rot}</button>`).join('')}
-    <button class="chip ${S.ui.mealF==='ac'?'on':''}" onclick="setMealF('ac')">${ICO_REF.ac} Acompanhamentos</button>
+    <button class="chip ${S.ui.mealF==='todas'?'on':''}" aria-pressed="${S.ui.mealF==='todas'}" onclick="setMealF('todas')">Todas as refeições</button>
+    ${MEALS.map(([kk,rot])=>`<button class="chip ${S.ui.mealF===kk?'on':''}" aria-pressed="${S.ui.mealF===kk}" onclick="setMealF('${kk}')">${ICO_REF[kk]||''} ${rot}</button>`).join('')}
+    <button class="chip ${S.ui.mealF==='ac'?'on':''}" aria-pressed="${S.ui.mealF==='ac'}" onclick="setMealF('ac')">${ICO_REF.ac} Acompanhamentos</button>
     <button class="chip ${S.ui.soEpoca?'on':''}" onclick="toggleEpoca()" aria-pressed="${!!S.ui.soEpoca}"
       title="Receitas com pelo menos um ingrediente na época em Portugal, este mês">🌱 Da época agora</button>
   </div>
   <div class="row" style="margin-bottom:12px">
     <span class="lbl" style="margin:0">Categoria ${dica('categorias')}</span>
-    <button class="chip ${!S.ui.catF?'on':''}" onclick="setCatF('')">Todas</button>
+    <button class="chip ${!S.ui.catF?'on':''}" aria-pressed="${!S.ui.catF}" onclick="setCatF('')">Todas</button>
     ${CATEG_K.map(k=>`<button class="chip ${S.ui.catF===k?'on':''}" onclick="setCatF('${k}')"
       aria-pressed="${S.ui.catF===k}">${CATEG[k].i} ${CATEG[k].n}</button>`).join('')}
   </div>
@@ -23108,7 +23145,15 @@ function pintaTour(){
     /* o alvo pode viver dentro de um cartão que o utilizador fechou —
        abre-se para a visita, sem mexer na memória de colapso */
     let no=alvo.closest('.card[data-col]');
-    while(no){ no.classList.remove('col-fechado'); no=no.parentElement && no.parentElement.closest('.card[data-col]'); }
+    while(no){
+      no.classList.remove('col-fechado');
+      /* o botão tem de dizer o mesmo que a secção mostra: tirar a classe sem
+         mexer no aria deixava um «Abrir secção» com aria-expanded=false por
+         cima de uma secção aberta, e é isso que um leitor de ecrã anuncia */
+      const b=no.querySelector(':scope > .card-cab > .col-btn');
+      if(b){ b.setAttribute('aria-expanded','true'); b.setAttribute('aria-label','Fechar secção'); }
+      no=no.parentElement && no.parentElement.closest('.card[data-col]');
+    }
     alvo.classList.add('tour-alvo');
     scrollSuave(alvo,'center'); }
 }
@@ -23226,7 +23271,7 @@ function render(){
   /* semeia os valores que só o atualizador escreve (pill de ritmo, etc.) */
   if(S.ui.tab==='nutricao' && S.members.length && !S.ui.histRef) atualizarNutricao();
   pintaModal();
-  montaColapsaveis(); pintaAura(); montaMembrosFixos();
+  montaColapsaveis(); marcaChipsPremidos(); pintaAura(); montaMembrosFixos();
   /* a bancada liga o toque de cotovelo depois de cada desenho, e le o passo
      em voz alta se a voz estiver ligada */
   if(S.ui.cozinha){ ligarCotovelo(); if(S.ui.voz && S.ui.cozinha.vista==='passos') lerPassoAtual(); }
