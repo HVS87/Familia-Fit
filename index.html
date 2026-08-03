@@ -1731,6 +1731,29 @@ function aplicaNascimento(m){
 }
 function normalizaMembro(m){
   if(m && Array.isArray(m.desportos)) m.desportos=m.desportos.map(normalizaDesporto).filter(Boolean);
+  /* Os números do corpo ficam dentro das faixas dos próprios cursores, mesmo
+     quando não vêm de um cursor. Um ficheiro importado passa por limparMembro,
+     que é muito mais estrito — mas o que está gravado neste browser entra por
+     aqui, e uma gravação truncada, um relógio às avessas ou um dedo perdido
+     na consola bastavam para pôr uma idade de mil milhões de anos a atravessar
+     o metabolismo basal, o índice de massa corporal e a escala de todos os
+     gráficos. Estas quatro linhas custam nada e fecham essa porta.
+
+     Não se faz aqui a limpeza completa de limparMembro de propósito: ela
+     toca em DIETS, RESTR, SUPL e na configuração do bebé, e esta função é
+     chamada de load(), que corre antes de metade dessas tabelas existir. */
+  if(m){
+    /* «NaN» escrito como texto é o caso que escapa a um Number.isFinite
+       distraído: parseFloat devolve NaN, o teste falha, e o valor original
+       segue caminho para dentro de uma multiplicação. Aqui não há caminho
+       do meio — ou o número é finito e limita-se, ou volta ao valor de
+       recurso, que é o mesmo que limparMembro usa. */
+    m.peso   = Number.isFinite(parseFloat(m.peso))?   clampNum(parseFloat(m.peso),1,400)   : 70;
+    m.altura = Number.isFinite(parseFloat(m.altura))? clampNum(parseFloat(m.altura),30,250): 170;
+    m.idade  = Number.isFinite(parseFloat(m.idade))?  clampNum(Math.round(parseFloat(m.idade)),0,120) : 35;
+    if(m.sexo!=='f'&&m.sexo!=='m') m.sexo='m';
+    if(Array.isArray(m.restricoes)) m.restricoes=m.restricoes.filter((k,i,a)=>a.indexOf(k)===i);
+  }
   /* migração: deriva o objetivo contínuo do antigo — o alvo kcal não muda */
   if(m && !Number.isFinite(m.objetivoPct)) m.objetivoPct=Math.round((GOALS[m.objetivo]?.[1]||0)*100);
   else if(m) sincronizaObjetivo(m);   /* e mantém o campo legado coerente */
@@ -9733,6 +9756,10 @@ function imprimirFrigorifico(){
      mostra-se a mesma folha no ecrã, com o botão de imprimir à vista para
      quem a quiser mandar mesmo. */
   if(matchMedia('(max-width: 820px)').matches){
+    /* O pintor das camadas tem uma ordem: um diálogo aberto ganha sempre à
+       folha. Abrir uma folha por baixo de um diálogo não dá erro nenhum —
+       simplesmente não aparece nada, que é o pior tipo de falha. */
+    S.ui.modal=null;
     S.ui.folha={tipo:'frigorifico'}; saveMeta(); return render();
   }
   imprimirFolha('frigorifico','fr-print',frigorificoHtml(),'frigorifico','size:A4 landscape;margin:10mm');
@@ -12798,9 +12825,9 @@ function fioDoDia(){
     planeadasNoDia(m,d).forEach(p=>{
       const feito=(S.regAtiv||[]).some(r=>r.mid===m.id&&r.d===d&&r.plano===p.s.id&&r.estado!=='agendada');
       out.push({k:'treino', h:HORA_LINHA.treino, mid:m.id, ico:ICO_SPORT[p.s.cat]||'🏃',
-        t:p.s.nome+' — '+nomeCurto(m), d:p.min+' min',
+        t:(SPORT[p.s.s]? SPORT[p.s.s].nome : 'Treino')+' — '+nomeCurto(m), d:p.min+' min',
         feito,
-        accao: feito? null : {rot:'Fiz', fn:"confirmarTreinoFio('"+m.id+"','"+p.s.id+"',"+p.min+")"}});
+        accao: feito? null : {rot:'Fiz', fn:"confirmarTreinoFio('"+m.id+"','"+p.s.s+"',"+p.min+",'"+p.s.id+"')"}});
     });
   });
   /* o que falta comprar, uma linha só */
@@ -12829,11 +12856,17 @@ function confirmarRefFio(mk){
   flash('ok','Registada para '+plural(comem.length,'pessoa','pessoas')+'.',
     {rot:'Anular', fn:'desfazer()'});
 }
-function confirmarTreinoFio(mid,sid,min){
+/* Dois identificadores diferentes com o mesmo ar, e é fácil trocá-los: «sid»
+   é a modalidade («corrida»), «planoId» é a linha do plano de treino desta
+   pessoa («p4gvvxh0»). O registo precisa dos dois — da modalidade para saber
+   o que foi feito, e da linha do plano para o fio do dia saber que aquela
+   linha já está cumprida. Com o plano em falta, a linha continuava a pedir
+   confirmação depois de confirmada. */
+function confirmarTreinoFio(mid,sid,min,planoId){
   const s=SPORTS.find(x=>x.id===sid); if(!s) return;
   const m=S.members.find(x=>x.id===mid); if(!m) return;
   if(!Array.isArray(S.regAtiv)) S.regAtiv=[];
-  S.regAtiv.push(limparRegAtiv({id:uid(), mid, d:hojeISO(), plano:sid, s:sid, min, int:1, estado:'feita'},
+  S.regAtiv.push(limparRegAtiv({id:uid(), mid, d:hojeISO(), plano:planoId||sid, s:sid, min, int:1, estado:'feita'},
     S.members.map(x=>x.id)));
   S.regAtiv=S.regAtiv.filter(Boolean);
   save('treino confirmado'); render();
@@ -13159,9 +13192,9 @@ function folhaPessoaHtml(fo){
           const feito=(S.regAtiv||[]).some(r=>r.mid===m.id&&r.d===d&&r.plano===p.s.id&&r.estado!=='agendada');
           return `<li class="fio-linha ${feito?'feito':''}">
             <span class="fio-ico" aria-hidden="true">${ICO_SPORT[p.s.cat]||'🏃'}</span>
-            <span class="fio-txt"><b>${esc(p.s.nome)}</b><span class="sub" style="display:block">${p.min} min</span></span>
+            <span class="fio-txt"><b>${esc(SPORT[p.s.s]? SPORT[p.s.s].nome : 'Treino')}</b><span class="sub" style="display:block">${p.min} min</span></span>
             ${feito? '<span class="pill ok" style="flex:none">✓</span>'
-             : `<button class="chip" style="flex:none" onclick="confirmarTreinoFio('${m.id}','${p.s.id}',${p.min})">Fez</button>`}
+             : `<button class="chip" style="flex:none" onclick="confirmarTreinoFio('${m.id}','${p.s.s}',${p.min},'${p.s.id}')">Fez</button>`}
           </li>`;}).join('')}</ul>`:''}
       <div class="row" style="margin-top:16px">
         <button class="btn ghost" onclick="fecharFolha();S.ui.mid='${m.id}';go('nutricao')">Nutrição de ${esc(nomeCurto(m))}</button>
@@ -19989,6 +20022,7 @@ function cartaoEquilibrio(dates){
       <div class="row" style="margin-top:8px;align-items:center;gap:8px">
         <label for="orc-campo" class="sub">Teto semanal</label>
         <input id="orc-campo" type="number" min="0" max="9999" step="1" inputmode="decimal"
+          aria-label="Orçamento da semana em euros"
           style="max-width:110px" placeholder="sem teto" value="${orc||''}"
           oninput="orcamentoAoVivo(this.value)" onchange="orcamentoGuarda(this.value)">
         <span class="sub">€</span>
@@ -22048,7 +22082,10 @@ const TOUR=[
   {tab:'plano', sel:'.mesas-semana', quando:()=>S.members.length>1 && (S.regRef||[]).some(r=>r.estado==='feita'),
    t:'Mesas cheias e lápis e tinta',
    d:'O que está só planeado desenha-se a lápis, sobre papel quadriculado; o que foi confirmado passa a tinta e leva um carimbo. E quando toda a gente prevista para uma refeição confirma, a mesa dessa refeição enche-se — um lugar por pessoa, sem números. É o hábito que os macros escondem: comer juntos.'},
-  {tab:'plano', sel:'.day.hoje', quando:()=>{ const w=S.plans[S.week]||{};
+  /* A visita põe a semana em hoje antes de apontar para o dia de hoje: quem
+     estivesse a rever uma semana passada via a seta a apontar para o vazio. */
+  {tab:'plano', sel:'.day.hoje', antes:()=>{ S.week=mondayISO(new Date()); },
+   quando:()=>{ const w=S.plans[mondayISO(new Date())]||{};
      for(let d=0;d<7;d++) for(const k of MEALK) if(((w[d]||{})[k]||{}).r) return true; return false; },
    t:'Como correu? O fecho da mesa',
    d:'Depois de registar quem comeu — e a dose de cada um corrige-se ali mesmo, tocando no «1× dose» — a app faz três perguntas rápidas, todas opcionais. Se sobrou, e para onde vai. O que a mesa achou: «repetir em breve» dá vantagem à receita nas sugestões, «não é para nós» arrefece-a oito semanas sem nunca a esconder dos filtros, porque um «não» de há dois meses não é uma proibição. E quem cozinhou e quem ajudou — a app sabia o que se comeu, mas não quem pôs as mãos na massa, e isso reparte o mérito e dá às crianças um papel com nome.'},
@@ -22061,7 +22098,7 @@ const TOUR=[
   {tab:'familia', sel:'#fecho', quando:()=>ehDomingo()&&!(S.diario||[]).some(x=>x.wk===mondayISO(hojeISO())),
    t:'Fechar a semana ao domingo',
    d:'Cinco passos curtos: resolver o que ficou por confirmar, olhar a semana, escolher o jantar especial da próxima, preencher o plano e escrever uma frase no caderno. Fica assinado com o avatar de quem fechou, e as frases ficam no caderno da família.'},
-  {tab:'dados', sel:'[data-col="dados-festas"]',
+  {tab:'plano', sel:'[data-col="dados-festas"]',
    t:'Datas da casa',
    d:'Os aniversários já saem das datas de nascimento. Aqui juntam-se as outras — Santo António, o aniversário de casamento — e nesses dias o cartão «Hoje» amanhece com enfeites e propõe marcar dia livre, com os pratos que essa pessoa mais comeu no ano. Uma festa deixa de ser uma falha ao plano e passa a fazer parte dele.'},
   {tab:'dados', sel:'[data-col="dados-aspeto"]',
@@ -22082,6 +22119,32 @@ const TOUR=[
   {tab:'familia', sel:'.hist',
    t:'Desfazer e explicações',
    d:'Qualquer alteração se desfaz com estes botões ou com Ctrl+Z — as últimas 30 ficam guardadas. E os pequenos «i» espalhados pela app explicam cada funcionalidade quando passas o rato ou lhes tocas.'},
+  /* ===== O QUE ENTROU NOS BLOCOS A A I =====
+     Sete passos para nove blocos de funcionalidades: a visita já era longa, e
+     mais dez notas afugentavam quem a começa. Cada um destes cobre um tema
+     inteiro em vez de uma funcionalidade, e todos têm «quando» — quem não
+     tem bebé em casa não ouve falar da calculadora de bebés. */
+  {tab:'familia', sel:'#fio',
+   t:'O fio do dia',
+   d:'O primeiro cartão da app passou a ser o dia por ordem de relógio: pesagens, refeições, treinos, compras e sobras, tudo numa linha só com a hora à esquerda. Cada item traz o botão que o resolve ali mesmo — e no telemóvel deslizar a linha para a direita faz o mesmo que carregar no botão. Por baixo, o <b>balcão rápido</b> aceita uma frase escrita: «Ana 62,4», «corri 8 km», «jantar feito», «comprei azeite». Mostra sempre o que entendeu antes de gravar seja o que for.'},
+  {tab:'familia', sel:'#fio',
+   t:'A bandeja da manhã e o Modo pessoa',
+   d:'Uma vez por dia, ao abrir, a app junta tudo o que ficou por confirmar numa fila única — um cartão de cada vez, com «logo vejo» a adiar até amanhã. Ao teclado, <b>1</b> resolve e <b>2</b> adia. E uma pressão longa em qualquer avatar (ou o botão direito no computador) abre a folha dessa pessoa: o dia dela, os números dela, o que lhe falta confirmar. O botão voltar do Android fecha camadas em vez de sair da app.'},
+  {tab:'nutricao', sel:'[data-col="nu-salacucar"]', quando:()=>S.members.length&&temPlanoNut(curM()),
+   t:'Sal, açúcares livres e álcool',
+   d:'Três coisas que uma app de alimentação costuma calar. O <b>sal</b> conta-se a partir do sódio de cada ingrediente, com a crosta de sal do peixe assado descontada porque não se come; o teto é o da Organização Mundial de Saúde. Os <b>açúcares livres</b> são os que a OMS define como tal — os adicionados e os do mel e dos sumos, não os da fruta inteira. O <b>álcool</b>, se o registares, conta as calorias que ninguém conta (7 kcal por grama de etanol) e as unidades do SICAD, e a app escreve por extenso a posição da OMS de 2023: não há nível de consumo isento de risco. Em gravidez, amamentação e menores a ferramenta não aparece.'},
+  {tab:'nutricao', sel:'#calc-bebe', quando:()=>haPequenos()||!!S.ui.calcBebe,
+   t:'Bebés e crianças pequenas',
+   d:'Três cursores — idade, peso e percentil, ligados nos dois sentidos: puxar o percentil move o peso. As curvas são os <b>Padrões de Crescimento Infantil da OMS</b>, calculados a partir dos parâmetros oficiais e não de uma tabela aproximada. Os valores de energia e nutrientes são os <b>Dietary Reference Values da EFSA</b>, por escalão etário, aos 6, 12, 24, 36 e 48 meses. Abaixo dos 6 meses a EFSA não fixa valores e a app diz isso em vez de inventar: aí o que se calcula é o leite, a 150 ml por quilo e por dia, a referência da própria OMS. Ao lado, o que se pode dar em cada idade e a lista do que não se dá — com a fonte colada a cada linha. Nada disto substitui o pediatra, e a app repete-o em todos os cartões.'},
+  {tab:'compras', sel:'[data-col="co-corredores"]',
+   t:'A ordem do meu supermercado',
+   d:'A lista vinha agrupada pelas secções da tabela de composição, que é a ordem certa para classificar comida e a errada para andar num supermercado. Agora a ordem é da casa: arruma-se com as setas e a lista sai assim, no ecrã e no papel. Depois de três idas com o modo supermercado aberto, a app repara na ordem por que riscas as secções e propõe-te essa — propõe, não impõe. No corredor, uma <b>pílula ao alcance do polegar</b> diz em que secção vais e salta para a seguinte, e a lista pode dividir-se por duas pessoas, por corredor, para não irem as duas ao mesmo sítio.'},
+  {tab:'plano', sel:'.gdias',
+   t:'A bancada e a porta do frigorífico',
+   d:'Cada refeição do plano tem um <b>Cozinhar</b> que abre o modo cozinha: um passo de cada vez em letra grande, os tempos a contar sozinhos, o ecrã que não adormece, e a metade direita do ecrã a avançar com o cotovelo para não sujar o telemóvel. Do lado oposto está o papel: <b>«Pôr no frigorífico»</b> imprime a semana numa folha A4 deitada, com quem come em cada refeição e o que falta comprar no rodapé — para quem chega a casa e abre a porta não ter de desbloquear um telemóvel.'},
+  {tab:'dados', sel:'[data-col="dados-aspeto"]',
+   t:'A casa também tem cara',
+   d:'Sete paletas, claro e escuro, e um padrão de azulejo esbatido na capa de cada separador. Depois das nove da noite entra a <b>noite de taberna</b>: as superfícies aquecem um pouco, como uma luz ao fundo da sala — e não mexe em nenhuma cor de texto, por construção. Desliga-se aqui, e não se aplica na paleta «Contraste», onde quem manda é a legibilidade.'},
   {tab:'familia', sel:'#capa', quando:()=>!!S.ui.exemploSemeado,
    t:'E a família da visita?',
    d:'A visita correu sobre uma família de demonstração, com duas semanas de histórico inventado para os gráficos terem o que mostrar. Ao fechar esta última nota, a app pergunta o que lhe queres fazer: apagá-la e começar do zero com a tua casa, ou ficar com ela mais um bocado para experimentares tudo sem receio. Se escolheres explorar, o caminho de volta fica explicado — <b>Dados → Apagar todos os dados</b> limpa tudo de uma vez, e se entretanto tiveres escrito alguma receita que queiras guardar, exporta uma cópia antes.'}
