@@ -22966,18 +22966,24 @@ function pintaTour(){
 /* Família de exemplo para a visita ter conteúdo real por baixo. Só é oferecida
    quando não há dados nenhuns, por isso nunca escreve por cima de nada. */
 function semearFamiliaExemplo(){
-  addMember(); Object.assign(S.members[0],{nome:'Ana',sexo:'f',idade:38,altura:166,peso:68,
+  /* criarMembro() e não addMember(): addMember mostra primeiro a caixa do
+     aviso de responsabilidade e só cria o perfil se a pessoa disser que
+     compreendeu — o que, aqui, deixava S.members vazio e rebentava na linha
+     seguinte. A família de exemplo não é o perfil de ninguém, é uma
+     demonstração; o aviso continua fixo por baixo dos perfis e volta a
+     aparecer em caixa quando se criar o primeiro perfil a sério. */
+  criarMembro(); Object.assign(S.members[0],{nome:'Ana',sexo:'f',idade:38,altura:166,peso:68,
     atividade:'leve',desloc:'pe30',dieta:'mediterranica',objetivoPct:-12,
     desportos:[normalizaDesporto({s:'corrida',km:18,v:9.5,per:'semana'}),
                normalizaDesporto({s:'caminhada',h:2,per:'semana',i:'moderado'}),
                normalizaDesporto({s:'yoga',h:2,per:'semana',i:'leve'})]});
-  addMember(); Object.assign(S.members[1],{nome:'Bruno',sexo:'m',idade:41,altura:179,peso:86,
+  criarMembro(); Object.assign(S.members[1],{nome:'Bruno',sexo:'m',idade:41,altura:179,peso:86,
     atividade:'sedentario',desloc:'nenhum',dieta:'lowcarb',objetivoPct:-15,
     desportos:[normalizaDesporto({s:'ciclismo',km:60,v:22,per:'semana'}),
                /* a caminhada é a mesma dos dois, e é por isso que a app a
                   sugere como treino em conjunto */
                normalizaDesporto({s:'caminhada',h:2.5,per:'semana',i:'moderado'})]});
-  addMember(); Object.assign(S.members[2],{nome:'Rita',sexo:'f',idade:9,altura:134,peso:30,
+  criarMembro(); Object.assign(S.members[2],{nome:'Rita',sexo:'f',idade:9,altura:134,peso:30,
     atividade:'moderado',desloc:'pe30',dieta:'equilibrada',
     desportos:[normalizaDesporto({s:'natacao',km:2,v:2.2,per:'semana'})]});
   S.members.forEach(normalizaMembro);
