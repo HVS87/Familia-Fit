@@ -1,9 +1,9 @@
 /* Família Fit — service worker.
    Estratégia: rede primeiro, cache como reserva. Online mostra sempre a versão
    mais recente; offline (supermercado sem sinal, avião) serve a última guardada. */
-const CACHE = 'familia-fit-v1';
+const CACHE = 'familia-fit-v2';
 const BASE = new URL('./', self.location).pathname;
-const ESSENCIAIS = ['./', './index.html', './icon.svg', './icon-180.png', './icon-512.png', './manifest.webmanifest'];
+const ESSENCIAIS = ['./', './index.html', './icon.svg', './icon-180.png', './icon-192.png', './icon-512.png', './manifest.webmanifest'];
 
 self.addEventListener('install', e => {
   e.waitUntil(

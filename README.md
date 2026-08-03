@@ -282,7 +282,18 @@ A app adapta-se ao ecrã e à forma como se está a segurar o aparelho. Um detet
 
 Em ecrãs de toque os botões passam a ter 44 px de altura e os campos 16 px de letra, que é o mínimo para o iOS não fazer *zoom* ao tocar num campo. As margens respeitam o *notch* e a barra inferior do iPhone.
 
-É instalável no ecrã principal, no Android e no iOS (partilha → «Adicionar ao ecrã principal»), e funciona **sem rede** — útil para consultar a lista de compras no supermercado. Compatível com Safari, incluindo alternativas para versões anteriores ao Safari 16.4.
+**Guardar como aplicação.** Em **Dados** há um cartão que oferece a instalação pelo caminho certo de cada plataforma, porque cada uma instala à sua maneira e nenhuma o diz:
+
+| Onde | Como |
+| --- | --- |
+| **Chrome / Edge** (Android e computador) | A app captura o evento `beforeinstallprompt` — sem isso o convite do browser morre num ícone minúsculo que ninguém vê — e o cartão ganha um botão **«Instalar agora»** de um toque |
+| **Safari no iPhone e iPad** | Não existe prompt, por decisão da Apple: o cartão mostra os passos — **Partilhar → «Adicionar ao ecrã principal»**. Instalar aqui vale a dobrar, porque o Safari apaga o armazenamento de sites que não se abrem há semanas e a app instalada escapa a essa limpeza |
+| **Safari no Mac** | Ficheiro → **Adicionar à Dock** |
+| **Firefox no Android** | Menu → «Adicionar ao ecrã principal»; no Firefox de computador não há instalação, e o cartão di-lo em vez de mostrar um botão morto |
+
+O cartão sabe em que estado está: já instalada (e di-lo), com prompt capturado (botão), iOS (passos), ou fora de HTTPS — onde nenhuma instalação é possível e o cartão explica que é uma regra dos browsers, não da app. O manifesto tem `id`, ícones de 180, 192 e 512 px (com variante *maskable* para o Android recortar em qualquer forma) e quatro atalhos de ícone — registar refeição, treino, compras e pesagem — que funcionam no Android com um toque longo no ícone; o iOS não suporta atalhos, e não é defeito da app.
+
+Depois de instalada funciona **sem rede** — útil para a lista de compras no supermercado — e o botão voltar do Android fecha camadas em vez de sair da app. Compatível com Safari, incluindo alternativas para versões anteriores ao Safari 16.4.
 
 ---
 

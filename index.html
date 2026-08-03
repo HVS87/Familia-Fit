@@ -8079,6 +8079,7 @@ function confirmaPartilha(irmaos,verbo){
 /* Explicadores. Ficam todos aqui para o texto ser escrito uma vez e revisto
    de uma assentada, em vez de andar espalhado pelos templates. */
 const DICAS={
+  instalar:'A app instala-se como qualquer aplicação: ícone no ecrã principal, ecrã inteiro sem barra do browser, e funciona sem rede. Cada plataforma tem o seu caminho — no Chrome e Edge é um botão de um toque; no iPhone e iPad é Partilhar → «Adicionar ao ecrã principal», porque a Apple não dá outro; no Firefox do Android é pelo menu. No iPhone instalar também protege os dados: o Safari apaga o armazenamento de sites que não se abrem há semanas, e a app instalada escapa a essa limpeza. Os dados continuam a ser só deste aparelho — instalar não cria conta nenhuma.',
   taberna:'Depois das nove da noite, quem abre a aplicação está a fechar o dia — a registar o jantar, a ver o que sobrou. A aplicação baixa a voz: as superfícies aquecem um pouco, como uma luz ao fundo da sala. Não mexe em nenhuma cor de texto nem troca o modo claro pelo escuro, e desliga-se sozinha às seis da manhã. Na paleta «Contraste» não se aplica.',
   frigorifico:'Uma folha A4 deitada com a semana toda, para pôr na porta com um íman. Quem chega a casa às sete da tarde não vai desbloquear um telemóvel para saber o que há para o jantar. Leva quem come em cada refeição e a lista do que falta comprar no rodapé. No telemóvel mostra-se no ecrã em vez de ir direita à impressora, porque aí quase nunca há impressora à mão.',
   calcBebe:'Três cursores — idade, peso e percentil — e tudo o resto sai deles. As curvas são os Padrões de Crescimento Infantil da Organização Mundial de Saúde (2006), calculados a partir dos parâmetros L, M e S oficiais, e não de uma tabela aproximada. Os valores de energia e de nutrientes são os Dietary Reference Values da Autoridade Europeia para a Segurança dos Alimentos. Abaixo dos 6 meses a EFSA não fixa valores e a aplicação diz isso em vez de inventar: o que há para calcular é o volume de leite, a 150 ml por quilo e por dia, a referência da própria OMS para bebé de termo saudável. Nada disto substitui o pediatra.',
@@ -22100,6 +22101,103 @@ function setAvatar(mid,campo,val){
   else if(/^#[0-9A-Fa-f]{6}$/.test(val)) m.cor=val;
   save('avatar de '+m.nome); render();
 }
+/* ================= GUARDAR COMO APLICAÇÃO =================
+   A app é uma página, mas usa-se como aplicação — e no telemóvel a diferença
+   é real: ícone no ecrã principal, ecrã inteiro sem barra do browser, e no
+   iPhone a instalação é a única defesa contra o Safari apagar os dados de
+   sites que não se abrem há semanas.
+
+   O problema é que cada plataforma instala à sua maneira, e nenhuma o diz:
+   - Chrome e Edge (Android e computador) disparam o evento
+     beforeinstallprompt. Se ninguém o capturar, o convite morre num ícone
+     minúsculo na barra de endereço que ninguém vê. Captura-se, guarda-se, e
+     o botão da app chama prompt() — instalação a um toque.
+   - O Safari do iPhone e do iPad NÃO TEM prompt nenhum, por decisão da
+     Apple. O único caminho é Partilhar → «Adicionar ao ecrã principal», e
+     quem não o conhece nunca o descobre sozinho. Mostram-se os passos.
+   - O Firefox no computador não instala de todo; no Android instala pelo
+     menu. Diz-se isso, em vez de mostrar um botão que não faria nada.
+   O cartão só aparece quando faz sentido: fora da app instalada, e em HTTPS
+   (em file:// ou HTTP não há instalação possível — di-lo em vez de fingir). */
+let _pedidoInstalar=null;
+window.addEventListener('beforeinstallprompt', e=>{
+  e.preventDefault();          /* sem isto o mini-infobar do Chrome aparece e desaparece */
+  _pedidoInstalar=e;
+  if(S.ui.tab==='dados') render();   /* o cartão ganha o botão de um toque */
+});
+window.addEventListener('appinstalled', ()=>{
+  _pedidoInstalar=null;
+  flash('ok','Instalada. A partir de agora abre pelo ícone no ecrã principal.');
+  if(S.ui.tab==='dados') render();
+});
+function estaInstalada(){
+  try{
+    if(matchMedia('(display-mode: standalone)').matches) return true;
+    if(matchMedia('(display-mode: window-controls-overlay)').matches) return true;
+  }catch(e){}
+  return navigator.standalone===true;   /* iOS Safari */
+}
+/* iPad novo diz-se MacIntel: distingue-se pelo toque. */
+function ehIOS(){
+  return /iPad|iPhone|iPod/.test(navigator.userAgent)
+    || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+}
+function ehSafari(){
+  const ua=navigator.userAgent;
+  return /Safari/.test(ua) && !/Chrome|CriOS|Chromium|Edg|OPR|FxiOS/.test(ua);
+}
+async function instalarApp(){
+  const e=_pedidoInstalar; if(!e) return;
+  _pedidoInstalar=null;
+  try{
+    e.prompt();
+    const r=await e.userChoice;
+    if(!r || r.outcome!=='accepted'){ _pedidoInstalar=e; render(); }
+  }catch(err){ /* o prompt só pode ser usado uma vez; se falhar, o cartão volta ao estado de instruções */ render(); }
+}
+function cartaoInstalarApp(){
+  if(estaInstalada()) return `<div class="card card--quieto" data-col="da-instalar">
+    <h3>Guardar como aplicação ${dica('instalar')}</h3>
+    <p class="sub" style="margin-top:8px">✓ Já está instalada — estás a usá-la em ecrã inteiro, pelo ícone.
+      Os atalhos de manter o dedo no ícone (registar refeição, treino, compras e pesagem) funcionam no Android;
+      o iOS não os suporta, e não é defeito da app.</p>
+  </div>`;
+  const https=location.protocol==='https:';
+  const ios=ehIOS();
+  let corpo;
+  if(!https){
+    corpo=`<p class="sub" style="margin-top:8px">A instalação só existe em HTTPS — é uma regra dos browsers,
+      não desta app. Depois de publicares no GitHub Pages (ver «Publicar», mais abaixo), abre o endereço
+      https no telemóvel e este cartão passa a oferecer a instalação.</p>`;
+  } else if(_pedidoInstalar){
+    corpo=`<p class="sub" style="margin-top:8px">Um toque e fica no ecrã principal, com ícone próprio e sem a
+      barra do browser.</p>
+      <div class="row" style="margin-top:10px"><button class="btn" onclick="instalarApp()">📲 Instalar agora</button></div>`;
+  } else if(ios){
+    corpo=`<p class="sub" style="margin-top:8px">No iPhone e no iPad o Safari não tem botão de instalar —
+      o caminho é este, e é da Apple para todas as apps web:</p>
+      <ol class="sub" style="margin:8px 0 0 18px;line-height:1.7">
+        <li>Toca em <b>Partilhar</b> — o quadrado com a seta para cima, na barra do Safari;</li>
+        <li>Desce e escolhe <b>«Adicionar ao ecrã principal»</b>;</li>
+        <li>Confirma o nome — <b>Família Fit</b> — e toca em <b>Adicionar</b>.</li>
+      </ol>
+      <p class="sub" style="margin-top:8px">Instalar aqui vale a pena a dobrar: o Safari apaga os dados de sites
+      que não abres há algumas semanas, e a app instalada fica fora dessa limpeza. Nota: tem de ser no
+      <b>Safari</b> — o Chrome no iPhone não consegue adicionar ao ecrã principal com todas as capacidades.</p>`;
+  } else if(ehSafari()){
+    corpo=`<p class="sub" style="margin-top:8px">No Safari do Mac: <b>Ficheiro → Adicionar à Dock</b>.
+      Fica com janela e ícone próprios.</p>`;
+  } else {
+    corpo=`<p class="sub" style="margin-top:8px">No <b>Chrome ou Edge</b>, procura o ícone de instalar na barra
+      de endereço (um monitor com uma seta), ou o menu ⋮ → <b>«Instalar aplicação»</b>. No <b>Firefox</b> do
+      Android é o menu → «Adicionar ao ecrã principal»; no Firefox de computador não há instalação — a página
+      funciona igual, só sem ícone próprio.</p>`;
+  }
+  return `<div class="card" data-col="da-instalar">
+    <h3>Guardar como aplicação ${dica('instalar')}</h3>
+    ${corpo}
+  </div>`;
+}
 function renderDados(){
   const nSem=Object.keys(S.plans).filter(w=>Object.keys(S.plans[w]||{}).length).length;
   return (msg? `<div class="msg ${msg.kind}">${esc(msg.text)}</div>`:'')+`
@@ -22109,6 +22207,7 @@ function renderDados(){
     telemóvel, exporta um ficheiro de cópia de vez em quando — é ele que devolve tudo ao estado em que estava.</p>
 
   <div class="grid g2">
+    ${cartaoInstalarApp()}
     <div class="card card--quieto">
       <h3>Gravação automática</h3>
       <div style="margin-top:10px">
