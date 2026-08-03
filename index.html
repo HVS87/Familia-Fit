@@ -192,6 +192,30 @@ html[data-densidade="cerrado"] .spline{padding:10px 12px}
 /* ===== O LIVRO DA CASA =====
    Só existe no papel: fora da impressão o nó está escondido, e a app não muda
    de aspeto por ele existir durante um segundo. */
+/* ---- Ctrl+P na app, sem passar por botão nenhum ----
+   As folhas do livro e do frigorífico escondem tudo o resto porque marcam o
+   html com data-imprimir. Só que ninguém é obrigado a usar os botões: quem
+   carrega em Ctrl+P com a Mercearia aberta quer a lista no papel, e levava
+   com ela a barra de separadores, o botão flutuante, os temporizadores a
+   contar e o toast que estivesse no ecrã.
+
+   Esta regra é a base: sem data-imprimir, esconde-se o que só serve para
+   tocar, força-se tinta preta em papel branco (um tema escuro impresso gasta
+   um tinteiro e não se lê), e impede-se que um cartão se parta ao meio entre
+   duas páginas. */
+@media print{
+  html:not([data-imprimir]) nav,
+  html:not([data-imprimir]) #nav-mais,
+  html:not([data-imprimir]) .fab,
+  html:not([data-imprimir]) .timers,
+  html:not([data-imprimir]) .toast,
+  html:not([data-imprimir]) .savest,
+  html:not([data-imprimir]) .mfundo{display:none !important}
+  html:not([data-imprimir]) body{background:#fff;color:#000}
+  html:not([data-imprimir]) .card{break-inside:avoid; box-shadow:none; border:1px solid #ccc}
+  html:not([data-imprimir]) h2,
+  html:not([data-imprimir]) h3{break-after:avoid}
+}
 .livro{display:none}
 @media print{
   html[data-imprimir="livro"] body>*:not(.livro){display:none !important}
