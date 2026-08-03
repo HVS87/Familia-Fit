@@ -212,6 +212,115 @@ html[data-densidade="cerrado"] .spline{padding:10px 12px}
   .livro-alerg{font-size:9.5pt;margin-top:8pt;border:1px solid #000;padding:5pt 7pt}
   @page{margin:18mm 16mm}
 }
+/* ===== O PRATO É O GRÁFICO ===== */
+.macro-par{display:flex;align-items:center;gap:14px;margin-top:8px}
+.prato{flex:none;width:84px;height:84px}
+@media (max-width:420px){ .macro-par{gap:10px} .prato{width:66px;height:66px} }
+@media (prefers-reduced-motion: no-preference){
+  html[data-anim="on"] .prato path{transition:d .12s linear}
+}
+/* ===== GLIFOS A UM TRAÇO =====
+   Herdam a cor de onde estão postos e alinham-se com a linha de texto: é o
+   que os distingue de um emoji, que traz cor própria e assenta de través. */
+.glifo{display:inline-block;vertical-align:-.18em;flex:none}
+.cat-h .glifo,.mercado-sec .glifo{vertical-align:-.2em;margin-right:2px}
+
+/* ===== O PADRÃO DA CASA =====
+   A app chama-se Azulejo à paleta de origem e não tinha um único azulejo. É
+   um padrão geométrico de quatro pontas, desenhado uma vez em SVG dentro de
+   um data-URI (não há rede nesta app, e um ficheiro à parte seria mais uma
+   coisa para se perder), pintado com currentColor e posto a 3 % de opacidade
+   por cima da capa de cada separador.
+
+   Três por cento é de propósito: tem de se ver que existe quando se procura,
+   e não se pode ver quando se lê. Some por inteiro em alto contraste e na
+   impressão, onde o que conta é a legibilidade e não a personalidade. */
+.card--capa{position:relative;overflow:hidden}
+.card--capa::before{content:'';position:absolute;inset:0;pointer-events:none;opacity:.03;
+  color:var(--accent);
+  background-image:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cg fill='none' stroke='%23000' stroke-width='1.4'%3E%3Cpath d='M22 4 30 12 22 20 14 12Z'/%3E%3Cpath d='M22 24 30 32 22 40 14 32Z'/%3E%3Cpath d='M0 22 8 14 16 22 8 30Z'/%3E%3Cpath d='M44 22 36 14 28 22 36 30Z'/%3E%3Ccircle cx='22' cy='22' r='2'/%3E%3C/g%3E%3C/svg%3E");
+  background-size:44px 44px}
+.card--capa>*{position:relative}
+html[data-paleta="contraste"] .card--capa::before{display:none}
+@media print{ .card--capa::before{display:none} }
+
+/* ===== O RISCO DE ESFEROGRÁFICA =====
+   «A lápis» e «a tinta» já distinguiam o planeado do confirmado pela moldura,
+   mas a moldura é longe do texto e ninguém repara nela. O risco resolve isso
+   onde a informação está: o nome de um prato já comido leva por baixo um
+   traço de mão, torto como uma esferográfica num caderno, e não uma linha
+   reta de folha de cálculo. É desenhado, não é um border-bottom. */
+.a-tinta .mtitle,.a-tinta .fr-prato,.hoje-linha.a-tinta b{position:relative;display:inline-block}
+.a-tinta .mtitle::after,.hoje-linha.a-tinta b::after{content:'';position:absolute;left:-2px;right:-2px;bottom:-3px;height:5px;
+  color:var(--ok);pointer-events:none;
+  background-image:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='5' viewBox='0 0 120 5' preserveAspectRatio='none'%3E%3Cpath d='M1 3.4C22 1.6 44 4.2 66 2.4 86 .8 104 3.6 119 1.8' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-size:100% 100%;background-repeat:no-repeat;opacity:.5}
+@media (prefers-reduced-motion: no-preference){
+  html[data-anim="on"] .a-tinta .mtitle::after{animation:riscar .28s ease-out}
+  @keyframes riscar{ from{ clip-path:inset(0 100% 0 0) } to{ clip-path:inset(0 0 0 0) } }
+}
+html[data-paleta="contraste"] .a-tinta .mtitle::after{opacity:.9}
+
+/* ===== NOITE DE TABERNA =====
+   Depois das nove da noite, quem abre a app está a fechar o dia: a registar
+   o jantar, a ver o que sobrou, a marcar o pequeno-almoço de amanhã. Não
+   está a planear a semana com um café ao lado. A app baixa a voz — o branco
+   deixa de ser branco, o contraste dos textos secundários desce um pouco, e
+   o acento fica mais quente, como uma luz de taberna ao fundo da sala.
+
+   A primeira tentativa foi redefinir os tokens: --card:color-mix(...var(--card)...).
+   Não funciona, e falha mal: uma propriedade personalizada que se referencia
+   a si própria é uma dependência cíclica, fica inválida, e o valor
+   desaparece em vez de mudar. A auditoria de contraste apanhou-o — títulos a
+   1,4:1, ou seja, invisíveis. Fica registado porque o erro é silencioso e
+   parece funcionar até se medir.
+
+   A forma certa é não tocar em token nenhum. É uma camada fixa ATRÁS de
+   tudo, que aquece o chão da página entre os cartões e nunca passa por cima
+   de uma letra. Assim é impossível — não improvável, impossível — que mexa
+   no contraste de qualquer texto. Desliga-se sozinha de manhã e não se
+   aplica em «Contraste». */
+html[data-taberna="1"] body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:radial-gradient(120% 80% at 50% 100%, rgba(180,110,40,.16), rgba(120,70,25,.06) 60%, transparent)}
+html[data-taberna="1"][data-paleta="contraste"] body::before{display:none}
+@media print{ html[data-taberna="1"] body::before{display:none} }
+
+/* ===== O PLANO NA PORTA DO FRIGORÍFICO =====
+   A4 deitado, sete colunas, letra grande. Sem fundos coloridos e sem uma
+   gota de tinta que não seja preta: isto imprime-se todas as semanas, e
+   quem paga os tinteiros repara. As linhas são finas mas contínuas — a
+   folha vai ficar amarrotada debaixo de um íman, e tracejados desaparecem. */
+.fr-print{display:none}
+@media print{
+  html[data-imprimir="frigorifico"] body>*:not(.fr-print){display:none !important}
+  html[data-imprimir="frigorifico"] .fr-print{display:block}
+  html[data-imprimir="frigorifico"] .fr-folha{color:#000;background:#fff;
+    font-family:"Helvetica Neue",Arial,sans-serif}
+}
+/* A orientação do papel NÃO se declara aqui: @page não pode depender de um
+   seletor, e um @page global punha também o livro de receitas deitado. A
+   regra certa é injetada no momento de imprimir, e retirada logo a seguir. */
+.fr-folha{color:#000;background:#fff}
+.fr-topo{display:flex;justify-content:space-between;align-items:baseline;
+  border-bottom:2px solid #000;padding-bottom:5pt;margin-bottom:8pt}
+.fr-topo h1{font-size:20pt;margin:0;letter-spacing:-.01em}
+.fr-topo span{font-size:10pt}
+.fr-tab{width:100%;border-collapse:collapse;table-layout:fixed}
+.fr-tab th,.fr-tab td{border:1px solid #000;padding:5pt 6pt;vertical-align:top;text-align:left}
+.fr-tab thead th{font-size:11pt;text-transform:uppercase;letter-spacing:.04em;background:#fff}
+.fr-tab thead th span{display:block;font-size:8.5pt;font-weight:400;text-transform:none;letter-spacing:0}
+.fr-tab tbody th{width:64pt;font-size:9pt;text-transform:uppercase;letter-spacing:.04em}
+.fr-prato{display:block;font-size:11pt;line-height:1.25}
+.fr-quem{display:block;font-size:8pt;margin-top:2pt}
+.fr-vazio{color:#999;text-align:center}
+.fr-compras{margin-top:8pt;border:1px solid #000;padding:5pt 7pt;font-size:9pt}
+.fr-compras b{display:block;text-transform:uppercase;letter-spacing:.05em;font-size:8.5pt;margin-bottom:2pt}
+.fr-rodape{margin-top:6pt;font-size:8pt;color:#555;text-align:right}
+/* No ecrã, a mesma folha vista em miniatura dentro da folha inferior. */
+.fr-ecra{margin-top:10px;padding:12px;border-radius:var(--r-sm);overflow-x:auto;
+  background:#fff;border:1px solid var(--line)}
+.fr-ecra .fr-folha{min-width:520px}
+
 /* Fita-cola no canto das receitas da casa: um caderno tem coisas coladas. */
 .fita-cola{position:absolute;top:-7px;right:14px;width:44px;height:16px;pointer-events:none;
   background:color-mix(in srgb,var(--energy) 22%,transparent);
@@ -419,6 +528,12 @@ table.marcos thead th:first-child,table.marcos tbody th{text-align:left}
 .corredores .chip[disabled]{opacity:.3;pointer-events:none}
 .talhoes{list-style:none;margin:12px 0 0;padding:0}
 .talhoes li{display:flex;align-items:center;gap:8px;padding:6px 0}
+/* O dono de cada item na lista: um alvo de dedo, não um ícone decorativo. */
+.talhao-btn{flex:none;display:inline-flex;align-items:center;justify-content:center;
+  width:32px;height:32px;padding:0;margin:0 2px;border:0;background:none;cursor:pointer;border-radius:50%}
+.talhao-btn:hover{background:var(--bg)}
+.talhao-vazio{width:20px;height:20px;background:var(--bg);color:var(--mut);
+  border:1px dashed var(--line);font-size:13px}
 
 /* ===== A PÍLULA DO POLEGAR =====
    Vive colada ao fundo, dentro do terço do ecrã que o polegar alcança sem
@@ -7744,6 +7859,8 @@ function confirmaPartilha(irmaos,verbo){
 /* Explicadores. Ficam todos aqui para o texto ser escrito uma vez e revisto
    de uma assentada, em vez de andar espalhado pelos templates. */
 const DICAS={
+  taberna:'Depois das nove da noite, quem abre a aplicação está a fechar o dia — a registar o jantar, a ver o que sobrou. A aplicação baixa a voz: as superfícies aquecem um pouco, como uma luz ao fundo da sala. Não mexe em nenhuma cor de texto nem troca o modo claro pelo escuro, e desliga-se sozinha às seis da manhã. Na paleta «Contraste» não se aplica.',
+  frigorifico:'Uma folha A4 deitada com a semana toda, para pôr na porta com um íman. Quem chega a casa às sete da tarde não vai desbloquear um telemóvel para saber o que há para o jantar. Leva quem come em cada refeição e a lista do que falta comprar no rodapé. No telemóvel mostra-se no ecrã em vez de ir direita à impressora, porque aí quase nunca há impressora à mão.',
   calcBebe:'Três cursores — idade, peso e percentil — e tudo o resto sai deles. As curvas são os Padrões de Crescimento Infantil da Organização Mundial de Saúde (2006), calculados a partir dos parâmetros L, M e S oficiais, e não de uma tabela aproximada. Os valores de energia e de nutrientes são os Dietary Reference Values da Autoridade Europeia para a Segurança dos Alimentos. Abaixo dos 6 meses a EFSA não fixa valores e a aplicação diz isso em vez de inventar: o que há para calcular é o volume de leite, a 150 ml por quilo e por dia, a referência da própria OMS para bebé de termo saudável. Nada disto substitui o pediatra.',
   introducao:'O que se pode dar em cada idade, com a fonte colada a cada linha. A Organização Mundial de Saúde recomenda começar aos 6 meses; a EFSA conclui que entre os 4 e os 6 é seguro, e que adiar os alergénios não reduz o risco de alergia. A DGS pede 3 a 5 dias de intervalo entre alimentos novos até aos 12 meses, para se perceber a quem pertence uma reação.',
   evitar:'A lista do que não se dá, por idade em que deixa de ser proibido. Os riscos aqui não são de nutrição — são de asfixia, botulismo, listeria e mercúrio. As linhas marcadas com um triângulo vêm de uma fonte não oficial (comidadebebe.pt), incluída a pedido; todas as outras são da OMS, EFSA, DGS, ASAE, INSA ou do serviço nacional de saúde britânico.',
@@ -8147,6 +8264,12 @@ function aplicarTema(){
     r.setAttribute('data-estacao', e.k);
     r.style.setProperty('--sazonal', modo==='escuro'? e.c2 : e.c);
   } else { r.removeAttribute('data-estacao'); r.style.removeProperty('--sazonal'); }
+  /* A noite de taberna: das 21h às 6h, e só se o utilizador a quiser. Não
+     depende do modo escuro — quem tem o telemóvel sempre claro também janta
+     à noite. Reavalia-se a cada desenho, por isso passa a hora sozinha. */
+  const h=new Date().getHours();
+  if(S.ui.taberna!==false && (h>=21 || h<6)) r.setAttribute('data-taberna','1');
+  else r.removeAttribute('data-taberna');
   /* a barra do browser no telemóvel acompanha o fundo real, e como o modo já
      não vem da media query, as metas estáticas deixariam de bater certo */
   const bg=getComputedStyle(r).getPropertyValue('--bg').trim();
@@ -8156,6 +8279,7 @@ function setTema(t){ S.ui.tema=temChave(MODOS,t)? t:'auto'; saveMeta(); aplicarT
 function setPaleta(p){ S.ui.paleta=temChave(PALETAS,p)? p:'azulejo'; saveMeta(); aplicarTema(); render(); }
 function setDensidade(d){ S.ui.densidade= d==='cerrado'? 'cerrado':'folgado'; saveMeta(); aplicarTema(); render(); }
 function setSazonal(v){ S.ui.sazonal=!!v; saveMeta(); aplicarTema(); render(); }
+function setTaberna(v){ S.ui.taberna=!!v; saveMeta(); aplicarTema(); render(); }
 function setAnim(v){ S.ui.anim=!!v; saveMeta(); aplicarTema(); render(); }
 /* ===== O ESTALIDO DO DETENTE =====
    Chamado do oninput dos sliders que têm passos com significado. Não muta
@@ -8251,7 +8375,31 @@ const ILUS={
     <path d="M54 34V20" fill="none"/><circle cx="54" cy="58" r="15" fill="none"/>
     <path d="M54 58l9-8" fill="none"/>`,
   lupa:`<circle cx="46" cy="42" r="24" fill="none"/><path d="M64 60l22 22" fill="none"/>
-    <path d="M36 42h20" fill="none" opacity=".5"/>`
+    <path d="M36 42h20" fill="none" opacity=".5"/>`,
+  /* ===== VINHETAS PARA OS VAZIOS =====
+     Um ecrã vazio é o pior momento para a app: quem lá chega ou não percebeu
+     o que tem de fazer, ou fez tudo. As duas coisas merecem um desenho
+     diferente, e nenhuma delas merece uma caixa de texto sozinha. Estas
+     vinhetas são do mesmo punho das outras — mesmo traço, mesma cor de
+     acento — e distinguem «ainda não há» de «já não falta nada». */
+  panela:`<path d="M22 40h64v20a16 16 0 0 1-16 16H38a16 16 0 0 1-16-16z" fill="none"/>
+    <path d="M14 46h8M86 46h8" fill="none"/>
+    <path d="M40 30c0-7 6-6 6-12M56 30c0-7 6-6 6-12" fill="none" opacity=".6"/>`,
+  prato:`<circle cx="54" cy="48" r="30" fill="none"/><circle cx="54" cy="48" r="21" fill="none" opacity=".45"/>
+    <path d="M54 27v42M54 48l18-11" fill="none" opacity=".3"/>`,
+  descanso:`<path d="M18 74c8-18 22-28 36-28s28 10 36 28" fill="none"/>
+    <circle cx="54" cy="26" r="11" fill="none"/><path d="M28 34l-8-8M80 34l8-8" fill="none" opacity=".5"/>`,
+  relogio:`<circle cx="54" cy="48" r="28" fill="none"/><path d="M54 30v20l14 9" fill="none"/>
+    <path d="M54 12v6M54 78v6M18 48h6M84 48h6" fill="none" opacity=".55"/>`,
+  saco:`<path d="M28 34h52l-5 46a6 6 0 0 1-6 5H39a6 6 0 0 1-6-5z" fill="none"/>
+    <path d="M42 34c0-12 5-20 12-20s12 8 12 20" fill="none"/><path d="M46 56h16" fill="none" opacity=".5"/>`,
+  festa:`<path d="M26 82l22-52 26 22z" fill="none"/><path d="M40 46l18 15" fill="none" opacity=".4"/>
+    <path d="M78 18l4-8M90 30l8-4M84 46l8 2" fill="none" opacity=".7"/>`,
+  livro:`<path d="M16 20h30a10 10 0 0 1 8 4 10 10 0 0 1 8-4h30v56H62a10 10 0 0 0-8 4 10 10 0 0 0-8-4H16z" fill="none"/>
+    <path d="M54 24v56" fill="none"/>`,
+  mesa:`<path d="M14 44h80" fill="none"/><path d="M24 44v34M84 44v34" fill="none"/>
+    <circle cx="40" cy="30" r="9" fill="none"/><circle cx="68" cy="30" r="9" fill="none"/>
+    <path d="M40 44v-5M68 44v-5" fill="none" opacity=".5"/>`
 };
 /* ================= DESENHOS DA CASA =================
    Tudo no mesmo traço dos ícones (24×24, 1.8) e sem imagens externas. */
@@ -8311,6 +8459,65 @@ function ilustracao(nome){
   return `<svg viewBox="0 0 108 96" aria-hidden="true" fill="none" stroke="var(--accent)" stroke-width="3"
     stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
 }
+/* ================= PRATOS DESENHADOS A UM TRAÇO =================
+   O emoji resolveu o arranque da app, mas tem três defeitos que só se veem
+   depois: muda de desenho conforme o sistema operativo, não pega a cor do
+   tema, e a meia dúzia que existe para comida não chega para trinta e tal
+   categorias — a mesma tigela serve de sopa, de arroz e de papa.
+
+   Estes glifos são todos do mesmo punho: uma viewBox de 24, traço de 1,6 e
+   um só peso. Herdam currentColor, por isso mudam com a paleta e com o
+   modo escuro sem uma linha de código a mais. Onde não houver glifo, o
+   emoji continua a aparecer — nenhum ecrã fica sem símbolo por isto. */
+const GLIFOS={
+  sopa:'M3 11h18a9 9 0 0 1-9 9 9 9 0 0 1-9-9Z M8 7c0-1.5 1.5-1.5 1.5-3 M12 6c0-1.5 1.5-1.5 1.5-3 M16 7c0-1.5 1.5-1.5 1.5-3',
+  peixe:'M3 12c3-4 7-6 11-6 3 0 5 2 6 6-1 4-3 6-6 6-4 0-8-2-11-6Z M17 11h.01 M3 12l-2-3M3 12l-2 3',
+  carne:'M6 17c-3-3-3-8 1-11s9-2 11 2c1.6 3 .4 6-2 8-3 2.4-7 3-10 1Z M9 14a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5',
+  frango:'M5 20c-1-5 2-11 7-13 3-1.2 6 .6 6.5 3.6.4 2.6-1 4.4-3.5 5.4 M12 16l3 4 M8 17l1 4',
+  ovo:'M12 3c3.5 0 6 5 6 9a6 6 0 0 1-12 0c0-4 2.5-9 6-9Z',
+  arroz:'M4 14h16a8 8 0 0 1-16 0Z M6 11c1-1 2-1 3 0M11 10c1-1 2-1 3 0M15 11c1-1 2-1 3 0 M2 18h20',
+  massa:'M5 20V9a7 7 0 0 1 14 0v11 M8 9v11M12 8v12M16 9v11 M3 20h18',
+  batata:'M4 13c0-4 4-8 8-8s8 3 8 7-4 7-8 7-8-2-8-6Z M9 11h.01M14 10h.01M12 15h.01',
+  legumes:'M12 21c-4 0-7-3-7-7 0-4 3-6 7-6s7 2 7 6c0 4-3 7-7 7Z M12 8V4 M12 4c2 0 3-1 4-2',
+  salada:'M3 12h18c0 5-4 8-9 8s-9-3-9-8Z M8 9c0-2 2-4 4-4s4 2 4 4 M6 12c1-2 3-3 6-3s5 1 6 3',
+  fruta:'M12 8c-3-3-8-1-8 4 0 4 4 9 8 9s8-5 8-9c0-5-5-7-8-4Z M12 8V4c0-1 1-2 3-2',
+  pao:'M4 10c0-3 3-5 8-5s8 2 8 5v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z M8 5v15M12 5v15M16 5v15',
+  queijo:'M3 11 12 5l9 6v7a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z M7 14h.01M11 16h.01M16 13h.01',
+  leite:'M9 3h6v3l2 4v10a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V10l2-4Z M7 13h10',
+  bolo:'M4 20v-6c0-1.6 1.4-3 3-3h10c1.6 0 3 1.4 3 3v6Z M12 11V8 M12 5a1.5 1.5 0 0 1 0 3 M3 20h18',
+  cafe:'M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5Z M17 10h2a2 2 0 0 1 0 4h-2 M7 5c0-1 1-1 1-2M11 5c0-1 1-1 1-2',
+  panela:'M4 9h16v6a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4Z M2 11h2M20 11h2 M8 6c0-1.5 1-1.5 1-3M12 6c0-1.5 1-1.5 1-3',
+  forno:'M4 4h16v16H4Z M4 9h16 M7 6.5h.01M10 6.5h.01 M8 13h8v4H8Z',
+  frigideira:'M3 12h12v3a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z M15 13l6-3 M8 9c0-1.5 1-1.5 1-3',
+  faca:'M4 20 14 10 M14 10l4-6 3 3-6 4 M14 10l1 1',
+  balanca:'M12 4v16 M6 20h12 M12 7 5 13a3.5 3.5 0 0 0 7 0Z M12 7l7 6a3.5 3.5 0 0 1-7 0Z',
+  relogio:'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z M12 7v5l3 2',
+  gelo:'M12 3v18 M4 7l16 10M20 7 4 17 M12 6l-2.5-2M12 6l2.5-2 M12 18l-2.5 2M12 18l2.5 2',
+  congelador:'M12 2v20 M3.5 7l17 10M20.5 7l-17 10 M12 5.5 9.5 3M12 5.5 14.5 3',
+  cesto:'M4 8h16l-1.6 11a2 2 0 0 1-2 1.7H7.6a2 2 0 0 1-2-1.7Z M8 8 10 3M16 8 14 3 M9 12v5M12 12v5M15 12v5',
+  talher:'M7 3v8a2 2 0 0 0 2 2v8 M5 3v5M9 3v5 M17 3c-2 0-3 3-3 6s1 4 3 4v8',
+  coracao:'M12 20s-7-4.4-7-9.5A4 4 0 0 1 12 7a4 4 0 0 1 7 3.5C19 15.6 12 20 12 20Z',
+  estrela:'M12 3.5 14.6 9l6 .9-4.3 4.2 1 6-5.3-2.8L6.7 20l1-6L3.4 9.9 9.4 9Z',
+  folha:'M20 4C10 4 4 9 4 16c0 2 1 4 1 4s6-1 10-5c3-3 5-7 5-11Z M5 20c4-6 8-9 12-11',
+  sino:'M6 16V11a6 6 0 1 1 12 0v5l2 3H4Z M10 21a2 2 0 0 0 4 0',
+  casa:'M3 11 12 3l9 8 M5 10v10h14V10 M10 20v-6h4v6',
+  chama:'M12 21c-3.3 0-6-2.4-6-5.5 0-4 4-5 4-9 3 1.5 4 4 4 5.5 1-.8 1.5-2 1.5-3.5 2 2 2.5 4.6 2.5 7C18 18.6 15.3 21 12 21Z',
+  gota:'M12 3.5c4 5 6 7.6 6 10.5a6 6 0 0 1-12 0c0-2.9 2-5.5 6-10.5Z',
+  livro:'M4 4h6a3 3 0 0 1 2 1 3 3 0 0 1 2-1h6v14h-6a3 3 0 0 0-2 1 3 3 0 0 0-2-1H4Z M12 5v14',
+  taca:'M6 3h12l-1 5a5 5 0 0 1-10 0Z M12 13v6 M8 21h8'
+};
+function glifo(k,tam){
+  const d=GLIFOS[k]; if(!d) return '';
+  const t=tam||18;
+  return `<svg class="glifo" width="${t}" height="${t}" viewBox="0 0 24 24" aria-hidden="true"
+    fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="${d}"/></svg>`;
+}
+/* O glifo entra onde há um, e o emoji fica onde não há: nenhuma categoria
+   perde símbolo por esta mudança ser parcial. */
+const GLIFO_CAT={'Sopas':'sopa','Peixe & Marisco':'peixe','Carne & Ovos':'carne',
+  'Frutas & Legumes':'legumes','Laticínios':'leite','Mercearia & Outros':'cesto','Suplementos':'gota'};
+function icoCat(cat,tam){ const g=GLIFO_CAT[cat]; return g? glifo(g,tam) : (ICO_CAT[cat]||''); }
 function estadoVazio(ilus,titulo,texto,botoes){
   return `<div class="card"><div class="vazio">${ilustracao(ilus)}
     <h3>${titulo}</h3><p>${texto}</p>
@@ -9455,6 +9662,94 @@ function livroHtml(){
         Valores nutricionais a partir da tabela do INSA e do USDA FoodData Central.
         Isto ajuda a planear; não substitui ler o rótulo de cada embalagem.</p>
     </section>`;
+}
+/* ================= O PLANO NA PORTA DO FRIGORÍFICO =================
+   A app está no telemóvel de quem a montou. Quem chega a casa às sete da
+   tarde e abre o frigorífico é outra pessoa — e não vai desbloquear um
+   telemóvel para saber o que há para o jantar. Uma folha A4 na porta, com
+   um íman, resolve isso melhor do que qualquer notificação.
+
+   Deitada, uma coluna por dia, letra grande o suficiente para se ler de pé
+   a um metro. Sem cores de fundo: tinteiros custam dinheiro. Leva quem come
+   em cada refeição, porque o jantar de terça não é igual para todos, e leva
+   a lista do que falta comprar no rodapé, que é a outra pergunta que se faz
+   à porta do frigorífico. */
+function frigorificoHtml(){
+  const dates=weekDates(S.week), w=S.plans[S.week]||{};
+  const {items}=shoppingItems();
+  const falta=itensEmFalta(items).filter(it=>!((S.bought[S.week]||{})[it.n+'|'+it.u]));
+  const casa=(S.casa&&S.casa.nome)? S.casa.nome : 'A semana';
+  const cel=(di,mk)=>{
+    const meal=(w[di]||{})[mk];
+    if(!meal||!meal.r) return '<td class="fr-vazio">—</td>';
+    const nome=nomeDaRefeicao(meal);
+    const comem=S.members.filter(x=>meal.m.includes(x.id)&&!isCheat(x.id,dates[di]));
+    const todos=comem.length===S.members.length;
+    const extra=nExtraMesa(meal);
+    return `<td><span class="fr-prato">${esc(nome)}</span>${
+      todos&&!extra? '' : `<span class="fr-quem">${comem.length? comem.map(x=>esc(nomeCurto(x))).join(', ') : 'ninguém'}${extra? ' +'+extra:''}</span>`}</td>`;
+  };
+  return `<div class="fr-folha">
+    <div class="fr-topo">
+      <h1>${esc(casa)}</h1>
+      <span>${fmtLongo(dates[0])} a ${fmtLongo(dates[6])}</span>
+    </div>
+    <table class="fr-tab">
+      <thead><tr><th></th>${dates.map((d,di)=>`<th>${DAYN[di]}<span>${fmtShort(d)}</span></th>`).join('')}</tr></thead>
+      <tbody>${MEALS.map(([mk,rot])=>`<tr><th scope="row">${rot}</th>${dates.map((d,di)=>cel(di,mk)).join('')}</tr>`).join('')}</tbody>
+    </table>
+    ${falta.length? `<div class="fr-compras"><b>Falta comprar (${falta.length})</b>
+      <span>${falta.slice(0,40).map(it=>esc(it.n)).join(' · ')}${falta.length>40? ' · e mais '+(falta.length-40):''}</span></div>`:''}
+    <div class="fr-rodape">Família Fit · impresso em ${fmtLongo(hojeISO())}</div>
+  </div>`;
+}
+/* Um só caminho de impressão para os dois documentos: monta, imprime, limpa,
+   e tem rede de segurança para os browsers que não disparam afterprint. */
+function imprimirFolha(id,classe,html,modo,pagina){
+  const velho=document.getElementById(id); if(velho) velho.remove();
+  const no=document.createElement('div');
+  no.id=id; no.className=classe; no.innerHTML=html;
+  document.body.appendChild(no);
+  /* A orientação e as margens do papel entram por aqui, e só enquanto durar
+     esta impressão: um @page no ficheiro valeria para todos os documentos. */
+  let est=null;
+  if(pagina){ est=document.createElement('style'); est.id=id+'-page';
+    est.textContent='@page{'+pagina+'}'; document.head.appendChild(est); }
+  document.documentElement.setAttribute('data-imprimir',modo);
+  const limpar=()=>{ document.documentElement.removeAttribute('data-imprimir');
+    const n=document.getElementById(id); if(n) n.remove();
+    if(est&&est.parentNode) est.remove();
+    window.removeEventListener('afterprint',limpar); };
+  window.addEventListener('afterprint',limpar);
+  try{ window.print(); }catch(e){ limpar(); flash('bad','O browser não deixou abrir a impressão.'); }
+  setTimeout(()=>{ if(document.getElementById(id)) limpar(); }, 60000);
+}
+function imprimirFrigorifico(){
+  const dates=weekDates(S.week), w=S.plans[S.week]||{};
+  let n=0; for(let di=0;di<7;di++) for(const mk of MEALK) if((w[di]||{})[mk]?.r) n++;
+  if(!n) return flash('warn','A semana está vazia — não há nada para pôr na porta.');
+  /* No telemóvel a impressão é quase sempre um beco: não há impressora à
+     mão e o diálogo do sistema gera um PDF que ninguém vai buscar. Aí
+     mostra-se a mesma folha no ecrã, com o botão de imprimir à vista para
+     quem a quiser mandar mesmo. */
+  if(matchMedia('(max-width: 820px)').matches){
+    S.ui.folha={tipo:'frigorifico'}; saveMeta(); return render();
+  }
+  imprimirFolha('frigorifico','fr-print',frigorificoHtml(),'frigorifico','size:A4 landscape;margin:10mm');
+}
+function folhaFrigorificoHtml(){
+  return `<div class="folha" role="dialog" aria-modal="true" aria-label="Plano da semana para o frigorífico">
+    <div class="folha-pega" aria-hidden="true"></div>
+    <div class="row" style="justify-content:space-between;align-items:center">
+      <b>A semana, para ler de pé</b>
+      <button class="btn ghost small" onclick="fecharFolha()">Fechar</button>
+    </div>
+    <p class="sub">É esta a folha que sai na impressora. Num computador, o mesmo botão manda-a direita para o papel.</p>
+    <div class="fr-ecra">${frigorificoHtml()}</div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn" onclick="imprimirFolha('frigorifico','fr-print',frigorificoHtml(),'frigorifico','size:A4 landscape;margin:10mm')">Imprimir mesmo assim</button>
+    </div>
+  </div>`;
 }
 function imprimirLivro(){
   const minhas=RECIPES.filter(r=>r.u);
@@ -11940,7 +12235,7 @@ function cartaoPassaporte(m){
     <p class="sub" style="margin-top:4px">Os ingredientes que ${esc(m.nome.split(' ')[0])} já provou, contados das refeições confirmadas. Toca num para marcar «provou mas não gostou» — a app volta a propô-lo mais tarde noutra receita, em vez de o riscar para sempre.</p>
     <div class="mbar" style="height:8px;margin-top:10px"><div style="width:${(total/cat*100).toFixed(1)}%;background:var(--party)"></div></div>
     ${Object.keys(grupos).slice(0,8).map(g=>`<div style="margin-top:10px">
-      <div class="lbl">${ICO_CAT[g]||''} ${esc(g)} · ${grupos[g].length}</div>
+      <div class="lbl">${icoCat(g)} ${esc(g)} · ${grupos[g].length}</div>
       <div class="row" style="margin-top:4px">${grupos[g].slice(0,14).map(n=>
         `<button class="chip ${nao.indexOf(n)>=0?'':'on'}" onclick="toggleNaoGosta('${m.id}','${esc(n).replace(/'/g,'&#39;')}')"
           title="${nao.indexOf(n)>=0? 'provou e não gostou' : 'provado em '+fmtShort(p.provados[n].d)+', em '+esc(p.provados[n].r)}">${
@@ -13077,7 +13372,7 @@ function mercadoHtml(){
       ${S.members.map(m=>`<button class="chip ${fil===m.id?'on':''}" onclick="setFiltroTalhao('${m.id}')">${esc(nomeCurto(m))}</button>`).join('')}
     </div>`:''}
     ${!falta.length? `<div style="padding:40px 20px;text-align:center" class="sub">${fil? 'Este talhão está despachado.' : 'Não falta nada — a despensa já tem tudo o que a semana precisa.'}</div>`
-    : secs.map((g,i)=>`<div class="mercado-sec" id="sec-${i}">${ICO_CAT[g]||''} ${esc(g)}</div>
+    : secs.map((g,i)=>`<div class="mercado-sec" id="sec-${i}">${icoCat(g)} ${esc(g)}</div>
       <ul>${grupos[g].map(it=>{ const chave=it.n+'|'+it.u, on=!!marcados[chave];
         const dono=talhaoDe(chave), mDono=dono? S.members.find(m=>m.id===dono) : null;
         return `<li class="${on?'done':''}"><label><input type="checkbox" ${on?'checked':''}
@@ -13101,7 +13396,7 @@ function pilulaCorredor(secs, atual, marcados, grupos){
       return `<span class="pr ${feito?'feito':''} ${s===atual?'agora':''}" title="${esc(s)}"></span>`;}).join('')}</div>
     <div class="pilula-linha">
       <span style="flex:1;min-width:0">${atual
-        ? `<b>${ICO_CAT[atual]||'🛒'} ${esc(atual)}</b> <span class="sub">corredor ${i+1} de ${secs.length}</span>`
+        ? `<b>${icoCat(atual)||'🛒'} ${esc(atual)}</b> <span class="sub">corredor ${i+1} de ${secs.length}</span>`
         : '<b>Está tudo no carrinho 🎉</b>'}</span>
       ${restantes.length>1? `<button class="chip" onclick="saltarCorredor()">Próximo ›</button>`:''}
     </div>
@@ -13205,7 +13500,7 @@ function cartaoCorredores(){
       </div></div>`:''}
     <ol class="corredores">${o.map((s,i)=>`
       <li><span class="cor-n">${i+1}</span>
-        <span style="flex:1;min-width:0">${ICO_CAT[s]||'🛒'} ${esc(s)}</span>
+        <span style="flex:1;min-width:0">${icoCat(s)||'🛒'} ${esc(s)}</span>
         <button class="chip" ${i===0?'disabled':''} aria-label="Subir ${esc(s)}"
           onclick="moverCorredor('${esc(s).replace(/'/g,'&#39;')}',-1)">↑</button>
         <button class="chip" ${i===o.length-1?'disabled':''} aria-label="Descer ${esc(s)}"
@@ -13227,22 +13522,51 @@ function porTalhao(chave,mid){
   if(!mid) delete S.talhoes[chave]; else S.talhoes[chave]=mid;
   save('talhão de compras'); render();
 }
+/* A divisão automática é por corredor, que é o que faz sentido no
+   supermercado — mas a vida tem exceções («o pão é ele que escolhe»). Um
+   toque no dono passa ao seguinte, e depois do último volta a ninguém: é o
+   ciclo mais rápido de operar com uma mão, e não precisa de menu. */
+function rodarTalhao(chave){
+  const ids=S.members.map(m=>m.id);
+  const atual=talhaoDe(chave);
+  const i=ids.indexOf(atual);
+  porTalhao(chave, i<0? ids[0] : (i+1<ids.length? ids[i+1] : null));
+}
+function botaoTalhao(chave){
+  if(!haTalhoes()||S.members.length<2) return '';
+  const mid=talhaoDe(chave), m=mid? S.members.find(x=>x.id===mid) : null;
+  const k=esc(chave).replace(/'/g,'&#39;');
+  return `<button class="talhao-btn" onclick="event.preventDefault();rodarTalhao('${k}')"
+    title="Quem leva: ${m? esc(nomeCurto(m)) : 'quem lá chegar primeiro'}. Toca para trocar."
+    aria-label="Quem leva ${esc(chave.split('|')[0])}: ${m? esc(nomeCurto(m)) : 'ninguém em particular'}">${
+    m? avatar(m,20) : '<span class="av talhao-vazio">·</span>'}</button>`;
+}
 function dividirPorCorredor(mids){
   if(!mids.length) return;
   const {items}=shoppingItems();
   const falta=itensEmFalta(items);
   const o=ordemDeCorredores();
   if(!S.talhoes||typeof S.talhoes!=='object') S.talhoes={};
-  /* a divisão é por secção e não item a item: manda duas pessoas a dois
+  /* A divisão é por secção e não item a item: manda duas pessoas a dois
      sítios do supermercado, que é o ponto, em vez de as pôr às duas no
-     mesmo corredor a dividir a prateleira */
-  falta.forEach(it=>{
-    const sec=gruposCompras()[grupoDoItem(it)];
-    const i=Math.max(0,o.indexOf(sec));
-    S.talhoes[it.n+'|'+it.u]=mids[i%mids.length];
+     mesmo corredor a dividir a prateleira.
+
+     Alternar corredor sim, corredor não daria listas absurdas — a mercearia
+     sozinha costuma ter mais items do que todas as outras secções juntas, e
+     uma divisão de 51 contra 7 não é divisão nenhuma. Por isso cada corredor
+     vai para quem tiver menos coisas até ali: mantém o corredor inteiro com
+     a mesma pessoa e equilibra o cesto. */
+  const porSec={};
+  falta.forEach(it=>{ const s=gruposCompras()[grupoDoItem(it)];
+    (porSec[s]=porSec[s]||[]).push(it); });
+  const carga={}; mids.forEach(id=>{ carga[id]=0; });
+  o.filter(s=>porSec[s]).forEach(s=>{
+    const quem=mids.slice().sort((a,b)=>carga[a]-carga[b])[0];
+    porSec[s].forEach(it=>{ S.talhoes[it.n+'|'+it.u]=quem; });
+    carga[quem]+=porSec[s].length;
   });
   save('lista dividida'); render();
-  flash('ok','Lista dividida por '+lista(mids.map(id=>{const m=S.members.find(x=>x.id===id);return m? nomeCurto(m):'?';}))+'.',
+  flash('ok','Lista dividida por '+listaPT(mids.map(id=>{const m=S.members.find(x=>x.id===id);return m? nomeCurto(m):'?';}))+'.',
     {rot:'Anular', fn:'desfazer()'});
 }
 function juntarTalhoes(){ S.talhoes={}; save('lista outra vez inteira'); render(); }
@@ -14847,7 +15171,7 @@ function cartaoGraficoAtiv(m){
   const r=resumoAtiv(m,30);
   if(!regAtivDe(m.id).length) return `<div class="card" data-col="atv-historico">
     <h2>Atividade passada</h2>
-    ${estadoVazio('grafico','Ainda sem histórico de treinos',
+    ${estadoVazio('descanso','Ainda sem histórico de treinos',
       'Assim que registares a primeira atividade, aparece aqui o gráfico dos últimos 30 dias com o que fizeste ao lado do que o plano marcava.',
       `<button class="btn" onclick="abrirFormAtiv('${m.id}')">+ Registar a primeira</button>`)}
   </div>`;
@@ -14919,7 +15243,7 @@ function renderHistAtiv(){
     <div class="card" style="margin-top:16px">
       <h3>Fita do tempo</h3>
       <p class="sub" style="margin-top:4px">Tudo o que está registado, do mais recente para trás. Cada linha pode ser editada ou apagada — e as contas do gasto, do alvo de calorias e dos objetivos acertam-se logo a seguir.</p>
-      ${!dias.length? estadoVazio('grafico','Nada registado ainda','Regista a primeira atividade e ela aparece aqui.','')
+      ${!dias.length? estadoVazio('descanso','Nada registado ainda','Regista a primeira atividade e ela aparece aqui.','')
       : `<div class="fita">${dias.map(d=>{
         const lista=porDia[d];
         const k=Math.round(lista.filter(r=>r.estado==='feita').reduce((t,r)=>t+kcalRegAtiv(r),0));
@@ -15379,13 +15703,47 @@ function toggleComp(){ S.ui.soComp=!S.ui.soComp; saveMeta(); render(); }
 function toggleEpoca(){ S.ui.soEpoca=!S.ui.soEpoca; S.ui.recLimite=LOTE_RECEITAS; saveMeta(); render(); }
 function setCatF(k){ S.ui.catF=temChave(CATEG,k)? k:''; S.ui.recLimite=LOTE_RECEITAS; saveMeta(); render(); }
 
-function macroBar(pct){ return `<div class="mbar">
+function macroBar(pct){ return `<div class="macro-par">${pratoGrafico(pct)}<div style="flex:1;min-width:0">
+  <div class="mbar">
     <div id="nu-bar-c" style="width:${pct.c}%;background:var(--mc)"></div>
     <div id="nu-bar-p" style="width:${pct.p}%;background:var(--mp)"></div>
     <div id="nu-bar-f" style="width:${pct.f}%;background:var(--mf)"></div></div>
   <div class="mleg"><span><i class="dot" style="background:var(--mc)"></i><span id="nu-leg-c">Hidratos ${pct.c}%</span></span>
     <span><i class="dot" style="background:var(--mp)"></i><span id="nu-leg-p">Proteína ${pct.p}%</span></span>
-    <span><i class="dot" style="background:var(--mf)"></i><span id="nu-leg-f">Gordura ${pct.f}%</span></span></div>`; }
+    <span><i class="dot" style="background:var(--mf)"></i><span id="nu-leg-f">Gordura ${pct.f}%</span></span></div>
+  </div></div>`; }
+/* ================= O PRATO É O GRÁFICO =================
+   Uma barra empilhada com 50/20/30 é exata e não diz nada a ninguém. Um
+   prato visto de cima com as fatias nas mesmas proporções diz tudo à
+   primeira, porque é a imagem que as pessoas já têm na cabeça quando pensam
+   em «metade do prato de legumes».
+
+   Não substitui a barra: fica ao lado dela. A barra tem os números e é o que
+   se lê para conferir; o prato é o que se percebe sem ler. E as fatias
+   começam às 12 horas e andam no sentido dos ponteiros, como um prato que
+   se serve, em vez de começarem às 3 horas como manda o SVG. */
+function pratoGrafico(pct,tam){
+  const d=tam||84, r=d*0.34, cx=d/2, cy=d/2;
+  const ordem=[['c','--mc'],['p','--mp'],['f','--mf']];
+  let ang=-Math.PI/2;
+  const fatias=ordem.map(([k,cor])=>{
+    const p=Math.max(0,pct[k]||0)/100;
+    if(p<=0) return '';
+    if(p>=0.999) return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="var(${cor})"/>`;
+    const a0=ang, a1=ang+p*Math.PI*2; ang=a1;
+    const x0=cx+r*Math.cos(a0), y0=cy+r*Math.sin(a0);
+    const x1=cx+r*Math.cos(a1), y1=cy+r*Math.sin(a1);
+    return `<path d="M${cx} ${cy} L${x0.toFixed(2)} ${y0.toFixed(2)} A${r} ${r} 0 ${p>0.5?1:0} 1 ${x1.toFixed(2)} ${y1.toFixed(2)} Z"
+      fill="var(${cor})"/>`;
+  }).join('');
+  return `<svg class="prato" id="nu-prato" viewBox="0 0 ${d} ${d}" role="img"
+      aria-label="Prato visto de cima: ${pct.c}% de hidratos, ${pct.p}% de proteína e ${pct.f}% de gordura">
+    <circle cx="${cx}" cy="${cy}" r="${d*0.46}" fill="var(--card)" stroke="var(--line)" stroke-width="1"/>
+    <circle cx="${cx}" cy="${cy}" r="${d*0.40}" fill="none" stroke="var(--line)" stroke-width="1" opacity=".7"/>
+    ${fatias}
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--card)" stroke-width="1.5"/>
+  </svg>`;
+}
 
 /* O que uma pessoa não come vale tanto como a dieta que faz: filtra as mesmas
    receitas e entra nas mesmas contas. Fica ao lado do tipo de dieta porque é
@@ -16146,6 +16504,11 @@ function atualizarNutricao(){
     document.getElementById('nu-bar-p').style.width=d.p+'%';
     document.getElementById('nu-bar-f').style.width=d.f+'%';
     põe('nu-leg-c','Hidratos '+d.c+'%'); põe('nu-leg-p','Proteína '+d.p+'%'); põe('nu-leg-f','Gordura '+d.f+'%'); }
+  /* O prato acompanha os cursores como a barra: um SVG inteiro por gesto é
+     mais barato do que parece — são três caminhos — e vê-lo parado enquanto
+     a barra mexe seria pior do que não o ter. */
+  const pr=document.getElementById('nu-prato');
+  if(pr) pr.outerHTML=pratoGrafico(d);
   põe('nu-g-c',mk.c+' g'); põe('nu-g-p',mk.p+' g'); põe('nu-g-f',mk.f+' g');
   ['c','p','f'].forEach(kk=>{ const o=document.getElementById('nu-out-'+kk);
     if(o) o.textContent=d[kk]+'% · '+mk[kk]+' g'; });
@@ -17483,7 +17846,7 @@ function cartaoAlcool(m){
 function cartaoGraficoRef(m){
   if(!regRefDe(m.id).length) return `<div class="card" data-col="nu-historico">
     <h2>Alimentação passada</h2>
-    ${estadoVazio('grafico','Ainda sem histórico de refeições',
+    ${estadoVazio('prato','Ainda sem histórico de refeições',
       'Assim que registares a primeira refeição, aparece aqui o gráfico dos últimos 30 dias com o que comeste ao lado do alvo de cada dia.',
       `<button class="btn" onclick="abrirFormRef('${m.id}')">+ Registar a primeira</button>`)}
   </div>`;
@@ -17559,7 +17922,7 @@ function renderHistRef(){
     <div class="card" style="margin-top:16px">
       <h3>Fita do tempo</h3>
       <p class="sub" style="margin-top:4px">Tudo o que está registado, do mais recente para trás. Cada linha pode ser editada ou apagada — o balanço do dia, o alvo e o ritmo dos objetivos acertam-se logo a seguir.</p>
-      ${!dias.length? estadoVazio('grafico','Nada registado ainda','Regista a primeira refeição e ela aparece aqui.','')
+      ${!dias.length? estadoVazio('prato','Nada registado ainda','Regista a primeira refeição e ela aparece aqui.','')
       : `<div class="fita">${dias.map(d=>{
         const lista=porDia[d];
         const k=Math.round(lista.filter(r=>r.estado==='feita').reduce((t,r)=>t+kcalRegRef(r),0));
@@ -19260,7 +19623,7 @@ function cartaoSugestoes(){
       <button class="chip ${s.epoca?'on':''}" onclick="toggleSugEpoca()" aria-pressed="${!!s.epoca}">🌱 Só ingredientes de época</button>
     </div>
     ${!membros.length? `<p class="sub" style="margin-top:14px">Nenhum membro selecionado — liga pelo menos um para haver mesa.</p>`
-     : !g.ok.length? estadoVazio('lupa','Nada serve esta mesa ao mesmo tempo',
+     : !g.ok.length? estadoVazio('mesa','Nada serve esta mesa ao mesmo tempo',
         'Das '+g.base.length+' receitas para esta refeição, nenhuma passa em todos os critérios de '+membros.length+' pessoa'+(membros.length===1?'':'s')+'. Desliga alguém, alarga a cozinha ou dispensa o teto de calorias — ou planeia pratos diferentes para cada um.',
         `<button class="btn ghost" onclick="toggleSugTeto()">${s.teto?'Dispensar o teto':'Repor o teto'}</button>
          <button class="chip" onclick="toggleSugFora()">Ver o que ficou de fora</button>`)
@@ -20048,6 +20411,7 @@ function renderPlano(){
         <option value="todas">Auto: todas as cozinhas</option>
         ${Object.entries(CUIS).map(([k,v])=>`<option value="${k}" ${S.prefCuisine===k?'selected':''}>Auto: ${v}</option>`).join('')}</select>
       <button class="btn small" onclick="autoFill()">✨ Preencher automaticamente</button>${dica('auto','dica-e')}
+      <button class="btn ghost small" onclick="imprimirFrigorifico()">🧲 Pôr no frigorífico ${dica('frigorifico')}</button>
       <button class="btn danger small" onclick="clearWeek()">Limpar</button>
     </div></div>
   ${faixaSemanaFora(dates)}
@@ -20231,7 +20595,7 @@ function renderCompras(){
   const {items,meals}=shoppingItems(); const dates=weekDates(S.week);
   if(!items.length) return `<h2>Lista de compras</h2>
     <p class="sub" style="margin:6px 0 16px">Semana de ${fmtShort(dates[0])} a ${fmtShort(dates[6])}</p>
-    ${estadoVazio('cesto','O cesto está vazio',
+    ${estadoVazio('saco','O cesto está vazio',
       'A lista de compras monta-se sozinha a partir das receitas marcadas no plano da semana, somando as quantidades por número de comensais. Marca algumas refeições e ela aparece aqui.',
       `<button class="btn" onclick="go('plano')">Ir para o plano semanal</button>
        <button class="btn ghost" onclick="go('receitas')">Ver receitas</button>`)}`;
@@ -20266,11 +20630,11 @@ function renderCompras(){
       const iSec=grupos.indexOf(cat);
       const dnSec=arr.filter(it=>bought[it.n+'|'+it.u]).length, okSec=dnSec===arr.length&&arr.length;
       return `
-      <div class="cat-h ${okSec?'feita':''}">${ICO_CAT[cat]||''} ${cat} <span id="co-sec-${iSec}" class="sub cat-conta ${okSec?'f-ok-txt':''}">${okSec?'✓ ':''}${dnSec}/${arr.length}</span></div>
+      <div class="cat-h ${okSec?'feita':''}">${icoCat(cat)} ${cat} <span id="co-sec-${iSec}" class="sub cat-conta ${okSec?'f-ok-txt':''}">${okSec?'✓ ':''}${dnSec}/${arr.length}</span></div>
       <ul class="shop">${arr.sort((a,b)=>a.n.localeCompare(b.n)).map(it=>{
         const key=it.n+'|'+it.u, ok=bought[key];
         return `<li class="${ok?'done':''}" data-sec="${iSec}"><label><input type="checkbox" ${ok?'checked':''} onchange="toggleBought('${esc(key).replace(/'/g,"\\'")}',this)">
-          <span>${esc(it.n)}${seloUrgencia(it)}</span><span class="q">${fmtQ(it)}</span></label></li>`;}).join('')}</ul>`;}).join('')}
+          <span>${esc(it.n)}${seloUrgencia(it)}</span>${botaoTalhao(key)}<span class="q">${fmtQ(it)}</span></label></li>`;}).join('')}</ul>`;}).join('')}
   </div>
   <textarea id="co-txt" style="display:none;max-width:640px;margin-top:12px" readonly aria-label="Lista de compras em texto"></textarea>
   <p class="sub" style="margin-top:12px">Quantidades = receita por pessoa × nº de comensais em cada refeição (membros em cheat day não contam nesse dia).</p>
@@ -20690,7 +21054,7 @@ function renderDespensa(){
   <div class="card" style="max-width:640px">
     <div id="despensa-lista">
     ${grouped.filter(([,idx])=>idx.length).map(([cat,idx])=>`
-      <div class="cat-h">${ICO_CAT[cat]||''} ${cat}</div>
+      <div class="cat-h">${icoCat(cat)} ${cat}</div>
       <ul class="shop">${idx.map(i=>{
         const nome=catalogo[i], ok=!!S.despensa[nome];
         /* a etiqueta só aparece para os alergénios que alguém cá em casa tem:
@@ -21359,6 +21723,11 @@ function cartaoAspeto(){
     <div class="splabel" style="margin-top:14px"><span>O ano no caderno ${dica('sazonal')}</span></div>
     <label class="toggle"><input type="checkbox" ${S.ui.sazonal?'checked':''} onchange="setSazonal(this.checked)">
       <span>Seguir as estações — ${esc(estacaoAgora().n).toLowerCase()}, agora</span></label>
+    <div class="splabel" style="margin-top:14px"><span>Noite de taberna ${dica('taberna')}</span></div>
+    <label class="toggle"><input type="checkbox" ${S.ui.taberna!==false?'checked':''} onchange="setTaberna(this.checked)">
+      <span>Depois das 21h, baixar a voz — superfícies mais quentes até às 6h</span></label>
+    <p class="sub" style="margin-top:6px">Não muda nenhuma cor de texto nem o modo claro/escuro: mexe só nas
+      superfícies. Em «Contraste» não se aplica, porque aí quem manda é a legibilidade.</p>
     <div class="splabel" style="margin-top:14px"><span>Movimento</span></div>
     <label class="toggle"><input type="checkbox" ${S.ui.anim!==false?'checked':''} onchange="setAnim(this.checked)">
       <span>Virar de folha ao mudar de separador</span></label>
@@ -21779,7 +22148,7 @@ function apagarExemplo(){
   /* o aspeto e as preferências de ecrã não são dados do exemplo: quem escolheu
      a paleta e a densidade durante a visita não tem de as voltar a escolher */
   S.ui.tema=ui.tema; S.ui.paleta=ui.paleta; S.ui.densidade=ui.densidade;
-  S.ui.anim=ui.anim; S.ui.sazonal=ui.sazonal; S.ui.sons=ui.sons;
+  S.ui.anim=ui.anim; S.ui.sazonal=ui.sazonal; S.ui.sons=ui.sons; S.ui.taberna=ui.taberna;
   S.ui.tourVisto=true; S.ui.tab='familia';
   S.meta.avisarAoSair=avisar;
   saveMeta();
@@ -22023,7 +22392,8 @@ function pintaModal(){
          : mo.tipo==='bandeja'? modalBandejaHtml(mo) : '')
     : fo? (fo.tipo==='mesa'? folhaMesaHtml(fo) : fo.tipo==='registo'? folhaRegistoHtml()
          : fo.tipo==='pessoa'? folhaPessoaHtml(fo)
-         : fo.tipo==='sobra'? folhaSobraHtml(fo) : '')
+         : fo.tipo==='sobra'? folhaSobraHtml(fo)
+         : fo.tipo==='frigorifico'? folhaFrigorificoHtml() : '')
     : '';
   if(S.ui.pesqAberta) pintaPesquisa();
   if(mo || (fo&&fo.tipo!=='mesa')){ const f=cx.querySelector('input,button'); if(f) setTimeout(()=>f.focus(),0); }
