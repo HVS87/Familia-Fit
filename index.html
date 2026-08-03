@@ -1091,9 +1091,13 @@ input[type=range].com-detentes::-moz-range-track{
 /* Explicadores: bolha ancorada à esquerda do marcador (as dicas vivem sempre
    no lado esquerdo dos cartões, por isso crescer para a direita não transborda).
    Aparecem com o rato, com o teclado e — onde não há rato — ao toque. */
+/* 24 px e não 18: é o mínimo do critério 2.5.8 da WCAG, e um «i» de 18 px é
+   um alvo que um dedo falha. A tentação era deixá-lo pequeno para não roubar
+   atenção ao texto — mas um botão que não se acerta não tem atenção nenhuma
+   para roubar. O peso visual controla-se com a cor, não com o tamanho. */
 .dica{position:relative;display:inline-flex;align-items:center;justify-content:center;
-  width:18px;height:18px;padding:0;margin-left:6px;border:1px solid var(--line);border-radius:50%;
-  background:var(--bg);color:var(--mut);font:700 11px/1 inherit;cursor:help;vertical-align:middle;flex:none}
+  width:24px;height:24px;padding:0;margin-left:6px;border:1px solid var(--line);border-radius:50%;
+  background:var(--bg);color:var(--mut);font:700 12px/1 inherit;cursor:help;vertical-align:middle;flex:none}
 .dica:hover,.dica:focus-visible,.dica.on{border-color:var(--accent);color:var(--accent)}
 .dica::after{content:attr(data-dica);position:absolute;left:calc(-4px + var(--dx,0px));top:calc(100% + 8px);
   width:max-content;max-width:min(270px,calc(100vw - 24px));
@@ -1215,7 +1219,14 @@ input[type=range].com-detentes::-moz-range-track{
   /* o cabeçalho inteiro do cartão também dobra, por isso o botão é um atalho —
      ainda assim fica com alvo confortável */
   .col-btn{padding:11px 13px}
+  /* O «i» das explicações media 18 px, abaixo do mínimo de 24 do critério
+     2.5.8 da WCAG — e um alvo de 18 px num dedo é um alvo que se falha. No
+     rato fica pequeno de propósito, para não roubar atenção ao texto; no
+     toque cresce para 26, que é o que se consegue acertar em andamento. */
+  .dica{width:26px;height:26px;font-size:12.5px}
 }
+/* Mesmo no rato, nenhum destes dois desce abaixo dos 24 px de alvo. */
+.col-btn{min-width:24px;min-height:24px}
 /* Resumo mensal narrado. */
 .narrativa{font-size:14.5px;line-height:1.65}
 .narrativa b{color:var(--ink)}
@@ -1805,6 +1816,20 @@ function migraRegistos(s){
   s.desperdicio = limparDesperdicio(s.desperdicio);
   s.gostos = limparGostos(s.gostos, ids);
   s.jejum = limparJejum(s.jejum, ids);
+  /* Os cheat days vivem num objeto por membro. Se um ficheiro trouxer aqui
+     outra coisa — uma string, uma lista —, isCheat() sobrevive (lê undefined
+     e devolve falso) mas toggleCheat() deixa de conseguir escrever, e os dias
+     livres deixam de funcionar sem um único erro na consola. É o tipo de
+     avaria que ninguém reporta porque parece um esquecimento próprio. */
+  /* As camadas por cima não sobrevivem a fechar a app. Reabrir um diálogo
+     de pesagem meio preenchido, ou uma folha de uma refeição de anteontem,
+     não serve ninguém — e é uma superfície de avaria a mais, porque o estado
+     vem de um ficheiro que pode estar estragado. A cozinha é a exceção
+     deliberada: os tachos ficam a contar e a app tem de voltar para lá. */
+  s.ui.modal=null; s.ui.folha=null; s.ui.ficha=null;
+  s.ui.pesqAberta=false; s.ui.mercado=false;
+  if(!s.cheats || typeof s.cheats!=='object' || Array.isArray(s.cheats)) s.cheats={};
+  Object.keys(s.cheats).forEach(k=>{ if(!Array.isArray(s.cheats[k])) delete s.cheats[k]; });
   s.corredores = limparCorredores(s.corredores);
   s.trilhos = limparTrilhos(s.trilhos);
   s.talhoes = limparTalhoes(s.talhoes, ids);
@@ -4961,6 +4986,12 @@ NI('Choco cru',79,0,18.9,0.4,0,0,0);
 NI('Chocolate culinária, tablete',502,44,5.4,30.5,15,0,4);
 NI('Chocolate de leite, tablete',552,53.1,8,33.9,1.3,0,4);
 NI('Chocolate negro (aproximadamente 50% cacau)',530,52.6,5.2,31.7,7.2,0,4);
+/* Dois ingredientes que estavam em receitas e não estavam no catálogo: os
+   macros deles não entravam em conta nenhuma e a lista de compras não sabia
+   a unidade. Apanhados por uma varredura que compara os ingredientes de
+   todas as receitas com as chaves da tabela. */
+NI('Chocolate de culinária',502,44,5.4,30.5,15,0,4);   /* INSA: Chocolate culinária, tablete */
+NI('Mostarda de Dijon',158,18.5,5.7,6.4,1.7,0,4);      /* INSA: Condimento de mostarda */
 NI('Chocolate, pó',469,63.8,4.2,20.3,7.3,0,4);
 NI('Chouriço de carne de porco, cru',476,0,20,44.1,0,0,1);
 NI('Chouriço de carne de porco, gordo, cru',544,0,15.4,53.6,0,0,1);
@@ -13353,7 +13384,14 @@ function blocoBalcao(){
    por pessoa: «a Ana já lanchou?», «o que come a avó hoje?». Hoje isso
    responde-se saltando três separadores e mudando o seletor de membro em cada
    um. Esta é uma vista transversal — não substitui nada. */
+/* Um diálogo aberto ganha sempre à folha no pintor das camadas, e uma folha
+   por baixo de um diálogo não dá erro nenhum: simplesmente não aparece. Os
+   avatares também vivem dentro das camadas — a pressão longa está no
+   documento, não no #main —, por isso este caminho é alcançável com a
+   bandeja da manhã ou a pergunta da pesagem à frente. Fecha-se o que está
+   por cima antes de abrir. */
 function abrirPessoa(mid){
+  S.ui.modal=null;
   if(!S.members.some(m=>m.id===mid)) return;
   S.ui.folha={tipo:'pessoa', mid};
   saveMeta(); render();
@@ -16494,8 +16532,13 @@ function cartaoEditor(){
         <button class="btn ghost small" onclick="edAddIng()">+ Ingrediente</button>
       </div>
       ${e.i.length? `<div class="ed-lista">${e.i.map((l,idx)=>`<div class="ed-linha">
-        <select onchange="edSetIng(${idx},'nome',this.value)" aria-label="Ingrediente ${idx+1}">
-          ${cat.map(n=>`<option value="${esc(n)}" ${l[0]===n?'selected':''}>${esc(n)}</option>`).join('')}</select>
+        <!-- Cada linha tinha aqui as seiscentas e tal opções do catálogo, e uma
+             receita de dez ingredientes punha sete mil nós no separador só por
+             estar aberta. A lista enche-se ao tocar, como já se fazia nos
+             selects do plano: até lá basta a opção escolhida. -->
+        <select onchange="edSetIng(${idx},'nome',this.value)" aria-label="Ingrediente ${idx+1}"
+          onfocus="encheIngredientes(this)" onmousedown="encheIngredientes(this)" ontouchstart="encheIngredientes(this)">
+          <option value="${esc(l[0])}" selected>${esc(l[0])||'— escolher —'}</option></select>
         <input type="number" min="0" step="${l[2]==='un'||l[2]==='dente'?'0.25':'5'}" value="${l[1]}"
           oninput="edSetIng(${idx},'q',this.value)" aria-label="Quantidade">
         <span class="sub">${l[2]}</span>
@@ -19936,6 +19979,14 @@ function opcoesRefeicao(di,mk,tipo,i){
       : (servem.length? `<optgroup label="Servem ${comem.length===1? nomeCurto(comem[0]) : 'os '+comem.length+' à mesa'}">${servem.map(op).join('')}</optgroup>`:'')
         +(outras.length? `<optgroup label="Fora dos critérios">${outras.map(op).join('')}</optgroup>`:''));
 }
+/* O mesmo truque do encheSelect, para o catálogo de ingredientes do editor
+   de receitas: a lista só nasce quando o dedo lá vai. */
+function encheIngredientes(el){
+  if(el.dataset.cheio) return;
+  const valor=el.value;
+  el.innerHTML=catalogoIngredientes().map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
+  el.value=valor; el.dataset.cheio='1';
+}
 function encheSelect(el){
   if(el.dataset.cheio) return;
   const di=parseInt(el.dataset.di,10), mk=el.dataset.mk, valor=el.value;
@@ -20731,6 +20782,20 @@ function grupoDoItem(it){
   for(const [i,[cat,re]] of CATS.entries()) if(re.test(it.n)) return i;
   return CATS.length-1;
 }
+/* A unidade canónica de cada ingrediente é a que unidIng() já elegia — a
+   primeira que a biblioteca de receitas usa para ele. Esta função converte
+   qualquer outra para essa, usando o peso da unidade que a tabela de
+   composição publica (n.un). Devolve o par [unidade, quantidade]. */
+function normalizaUnidade(nome,quant,u){
+  const alvo=unidIng()[nome];
+  if(!alvo || alvo===u) return [u,quant];
+  const c=composicaoDe(nome);
+  if(!c||!c.un) return [u,quant];        /* sem peso por unidade não se converte */
+  if(u==='un' && (alvo==='g'||alvo==='ml')) return [alvo, quant*c.un];
+  if((u==='g'||u==='ml') && alvo==='un')   return [alvo, quant/c.un];
+  /* g <-> ml não se converte: densidade não é um dado que a app tenha */
+  return [u,quant];
+}
 function shoppingItems(){
   const dates=weekDates(S.week), w=S.plans[S.week]||{}, agg={};
   let meals=0;
@@ -20755,9 +20820,18 @@ function shoppingItems(){
        igual o açafrão de domingo e o frango de amanhã, mas a pergunta de quem
        está no supermercado à quarta-feira é «o que é que tenho MESMO de levar
        hoje?». Só se retém o mais cedo — é esse que manda. */
-    const junta=(lista,fator)=>lista.forEach(([nome,quant,u])=>{ const key=nome+'|'+u;
+    const junta=(lista,fator)=>lista.forEach(([nome,quant,u0])=>{
+      /* Uma receita pede «1 cebola» e a seguinte «150 g de cebola». As duas
+         são a mesma compra, e a lista abria duas linhas para elas — uma com
+         3 un e outra com 400 g, e quem vai ao supermercado leva a mais ou a
+         menos. Converte-se tudo para a unidade que a casa já usa para aquele
+         ingrediente, com o peso médio da unidade que a tabela de composição
+         traz. Se não houver como converter, mantém-se a unidade original em
+         vez de somar peras com maçãs. */
+      const [u,quantConv]=normalizaUnidade(nome,quant,u0);
+      const key=nome+'|'+u;
       if(!agg[key]) agg[key]={n:nome,u,q:0,di:di,mk:mk};
-      agg[key].q+=quant*n*fator;
+      agg[key].q+=quantConv*n*fator;
       if(di<agg[key].di){ agg[key].di=di; agg[key].mk=mk; } });
     junta(r.i,fPrato);
     acs.forEach(x=>junta(x.i,q));
@@ -22667,7 +22741,15 @@ function pintaModal(){
   if(!cx){ cx=document.createElement('div'); cx.id='modal-raiz'; document.body.appendChild(cx); }
   const mo=modalAberto(), fo=folhaMesa();
   const fi=fichaAberta();
-  cx.innerHTML = S.ui.pesqAberta? pesquisaHtml()
+  /* A camada é a única parte da app que se desenha a partir de um estado
+     livre — e esse estado sobrevive a um recarregamento, porque vive em
+     S.ui. Um modal com a forma errada (um ficheiro de cópia estragado, uma
+     versão antiga, um dedo na consola) rebentava aqui e levava o render
+     inteiro atrás: ecrã em branco, e nem o botão de fechar para se sair.
+     Aqui o desenho da camada é a única coisa que pode falhar sozinha —
+     falha, deita fora a camada e a app continua de pé. */
+  const desenhaCamada=()=>
+      S.ui.pesqAberta? pesquisaHtml()
     : S.ui.cozinha? cozinhaHtml()
     : fi? fichaHtml(fi)
     : S.ui.mercado? mercadoHtml()
@@ -22680,6 +22762,14 @@ function pintaModal(){
          : fo.tipo==='sobra'? folhaSobraHtml(fo)
          : fo.tipo==='frigorifico'? folhaFrigorificoHtml() : '')
     : '';
+  try{ cx.innerHTML=desenhaCamada(); }
+  catch(err){
+    console.warn('Família Fit — camada por cima falhou e foi descartada:', err);
+    S.ui.modal=null; S.ui.folha=null; S.ui.ficha=null; S.ui.cozinha=null;
+    S.ui.mercado=false; S.ui.pesqAberta=false;
+    cx.innerHTML='';
+    try{ saveMeta(); }catch(e){}
+  }
   if(S.ui.pesqAberta) pintaPesquisa();
   if(mo || (fo&&fo.tipo!=='mesa')){ const f=cx.querySelector('input,button'); if(f) setTimeout(()=>f.focus(),0); }
   trancarFundo(!!cx.innerHTML);
