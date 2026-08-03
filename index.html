@@ -1877,6 +1877,11 @@ function migraRegistos(s){
   s.rituais = limparRituais(s.rituais); s.extras = limparExtras(s.extras); s.aindaHa = limparAindaHa(s.aindaHa);
   s.visitas = limparVisitas(s.visitas); s.ementas = limparEmentas(s.ementas);
   s.anos = limparAnos(s.anos, ids); s.provas = limparProvas(s.provas, ids); s.bebidas = limparBebidas(s.bebidas, ids);
+  /* notasCozinha era o único campo com saneador que não passava por aqui: era
+     chamado no desfazer e na leitura de uma cópia, mas não no arranque a partir
+     do localStorage — que é justamente por onde entram gravações truncadas e
+     estados antigos. minutosDoPasso() soma n.delta sem verificar o tipo. */
+  s.notasCozinha = limparNotasCozinha(s.notasCozinha);
   /* Os dois filtros eram uma escolha só e passaram a listas. Uma cópia antiga
      traz uma string, e uma string tem .indexOf — passaria sem dar erro e
      filtraria por letras em vez de por dietas. */
@@ -2221,6 +2226,10 @@ const VISITA_MAX=12;
 /* Quantas idas ao supermercado se guardam para aprender o percurso. Está aqui
    com os outros tetos pela mesma razão: limparTrilhos() corre no arranque. */
 const TRILHO_MAX=12;
+/* Teto do que se aceita ler de um ficheiro. Uma casa com anos de histórico não
+   passa de um ou dois megabytes; acima disto é engano ou é um ficheiro que
+   ocupa memória a mais antes sequer de se olhar para o que lá está dentro. */
+const MAX_IMPORT_BYTES=8*1024*1024;
 /* Os limites do corpo, num sítio só: [mínimo, máximo, nome, unidade, recurso].
    Estão aqui em cima porque normalizaMembro() os lê e corre dentro de load(),
    no arranque — a mesma zona morta temporal que apanhou o MAX_AC. São os
@@ -2500,7 +2509,7 @@ R('pimentosatum','Salada de pimentos assados com atum','espanhola',['lowcarb','p
 R('sopaalho','Sopa de alho castelhana','espanhola',[],260,26,14,11,[['Pão rústico',50,'g'],['Ovo',1,'un'],['Alho',4,'dente'],['Presunto',20,'g'],['Pimentão-doce',2,'g'],['Azeite',8,'ml']],['a','j','l'],2,['sop']),
 R('pinchos','Espetadas moriscas de porco','espanhola',['keto','lowcarb','paleo'],400,6,42,24,[['Carne de porco',180,'g'],['Cominhos',2,'g'],['Pimentão-doce',3,'g'],['Alho',2,'dente'],['Limão',0.5,'un'],['Azeite',10,'ml']],null,1),
 R('manchego','Manchego com marmelada e amêndoas','espanhola',['vegetariana','lowcarb'],330,18,16,22,[['Queijo manchego',60,'g'],['Marmelada',25,'g'],['Amêndoa',20,'g']],['l'],3),
-R('salmorejo','Salmorejo cordobês','espanhola',['vegetariana','mediterranica'],320,30,10,18,[['Tomate',3,'un'],['Pão rústico',50,'g'],['Ovo',0.5,'un'],['Alho',1,'dente'],['Azeite',14,'ml']],['a','l'],4),
+R('salmorejo','Salmorejo cordobês','espanhola',['vegetariana','mediterranica'],320,30,10,18,[['Tomate',3,'un'],['Pão rústico',50,'g'],['Ovo',0.5,'un'],['Alho',1,'dente'],['Azeite',14,'ml']],['a','l'],4,['sop']),
 R('pilpil','Bacalhau al pil-pil','espanhola',['keto','lowcarb','mediterranica'],480,4,40,34,[['Bacalhau (posta)',180,'g'],['Alho',4,'dente'],['Malagueta',1,'un'],['Azeite',30,'ml']],null,1),
 
 /* ---------- Italiana ---------- */
@@ -2525,7 +2534,7 @@ R('blanquette','Blanquette de vitela','francesa',[],520,24,42,28,[['Vitela',180,
 R('chevrechaud','Salada de queijo de cabra quente','francesa',['lowcarb','vegetariana'],430,22,18,30,[['Queijo de cabra',80,'g'],['Pão rústico',40,'g'],['Alface',60,'g'],['Nozes',20,'g'],['Mel',6,'g'],['Azeite',12,'ml']],['a','j','l'],3,['pp']),
 R('moules','Mexilhões à marinière','francesa',['lowcarb','mediterranica'],330,14,34,14,[['Mexilhões',400,'g'],['Vinho branco',100,'ml'],['Chalota',1,'un'],['Salsa',8,'g'],['Manteiga',15,'g']],null,1),
 R('croquemadame','Croque-madame','francesa',[],560,42,32,30,[['Pão de forma',70,'g'],['Fiambre',50,'g'],['Queijo gruyère',40,'g'],['Ovo',1,'un'],['Leite',60,'ml'],['Manteiga',10,'g']],['p','a'],3),
-R('veloute','Velouté de alho-francês e batata','francesa',['vegetariana'],280,34,8,12,[['Alho-francês',200,'g'],['Batata',120,'g'],['Caldo de legumes',300,'ml'],['Nata',30,'ml'],['Manteiga',8,'g']],['a','j','l'],5),
+R('veloute','Velouté de alho-francês e batata','francesa',['vegetariana'],280,34,8,12,[['Alho-francês',200,'g'],['Batata',120,'g'],['Caldo de legumes',300,'ml'],['Nata',30,'ml'],['Manteiga',8,'g']],['a','j','l'],5,['sop']),
 R('steakfeijao','Bife com feijão-verde e molho de mostarda','francesa',['keto','lowcarb'],470,10,44,28,[['Bife de vaca',180,'g'],['Feijão verde',150,'g'],['Mostarda',10,'g'],['Nata',30,'ml'],['Manteiga',12,'g']],null,4),
 R('saladelentilles','Salada de lentilhas com ovo e vinagrete','francesa',['vegetariana','mediterranica'],420,44,24,16,[['Lentilhas',100,'g'],['Ovo',1,'un'],['Cebola roxa',0.25,'un'],['Salsa',8,'g'],['Mostarda',8,'g'],['Vinagre de vinho',6,'ml'],['Azeite',12,'ml']],['a','j','l'],10),
 R('crepesalgado','Crepe salgado de fiambre e queijo','francesa',[],440,46,24,18,[['Farinha',50,'g'],['Ovo',1,'un'],['Leite',120,'ml'],['Fiambre',40,'g'],['Queijo gruyère',30,'g'],['Manteiga',8,'g']],['p','l'],2),
@@ -2773,7 +2782,7 @@ R('currywurst','Currywurst','outras',[],493,20,25,34,[['Salsicha fresca crua',15
    derivação automática e não por esta lista: se algum passar do teto, perde a
    etiqueta sozinho. O que estes têm de propósito é variedade — os que já cá
    estavam eram quase todos de ovo e salgados. */
-R('ketofatbomb','Bombas de manteiga de amendoim e cacau','americana',[],0,0,0,0,[['Manteiga de amendoim',30,'g'],['Óleo de coco',15,'g'],['Cacau em pó',6,'g'],['Coco ralado',8,'g'],['Flor de sal',0.5,'g']],['l'],0,['sn']),
+R('ketofatbomb','Bombas de manteiga de amendoim e cacau','americana',[],0,0,0,0,[['Manteiga de amendoim',30,'g'],['Óleo de coco',15,'ml'],['Cacau em pó',6,'g'],['Coco ralado',8,'g'],['Flor de sal',0.5,'g']],['l'],0,['sn']),
 R('ketochipsqueijo','Chips de parmesão no forno','italiana',[],0,0,0,0,[['Parmesão',45,'g'],['Pimentão-doce',1,'g'],['Orégãos',1,'g']],['l'],0,['sn']),
 R('ketosalmaocreme','Salmão fumado com queijo creme e endro','francesa',[],0,0,0,0,[['Salmão fumado',60,'g'],['Queijo creme',40,'g'],['Endro',3,'g'],['Limão',0.25,'un'],['Pepino',40,'g']],['l'],0,['sn','ent']),
 R('ketoamendoas','Amêndoas torradas com pimentão e flor de sal','portuguesa',['mediterranica'],0,0,0,0,[['Amêndoa',40,'g'],['Pimentão-doce',2,'g'],['Flor de sal',1,'g'],['Azeite',4,'ml']],['l'],0,['sn']),
@@ -4658,6 +4667,9 @@ function carregarTabela(txt,fonteId,converterHC){
 }
 function importarTabela(input,fonteId){
   const f=input.files && input.files[0]; if(!f) return;
+  if(f.size>MAX_IMPORT_BYTES){ input.value='';
+    return flash('bad','«'+f.name+'» tem '+Math.round(f.size/1048576)+' MB. As tabelas oficiais de composição '
+      +'ocupam bem menos do que isso — confirma que é o ficheiro certo.'); }
   const r=new FileReader();
   r.onload=()=>{
     const res=carregarTabela(String(r.result), fonteId, fonteId==='fda');
@@ -4831,7 +4843,7 @@ NI('Lulas',71,0,15.8,0.9,0,0,0);
 NI('Polvo',73,0,15.6,1.2,0,0,0);
 NI('Leite',47,4.9,3.3,1.6,0,0,3);
 NI('Nata',335,3.1,1.8,35,0,0,3);
-NI('Manteiga',739,0.7,0.1,81.8,0,0,4);
+NI('Manteiga',739,0.7,0.1,81.8,0,0,3);   /* laticínios, como o leite e as natas */
 NI('Iogurte natural',54,5,4.2,1.8,0,0,3);
 NI('Iogurte grego',85,4.8,1.4,6.6,0,0,3);
 NI('Queijo fresco',156,2.7,9.2,11.9,0,0,3);
@@ -4973,7 +4985,7 @@ NI('Pasta de miso',177,15.1,11.9,6.5,5.2,0,4);
 NI('Pesto',460,4,5,46,2,0,-1);  // USDA, hidratos convertidos para disponiveis
 NI('Tomate pelado',24,4,1.2,0.2,1.3,0,-1);  // USDA, hidratos convertidos para disponiveis
 NI('Tomate seco',258,44,14,3,12,0,-1);  // USDA, hidratos convertidos para disponiveis
-NI('Passas',300,68.2,3,0.8,4.2,0,2);
+NI('Passas',300,68.2,3,0.8,4.2,0,4);   /* prateleira, e é o que SEC_FIXA já dizia */
 NI('Leite de coco',185,2.8,2,18.4,0,0,4);
 NI('Cacau em pó',358,11.1,19.6,23.4,12.1,0,4);
 NI('Caldo de galinha',5,0.2,0.3,0.3,0,0,4);
@@ -5196,7 +5208,7 @@ NI('Maçã sem casca',61,12.7,0.2,0.5,1.9,0,2);
 NI('Maionese caseira, com ovo e óleo de soja',644,0,3.9,69.8,0,0,4);
 NI('Mandioca crua',145,33.8,1,0.3,1.8,0,2);
 NI('Manjerona seca',320,42.5,12.7,7,18.1,0,4);
-NI('Manteiga sem sal',750,0.7,0.1,83,0,0,4);
+NI('Manteiga sem sal',750,0.7,0.1,83,0,0,3);
 NI('Maracujá',52,5.7,2.6,0.4,3.3,0,2);
 NI('Margarina',740,0.4,0.1,82,0,0,4);
 NI('Margarina 3/4, de girassol',524,0.3,0.1,58,0,0,4);
@@ -11744,7 +11756,9 @@ function concluirFecho(){
   if(f.especial){
     /* o jantar especial vai para o sábado da semana que vem */
     const wk=mondayISO(addDias(hojeISO(),7)), guarda=S.week;
-    S.week=wk; const meal=planMeal(5,'j'); meal.r=f.especial; meal.m=S.members.map(m=>m.id); S.week=guarda;
+    S.week=wk;
+    try{ const meal=planMeal(5,'j'); meal.r=f.especial; meal.m=S.members.map(m=>m.id); }
+    finally{ S.week=guarda; }
   }
   S.ui.fecho=null;
   save('fecho da semana');
@@ -11925,7 +11939,9 @@ function passarAVez(){
   S.casa.vezPtr=((S.casa.vezPtr||0)+1)%99;
   save('trocar a vez de escolher');
   const m=quemEscolheEstaSemana();
-  flash('ok', m? 'Agora é a vez de '+esc(m.nome.split(' ')[0])+'.' : 'Vez trocada.');
+  /* sem esc(): o flash escapa no banner e escreve o toast com textContent —
+     escapar aqui punha «Sá &amp; filhos» a aparecer assim mesmo, nos dois */
+  flash('ok', m? 'Agora é a vez de '+m.nome.split(' ')[0]+'.' : 'Vez trocada.');
   render();
 }
 function cartaoDiario(){
@@ -13272,9 +13288,12 @@ function pendenciasHoje(){
       out.ativ.push({mid:m.id, sid:p.s.id, s:p.s, min:p.min}); });
     if(precisaPesagem(m)) out.pesagens++;
   });
+  /* try/finally em toda a troca temporária de S.week: se shoppingItems()
+     lançar a meio, a app ficava na semana errada — e o writeLS dos 30 segundos
+     gravava-a, deixando a pessoa noutra semana sem perceber porquê */
   const wk=mondayISO(d), guarda=S.week; S.week=wk;
-  out.compras=itensEmFalta(shoppingItems().items).filter(i=>!((S.bought[wk]||{})[i.n+'|'+i.u])).length;
-  S.week=guarda;
+  try{ out.compras=itensEmFalta(shoppingItems().items).filter(i=>!((S.bought[wk]||{})[i.n+'|'+i.u])).length; }
+  finally{ S.week=guarda; }
   out.total=out.ref.length+out.ativ.length;
   return out;
 }
@@ -14916,8 +14935,9 @@ function cartaoHoje(){
   /* o que falta comprar conta-se na semana de HOJE, que pode não ser a que
      está aberta no plano — daí não se usar shoppingItems() diretamente */
   const guarda=S.week; S.week=wk;
-  const pend=itensEmFalta(shoppingItems().items).filter(i=>!((S.bought[wk]||{})[i.n+'|'+i.u])).length;
-  S.week=guarda;
+  let pend=0;
+  try{ pend=itensEmFalta(shoppingItems().items).filter(i=>!((S.bought[wk]||{})[i.n+'|'+i.u])).length; }
+  finally{ S.week=guarda; }
   return `<section class="card card--capa" id="hoje" style="margin-bottom:16px">
     <span class="lbl">${rot}</span>
     <h2 style="margin-top:2px">${linhas.length? 'À mesa hoje' : 'Hoje ainda sem plano'}</h2>
@@ -18221,7 +18241,7 @@ function registarOCostume(mid,mk){
   registarRefeicao({d, mk, r:c.r, ac:c.ac, dose:c.dose}, [mid], 'feita');
   carimboAlvo='ref:'+d+':'+mk; som('registo');
   save('registo do costume');
-  flash('ok', esc(rec.n)+' ao '+nomeRefeicao(mk).toLowerCase()+', '
+  flash('ok', rec.n+' ao '+nomeRefeicao(mk).toLowerCase()+', '
     +nPT(c.dose,2).replace(',00','')+'× dose — como de costume.', {rot:'Anular', fn:'desfazer()'});
   render();
 }
@@ -21535,15 +21555,16 @@ function listasPendentes(){
   const guarda=S.week, out=[];
   /* a semana atual e as duas anteriores: mais para trás é história, não uma
      compra por fazer */
-  for(let k=0;k<3;k++){
-    const wk=mondayISO(addDias(hojeISO(),-7*k));
-    S.week=wk;
-    const items=shoppingItems().items;
-    const marcados=S.bought[wk]||{};
-    const falta=items.filter(it=>!marcados[it.n+'|'+it.u] && !temNaDespensa(it.n));
-    if(falta.length) out.push({wk, itens:falta});
-  }
-  S.week=guarda;
+  try{
+    for(let k=0;k<3;k++){
+      const wk=mondayISO(addDias(hojeISO(),-7*k));
+      S.week=wk;
+      const items=shoppingItems().items;
+      const marcados=S.bought[wk]||{};
+      const falta=items.filter(it=>!marcados[it.n+'|'+it.u] && !temNaDespensa(it.n));
+      if(falta.length) out.push({wk, itens:falta});
+    }
+  } finally{ S.week=guarda; }
   return out;
 }
 function talvezPerguntarCompras(){
@@ -21594,8 +21615,9 @@ function guardarComprasConf(){
 }
 function modalComprasHtml(mo){
   const guarda=S.week; S.week=mo.wk;
-  const items=shoppingItems().items.filter(it=>mo.marcados[it.n+'|'+it.u]!==undefined);
-  S.week=guarda;
+  let items=[];
+  try{ items=shoppingItems().items.filter(it=>mo.marcados[it.n+'|'+it.u]!==undefined); }
+  finally{ S.week=guarda; }
   const n=items.filter(it=>mo.marcados[it.n+'|'+it.u]).length;
   const mesma=mo.wk===mondayISO(hojeISO());
   return `<div class="mfundo" onclick="fundoModal(event)">
@@ -21683,17 +21705,22 @@ function precoTalao(nome,v){
   mo.precos[nome]=v;
   /* ao vivo só se reescreve a linha da conta — um render aqui roubava o
      cursor a quem está a escrever o preço seguinte */
-  const guarda=S.week; S.week=mo.wk;
-  const items=shoppingItems().items.filter(it=>mo.marcados[it.n+'|'+it.u]!==undefined);
-  S.week=guarda;
-  põe('talao-conta', textoContaTalao(contaTalao(mo,items)));
+  reescreveContaTalao(mo);
 }
 function totalTalaoAoVivo(v){
   const mo=modalAberto(); if(!mo) return;
   mo.total=v;
+  reescreveContaTalao(mo);
+}
+/* Os itens marcados do talão, lidos na semana do talão e não na semana aberta.
+   Era o mesmo bloco escrito duas vezes, e as duas sem try/finally: um erro em
+   shoppingItems() deixava a app na semana do talão, e a gravação automática
+   dos 30 segundos persistia-a. */
+function reescreveContaTalao(mo){
   const guarda=S.week; S.week=mo.wk;
-  const items=shoppingItems().items.filter(it=>mo.marcados[it.n+'|'+it.u]!==undefined);
-  S.week=guarda;
+  let items=[];
+  try{ items=shoppingItems().items.filter(it=>mo.marcados[it.n+'|'+it.u]!==undefined); }
+  finally{ S.week=guarda; }
   põe('talao-conta', textoContaTalao(contaTalao(mo,items)));
 }
 function totalTalaoGuarda(v){ totalTalaoAoVivo(v); saveMeta(); }
@@ -22200,6 +22227,16 @@ function substituir(txt){
   migraRegistos(S);   /* o peso do perfil volta a ser o da última pesagem da cópia */
   S.meta=Object.assign(S.meta,{avisarAoSair:antigo.avisarAoSair, exportadoEm:antigo.exportadoEm});
   S.ui.tab='dados'; S.ui.mid=S.members[0]? S.members[0].id : null;
+  /* O desfazer tem de saber deste salto. Sem isto, estadoAnterior continuava a
+     apontar para o estado de ANTES da restauração: o render() que vem a seguir
+     via a diferença, empilhava-o, e um Ctrl+Z distraído revertia a cópia
+     acabada de restaurar sem dizer o que estava a desfazer. Empilha-se à mão
+     (e não com save(), que marcaria semCopia=true logo depois de a cópia ter
+     sido lida) para o passo ficar no histórico com nome próprio. */
+  pilhaUndo.push({js:estadoAnterior, desc:'restaurar cópia'});
+  if(pilhaUndo.length>UNDO_MAX) pilhaUndo.shift();
+  pilhaRedo=[];
+  estadoAnterior=instantaneo();
   S.meta.semCopia=false; saveMeta();
   flash('ok','Dados restaurados: '+plural(d.members.length,'perfil','perfis')+' e '
     +plural(Object.keys(d.plans).length,'semana','semanas')+' de plano.');
@@ -22326,7 +22363,7 @@ function juntar(txt){
     if(!Object.keys(S.gostos[rid]).length) delete S.gostos[rid];
   });
   if(!S.ui.mid && S.members[0]) S.ui.mid=S.members[0].id;
-  save();
+  save('juntar cópia');   /* com nome, para o Ctrl+Z dizer o que desfaz */
   flash('ok','Cópia integrada: '+plural(novos,'perfil novo','perfis novos')+', '
     +plural(refeicoes,'refeição acrescentada','refeições acrescentadas')+', '
     +plural(receitasNovas,'receita nova','receitas novas')+', '
@@ -22337,6 +22374,9 @@ function juntar(txt){
 }
 function importarFicheiro(input,modo){
   const f=input.files && input.files[0]; if(!f) return;
+  if(f.size>MAX_IMPORT_BYTES){ input.value='';
+    return flash('bad','«'+f.name+'» tem '+Math.round(f.size/1048576)+' MB — grande de mais para ser uma cópia desta app. '
+      +'Uma casa com anos de histórico não passa de um ou dois megabytes.'); }
   const r=new FileReader();
   r.onload=()=>{ modo==='juntar'? juntar(String(r.result)) : substituir(String(r.result)); };
   r.onerror=()=>flash('bad','Não foi possível ler o ficheiro «'+f.name+'».');
@@ -22358,7 +22398,7 @@ function apagarTudo(){
 }
 function tamanho(){
   const n=new Blob([JSON.stringify(S)]).size;
-  return n<1024? n+' B' : (n/1024).toFixed(1)+' kB';
+  return n<1024? n+' B' : nPT(n/1024,1)+' kB';   /* vírgula, como no resto da app */
 }
 /* O cartão das tabelas de composição: mostra de onde vêm os números que a app
    já tem, e deixa carregar os ficheiros oficiais completos. */
