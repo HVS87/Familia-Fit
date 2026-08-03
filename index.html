@@ -5927,7 +5927,7 @@ const ING_EXCECAO={
   'Castanha de caju torrada e salgada':320,
   'Cerveja branca':0,
   'Chouriço':2480,   /* Chouriço de carne de porco, cru */
-  'Chouriço de carne de porco':2480,   /* Chouriço de carne de porco, cru */
+  'Chouriço de carne de porco, cru':2480,
   'Chucrute':480,
   'Clara de ovo de galinha, crua':200,
   'Cogumelos enlatados, escorridos':360,
@@ -5940,7 +5940,10 @@ const ING_EXCECAO={
   'Flor de sal':40000,
   'Gema de ovo de galinha, crua':40,
   'Iogurte grego':40,   /* Iogurte grego natural */
-  'Iogurte grego magro':0,   /* Iogurte grego magro natural  */
+  /* «Iogurte grego magro natural» ficava aqui com 0 mg — impossível, porque
+     todo o leite traz sódio. A chave estava truncada, por isso o zero nunca
+     chegou a ser lido; corrigi-la seria passar a afirmar o zero. Fica sem
+     valor, e a app conta-o como omissão em vez de somar uma mentira. */
   'Iogurte magro, natural':80,   /* Iogurte magro, natural  */
   'Iogurte natural':80,   /* Iogurte magro, natural  */
   'Ketchup':1240,   /* Molho de tomate, "ketchup" */
@@ -5953,7 +5956,7 @@ const ING_EXCECAO={
   'Leite gordo, pasteurizado':40,
   'Leite gordo, pó':360,
   'Leite gordo, UHT':40,
-  'Leite magro de pastagem':40,   /* Leite magro de pastagem, UHT  */
+  'Leite magro de pastagem, UHT':40,
   'Leite magro, pó':520,
   'Leite magro, UHT':40,
   'Leite meio gordo, pó':440,
@@ -6032,7 +6035,7 @@ const ING_EXCECAO={
   'Queijo gruyère':680,
   'Queijo Mascarpone':80,
   'Queijo Mestiço de Tolosa':840,
-  'Queijo Quark natural':40,   /* Queijo Quark natural meio gordo */
+  'Queijo Quark natural meio gordo':40,
   'Queijo Raclette':680,
   'Queijo ralado':760,   /* Queijo Parmesão */
   'Queijo São Jorge':720,
@@ -6085,12 +6088,13 @@ const NA_ESTIMADO={
   'Pesto':800,
   'Queijo azul':1400,
   'Queijo da ilha':800,
-  'Queijo de cabra "Puro"':500,
+  'Queijo de cabra "Pure chèvre"':500,   /* é este o nome no catálogo */
   'Queijo feta':1140,
   'Queijo halloumi':1500,
   'Queijo manchego':1200,
   'Queijo minas frescal':30,
-  'Raita de pepino e hortelã':180,
+  /* «Raita de pepino e hortelã» era uma receita, não um ingrediente — esta
+     tabela é indexada por ingrediente, por isso a linha nunca foi lida. */
   'Requeijão cremoso (catupiry)':400,
   'Ricotta':85,
   'Sal grosso':38700,
@@ -6128,6 +6132,21 @@ function sodioDe(nome){
   if(temChave(NA_ESTIMADO,nome)) return NA_ESTIMADO[nome];
   return NA_RESIDUAL.test(nome)? 0 : null;
 }
+/* Estas tabelas são indexadas por igualdade exata com o nome do ingrediente.
+   Uma chave escrita com o nome truncado — «Chouriço de carne de porco» quando
+   o catálogo diz «Chouriço de carne de porco, cru» — não dá erro: fica ali,
+   nunca é lida, e o ingrediente conta como se não tivesse sódio nenhum. Foram
+   seis, e nenhuma se via. Como no aviso das secções do supermercado, diz-se
+   em voz alta a quem estiver a editar a tabela, sem adivinhar a chave certa. */
+(function(){
+  /* Object.keys(NUTRI) e não catalogoIngredientes(): essa memoriza em
+     _catalogo, que só é declarado trezentas linhas abaixo — chamá-la daqui
+     apanhava a zona morta temporal e dava ecrã em branco. */
+  const cat=new Set(Object.keys(NUTRI));
+  const orfas=[...Object.keys(NA_INSA),...Object.keys(NA_ESTIMADO)].filter(k=>!cat.has(k));
+  if(orfas.length) console.warn('Família Fit — chaves de sódio sem ingrediente correspondente ('
+    +orfas.length+'): '+orfas.join(' · '));
+})();
 /* Se o número veio do INSA ou de uma estimativa. Quem lê um valor de saúde
    tem direito a saber a diferença, e a app não tem o direito de a esconder. */
 function sodioEstimado(nome){ return temChave(NA_ESTIMADO,nome); }
@@ -6530,7 +6549,7 @@ function blank(){ return {members:[],cheats:{},plans:{},bought:{},prefCuisine:'t
       objForm:{membros:[],tipo:'perder',delta:5,semanas:12,split:50,desporto:null,banda:2},
       objExpandido:null, objAdj:null, celebrando:null, tourPasso:null, tourVisto:false,
       tema:'auto', paleta:'azulejo', colapsados:{}, alergF:[], alergDesp:'',
-      recLimite:48, recTodas:false,
+      recLimite:48, recQ:'',
       sug:{membros:null,ref:'a',teto:true,cuis:'todas',verFora:false}, porcoes:null,
       histAtiv:null, histRef:null, janelaPeso:'mes', linhasPeso:{ativ:false,kcal:false},
       formAtiv:null, formRef:null, medForm:null, comprasConf:null,
@@ -16330,14 +16349,22 @@ function correspondeBusca(r,q){
 const LOTE_RECEITAS=48;
 function maisReceitas(){ S.ui.recLimite=(S.ui.recLimite||LOTE_RECEITAS)+LOTE_RECEITAS; saveMeta(); render(); }
 /* A escrever não se redesenha a página: filtra-se a grelha que já está no
-   ecrã, para o cursor não saltar da caixa a cada tecla. Só há um redesenho —
-   o da primeira tecla, quando é preciso trazer as receitas que o lote deixou
-   de fora — e mesmo esse repõe o foco e a posição do cursor. */
+   ecrã, para o cursor não saltar da caixa a cada tecla. Mas só se pode
+   esconder o que já lá está — nunca trazer de volta o que o render anterior
+   deixou de fora.
+
+   Por isso a via ao vivo só vale quando a busca nova é um REFINAMENTO da que
+   gerou a grelha: «bac» → «baca» só pode dar menos resultados, e todos eles
+   já estão no ecrã. Apagar letras, ou trocar «bacalhau» por «frango», pede um
+   redesenho — sem isto, a grelha continuava a ser a dos bacalhaus, escondia-se
+   tudo, e a app dizia «0 de 423 receitas» com o catálogo cheio de frango.
+   O redesenho repõe o foco e a posição do cursor. */
 function setBusca(v,el){
   S.ui.busca=String(v||'').slice(0,60);
   saveMeta();
   const q=semAcentos(S.ui.busca).trim();
-  if(!!q !== !!S.ui.recTodas){
+  const antes=S.ui.recQ||'';
+  if(!q || !antes || q.indexOf(antes)!==0){
     const pos=el? el.selectionStart : null;
     render();
     const novo=document.getElementById('rec-busca');
@@ -19362,7 +19389,10 @@ function renderReceitas(){
   list=ordenaReceitas(list);
   const prontas=list.filter(r=>disponibilidadeReceita(r).pronta).length;
   /* com pesquisa ativa mostra-se tudo o que corresponde; sem ela, por lotes */
-  S.ui.recTodas=!!q;
+  /* guarda-se a busca que gerou esta grelha, não só se havia alguma: é ela
+     que diz à via ao vivo se a próxima tecla ainda pode filtrar o que está no
+     ecrã ou se tem mesmo de redesenhar */
+  S.ui.recQ=q;
   const mostradas=q? list : list.slice(0,S.ui.recLimite||LOTE_RECEITAS);
   return (m?memberPicker():'')+cartaoEditor()+cartaoSugDespensa()+`
   <div class="row" style="justify-content:space-between;margin-bottom:10px;flex-wrap:wrap">
