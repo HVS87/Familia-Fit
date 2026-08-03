@@ -8488,6 +8488,30 @@ function pintaNav(){
     nav.innerHTML=TABS.map(t=>btn(t[0])).join('');
     if(folha) folha.remove();
   }
+  trazerSeparadorAtivo(nav);
+}
+/* Oito separadores não cabem lado a lado num tablet nem num telemóvel deitado:
+   a barra passa a rolar. Só que rolar não é o mesmo que acompanhar — quem
+   fechou a app na Mercearia reabria-a na Mercearia com a barra parada no
+   princípio, a mostrar «Família · Atividade · Nutrição» e o separador onde
+   está fora do ecrã. Ficava sem saber onde tinha aterrado.
+
+   Depois de pintar, a barra desloca-se o mínimo para o botão atual ficar
+   inteiro à vista, com uma margem para se perceber que há mais ao lado. */
+function trazerSeparadorAtivo(nav){
+  if(!nav || nav.scrollWidth<=nav.clientWidth+1) return;
+  const b=nav.querySelector('button.on'); if(!b) return;
+  const margem=28;                                    /* deixa espreitar o vizinho */
+  const esq=b.offsetLeft-margem;
+  const dir=b.offsetLeft+b.offsetWidth+margem-nav.clientWidth;
+  let destino=null;
+  if(nav.scrollLeft>esq) destino=Math.max(0,esq);
+  else if(nav.scrollLeft<dir) destino=Math.min(nav.scrollWidth-nav.clientWidth,dir);
+  if(destino===null || Math.abs(destino-nav.scrollLeft)<2) return;
+  let suave=false;
+  try{ suave=!matchMedia('(prefers-reduced-motion:reduce)').matches; }catch(e){}
+  try{ nav.scrollTo({left:destino, behavior: suave?'smooth':'auto'}); }
+  catch(e){ nav.scrollLeft=destino; }                 /* Safari antigo */
 }
 function alternarNavMais(e){
   if(e) e.stopPropagation();
