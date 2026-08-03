@@ -10560,7 +10560,7 @@ function linhaTempoReceita(passos){
     if(!(p.min>0)) return '';
     const w=p.min/total*W, esp=passoDeEspera(p);
     const g=`<rect x="${x.toFixed(1)}" y="0" width="${Math.max(1,w-1).toFixed(1)}" height="${H}" rx="2"
-      class="${esp?'f-line':'f-acc'}" opacity="${esp?'.75':'.9'}"><title>${esc(p.t)} — ${p.min} min${esp?' (espera)':''}</title></rect>
+      class="${esp?'f-line':'f-acc'}" opacity="${esp?'.75':'.9'}"><title>${esc(p.t)} — ${duracaoTexto(p.min)}${esp?' (espera)':''}</title></rect>
       ${esp? `<rect x="${x.toFixed(1)}" y="0" width="${Math.max(1,w-1).toFixed(1)}" height="${H}" rx="2"
         fill="url(#tramaEspera)" opacity=".5"/>`:''}`;
     x+=w;
@@ -10808,8 +10808,10 @@ function fichaHtml(f){
       ${linhaTempoReceita(passos)}
       ${escritos? '' : `<p class="sub">Esta receita ainda não tem passos escritos: os que se seguem são <b>derivados dos ingredientes e do género do prato</b>, para servirem de guia. Não são uma receita de livro, e a app diz isso em vez de fingir que são.</p>`}
       <ol class="passos">${passos.map((p,i)=>`<li>
-        <b>${esc(p.t)}</b>${p.min? ` <button class="chip" style="padding:1px 9px"
-          onclick="novoTemporizador('${esc(p.t).replace(/'/g,'&#39;')}',${p.min})">⏲ ${p.min} min</button>`:''}
+        <b>${esc(p.t)}</b>${!p.min? '' : temTemporizador(p.min)
+          ? ` <button class="chip" style="padding:1px 9px"
+              onclick="novoTemporizador('${esc(p.t).replace(/'/g,'&#39;')}',${p.min})">⏲ ${duracaoTexto(p.min)}</button>`
+          : ` <span class="chip" style="padding:1px 9px">⏳ ${duracaoTexto(p.min)}</span>`}
         <span style="display:block">${esc(p.d)}</span></li>`).join('')}</ol>
       <h3 style="margin-top:16px">Guardar e reaquecer</h3>
       <p class="sub">${esc(textoConservacao(r))}</p>
@@ -10972,6 +10974,23 @@ function minutosDoPasso(rid,p){
   const n=notaDoPasso(rid,p);
   return Math.max(0,(p.min||0)+((n&&n.delta)||0));
 }
+/* ---- Durações que se leem, temporizadores que fazem sentido ----
+   Dezassete passos desta app são demolhas e marinadas de véspera: 720 minutos.
+   Escrito assim ninguém faz a conta de cabeça, e o botão «⏲ 720 min — pôr a
+   contar» oferecia um alarme de doze horas que nenhum telemóvel mantém —
+   basta fechar o separador para ele desaparecer sem tocar.
+
+   Acima de quatro horas deixa de haver botão. Fica a duração escrita por
+   extenso, que é a informação que a pessoa precisa: pôr de molho hoje à
+   noite para amanhã. */
+const TIMER_MAX_MIN=240;
+function duracaoTexto(min){
+  const m=Math.round(min||0);
+  if(m>=1440){ const d=Math.floor(m/1440), h=Math.round((m%1440)/60);
+    return d+(d===1?' dia':' dias')+(h? ' e '+h+' h':''); }
+  return hmm(m/60);            /* o mesmo formato do resto da app: «12 h», «1 h 30 min» */
+}
+function temTemporizador(min){ return min>0 && min<=TIMER_MAX_MIN; }
 /* Os três do supermercado. Um ficheiro importado pode trazer aqui qualquer
    coisa: uma ordem com secções que não existem baralharia a lista toda, um
    trilho com dez mil passos travava a aprendizagem, e um talhão para uma
@@ -11191,8 +11210,10 @@ function cozinhaHtml(){
           <span>${esc(x.n)} <b>${fmtQtd(x.q,x.u)}</b></span></label></li>`).join('')}</ul>`
        : `<h2 class="coz-t">${esc(p.t)}</h2><p class="coz-d">${esc(p.d)}</p>
           ${nota&&nota.nota? `<p class="coz-nota">📌 ${esc(nota.nota)}</p>`:''}
-          ${min? `<button class="btn" style="margin-top:16px" onclick="novoTemporizador('${esc(p.t)}',${min},'${esc(p.t)}')">⏲ ${min} min — pôr a contar</button>
-            ${nota&&nota.delta? `<span class="sub" style="display:block;margin-top:6px">O livro diz ${p.min}; cá em casa são ${min}.</span>`:''}`:''}
+          ${!min? '' : temTemporizador(min)
+            ? `<button class="btn" style="margin-top:16px" onclick="novoTemporizador('${esc(p.t)}',${min},'${esc(p.t)}')">⏲ ${duracaoTexto(min)} — pôr a contar</button>
+              ${nota&&nota.delta? `<span class="sub" style="display:block;margin-top:6px">O livro diz ${duracaoTexto(p.min)}; cá em casa são ${duracaoTexto(min)}.</span>`:''}`
+            : `<p class="sub" style="margin-top:16px">⏳ <b>${duracaoTexto(min)}</b> — é tempo de espera, não de bancada. Deixa-se a andar e volta-se cá depois; não vale a pena um alarme que o telemóvel não guarda tanto tempo.</p>`}
           ${espera.length? `<div class="coz-espera">
             <h3>Enquanto isso ${dica('espera')}</h3>
             ${espera.map(x=>`<label class="coz-esp-item ${(c.feitosEspera||[]).indexOf(x.k)>=0?'done':''}">
@@ -11247,7 +11268,9 @@ function vistaMaestro(c,r){
         <span class="maestro-txt"><b>${esc(x.p.t)}</b>
           ${m.blocos.length>1? `<span class="sub"> · ${esc(x.prato.n)}</span>`:''}
           <span class="sub" style="display:block">${esc(String(x.p.d||'').slice(0,110))}</span></span>
-        ${x.dur? `<button class="chip" style="flex:none" onclick="novoTemporizador('${esc(x.p.t)}',${x.dur},'${esc(x.p.t)}')">⏲ ${x.dur}m</button>`:''}
+        ${!x.dur? '' : temTemporizador(x.dur)
+          ? `<button class="chip" style="flex:none" onclick="novoTemporizador('${esc(x.p.t)}',${x.dur},'${esc(x.p.t)}')">⏲ ${duracaoTexto(x.dur)}</button>`
+          : `<span class="chip" style="flex:none">⏳ ${duracaoTexto(x.dur)}</span>`}
       </li>`).join('')}</ol>
     <p class="sub" style="margin-top:10px">Os passos que libertam as mãos aparecem esbatidos: é dentro deles que os outros pratos avançam. A conta é de trás para a frente, a partir da hora da mesa.</p>
   </div>`;
