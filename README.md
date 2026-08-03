@@ -6,6 +6,8 @@ Ferramenta web para gerir a **alimentação e a atividade física de toda a fam�
 
 ---
 
+> **Ferramenta gratuita, para uso responsável.** As contas assentam em tabelas oficiais construídas para **pessoas saudáveis** — são médias de população, não medições de ninguém — e tudo o que a aplicação indica são **sugestões**, a verificar de forma independente. Qualquer alteração drástica na alimentação, ou o início de uma nova atividade física, deve ter **acompanhamento médico**, muito em especial em crianças, na gravidez e na amamentação, e em quem tenha doença diagnosticada ou esteja sob medicação. **O autor não se responsabiliza pelo impacto do uso desta aplicação.** O aviso aparece na criação do primeiro perfil, fica fixo por baixo dos perfis e repete-se no separador Dados.
+
 ## Começar
 
 A página de abertura tem uma **visita guiada** de 63 passos que percorre os oito separadores e todas as funcionalidades — perfis, data de nascimento e alergias, a evolução do peso, avatares, o mês em palavras, o plano de treinos e o registo do que se fez, treinar em conjunto, macros, suplementos, o registo das refeições, a biblioteca de receitas e o editor, a despensa, os objetivos, as sugestões por mesa, comer em conjunto, os acompanhamentos, as compras e os temas — com uma família de exemplo, já com duas semanas de histórico, para se ver tudo a funcionar. Os passos que falam de cartões que ainda não têm dados são saltados, em vez de apontarem para o vazio. Pode sair-se a qualquer momento. **No fim, a app pergunta o que fazer à família de demonstração**: apagá-la e começar do zero com a casa real, ou ficar com ela mais um bocado para experimentar tudo sem receio — e, nesse caso, explica o caminho de volta (Dados → Apagar todos os dados, com a sugestão de exportar antes se entretanto se escreveu alguma receita que valha a pena guardar). Quem preferir começar do zero cria o primeiro perfil ali ao lado; a visita fica sempre disponível em **Dados → Rever a visita guiada**.
@@ -23,6 +25,12 @@ A orientação nasce da hierarquia: cada separador abre com um **cartão-capa** 
 Sete paletas — **Azulejo** (azul de louça e terracota), **Alecrim** (verdes de horta), **Figo** (roxos e magentas), **Maré** (azuis-esverdeados), **Brasa** (laranjas quentes), **Tinta** (monocromático) e **Contraste** (todos os textos a 7:1, traço mais grosso e gráficos que se distinguem por padrão, não só por cor) — cada uma com modo claro e escuro. A paleta muda os acentos e o tom dos neutros; o modo é independente e pode seguir o sistema, mudando sozinho ao anoitecer. Escolhe-se em **Dados → Aspeto**.
 
 **🌅 Seguir o sol.** Além de claro, escuro e «segue o sistema», há um quarto modo que acompanha o nascer e o pôr do sol em Portugal continental: em dezembro a app anoitece por volta das 17h30, em junho aguenta clara até perto das 21h. As horas saem das equações solares clássicas aplicadas à data — matemática pura, calculada no próprio dispositivo, **sem rede, sem geolocalização e sem permissões**. O modo alterna apenas entre o claro e o escuro que já existem, por isso as catorze combinações de paleta × modo e os contrastes verificados ficam intactos.
+
+**🌙 Noite de taberna.** Depois das nove da noite, quem abre a app está a fechar o dia — a registar o jantar, a ver o que sobrou — e não a planear a semana com um café ao lado. A app baixa a voz: as superfícies aquecem um pouco, como uma luz ao fundo da sala, e às seis da manhã volta ao normal sozinha. É uma camada **atrás** de tudo, que nunca passa por cima de uma letra — a primeira tentativa redefinia os tokens de cor em função de si próprios, o que é uma dependência cíclica, deixa o valor inválido em vez de o mudar, e pôs títulos a 1,4:1 até a auditoria de contraste os apanhar. Desliga-se em Dados, e não se aplica na paleta «Contraste».
+
+**🔷 O padrão da casa.** A paleta chama-se Azulejo e a app não tinha um único azulejo. Um padrão geométrico de quatro pontas, desenhado em SVG, a 3 % de opacidade na capa de cada separador: vê-se que existe quando se procura, não se vê quando se lê, e desaparece por inteiro em alto contraste e na impressão.
+
+**🍽 O prato é o gráfico.** Uma barra empilhada com 50/20/30 é exata e não diz nada; um prato visto de cima com as mesmas proporções diz tudo à primeira, porque é a imagem que já se tem na cabeça. Fica ao lado da barra, não em vez dela — a barra tem os números, o prato percebe-se sem ler.
 
 **🔊 Sons da casa**, desligados por defeito, acrescentam três apontamentos gerados na hora com WebAudio — um *toc* de madeira quando uma mesa passa a tinta, um *tlim* de talher ao registar, um roçar de papel ao virar a folha. Sem ficheiros e sem rede, calam-se com o separador escondido e nunca tocam num erro: o som aqui serve para celebrar, não para repreender.
 
@@ -208,6 +216,36 @@ Cada objetivo mostra um anel de progresso, calculado a partir do peso atual do m
 
 **Sugestões para a mesa** — no topo do plano, um painel com um interruptor por membro do agregado: liga-se e desliga-se quem se senta à mesa, e a lista mostra as receitas que servem **toda a gente ligada ao mesmo tempo**. Ficam de fora as que chocam com a dieta de alguém, as que levam um ingrediente que alguém não come e as que passam a fatia de calorias daquela refeição — e o painel diz **quantas caíram por cada motivo**, com os nomes de quem e porquê, porque uma família de quatro que só vê três jantares possíveis merece saber a razão. As quantidades vêm já multiplicadas pelo número de pessoas, e quem tem um teto mais baixo — uma criança à mesa de adultos — aparece com a dose sugerida em vez de a receita desaparecer. Planeia-se num toque, para o dia escolhido, já com os comensais certos.
 
+## O dia, a bancada e o papel
+
+**O fio do dia.** O primeiro cartão da app é o dia por ordem de relógio: pesagens, refeições, treinos, compras e sobras numa linha só, com a hora à esquerda e o botão que resolve cada item à direita. No telemóvel, **deslizar a linha para a direita** faz o mesmo que carregar no botão — um só sistema de deslize em toda a app, delegado no documento, com desambiguação do *scroll* vertical e sem nunca cobrir uma ação destrutiva.
+
+**A bandeja da manhã.** As pendências emboscavam o utilizador espalhadas por cinco sítios. Uma vez por dia, ao abrir, juntam-se numa fila única: um cartão de cada vez, com «logo vejo» a adiar até amanhã. Ao teclado, **1** resolve e **2** adia. Reutiliza os mesmos detetores que cada separador já usava — não duplica lógica.
+
+**Balcão rápido.** A pesquisa global *encontra* coisas; isto *faz* coisas. Uma linha que aceita «Ana 62,4», «corri 8 km», «jantar feito» ou «comprei azeite». Parser local de meia dúzia de padrões, sem NLP e sem rede, que **mostra sempre o que entendeu antes de gravar** e nomeia a pessoa. Os verbos vêm de uma tabela curta e revista à mão — ninguém escreve «Natação 30 min», escreve «nadei», e nadei/nadar não partilham as primeiras letras.
+
+**Modo pessoa.** Pressão longa num avatar (ou botão direito no computador) abre a folha dessa pessoa: o dia dela, os números dela, o que lhe falta confirmar.
+
+**O botão voltar que volta.** Numa app instalada no Android, o voltar despejar o utilizador para fora a meio de um modal é a frustração número um. Cada camada empurra um degrau no histórico e o voltar fecha essa camada; sem camadas, recua um separador, porque o endereço passou a dizê-lo (`#plano` abre no plano). Um só dono do histórico, sincronizado depois de cada desenho — são dezoito sítios que abrem camadas, e esquecer um seria o mesmo que não ter isto.
+
+**🍳 A bancada.** Cada refeição do plano tem um **Cozinhar** que abre o modo cozinha: um passo de cada vez em letra grande, os temporizadores a contar sozinhos e a sobreviver a fechar a app, o ecrã que não adormece, e a metade direita do ecrã a avançar — para se tocar com o cotovelo ou o pulso e não sujar o telemóvel. Há uma linha do tempo calculada de trás para a frente a partir da hora da mesa, e uma tranca de dois segundos para não avançar por acidente.
+
+**🧲 O plano na porta do frigorífico.** A app está no telemóvel de quem a montou; quem chega a casa às sete da tarde e abre o frigorífico é outra pessoa. Uma folha **A4 deitada** com a semana toda, letra grande para se ler de pé a um metro, quem come em cada refeição, e o que falta comprar no rodapé. Sem fundos coloridos — tinteiros custam dinheiro. No telemóvel mostra-se no ecrã em vez de ir direita à impressora, porque aí quase nunca há impressora à mão.
+
+## Bebés e crianças pequenas
+
+Uma calculadora dos 0 aos 5 anos, com **três cursores ligados nos dois sentidos**: idade, peso e percentil — puxar o percentil move o peso para o valor que a OMS dá a esse percentil naquela idade, que é a pergunta feita ao contrário («quanto pesaria ele no 50?»).
+
+As curvas são os **Padrões de Crescimento Infantil da Organização Mundial de Saúde (2006)**. Não é uma tabela de percentis transcrita: são os parâmetros **L, M e S** oficiais de peso-para-idade, um trio por mês e por sexo, das *expanded tables* da OMS, com os quais se calcula qualquer percentil e qualquer *z-score* pela fórmula da própria OMS. A versão anterior tinha nove idades tabeladas e teto aos 24 meses — uma criança de 38 meses no percentil 62 não tinha resposta possível. Os valores calculados foram conferidos contra as *simplified field tables* publicadas: desvio máximo de 0,05 kg, que é o arredondamento delas.
+
+Os valores de energia e nutrientes são os **Dietary Reference Values da Autoridade Europeia para a Segurança dos Alimentos (2017–2019)** — os mesmos que a app já usava para os adultos, onde antes esta secção respondia por referências norte-americanas. Energia, proteína por quilo, gordura, hidratos, fibra, água, teto de sódio e quinze micronutrientes, por escalão etário, com **AR**, **PRI**, **AI** e **SSI** distinguidos porque querem dizer coisas diferentes. Uma tabela põe lado a lado os marcos dos **6, 12, 24, 36 e 48 meses**.
+
+**Abaixo dos 6 meses a EFSA não fixa valores**, e a app diz isso em vez de inventar uma tabela: o leite materno ou a fórmula cobre tudo. O que há para calcular nessa idade é o volume de leite, a **150 ml por quilo de peso e por dia** — a referência da própria OMS (*Infant and Young Child Feeding: Model Chapter*, 2009) para bebé de termo saudável — repartido pelas tomadas.
+
+**O que já pode comer**, aos 6, 12 e 24 meses, e **o que não se dá**, ordenado pela idade em que deixa de ser proibido. Os riscos desta lista não são de nutrição: são de asfixia, botulismo, listeria e mercúrio. **Cada linha leva a fonte colada ao lado.** As fontes, por ordem de força: OMS (guideline de alimentação complementar 6–23 meses, 2023), EFSA (parecer de 2019 sobre a idade de introdução), DGS e SNS, ASAE e INSA para o pescado, e o NHS britânico para os limites de idade que as fontes portuguesas não fixam — mel até aos 12 meses, frutos de casca rija inteiros e bebidas de arroz até aos 5 anos. Uma única fonte não oficial, incluída a pedido e **marcada com ⚠ em todas as linhas onde aparece**: comidadebebe.pt, que por sua vez cita a Academia Americana de Pediatria e o CDC para os riscos de engasgamento.
+
+Em todos os cartões fica o mesmo aviso: são referências de população saudável para orientar quem planeia refeições, não valem para prematuros nem para crianças com doença crónica, alergia diagnosticada ou dificuldades de crescimento, e **não substituem o pediatra**.
+
 ## Alergias alimentares
 
 Isto não é uma preferência: é uma questão de saúde, e a lista não foi inventada nem arredondada. No perfil de cada membro, no separador Família, há um campo para **alergias e intolerâncias** com as **catorze categorias de declaração obrigatória do anexo II do Regulamento (UE) n.º 1169/2011** — glúten, crustáceos, ovos, peixe, amendoins, soja, leite, frutos de casca rija, aipo, mostarda, sésamo, sulfitos, tremoço e moluscos.
@@ -223,6 +261,12 @@ A app di-lo onde é preciso: isto ajuda a planear e **não substitui ler o rótu
 **Outras exclusões** — ao lado do tipo de dieta, em Nutrição, ficam as que não são alergias: carne, porco, álcool e picante. Filtram as mesmas receitas, sem o mesmo peso. Uma dieta vegetariana, vegan ou paleo acrescenta as suas exclusões sozinha.
 
 **🛒 Compras** — agrega os ingredientes de todas as receitas da semana, multiplicando a quantidade por pessoa pelo número de comensais, e agrupa-os por secção do supermercado. Tem caixas para ir marcando e um botão para copiar a lista.
+
+**A ordem do meu supermercado.** A lista saía agrupada pelas secções da tabela de composição, que é a ordem certa para classificar comida e a errada para andar num supermercado — cada loja tem a sua planta, e andar às voltas com o carrinho é o custo real. A ordem passa a ser da casa: arruma-se com setas e a lista sai assim, no ecrã e no papel. Depois de **três idas com o modo supermercado aberto**, a app repara na ordem por que as secções foram riscadas e propõe essa ordem — propõe, não impõe, e a proposta explica em quantas idas se baseia. O cálculo é por vitórias par a par e não por ordenação topológica, de propósito: percursos reais têm ciclos, e um algoritmo que estoira num ciclo não serviria de nada.
+
+**A pílula do polegar.** Dentro do modo supermercado, uma pílula colada ao fundo — no terço do ecrã que o polegar alcança sem mudar a pega, porque a outra mão tem o carrinho — diz em que corredor se está, quantos faltam, e salta para o próximo por despachar. Por cima dela, uma régua com um traço por corredor, a cheio os que já estão no carrinho.
+
+**Compras a meias.** Duas pessoas à porta do supermercado fazem sempre a mesma dança. A lista divide-se **por corredor e não item a item** — manda cada uma a um sítio diferente em vez de as pôr as duas na mesma prateleira — e equilibra-se pelo número de coisas, senão a mercearia sozinha dava 51 contra 7. Cada item pode trocar de dono com um toque, e no supermercado cada pessoa pode ver só o seu talhão.
 
 **O que é mesmo para hoje.** A lista sabe em que dia cada ingrediente é usado pela primeira vez e põe à cabeça, num bloco próprio, o que é preciso **hoje ou amanhã** — é a única parte da lista onde falhar tem consequência física: uma mesa sem jantar. O açafrão de domingo pode esperar pela próxima ida.
 
@@ -240,7 +284,18 @@ A app adapta-se ao ecrã e à forma como se está a segurar o aparelho. Um detet
 
 Em ecrãs de toque os botões passam a ter 44 px de altura e os campos 16 px de letra, que é o mínimo para o iOS não fazer *zoom* ao tocar num campo. As margens respeitam o *notch* e a barra inferior do iPhone.
 
-É instalável no ecrã principal, no Android e no iOS (partilha → «Adicionar ao ecrã principal»), e funciona **sem rede** — útil para consultar a lista de compras no supermercado. Compatível com Safari, incluindo alternativas para versões anteriores ao Safari 16.4.
+**Guardar como aplicação.** Em **Dados** há um cartão que oferece a instalação pelo caminho certo de cada plataforma, porque cada uma instala à sua maneira e nenhuma o diz:
+
+| Onde | Como |
+| --- | --- |
+| **Chrome / Edge** (Android e computador) | A app captura o evento `beforeinstallprompt` — sem isso o convite do browser morre num ícone minúsculo que ninguém vê — e o cartão ganha um botão **«Instalar agora»** de um toque |
+| **Safari no iPhone e iPad** | Não existe prompt, por decisão da Apple: o cartão mostra os passos — **Partilhar → «Adicionar ao ecrã principal»**. Instalar aqui vale a dobrar, porque o Safari apaga o armazenamento de sites que não se abrem há semanas e a app instalada escapa a essa limpeza |
+| **Safari no Mac** | Ficheiro → **Adicionar à Dock** |
+| **Firefox no Android** | Menu → «Adicionar ao ecrã principal»; no Firefox de computador não há instalação, e o cartão di-lo em vez de mostrar um botão morto |
+
+O cartão sabe em que estado está: já instalada (e di-lo), com prompt capturado (botão), iOS (passos), ou fora de HTTPS — onde nenhuma instalação é possível e o cartão explica que é uma regra dos browsers, não da app. O manifesto tem `id`, ícones de 180, 192 e 512 px (com variante *maskable* para o Android recortar em qualquer forma) e quatro atalhos de ícone — registar refeição, treino, compras e pesagem — que funcionam no Android com um toque longo no ícone; o iOS não suporta atalhos, e não é defeito da app.
+
+Depois de instalada funciona **sem rede** — útil para a lista de compras no supermercado — e o botão voltar do Android fecha camadas em vez de sair da app. Compatível com Safari, incluindo alternativas para versões anteriores ao Safari 16.4.
 
 ---
 
@@ -284,7 +339,13 @@ O service worker usa a estratégia *rede primeiro, cache como reserva*: com liga
 
 Não há caixas de diálogo do browser a pedir dados: tudo o que se escreve escreve-se em campos da própria app, que seguem o tema, falam a mesma língua e funcionam dentro de um iframe com *sandbox*. O `confirm()` fica reservado ao que apaga — e, se o browser o bloquear, o que não acontece é o apagar.
 
-**Feita para os três ecrãs.** No telemóvel, a navegação desce para uma barra ao alcance do polegar, os alvos de toque respeitam os mínimos da WCAG (24 px, 30+ em ecrã tátil), e nada desliza na horizontal. No tablet, as grelhas reorganizam-se por orientação. No monitor grande, a app usa a largura — até cinco colunas de receitas a 1920 px — mas o texto corrido tem um teto de 72 caracteres por linha, porque ler parágrafos de 150 caracteres é perder a linha de cada vez que o olho volta à esquerda. E é rápida onde custa: a lista das quase setecentas linhas da despensa só desenha as que estão à vista (`content-visibility`), e as ordenações caras calculam a chave uma vez em vez de a recalcular a cada comparação — o separador do plano passou de quatro décimos de segundo para menos de um, num portátil, e a diferença num telemóvel é maior.
+**Feita para os três ecrãs.** No telemóvel, a navegação desce para uma barra ao alcance do polegar, os alvos de toque respeitam os mínimos da WCAG (24 px pelo critério 2.5.8, 30+ em ecrã tátil — o «i» das explicações media 18 e foi corrigido numa auditoria), e nada desliza na horizontal a 360, 768, 1024, 1440 nem 1920 px, nem com o telemóvel deitado. No tablet, as grelhas reorganizam-se por orientação. No monitor grande, a app usa a largura — até cinco colunas de receitas a 1920 px — mas o texto corrido tem um teto de 72 caracteres por linha, porque ler parágrafos de 150 caracteres é perder a linha de cada vez que o olho volta à esquerda. E é rápida onde custa: a lista das quase setecentas linhas da despensa só desenha as que estão à vista (`content-visibility`), e as ordenações caras calculam a chave uma vez em vez de a recalcular a cada comparação — o separador do plano passou de quatro décimos de segundo para menos de um, num portátil, e a diferença num telemóvel é maior.
+
+**Três equações em vez de uma, e a escolha à vista.** O metabolismo basal não tem uma fórmula certa: tem equações de regressão feitas sobre populações diferentes, em décadas diferentes, que dão valores diferentes para a mesma pessoa. Para uma mulher de 60 kg e 35 anos são 1278 kcal pela Henry, 1295 pela Mifflin-St Jeor e 1333 pela Schofield — 55 kcal por dia entre os extremos, que ao fim de um ano valem perto de 2,5 kg no que a app sugere comer. Escolher uma e calar as outras seria fingir uma certeza que não existe, por isso o separador Nutrição mostra as três **com o resultado de cada uma ao lado** e recomenda a mais recente. Passar o rato por cima de qualquer delas abre um explicador com a origem, a população em que foi construída e a limitação que tem. A Mifflin-St Jeor não foi feita para quem está a crescer: escolhendo-a, as crianças da casa continuam calculadas pela Henry, e a app di-lo em vez de aplicar uma equação fora do seu domínio.
+
+**Onde a app se recusa a inventar.** Há uma regra que atravessa o projeto: quando não existe um valor oficial, a app escreve «sem valor» e conta as omissões, em vez de preencher o espaço com uma estimativa que pareceria um facto. Vale para o sódio de um ingrediente que não está na tabela, para o preço de um item que ninguém registou, e sobretudo para os valores de referência abaixo dos 6 meses, que a EFSA não publica. O mesmo princípio explica por que razão nenhuma sugestão de saúde infantil entra sem a fonte escrita ao lado.
+
+E vale também para o contrário — dizer que um número tem fonte quando não tem. Uma auditoria comparou os 184 valores de sódio da app, linha a linha, com a Tabela de Composição de Alimentos do INSA: **72 divergiam em mais de 10%**, e alguns muito (o paio de lombo a 1600 mg quando são 3520, o tomate seco a 2100 quando são 160). Eram estimativas internacionais com etiqueta portuguesa. Ficaram corrigidas, e a tabela passou a ser duas: 144 valores transcritos do ficheiro do INSA, com o nome da linha usada escrito ao lado quando difere, e 40 que o INSA não tem — molhos asiáticos, queijos estrangeiros — que continuam a valer um número mas vão marcados como estimativa, e o cartão do sal diz quantos ingredientes do dia vieram dali.
 
 Os valores calóricos, os METs por modalidade e os macros das receitas são **estimativas** para orientar o planeamento. Os METs seguem o *Compendium of Physical Activities*, e o gasto calcula-se por MET × peso × horas — a fórmula habitual, que ignora diferenças de eficiência, altitude ou temperatura. Nada disto substitui o acompanhamento de um nutricionista ou médico, sobretudo em caso de condições de saúde, gravidez ou planos alimentares para crianças.
 
@@ -300,11 +361,15 @@ Nenhum número de saúde nesta app foi inventado ou arredondado por conveniênci
 | Catálogo oculto (101) | INSA, bases europeias e USDA, com a fonte marcada em cada entrada |
 | Alergénios | **Anexo II do Regulamento (UE) n.º 1169/2011**, versão consolidada — as catorze categorias, pela ordem legal |
 | Grilo doméstico em pó | **Reg. de Execução (UE) 2022/188**, que obriga a declarar reação cruzada com crustáceos, moluscos e ácaros |
-| Metabolismo basal | **Mifflin-St Jeor**; **Schofield** nas idades pediátricas |
-| Percentis de peso infantil | **WHO Child Growth Standards** (2006), transcritos dos PDF publicados |
-| Doses de referência do bebé | **Dietary Reference Intakes**, Institute of Medicine / National Academies (2001, 2002/2005, 2011) |
+| Metabolismo basal | **Escolha entre três**, com a mais recente por omissão: **Henry (2005)**, as «equações de Oxford» adotadas pela EFSA e pelo NHS; **Schofield (1985)**, na forma em kcal da FAO/WHO/UNU (2004), tabela 5.2; e **Mifflin-St Jeor (1990)**, a única que usa a altura e só existe para adultos. Cada uma mostra o seu resultado ao lado e explica-se ao passar o rato |
+| Percentis de peso infantil | **WHO Child Growth Standards** (2006), a partir dos parâmetros L, M e S oficiais de peso-para-idade, 0 a 60 meses — não de uma tabela de percentis interpolada |
+| Doses de referência do bebé e da criança | **EFSA**, *Dietary Reference Values* (2017–2019), em cinco escalões etários — a EFSA não usa as mesmas fronteiras para todos os nutrientes, e juntá-las falseava o magnésio aos 3 anos e o DHA ao ano |
+| Leite antes dos 6 meses | **OMS**, *Infant and Young Child Feeding: Model Chapter* (2009) — 150 ml/kg/dia num bebé de termo saudável. Abaixo dessa idade a EFSA não fixa valores, e a app diz isso |
+| Introdução alimentar | **OMS** (2023), **EFSA** (2019), **DGS/SNS**, **ASAE/INSA** para o pescado e **NHS** para os limites de idade que as fontes portuguesas não fixam. Uma única fonte não oficial, marcada em cada linha: comidadebebe.pt, para os riscos de engasgamento |
 | Fibra | **EFSA**, *Dietary Reference Values for carbohydrates and dietary fibre* (2010) — 25 g/dia no adulto, 2 g/MJ na criança |
-| Fruta e hortícolas | **OMS** — pelo menos 400 g/dia, excluindo raízes ricas em amido |
+| Sódio dos ingredientes | **INSA**, coluna «Sal [g]» da BDCA v7.1 convertida pelo fator 2,5 da própria tabela. Onde o INSA não tem o alimento, o valor vai marcado como estimativa e a app conta-os |
+| Limite diário de sódio | **OMS** no adulto e dos 2 aos 15 anos (ajustado pela energia); **EFSA** abaixo dos 2 anos, porque a recomendação da OMS diz expressamente que não se aplica dos 0 aos 24 meses |
+| Fruta e hortícolas | **OMS** — pelo menos 400 g/dia **a partir dos 10 anos**, excluindo raízes ricas em amido. Abaixo dessa idade a app mostra o número sem veredicto |
 | Gasto por modalidade | **Compendium of Physical Activities** |
 | Gravidez e amamentação | **ACOG** e normas da **Direção-Geral da Saúde** |
 | Exercício na gravidez e no pós-parto | **ACOG Committee Opinion n.º 804** (2020) — 150 min/semana, modalidades, contraindicações e sinais de alarme |
