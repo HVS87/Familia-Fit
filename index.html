@@ -22122,7 +22122,10 @@ function listasPendentes(){
   return out;
 }
 function talvezPerguntarCompras(){
-  if(jaPerguntouCompras || modalAberto() || tourAtivo()) return;
+  /* No modo supermercado não se pergunta nada: essa pessoa está de pé num
+     corredor, com o carrinho numa mão e o telemóvel na outra. A pergunta
+     sobre a lista da semana passada espera pela cozinha. */
+  if(jaPerguntouCompras || modalAberto() || tourAtivo() || S.ui.mercado) return;
   jaPerguntouCompras=true;
   const listas=listasPendentes();
   if(!listas.length) return;
@@ -24143,6 +24146,35 @@ function ligarLongPress(){
     e.preventDefault(); abrirPessoa(av.getAttribute('data-membro'));
   });
 }
+
+/* ===== OS ATALHOS DO ÍCONE =====
+   Quem instala a app tem, ao carregar longo no ícone, quatro entradas
+   declaradas no manifesto: refeição, treino, compras e pesagem. Estavam
+   declaradas e não estavam ligadas — as quatro abriam a capa, caladas, e a
+   promessa do menu não se cumpria em nenhuma.
+
+   Corre depois de load, porque o estado tem de estar lido: mandar abrir a
+   pesagem de alguém antes de haver gente não abre nada. E limpa-se o
+   parâmetro do endereço a seguir, para uma recarga não repetir a ação. */
+const ATALHOS={
+  refeicao:()=>{ if(!S.members.length) return; go('familia'); abrirFolhaRegisto(); },
+  treino:  ()=>{ if(!S.members.length) return; go('atividade'); },
+  /* o modo primeiro e o separador depois: ao contrário, go() ainda apanhava a
+     casa fora do supermercado e disparava a pergunta da lista da semana */
+  compras: ()=>{ abrirMercado(); go('mercearia'); },
+  /* sem argumento: a casa toda de uma vez, que é o que o botão de dentro
+     também faz. Abrir primeiro a ficha de alguém empilhava duas camadas, e
+     fechar a de cima deixava aberta uma que ninguém pediu. */
+  pesagem: ()=>{ if(!S.members.length) return; go('familia'); abrirPesagens(); }
+};
+function correAtalho(){
+  let k=null;
+  try{ k=new URLSearchParams(location.search).get('ir'); }catch(e){ return; }
+  if(!k || !temChave(ATALHOS,k)) return;
+  try{ ATALHOS[k](); }catch(e){ console.warn('Família Fit — atalho «'+k+'» falhou:', e); }
+  try{ history.replaceState(null,'',location.pathname+location.hash); }catch(e){}
+}
+window.addEventListener('load',correAtalho);
 
 /* Instalável no ecrã principal e utilizável sem rede (útil para a lista de
    compras no supermercado). Só corre em http/https — via file:// é ignorado. */
