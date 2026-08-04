@@ -8632,7 +8632,19 @@ const DICAS={
   balcao:'Escrever em vez de navegar. Aceita uma pesagem («Ana 62,4»), um treino («corri 8 km»), uma refeição («jantar feito») ou uma compra («comprei azeite»). Mostra sempre o que entendeu antes de gravar, e nada sai daqui para fora.',
   pessoa:'A folha de uma pessoa: o dia dela, os números dela, o que lhe falta confirmar. Abre-se com pressão longa no avatar, ou com o botão direito no computador.',
   imc:'Peso a dividir pela altura ao quadrado. É uma medida de rastreio para adultos: não distingue músculo de gordura, por isso um atleta pode aparecer em «excesso de peso» sem o estar. Em crianças lê-se por percentil para a idade, não por estes limites.',
-  basal:'As calorias que o corpo gasta em repouso absoluto, só para se manter vivo. Calculado por Mifflin-St Jeor nos adultos e por Schofield abaixo dos 19 anos.',
+  /* Dizia «Mifflin-St Jeor nos adultos e Schofield abaixo dos 19 anos», que
+     era verdade antes de o método passar a ser uma escolha da casa. Ficou a
+     descrever uma app que já não existia: o padrão é a Henry, e quem escolhe
+     a Mifflin vê os menores de 19 anos caírem na Henry, não na Schofield.
+     Um número de saúde tem de dizer de onde vem, e de onde vem hoje. */
+  basal:function(){
+    const M=METODOS_BMR[metodoBMR()];
+    return 'As calorias que o corpo gasta em repouso absoluto, só para se manter vivo. '
+      +'Nesta casa está escolhida a '+M.n+(M.recomendada? ', que é a recomendada' : '')+'.'
+      +(M.soAdulto? ' Como essa equação só existe para adultos, abaixo dos 19 anos a app usa a '
+          +METODOS_BMR[METODO_BMR_PADRAO].n+' — e diz que usou, em vez de aplicar uma equação fora do seu domínio.' : '')
+      +' O método muda-se na ficha de cada pessoa e vale para a casa toda.';
+  },
   gasto:'O gasto total do dia: o metabolismo basal multiplicado pelo nível de atividade, mais as deslocações, mais o desporto e, em quem está a crescer ou grávida, a energia dessa fase.',
   alvo:'O gasto ajustado pelo objetivo. É deste número que saem as gramas de cada macronutriente e as calorias sugeridas por refeição — é ele que liga este separador à Nutrição e ao Plano.',
   fase:'Bebé, criança, adolescente, adulto ou gravidez. A fase escolhe a equação de metabolismo, a faixa de macronutrientes aceitável e os limites de esforço recomendados.',
@@ -8730,7 +8742,7 @@ const DICAS={
   passaporte:'Os ingredientes que esta pessoa já provou, contados das refeições confirmadas. «Provou mas não gostou» não risca o sabor para sempre: faz a app voltar a propô-lo mais tarde noutra receita. A neofobia alimentar passa a jogo de descoberta em vez de guerra à mesa.',
   palpite:'Da cadência das tuas compras («leite: a cada 7±2 dias») sai um palpite do que já devia ter acabado. É um palpite e diz-se que é: aparece à parte do inventário real da despensa, e silencia-se com um toque se já não usarem.',
   sequencia:'Semanas em que se cumpriu pelo menos 80% do que estava planeado, contadas só de validações reais. Doença, férias ou lesão marcam-se como pausa: a sequência congela em vez de partir. Nem fogo, nem troféus, nem contadores agressivos — uma gripe não apaga dois meses de esforço.',
-  sobras:'O jantar de hoje é o almoço de amanhã em quase todas as casas. Ao confirmar uma refeição, a app pergunta se sobrou: a sobra fica no frigorífico durante três dias, com os macros que já se sabiam da receita, e come-se com um toque — sem cozinhar, sem comprar e sem duplicar contas.',
+  sobras:'O jantar de hoje é o almoço de amanhã em quase todas as casas. Ao confirmar uma refeição, a app pergunta se sobrou: a sobra fica guardada com os macros que já se sabiam da receita e come-se com um toque — sem cozinhar, sem comprar e sem duplicar contas. O prazo é o do prato e não um número redondo para todos: um risotto aguenta um dia no frigorífico, uma sopa de legumes aguenta quatro. Quem congela leva a tabela do congelador em vez da do frigorífico, e o que de lá sair volta com dois dias, porque comida descongelada não recupera o prazo que tinha.',
   marmitas:'Qualquer almoço se pode marcar «em marmita», pessoa a pessoa. Na véspera à noite o cartão «Hoje» lembra-o, com a dose já escalada a cada um, os alergénios da escola assinalados e as sobras disponíveis para a encher.',
   epoca:'Que ingredientes estão na época em Portugal, este mês — carapau no verão, grelos no inverno, cereja em junho. A tabela é local e o selo muda sozinho com o calendário: comprar na época é mais barato, mais fresco e mais saboroso.',
   custo:'Os preços são os do teu talão — a app nunca inventa um cêntimo. Com eles estima o custo por dose de cada receita, o da semana e o talão previsto da lista de compras, dizendo sempre quantos itens ficaram por preço. Cada preço escrito fica com a data: ao fim de três, aparece ao lado uma linha com a história dele, e a app passa a saber dizer se o preço de hoje está abaixo ou acima do costume desta casa.',
@@ -8782,7 +8794,10 @@ function selo(visto,texto,classe){
   return `<button type="button" class="tag selo ${classe||''}" data-dica="${esc(texto)}"
     aria-label="${esc(texto)}">${visto}</button>`;
 }
-function dica(k,extra){ const t=DICAS[k]; if(!t) return '';
+/* Quase todas as dicas são texto fixo, mas algumas falam de uma escolha que a
+   casa fez — e um texto fixo sobre uma escolha mutável envelhece calado. Uma
+   entrada pode ser uma função, avaliada no momento de desenhar. */
+function dica(k,extra){ let t=DICAS[k]; if(typeof t==='function') t=t(); if(!t) return '';
   /* O texto vai duas vezes: em data-dica, que desenha a bolha, e num elemento
      de verdade que só o leitor de ecrã encontra. O aria-label continua a dar
      o nome curto ao botão («Explicação»), e o aria-describedby entrega o texto
