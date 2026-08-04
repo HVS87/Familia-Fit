@@ -1361,6 +1361,9 @@ select.slot{margin-top:4px}
 .chip.perigo{background:color-mix(in srgb,var(--bad) 9%,var(--bg));border-color:var(--bad);color:var(--bad)}
 .card-alergia{border:1px solid var(--line);border-left:3px solid var(--bad);border-radius:10px;padding:10px 12px;background:var(--bg)}
 .f-bad-txt{color:var(--bad)}
+/* «sem valor» não é bom nem mau: é a cor do texto secundário, para não sugerir
+   um juízo onde só há uma lacuna na tabela */
+.f-mut-txt{color:var(--mut)}
 .alerta{background:color-mix(in srgb,var(--bad) 12%,var(--card));border:1px solid var(--bad);border-radius:8px;
   padding:6px 9px;font-size:12.5px;font-weight:600;color:var(--bad);display:flex;gap:6px;align-items:flex-start}
 .tag.alerg{border-color:var(--bad);padding:0 4px;margin-left:3px}
@@ -9690,6 +9693,47 @@ function reguaEpoca(nome){
   </span>`;
 }
 /* As réguas de todos os ingredientes de época de uma receita. */
+/* ---- O sal aparece antes de se comer ----
+   A app calculava o sódio de cada receita desde o Bloco E, mas só o mostrava
+   no balanço do dia — depois de a refeição já estar registada. Quem escolhia
+   um prato na ficha não fazia ideia de que ia comer o dia inteiro de sal num
+   almoço: uma dose de bacalhau à Brás tem 2560 mg de sódio, e o teto da
+   Organização Mundial de Saúde para um dia inteiro são 2000.
+
+   Não é para assustar nem para desaconselhar: o bacalhau é o que é, e uma casa
+   portuguesa come bacalhau. É para a conta estar à vista antes da escolha, e
+   não só depois — que é a diferença entre informar e recriminar. */
+function salDaFicha(r){
+  const na=sodioDeIngredientes(r.i,1,r.id);
+  if(!na) return '';
+  const faltam=(na.semValor||[]).length;
+  const nota=[];
+  if(na.estimados && na.estimados.length) nota.push(plural(na.estimados.length,'valor estimado','valores estimados'));
+  if(na.descartado) nota.push('o sal da confeção que se deita fora não conta');
+  const rodape=n=>n.length? `<p class="sub" style="margin-top:2px">${n.join(' · ')}.</p>`:'';
+  /* Três situações diferentes, e calar-se não é resposta para nenhuma delas.
+     Zero miligramas com ingredientes por saber não é «não tem sal» — é «não
+     se sabe», e um prato de frango grelhado aparecia sem uma palavra sobre
+     sal só porque o peito de frango não tem valor na tabela. */
+  if(!na.mg && faltam) return `<div class="kv" style="margin-top:12px">
+    <span>Sal por dose ${dica('salacucar')}</span><b class="f-mut-txt">sem valor</b></div>
+    <p class="sub" style="margin-top:2px">${plural(faltam,'ingrediente desta receita não tem','ingredientes desta receita não têm')}
+      valor de sódio na tabela — ${esc((na.semValor||[]).slice(0,3).join(', '))}${faltam>3? ' e mais '+(faltam-3):''}.
+      Somar o resto daria um número mais baixo do que a verdade, e a app prefere dizer que não sabe.</p>`;
+  if(!na.mg) return `<div class="kv" style="margin-top:12px">
+    <span>Sal por dose ${dica('salacucar')}</span><b class="f-ok-txt">vestigial</b></div>
+    <p class="sub" style="margin-top:2px">Só o sódio que os alimentos têm por natureza, sem nada acrescentado.
+      O que se puser na panela conta por cima disto.</p>${rodape(nota)}`;
+  const sal=na.mg*SAL_POR_SODIO/1000;
+  const pct=Math.round(na.mg/OMS_SODIO_ADULTO*100);
+  if(faltam) nota.unshift(plural(faltam,'ingrediente sem valor na tabela','ingredientes sem valor na tabela')+', a conta fica por baixo');
+  return `<div class="kv" style="margin-top:12px">
+    <span>Sal por dose ${dica('salacucar')}</span>
+    <b class="${pct>=100?'f-bad-txt':''}">${nPT(sal,1)} g · ${pct} % do dia</b></div>
+    ${pct>=100? `<p class="sub" style="margin-top:2px">Uma dose passa sozinha o máximo diário que a Organização Mundial de Saúde
+      recomenda para um adulto (${OMS_SODIO_ADULTO} mg de sódio). Vale a pena não repetir sal no resto do dia.</p>`:''}
+    ${rodape(nota)}`;
+}
 function reguasDaReceita(r){
   const l=ingredientesDaEpoca(r);
   if(!l.length) return '';
@@ -11051,6 +11095,7 @@ function fichaHtml(f){
         <span class="pill ${disp.pronta?'ok':disp.tem?'warn':''}" style="margin-left:auto">${
           disp.pronta?'Pronta a cozinhar':disp.tem+'/'+disp.total+' na despensa'}</span>
       </div>
+      ${salDaFicha(r)}
       <h3 style="margin-top:14px">Ingredientes</h3>
       <div class="ingr-lista">${listaIngredientesComEstado(r,f.n)}</div>
       ${blocoSubstituicoes(r)}
