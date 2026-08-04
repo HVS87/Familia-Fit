@@ -6020,7 +6020,7 @@ function macrosDeIngredientes(lista,doses){
 function sodioDeIngredientes(lista,doses,rid){
   const d=Math.max(1,parseFloat(doses)||1);
   const fora=(rid && NA_DESCARTADO[rid])||[];
-  let na=0; const semValor=[], estimados=[];
+  let na=0; const semValor=[], estimados=[], outraTabela=[];
   (lista||[]).forEach(x=>{
     const nome=x[0];
     if(fora.indexOf(nome)>=0) return;   /* crosta ou água de cozer: não se come */
@@ -6029,9 +6029,10 @@ function sodioDeIngredientes(lista,doses,rid){
     const v=sodioDe(nome);
     if(v===null){ semValor.push(nome); return; }
     if(sodioEstimado(nome)) estimados.push(nome);
+    else if(sodioDeOutraTabela(nome)) outraTabela.push(nome);
     na+=v*g/100;
   });
-  return {mg:Math.round(na/d), semValor, estimados, descartado:fora.length>0};
+  return {mg:Math.round(na/d), semValor, estimados, outraTabela, descartado:fora.length>0};
 }
 function acucarLivreDeIngredientes(lista,doses){
   const d=Math.max(1,parseFloat(doses)||1);
@@ -6598,11 +6599,21 @@ const NA_DESCARTADO={
   polvocozido:['Sal grosso'], batatascozidas:['Sal grosso'],
   acbcoz:['Sal grosso'], acbmurro:['Sal grosso'],
 };
+/* ---- A terceira gaveta ----
+   Havia duas: o INSA, e «estimado». Um valor do CoFID britânico, do CIQUAL
+   francês ou do USDA não é nenhuma das duas coisas — não é INSA, mas também
+   não é uma estimativa: é uma medição publicada por outro instituto oficial.
+   Metê-lo em «estimado» dizia a quem lê que o número era um palpite, e não
+   era; metê-lo em «INSA» era pior ainda. Fica aqui, com o nome certo, e a
+   app diz qual das três é. */
+const NA_TABELA={};
 function sodioDe(nome){
   if(temChave(NA_INSA,nome)) return NA_INSA[nome];
+  if(temChave(NA_TABELA,nome)) return NA_TABELA[nome];
   if(temChave(NA_ESTIMADO,nome)) return NA_ESTIMADO[nome];
   return NA_RESIDUAL.test(nome)? 0 : null;
 }
+function sodioDeOutraTabela(nome){ return temChave(NA_TABELA,nome); }
 /* Estas tabelas são indexadas por igualdade exata com o nome do ingrediente.
    Uma chave escrita com o nome truncado — «Chouriço de carne de porco» quando
    o catálogo diz «Chouriço de carne de porco, cru» — não dá erro: fica ali,
@@ -6619,7 +6630,7 @@ function sodioDe(nome){
      nenhumas. Um guarda que grita sem razão ensina a ignorá-lo, e a seguir
      deixa passar o erro verdadeiro. */
   const cat=new Set(Object.keys(NUTRI).concat(Object.keys(NUTRI_EXTRA)));
-  const orfas=[...Object.keys(NA_INSA),...Object.keys(NA_ESTIMADO)].filter(k=>!cat.has(k));
+  const orfas=[...Object.keys(NA_INSA),...Object.keys(NA_TABELA),...Object.keys(NA_ESTIMADO)].filter(k=>!cat.has(k));
   if(orfas.length) console.warn('Família Fit — chaves de sódio sem ingrediente correspondente ('
     +orfas.length+'): '+orfas.join(' · '));
 })();
@@ -8402,27 +8413,39 @@ function alvoSodio(m){
 function fonteAlvoSodio(m){
   return (m && faseDe(m)==='bebe')? 'EFSA' : 'OMS';
 }
+/* A proveniência tem de subir com o número. Esta função devolvia só {mg,
+   semValor} e deixava cair os «estimados» pelo caminho — e como sodioMedia()
+   os lia daqui, a nota que avisa «este total tem valores estimados» era código
+   morto: nunca apareceu uma vez. Um aviso de proveniência que não aparece é
+   pior do que não existir, porque dá a impressão de que foi verificado. */
 function sodioRegRef(r){
-  const rec=RECIPES.find(x=>x.id===r.r); if(!rec) return {mg:0,semValor:[]};
+  const vazio={mg:0, semValor:[], estimados:[], outraTabela:[]};
+  const rec=RECIPES.find(x=>x.id===r.r); if(!rec) return vazio;
   const dose=parseFloat(r.dose)||1;
   const base=sodioDeIngredientes(rec.i,1,rec.id);
-  let mg=base.mg*dose; const sem=base.semValor.slice();
+  let mg=base.mg*dose;
+  const sem=base.semValor.slice(), est=base.estimados.slice(), out=(base.outraTabela||[]).slice();
   /* o acompanhamento vai à mesa com o prato: o sódio dele conta */
   (r.ac||[]).forEach(id=>{ const a=RECIPES.find(x=>x.id===id); if(!a) return;
     const s=sodioDeIngredientes(a.i,1,a.id);
-    mg+=s.mg*dose/Math.max(1,(r.ac||[]).length); s.semValor.forEach(n=>sem.push(n)); });
-  return {mg:Math.round(mg), semValor:sem};
+    mg+=s.mg*dose/Math.max(1,(r.ac||[]).length);
+    s.semValor.forEach(n=>sem.push(n));
+    s.estimados.forEach(n=>est.push(n));
+    (s.outraTabela||[]).forEach(n=>out.push(n));
+  });
+  return {mg:Math.round(mg), semValor:sem, estimados:est, outraTabela:out};
 }
 function sodioMedia(mid,dias){
-  const h=hojeISO(); let soma=0, n=0, sem=0; const est=new Set();
+  const h=hojeISO(); let soma=0, n=0, sem=0; const est=new Set(), out=new Set();
   for(let i=0;i<(dias||7);i++){ const d=addDias(h,-i);
     const refs=regRefDe(mid).filter(r=>r.d===d&&r.estado==='feita');
     if(!refs.length) continue;
     refs.forEach(r=>{ const s=sodioRegRef(r); soma+=s.mg; sem+=s.semValor.length;
-      (s.estimados||[]).forEach(x=>est.add(x)); });
+      (s.estimados||[]).forEach(x=>est.add(x));
+      (s.outraTabela||[]).forEach(x=>out.add(x)); });
     n++;
   }
-  return n? {media:soma/n, dias:n, sem, estimados:[...est]} : null;
+  return n? {media:soma/n, dias:n, sem, estimados:[...est], outraTabela:[...out]} : null;
 }
 
 /* ================= AÇÚCARES LIVRES =================
@@ -10210,6 +10233,7 @@ function salDaFicha(r){
   const faltam=(na.semValor||[]).length;
   const nota=[];
   if(na.estimados && na.estimados.length) nota.push(plural(na.estimados.length,'valor estimado','valores estimados'));
+  if(na.outraTabela && na.outraTabela.length) nota.push(plural(na.outraTabela.length,'valor de outra tabela oficial','valores de outras tabelas oficiais'));
   if(na.descartado) nota.push('o sal da confeção que se deita fora não conta');
   const rodape=n=>n.length? `<p class="sub" style="margin-top:2px">${n.join(' · ')}.</p>`:'';
   /* Três situações diferentes, e calar-se não é resposta para nenhuma delas.
@@ -19252,7 +19276,9 @@ function cartaoSalAcucar(m){
               : '↑ '+nPT((sm.media-alvoNa)/1000,2)+' g de sódio por dia acima do limite. O sal português mora no pão, no queijo e no fumeiro — não no saleiro.')
         : 'Sem recomendação oficial para esta idade — fica o número, sem veredicto.'}
         ${sm.sem? ' Há ingredientes sem valor de sódio na tabela, por isso a conta é <b>por baixo</b>.':''}
-        ${(sm.estimados||[]).length? ' '+plural(sm.estimados.length,'ingrediente não está na tabela do INSA e entrou com um valor estimado','ingredientes não estão na tabela do INSA e entraram com valores estimados')
+        ${(sm.outraTabela||[]).length? ' '+plural(sm.outraTabela.length,'ingrediente não está na tabela do INSA e veio de outra tabela oficial','ingredientes não estão na tabela do INSA e vieram de outras tabelas oficiais')
+          +' <span class="sub">('+esc(sm.outraTabela.slice(0,4).join(', '))+(sm.outraTabela.length>4? ' e mais '+(sm.outraTabela.length-4):'')+')</span>.':''}
+        ${(sm.estimados||[]).length? ' '+plural(sm.estimados.length,'ingrediente entrou com um valor estimado','ingredientes entraram com valores estimados')
           +' <span class="sub">('+esc(sm.estimados.slice(0,4).join(', '))+(sm.estimados.length>4? ' e mais '+(sm.estimados.length-4):'')+')</span>.':''}</p>
     </div>`:''}
     ${am? `<div style="margin-top:14px">
