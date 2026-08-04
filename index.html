@@ -1069,6 +1069,11 @@ input[type=text],input[type=number],input[type=date],input[type=search],select{
 /* min-height em vez de só padding: com um texto de uma linha curta o chip
    ficava nos 23 px, um abaixo do mínimo da WCAG 2.5.8. */
 .chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:4px 12px;background:var(--bg);cursor:pointer;font-size:13.5px;font-weight:600;min-height:24px}
+/* Os atalhos das doses saltam de 12 para 20; quem cozinha para 14 escreve o
+   número, em vez de ficar preso ao salto mais próximo. */
+.doses-num{width:58px;padding:3px 6px;border:1px solid var(--line);border-radius:8px;
+  background:var(--bg);color:var(--ink);font:600 13.5px/1 inherit;text-align:center;min-height:24px}
+@media (hover:none) and (pointer:coarse){ .doses-num{min-height:32px} }
 @media (hover:none) and (pointer:coarse){ .chip{min-height:32px;padding:6px 14px} }
 .chip.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
 .chip.party{border-color:var(--party);color:var(--party)}
@@ -1178,6 +1183,16 @@ input[type=range].com-detentes::-moz-range-track{
   width:24px;height:24px;padding:0;margin-left:6px;border:1px solid var(--line);border-radius:50%;
   background:var(--bg);color:var(--mut);font:700 12px/1 inherit;cursor:help;vertical-align:middle;flex:none}
 .dica:hover,.dica:focus-visible,.dica.on{border-color:var(--accent);color:var(--accent)}
+/* Texto que existe para ser ouvido e não para ser visto. A bolha das dicas é
+   desenhada por content:attr(data-dica) num ::after — conteúdo gerado por CSS
+   não é exposto de forma fiável, e com display:none está mesmo fora da árvore
+   de acessibilidade. Ou seja: quem usa leitor de ecrã ouvia «Explicação» e
+   nada da explicação. O mesmo texto passa a existir também como elemento a
+   sério, escondido à vista, e o botão aponta-lhe com aria-describedby.
+   Não se usa display:none nem hidden de propósito — isso tirá-lo-ia da árvore
+   outra vez, que é exatamente o problema que se está a resolver. */
+.so-leitor{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+  clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
 .dica::after{content:attr(data-dica);position:absolute;left:calc(-4px + var(--dx,0px));top:calc(100% + 8px);
   width:max-content;max-width:min(270px,calc(100vw - 24px));
   background:var(--ink);color:var(--card);padding:9px 12px;border-radius:9px;
@@ -1346,6 +1361,9 @@ select.slot{margin-top:4px}
 .chip.perigo{background:color-mix(in srgb,var(--bad) 9%,var(--bg));border-color:var(--bad);color:var(--bad)}
 .card-alergia{border:1px solid var(--line);border-left:3px solid var(--bad);border-radius:10px;padding:10px 12px;background:var(--bg)}
 .f-bad-txt{color:var(--bad)}
+/* «sem valor» não é bom nem mau: é a cor do texto secundário, para não sugerir
+   um juízo onde só há uma lacuna na tabela */
+.f-mut-txt{color:var(--mut)}
 .alerta{background:color-mix(in srgb,var(--bad) 12%,var(--card));border:1px solid var(--bad);border-radius:8px;
   padding:6px 9px;font-size:12.5px;font-weight:600;color:var(--bad);display:flex;gap:6px;align-items:flex-start}
 .tag.alerg{border-color:var(--bad);padding:0 4px;margin-left:3px}
@@ -2247,6 +2265,36 @@ const LIMITES_CORPO={
   altura:[30,250,'A altura','cm',170],
   idade: [0,120,'A idade','anos',35]
 };
+/* Quantas pessoas se serve. Vinte dá para um almoço de família alargada ou uma
+   festa em casa — a partir daí já não é uma receita de casa. O número vive
+   aqui porque o seletor da lista, a ficha da receita e o saneador têm todos de
+   dizer o mesmo: antes, a lista parava nas 12 e a ficha aceitava 20. */
+const MAX_DOSES=20;
+/* A memória do que falta despachar. Vive aqui em cima, longe da função que a
+   usa, pela mesma razão do MAX_AC e do JEJUM_MAX_H: writeLS() esquece-a, e
+   writeLS() corre no arranque — um let declarado lá em baixo estaria na zona
+   morta temporal nesse momento, e o resultado era um ecrã em branco sem nada
+   na consola. */
+let _pendCache=null;
+/* O índice dos registos por pessoa. Vive aqui pela mesma razão do _pendCache:
+   é esquecido por writeLS(), que corre no arranque. E não se escreve
+   «typeof _regRefIdx!=='undefined'» a fingir que protege — num let, o typeof
+   lança na mesma dentro da zona morta temporal. A única defesa é declarar
+   antes de quem usa, que é o que se faz aqui. */
+let _regRefIdx=null;
+/* Uma porta só para deitar fora o que foi contado a partir do estado. Chama-se
+   de render() e de writeLS(): antes de desenhar, e sempre que algo muda. É
+   mais seguro esquecer de mais do que servir uma conta velha — e ter as duas
+   memórias na mesma função é o que evita que a próxima nasça sem quem a
+   invalide. */
+function esquecePendencias(){ _pendCache=null; _regRefIdx=null; }
+/* Contador dos ids das bolhas de explicação. Zera a cada desenho — os ids só
+   precisam de ser únicos dentro da página que existe naquele momento. */
+let _nDica=0;
+/* Um a doze de um em um, e depois de dois em dois: quem cozinha para catorze
+   não precisa de distinguir treze de catorze, mas quem cozinha para três
+   precisa mesmo de três. */
+const OPCOES_DOSES=(()=>{ const a=[]; for(let v=1;v<=MAX_DOSES;v++) if(v<=12||v%2===0) a.push(v); return a; })();
 /* O estado do histórico de navegação. Aqui em cima porque sincronizaHistorico()
    corre no fim de cada desenho, incluindo o primeiro, e a declaração vive no
    bloco do botão voltar, muito mais abaixo. */
@@ -2667,7 +2715,6 @@ R('ervilhasovos','Ervilhas com ovos escalfados e bacon','portuguesa',['mediterra
 R('favaschourico','Favas com chouriço','portuguesa',['mediterranica'],0,0,0,0,[['Favas',250,'g'],['Chouriço',60,'g'],['Bacon',40,'g'],['Cebola',70,'g'],['Alho',2,'dente'],['Azeite',12,'ml'],['Coentros',6,'g'],['Louro',1,'g']],['a','j'],0,['pp']),
 R('francesinha','Francesinha','portuguesa',[],0,0,0,0,[['Pão de forma',80,'g'],['Bife de vaca',90,'g'],['Linguiça',50,'g'],['Salsicha fresca crua',50,'g'],['Fiambre',40,'g'],['Queijo flamengo',70,'g'],['Cerveja branca',80,'ml'],['Polpa de tomate',80,'g'],['Molho inglês',8,'ml'],['Manteiga',10,'g'],['Colorau',2,'g']],['a','j'],0,['pp']),
 R('empadaocarne','Empadão de carne','portuguesa',[],0,0,0,0,[['Carne picada de vaca',180,'g'],['Batata',300,'g'],['Cebola',70,'g'],['Alho',2,'dente'],['Tomate pelado',80,'g'],['Leite',60,'ml'],['Manteiga',15,'g'],['Azeite',10,'ml'],['Noz-moscada',0.5,'g'],['Salsa',5,'g']],['a','j'],0,['pp']),
-R('peixesal','Peixe ao sal no forno','portuguesa',['keto','lowcarb','paleo','mediterranica'],0,0,0,0,[['Dourada',350,'g'],['Sal grosso',400,'g'],['Limão',20,'ml'],['Azeite',12,'ml'],['Tomilho fresco',4,'g'],['Louro',1,'g']],['a','j'],0,['pp']),
 R('iscascebolada','Iscas de cebolada','portuguesa',['lowcarb'],0,0,0,0,[['Vaca, fígado cru',180,'g'],['Cebola',150,'g'],['Alho',3,'dente'],['Vinho branco',60,'ml'],['Louro',1,'g'],['Azeite',15,'ml'],['Colorau',2,'g'],['Pimenta preta',0.5,'g']],['a','j'],0,['pp']),
 R('feijoadatransmontana','Feijoada à transmontana','portuguesa',[],0,0,0,0,[['Feijão encarnado',90,'g'],['Porco, orelha cozida',25,'g'],['Porco, chispe',30,'g'],['Porco, entrecosto cru',40,'g'],['Chouriço',20,'g'],['Farinheira',15,'g'],['Couve galega',70,'g'],['Cenoura',50,'g'],['Cebola',50,'g'],['Alho',2,'dente'],['Azeite',8,'ml'],['Colorau',2,'g'],['Louro',1,'g']],['a','j'],0,['pp']),
 /* O Bacalhau à Brás já existe desde a primeira fornada com o id 'bras' — a
@@ -2947,10 +2994,6 @@ P('empadaocarne',[['Puré','Coze as batatas com casca, descasca ainda quentes e 
  ['Recheio','Aloura a cebola e o alho no azeite, junta a carne e desfaz com a colher até perder o vermelho. Tomate, sal e pimenta, e deixa apurar.',15],
  ['Montar','Camada de puré, a carne escorrida, e o resto do puré por cima. Risca a superfície com um garfo — é o que faz o topo corar.'],
  ['Forno','Forno a 200 °C até estar dourado.',25]]);
-P('peixesal',[['Preparar','Peixe amanhado mas com escamas: são elas que o protegem do sal. Enche a barriga com limão, tomilho e louro.'],
- ['Cama de sal','Humedece o sal grosso com um pouco de água até ficar como areia de praia. Faz uma cama no tabuleiro, deita o peixe e cobre por completo.'],
- ['Forno','Forno a 200 °C, vinte minutos por cada 500 g. A crosta fica dura e ligeiramente dourada.',25],
- ['Abrir','Parte a crosta com as costas de uma faca e tira-a em placas. Retira a pele com o sal agarrado e serve com azeite.']]);
 P('iscascebolada',[['Marinar','Corta o fígado em fatias finas e deixa em vinho branco com alho, louro e pimenta — de véspera, se puderes.',120],
  ['Cebolada','Estufa a cebola em meias-luas no azeite, em lume brando, até ficar transparente e doce.',15],
  ['Saltear','Escorre as iscas e salteia em lume forte, muito pouco tempo de cada lado. Fígado cozinhado a mais fica seco e amargo.',3],
@@ -6129,7 +6172,6 @@ const NA_RESIDUAL=/^(abacate|abóbora|acelga|agrião|aipo|alcachofra|alface|alho
    seria pior do que assumir a omissão. */
 const NA_DESCARTADO={
   peixeaosal:['Sal grosso'],   /* crosta: parte-se e deita-se fora */
-  peixesal:['Sal grosso'],
   camaraocozido:['Sal grosso'], /* água de cozer */
   polvocozido:['Sal grosso'], batatascozidas:['Sal grosso'],
   acbcoz:['Sal grosso'], acbmurro:['Sal grosso'],
@@ -6408,7 +6450,11 @@ function fmtQtd(quant,un){
   const q=Math.round(quant*100)/100;
   if(un==='g'&&q>=1000) return nPT(q/1000, q%1000?1:0)+' kg';
   if(un==='ml'&&q>=1000) return nPT(q/1000, q%1000?1:0)+' L';
-  return nPT(q, Number.isInteger(q)?0:(Number.isInteger(q*10)?1:2))+' '+un;
+  /* «dente» é a única unidade que é palavra e não símbolo: g, ml e un não
+     variam, mas «20 dente» não se diz. Com doses até 20 isto passou a
+     aparecer a sério na lista de compras e nas fichas. */
+  const u = un==='dente' && q!==1 ? 'dentes' : un;
+  return nPT(q, Number.isInteger(q)?0:(Number.isInteger(q*10)?1:2))+' '+u;
 }
 function textoEscala(r,n,fator){
   return escalaIngredientes(r,n,fator).map(x=>esc(x.n)+' '+fmtQtd(x.q,x.u)).join(' · ');
@@ -6629,6 +6675,9 @@ function load(){
   return Object.assign(b, s, {ui:Object.assign(b.ui,s.ui||{}), meta:Object.assign(b.meta,s.meta||{})});
 }
 function writeLS(){
+  /* gravar significa que algo mudou: a conta do que falta despachar deixa de
+     valer, mesmo que ainda não venha aí um desenho */
+  esquecePendencias();
   try{ localStorage.setItem(KEY,JSON.stringify(S)); saveErr='';
     /* fica a saber-se o que ESTE separador gravou por último: é a única
        forma de distinguir uma gravação nossa de uma de outro separador */
@@ -7030,11 +7079,23 @@ function blocoMetodoBMR(m){
         const troca=M.soAdulto && idadeAnos(m)<19;
         const txt=`<b>${esc(M.n)}</b>${M.recomendada? ' — recomendada':''}<br>${M.resumo}<br><br><b>Limitação:</b> ${M.limite}<br><br><b>Fonte:</b> ${esc(M.fonte)}`
           + (troca? '<br><br><b>Nesta idade não se aplica:</b> este perfil continua calculado pela '+METODOS_BMR[METODO_BMR_PADRAO].curto+'.' : '');
+        /* A limitação e a fonte de cada equação viviam só no data-dica, e o
+           data-dica só é desenhado por um ::after — quem usa leitor de ecrã
+           escolhia entre «Henry» e «Schofield» sem ouvir nenhuma das razões
+           para escolher. Numa decisão que muda os alvos de calorias de toda a
+           casa, isso não pode ficar de fora. O mesmo texto, sem marcação, é
+           entregue por aria-describedby. */
+        const idm='mo-t'+(++_nDica);
+        const falado=[M.n+(M.recomendada?', recomendada':''), M.resumo,
+          'Limitação: '+M.limite, 'Fonte: '+M.fonte,
+          troca? 'Nesta idade não se aplica: este perfil continua calculado pela '+METODOS_BMR[METODO_BMR_PADRAO].curto+'.' : '']
+          .filter(Boolean).join(' ').replace(/<[^>]+>/g,'');
         return `<button class="metodo-op ${on?'on':''}" role="radio" aria-checked="${on}"
-          data-dica="${esc(txt)}" onclick="setMetodoBMR('${k}')">
+          data-dica="${esc(txt)}" aria-describedby="${idm}" onclick="setMetodoBMR('${k}')">
           <span class="mo-nome">${esc(M.curto)}${M.recomendada? ' <span class="mo-sel">recomendada</span>':''}</span>
           <span class="mo-val">${val} kcal${troca? ' *':''}</span>
           <span class="mo-ano">${M.ano}</span>
+          <span id="${idm}" class="so-leitor">${esc(falado)}</span>
         </button>`;
       }).join('')}
     </div>
@@ -7073,8 +7134,33 @@ function gravidezKcal(m){
   return 0;   /* trigémeos: sem estimativa — ver avisoGravidez() */
 }
 function semEstimativa(m){ return gravida(m) && fetos(m)>=3; }
+/* ================= AMAMENTAR =================
+   A app sempre soube que amamentar custa energia — di-lo a quem pergunta pelo
+   jejum, «a produção de leite tem um custo energético diário que não se
+   suspende». Só que não perguntava se a pessoa amamenta, e por isso nunca
+   somava esse custo: uma mãe a amamentar em exclusivo, com um objetivo de
+   menos 12 %, recebia o alvo de uma mulher que não amamenta menos ainda. Num
+   sítio onde comer a menos seca o leite, isso não é um arredondamento.
+
+   Os valores são os da EFSA (Scientific Opinion on Dietary Reference Values
+   for energy, EFSA Journal 2013;11(1):3005): o custo da lactação é de cerca
+   de 500 kcal/dia nos primeiros seis meses de amamentação exclusiva. A partir
+   daí a alimentação complementar já entrou e o leite deixa de ser a única
+   fonte da criança, pelo que o acréscimo desce.
+
+   Quem amamenta em part-time recebe metade — é uma aproximação, e a interface
+   diz que é. O que não se faz é assumir zero por não se saber ao certo. */
+const LACTACAO_KCAL={exclusiva:500, mista:250};
+function amamenta(m){ return posparto(m) && (m.amamenta==='exclusiva'||m.amamenta==='mista'); }
+function lactacaoKcal(m){
+  if(!amamenta(m)) return 0;
+  const base=LACTACAO_KCAL[m.amamenta]||0;
+  /* depois dos seis meses a criança já come outras coisas: o custo mantém-se
+     mas é menor, e a EFSA deixa de o fixar. Usa-se metade, e diz-se. */
+  return semanasPosParto(m)>26? Math.round(base/2) : base;
+}
 function tdee(m){ return bmr(m)*(temChave(BASE_ACT,m.atividade)?BASE_ACT[m.atividade][1]:1.2)
-  + sportsKcalDay(m) + commuteKcalDay(m) + crescimentoKcal(m) + gravidezKcal(m); }
+  + sportsKcalDay(m) + commuteKcalDay(m) + crescimentoKcal(m) + gravidezKcal(m) + lactacaoKcal(m); }
 /* Faixas de distribuição de macronutrientes aceitáveis (AMDR, IOM/DRI).
    Abaixo dos 12 meses não estão definidas — não se aplicam percentagens. */
 function amdrDe(m){
@@ -7099,7 +7185,25 @@ function proteinaKg(m){
 function hidratosMin(m){ if(idadeAnos(m)<1) return 0; return gravida(m)? 175 : 130; }
 /* Um défice calórico não é para crianças, adolescentes em crescimento nem
    grávidas — o slider de objetivo fica limitado a manutenção ou acima. */
+/* Quem amamenta pode perder peso — a orientação é que perca devagar, e não que
+   não perca. O que não pode é somar um défice agressivo por cima do custo do
+   leite. Por isso o défice continua permitido, mas travado: ver LIMITE_DEFICE_
+   LACTACAO em objetivoPctSeguro(). */
 function permiteDefice(m){ return faseDe(m)==='adulto' && !gravida(m); }
+/* Perder mais de meio quilo por semana a amamentar é onde as orientações
+   começam a avisar sobre a produção de leite. Meio quilo por semana são cerca
+   de 500 kcal/dia; num alvo típico de 2000, isso é 25 % — mas somado ao custo
+   da lactação, um défice de 25 % come o leite antes de comer a gordura. O teto
+   fica nos 10 %, que é a banda em que a perda é lenta e a produção aguenta. */
+const DEFICE_MAX_LACTACAO=10;
+function objetivoPctSeguro(m){
+  const p=parseFloat(m.objetivoPct)||0;
+  if(p>=0 || !amamenta(m)) return p;
+  return Math.max(p, -DEFICE_MAX_LACTACAO);
+}
+function deficeTravadoPelaLactacao(m){
+  return amamenta(m) && (parseFloat(m.objetivoPct)||0) < -DEFICE_MAX_LACTACAO;
+}
 function permiteProjecao(m){ return permiteDefice(m); }
 /* A tabela dos SUPLEMENTOS está declarada lá em cima, antes do load(): o
    saneador limparValidades() precisa dos nomes e corre no arranque. Ver
@@ -7471,6 +7575,7 @@ function rotuloObjetivo(m){ const p=objetivoPct(m);
 function targetKcal(m){
   let p=objetivoPct(m);
   if(!permiteDefice(m) && p<0) p=0;   /* sem défice em crianças e na gravidez */
+  if(p<0 && amamenta(m)) p=Math.max(p,-DEFICE_MAX_LACTACAO);   /* a amamentar, o défice é travado */
   return tdee(m)*(1+p/100); }
 /* A dieta lida SEMPRE por aqui: para presets devolve o objeto de DIETS
    (gramas inalteradas); «personalizada» usa os macros do próprio membro. */
@@ -7720,7 +7825,25 @@ function planeadasNoDia(m,d){
    com o pai não obriga a correr ao ritmo dele. Validar um valida o grupo;
    editar um pergunta se se aplica aos outros. */
 function regAtivDe(mid){ return (S.regAtiv||[]).filter(r=>r.mid===mid); }
-function regRefDe(mid){ return (S.regRef||[]).filter(r=>r.mid===mid); }
+/* Os registos de uma pessoa. Parece inofensivo — é um filter — mas esta função
+   é chamada quase novecentas vezes num único desenho do separador Família, e
+   cada chamada varria a lista toda. Com dois anos de uso a sério (quatro
+   pessoas, quatro refeições por dia, onze mil registos) isso são dez milhões
+   de comparações por desenho, e o separador levava mais de meio segundo a
+   aparecer.
+
+   Arruma-se uma vez por desenho, num índice por pessoa. Quem recebe o array
+   só o lê — filter, some, forEach, reduce — e é por isso que se pode devolver
+   o mesmo em vez de uma cópia; quem vier a precisar de o ordenar que copie
+   primeiro. O índice é esquecido em esquecePendencias(), lá no topo, a cada
+   desenho e a cada gravação. */
+function regRefDe(mid){
+  if(!_regRefIdx){
+    _regRefIdx=Object.create(null);
+    (S.regRef||[]).forEach(r=>{ (_regRefIdx[r.mid] || (_regRefIdx[r.mid]=[])).push(r); });
+  }
+  return _regRefIdx[mid] || [];
+}
 function porData(a,b){ return a.d<b.d? 1 : a.d>b.d? -1 : 0; }   /* mais recente primeiro */
 function kcalRegAtiv(r){
   const s=r.s&&SPORT[r.s]; if(!s) return 0;
@@ -8059,7 +8182,25 @@ function jejumDesaconselhado(m){
   if(f==='adolescente') return 'Na adolescência o crescimento ainda não terminou e o risco de relação perturbada com a comida é maior. O jejum aqui é assunto para o médico que segue o adolescente, não para uma app.';
   if(gravida(m)) return 'Na gravidez não se faz jejum: o aporte contínuo de energia e de glicose é o que sustenta o desenvolvimento fetal.';
   if(posparto(m) && semanasPosParto(m)<12) return 'No pós-parto recente, e sobretudo a amamentar, o jejum não tem indicação — a produção de leite tem um custo energético diário que não se suspende.';
+  /* A regra de cima só cobria as primeiras doze semanas, e a frase dizia
+     «sobretudo a amamentar» sem nunca perguntar se a pessoa amamenta. Quem
+     amamenta ao sexto mês tem o mesmo custo energético diário que tinha à
+     sexta semana; agora que o perfil tem o campo, a regra usa-o. */
+  if(amamenta(m)) return 'Enquanto amamentas, o jejum não tem indicação: a produção de leite gasta energia todos os dias, e essa conta não pára quando se pára de comer.';
+  /* Magreza é contraindicação em qualquer protocolo de jejum, e é dos poucos
+     sítios onde a app tem os dois números para o perceber sozinha. O limiar é
+     o da Organização Mundial de Saúde para baixo peso no adulto: IMC 18,5.
+     Abaixo disso o jejum não é uma escolha de estilo de vida. */
+  const im=imcDe(m);
+  if(im && im<18.5) return 'Com um índice de massa corporal de '+nPT(im,1)+', abaixo dos 18,5 que a Organização Mundial de Saúde usa como limiar de baixo peso, o jejum não tem indicação — e vale a pena falar com um médico sobre o peso antes de pensar em restringir mais.';
   return null;
+}
+/* O IMC a partir do que o perfil tem, ou null quando falta um dos dois. Existe
+   à parte porque o jejum precisa dele antes de haver ecrã nenhum. */
+function imcDe(m){
+  const p=parseFloat(m&&m.peso), a=parseFloat(m&&m.altura);
+  if(!Number.isFinite(p)||!Number.isFinite(a)||a<50) return null;
+  return p/Math.pow(a/100,2);
 }
 function jejumCfg(){
   if(!S.jejum || typeof S.jejum!=='object') S.jejum={im:{}, pontuais:[]};
@@ -8494,12 +8635,20 @@ const DICAS={
   sazonal:'Um apontamento que muda com o calendário português: flor de amendoeira em fevereiro e março, andorinhas na primavera, maré e sardinha no verão, vindima no outono, laranja em janeiro. Muda só desenhos e apontamentos — nunca a cor de um texto, porque a legibilidade não é sazonal.',
   partilhada:'Uma atividade ou refeição partilhada fica registada uma vez por pessoa, ligadas entre si. Cada uma tem o seu tempo, a sua intensidade, a sua dose e os seus acompanhamentos — partilhar a hora não obriga a partilhar o esforço nem a quantidade. Confirmar uma confirma o grupo; editar ou apagar pergunta primeiro se vale para os outros.',
   registoDia:'O que ficou registado é o que aconteceu, por oposição ao plano, que é o que se tencionava fazer. É do registo que saem o gasto real do dia, o alvo de calorias ajustado e o ritmo verdadeiro dos objetivos.',
+  amamenta:'Amamentar tem um custo energético diário que não se suspende. A Autoridade Europeia para a Segurança dos Alimentos (EFSA, 2013) estima cerca de <b>500 kcal por dia</b> nos primeiros seis meses de amamentação exclusiva; a app soma-o ao alvo. Em amamentação mista soma metade, porque não há valor publicado para todas as combinações e é preferível uma aproximação declarada a assumir zero. Passados seis meses, com a alimentação complementar já a entrar, o acréscimo desce para metade. Enquanto amamentas, um défice para perder peso fica limitado a 10% — perder devagar é compatível com a produção de leite, cortar muito não é. Isto são referências populacionais: quem acompanha a amamentação é a consulta.',
   pesoHist:'Cada pesagem fica com a sua data. O peso do perfil é sempre a medição mais recente que já aconteceu, para os cálculos e a balança nunca contarem histórias diferentes. Podem registar-se medições passadas, se as tiveres anotadas.',
   acompanhamento:'O que vai ao lado do prato: batatas, arroz, legumes ou salada. As calorias somam-se às do prato no total do dia, os ingredientes somam-se à lista de compras, mas não conta como uma refeição — um arroz de coentros não é um jantar. O 🔀 troca por outro que sirva a mesma mesa, e o «juntar» põe mais um ao lado: como o lugar do acompanhamento é um só, os que lá estiverem repartem-no entre si — meia dose de batatas e meia de salada, e as calorias, os macros e as quantidades a comprar seguem essa divisão. O preenchimento automático escolhe um para cada almoço e jantar, respeitando as mesmas dietas e exclusões. Escolher ou trocar cria também uma variante com o nome inteiro — «Bife com batatas fritas» —, com os ingredientes somados e o passo-a-passo dos dois escrito de seguida, arrumada no cartão do prato de origem.',
   vegan:'Cada dieta é uma repartição diferente de hidratos, proteína e gordura; a «Personalizada» abre três sliders que somam sempre 100 %. Vegetariana e vegan são dietas diferentes: a vegetariana come ovos, lacticínios e mel, a vegan não come nada de origem animal — e as duas etiquetas são lidas dos ingredientes de cada receita, nunca escritas à mão.'
 };
 function dica(k,extra){ const t=DICAS[k]; if(!t) return '';
-  return `<button type="button" class="dica ${extra||''}" data-dica="${esc(t)}" aria-label="Explicação">i</button>`; }
+  /* O texto vai duas vezes: em data-dica, que desenha a bolha, e num elemento
+     de verdade que só o leitor de ecrã encontra. O aria-label continua a dar
+     o nome curto ao botão («Explicação»), e o aria-describedby entrega o texto
+     a seguir — que é a ordem por que se ouve: primeiro o que é, depois o que
+     diz, e o leitor deixa saltar a segunda parte se não a quiser. */
+  const id='dica-t'+(++_nDica);
+  return `<button type="button" class="dica ${extra||''}" data-dica="${esc(t)}"
+    aria-label="Explicação" aria-describedby="${id}">i<span id="${id}" class="so-leitor">${esc(t)}</span></button>`; }
 /* Despensa e Compras partilhavam os mesmos dados e viviam separadas: o fluxo
    natural — ver o que falta, comprar, arrumar — obrigava a saltar de separador
    no momento mais apressado da semana. Passam a ser duas vistas da Mercearia,
@@ -9251,7 +9400,7 @@ function perguntarSobra(d,mk,rid,ac,quem){
     quem: quem||[], vere:{}, brig:{}};
   saveMeta(); render();
 }
-function setSobraDoses(v){ const f=folhaMesa(); if(!f) return; f.doses=clampNum(parseFloat(v)||0,0,12); saveMeta(); render(); }
+function setSobraDoses(v){ const f=folhaMesa(); if(!f) return; f.doses=clampNum(parseFloat(v)||0,0,MAX_DOSES); saveMeta(); render(); }
 /* Cada pessoa dá o seu veredicto tocando no próprio avatar. Tocar outra vez no
    mesmo tira o voto — mudar de ideias é legítimo, e um voto que não se pode
    retirar deixa de ser um voto. */
@@ -9544,6 +9693,47 @@ function reguaEpoca(nome){
   </span>`;
 }
 /* As réguas de todos os ingredientes de época de uma receita. */
+/* ---- O sal aparece antes de se comer ----
+   A app calculava o sódio de cada receita desde o Bloco E, mas só o mostrava
+   no balanço do dia — depois de a refeição já estar registada. Quem escolhia
+   um prato na ficha não fazia ideia de que ia comer o dia inteiro de sal num
+   almoço: uma dose de bacalhau à Brás tem 2560 mg de sódio, e o teto da
+   Organização Mundial de Saúde para um dia inteiro são 2000.
+
+   Não é para assustar nem para desaconselhar: o bacalhau é o que é, e uma casa
+   portuguesa come bacalhau. É para a conta estar à vista antes da escolha, e
+   não só depois — que é a diferença entre informar e recriminar. */
+function salDaFicha(r){
+  const na=sodioDeIngredientes(r.i,1,r.id);
+  if(!na) return '';
+  const faltam=(na.semValor||[]).length;
+  const nota=[];
+  if(na.estimados && na.estimados.length) nota.push(plural(na.estimados.length,'valor estimado','valores estimados'));
+  if(na.descartado) nota.push('o sal da confeção que se deita fora não conta');
+  const rodape=n=>n.length? `<p class="sub" style="margin-top:2px">${n.join(' · ')}.</p>`:'';
+  /* Três situações diferentes, e calar-se não é resposta para nenhuma delas.
+     Zero miligramas com ingredientes por saber não é «não tem sal» — é «não
+     se sabe», e um prato de frango grelhado aparecia sem uma palavra sobre
+     sal só porque o peito de frango não tem valor na tabela. */
+  if(!na.mg && faltam) return `<div class="kv" style="margin-top:12px">
+    <span>Sal por dose ${dica('salacucar')}</span><b class="f-mut-txt">sem valor</b></div>
+    <p class="sub" style="margin-top:2px">${plural(faltam,'ingrediente desta receita não tem','ingredientes desta receita não têm')}
+      valor de sódio na tabela — ${esc((na.semValor||[]).slice(0,3).join(', '))}${faltam>3? ' e mais '+(faltam-3):''}.
+      Somar o resto daria um número mais baixo do que a verdade, e a app prefere dizer que não sabe.</p>`;
+  if(!na.mg) return `<div class="kv" style="margin-top:12px">
+    <span>Sal por dose ${dica('salacucar')}</span><b class="f-ok-txt">vestigial</b></div>
+    <p class="sub" style="margin-top:2px">Só o sódio que os alimentos têm por natureza, sem nada acrescentado.
+      O que se puser na panela conta por cima disto.</p>${rodape(nota)}`;
+  const sal=na.mg*SAL_POR_SODIO/1000;
+  const pct=Math.round(na.mg/OMS_SODIO_ADULTO*100);
+  if(faltam) nota.unshift(plural(faltam,'ingrediente sem valor na tabela','ingredientes sem valor na tabela')+', a conta fica por baixo');
+  return `<div class="kv" style="margin-top:12px">
+    <span>Sal por dose ${dica('salacucar')}</span>
+    <b class="${pct>=100?'f-bad-txt':''}">${nPT(sal,1)} g · ${pct} % do dia</b></div>
+    ${pct>=100? `<p class="sub" style="margin-top:2px">Uma dose passa sozinha o máximo diário que a Organização Mundial de Saúde
+      recomenda para um adulto (${OMS_SODIO_ADULTO} mg de sódio). Vale a pena não repetir sal no resto do dia.</p>`:''}
+    ${rodape(nota)}`;
+}
 function reguasDaReceita(r){
   const l=ingredientesDaEpoca(r);
   if(!l.length) return '';
@@ -10160,12 +10350,12 @@ function cartaoDiscordia(){
 function fichaAberta(){ return S.ui.ficha&&typeof S.ui.ficha==='object'? S.ui.ficha : null; }
 function abrirFicha(rid,n){
   const r=RECIPES.find(x=>x.id===rid); if(!r) return;
-  S.ui.ficha={r:rid, n:clampNum(n||porcoesAtuais()||1,1,20)};
+  S.ui.ficha={r:rid, n:clampNum(n||porcoesAtuais()||1,1,MAX_DOSES)};
   saveMeta(); render();
 }
 function fecharFicha(){ S.ui.ficha=null; saveMeta(); render(); }
 function setFichaDoses(v){ const f=fichaAberta(); if(!f) return;
-  f.n=clampNum(Math.round(parseFloat(v)||1),1,20); saveMeta(); render(); }
+  f.n=clampNum(Math.round(parseFloat(v)||1),1,MAX_DOSES); saveMeta(); render(); }
 /* ================= O LIVRO DA CASA =================
    As receitas da casa merecem sair em papel. Monta-se um documento próprio
    num nó à parte, imprime-se com o browser e tira-se logo a seguir — nada sai
@@ -10899,10 +11089,13 @@ function fichaHtml(f){
       ${blocoVeredictosDaCasa(r)}
       <div class="row" style="margin-top:12px;align-items:center">
         <span class="lbl" style="margin:0">Doses</span>
-        ${[1,2,3,4,6].map(x=>`<button class="chip ${f.n===x?'on':''}" onclick="setFichaDoses(${x})">${x}</button>`).join('')}
+        ${[1,2,4,6,8,12,MAX_DOSES].map(x=>`<button class="chip ${f.n===x?'on':''}" onclick="setFichaDoses(${x})">${x}</button>`).join('')}
+        <input type="number" class="doses-num" min="1" max="${MAX_DOSES}" step="1" value="${f.n}"
+          aria-label="Número de doses" onchange="setFichaDoses(this.value)">
         <span class="pill ${disp.pronta?'ok':disp.tem?'warn':''}" style="margin-left:auto">${
           disp.pronta?'Pronta a cozinhar':disp.tem+'/'+disp.total+' na despensa'}</span>
       </div>
+      ${salDaFicha(r)}
       <h3 style="margin-top:14px">Ingredientes</h3>
       <div class="ingr-lista">${listaIngredientesComEstado(r,f.n)}</div>
       ${blocoSubstituicoes(r)}
@@ -10965,7 +11158,7 @@ function passosDerivados(r,n){
 }
 function abrirCozinha(rid,n,ctx,acs){
   const r=RECIPES.find(x=>x.id===rid); if(!r) return;
-  S.ui.cozinha={r:rid, n:clampNum(n||1,1,20), passo:0, feitos:[], ctx:ctx||null,
+  S.ui.cozinha={r:rid, n:clampNum(n||1,1,MAX_DOSES), passo:0, feitos:[], ctx:ctx||null,
     ac:Array.isArray(acs)? acs.slice(0,MAX_AC) : [], vista:'passos', trancado:false, feitosEspera:[]};
   saveMeta(); render(); pedirEcraAceso();
 }
@@ -12070,6 +12263,10 @@ function indiceGlobal(){
    ['Lista de compras','mercearia'],['Despensa','mercearia'],['Preços','mercearia'],
    ['Cópias de segurança','dados'],['Paletas e temas','dados'],['Visita guiada','dados']]
    .forEach(([t,tab])=>ix.push({t, o:'Onde fica', fn:"go('"+tab+"')"}));
+  /* O título sem acentos e em minúsculas é o que a procura compara, e não muda
+     entre teclas — calculava-se as mil e cem vezes a cada letra escrita.
+     Fica guardado ao lado do título, uma vez por índice. */
+  ix.forEach(x=>{ x.k=semAcentos(x.t).toLowerCase(); });
   return ix;
 }
 let _ixGlobal=null;
@@ -12083,7 +12280,7 @@ function pesquisaGlobal(q){
   if(!_ixGlobal) _ixGlobal=indiceGlobal();
   const out=[];
   for(const x of _ixGlobal){
-    const n=semAcentos(x.t).toLowerCase();
+    const n=x.k;
     let pos=null;
     for(const t of termos){ const i=n.indexOf(t); if(i<0){ pos=null; break; } if(pos===null) pos=i; }
     if(pos===null) continue;
@@ -13335,7 +13532,20 @@ function fatorCompras(di,mk){
 /* ================= PENDÊNCIAS DO DIA =================
    O que a casa tem por despachar, contado uma vez e reutilizado no crachá do
    ícone da PWA, nos pontos da barra e no «Correu como planeado». */
+/* O que a casa tem por despachar é pedido quatro a seis vezes no mesmo desenho
+   — o crachá do ícone, os pontos da barra, o «correu como planeado», o fio do
+   dia — e cada pedido varre o plano da semana inteira e monta a lista de
+   compras do zero. O comentário por cima desta função sempre prometeu «contado
+   uma vez e reutilizado»; não havia memória nenhuma.
+
+   A conta é a mesma durante todo um desenho, porque nada muda o estado a meio.
+   Guarda-se, e deita-se fora no início de cada render() e sempre que se grava:
+   é mais seguro esquecer de mais do que servir uma conta velha. */
 function pendenciasHoje(){
+  if(_pendCache) return _pendCache;
+  return _pendCache=calculaPendencias();
+}
+function calculaPendencias(){
   const d=hojeISO(), out={ref:[], ativ:[], compras:0, pesagens:0};
   S.members.forEach(m=>{
     planeadasHojeSemRegisto(m).forEach(p=>out.ref.push({mid:m.id, mk:p.mk, meal:p.meal}));
@@ -14348,7 +14558,15 @@ function folhaRegistoHtml(){
    pesagens novas e compras por confirmar. Uma de cada vez, e nunca duas vezes
    na mesma sessão — perguntar outra vez o que já foi respondido é ruído. */
 let jaPerguntouPeso=false, jaPerguntouCompras=false;
-function abrirModal(tipo,dados){ S.ui.modal=Object.assign({tipo},dados||{}); saveMeta(); render(); }
+/* Os três tipos que a app sabe desenhar. Um tipo que não esteja aqui deixava
+   S.ui.modal preenchido sem nada no ecrã: uma camada invisível que engolia o
+   Escape, travava o go() e não tinha botão de fechar — só se saía recarregando.
+   Recusar em voz alta é melhor do que abrir o nada. */
+const MODAIS=['peso','aviso','compras'];
+function abrirModal(tipo,dados){
+  if(MODAIS.indexOf(tipo)<0){ console.warn('Família Fit — modal desconhecido: '+tipo); return; }
+  S.ui.modal=Object.assign({tipo},dados||{}); saveMeta(); render();
+}
 function fecharModal(){ S.ui.modal=null; saveMeta(); render(); }
 function fundoModal(e){ if(e && e.target && e.target.classList.contains('mfundo')) fecharModal(); }
 function modalAberto(){ return S.ui.modal&&typeof S.ui.modal==='object'? S.ui.modal : null; }
@@ -15109,9 +15327,15 @@ function renderFamilia(){
           <div><label class="lbl">Tipo de parto</label><select onchange="upd('${mid}','parto',this.value,1)">
             <option value="vaginal" ${tipoParto(m)==='vaginal'?'selected':''}>Vaginal</option>
             <option value="cesariana" ${tipoParto(m)==='cesariana'?'selected':''}>Cesariana</option></select></div>
+          <div><label class="lbl">Amamentação ${dica('amamenta')}</label><select onchange="upd('${mid}','amamenta',this.value)">
+            <option value="" ${!m.amamenta?'selected':''}>Não amamenta</option>
+            <option value="exclusiva" ${m.amamenta==='exclusiva'?'selected':''}>Exclusiva (só leite materno)</option>
+            <option value="mista" ${m.amamenta==='mista'?'selected':''}>Mista (com fórmula ou outros alimentos)</option></select></div>
         </div>
-        <p class="sub" style="margin-top:4px">Serve só para o separador Atividade adaptar o que mostra — a retoma
-          decide-se na consulta de revisão do puerpério, não aqui.</p>`:''}`:''}`:''}
+        ${amamenta(m)? `<div class="kv" style="margin-top:6px"><span>Custo energético da amamentação</span>
+          <b>+${lactacaoKcal(m)} kcal/dia</b></div>`:''}
+        <p class="sub" style="margin-top:4px">O tipo de parto serve para o separador Atividade adaptar o que mostra — a retoma
+          decide-se na consulta de revisão do puerpério, não aqui. A amamentação entra no alvo de calorias.</p>`:''}`:''}`:''}
         <div class="spgrid" style="margin-top:14px">
           ${sl('peso','Peso de hoje',bebe?2:20,160,bebe?0.1:0.5,nPT(m.peso,1)+' kg','Peso em quilogramas')}
         </div>
@@ -16523,7 +16747,7 @@ function limparReceita(x){
   const out={id:'u_'+limparId(String(x.id||'').replace(/^u_/,'')),
     n:String(x.n||'Receita sem nome').slice(0,80),
     coz, mt: mt.length? mt : ['a','j'],
-    doses: clampNum(Math.round(parseFloat(x.doses)||1),1,12), i};
+    doses: clampNum(Math.round(parseFloat(x.doses)||1),1,MAX_DOSES), i};
   /* De quem veio e a história: texto livre, e por isso escapado onde se
      mostra. Uma receita sem história continua a ser uma receita. */
   const de=String(x.de||'').trim().slice(0,40); if(de) out.de=de;
@@ -16790,7 +17014,7 @@ function edSet(campo,valor){
   else if(campo==='de') e.de=String(valor).slice(0,40);
   else if(campo==='hist') e.hist=String(valor).slice(0,240);
   else if(campo==='oral') e.oral=String(valor).slice(0,1200);
-  else if(campo==='doses') e.doses=clampNum(Math.round(parseFloat(valor)||1),1,12);
+  else if(campo==='doses') e.doses=clampNum(Math.round(parseFloat(valor)||1),1,MAX_DOSES);
   saveMeta();
   if(campo==='doses') atualizarEditor();
 }
@@ -16950,7 +17174,7 @@ function cartaoEditor(){
       <div><label class="lbl">Cozinha</label><select onchange="edSet('coz',this.value)">
         ${Object.entries(CUIS).map(([k,v])=>`<option value="${k}" ${e.coz===k?'selected':''}>${(ICO_COZ[k]||'')+' '+v}</option>`).join('')}</select></div>
       <div><label class="lbl">Doses que rende</label>
-        <input type="number" min="1" max="12" step="1" value="${e.doses}" onchange="edSet('doses',this.value)"></div>
+        <input type="number" min="1" max="${MAX_DOSES}" step="1" value="${e.doses}" onchange="edSet('doses',this.value)"></div>
     </div>
     <div class="frow" style="margin-top:10px">
       <div><label class="lbl">De quem veio ${dica('historia')}</label>
@@ -17037,13 +17261,15 @@ function blocoRestricoes(m){
 }
 function setPorcoes(v){
   const n=parseInt(v,10);
-  S.ui.porcoes=Number.isFinite(n)? clampNum(n,1,12) : null;
+  S.ui.porcoes=Number.isFinite(n)? clampNum(n,1,MAX_DOSES) : null;
   saveMeta(); render();
 }
 function porcoesAtuais(){
   const n=parseInt(S.ui.porcoes,10);
-  if(Number.isFinite(n)) return clampNum(n,1,12);
-  return Math.max(1,S.members.length);
+  if(Number.isFinite(n)) return clampNum(n,1,MAX_DOSES);
+  /* uma casa com mais gente do que o teto continua a servir toda a gente na
+     conta do plano; o que se limita aqui é o multiplicador das quantidades */
+  return clampNum(Math.max(1,S.members.length),1,MAX_DOSES);
 }
 
 function recipeCard(r,n){
@@ -19308,6 +19534,9 @@ function renderNutricao(){
           <span style="position:absolute;left:${(35/45*100).toFixed(1)}%;transform:translateX(-50%)">ganhar +10</span>
         </div>`
         : `<p class="sub" style="margin-top:4px">${gravida(m)?'Na gravidez':'Em idade de crescimento'} não se planeia défice calórico — o slider começa na manutenção.</p>`}
+        ${deficeTravadoPelaLactacao(m)? `<div class="msg warn-msg" style="margin-top:8px">Escolheste ${Math.round(Math.abs(parseFloat(m.objetivoPct)||0))} % abaixo do gasto,
+          mas estás a amamentar: o alvo está a ser calculado com <b>${DEFICE_MAX_LACTACAO} %</b>. Perder devagar é compatível com a
+          produção de leite; cortar muito não é. Quem acompanha isto é a consulta, não a app.</div>`:''}
       </div>
       <div class="row" style="margin-top:10px;min-height:34px">
         <span class="pill ok" id="nu-ritmo"></span>${dica('ritmo')}
@@ -19492,7 +19721,7 @@ function renderReceitas(){
   <div class="row" style="margin-bottom:12px;align-items:center">
     <span class="sub">Quantidades para ${dica('porcoes')}</span>
     <select style="width:auto" aria-label="Número de pessoas para as quantidades" onchange="setPorcoes(this.value)">
-      ${[1,2,3,4,5,6,7,8,10,12].map(v=>`<option value="${v}" ${n===v?'selected':''}>${v} pessoa${v===1?'':'s'}</option>`).join('')}
+      ${OPCOES_DOSES.map(v=>`<option value="${v}" ${n===v?'selected':''}>${v} pessoa${v===1?'':'s'}</option>`).join('')}
     </select>
     ${S.members.length&&n!==S.members.length? `<button class="chip" onclick="setPorcoes(${S.members.length})">Repor: a família (${S.members.length})</button>`:''}
   </div>
@@ -22075,6 +22304,9 @@ function limparMembro(m){
        como se nada tivesse acontecido */
     posparto: !!m.posparto && (m.sexo==='f'),
     semanasPos: clampNum(Math.round(parseFloat(m.semanasPos)||0),0,104),
+    /* só os dois valores que a app conhece: o que vier de fora e não for um
+       deles vale «não amamenta», que é o que não acrescenta calorias nenhumas */
+    amamenta: (m.amamenta==='exclusiva'||m.amamenta==='mista')? m.amamenta : '',
     parto: m.parto==='cesariana'? 'cesariana' : 'vaginal',
     restricoes: Array.isArray(m.restricoes)
       ? m.restricoes.filter((k,i,a)=>temChave(RESTR,k)&&a.indexOf(k)===i) : [],
@@ -23258,6 +23490,8 @@ function render(){
      dela, repondo dois passos atrás. Redesenhar significa que o gesto
      acabou, por isso é aqui que se compromete o que ficou pendente. */
   if(estadoAnterior!==null && instantaneo()!==estadoAnterior) save();
+  esquecePendencias();   /* a conta do que falta despachar é refeita uma vez por desenho */
+  _nDica=0;
   pintaNav();
   const el=document.getElementById('main');
   el.innerHTML = S.ui.tab==='atividade'? renderAtividade()
@@ -23438,8 +23672,15 @@ sincronizaCombos();
    sempre existiu em DICAS — faltava ligá-lo. Aqui e não dentro de pintaHist():
    pintaHist() corre a partir de save(), que corre durante o arranque, muito
    antes de DICAS existir — ler lá a constante deixava a app em branco. */
-(function(){ const d=document.getElementById('dica-desfazer');
-  if(d) d.setAttribute('data-dica', DICAS.desfazer||''); })();
+(function(){ const d=document.getElementById('dica-desfazer'); if(!d) return;
+  const t=DICAS.desfazer||'';
+  d.setAttribute('data-dica', t);
+  /* e o mesmo texto como elemento a sério, para o leitor de ecrã o alcançar —
+     como em todas as outras dicas, que o recebem já feito de dica() */
+  const s=document.createElement('span');
+  s.id='dica-desfazer-t'; s.className='so-leitor'; s.textContent=t;
+  d.appendChild(s); d.setAttribute('aria-describedby',s.id);
+})();
 aplicarTema();
 /* Em modo automático, seguir o sistema quando ele muda a meio da sessão. */
 try{ const mq=matchMedia('(prefers-color-scheme: dark)');
@@ -23447,10 +23688,6 @@ try{ const mq=matchMedia('(prefers-color-scheme: dark)');
   if(mq.addEventListener) mq.addEventListener('change',reagir); else if(mq.addListener) mq.addListener(reagir);
 }catch(e){}
 ligarOrientacao();
-/* O explicador do cabeçalho vive em HTML estático, fora dos templates — o
-   texto vem do mesmo registo que todos os outros, para não haver duas cópias. */
-(function(){ const d=document.getElementById('dica-desfazer');
-  if(d) d.setAttribute('data-dica', DICAS.desfazer); })();
 estadoAnterior=instantaneo();   /* base do histórico: o estado tal como foi carregado */
 /* Atalhos do ícone da PWA: um toque longo no ícone traz o gesto certo antes de
    a app abrir. O parâmetro é lido uma vez e limpo do endereço, para um
