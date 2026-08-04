@@ -1781,7 +1781,7 @@ const ICO_REF={p:'🌅',a:'🍽️',l:'🍎',j:'🌙',ac:'🍚'};
    prato nacional brasileiro, e a salsicha pelas cozinhas do centro da Europa
    que não têm separador próprio. */
 const ICO_COZ={portuguesa:'🇵🇹',italiana:'🍝',francesa:'🥐',mediterranica:'🫒',asiatica:'🍜',
-  espanhola:'🥘',mexicana:'🌮',americana:'🍔',indiana:'🍛',brasileira:'🫘',africana:'🌍',outras:'🌭'};
+  espanhola:'🥘',britanica:'🫖',mexicana:'🌮',americana:'🍔',indiana:'🍛',brasileira:'🫘',africana:'🌍',outras:'🌭'};
 const ICO_SUPL={proteico:'🥤',vitaminico:'💊',mineral:'🧂',composto:'🐟'};
 const ICO_FASE={bebe:'🍼',crianca:'🧒',adolescente:'🧑',adulto:'🧑‍🦱'};
 function SP(id,nome,cat,mets,dicas,dist){ return {id,nome,cat,mets,dicas:dicas||null,dist:dist||null}; }
@@ -2318,9 +2318,14 @@ const DIETS = {
 };
 /* «Outras» não é um caixote do lixo: é o lugar honesto para as cozinhas que a
    casa cozinha de vez em quando e que não justificam separador próprio — a
-   alemã, a britânica, a do norte da Europa. Fica no fim da lista de propósito. */
+   alemã, a do norte da Europa. Fica no fim da lista de propósito.
+
+   A britânica estava aí até o pequeno-almoço inglês entrar a sério: um full
+   English, o porridge escocês, os tattie scones, o Welsh rarebit e o beans on
+   toast são uma cozinha inteira de manhã, não um caso isolado. Uma cozinha
+   ganha separador quando já não cabe no «Outras». */
 const CUIS = {portuguesa:'Portuguesa',mediterranica:'Mediterrânica',espanhola:'Espanhola',italiana:'Italiana',
-  francesa:'Francesa',mexicana:'Mexicana',americana:'Norte-americana',asiatica:'Asiática',
+  francesa:'Francesa',britanica:'Britânica',mexicana:'Mexicana',americana:'Norte-americana',asiatica:'Asiática',
   indiana:'Indiana',brasileira:'Brasileira',africana:'Africana',outras:'Outras'};
 const BASE_ACT = {sedentario:['Sedentário (escritório, pouco movimento)',1.2],leve:['Leve (em pé parte do dia)',1.35],moderado:['Moderado (trabalho ativo)',1.5],intenso:['Intenso (trabalho físico pesado)',1.65]};
 const COMMUTE = {nenhum:['Carro / transportes',0],pe30:['A pé (~30 min/dia)',1.75],pe60:['A pé (~1 h/dia)',3.5],bici:['Bicicleta (~30 min/dia)',3.4]}; // valor = MET·h efetivos/dia útil
@@ -3024,6 +3029,282 @@ R('meiadesfeita','Meia-desfeita de bacalhau','portuguesa',['mediterranica'],0,0,
    Uma dose é um pastel. Quem come dois marca duas doses, e a app faz a conta
    — inventar aqui uma «dose de dois» tirava-lhe essa liberdade. */
 R('pastelnata','Pastel de nata','portuguesa',[],0,0,0,0,[['Massa folhada, congelada',25,'g'],['Leite',45,'ml'],['Nata',15,'ml'],['Açúcar branco',22,'g'],['Gema de ovo de galinha, crua',14,'g'],['Farinha',4,'g'],['Canela',0.3,'g'],['Raspa de limão',0.5,'g']],['l'],0,['sob']),
+
+/* ================= A MANHÃ E O LANCHE =================
+   O catálogo tinha 45 pequenos-almoços para 411 pratos de almoço e jantar, e
+   dava-se por isso: uma família com dietas diferentes via a mesma coisa sete
+   dias seguidos. O que se segue é a manhã e a merenda a sério, e vem quase
+   todo de sítios onde essas horas são uma refeição com nome próprio.
+
+   ---------- Portugal, das ilhas ao Alentejo ---------- */
+/* Bolo lêvedo de São Miguel. Coze-se na chapa, não no forno: é isso que lhe dá
+   a crosta fina e o miolo fofo. A receita segue as proporções dos Bolos
+   Lêvedos inscritos nos Produtos Tradicionais Portugueses da DGADR — por bolo,
+   a partir de uma massa de 1 kg de farinha que rende cerca de doze. */
+R('bololevedo','Bolo lêvedo com manteiga','portuguesa',[],0,0,0,0,[['Farinha de trigo tipo 65',67,'g'],['Leite',17,'ml'],['Açúcar branco',10,'g'],['Manteiga',10,'g'],['Ovo',0.13,'un'],['Fermento de padeiro',1.5,'g'],['Manteiga com sal',8,'g']],['p','l'],0,['br']),
+/* Bolo do caco da Madeira: batata-doce e farinha, cozido na pedra quente. A
+   proporção é a tradicional — 350 g de batata-doce por cada 500 g de farinha.
+   A manteiga de alho é o que se lhe põe a seguir, e é meia receita. */
+R('bolocaco','Bolo do caco com manteiga de alho','portuguesa',[],0,0,0,0,[['Farinha de trigo tipo 65',80,'g'],['Batata doce crua',56,'g'],['Fermento de padeiro',2,'g'],['Manteiga com sal',15,'g'],['Alho',2,'dente'],['Salsa',4,'g']],['p','l'],0,['br']),
+/* Papas de carolo: milho partido grosso cozido primeiro em água e só depois
+   em leite, com casca de limão e canela. Era o pequeno-almoço da Beira Baixa
+   e do Minho, e continua a dar para as duas pontas do dia. */
+R('papascarolo','Papas de carolo','portuguesa',['vegetariana'],0,0,0,0,[['Sêmola de milho',45,'g'],['Leite',250,'ml'],['Açúcar amarelo',15,'g'],['Raspa de limão',1,'g'],['Canela',1,'g'],['Flor de sal',0.5,'g']],['p','l'],0,['br']),
+/* Tiborna: pão quente embebido em azeite novo. Do lagar, de novembro, quando
+   o azeite acaba de sair — e o resto do ano com o melhor azeite que houver.
+   Três ingredientes, e é por isso que o azeite tem de ser bom. */
+R('tiborna','Tiborna de azeite novo','portuguesa',['mediterranica','vegetariana'],0,0,0,0,[['Pão alentejano',70,'g'],['Azeite',18,'ml'],['Alho',1,'dente'],['Flor de sal',1,'g']],['p','l'],0,['sn']),
+/* Pão com chouriço: massa de pão estendida fina, chouriço em rodelas, enrolado
+   e cozido. Uma dose é um pão pequeno, do tamanho que se come à mão. */
+R('paochourico','Pão com chouriço','portuguesa',[],0,0,0,0,[['Farinha de trigo tipo 65',90,'g'],['Chouriço',45,'g'],['Azeite',8,'ml'],['Fermento de padeiro',2,'g'],['Flor de sal',1.5,'g']],['l'],0,['sn']),
+/* Tigelada da Beira Baixa: ovos, leite e mel cozidos em tacho de barro, no
+   forno muito quente. Doce de convento, de Abrantes, e a única gordura que
+   leva é a das gemas. Uma dose é uma tigela pequena. */
+R('tigelada','Tigelada da Beira Baixa','portuguesa',['vegetariana'],0,0,0,0,[['Ovo',1.5,'un'],['Leite',150,'ml'],['Mel',20,'g'],['Açúcar branco',15,'g'],['Farinha',8,'g'],['Canela',1,'g'],['Raspa de limão',1,'g']],['l'],0,['sob']),
+/* Queijada de Sintra: massa fina e recheio de queijo fresco com gema, açúcar
+   e canela. Uma dose é uma queijada. */
+R('queijadasintra','Queijada de Sintra','portuguesa',['vegetariana'],0,0,0,0,[['Queijo fresco',35,'g'],['Açúcar branco',18,'g'],['Gema de ovo de galinha, crua',10,'g'],['Farinha',12,'g'],['Manteiga',3,'g'],['Canela',0.4,'g'],['Raspa de limão',0.5,'g']],['l'],0,['sob']),
+
+/* ---------- Mediterrâneo: Turquia, Grécia, Levante, Magrebe ---------- */
+/* Menemen: o pequeno-almoço turco. O truque está em não cozer os ovos demais —
+   saem cremosos, quase a escorrer, e é assim que se servem. */
+R('menemen','Menemen','mediterranica',['lowcarb','vegetariana','mediterranica'],0,0,0,0,[['Ovo',2,'un'],['Tomate',2,'un'],['Pimento',0.5,'un'],['Cebola',0.3,'un'],['Azeite',12,'ml'],['Pimentão-doce',1,'g'],['Pão rústico',40,'g']],['p','l'],0,['br']),
+/* Strapatsada, também dita kayanas: ovos mexidos em tomate ralado com feta.
+   O tomate rala-se em vez de se cortar — dá molho em vez de pedaços. */
+R('strapatsada','Strapatsada de tomate e feta','mediterranica',['lowcarb','vegetariana','mediterranica'],0,0,0,0,[['Ovo',2,'un'],['Tomate',2,'un'],['Queijo feta',40,'g'],['Azeite',15,'ml'],['Orégãos',1,'g'],['Pão rústico',40,'g']],['p','l'],0,['br']),
+/* Ful medames: favas cozidas com azeite, alho e limão. É o pequeno-almoço do
+   Egito e de todo o Levante, e uma das coisas mais antigas que ainda se comem
+   ao pequeno-almoço em qualquer parte do mundo. */
+R('fulmedames','Ful medames','mediterranica',['vegetariana','vegan','mediterranica'],0,0,0,0,[['Favas cozidas',180,'g'],['Azeite',15,'ml'],['Alho',2,'dente'],['Limão',20,'ml'],['Cominhos',2,'g'],['Salsa',8,'g'],['Tomate',1,'un'],['Pão pita',50,'g']],['p','a'],0,['br']),
+/* Manakish de za'atar: o pão plano do pequeno-almoço libanês. O za'atar é uma
+   mistura de tomilho, sumagre e sésamo — aqui está pelas partes que o
+   catálogo conhece, e quem tiver a mistura pronta usa-a em vez destas. */
+R('manakish','Manakish de za\'atar','mediterranica',['vegetariana','vegan','mediterranica'],0,0,0,0,[['Farinha de trigo tipo 65',85,'g'],['Azeite',12,'ml'],['Sementes de sésamo',8,'g'],['Orégãos',3,'g'],['Tomilho fresco',3,'g'],['Fermento de padeiro',2,'g'],['Flor de sal',1,'g']],['p','l'],0,['br']),
+/* Msemen: a crepe folhada do Magrebe. A sêmola é obrigatória — com farinha só,
+   a massa estica mas não folha. Dobra-se em quatro com azeite pelo meio, e é
+   essa dobra que faz as camadas. */
+R('msemen','Msemen com mel','mediterranica',['vegetariana','mediterranica'],0,0,0,0,[['Farinha de trigo tipo 65',50,'g'],['Sêmola de trigo',40,'g'],['Azeite',15,'ml'],['Mel',15,'g'],['Flor de sal',1,'g']],['p','l'],0,['br']),
+
+/* ---------- França: petit-déjeuner e goûter ---------- */
+/* Pain perdu: pão duro salvo em leite e ovo, frito em manteiga. O nome diz o
+   que é — pão perdido, que deixou de o ser. Pão fresco desfaz-se; tem mesmo
+   de ser do dia anterior. */
+R('painperdu','Pain perdu','francesa',['vegetariana'],0,0,0,0,[['Pão rústico',80,'g'],['Ovo',1,'un'],['Leite',100,'ml'],['Açúcar branco',12,'g'],['Manteiga',12,'g'],['Canela',0.5,'g']],['p','l'],0,['br']),
+/* Socca niçoise: farinha de grão-de-bico, água e azeite, cozida muito quente
+   até tostar nos bordos. Sem glúten por natureza, e come-se de pé, à mão. */
+R('socca','Socca niçoise','francesa',['vegetariana','vegan','mediterranica'],0,0,0,0,[['Farinha de grão-de-bico',60,'g'],['Azeite',15,'ml'],['Flor de sal',1.5,'g'],['Pimenta preta',0.5,'g']],['l'],0,['sn']),
+/* Gâteau au yaourt: o bolo que as crianças francesas fazem sozinhas, medido
+   com o copo do iogurte. Uma dose é uma fatia de oito. */
+R('gateauyaourt','Gâteau au yaourt','francesa',['vegetariana'],0,0,0,0,[['Iogurte natural',16,'g'],['Farinha',48,'g'],['Açúcar branco',32,'g'],['Óleo de girassol',12,'ml'],['Ovo',0.4,'un'],['Fermento em pó',1.5,'g'],['Baunilha',0.3,'g']],['l'],0,['sob']),
+
+/* ---------- Britânica: a manhã e o chá ---------- */
+/* Full English. Não se aligeira: é o que é, e quem o come sabe o que está a
+   comer — a app mostra as calorias e o sal, que é a informação que interessa.
+   O bacon é de lombo, não de barriga: em Inglaterra é sempre back bacon. */
+R('fullenglish','Full English breakfast','britanica',[],0,0,0,0,[['Bacon',60,'g'],['Salsicha fresca crua',70,'g'],['Black pudding',40,'g'],['Ovo',2,'un'],['Feijão cozido em molho de tomate',120,'g'],['Cogumelos',60,'g'],['Tomate',1,'un'],['Pão de forma',40,'g'],['Manteiga',8,'g']],['p','a'],0,['pp']),
+/* Porridge escocês: aveia, água e sal. Sem açúcar — é assim que se faz na
+   Escócia, e a nata fria à parte é a forma tradicional de o comer. A aveia
+   em grão partido é a original; em flocos fica pronta muito mais depressa. */
+R('porridge','Porridge escocês','britanica',['vegetariana','lowfat'],0,0,0,0,[['Aveia em flocos',50,'g'],['Flor de sal',1,'g'],['Nata pasteurizada para café, 15% gordura',30,'ml']],['p'],0,['br']),
+/* Tattie scones: puré de batata com farinha e manteiga, cozido na chapa. Parte
+   obrigatória do pequeno-almoço escocês, e a melhor coisa que se faz com a
+   batata cozida que sobrou de ontem. Sem leite — só batata, manteiga e sal. */
+R('tattiescones','Tattie scones','britanica',['vegetariana'],0,0,0,0,[['Batata cozida sem pele',150,'g'],['Farinha',35,'g'],['Manteiga',15,'g'],['Flor de sal',1,'g']],['p','l'],0,['br']),
+/* Welsh rarebit: molho espesso de queijo com cerveja, mostarda e molho inglês,
+   barrado no pão e gratinado. Não é queijo derretido em cima do pão — é um
+   molho que se faz ao lume primeiro, e a diferença é toda. */
+R('welshrarebit','Welsh rarebit','britanica',[],0,0,0,0,[['Pão rústico',60,'g'],['Queijo cheddar',60,'g'],['Cerveja branca',25,'ml'],['Manteiga',8,'g'],['Farinha',6,'g'],['Mostarda',4,'g'],['Molho inglês',4,'ml'],['Pimenta preta',0.5,'g']],['l','j'],0,['sn']),
+/* Beans on toast: a coisa mais comum que se come em Inglaterra ao pequeno-
+   almoço, e das poucas que se fazem em cinco minutos. O sal é a parte a olhar:
+   a lata traz-lhe quase todo. */
+R('beanstoast','Beans on toast','britanica',['vegetariana'],0,0,0,0,[['Feijão cozido em molho de tomate',200,'g'],['Pão de forma',60,'g'],['Manteiga',8,'g'],['Pimenta preta',0.3,'g']],['p','l'],0,['br']),
+/* Scotch pancakes, ou drop scones: massa espessa deitada à colher na chapa.
+   Não são as panquecas americanas — são mais pequenas, mais densas, e comem-se
+   frias com manteiga ao lanche tanto como quentes ao pequeno-almoço. */
+R('scotchpancakes','Scotch pancakes','britanica',['vegetariana'],0,0,0,0,[['Farinha de trigo com fermento',60,'g'],['Ovo',0.5,'un'],['Leite',60,'ml'],['Açúcar branco',12,'g'],['Manteiga',8,'g'],['Flor de sal',0.5,'g']],['p','l'],0,['br']),
+
+/* ---------- Norte-América ---------- */
+/* Grits com queijo: sêmola de milho cozida devagar, com manteiga e cheddar. É
+   o pequeno-almoço do sul dos Estados Unidos, e mexe-se sem parar — é o mexer
+   que solta o amido e faz o creme. */
+R('cheesegrits','Grits com queijo cheddar','americana',['vegetariana'],0,0,0,0,[['Sêmola de milho',50,'g'],['Queijo cheddar',40,'g'],['Manteiga',12,'g'],['Leite',80,'ml'],['Flor de sal',1,'g'],['Pimenta preta',0.3,'g']],['p'],0,['br']),
+/* Dutch baby: massa líquida deitada numa frigideira de ferro a escaldar e
+   levada ao forno, onde sobe pelas paredes e forma uma taça. Serve-se logo,
+   porque abate em dois minutos — faz parte. Uma dose é meia frigideira. */
+R('dutchbaby','Dutch baby','americana',['vegetariana'],0,0,0,0,[['Ovo',2,'un'],['Farinha',40,'g'],['Leite',80,'ml'],['Manteiga',20,'g'],['Açúcar branco',8,'g'],['Limão',10,'ml'],['Baunilha',0.5,'g']],['p'],0,['br']),
+/* Hash browns: batata ralada, espremida até ficar seca, prensada na chapa e
+   deixada em paz até criar crosta. Mexer é o erro que os desfaz. */
+R('hashbrowns','Hash browns','americana',['vegetariana','vegan'],0,0,0,0,[['Batata',200,'g'],['Óleo de girassol',15,'ml'],['Cebola',0.25,'un'],['Flor de sal',1.5,'g'],['Pimenta preta',0.5,'g']],['p','l'],0,['br']),
+
+/* ---------- Chapa: o que se faz numa superfície plana e quente ---------- */
+/* Arepa: farinha de milho pré-cozida, água e sal, na chapa. A farinha tem de
+   ser a pré-cozida — com farinha de milho normal a massa não pega. Abre-se ao
+   meio depois de cozida e recheia-se; aqui vai com queijo. */
+R('arepa','Arepa com queijo','outras',['vegetariana'],0,0,0,0,[['Farinha de milho pré-cozida',70,'g'],['Queijo fresco',50,'g'],['Manteiga',8,'g'],['Flor de sal',1.5,'g']],['p','l'],0,['br']),
+/* Piadina romagnola: pão plano sem levedura, cozido na chapa. A proporção da
+   tradição são 20 g de banha por cada 100 g de farinha; com azeite fica mais
+   leve e menos estaladiça, e é a versão que muita gente faz hoje. */
+R('piadina','Piadina romagnola com presunto','italiana',[],0,0,0,0,[['Farinha de trigo tipo 65',80,'g'],['Banha de porco',16,'g'],['Presunto',40,'g'],['Rúcula',20,'g'],['Queijo fresco',30,'g'],['Flor de sal',1.5,'g']],['l','j'],0,['sn']),
+
+/* ================= SEGUNDO LOTE DA MANHÃ, E O CHURRASCO =================
+   Pesquisa na web, frente a frente, com um revisor adverso por frente a
+   procurar motivos para rejeitar. O que ficou de fora ficou por não haver
+   ingrediente no catálogo com composição publicada — e essas esperam, porque
+   inventar a composição de um alimento para poder ter mais uma receita é
+   exactamente o que esta app não faz.
+
+   ---------- França: petit-déjeuner, brunch e goûter ---------- */
+R('madeleines','Madeleines de Commercy','francesa',[],0,0,0,0,[['Ovo',30,'g'],['Açúcar branco',20,'g'],['Farinha de trigo tipo 55',17,'g'],['Manteiga com sal',17,'g'],['Fermento em pó',1,'g'],['Raspa de limão',1,'g']],['p','l'],0,['sn']),
+R('quatrequarts','Quatre-quarts bretão','francesa',[],0,0,0,0,[['Ovo',18,'g'],['Açúcar branco',18,'g'],['Farinha de trigo tipo 55',18,'g'],['Manteiga com sal',18,'g']],['p','l'],0,['sn']),
+R('kouignamann','Kouign-amann','francesa',[],0,0,0,0,[['Farinha de trigo tipo 55',30,'g'],['Fermento seco de padeiro',1,'g'],['Manteiga com sal',25,'g'],['Açúcar branco',25,'g'],['Flor de sal',1,'g']],['l'],0,['sn']),
+R('pissaladiere','Pissaladière niçoise','francesa',['mediterranica'],0,0,0,0,[['Massa para pizza',80,'g'],['Cebola',150,'g'],['Azeite',10,'ml'],['Anchovas',8,'g'],['Azeitonas pretas',12,'g'],['Tomilho fresco',1,'g'],['Orégãos',1,'g']],['l','a'],0,['br']),
+R('panbagnat','Pan-bagnat','francesa',['mediterranica'],0,0,0,0,[['Pão rústico',100,'g'],['Tomate',120,'g'],['Atum em conserva',60,'g'],['Anchovas',8,'g'],['Ovo de galinha cozido',50,'g'],['Azeitonas pretas',15,'g'],['Cebola roxa',20,'g'],['Favas',30,'g'],['Rabanete cru',20,'g'],['Manjericão',2,'g'],['Azeite',15,'ml'],['Alho',1,'dente']],['l','a'],0,['br']),
+R('oeufsmimosa','Ovos mimosa','francesa',[],0,0,0,0,[['Ovo de galinha cozido',90,'g'],['Maionese',20,'g'],['Mostarda de Dijon',3,'g'],['Cebolinho',2,'g'],['Salsa',1,'g'],['Pimenta preta',1,'g']],['l','a'],0,['br']),
+R('quichelorraine','Quiche lorraine','francesa',[],0,0,0,0,[['Massa quebrada',60,'g'],['Ovo',60,'g'],['Nata',30,'ml'],['Leite gordo, UHT',30,'ml'],['Toucinho fumado',35,'g'],['Noz-moscada',1,'g'],['Pimenta preta',1,'g']],['l','a','j'],0,['br']),
+R('oeufcoque','Ovo quente com mouillettes','francesa',[],0,0,0,0,[['Ovo',120,'g'],['Pão rústico',60,'g'],['Manteiga com sal',10,'g'],['Flor de sal',1,'g']],['p','l'],0,['br']),
+R('ovosbanhomaria','Ovos mexidos em banho-maria','francesa',[],0,0,0,0,[['Ovo',3,'un'],['Manteiga',20,'g'],['Nata pasteurizada 33% gordura',20,'ml'],['Cebolinho',4,'g'],['Flor de sal',1,'g'],['Pimenta branca',1,'g'],['Pão rústico',40,'g']],['p'],0,['br']),
+
+/* ---------- Britânica ---------- */
+R('welshcakes','Welsh cakes','britanica',[],0,0,0,0,[['Farinha de trigo com fermento',85,'g'],['Manteiga',38,'g'],['Açúcar branco',19,'g'],['Sultanas',19,'g'],['Ovo',20,'g'],['Leite',12,'ml'],['Canela',0.5,'g']],['l'],0,['sn']),
+R('shortbread','Shortbread escocês','britanica',[],0,0,0,0,[['Manteiga sem sal',25,'g'],['Açúcar branco',12,'g'],['Farinha de trigo tipo 55',33,'g'],['Milho, amido (pó)',4,'g'],['Flor de sal',0.3,'g']],['l'],0,['sn']),
+R('ecclescake','Eccles cakes','britanica',[],0,0,0,0,[['Massa folhada, congelada',40,'g'],['Passas',25,'g'],['Açúcar amarelo',8,'g'],['Manteiga sem sal',5,'g'],['Raspa de limão',1,'g'],['Canela',0.2,'g'],['Noz-moscada',0.1,'g'],['Ovo',5,'g'],['Açúcar branco',2,'g']],['l'],0,['sn']),
+R('bubblesqueak','Bubble and squeak','britanica',[],0,0,0,0,[['Batata cozida sem pele',175,'g'],['Couve lombarda crua',50,'g'],['Manteiga',8,'g'],['Óleo alimentar',7,'ml'],['Bacon',30,'g'],['Ovo',1,'un'],['Salsa',3,'g'],['Flor de sal',1,'g'],['Pimenta preta',0.5,'g']],['p','j'],0,['br']),
+R('eggsflorentine','Eggs Florentine','britanica',[],0,0,0,0,[['Muffin inglês',60,'g'],['Espinafres',120,'g'],['Ovo',2,'un'],['Gema de ovo de galinha, crua',18,'g'],['Manteiga sem sal',40,'g'],['Limão',10,'g'],['Vinagre de vinho',5,'ml'],['Noz-moscada',0.2,'g'],['Flor de sal',1,'g'],['Pimenta preta',0.3,'g']],['p'],0,['br']),
+R('crumpets','Crumpets','britanica',[],0,0,0,0,[['Farinha de trigo tipo 55',70,'g'],['Leite',40,'ml'],['Fermento seco de padeiro',2,'g'],['Fermento em pó',1,'g'],['Flor de sal',1.5,'g'],['Manteiga',10,'g'],['Mel',10,'g']],['p','l'],0,['br']),
+R('cogumelostosta','Cogumelos na torrada','britanica',[],0,0,0,0,[['Pão rústico',70,'g'],['Cogumelos',150,'g'],['Manteiga',12,'g'],['Alho',1,'dente'],['Nata maturada pasteurizada 30% gordura',25,'g'],['Salsa',5,'g'],['Pimenta preta',1,'g'],['Flor de sal',1,'g']],['p','l'],0,['br']),
+
+/* ---------- Mediterrâneo ---------- */
+R('simit','Simit com queijo branco','mediterranica',['mediterranica'],0,0,0,0,[['Farinha de trigo tipo 65',65,'g'],['Fermento seco de padeiro',2,'g'],['Flor de sal',1.5,'g'],['Melaço',15,'ml'],['Sementes de sésamo',15,'g'],['Azeite',3,'ml'],['Queijo feta',40,'g'],['Tomate',60,'g'],['Pepino',50,'g'],['Azeitonas pretas',15,'g']],['p','l'],0,['br']),
+R('cilbir','Çilbir de ovos escalfados em iogurte de alho','mediterranica',['mediterranica'],0,0,0,0,[['Iogurte grego natural',150,'g'],['Alho',1,'dente'],['Ovo',2,'un'],['Manteiga',12,'g'],['Pimentão-doce',2,'g'],['Malagueta',0.5,'g'],['Vinagre de vinho',15,'ml'],['Flor de sal',1,'g'],['Pão pita',50,'g'],['Endro',2,'g']],['p'],0,['br']),
+R('balila','Balila de grão-de-bico','mediterranica',['mediterranica'],0,0,0,0,[['Grão-de-bico cozido',150,'g'],['Alho',1,'dente'],['Limão',0.5,'un'],['Azeite',10,'ml'],['Cominhos',2,'g'],['Flor de sal',1,'g'],['Salsa',5,'g'],['Hortelã',2,'g'],['Pão pita',40,'g'],['Cebola roxa',20,'g'],['Rabanete cru',30,'g']],['p','l'],0,['br']),
+R('fatteh','Fatteh de grão-de-bico com iogurte','mediterranica',['mediterranica'],0,0,0,0,[['Grão-de-bico cozido',120,'g'],['Iogurte natural',150,'g'],['Tahini',5,'g'],['Pinhões',6,'g'],['Pão pita',20,'g'],['Ghee',5,'g'],['Alho',1,'dente'],['Cominhos',1.5,'g'],['Azeite',5,'ml'],['Salsa',2,'g'],['Flor de sal',1,'g']],['p','l'],0,['br']),
+R('shakshukaverde','Shakshuka verde','mediterranica',['mediterranica'],0,0,0,0,[['Azeite',15,'ml'],['Couve-de-Bruxelas crua',55,'g'],['Cebola roxa',30,'g'],['Alho',1,'dente'],['Couve galega',55,'g'],['Espinafres',40,'g'],['Malagueta',0.5,'g'],['Sementes de coentro',1,'g'],['Cominhos',1,'g'],['Limão',0.25,'un'],['Ovo',2,'un'],['Salsa',4,'g'],['Queijo feta',30,'g'],['Flor de sal',1,'g']],['p','l'],0,['br']),
+R('baghrir','Baghrir, crepes dos mil buracos','mediterranica',[],0,0,0,0,[['Sêmola de trigo',60,'g'],['Farinha de trigo tipo 55',30,'g'],['Fermento seco de padeiro',2,'g'],['Fermento em pó',3,'g'],['Açúcar branco',2,'g'],['Flor de sal',1,'g'],['Mel',15,'g'],['Manteiga',8,'g']],['p','l'],0,['br']),
+R('harcha','Harcha de sêmola','mediterranica',[],0,0,0,0,[['Sêmola de trigo',70,'g'],['Manteiga',18,'g'],['Leite meio gordo, UHT',35,'ml'],['Açúcar branco',4,'g'],['Fermento em pó',2.5,'g'],['Flor de sal',1,'g'],['Mel',12,'g']],['p','l'],0,['br']),
+R('bissara','Bissara de favas','mediterranica',['mediterranica'],0,0,0,0,[['Favas secas cruas',60,'g'],['Alho',2,'dente'],['Azeite',12,'ml'],['Cominhos',2,'g'],['Colorau',1.5,'g'],['Flor de sal',1,'g'],['Limão',0.25,'un'],['Pão de mistura',40,'g']],['p','l'],0,['br']),
+R('panecunzato','Pane cunzato','mediterranica',['mediterranica'],0,0,0,0,[['Pão rústico',100,'g'],['Tomate',100,'g'],['Anchovas',12,'g'],['Queijo fresco de ovelha',50,'g'],['Cebola roxa',20,'g'],['Tomate seco',15,'g'],['Azeite',12,'ml'],['Orégãos',1,'g'],['Manjericão',2,'g'],['Pimenta preta',0.3,'g'],['Flor de sal',0.5,'g']],['l','a'],0,['br']),
+R('pastizzi','Pastizzi de ricotta','mediterranica',[],0,0,0,0,[['Massa folhada, congelada',90,'g'],['Ricotta',80,'g'],['Ovo',0.3,'un'],['Queijo parmesão ralado',8,'g'],['Salsa',3,'g'],['Pimenta preta',0.3,'g'],['Flor de sal',0.5,'g']],['p','l'],0,['br']),
+
+/* ---------- Portugal, região a região ---------- */
+R('bolacarne','Bola de carne transmontana','portuguesa',[],0,0,0,0,[['Farinha de trigo tipo 65',65,'g'],['Manteiga com sal',25,'g'],['Ovo',0.5,'un'],['Leite meio gordo, UHT',30,'ml'],['Fermento de padeiro',5,'g'],['Presunto',15,'g'],['Chouriço',15,'g'],['Linguiça',10,'g']],['p','l'],0,['br']),
+R('folarchaves','Folar de Chaves','portuguesa',[],0,0,0,0,[['Farinha de trigo tipo 65',80,'g'],['Ovo',1,'un'],['Azeite',12,'ml'],['Manteiga',10,'g'],['Banha de porco',8,'g'],['Fermento de padeiro',5,'g'],['Presunto',20,'g'],['Salpicão',15,'g'],['Bacon',15,'g']],['p','l'],0,['br']),
+R('sopacastanhas','Sopa de castanhas à transmontana','portuguesa',[],0,0,0,0,[['Castanhas',125,'g'],['Batata',100,'g'],['Cebola',40,'g'],['Manteiga',10,'g'],['Leite meio gordo, UHT',60,'ml'],['Sal grosso',2,'g']],['p','j'],0,['pp']),
+R('papasabobora','Papas de abóbora','portuguesa',[],0,0,0,0,[['Abóbora',300,'g'],['Farinha de milho tipo 70',55,'g'],['Banha de porco',8,'g'],['Sal grosso',2,'g']],['p','l'],0,['br']),
+R('fatiasdouradas','Fatias douradas','portuguesa',[],0,0,0,0,[['Pão rústico',80,'g'],['Leite meio gordo, UHT',100,'ml'],['Ovo',1,'un'],['Açúcar branco',15,'g'],['Canela',1,'g'],['Raspa de limão',1,'g'],['Óleo alimentar',10,'ml']],['p','l'],0,['sob']),
+R('tortaazeitao','Torta de Azeitão','portuguesa',[],0,0,0,0,[['Ovo',0.85,'un'],['Açúcar branco',23,'g'],['Milho, amido (pó)',4,'g'],['Gema de ovo de galinha, crua',10,'g'],['Canela',0.5,'g'],['Manteiga',1,'g']],['l'],0,['sob']),
+R('paodedeus','Pão de Deus','portuguesa',[],0,0,0,0,[['Farinha de trigo tipo 55',45,'g'],['Açúcar branco',15,'g'],['Manteiga',8,'g'],['Ovo',0.3,'un'],['Leite meio gordo, UHT',30,'ml'],['Fermento de padeiro',4,'g'],['Coco ralado',10,'g']],['p','l'],0,['br']),
+R('acordaalentejana','Açorda alentejana com ovo escalfado','portuguesa',['mediterranica'],0,0,0,0,[['Pão alentejano',100,'g'],['Alho',2,'dente'],['Coentros',10,'g'],['Azeite',15,'ml'],['Ovo',1,'un'],['Sal grosso',2,'g']],['p','j'],0,['pp']),
+R('empadavilavicosa','Empadas de galinha à moda de Vila Viçosa','portuguesa',[],0,0,0,0,[['Massa quebrada',50,'g'],['Coxas de frango',60,'g'],['Bacon',10,'g'],['Gema de ovo de galinha, crua',15,'g'],['Cebola',20,'g'],['Banha de porco',5,'g'],['Limão',10,'g'],['Salsa',3,'g'],['Cravinho',0.3,'g'],['Pimenta branca',0.3,'g'],['Vinagre de vinho',5,'ml'],['Azeitonas',8,'g']],['l','a'],0,['sn']),
+R('domrodrigo','Dom Rodrigo','portuguesa',[],0,0,0,0,[['Gema de ovo de galinha, crua',25,'g'],['Açúcar branco',35,'g'],['Amêndoa, miolo, torrada, sem pele',15,'g'],['Canela',1,'g']],['l'],0,['sob']),
+R('massasovada','Massa sovada','portuguesa',[],0,0,0,0,[['Farinha de trigo tipo 55',65,'g'],['Açúcar branco',12,'g'],['Ovo',0.35,'un'],['Manteiga',13,'g'],['Leite meio gordo, UHT',17,'ml'],['Batata doce crua',10,'g'],['Fermento de padeiro',2,'g'],['Canela',0.5,'g'],['Raspa de limão',0.5,'g']],['p','l'],0,['br']),
+R('cachorropequeno','Cachorrinho à moda do Porto','portuguesa',[],0,0,0,0,[['Pão rústico',60,'g'],['Salsicha fresca crua',60,'g'],['Queijo Gouda',25,'g'],['Manteiga',8,'g'],['Molho piri-piri',5,'ml']],['l','j'],0,['sn']),
+R('tostamista','Tosta mista','portuguesa',[],0,0,0,0,[['Pão de forma',60,'g'],['Fiambre',40,'g'],['Queijo flamengo',40,'g'],['Manteiga',8,'g']],['p','l'],0,['sn']),
+R('omeletebacalhau','Omelete de bacalhau','portuguesa',['mediterranica'],0,0,0,0,[['Ovo',3,'un'],['Bacalhau demolhado cru',70,'g'],['Cebola',40,'g'],['Pimento',30,'g'],['Azeite',12,'ml'],['Salsa',5,'g'],['Colorau',1,'g'],['Pimenta preta',1,'g']],['p','j'],0,['br']),
+R('farinheiraovos','Ovos mexidos com farinheira','portuguesa',[],0,0,0,0,[['Farinheira',80,'g'],['Ovo',2,'un'],['Azeite',5,'ml'],['Pão de mistura',50,'g'],['Salsa',3,'g'],['Pimenta preta',1,'g']],['p','l','j'],0,['br']),
+
+/* ---------- Norte-América ---------- */
+R('denveromelete','Omelete Denver','americana',[],0,0,0,0,[['Ovo',3,'un'],['Fiambre',50,'g'],['Pimento',45,'g'],['Cebola',35,'g'],['Queijo cheddar',25,'g'],['Manteiga',8,'g'],['Pimenta preta',0.5,'g']],['p'],0,['br']),
+R('montecristo','Monte Cristo','americana',[],0,0,0,0,[['Pão de forma',60,'g'],['Fiambre',40,'g'],['Peru fatiado',40,'g'],['Queijo Emmental',30,'g'],['Ovo',1,'un'],['Leite meio gordo, UHT',30,'ml'],['Manteiga',10,'g'],['Mostarda de Dijon',6,'g'],['Compota de fruta',15,'g']],['p','a'],0,['br']),
+R('camaraogrits','Camarão com grits à moda de Charleston','americana',[],0,0,0,0,[['Sêmola de milho',50,'g'],['Camarão',120,'g'],['Bacon',20,'g'],['Queijo cheddar',25,'g'],['Manteiga',8,'g'],['Leite meio gordo, UHT',100,'ml'],['Alho',1,'dente'],['Limão',15,'g'],['Molho picante',3,'ml'],['Cebolinho',8,'g'],['Flor de sal',1,'g'],['Pimenta preta',0.5,'g']],['p','j'],0,['br']),
+R('blintzes','Blintzes de queijo','americana',[],0,0,0,0,[['Farinha de trigo tipo 55',32,'g'],['Ovo',1,'un'],['Leite meio gordo, UHT',80,'ml'],['Queijo Quark natural meio gordo',75,'g'],['Queijo creme',15,'g'],['Açúcar branco',8,'g'],['Baunilha',0.5,'g'],['Manteiga',8,'g'],['Nata maturada pasteurizada 30% gordura',20,'g'],['Compota de fruta',18,'g'],['Flor de sal',0.5,'g']],['p','l'],0,['br']),
+R('deviledeggs','Ovos recheados à americana','americana',[],0,0,0,0,[['Ovo',2,'un'],['Maionese',15,'g'],['Mostarda',3,'g'],['Vinagre de vinho',3,'ml'],['Pimentão-doce',0.5,'g'],['Cebolinho',3,'g'],['Flor de sal',0.5,'g'],['Pimenta preta',0.2,'g']],['l'],0,['sn']),
+R('pimentocheese','Pimento cheese com bolachas','americana',[],0,0,0,0,[['Queijo cheddar',30,'g'],['Pimento assado em conserva',15,'g'],['Maionese',12,'g'],['Chili em pó',0.3,'g'],['Pimenta preta',0.3,'g'],['Bolacha de água e sal',18,'g']],['l'],0,['sn']),
+R('grilledcheese','Grilled cheese','americana',[],0,0,0,0,[['Pão de forma',70,'g'],['Queijo cheddar',60,'g'],['Manteiga',12,'g'],['Maionese',8,'g']],['p','l'],0,['sn']),
+R('omeletedenver','Denver omelette','americana',[],0,0,0,0,[['Ovo',3,'un'],['Fiambre',50,'g'],['Pimento',40,'g'],['Cebola',30,'g'],['Queijo cheddar',30,'g'],['Manteiga',10,'g'],['Leite meio gordo, UHT',15,'ml'],['Pimenta preta',1,'g'],['Flor de sal',1,'g']],['p'],0,['br']),
+
+/* ---------- Índia, Ásia e Américas ---------- */
+R('alooparatha','Aloo paratha','indiana',[],0,0,0,0,[['Farinha integral de trigo',90,'g'],['Batata',150,'g'],['Ghee',15,'g'],['Cebola',25,'g'],['Coentros',5,'g'],['Malagueta',3,'g'],['Gengibre',4,'g'],['Cominhos',2,'g'],['Garam masala',2,'g'],['Chili em pó',1,'g'],['Limão',10,'g'],['Flor de sal',2,'g'],['Iogurte natural',60,'g']],['p','l'],0,['br']),
+R('appam','Appam de Kerala','indiana',[],0,0,0,0,[['Arroz',70,'g'],['Coco ralado',20,'g'],['Flocos de arroz',10,'g'],['Fermento seco de padeiro',1,'g'],['Açúcar branco',8,'g'],['Flor de sal',2,'g'],['Leite de coco',80,'ml'],['Óleo de coco',5,'ml']],['p','l'],0,['br']),
+R('shrikhand','Shrikhand','indiana',[],0,0,0,0,[['Iogurte grego natural',200,'g'],['Açúcar branco',20,'g'],['Açafrão',0.1,'g'],['Cardamomo',1,'g'],['Pistácio torrado, sem sal',10,'g'],['Amêndoa',8,'g'],['Leite meio gordo, UHT',10,'ml']],['l'],0,['sob']),
+R('lassimanga','Lassi de manga','indiana',[],0,0,0,0,[['Iogurte natural',150,'g'],['Manga',150,'g'],['Leite meio gordo, UHT',60,'ml'],['Açúcar branco',10,'g'],['Cardamomo',0.5,'g']],['p','l'],0,['sn']),
+R('cachapa','Cachapa com queijo','outras',[],0,0,0,0,[['Milho',220,'g'],['Leite',30,'ml'],['Milho, amido (pó)',8,'g'],['Açúcar branco',12,'g'],['Flor de sal',2,'g'],['Manteiga',15,'g'],['Mozzarella fresca',60,'g'],['Farinha de milho pré-cozida',10,'g']],['p','l'],0,['br']),
+R('kaiserschmarrn','Kaiserschmarrn','outras',[],0,0,0,0,[['Farinha de trigo tipo 55',50,'g'],['Leite meio gordo, UHT',100,'ml'],['Ovo',2,'un'],['Açúcar branco',15,'g'],['Manteiga',15,'g'],['Passas',20,'g'],['Baunilha',1,'g'],['Flor de sal',1,'g'],['Ameixa encarnada',80,'g'],['Canela',1,'g']],['l'],0,['sob']),
+R('vitaminaabacate','Vitamina de abacate','brasileira',[],0,0,0,0,[['Abacate',100,'g'],['Leite meio gordo, UHT',200,'ml'],['Açúcar branco',12,'g'],['Limão',10,'g']],['p','l'],0,['sn']),
+R('molletes','Molletes','mexicana',[],0,0,0,0,[['Pão rústico',80,'g'],['Feijão preto cozido',90,'g'],['Queijo flamengo',40,'g'],['Banha de porco',8,'g'],['Tomate',50,'g'],['Cebola',20,'g'],['Coentros',4,'g'],['Lima',20,'g'],['Malagueta',3,'g'],['Flor de sal',1,'g']],['p','l'],0,['br']),
+R('sincronizada','Sincronizadas','mexicana',[],0,0,0,0,[['Tortilhas de trigo',2,'un'],['Fiambre',50,'g'],['Mozzarella',50,'g'],['Nata maturada pasteurizada 30% gordura',20,'g'],['Molho picante',10,'ml']],['p','l'],0,['sn']),
+R('tacosmanha','Tacos de pequeno-almoço','mexicana',[],0,0,0,0,[['Tortilhas de trigo',2,'un'],['Ovo',2,'un'],['Batata',90,'g'],['Chouriço',30,'g'],['Queijo cheddar',25,'g'],['Óleo de girassol',8,'ml'],['Coentros',4,'g'],['Molho picante',10,'ml'],['Flor de sal',1,'g']],['p'],0,['br']),
+
+/* ---------- Espanha e Itália, de manhã ---------- */
+R('churroschoc','Churros com chocolate à espanhola','espanhola',[],0,0,0,0,[['Farinha',60,'g'],['Flor de sal',1,'g'],['Óleo de girassol',18,'ml'],['Açúcar branco',10,'g'],['Leite meio gordo, UHT',150,'ml'],['Chocolate negro (aproximadamente 50% cacau)',30,'g'],['Milho, amido (pó)',5,'g']],['p','l'],0,['br']),
+R('migasextrem','Migas extremenhas com uvas','espanhola',[],0,0,0,0,[['Pão alentejano',75,'g'],['Flor de sal',1,'g'],['Azeite',15,'ml'],['Porco, toucinho entremeado fresco, cru',50,'g'],['Pimento',40,'g'],['Alho',2,'dente'],['Pimentão-doce',3,'g'],['Uva tinta (5 variedades)',60,'g']],['p','a'],0,['br']),
+R('bocatacalamares','Bocadillo de calamares à madrilena','espanhola',[],0,0,0,0,[['Pão rústico',80,'g'],['Lulas',100,'g'],['Leite meio gordo, UHT',50,'ml'],['Farinha',15,'g'],['Farinha de grão-de-bico',15,'g'],['Ovo',25,'g'],['Óleo de girassol',15,'ml'],['Maionese',15,'g'],['Limão',20,'g'],['Flor de sal',1,'g']],['l','a'],0,['br']),
+R('torrijas','Torrijas','espanhola',[],0,0,0,0,[['Pão rústico',60,'g'],['Leite meio gordo, UHT',120,'ml'],['Açúcar branco',20,'g'],['Canela',2,'g'],['Raspa de limão',2,'g'],['Ovo',40,'g'],['Azeite',12,'ml']],['l'],0,['sob']),
+R('magdalenas','Magdalenas de azeite e limão','espanhola',[],0,0,0,0,[['Ovo',10,'g'],['Açúcar branco',13,'g'],['Azeite',13,'ml'],['Leite meio gordo, UHT',5,'ml'],['Farinha',17,'g'],['Fermento em pó',1,'g'],['Raspa de limão',1,'g']],['p','l'],0,['sn']),
+R('maritozzo','Maritozzo com nata','italiana',[],0,0,0,0,[['Farinha de trigo tipo 65',42,'g'],['Fermento seco de padeiro',1,'g'],['Leite meio gordo, UHT',13,'ml'],['Açúcar branco',13,'g'],['Ovo',17,'g'],['Manteiga',8,'g'],['Mel',2,'g'],['Raspa de limão',1,'g'],['Flor de sal',1,'g'],['Nata para bater 35% gordura',30,'ml']],['p','l'],0,['sn']),
+R('cremanocciole','Pão com creme de avelã caseiro','italiana',[],0,0,0,0,[['Pão rústico',60,'g'],['Avelã, miolo',12,'g'],['Açúcar branco',6,'g'],['Cacau em pó sem açúcar',2,'g'],['Chocolate de leite, tablete',6,'g'],['Óleo de girassol',2,'ml']],['p','l'],0,['sn']),
+R('crostata','Crostata de compota','italiana',[],0,0,0,0,[['Farinha',31,'g'],['Açúcar branco',13,'g'],['Manteiga',13,'g'],['Ovo',7,'g'],['Fermento em pó',1,'g'],['Raspa de limão',1,'g'],['Compota de fruta',38,'g']],['p','l'],0,['sob']),
+R('ciambellone','Ciambellone de iogurte','italiana',[],0,0,0,0,[['Ovo',22,'g'],['Açúcar branco',22,'g'],['Raspa de limão',1,'g'],['Óleo de girassol',12,'ml'],['Iogurte natural',19,'g'],['Farinha',30,'g'],['Fermento em pó',2,'g']],['p','l'],0,['sn']),
+R('pizzette','Pizzette rosse de forno','italiana',[],0,0,0,0,[['Farinha de trigo tipo 65',60,'g'],['Fermento seco de padeiro',1,'g'],['Açúcar branco',1,'g'],['Azeite',8,'ml'],['Flor de sal',1,'g'],['Polpa de tomate',45,'g'],['Orégãos',1,'g']],['l','p'],0,['sn']),
+R('tigelle','Tigelle modenesi','italiana',[],0,0,0,0,[['Farinha de trigo tipo 55',70,'g'],['Leite',28,'ml'],['Banha de porco',6,'g'],['Fermento seco de padeiro',1,'g'],['Flor de sal',1,'g'],['Açúcar branco',1.5,'g'],['Presunto',30,'g'],['Queijo parmesão ralado',10,'g'],['Alecrim',1,'g'],['Alho',1,'dente']],['p','l'],0,['sn']),
+
+/* ================= CHURRASCO =================
+   O que faltava era o essencial: o frango de churrasqueira, o entrecosto, as
+   febras, a sardinha nas brasas. E faltavam os molhos — a app não tinha um
+   único. Cada um deles é um acompanhamento, e por isso a app pode juntá-lo a
+   qualquer um dos grelhados que já cá estavam.
+
+   Em todas, o passo da brasa diz o que a brasa exige: quando está pronta
+   (cinza branca, sem chama), a altura da grelha, calor directo ou indirecto,
+   e o descanso da carne depois de sair. Sem isso é uma lista de compras. */
+R('chfrangochurr','Frango de churrasqueira com piri-piri','portuguesa',[],0,0,0,0,[['Frango inteiro com pele, cru',350,'g'],['Alho',2,'dente'],['Colorau',3,'g'],['Limão',20,'g'],['Vinho branco',20,'ml'],['Louro',0.5,'g'],['Azeite',10,'ml'],['Sal grosso',4,'g'],['Pimenta preta',1,'g'],['Manteiga',8,'g'],['Molho piri-piri',8,'ml']],['a','j'],0,['pp']),
+R('chfrangoguia','Frango de piri-piri da Guia','portuguesa',['mediterranica'],0,0,0,0,[['Frango inteiro com pele, cru',320,'g'],['Alho',2,'dente'],['Jindungo (piri-piri)',4,'g'],['Azeite',15,'ml'],['Colorau',2,'g'],['Limão',25,'g'],['Louro',0.5,'g'],['Vinagre de vinho',8,'ml'],['Sal grosso',4,'g']],['a','j'],0,['pp']),
+R('chentrecosto','Entrecosto na brasa','portuguesa',[],0,0,0,0,[['Porco, entrecosto cru',250,'g'],['Alho',2,'dente'],['Limão',20,'g'],['Colorau',2,'g'],['Vinho branco',20,'ml'],['Louro',0.5,'g'],['Azeite',8,'ml'],['Sal grosso',4,'g'],['Pimenta preta',1,'g'],['Salsa',3,'g']],['a','j'],0,['pp']),
+R('chfebras','Febras de porco na brasa','portuguesa',[],0,0,0,0,[['Porco, febras magras cruas',180,'g'],['Alho',2,'dente'],['Massa de pimentão',10,'g'],['Louro',0.5,'g'],['Vinho branco',15,'ml'],['Azeite',8,'ml'],['Sal grosso',3,'g'],['Limão',15,'g']],['a','j'],0,['pp']),
+R('chentremeada','Entremeada na brasa','portuguesa',[],0,0,0,0,[['Porco, toucinho entremeado fresco, cru',160,'g'],['Alho',1,'dente'],['Limão',15,'g'],['Colorau',2,'g'],['Sal grosso',4,'g'],['Pimenta preta',1,'g']],['a','j'],0,['pp']),
+R('chcostporco','Costeletas de porco na brasa','portuguesa',[],0,0,0,0,[['Porco, costeleta meio gorda crua',220,'g'],['Alho',2,'dente'],['Louro',0.5,'g'],['Colorau',3,'g'],['Banha de porco',5,'g'],['Vinho branco',20,'ml'],['Sal grosso',4,'g'],['Pimenta preta',1,'g']],['a','j'],0,['pp']),
+R('chespetadanorte','Espetada de porco à moda do Norte','portuguesa',[],0,0,0,0,[['Carne de porco',180,'g'],['Massa de pimentão',12,'g'],['Alho',2,'dente'],['Louro',0.5,'g'],['Vinho branco',15,'ml'],['Pimento',40,'g'],['Cebola',40,'g'],['Chouriço',20,'g'],['Azeite',8,'ml'],['Sal grosso',3,'g']],['a','j'],0,['pp']),
+R('chenchidos','Farinheira e morcela na brasa','portuguesa',[],0,0,0,0,[['Farinheira',60,'g'],['Morcela de arroz',50,'g'],['Azeite',5,'ml'],['Pão de mistura',40,'g']],['a','j'],0,['ent']),
+R('chcabrito','Costeletas de cabrito na brasa','portuguesa',[],0,0,0,0,[['Cabrito, costeleta crua',220,'g'],['Alho',2,'dente'],['Louro',1,'g'],['Banha de porco',6,'g'],['Colorau',3,'g'],['Vinho branco',25,'ml'],['Malagueta',1,'g'],['Sal grosso',4,'g']],['a','j'],0,['pp']),
+R('chbifanabrasa','Bifanas na brasa','portuguesa',[],0,0,0,0,[['Porco, lombo cru',160,'g'],['Alho',3,'dente'],['Massa de pimentão',8,'g'],['Louro',0.5,'g'],['Vinho branco',25,'ml'],['Colorau',2,'g'],['Sal grosso',3,'g'],['Pão de mistura',60,'g']],['a','j'],0,['pp']),
+R('chsardinhabrasa','Sardinha assada nas brasas em pão','portuguesa',['mediterranica'],0,0,0,0,[['Sardinha gorda crua',220,'g'],['Sal grosso',8,'g'],['Pão de mistura',60,'g'],['Azeite',5,'ml']],['a','j'],0,['pp']),
+R('chrobalobrasa','Robalo inteiro na brasa em escamas','portuguesa',['mediterranica'],0,0,0,0,[['Robalo',300,'g'],['Azeite',12,'ml'],['Sal grosso',5,'g'],['Limão',25,'g']],['a','j'],0,['pp']),
+R('chpolvobrasa','Polvo na brasa','portuguesa',['mediterranica'],0,0,0,0,[['Polvo',300,'g'],['Cebola',40,'g'],['Louro',0.5,'g'],['Azeite',15,'ml'],['Alho',2,'dente'],['Sal grosso',3,'g'],['Pimentão-doce',2,'g'],['Coentros',3,'g']],['a','j'],0,['pp']),
+R('cgcostelabafo','Costela de boi no bafo','brasileira',[],0,0,0,0,[['Costela de vaca crua',350,'g'],['Sal grosso',5,'g'],['Pimenta preta',1,'g']],['a','j'],0,['pp']),
+R('cgalcatraespeto','Espeto corrido de alcatra','brasileira',[],0,0,0,0,[['Vaca, alcatra crua',220,'g'],['Sal grosso',6,'g']],['a','j'],0,['pp']),
+R('cgmedalhao','Medalhão de filé com bacon','brasileira',[],0,0,0,0,[['Bife do lombo de vaca',180,'g'],['Bacon',25,'g'],['Sal grosso',3,'g'],['Pimenta preta',0.5,'g']],['a','j'],0,['pp']),
+R('cgkafta','Kafta no espeto','brasileira',[],0,0,0,0,[['Carne picada de vaca',180,'g'],['Cebola',30,'g'],['Salsa',5,'g'],['Hortelã',3,'g'],['Coentros',3,'g'],['Cominhos',1,'g'],['Colorau',1,'g'],['Canela',0.3,'g'],['Raspa de limão',1,'g'],['Sal grosso',3,'g'],['Azeite',5,'ml']],['a','j'],0,['pp']),
+R('abacaxibrasa','Abacaxi assado com canela','brasileira',[],0,0,0,0,[['Abacaxi',200,'g'],['Açúcar amarelo',8,'g'],['Canela',1,'g']],['a','j'],0,['sob']),
+R('bananabrasa','Banana na brasa','brasileira',[],0,0,0,0,[['Banana',130,'g'],['Manteiga',8,'g'],['Açúcar amarelo',6,'g'],['Canela',1,'g']],['a','j'],0,['sob']),
+R('asadotira','Asado de tira na parrilla','outras',[],0,0,0,0,[['Costela de vaca crua',300,'g'],['Sal grosso',6,'g']],['a','j'],0,['pp']),
+R('chuletillas','Chuletillas de borrego ao sarmento','espanhola',[],0,0,0,0,[['Costeletas de borrego',200,'g'],['Sal grosso',3,'g']],['a','j'],0,['pp']),
+R('espetosardinhas','Sardinhas ao espeto à moda de Málaga','espanhola',['mediterranica'],0,0,0,0,[['Sardinha gorda crua',220,'g'],['Sal grosso',5,'g'],['Limão',20,'g']],['a','j'],0,['pp']),
+R('pulpobrasa','Polvo à brasa com pimentão','espanhola',['mediterranica'],0,0,0,0,[['Polvo',250,'g'],['Azeite',12,'ml'],['Pimentão-doce',1,'g'],['Sal grosso',2,'g'],['Louro',1,'g']],['a','j'],0,['pp']),
+R('texcostelas','Costelas de vaca do Texas na brasa de carvalho','americana',[],0,0,0,0,[['Costela de vaca crua',400,'g'],['Sal grosso',5,'g'],['Pimenta preta',5,'g']],['a','j'],0,['pp']),
+R('santamaria','Tri-tip de Santa Maria na brasa de carvalho','americana',[],0,0,0,0,[['Maminha de vaca crua',200,'g'],['Sal grosso',3,'g'],['Pimenta preta',2,'g'],['Alho em pó',3,'g'],['Salsa',1,'g']],['a','j'],0,['pp']),
+R('perufumado','Peito de peru fumado em salmoura','americana',[],0,0,0,0,[['Peru, peito com pele, cru',220,'g'],['Sal grosso',8,'g'],['Açúcar amarelo',5,'g'],['Louro',0.1,'g'],['Manteiga',10,'g'],['Colorau',2,'g'],['Pimenta preta',1,'g'],['Alho em pó',2,'g']],['a','j'],0,['pp']),
+
+/* ---------- Molhos de churrasco: a app não tinha um único ---------- */
+R('acmpiripiri','Molho de piri-piri de churrasqueira','portuguesa',['mediterranica'],0,0,0,0,[['Jindungo (piri-piri)',5,'g'],['Alho',1,'dente'],['Azeite',15,'ml'],['Louro',0.5,'g'],['Limão',8,'g'],['Vinagre de vinho',5,'ml'],['Sal grosso',1,'g']],['ac']),
+R('acmalhosalsa','Molho de alho e salsa para pincelar','portuguesa',['mediterranica'],0,0,0,0,[['Alho',2,'dente'],['Salsa',5,'g'],['Azeite',15,'ml'],['Vinagre de vinho',5,'ml'],['Sal grosso',1,'g'],['Pimenta preta',0.5,'g']],['ac']),
+R('acchurrasqueira','Molho de churrasco para pincelar frango','portuguesa',[],0,0,0,0,[['Óleo alimentar',14,'ml'],['Cerveja branca',7,'ml'],['Alho',1,'dente'],['Limão',5,'ml'],['Colorau',1,'g'],['Malagueta',1,'g'],['Louro',0.2,'g'],['Sal grosso',0.5,'g']],['ac']),
+R('acmantalho','Manteiga de alho à madeirense','portuguesa',[],0,0,0,0,[['Manteiga com sal',20,'g'],['Alho',1,'dente'],['Salsa',2,'g'],['Coentros',2,'g'],['Malagueta',0.5,'g'],['Pimenta preta',0.2,'g'],['Flor de sal',0.3,'g']],['ac']),
+R('acmolhoverde','Molho verde de coentros e alho','portuguesa',['mediterranica'],0,0,0,0,[['Azeite',16,'ml'],['Vinagre de vinho',5,'ml'],['Alho',1,'dente'],['Coentros',5,'g'],['Orégãos',0.5,'g'],['Sal grosso',0.5,'g']],['ac']),
+R('acvinhadalhos','Vinha-d\'alhos para marinar carne','portuguesa',[],0,0,0,0,[['Vinho branco',28,'ml'],['Vinagre de vinho',7,'ml'],['Alho',2,'dente'],['Massa de pimentão',4,'g'],['Louro',0.3,'g'],['Malagueta',0.5,'g'],['Sal grosso',1.5,'g'],['Pimenta preta',0.2,'g']],['ac']),
+R('acchimichurri','Chimichurri argentino','outras',['mediterranica'],0,0,0,0,[['Salsa',8,'g'],['Alho',1,'dente'],['Orégãos',1,'g'],['Chili em pó',0.5,'g'],['Azeite',15,'ml'],['Vinagre de vinho',5,'ml'],['Sal grosso',0.6,'g'],['Pimenta preta',0.2,'g']],['ac']),
+R('accriolla','Salsa criolla','outras',['mediterranica'],0,0,0,0,[['Cebola',40,'g'],['Pimento',30,'g'],['Tomate',40,'g'],['Azeite',10,'ml'],['Vinagre de vinho',5,'ml'],['Sal grosso',1,'g'],['Orégãos',0.5,'g']],['ac']),
+R('acvinagretebr','Vinagrete brasileiro de churrasco','brasileira',['mediterranica'],0,0,0,0,[['Tomate',40,'g'],['Cebola',15,'g'],['Pimento',12,'g'],['Azeite',8,'ml'],['Vinagre de vinho',4,'ml'],['Salsa',3,'g'],['Sal grosso',0.5,'g'],['Pimenta preta',0.2,'g']],['ac']),
+R('acsalsasm','Salsa fresca de Santa Maria','americana',[],0,0,0,0,[['Tomate',70,'g'],['Aipo',15,'g'],['Cebola',12,'g'],['Cebolinho',3,'g'],['Malagueta',3,'g'],['Coentros',3,'g'],['Alho',0.3,'dente'],['Vinagre de vinho',5,'ml'],['Molho inglês',2,'ml'],['Orégãos',0.3,'g'],['Lima',5,'ml'],['Sal grosso',0.5,'g']],['ac']),
+R('acchermoula','Chermoula marroquina','africana',['mediterranica'],0,0,0,0,[['Coentros',8,'g'],['Salsa',5,'g'],['Alho',1,'dente'],['Cominhos',0.8,'g'],['Colorau',1,'g'],['Cúrcuma',0.3,'g'],['Limão',5,'ml'],['Azeite',13,'ml'],['Sal grosso',0.5,'g']],['ac']),
+R('acsalmoriglio','Salmoriglio siciliano','italiana',['mediterranica'],0,0,0,0,[['Azeite',18,'ml'],['Limão',7,'ml'],['Orégãos',0.8,'g'],['Alho',1,'dente'],['Salsa',2,'g'],['Sal grosso',0.4,'g'],['Pimenta preta',0.2,'g']],['ac']),
+R('acmantemaitre','Manteiga maître d\'hôtel','francesa',[],0,0,0,0,[['Manteiga sem sal',20,'g'],['Salsa',2,'g'],['Limão',2,'ml'],['Raspa de limão',0.3,'g'],['Flor de sal',0.4,'g'],['Pimenta preta',0.3,'g']],['ac']),
+
+/* ---------- Acompanhamentos de churrasco ---------- */
+R('acpaodealho','Pão de alho','brasileira',[],0,0,0,0,[['Pão de leite (trigo)',80,'g'],['Manteiga',12,'g'],['Requeijão cremoso (catupiry)',20,'g'],['Alho',2,'dente'],['Salsa',2,'g'],['Queijo parmesão ralado',5,'g']],['ac']),
+R('acmilhobrasa','Milho na brasa com manteiga','brasileira',[],0,0,0,0,[['Milho',170,'g'],['Manteiga com sal',12,'g'],['Colorau',0.5,'g'],['Flor de sal',1,'g']],['ac']),
+R('accebolabrasa','Cebolas assadas nas brasas','mediterranica',['mediterranica'],0,0,0,0,[['Cebola',180,'g'],['Azeite',8,'ml'],['Vinagre de vinho',5,'ml'],['Flor de sal',1,'g'],['Pimenta preta',0.3,'g']],['ac']),
+R('acpimentobrasa','Pimentos assados na brasa com alho e azeite','portuguesa',['mediterranica'],0,0,0,0,[['Pimento',200,'g'],['Azeite',10,'ml'],['Alho',1,'dente'],['Vinagre de vinho',4,'ml'],['Salsa',2,'g'],['Flor de sal',1,'g']],['ac']),
+R('acbpapelote','Batatas em papelote nas cinzas','portuguesa',[],0,0,0,0,[['Batata',200,'g'],['Manteiga',10,'g'],['Alho',1,'dente'],['Alecrim',1,'g'],['Flor de sal',1,'g'],['Pimenta preta',0.3,'g']],['ac']),
+R('acabobrasa','Abóbora na brasa com alecrim','brasileira',['mediterranica'],0,0,0,0,[['Abóbora',200,'g'],['Azeite',8,'ml'],['Alecrim',1,'g'],['Flor de sal',1,'g'],['Pimenta preta',0.3,'g']],['ac']),
+R('acalhobrasa','Cabeças de alho assadas na brasa','mediterranica',['mediterranica'],0,0,0,0,[['Alho',50,'g'],['Azeite',8,'ml'],['Pão rústico',45,'g'],['Flor de sal',0.5,'g']],['ac']),
+R('acalcachofra','Alcachofras na brasa','italiana',['mediterranica'],0,0,0,0,[['Alcachofra crua',200,'g'],['Azeite',10,'ml'],['Alho',1,'dente'],['Salsa',3,'g'],['Limão',10,'g'],['Flor de sal',1,'g']],['ac']),
+R('accacobrasa','Bolo do caco na brasa','portuguesa',[],0,0,0,0,[['Farinha de trigo tipo 65',90,'g'],['Batata doce crua',55,'g'],['Fermento seco de padeiro',2,'g'],['Manteiga',15,'g'],['Alho',1,'dente'],['Salsa',2,'g'],['Flor de sal',1.5,'g']],['ac']),
+R('acsalbatata','Salada de batata com maionese e ovo','americana',[],0,0,0,0,[['Batata',180,'g'],['Maionese',25,'g'],['Mostarda',4,'g'],['Ovo de galinha cozido',30,'g'],['Aipo',20,'g'],['Cebola roxa',15,'g'],['Vinagre de vinho',5,'ml'],['Salsa',2,'g'],['Pimenta preta',0.3,'g']],['ac']),
+R('accoleslaw','Coleslaw','americana',[],0,0,0,0,[['Couve-branca crua',130,'g'],['Cenoura',30,'g'],['Maionese',25,'g'],['Vinagre de vinho',8,'ml'],['Açúcar branco',6,'g'],['Mostarda',3,'g'],['Pimenta preta',0.3,'g']],['ac']),
+R('acfeijaofrade','Salada de feijão-frade com cebola e coentros','portuguesa',['mediterranica'],0,0,0,0,[['Feijão-frade cozido',150,'g'],['Cebola',30,'g'],['Pimento',25,'g'],['Coentros',5,'g'],['Azeite',12,'ml'],['Vinagre de vinho',6,'ml'],['Flor de sal',1,'g'],['Pimenta preta',0.3,'g']],['ac']),
+R('acmelanciafeta','Salada de melancia com feta e hortelã','mediterranica',['mediterranica'],0,0,0,0,[['Melancia sem casca',160,'g'],['Queijo feta',30,'g'],['Hortelã',3,'g'],['Azeite',6,'ml'],['Lima',8,'g'],['Pimenta preta',0.3,'g']],['ac']),
+R('acvinagrete','Vinagrete de churrasco','brasileira',['mediterranica'],0,0,0,0,[['Tomate',70,'g'],['Cebola',25,'g'],['Pimento',20,'g'],['Salsa',3,'g'],['Cebolinho',2,'g'],['Vinagre de vinho',8,'ml'],['Azeite',10,'ml'],['Açúcar branco',2,'g'],['Flor de sal',1,'g']],['ac']),
+R('actropeiro','Feijão tropeiro','brasileira',[],0,0,0,0,[['Feijão catarino, seco, cru',32,'g'],['Farinha de pau (mandioca)',20,'g'],['Bacon',15,'g'],['Linguiça',25,'g'],['Ovo',25,'g'],['Couve galega',20,'g'],['Cebola',12,'g'],['Alho',1,'dente'],['Salsa',2,'g'],['Cebolinho',2,'g']],['ac']),
+R('acmacfumado','Mac and cheese fumado na churrasqueira','americana',[],0,0,0,0,[['Massa cotovelo crua',70,'g'],['Manteiga',12,'g'],['Farinha de trigo tipo 65',10,'g'],['Leite',120,'ml'],['Queijo cheddar',45,'g'],['Queijo Gouda',20,'g'],['Queijo creme',15,'g'],['Mostarda',2,'g'],['Colorau',0.5,'g'],['Pimenta preta',0.3,'g'],['Sal grosso',1,'g']],['ac']),
 ];
 /* ================= PASSOS: RECEITAS NOVAS ================= */
 P('ovoscebolinho',[['Bater','Bate os ovos com a nata, uma pitada de sal e pimenta moída na hora. Não batas demais: quer-se homogéneo, não espumoso.'],
@@ -4635,6 +4916,130 @@ P('pastelnata',[['Massa','Estende a massa folhada, enrola num cilindro apertado 
  ['Forno','O mais quente que o forno der, 250 °C ou mais, na prateleira de baixo. Estão prontos quando o creme tiver manchas quase pretas: é essa a queimadura que faz o pastel.',12],
  ['Servir','Desenformar mornos. Canela e açúcar em pó à mesa, por quem come.']]);
 
+/* ---------- Passos da manhã e do lanche ---------- */
+P('bololevedo',[['Massa','Farinha, açúcar e sal num alguidar, cova ao meio, fermento dissolvido no leite morno. Junta a manteiga derretida e o ovo e amassa até ficar como massa de pão.',15],
+ ['Levedar','Tapa e deixa levedar até dobrar. A receita das Furnas deixa-a de um dia para o outro, e é isso que lhe dá o sabor.',180],
+ ['Tender','Bocados do tamanho de uma laranja. Não se enrolam: moldam-se virando as beiras para dentro, e achatam-se com a mão até dois dedos de altura.',10],
+ ['Chapa','Frigideira ou chapa enfarinhada, lume brando, sem gordura. Dois a três minutos de cada lado. Lume forte tosta a superfície e deixa o meio cru.',6],
+ ['Servir','Abre ao meio ainda quente e barra com manteiga, que derrete de imediato. É a única forma como se come nos Açores.']]);
+P('bolocaco',[['Batata-doce','Coze a batata-doce com pele até ficar mesmo mole. Descasca e passa por um passador ou esmaga com um garfo, e deixa arrefecer até ficar morna.',25],
+ ['Amassar','Farinha, fermento e sal, junta o puré morno e a água aos poucos. Amassa oito a dez minutos até a massa ficar lisa e elástica.',10],
+ ['Levedar','Tapa com um pano e deixa dobrar de volume.',60],
+ ['Achatar','Divide, faz bolas e achata-as até um dedo de espessura. Deixa-as descansar meia hora antes de irem à chapa.',30],
+ ['Cozer na chapa','Chapa ou frigideira em lume BRANDO, sem gordura, quinze minutos de cada lado. É a parte que toda a gente estraga: em lume forte queima por fora, fica cru dentro e não incha.',30],
+ ['Manteiga de alho','Manteiga amolecida com o alho picado e a salsa. Abre o bolo ao meio ainda a escaldar e barra — a manteiga tem de derreter dentro do pão.']]);
+P('papascarolo',[['Cozer o milho','Milho partido em água a ferver com a casca de limão, mexendo de vez em quando. Coze-se primeiro em água e só depois se junta o leite — ao contrário, agarra ao fundo.',25],
+ ['Juntar o leite','Com o milho a meio da cozedura, junta o leite aos poucos, sempre a mexer. Daqui para a frente não se pára de mexer.',20],
+ ['Adoçar','Açúcar amarelo já quase no fim. Adoçar cedo faz o milho endurecer.',5],
+ ['Servir','Tigelas, canela por cima. Come-se quente de manhã e fria à tarde, e das duas maneiras está certo.']]);
+P('tiborna',[['Torrar o pão','Fatias grossas de pão alentejano, bem tostadas dos dois lados. Tem de ficar rija: pão mole embebe-se e desfaz-se.',5],
+ ['Esfregar o alho','Alho cortado ao meio esfregado na côdea quente. O calor é que solta o alho — em pão frio quase não pega.'],
+ ['Regar','Azeite generoso, deixado a entrar. Aqui não há como esconder um azeite mau: é o prato inteiro.'],
+ ['Sal','Flor de sal por cima, no fim. Come-se logo, enquanto o pão ainda está quente e o azeite não escorreu todo.']]);
+P('paochourico',[['Massa','Farinha, fermento, sal, azeite e água morna. Amassa vinte minutos, até a massa ficar lisa e despegar das mãos.',20],
+ ['Levedar','Tapa com um pano de algodão e deixa levedar em sítio ameno até dobrar.',60],
+ ['Rechear','Estende a massa fina, como massa de pizza. Chouriço em rodelas finas, sem pele, espalhado por cima.',10],
+ ['Enrolar','Enrola apertado e fecha as pontas. Um rolo com ar dentro abre no forno.',5],
+ ['Forno','Forno a 200 °C até ficar tostado. O chouriço derrete e o azeite dele entranha-se na massa — é isso que faz o pão.',35]]);
+P('tigelada',[['Aquecer o barro','Forno a 220 °C com a tigela de barro lá dentro. O barro tem de estar a escaldar quando o preparado entra, senão a tigelada não cresce nem ganha a crosta.',20],
+ ['Bater','Ovos com o açúcar, o mel e a raspa de limão, até ficar uniforme. Junta a canela e a farinha.',6],
+ ['Leite','Leite fervido com casca de limão, deixado a arrefecer um pouco, juntado em fio ao preparado sem parar de mexer.',10],
+ ['Cozer','Verte na tigela quente e leva ao forno até firmar, como um pudim. Fica com a superfície escura e ondulada — é assim.',35]]);
+P('queijadasintra',[['Massa','Farinha, manteiga derretida, sal e água morna. Amassa e estende o mais fina que conseguires: a massa da queijada é quase transparente.',15],
+ ['Forrar','Forra as forminhas com a massa, subindo pelas paredes e deixando sobrar um pouco no bordo.',10],
+ ['Recheio','Queijo fresco bem esmagado com um garfo até ficar cremoso. Junta o açúcar, a farinha, a gema, a raspa e a canela.',8],
+ ['Cozer','Enche as formas e leva a 200 °C até o recheio estar tostado às manchas e a massa seca.',22]]);
+P('menemen',[['Refogar','Cebola e pimento em azeite, em lume médio, até amolecerem sem tostar.',8],
+ ['Tomate','Tomate pelado e aos cubos, com o pimentão-doce. Deixa apurar até perder a água e ficar em molho.',10],
+ ['Ovos','Ovos partidos por cima, mexidos devagar com uma colher de pau. Fora do lume ainda moles: o calor do tacho acaba de os fazer.',3],
+ ['Servir','Pão para molhar, e come-se logo. Um menemen que espera é um ovo seco.']]);
+P('strapatsada',[['Ralar o tomate','Tomate ralado no ralador grosso, com a casca a ficar de fora na mão. Dá molho em vez de pedaços, que é o que esta receita quer.',5],
+ ['Apurar','Tomate em azeite quente, lume médio, até quase toda a água ter evaporado e o molho ficar espesso.',12],
+ ['Ovos e feta','Baixa o lume, junta os ovos batidos e a feta esfarelada. Mexe devagar — queres coalhada mole, não ovo seco.',4],
+ ['Orégãos','Orégãos fora do lume e pão ao lado.']]);
+P('fulmedames',[['Aquecer as favas','Favas cozidas com um pouco da própria água, em lume brando, até estarem bem quentes.',10],
+ ['Esmagar','Esmaga metade com um garfo e deixa a outra metade inteira. É esse contraste que faz o prato.',3],
+ ['Temperar','Azeite, alho pisado, sumo de limão e cominhos, ainda quente. O limão põe-se no fim para não perder o travo.',3],
+ ['Servir','Tomate aos cubos, salsa e mais um fio de azeite. Pão pita para levar as favas à boca — não se come com garfo.']]);
+P('manakish',[['Massa','Farinha, fermento, sal, metade do azeite e água morna. Amassa dez minutos até ficar lisa.',10],
+ ['Levedar','Tapa e deixa dobrar em sítio quente.',60],
+ ['Za\'atar','Mistura o tomilho, os orégãos e o sésamo com o resto do azeite, até formar uma pasta que se espalhe. Quem tiver za\'atar já pronto usa-o em vez desta mistura.',3],
+ ['Estender','Estende a massa em disco fino e espalha a pasta com a colher, deixando um dedo de bordo.',5],
+ ['Cozer','Forno o mais quente que der, 230 °C ou mais, até o bordo tostar. Come-se enrolado e ainda quente.',10]]);
+P('msemen',[['Massa','Farinha, sêmola, sal e água morna. Amassa até ficar mole e elástica — mais mole do que massa de pão.',12],
+ ['Descansar','Faz bolas, unta-as com azeite e deixa descansar meia hora tapadas. Sem este descanso a massa não estica.',30],
+ ['Esticar','Numa bancada bem untada, estica cada bola com as mãos até ficar quase transparente. Pincela com azeite.',5],
+ ['Dobrar','Dobra em três, e outra vez em três, formando um quadrado. São estas dobras que fazem as camadas.',3],
+ ['Cozer na chapa','Chapa em lume médio, sem gordura. Vira várias vezes, carregando de leve com a espátula, até estar dourado dos dois lados.',8],
+ ['Mel','Mel por cima, ainda quente. No Marrocos comem-se assim ou simples, com chá.']]);
+P('painperdu',[['Pão do dia anterior','Fatias grossas de pão de véspera. Pão fresco desfaz-se no leite — é o pão duro que faz esta receita, e é de onde lhe vem o nome.'],
+ ['Aparelho','Bate o ovo com o leite e o açúcar até ficar uniforme.',3],
+ ['Embeber','Mergulha cada fatia alguns segundos de cada lado. Chega para embeber sem se desfazer.',2],
+ ['Fritar','Manteiga na frigideira até fazer espuma e cheirar a avelã. Três a quatro minutos de cada lado, em lume médio.',8],
+ ['Canela','Canela e açúcar por cima, quente.']]);
+P('socca',[['Massa','Farinha de grão-de-bico com o sal, o azeite e a água, aos poucos, batendo para não ganhar grumos.',5],
+ ['Repousar','Deixa repousar meia hora. A farinha precisa desse tempo para beber a água.',30],
+ ['Forno a escaldar','Forno a 220 °C com a placa ou a frigideira de ferro lá dentro a aquecer. A socca coze porque a superfície já está quente quando a massa cai.',15],
+ ['Cozer','Verte fina, no máximo três milímetros, e coze até tostar nos bordos.',13],
+ ['Pimenta','Pimenta preta moída na hora e corta em bocados irregulares. Come-se de pé, à mão, ainda a queimar.']]);
+P('gateauyaourt',[['Medir pelo copo','Despeja o iogurte na taça e guarda o copo: é ele que mede tudo o resto. Um copo de iogurte, dois de açúcar, três de farinha, meio de óleo.',5],
+ ['Bater','Junta os ovos um a um, depois o óleo, e por fim a farinha com o fermento e a baunilha. Bate só até ligar.',6],
+ ['Forno','Forma untada, forno a 180 °C. Está pronto quando um palito sai seco.',30],
+ ['Arrefecer','Desenforma morno. Guarda-se três dias num recipiente fechado e no segundo dia está melhor.']]);
+P('fullenglish',[['Salsichas primeiro','Salsichas em lume brando, a rolar de vez em quando, quinze minutos. São o que demora mais e o que mais se estraga com pressa.',15],
+ ['Bacon','Bacon de lombo na mesma frigideira, sem gordura acrescentada. Dois a três minutos de cada lado.',5],
+ ['Black pudding','Rodelas de dois dedos, dois minutos de cada lado, só para aquecer e criar crosta. Mexer demais desfaz.',4],
+ ['Cogumelos e tomate','Cogumelos inteiros ou aos quartos e o tomate cortado ao meio, na gordura que ficou, até tostarem.',8],
+ ['Feijão','Feijão em molho de tomate aquecido à parte, sem ferver.',5],
+ ['Ovos','Ovos estrelados por último, em lume brando, para a clara firmar e a gema ficar mole.',3],
+ ['Torrada','Pão torrado e barrado com manteiga, e tudo junto ao prato. Serve-se com chá.']]);
+P('porridge',[['Água e aveia','Aveia em água fria, ao lume. Sem leite — o porridge escocês faz-se em água, e a nata é para pôr no prato.',2],
+ ['Cozer','Lume brando, mexendo muitas vezes, vinte minutos com aveia em grão partido e cinco com flocos. Mexe-se sempre no mesmo sentido, dizem os escoceses.',20],
+ ['Sal','O sal entra perto do fim. Cedo, endurece o grão; no fim, sente-se.',2],
+ ['Servir','Tigela com o porridge e, à parte, uma taça de nata fria. Molha-se cada colherada na nata antes de a comer.']]);
+P('tattiescones',[['Puré','Batata cozida ainda quente, esmagada com a manteiga e o sal até ficar sem grumos. Sem leite: leite dá uma massa que não se estende.',8],
+ ['Massa','Junta a farinha à batata ainda morna e amassa o menos possível — quanto mais se trabalha, mais rijas ficam.',5],
+ ['Estender','Estende meio centímetro e corta em quartos, que é como se cortam na Escócia.',5],
+ ['Chapa','Chapa ou frigideira quente, muito levemente untada. Três a quatro minutos de cada lado, até ficarem com manchas douradas.',8]]);
+P('welshrarebit',[['Molho','Manteiga e farinha ao lume, mexendo, e a cerveja aos poucos até ficar liso. Isto é um molho, não é queijo derretido sobre pão — é aqui que se ganha.',6],
+ ['Queijo','Cheddar ralado fora do lume, aos poucos, para não talhar. Junta a mostarda, o molho inglês e a pimenta.',4],
+ ['Barrar','Torra o pão de um lado só e barra o molho no lado por torrar, grosso e até aos bordos.',3],
+ ['Gratinar','Grelhador do forno até borbulhar e ficar às manchas escuras. Come-se logo, enquanto está a escorrer.',4]]);
+P('beanstoast',[['Aquecer o feijão','Feijão da lata num tacho, lume brando, mexendo de vez em quando. Não deve ferver: parte os grãos.',6],
+ ['Torrar','Pão torrado enquanto o feijão aquece, e barrado com manteiga ainda quente.',3],
+ ['Juntar','Feijão sobre a torrada, sem esperar. Torrada que espera pelo feijão fica mole.'],
+ ['Pimenta','Pimenta preta por cima. O sal já vem todo da lata — repara no número quando a app o mostrar.']]);
+P('scotchpancakes',[['Massa','Farinha com fermento, açúcar e sal. Cova ao meio, o ovo e o leite aos poucos, batendo até ficar uma massa espessa que cai da colher em bloco.',6],
+ ['Chapa','Chapa ou frigideira de fundo grosso em lume médio, com um véu de manteiga. Se uma gota de massa chia de imediato, está pronta.',3],
+ ['Deitar à colher','Colheradas bem separadas. Não se espalham: a massa é espessa e forma-se sozinha.',2],
+ ['Virar','Vira quando a superfície estiver cheia de bolhas rebentadas. Trinta segundos a um minuto do outro lado.',3],
+ ['Guardar quentes','Empilha dentro de um pano dobrado enquanto fazes o resto — é o que as mantém fofas.']]);
+P('cheesegrits',[['Ferver','Água a ferver a sério antes de a sêmola entrar.',5],
+ ['Juntar a sêmola','Sêmola em chuva, com uma mão, batendo com a outra. Toda de uma vez faz pedras.',2],
+ ['Mexer sem parar','Lume brando, a mexer sempre, quinze minutos. É o mexer que solta o amido e faz o creme — parar é ter grits granulosos.',15],
+ ['Leite e queijo','Leite quente, manteiga e cheddar ralado fora do lume. Sal e pimenta no fim.',4]]);
+P('dutchbaby',[['Frigideira ao forno','Forno a 200 °C com a frigideira de ferro lá dentro. Tem de estar a escaldar quando a massa cair: é o choque que faz o bolo subir pelas paredes.',15],
+ ['Massa','Ovos, farinha, leite, açúcar e baunilha batidos até ficar sem grumos, quase líquido como massa de crepes.',4],
+ ['Repousar','Deixa a massa repousar vinte minutos, para a farinha beber o leite.',20],
+ ['Manteiga','Manteiga na frigideira a escaldar, a derreter e a chiar, e a massa por cima de imediato.',2],
+ ['Cozer','Forno, sem abrir a porta, até estar alto e tostado nos bordos.',20],
+ ['Servir','Sumo de limão e açúcar em pó, à mesa. Abate em dois minutos e faz parte — serve-se logo.']]);
+P('hashbrowns',[['Ralar','Batata ralada no ralador grosso, e a cebola muito fina.',6],
+ ['Secar','Torce a batata ralada num pano até sair toda a água que conseguires. É o passo que decide tudo: batata húmida coze em vez de tostar.',5],
+ ['Prensar','Óleo na chapa em lume médio-alto, a batata espalhada e prensada com a espátula numa camada fina.',2],
+ ['Não mexer','Cinco a seis minutos sem tocar. Mexer é o erro que os desfaz — a crosta precisa de tempo parada.',6],
+ ['Virar','Vira em bloco e mais quatro minutos do outro lado. Sal e pimenta só no fim.',5]]);
+P('arepa',[['Água e sal','Água morna com o sal numa taça, e a farinha pré-cozida a entrar aos poucos, mexendo com a mão.',3],
+ ['Descansar','Cinco minutos tapada, para a farinha acabar de hidratar. A massa fica lisa e não se agarra.',5],
+ ['Moldar','Bolas do tamanho de uma bola de golfe, achatadas em discos de um dedo de espessura e um palmo de diâmetro.',5],
+ ['Chapa','Chapa em lume médio, apenas untada. Seis a oito minutos de cada lado, até ganhar crosta firme e soar oca.',15],
+ ['Abrir e rechear','Abre ao meio como um pão de bolso, com cuidado que sai vapor, e enche com o queijo e a manteiga.']]);
+P('piadina',[['Massa','Farinha em monte com o sal e a banha, misturados com as pontas dos dedos. Água morna ao centro e amassa até ficar um bolo liso.',10],
+ ['Repousar','Tapa e deixa repousar meia hora à temperatura ambiente.',30],
+ ['Estender','Divide e estende com o rolo até dois ou três milímetros. Fina é o que a distingue de qualquer outro pão.',8],
+ ['Cozer na chapa','Chapa bem quente, sem gordura. Um a dois minutos de cada lado, picando com o garfo as bolhas que se levantam.',4],
+ ['Rechear','Ainda quente e dobrada ao meio: presunto, queijo fresco e rúcula. Fria já não dobra sem partir.']]);
+
 /* As notas de bancada e os acertos de tempo guardam-se pelo título do passo,
    para sobreviverem a uma reordenação. O preço é este: dois passos com o mesmo
    título na mesma receita partilham a nota, e a que se escreve num aparece no
@@ -5609,7 +6014,10 @@ NI('Sardinha em conserva em tomate',186,1.2,19.6,11.4,0,0,0);
 NI('Salmão fumado a frio',180,0,23.4,9.4,0,0,0);
 NI('Delícias do mar (surimi)',95,10.6,10.2,1.4,0,0,0);
 NI('Ovas de bacalhau demolhadas',114,0,20.6,3.5,0,0,0);
-NI('Perceves cozidos',80,0,17.1,1.1,0,0,0);
+/* «Perceves» era gralha, e não era inócua: a expressão dos crustáceos procura
+   «percebe» e não casava — o percebe cozido saía do catálogo sem alergénio
+   nenhum, ao lado do percebe cru, que casava. */
+NI('Percebes cozidos',80,0,17.1,1.1,0,0,0);
 NI('Camarão cozido descascado',99,0,21.5,1,0,0,0);
 NI('Mexilhão cozido',114,4.2,16.8,3.1,0,0,0);
 /* Carnes e enchidos correntes */
@@ -5708,7 +6116,29 @@ NI('Missô branco',199,26.5,11.7,6,5.4,0,4);
 NI('Molho sriracha',93,19,1.9,0.9,2.2,0,4);
 NI('Leite de coco light',73,2.8,0.7,6.8,0.6,0,4,'ml');
 NI('Farinha de grão-de-bico',387,49.6,22.4,6.7,10.8,0,4);
+/* Sêmola de trigo dura, sem enriquecimento (USDA 20466). É o que dá estrutura
+   ao msemen marroquino e ao folhado que se faz a dobrar a massa em quatro —
+   com farinha só, a massa estica mas não folha. */
+NI('Sêmola de trigo',360,72.8,12.7,1.1,3.9,0,4);
+/* Farinha de milho pré-cozida — a masarepa das arepas. A composição é a da
+   masa de milho do USDA (20019): as duas são milho a 100 %, uma nixtamalizada
+   e a outra pré-cozida, e a diferença está no processo, não nos números. Com
+   farinha de milho normal a arepa não pega: é preciso ser pré-cozida. */
+NI('Farinha de milho pré-cozida',363,76,9,4,6,0,4);
 extra(false);
+fonte('insa');
+/* Feijão branco cozido em molho de tomate, de lata — o das «beans on toast» e
+   do full English. Composição da Public Health England (análise de 2013), que
+   é a tabela do país onde o alimento se come. O sódio é considerável e está na
+   tabela do sal, mais abaixo. */
+fonte('ue');
+NI('Feijão cozido em molho de tomate',81,15,5,0.5,4.9,0,4);
+/* Black pudding: sangue de porco com aveia ou cevada e gordura. É o primo
+   inglês da morcela e entra no full English. Composição do levantamento
+   analítico do LGC (1990-91) publicado pela agência alimentar britânica; a
+   fibra não vem declarada nessa análise e por isso fica a zero, que é o que
+   se sabe — a aveia dá alguma, mas o valor não está publicado. */
+NI('Black pudding',277,14.8,9.1,20.6,0,0,1);
 fonte('insa');
 
 /* Parte edível. Compram-se 350 g de mexilhões e comem-se cerca de 100: o
@@ -5750,7 +6180,7 @@ function macrosDeIngredientes(lista,doses){
 function sodioDeIngredientes(lista,doses,rid){
   const d=Math.max(1,parseFloat(doses)||1);
   const fora=(rid && NA_DESCARTADO[rid])||[];
-  let na=0; const semValor=[], estimados=[];
+  let na=0; const semValor=[], estimados=[], outraTabela=[];
   (lista||[]).forEach(x=>{
     const nome=x[0];
     if(fora.indexOf(nome)>=0) return;   /* crosta ou água de cozer: não se come */
@@ -5759,9 +6189,10 @@ function sodioDeIngredientes(lista,doses,rid){
     const v=sodioDe(nome);
     if(v===null){ semValor.push(nome); return; }
     if(sodioEstimado(nome)) estimados.push(nome);
+    else if(sodioDeOutraTabela(nome)) outraTabela.push(nome);
     na+=v*g/100;
   });
-  return {mg:Math.round(na/d), semValor, estimados, descartado:fora.length>0};
+  return {mg:Math.round(na/d), semValor, estimados, outraTabela, descartado:fora.length>0};
 }
 function acucarLivreDeIngredientes(lista,doses){
   const d=Math.max(1,parseFloat(doses)||1);
@@ -5921,6 +6352,23 @@ const ING_EXCECAO={
   'Molho de soja':['soja','gluten','leguminosa'], 'Molho teriyaki':['soja','gluten','leguminosa'], 'Algas nori':[],
   'Carne de porco':['carne','porco'], 'Molho barbecue':[], 'Molho picante':['picante'],
   'Chili em pó':['picante'],
+  /* O molho inglês leva anchova — está no rótulo do Lea & Perrins desde sempre,
+     e nenhuma expressão o adivinha a partir do nome «molho inglês». A app
+     servia-o na francesinha a quem tem alergia a peixe. A versão europeia leva
+     ainda vinagre de malte de cevada, que é glúten; a americana não leva. Como
+     em Portugal se vende a europeia, declara-se o glúten. */
+  'Molho inglês':['peixe','gluten'],
+  /* «Farinha» na expressão do glúten apanharia a farinha de milho pré-cozida,
+     que é milho e nada mais — e é justamente a farinha com que se fazem
+     arepas sem glúten. */
+  'Farinha de milho pré-cozida':['cereal'],
+  /* O black pudding leva aveia ou cevada com o sangue: é glúten, e nenhuma
+     das palavras do nome o diz. Carne e porco pela mesma razão da morcela. */
+  'Black pudding':['carne','porco','gluten','cereal'],
+  /* A morcela é sangue de porco com arroz ou cebola. A regra da carne procura
+     «chouriço», «salsicha», «toucinho» — nenhuma dessas palavras aparece em
+     «morcela», e a app dava-a a quem exclui porco ou carne. */
+  'Morcela de arroz':['carne','porco','cereal'],
   /* nomes do INSA onde a expressão acertaria pelo motivo errado */
   'Farinha de pau (mandioca)':[], 'Farinha de alfarroba':['leguminosa'],
   'Farinha de aveia':['gluten','cereal'], 'Flocos de arroz':['cereal'], 'Massa de arroz':['cereal'],
@@ -6223,6 +6671,17 @@ const ING_EXCECAO={
 const NA_ESTIMADO={
   'Anchovas':3500,
   'Bagel':490,
+  /* Estes dois não são estimativas: são análises publicadas em Inglaterra, o
+     país onde os alimentos se comem. Ficam aqui e não na tabela do INSA
+     porque o INSA nunca os publicou, e dizer «INSA» sobre um número que o
+     INSA não deu é o erro que esta separação existe para impedir. */
+  'Black pudding':830,   /* LGC, Analytical survey of meat products, 1990-91 */
+  'Feijão cozido em molho de tomate':261,   /* Public Health England, 2013 */
+  /* Farinhas sem sal: o valor é quase nada, mas tem de estar escrito. Sem ele,
+     uma receita de arepas ou de msemen fica sem total de sal e a app diz «sem
+     valor» — o que é honesto mas inútil quando o número existe e é zero. */
+  'Sêmola de trigo':1,   /* USDA 20466 */
+  'Farinha de milho pré-cozida':5,   /* USDA 20019 */
   'Batata palha':600,
   'Bresaola':1600,
   'Broa de milho':430,
@@ -6262,13 +6721,25 @@ const NA_ESTIMADO={
   'Sal grosso':38700,
   'Tomate pelado':200,
   'Toucinho fumado':1500,
+  /* «Manteiga com sal» não tinha valor, com o nome a anunciar o sal — o pior
+     dos casos. É o mesmo alimento que a «Manteiga» do INSA, que na tabela
+     portuguesa já é a manteiga salgada; a que não leva sal está à parte e vale
+     zero. Não é estimativa: é a mesma linha da tabela com outro nome. */
+  'Manteiga com sal':760,
 };
 
 /* Os alimentos onde o sódio é residual e a ausência de valor não engana
    ninguém: hortofrutícolas, cereais crus, carne e peixe frescos, azeite. A
    app não os conta como «sem valor» — conta-os como praticamente zero, que é
-   o que o INSA diz deles. Sem isto, a cobertura parecia má sem o ser. */
-const NA_RESIDUAL=/^(abacate|abóbora|acelga|agrião|aipo|alcachofra|alface|alho|alperce|ameixa|amora|ananás|anona|arroz|aveia|banana|batata|beldroega|beringela|beterraba|brócolos|cebola|cenoura|cereja|chicória|chuchu|clementina|coentros|cogumelos|courgette|couve|dióspiro|endívia|ervilhas|espargos|espinafres|estragão|farinha|favas|feijão|figo|framboesa|frutos vermelhos|funcho|gengibre|ginja|goiaba|grelos|groselha|hortelã|inhame|kiwi|laranja|lentilhas|lichia|lima|limão|maçã|malagueta|mandioca|manga|manjericão|maracujá|marmelo|medronho|melancia|melão|meloa|milho|mirtilo|morango|nabo|nectarina|nêspera|noz|nozes|óleo|orégãos|papaia|pepino|pêra|pêssego|pimento|quiabo|quinoa|rabanete|romã|rúcula|salsa|tâmara|tangerina|tomate|toranja|uva|azeite|vinagre|água|açúcar|mel|canela|cravinho|cominhos|colorau|louro|tomilho|alecrim|salva|cardamomo|cúrcuma|curcuma|açafrão|pimenta|noz-moscada|baunilha|chá|café)/i;
+   o que o INSA diz deles. Sem isto, a cobertura parecia má sem o ser.
+
+   A âncora ^ é o que impede o «Mel» de dar o seu valor ao «Melão», e é também
+   o que faz a lista precisar de nomes que já lá parecem estar: «milho» está
+   cá, mas «Sêmola de milho» começa por «sêmola» e não casava. Juntaram-se as
+   entradas que faltavam para a manhã — sêmola, banha, raspas de citrino,
+   sementes e especiarias em pó —, todas alimentos a que não se acrescenta
+   sal nenhum no fabrico. */
+const NA_RESIDUAL=/^(abacate|abóbora|acelga|agrião|aipo|alcachofra|alface|alho|alperce|ameixa|amora|ananás|anona|arroz|aveia|banana|banha|batata|beldroega|beringela|beterraba|brócolos|cebola|cenoura|cereja|chicória|chuchu|clementina|coentros|cogumelos|courgette|couve|dióspiro|endívia|ervilhas|espargos|espinafres|estragão|farinha|favas|feijão|figo|framboesa|frutos vermelhos|funcho|gengibre|ginja|goiaba|grelos|groselha|hortelã|inhame|kiwi|laranja|lentilhas|lichia|lima|limão|maçã|malagueta|mandioca|manga|manjericão|maracujá|marmelo|medronho|melancia|melão|meloa|milho|mirtilo|morango|nabo|nectarina|nêspera|noz|nozes|óleo|orégãos|papaia|pepino|pêra|pêssego|pimentão|pimento|quiabo|quinoa|rabanete|raspa de|romã|rúcula|salsa|sementes de|sêmola|tâmara|tangerina|tomate|toranja|uva|azeite|vinagre|água|açúcar|mel|canela|cravinho|cominhos|colorau|louro|tomilho|alecrim|salva|cardamomo|cúrcuma|curcuma|açafrão|pimenta|noz-moscada|baunilha|chá|café)/i;
 /* Compostos que herdariam o valor errado de um nome mais curto. Estão aqui
    escritos por extenso de propósito: a primeira versão desta tabela procurava
    o nome mais longo que fosse prefixo, e o «Mel» dava 82 g de açúcar livre ao
@@ -6288,11 +6759,21 @@ const NA_DESCARTADO={
   polvocozido:['Sal grosso'], batatascozidas:['Sal grosso'],
   acbcoz:['Sal grosso'], acbmurro:['Sal grosso'],
 };
+/* ---- A terceira gaveta ----
+   Havia duas: o INSA, e «estimado». Um valor do CoFID britânico, do CIQUAL
+   francês ou do USDA não é nenhuma das duas coisas — não é INSA, mas também
+   não é uma estimativa: é uma medição publicada por outro instituto oficial.
+   Metê-lo em «estimado» dizia a quem lê que o número era um palpite, e não
+   era; metê-lo em «INSA» era pior ainda. Fica aqui, com o nome certo, e a
+   app diz qual das três é. */
+const NA_TABELA={};
 function sodioDe(nome){
   if(temChave(NA_INSA,nome)) return NA_INSA[nome];
+  if(temChave(NA_TABELA,nome)) return NA_TABELA[nome];
   if(temChave(NA_ESTIMADO,nome)) return NA_ESTIMADO[nome];
   return NA_RESIDUAL.test(nome)? 0 : null;
 }
+function sodioDeOutraTabela(nome){ return temChave(NA_TABELA,nome); }
 /* Estas tabelas são indexadas por igualdade exata com o nome do ingrediente.
    Uma chave escrita com o nome truncado — «Chouriço de carne de porco» quando
    o catálogo diz «Chouriço de carne de porco, cru» — não dá erro: fica ali,
@@ -6309,7 +6790,7 @@ function sodioDe(nome){
      nenhumas. Um guarda que grita sem razão ensina a ignorá-lo, e a seguir
      deixa passar o erro verdadeiro. */
   const cat=new Set(Object.keys(NUTRI).concat(Object.keys(NUTRI_EXTRA)));
-  const orfas=[...Object.keys(NA_INSA),...Object.keys(NA_ESTIMADO)].filter(k=>!cat.has(k));
+  const orfas=[...Object.keys(NA_INSA),...Object.keys(NA_TABELA),...Object.keys(NA_ESTIMADO)].filter(k=>!cat.has(k));
   if(orfas.length) console.warn('Família Fit — chaves de sódio sem ingrediente correspondente ('
     +orfas.length+'): '+orfas.join(' · '));
 })();
@@ -8092,27 +8573,39 @@ function alvoSodio(m){
 function fonteAlvoSodio(m){
   return (m && faseDe(m)==='bebe')? 'EFSA' : 'OMS';
 }
+/* A proveniência tem de subir com o número. Esta função devolvia só {mg,
+   semValor} e deixava cair os «estimados» pelo caminho — e como sodioMedia()
+   os lia daqui, a nota que avisa «este total tem valores estimados» era código
+   morto: nunca apareceu uma vez. Um aviso de proveniência que não aparece é
+   pior do que não existir, porque dá a impressão de que foi verificado. */
 function sodioRegRef(r){
-  const rec=RECIPES.find(x=>x.id===r.r); if(!rec) return {mg:0,semValor:[]};
+  const vazio={mg:0, semValor:[], estimados:[], outraTabela:[]};
+  const rec=RECIPES.find(x=>x.id===r.r); if(!rec) return vazio;
   const dose=parseFloat(r.dose)||1;
   const base=sodioDeIngredientes(rec.i,1,rec.id);
-  let mg=base.mg*dose; const sem=base.semValor.slice();
+  let mg=base.mg*dose;
+  const sem=base.semValor.slice(), est=base.estimados.slice(), out=(base.outraTabela||[]).slice();
   /* o acompanhamento vai à mesa com o prato: o sódio dele conta */
   (r.ac||[]).forEach(id=>{ const a=RECIPES.find(x=>x.id===id); if(!a) return;
     const s=sodioDeIngredientes(a.i,1,a.id);
-    mg+=s.mg*dose/Math.max(1,(r.ac||[]).length); s.semValor.forEach(n=>sem.push(n)); });
-  return {mg:Math.round(mg), semValor:sem};
+    mg+=s.mg*dose/Math.max(1,(r.ac||[]).length);
+    s.semValor.forEach(n=>sem.push(n));
+    s.estimados.forEach(n=>est.push(n));
+    (s.outraTabela||[]).forEach(n=>out.push(n));
+  });
+  return {mg:Math.round(mg), semValor:sem, estimados:est, outraTabela:out};
 }
 function sodioMedia(mid,dias){
-  const h=hojeISO(); let soma=0, n=0, sem=0; const est=new Set();
+  const h=hojeISO(); let soma=0, n=0, sem=0; const est=new Set(), out=new Set();
   for(let i=0;i<(dias||7);i++){ const d=addDias(h,-i);
     const refs=regRefDe(mid).filter(r=>r.d===d&&r.estado==='feita');
     if(!refs.length) continue;
     refs.forEach(r=>{ const s=sodioRegRef(r); soma+=s.mg; sem+=s.semValor.length;
-      (s.estimados||[]).forEach(x=>est.add(x)); });
+      (s.estimados||[]).forEach(x=>est.add(x));
+      (s.outraTabela||[]).forEach(x=>out.add(x)); });
     n++;
   }
-  return n? {media:soma/n, dias:n, sem, estimados:[...est]} : null;
+  return n? {media:soma/n, dias:n, sem, estimados:[...est], outraTabela:[...out]} : null;
 }
 
 /* ================= AÇÚCARES LIVRES =================
@@ -9709,16 +10202,27 @@ function seloGenero(r){
    prazos são os que as autoridades de segurança alimentar recomendam para
    sobras refrigeradas — genéricos e conservadores, e a app diz que o são. */
 const CONSERVA=[
-  {k:'peixe',    re:/peixe|bacalhau|sardinha|carapau|robalo|dourada|salmão|atum|pescada|cavala|polvo|lula|choco|marisco|amêijoa|camarão|gamba/i,
+  /* O peixe e a carne não trazem expressão própria: leem as etiquetas que a
+     app já derivou dos ingredientes. Manter aqui uma segunda lista de espécies
+     era garantir que as duas divergiam, e divergiam — a do alergénio conhece
+     o espadarte, a truta, o linguado, o salmonete e a anchova, e esta não. O
+     resultado era um linguado grelhado com três dias de prazo e uma salada
+     Caesar com anchova a durar tanto como um assado. */
+  {k:'peixe',    at:['peixe','crustaceos','moluscos'],
    frigo:2, cong:60, nota:'Peixe e marisco cozinhados aguentam menos: dois dias no frigorífico.',
    reaq:'Reaquecer devagar, tapado, para não secar; no forno a 150 °C ou na frigideira com um fio de água.'},
   {k:'arroz',    re:/arroz|risoto|risott/i,
    frigo:1, cong:30, nota:'Arroz cozinhado arrefece-se depressa e come-se no dia seguinte — é o alimento com menos folga.',
    reaq:'Reaquecer bem quente, uma vez só, com uma colher de água para soltar o grão.'},
-  {k:'carne',    re:/carne|frango|peru|porco|vaca|novilho|borrego|bife|costelet|picanha|posta|almôndega|hambúrguer/i,
+  {k:'carne',    at:['carne'],
    frigo:3, cong:90, nota:'Carne cozinhada: até três dias no frigorífico.',
    reaq:'Fatiar antes de reaquecer e tapar; no forno a 160 °C ou em lume brando com um pouco de molho.'},
-  {k:'sopa',     re:/sopa|caldo|creme de|caldeirada|feijoada|estufad|guisad|cozid|jardineira|rancho/i,
+  /* soNome: estas palavras dizem o que o PRATO é, não o que tem dentro. Lidas
+     também na lista de ingredientes, o «Grão-de-bico cozido» do húmus e o
+     «Feijão cozido em molho de tomate» do full English davam quatro dias a um
+     prato que os não tem. Um húmus, umas tattie scones e um prato de ovos com
+     bacon estavam a receber o prazo de um cozido. */
+  {k:'sopa',     re:/sopa|caldo|creme de|caldeirada|feijoada|estufad|guisad|cozid|jardineira|rancho/i, soNome:true,
    frigo:4, cong:90, nota:'Sopas e cozidos são os que melhor guardam — até quatro dias, e congelam bem.',
    reaq:'Levantar fervura ao reaquecer; mexer para aquecer por igual.'},
   {k:'ovo',      re:/ovo|omelet|fritata|frittata|quiche/i,
@@ -9734,12 +10238,28 @@ const CONSERVA=[
    frigo:4, cong:90, nota:'Leguminosas cozinhadas guardam bem — até quatro dias.',
    reaq:'Reaquecer em lume brando com o próprio caldo.'},
 ];
+/* A tabela é lida toda e fica o escalão MAIS CURTO de todos os que casam, e
+   não o primeiro da lista. Um prato pode ser várias coisas ao mesmo tempo —
+   uma sopa de peixe é sopa e é peixe, uns ovos cozidos com feijão são ovo e
+   são leguminosa — e num prazo de comida o que manda é o ingrediente que
+   estraga primeiro. Pela ordem da lista, «Ovos cozidos com flor de sal» caía
+   no escalão das sopas e ganhava quatro dias; são dois.
+
+   Quem congela leva o congelador do mesmo escalão, pela mesma razão: quatro
+   dias e noventa não podem vir de linhas diferentes. */
 function conservacaoDe(r){
   if(!r) return null;
   const g=generoPrato(r);
-  const texto=(r.n||'')+' '+(r.i||[]).map(x=>x[0]).join(' ');
-  const c=CONSERVA.find(x=>x.re.test(texto));
-  const base=c || {frigo:3, cong:60, nota:'Sobras cozinhadas em geral: até três dias no frigorífico.',
+  const nome=r.n||'';
+  const texto=nome+' '+(r.i||[]).map(x=>x[0]).join(' ');
+  const at=r.at||[];
+  let base=null;
+  CONSERVA.forEach(x=>{
+    const casa = x.at ? x.at.some(k=>at.indexOf(k)>=0) : x.re.test(x.soNome? nome : texto);
+    if(!casa) return;
+    if(!base || x.frigo<base.frigo) base=x;
+  });
+  if(!base) base={frigo:3, cong:60, nota:'Sobras cozinhadas em geral: até três dias no frigorífico.',
     reaq:'Reaquecer bem quente, uma vez só.'};
   return Object.assign({}, base, {genero:g,
     reaq: g==='frio'? 'Prato frio: serve-se direto do frigorífico, sem reaquecer.' : base.reaq});
@@ -9873,6 +10393,7 @@ function salDaFicha(r){
   const faltam=(na.semValor||[]).length;
   const nota=[];
   if(na.estimados && na.estimados.length) nota.push(plural(na.estimados.length,'valor estimado','valores estimados'));
+  if(na.outraTabela && na.outraTabela.length) nota.push(plural(na.outraTabela.length,'valor de outra tabela oficial','valores de outras tabelas oficiais'));
   if(na.descartado) nota.push('o sal da confeção que se deita fora não conta');
   const rodape=n=>n.length? `<p class="sub" style="margin-top:2px">${n.join(' · ')}.</p>`:'';
   /* Três situações diferentes, e calar-se não é resposta para nenhuma delas.
@@ -18915,7 +19436,9 @@ function cartaoSalAcucar(m){
               : '↑ '+nPT((sm.media-alvoNa)/1000,2)+' g de sódio por dia acima do limite. O sal português mora no pão, no queijo e no fumeiro — não no saleiro.')
         : 'Sem recomendação oficial para esta idade — fica o número, sem veredicto.'}
         ${sm.sem? ' Há ingredientes sem valor de sódio na tabela, por isso a conta é <b>por baixo</b>.':''}
-        ${(sm.estimados||[]).length? ' '+plural(sm.estimados.length,'ingrediente não está na tabela do INSA e entrou com um valor estimado','ingredientes não estão na tabela do INSA e entraram com valores estimados')
+        ${(sm.outraTabela||[]).length? ' '+plural(sm.outraTabela.length,'ingrediente não está na tabela do INSA e veio de outra tabela oficial','ingredientes não estão na tabela do INSA e vieram de outras tabelas oficiais')
+          +' <span class="sub">('+esc(sm.outraTabela.slice(0,4).join(', '))+(sm.outraTabela.length>4? ' e mais '+(sm.outraTabela.length-4):'')+')</span>.':''}
+        ${(sm.estimados||[]).length? ' '+plural(sm.estimados.length,'ingrediente entrou com um valor estimado','ingredientes entraram com valores estimados')
           +' <span class="sub">('+esc(sm.estimados.slice(0,4).join(', '))+(sm.estimados.length>4? ' e mais '+(sm.estimados.length-4):'')+')</span>.':''}</p>
     </div>`:''}
     ${am? `<div style="margin-top:14px">
