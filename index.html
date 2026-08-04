@@ -23664,7 +23664,7 @@ function render(){
   /* semeia os valores que só o atualizador escreve (pill de ritmo, etc.) */
   if(S.ui.tab==='nutricao' && S.members.length && !S.ui.histRef) atualizarNutricao();
   pintaModal();
-  montaColapsaveis(); marcaChipsPremidos(); ligarDicas(); pintaAura(); montaMembrosFixos();
+  montaColapsaveis(); marcaChipsPremidos(); pintaAura(); montaMembrosFixos();
   /* a bancada liga o toque de cotovelo depois de cada desenho, e le o passo
      em voz alta se a voz estiver ligada */
   if(S.ui.cozinha){ ligarCotovelo(); if(S.ui.voz && S.ui.cozinha.vista==='passos') lerPassoAtual(); }
@@ -23838,22 +23838,30 @@ function alternaBolha(d){
   document.querySelectorAll('.dica.on, .selo.on').forEach(x=>{ if(x!==d) x.classList.remove('on'); });
   if(d){ posicionaDica(d); d.classList.toggle('on'); }
 }
-function ligarDicas(){
-  document.querySelectorAll(SEL_DICA).forEach(d=>{
-    if(d.hasAttribute('data-lig')) return;
-    d.setAttribute('data-lig','1');
-    d.addEventListener('mouseenter',()=>posicionaDica(d));
-    /* Os selos da despensa vivem dentro do <label> do próprio ingrediente, e
-       um clique num filho de label alterna o campo do label — tocar no 🌱 para
-       saber o que ele quer dizer marcava o item como estando em casa. O clique
-       morre aqui, e a bolha é alternada aqui também, porque com a propagação
-       parada o tratador do documento nunca chega a vê-lo. */
-    if(d.classList.contains('selo')) d.addEventListener('click', e=>{
-      e.preventDefault(); e.stopPropagation(); alternaBolha(d); });
-  });
-}
+/* Um tratador só, no documento, em vez de um por marcador.
+   Cada desenho refaz o innerHTML do main, portanto os marcadores são elementos
+   novos e voltavam a ser ligados um a um: na despensa isso eram 519 chamadas a
+   addEventListener por redesenho. Não é uma fuga — os antigos morrem com os
+   seus tratadores —, é trabalho a mais a cada tecla e a cada toque.
+
+   Usa-se mouseover, que borbulha e chega aqui, com a guarda que lhe dá o
+   comportamento de mouseenter: se o rato vinha de dentro do próprio marcador,
+   não entrou em lado nenhum e não há nada a recalcular. Sem esta guarda,
+   mover o rato sobre o «i» disparava um reflow por cada pixel percorrido — foi
+   o que encravou a página do aviso. */
+document.addEventListener('mouseover', e=>{
+  const d=e.target.closest && e.target.closest(SEL_DICA);
+  if(!d) return;
+  if(e.relatedTarget && d.contains(e.relatedTarget)) return;
+  posicionaDica(d);
+});
 document.addEventListener('focusin', e=>{ const d=e.target.closest&&e.target.closest(SEL_DICA); if(d) posicionaDica(d); });
-/* Ao toque não há hover: o marcador de explicação alterna com um toque. */
+/* Ao toque não há hover: o marcador de explicação alterna com um toque.
+   O preventDefault não é cosmético: os selos da despensa vivem dentro do
+   <label> do ingrediente, e a acção por omissão de um clique dentro de um
+   label é activar o campo do label — tocar no 🌱 para saber o que quer dizer
+   marcava o alimento como estando em casa. A acção por omissão corre depois
+   de todos os tratadores, por isso preveni-la aqui chega. */
 document.addEventListener('click', e=>{
   const d=e.target.closest && e.target.closest(SEL_DICA);
   if(d) e.preventDefault();
