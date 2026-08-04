@@ -1991,6 +1991,21 @@ function migraRegistos(s){
     s.ui.despSec=lim;
   } else s.ui.despSec={};
   s.ui.verFontes=!!s.ui.verFontes;   /* a proveniência é um sim ou não, e por omissão não */
+  /* O formulário de criação de objetivos vive em s.ui e é lido sem rede: uma
+     cópia de segurança feita antes de ele existir, ou um estado truncado,
+     deixava formCriacaoHtml() a ler .membros de null — e como o erro é dentro
+     de renderObjetivos(), levava o render inteiro atrás. Ecrã em branco, e sem
+     forma de sair, porque o separador aberto também está gravado. */
+  const fo=s.ui.objForm;
+  s.ui.objForm = (fo && typeof fo==='object' && !Array.isArray(fo)) ? {
+    membros: Array.isArray(fo.membros)? fo.membros.filter(x=>typeof x==='string').slice(0,20) : [],
+    tipo: ['perder','manter','ganhar'].indexOf(fo.tipo)>=0? fo.tipo : 'perder',
+    delta: clampNum(parseFloat(fo.delta)||5, 0, 100),
+    semanas: clampNum(Math.round(parseFloat(fo.semanas)||12), 1, 104),
+    split: clampNum(Math.round(parseFloat(fo.split)||50), 0, 100),
+    desporto: typeof fo.desporto==='string'? fo.desporto : null,
+    banda: clampNum(parseFloat(fo.banda)||2, 0, 20)
+  } : {membros:[],tipo:'perder',delta:5,semanas:12,split:50,desporto:null,banda:2};
   s.validades = limparValidades(s.validades);
   s.veredictos = limparVeredictos(s.veredictos, ids);
   s.brigada = limparBrigada(s.brigada, ids);
