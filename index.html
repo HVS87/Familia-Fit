@@ -23292,6 +23292,12 @@ function renderDados(){
    no ecrã seria explicar o vazio, por isso esses passos têm condição e a
    visita salta-os. */
 function passosTour(){ return TOUR.filter(p=>!p.quando || (()=>{ try{ return !!p.quando(); }catch(e){ return false; } })()); }
+/* Um passo pode trazer o texto numa função em vez de numa cadeia. Não é
+   preciosismo: TOUR escreve-se quando o ficheiro é lido, e há coisas que só
+   existem depois — os pratos compostos, por exemplo, nascem no arranque a
+   partir dos acompanhamentos. Com o texto fixo, a visita dizia «422 receitas»
+   e o separador ao lado mostrava 447. Contar tarde é contar certo. */
+function textoTour(x){ return typeof x==='function'? x() : (x||''); }
 const TOUR=[
   {tab:'familia', sel:'#capa',
    t:'O caderno desta família',
@@ -23402,9 +23408,11 @@ const TOUR=[
    t:'Projeção de peso',
    d:'Mostra para onde o peso caminha se o alvo se mantiver, recalculando o gasto a cada semana — por isso a curva achata. A faixa verde é a zona de índice de massa corporal saudável para a altura.'},
   /* Os números vêm das próprias tabelas: um texto com a contagem escrita à mão
-     desatualiza-se na receita seguinte, e já desatualizou. */
+     desatualiza-se na receita seguinte, e já desatualizou. Numa função e não
+     numa cadeia, porque os pratos compostos entram em RECIPES depois de esta
+     linha correr — contada aqui, a receita dava 422 e o ecrã dava 447. */
   {tab:'receitas', sel:'#rec-busca',
-   t:`${RECIPES.length} receitas, ${Object.keys(CUIS).length} cozinhas`,
+   t:()=>`${RECIPES.length} receitas, ${Object.keys(CUIS).length} cozinhas`,
    d:`Peixe grelhado e no forno, marisco à portuguesa, carne na brasa com os cortes pelo nome, keto, vegan e muito mais — de ${CUIS.portuguesa.toLowerCase()} a ${CUIS.africana.toLowerCase()} e ${CUIS.brasileira.toLowerCase()}. Pesquisa por nome ou por ingrediente, e filtra por refeição, cozinha, dieta, categoria — entradas, pratos principais, brunch, snacks e sobremesas — ou «sem» um alergénio.`},
   {tab:'receitas', sel:'.rc',
    t:'Macros que saem dos ingredientes',
@@ -23644,8 +23652,8 @@ function pintaTour(){
   if(!c){ c=document.createElement('div'); c.id='tour-cartao'; c.className='tour-cartao';
     c.setAttribute('role','dialog'); c.setAttribute('aria-label','Visita guiada'); document.body.appendChild(c); }
   c.innerHTML=`<div class="row" style="justify-content:space-between;align-items:baseline">
-      <h3>${esc(p.t)}</h3><span class="sub">${S.ui.tourPasso+1} de ${passos.length}</span></div>
-    <p class="sub">${p.d}</p>
+      <h3>${esc(textoTour(p.t))}</h3><span class="sub">${S.ui.tourPasso+1} de ${passos.length}</span></div>
+    <p class="sub">${textoTour(p.d)}</p>
     <div class="tour-progresso" aria-hidden="true">${passos.map((_,i)=>`<i class="${i<=S.ui.tourPasso?'feito':''}"></i>`).join('')}</div>
     <div class="tour-acoes">
       <button class="btn ghost small" onclick="fecharTour()">Sair</button>
