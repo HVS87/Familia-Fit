@@ -1367,6 +1367,31 @@ input[type=range].com-detentes::-moz-range-track{
 .rc{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--card);display:flex;flex-direction:column;gap:6px}
 .rc h3{font-size:15.5px}
 .tag{display:inline-block;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:1px 7px;font-size:11.5px;color:var(--mut);margin:1px 2px 1px 0}
+/* ---- Um selo que se explica ----
+   Os símbolos da despensa — o 🌱 da época, o 🐟 do alergénio, a validade, a
+   fonte da composição — diziam-se pelo title do browser: um segundo de espera,
+   sem estilo, e invisível a quem usa toque. Passam a usar a mesma bolha dos
+   explicadores «i», que é imediata e aparece também com o teclado e ao toque.
+
+   O texto vive em data-dica, como nos «i», por isso herda o mesmo desenho e a
+   mesma lógica de posicionamento — incluindo escolher o lado quando não cabe
+   em baixo. O <span> a seguir é o mesmo texto para quem ouve: um title num
+   elemento sem papel nem foco não é anunciado de forma fiável. */
+.selo{position:relative;cursor:help}
+.selo::after{content:attr(data-dica);position:absolute;left:calc(-4px + var(--dx,0px));top:calc(100% + 8px);
+  width:max-content;max-width:min(250px,calc(100vw - 24px));
+  background:var(--ink);color:var(--card);padding:8px 11px;border-radius:9px;
+  font:400 12px/1.45 var(--fonte-ui);letter-spacing:0;text-transform:none;text-align:left;white-space:normal;
+  z-index:30;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.25);display:none}
+.selo::before{content:'';position:absolute;left:5px;top:calc(100% + 2px);
+  border:6px solid transparent;border-bottom-color:var(--ink);z-index:31;display:none}
+.selo[data-cima]::after{top:auto;bottom:calc(100% + 8px)}
+.selo[data-cima]::before{top:auto;bottom:calc(100% + 2px);
+  border-bottom-color:transparent;border-top-color:var(--ink)}
+.selo:hover::after,.selo:hover::before,
+.selo:focus-visible::after,.selo:focus-visible::before,
+.selo.on::after,.selo.on::before{display:block}
+.selo:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .ingr-lista{display:flex;flex-wrap:wrap;gap:5px 10px}
 .ingr{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--mut)}
 .ingr i{font-style:normal;font-weight:700;width:12px;text-align:center}
@@ -8692,6 +8717,16 @@ const DICAS={
   acompanhamento:'O que vai ao lado do prato: batatas, arroz, legumes ou salada. As calorias somam-se às do prato no total do dia, os ingredientes somam-se à lista de compras, mas não conta como uma refeição — um arroz de coentros não é um jantar. O 🔀 troca por outro que sirva a mesma mesa, e o «juntar» põe mais um ao lado: como o lugar do acompanhamento é um só, os que lá estiverem repartem-no entre si — meia dose de batatas e meia de salada, e as calorias, os macros e as quantidades a comprar seguem essa divisão. O preenchimento automático escolhe um para cada almoço e jantar, respeitando as mesmas dietas e exclusões. Escolher ou trocar cria também uma variante com o nome inteiro — «Bife com batatas fritas» —, com os ingredientes somados e o passo-a-passo dos dois escrito de seguida, arrumada no cartão do prato de origem.',
   vegan:'Cada dieta é uma repartição diferente de hidratos, proteína e gordura; a «Personalizada» abre três sliders que somam sempre 100 %. Vegetariana e vegan são dietas diferentes: a vegetariana come ovos, lacticínios e mel, a vegan não come nada de origem animal — e as duas etiquetas são lidas dos ingredientes de cada receita, nunca escritas à mão.'
 };
+/* Um selo que se explica ao passar o rato, ao tocar ou ao chegar pelo teclado.
+   Recebe o que se vê e o que se lê. É um <button> e não um <span> porque tem de
+   ser alcançável pelo tabulador e responder ao toque — e um span com tabindex
+   dá um controlo sem papel nenhum na árvore de acessibilidade. O aria-label
+   leva o texto inteiro: aqui não há nome curto que faça sentido («🌱» não se
+   lê), e é o texto todo que interessa a quem ouve. */
+function selo(visto,texto,classe){
+  return `<button type="button" class="tag selo ${classe||''}" data-dica="${esc(texto)}"
+    aria-label="${esc(texto)}">${visto}</button>`;
+}
 function dica(k,extra){ const t=DICAS[k]; if(!t) return '';
   /* O texto vai duas vezes: em data-dica, que desenha a bolha, e num elemento
      de verdade que só o leitor de ecrã encontra. O aria-label continua a dar
@@ -22198,10 +22233,18 @@ function renderDespensa(){
         const val=validadeDe(nome), dv=val? diasAteValidade(nome) : null;
         return `<li class="${ok?'done':''}"><label><input type="checkbox" ${ok?'checked':''} onchange="toggleDespensaIdx(${i})">
           <span>${esc(nome)}${(function(){ const f=fonteDe(nome);
-            return f&&f.n!=='INSA'? ` <span class="tag fonte-${f.n.toLowerCase()}" title="${esc(f.d)}">${f.n}</span>`:''; })()}${
-            al.length? ' '+al.map(t=>`<span class="tag alerg" title="${esc(RESTR[t].n)}">${RESTR[t].i}</span>`).join(''):''}${
-            daEpoca(nome)? ' <span class="tag epoca">🌱</span>':''}${
-            val&&!S.ui.validades? ` <span class="tag ${classeValidade(dv)}" title="Validade: ${rotuloData(val)}">${rotuloValidade(dv)}</span>`:''}</span></label>${
+            return f&&f.n!=='INSA'? ' '+selo(f.n,
+              'A composição deste alimento vem de '+f.d+'. Sem o selo, vem da tabela do INSA, que é a primeira fonte da app.',
+              'fonte-'+f.n.toLowerCase()):''; })()}${
+            al.length? ' '+al.map(t=>selo(RESTR[t].i,
+              'Traz '+RESTR[t].n.toLowerCase()+'. Está assinalado porque alguém cá em casa tem esta alergia ou intolerância marcada no perfil — não dispensa ler o rótulo da embalagem.',
+              'alerg')).join(''):''}${
+            daEpoca(nome)? ' '+selo('🌱',
+              'Está na época este mês, em Portugal continental. Fruta e legumes da época custam menos, sabem melhor e vêm de mais perto.',
+              'epoca'):''}${
+            val&&!S.ui.validades? ' '+selo(rotuloValidade(dv),
+              'Validade que escreveste: '+rotuloData(val)+'. A app põe à frente o que está mais perto de acabar, e nunca inventa um prazo.',
+              classeValidade(dv)):''}</span></label>${
           S.ui.precos? `<span class="preco"><input type="number" min="0" step="0.01" inputmode="decimal"
             value="${p? p.v : ''}" placeholder="—" aria-label="Preço de ${esc(nome)} em ${rot}"
             onchange="guardarPreco('${esc(nome).replace(/'/g,'&#39;')}',this.value)"><span class="sub">${rot}</span>${
@@ -23774,18 +23817,33 @@ function posicionaDica(d){
    são dezenas de reflows por segundo, e a página deixa de responder.
    mouseenter dispara uma vez, à entrada. Como não borbulha, regista-se em cada
    marcador — e por isso corre a cada desenho, sobre os marcadores novos. */
+/* Os «i» e os selos da despensa partilham tudo o que vem a seguir: a mesma
+   bolha, o mesmo posicionamento, o mesmo comportamento ao toque. */
+const SEL_DICA='.dica, .selo';
+function alternaBolha(d){
+  document.querySelectorAll('.dica.on, .selo.on').forEach(x=>{ if(x!==d) x.classList.remove('on'); });
+  if(d){ posicionaDica(d); d.classList.toggle('on'); }
+}
 function ligarDicas(){
-  document.querySelectorAll('.dica:not([data-lig])').forEach(d=>{
+  document.querySelectorAll(SEL_DICA).forEach(d=>{
+    if(d.hasAttribute('data-lig')) return;
     d.setAttribute('data-lig','1');
     d.addEventListener('mouseenter',()=>posicionaDica(d));
+    /* Os selos da despensa vivem dentro do <label> do próprio ingrediente, e
+       um clique num filho de label alterna o campo do label — tocar no 🌱 para
+       saber o que ele quer dizer marcava o item como estando em casa. O clique
+       morre aqui, e a bolha é alternada aqui também, porque com a propagação
+       parada o tratador do documento nunca chega a vê-lo. */
+    if(d.classList.contains('selo')) d.addEventListener('click', e=>{
+      e.preventDefault(); e.stopPropagation(); alternaBolha(d); });
   });
 }
-document.addEventListener('focusin', e=>{ const d=e.target.closest&&e.target.closest('.dica'); if(d) posicionaDica(d); });
+document.addEventListener('focusin', e=>{ const d=e.target.closest&&e.target.closest(SEL_DICA); if(d) posicionaDica(d); });
 /* Ao toque não há hover: o marcador de explicação alterna com um toque. */
 document.addEventListener('click', e=>{
-  const d=e.target.closest && e.target.closest('.dica');
-  document.querySelectorAll('.dica.on').forEach(x=>{ if(x!==d) x.classList.remove('on'); });
-  if(d){ e.preventDefault(); posicionaDica(d); d.classList.toggle('on'); }
+  const d=e.target.closest && e.target.closest(SEL_DICA);
+  if(d) e.preventDefault();
+  alternaBolha(d);
 });
 aplicarEcra();
 /* Agora sim: já cá estão todas as constantes de que os combos precisam, e
