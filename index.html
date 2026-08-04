@@ -1990,6 +1990,7 @@ function migraRegistos(s){
       if(typeof k==='string' && k.length<=40 && typeof s.ui.despSec[k]==='boolean') lim[k]=s.ui.despSec[k]; });
     s.ui.despSec=lim;
   } else s.ui.despSec={};
+  s.ui.verFontes=!!s.ui.verFontes;   /* a proveniência é um sim ou não, e por omissão não */
   s.validades = limparValidades(s.validades);
   s.veredictos = limparVeredictos(s.veredictos, ids);
   s.brigada = limparBrigada(s.brigada, ids);
@@ -21962,6 +21963,12 @@ function irPorPrecos(){ S.ui.precos=true; go('despensa'); }
 function guardarPreco(nome,v){ setPreco(nome,v); save('preço de '+nome); }
 function guardarValidade(nome,v){ setValidade(nome,v); save('validade de '+nome); render(); }
 function toggleValidades(){ S.ui.validades=!S.ui.validades; saveMeta(); render(); }
+/* A proveniência dos valores não vinha ligada nem se podia desligar: a despensa
+   marcava sozinha os que NÃO eram do INSA, o que dizia meia verdade — quem
+   visse um selo «FDA» num alimento e nada no seguinte não ficava a saber de
+   onde vinha o seguinte. Passa a ser uma escolha, e quando se faz mostra a
+   fonte de todos. Fica em s.ui e é preferência de vista, logo saveMeta(). */
+function toggleVerFontes(v){ S.ui.verFontes=!!v; saveMeta(); render(); }
 /* Os alergénios que os membros da casa têm marcados: são estes que valem a
    pena assinalar em cada ingrediente da despensa, e não os catorze todos. */
 function alergiasDaCasa(){
@@ -22232,10 +22239,11 @@ function renderDespensa(){
         const rot = un==='g'? '€/kg' : un==='ml'? '€/L' : '€/'+un;
         const val=validadeDe(nome), dv=val? diasAteValidade(nome) : null;
         return `<li class="${ok?'done':''}"><label><input type="checkbox" ${ok?'checked':''} onchange="toggleDespensaIdx(${i})">
-          <span>${esc(nome)}${(function(){ const f=fonteDe(nome);
-            return f&&f.n!=='INSA'? ' '+selo(f.n,
-              'A composição deste alimento vem de '+f.d+'. Sem o selo, vem da tabela do INSA, que é a primeira fonte da app.',
-              'fonte-'+f.n.toLowerCase()):''; })()}${
+          <span>${esc(nome)}${(function(){ if(!S.ui.verFontes) return '';
+            const f=fonteDe(nome); if(!f) return '';
+            return ' '+selo(f.n,
+              'A composição deste alimento vem de '+f.d+'. A app usa o INSA primeiro, depois a UE e só por último a FDA — quando o mesmo alimento existe em mais do que uma tabela, fica o da fonte mais prioritária.',
+              'fonte-'+f.n.toLowerCase()); })()}${
             al.length? ' '+al.map(t=>selo(RESTR[t].i,
               'Traz '+RESTR[t].n.toLowerCase()+'. Está assinalado porque alguém cá em casa tem esta alergia ou intolerância marcada no perfil — não dispensa ler o rótulo da embalagem.',
               'alerg')).join(''):''}${
@@ -22866,6 +22874,12 @@ function cartaoTabelas(){
     <p class="sub" style="margin-top:10px"><b>${Object.keys(NUTRI).length} ingredientes</b> à vista e
       <b>${totalX}</b> no catálogo oculto — que a app usa quando se acrescenta um ingrediente que não anda em
       receita nenhuma. Ao ser escolhido, passa a fazer parte do catálogo desta casa.</p>
+    <label class="toggle" style="margin-top:12px">
+      <input type="checkbox" ${S.ui.verFontes?'checked':''} onchange="toggleVerFontes(this.checked)">
+      <span>Mostrar a proveniência de cada ingrediente na despensa</span></label>
+    <p class="sub" style="margin-top:4px">Desligado, a despensa mostra só os nomes. Ligado, cada ingrediente leva
+      o selo da tabela de onde vieram os seus valores — <b>todos</b>, incluindo os do INSA, que são a maioria.
+      É informação de quem quer conferir; para cozinhar não é precisa, e por isso não vem ligada.</p>
     <div class="splabel" style="margin-top:14px"><span>Carregar uma tabela oficial</span></div>
     <p class="sub">As tabelas completas têm dezenas de milhares de linhas e vivem em ficheiros que se descarregam
       — não cabem escritas à mão nem se devem inventar. Descarrega o ficheiro da fonte e carrega-o aqui:
