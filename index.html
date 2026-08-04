@@ -1069,6 +1069,11 @@ input[type=text],input[type=number],input[type=date],input[type=search],select{
 /* min-height em vez de só padding: com um texto de uma linha curta o chip
    ficava nos 23 px, um abaixo do mínimo da WCAG 2.5.8. */
 .chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:4px 12px;background:var(--bg);cursor:pointer;font-size:13.5px;font-weight:600;min-height:24px}
+/* Os atalhos das doses saltam de 12 para 20; quem cozinha para 14 escreve o
+   número, em vez de ficar preso ao salto mais próximo. */
+.doses-num{width:58px;padding:3px 6px;border:1px solid var(--line);border-radius:8px;
+  background:var(--bg);color:var(--ink);font:600 13.5px/1 inherit;text-align:center;min-height:24px}
+@media (hover:none) and (pointer:coarse){ .doses-num{min-height:32px} }
 @media (hover:none) and (pointer:coarse){ .chip{min-height:32px;padding:6px 14px} }
 .chip.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
 .chip.party{border-color:var(--party);color:var(--party)}
@@ -2247,6 +2252,15 @@ const LIMITES_CORPO={
   altura:[30,250,'A altura','cm',170],
   idade: [0,120,'A idade','anos',35]
 };
+/* Quantas pessoas se serve. Vinte dá para um almoço de família alargada ou uma
+   festa em casa — a partir daí já não é uma receita de casa. O número vive
+   aqui porque o seletor da lista, a ficha da receita e o saneador têm todos de
+   dizer o mesmo: antes, a lista parava nas 12 e a ficha aceitava 20. */
+const MAX_DOSES=20;
+/* Um a doze de um em um, e depois de dois em dois: quem cozinha para catorze
+   não precisa de distinguir treze de catorze, mas quem cozinha para três
+   precisa mesmo de três. */
+const OPCOES_DOSES=(()=>{ const a=[]; for(let v=1;v<=MAX_DOSES;v++) if(v<=12||v%2===0) a.push(v); return a; })();
 /* O estado do histórico de navegação. Aqui em cima porque sincronizaHistorico()
    corre no fim de cada desenho, incluindo o primeiro, e a declaração vive no
    bloco do botão voltar, muito mais abaixo. */
@@ -6408,7 +6422,11 @@ function fmtQtd(quant,un){
   const q=Math.round(quant*100)/100;
   if(un==='g'&&q>=1000) return nPT(q/1000, q%1000?1:0)+' kg';
   if(un==='ml'&&q>=1000) return nPT(q/1000, q%1000?1:0)+' L';
-  return nPT(q, Number.isInteger(q)?0:(Number.isInteger(q*10)?1:2))+' '+un;
+  /* «dente» é a única unidade que é palavra e não símbolo: g, ml e un não
+     variam, mas «20 dente» não se diz. Com doses até 20 isto passou a
+     aparecer a sério na lista de compras e nas fichas. */
+  const u = un==='dente' && q!==1 ? 'dentes' : un;
+  return nPT(q, Number.isInteger(q)?0:(Number.isInteger(q*10)?1:2))+' '+u;
 }
 function textoEscala(r,n,fator){
   return escalaIngredientes(r,n,fator).map(x=>esc(x.n)+' '+fmtQtd(x.q,x.u)).join(' · ');
@@ -9251,7 +9269,7 @@ function perguntarSobra(d,mk,rid,ac,quem){
     quem: quem||[], vere:{}, brig:{}};
   saveMeta(); render();
 }
-function setSobraDoses(v){ const f=folhaMesa(); if(!f) return; f.doses=clampNum(parseFloat(v)||0,0,12); saveMeta(); render(); }
+function setSobraDoses(v){ const f=folhaMesa(); if(!f) return; f.doses=clampNum(parseFloat(v)||0,0,MAX_DOSES); saveMeta(); render(); }
 /* Cada pessoa dá o seu veredicto tocando no próprio avatar. Tocar outra vez no
    mesmo tira o voto — mudar de ideias é legítimo, e um voto que não se pode
    retirar deixa de ser um voto. */
@@ -10160,12 +10178,12 @@ function cartaoDiscordia(){
 function fichaAberta(){ return S.ui.ficha&&typeof S.ui.ficha==='object'? S.ui.ficha : null; }
 function abrirFicha(rid,n){
   const r=RECIPES.find(x=>x.id===rid); if(!r) return;
-  S.ui.ficha={r:rid, n:clampNum(n||porcoesAtuais()||1,1,20)};
+  S.ui.ficha={r:rid, n:clampNum(n||porcoesAtuais()||1,1,MAX_DOSES)};
   saveMeta(); render();
 }
 function fecharFicha(){ S.ui.ficha=null; saveMeta(); render(); }
 function setFichaDoses(v){ const f=fichaAberta(); if(!f) return;
-  f.n=clampNum(Math.round(parseFloat(v)||1),1,20); saveMeta(); render(); }
+  f.n=clampNum(Math.round(parseFloat(v)||1),1,MAX_DOSES); saveMeta(); render(); }
 /* ================= O LIVRO DA CASA =================
    As receitas da casa merecem sair em papel. Monta-se um documento próprio
    num nó à parte, imprime-se com o browser e tira-se logo a seguir — nada sai
@@ -10899,7 +10917,9 @@ function fichaHtml(f){
       ${blocoVeredictosDaCasa(r)}
       <div class="row" style="margin-top:12px;align-items:center">
         <span class="lbl" style="margin:0">Doses</span>
-        ${[1,2,3,4,6].map(x=>`<button class="chip ${f.n===x?'on':''}" onclick="setFichaDoses(${x})">${x}</button>`).join('')}
+        ${[1,2,4,6,8,12,MAX_DOSES].map(x=>`<button class="chip ${f.n===x?'on':''}" onclick="setFichaDoses(${x})">${x}</button>`).join('')}
+        <input type="number" class="doses-num" min="1" max="${MAX_DOSES}" step="1" value="${f.n}"
+          aria-label="Número de doses" onchange="setFichaDoses(this.value)">
         <span class="pill ${disp.pronta?'ok':disp.tem?'warn':''}" style="margin-left:auto">${
           disp.pronta?'Pronta a cozinhar':disp.tem+'/'+disp.total+' na despensa'}</span>
       </div>
@@ -10965,7 +10985,7 @@ function passosDerivados(r,n){
 }
 function abrirCozinha(rid,n,ctx,acs){
   const r=RECIPES.find(x=>x.id===rid); if(!r) return;
-  S.ui.cozinha={r:rid, n:clampNum(n||1,1,20), passo:0, feitos:[], ctx:ctx||null,
+  S.ui.cozinha={r:rid, n:clampNum(n||1,1,MAX_DOSES), passo:0, feitos:[], ctx:ctx||null,
     ac:Array.isArray(acs)? acs.slice(0,MAX_AC) : [], vista:'passos', trancado:false, feitosEspera:[]};
   saveMeta(); render(); pedirEcraAceso();
 }
@@ -16523,7 +16543,7 @@ function limparReceita(x){
   const out={id:'u_'+limparId(String(x.id||'').replace(/^u_/,'')),
     n:String(x.n||'Receita sem nome').slice(0,80),
     coz, mt: mt.length? mt : ['a','j'],
-    doses: clampNum(Math.round(parseFloat(x.doses)||1),1,12), i};
+    doses: clampNum(Math.round(parseFloat(x.doses)||1),1,MAX_DOSES), i};
   /* De quem veio e a história: texto livre, e por isso escapado onde se
      mostra. Uma receita sem história continua a ser uma receita. */
   const de=String(x.de||'').trim().slice(0,40); if(de) out.de=de;
@@ -16790,7 +16810,7 @@ function edSet(campo,valor){
   else if(campo==='de') e.de=String(valor).slice(0,40);
   else if(campo==='hist') e.hist=String(valor).slice(0,240);
   else if(campo==='oral') e.oral=String(valor).slice(0,1200);
-  else if(campo==='doses') e.doses=clampNum(Math.round(parseFloat(valor)||1),1,12);
+  else if(campo==='doses') e.doses=clampNum(Math.round(parseFloat(valor)||1),1,MAX_DOSES);
   saveMeta();
   if(campo==='doses') atualizarEditor();
 }
@@ -16950,7 +16970,7 @@ function cartaoEditor(){
       <div><label class="lbl">Cozinha</label><select onchange="edSet('coz',this.value)">
         ${Object.entries(CUIS).map(([k,v])=>`<option value="${k}" ${e.coz===k?'selected':''}>${(ICO_COZ[k]||'')+' '+v}</option>`).join('')}</select></div>
       <div><label class="lbl">Doses que rende</label>
-        <input type="number" min="1" max="12" step="1" value="${e.doses}" onchange="edSet('doses',this.value)"></div>
+        <input type="number" min="1" max="${MAX_DOSES}" step="1" value="${e.doses}" onchange="edSet('doses',this.value)"></div>
     </div>
     <div class="frow" style="margin-top:10px">
       <div><label class="lbl">De quem veio ${dica('historia')}</label>
@@ -17037,13 +17057,15 @@ function blocoRestricoes(m){
 }
 function setPorcoes(v){
   const n=parseInt(v,10);
-  S.ui.porcoes=Number.isFinite(n)? clampNum(n,1,12) : null;
+  S.ui.porcoes=Number.isFinite(n)? clampNum(n,1,MAX_DOSES) : null;
   saveMeta(); render();
 }
 function porcoesAtuais(){
   const n=parseInt(S.ui.porcoes,10);
-  if(Number.isFinite(n)) return clampNum(n,1,12);
-  return Math.max(1,S.members.length);
+  if(Number.isFinite(n)) return clampNum(n,1,MAX_DOSES);
+  /* uma casa com mais gente do que o teto continua a servir toda a gente na
+     conta do plano; o que se limita aqui é o multiplicador das quantidades */
+  return clampNum(Math.max(1,S.members.length),1,MAX_DOSES);
 }
 
 function recipeCard(r,n){
@@ -19492,7 +19514,7 @@ function renderReceitas(){
   <div class="row" style="margin-bottom:12px;align-items:center">
     <span class="sub">Quantidades para ${dica('porcoes')}</span>
     <select style="width:auto" aria-label="Número de pessoas para as quantidades" onchange="setPorcoes(this.value)">
-      ${[1,2,3,4,5,6,7,8,10,12].map(v=>`<option value="${v}" ${n===v?'selected':''}>${v} pessoa${v===1?'':'s'}</option>`).join('')}
+      ${OPCOES_DOSES.map(v=>`<option value="${v}" ${n===v?'selected':''}>${v} pessoa${v===1?'':'s'}</option>`).join('')}
     </select>
     ${S.members.length&&n!==S.members.length? `<button class="chip" onclick="setPorcoes(${S.members.length})">Repor: a família (${S.members.length})</button>`:''}
   </div>
