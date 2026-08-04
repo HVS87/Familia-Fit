@@ -1183,6 +1183,16 @@ input[type=range].com-detentes::-moz-range-track{
   width:24px;height:24px;padding:0;margin-left:6px;border:1px solid var(--line);border-radius:50%;
   background:var(--bg);color:var(--mut);font:700 12px/1 inherit;cursor:help;vertical-align:middle;flex:none}
 .dica:hover,.dica:focus-visible,.dica.on{border-color:var(--accent);color:var(--accent)}
+/* Texto que existe para ser ouvido e não para ser visto. A bolha das dicas é
+   desenhada por content:attr(data-dica) num ::after — conteúdo gerado por CSS
+   não é exposto de forma fiável, e com display:none está mesmo fora da árvore
+   de acessibilidade. Ou seja: quem usa leitor de ecrã ouvia «Explicação» e
+   nada da explicação. O mesmo texto passa a existir também como elemento a
+   sério, escondido à vista, e o botão aponta-lhe com aria-describedby.
+   Não se usa display:none nem hidden de propósito — isso tirá-lo-ia da árvore
+   outra vez, que é exatamente o problema que se está a resolver. */
+.so-leitor{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+  clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
 .dica::after{content:attr(data-dica);position:absolute;left:calc(-4px + var(--dx,0px));top:calc(100% + 8px);
   width:max-content;max-width:min(270px,calc(100vw - 24px));
   background:var(--ink);color:var(--card);padding:9px 12px;border-radius:9px;
@@ -2257,6 +2267,27 @@ const LIMITES_CORPO={
    aqui porque o seletor da lista, a ficha da receita e o saneador têm todos de
    dizer o mesmo: antes, a lista parava nas 12 e a ficha aceitava 20. */
 const MAX_DOSES=20;
+/* A memória do que falta despachar. Vive aqui em cima, longe da função que a
+   usa, pela mesma razão do MAX_AC e do JEJUM_MAX_H: writeLS() esquece-a, e
+   writeLS() corre no arranque — um let declarado lá em baixo estaria na zona
+   morta temporal nesse momento, e o resultado era um ecrã em branco sem nada
+   na consola. */
+let _pendCache=null;
+/* O índice dos registos por pessoa. Vive aqui pela mesma razão do _pendCache:
+   é esquecido por writeLS(), que corre no arranque. E não se escreve
+   «typeof _regRefIdx!=='undefined'» a fingir que protege — num let, o typeof
+   lança na mesma dentro da zona morta temporal. A única defesa é declarar
+   antes de quem usa, que é o que se faz aqui. */
+let _regRefIdx=null;
+/* Uma porta só para deitar fora o que foi contado a partir do estado. Chama-se
+   de render() e de writeLS(): antes de desenhar, e sempre que algo muda. É
+   mais seguro esquecer de mais do que servir uma conta velha — e ter as duas
+   memórias na mesma função é o que evita que a próxima nasça sem quem a
+   invalide. */
+function esquecePendencias(){ _pendCache=null; _regRefIdx=null; }
+/* Contador dos ids das bolhas de explicação. Zera a cada desenho — os ids só
+   precisam de ser únicos dentro da página que existe naquele momento. */
+let _nDica=0;
 /* Um a doze de um em um, e depois de dois em dois: quem cozinha para catorze
    não precisa de distinguir treze de catorze, mas quem cozinha para três
    precisa mesmo de três. */
@@ -6647,6 +6678,9 @@ function load(){
   return Object.assign(b, s, {ui:Object.assign(b.ui,s.ui||{}), meta:Object.assign(b.meta,s.meta||{})});
 }
 function writeLS(){
+  /* gravar significa que algo mudou: a conta do que falta despachar deixa de
+     valer, mesmo que ainda não venha aí um desenho */
+  esquecePendencias();
   try{ localStorage.setItem(KEY,JSON.stringify(S)); saveErr='';
     /* fica a saber-se o que ESTE separador gravou por último: é a única
        forma de distinguir uma gravação nossa de uma de outro separador */
@@ -7048,11 +7082,23 @@ function blocoMetodoBMR(m){
         const troca=M.soAdulto && idadeAnos(m)<19;
         const txt=`<b>${esc(M.n)}</b>${M.recomendada? ' — recomendada':''}<br>${M.resumo}<br><br><b>Limitação:</b> ${M.limite}<br><br><b>Fonte:</b> ${esc(M.fonte)}`
           + (troca? '<br><br><b>Nesta idade não se aplica:</b> este perfil continua calculado pela '+METODOS_BMR[METODO_BMR_PADRAO].curto+'.' : '');
+        /* A limitação e a fonte de cada equação viviam só no data-dica, e o
+           data-dica só é desenhado por um ::after — quem usa leitor de ecrã
+           escolhia entre «Henry» e «Schofield» sem ouvir nenhuma das razões
+           para escolher. Numa decisão que muda os alvos de calorias de toda a
+           casa, isso não pode ficar de fora. O mesmo texto, sem marcação, é
+           entregue por aria-describedby. */
+        const idm='mo-t'+(++_nDica);
+        const falado=[M.n+(M.recomendada?', recomendada':''), M.resumo,
+          'Limitação: '+M.limite, 'Fonte: '+M.fonte,
+          troca? 'Nesta idade não se aplica: este perfil continua calculado pela '+METODOS_BMR[METODO_BMR_PADRAO].curto+'.' : '']
+          .filter(Boolean).join(' ').replace(/<[^>]+>/g,'');
         return `<button class="metodo-op ${on?'on':''}" role="radio" aria-checked="${on}"
-          data-dica="${esc(txt)}" onclick="setMetodoBMR('${k}')">
+          data-dica="${esc(txt)}" aria-describedby="${idm}" onclick="setMetodoBMR('${k}')">
           <span class="mo-nome">${esc(M.curto)}${M.recomendada? ' <span class="mo-sel">recomendada</span>':''}</span>
           <span class="mo-val">${val} kcal${troca? ' *':''}</span>
           <span class="mo-ano">${M.ano}</span>
+          <span id="${idm}" class="so-leitor">${esc(falado)}</span>
         </button>`;
       }).join('')}
     </div>
@@ -7738,7 +7784,25 @@ function planeadasNoDia(m,d){
    com o pai não obriga a correr ao ritmo dele. Validar um valida o grupo;
    editar um pergunta se se aplica aos outros. */
 function regAtivDe(mid){ return (S.regAtiv||[]).filter(r=>r.mid===mid); }
-function regRefDe(mid){ return (S.regRef||[]).filter(r=>r.mid===mid); }
+/* Os registos de uma pessoa. Parece inofensivo — é um filter — mas esta função
+   é chamada quase novecentas vezes num único desenho do separador Família, e
+   cada chamada varria a lista toda. Com dois anos de uso a sério (quatro
+   pessoas, quatro refeições por dia, onze mil registos) isso são dez milhões
+   de comparações por desenho, e o separador levava mais de meio segundo a
+   aparecer.
+
+   Arruma-se uma vez por desenho, num índice por pessoa. Quem recebe o array
+   só o lê — filter, some, forEach, reduce — e é por isso que se pode devolver
+   o mesmo em vez de uma cópia; quem vier a precisar de o ordenar que copie
+   primeiro. O índice é esquecido em esquecePendencias(), lá no topo, a cada
+   desenho e a cada gravação. */
+function regRefDe(mid){
+  if(!_regRefIdx){
+    _regRefIdx=Object.create(null);
+    (S.regRef||[]).forEach(r=>{ (_regRefIdx[r.mid] || (_regRefIdx[r.mid]=[])).push(r); });
+  }
+  return _regRefIdx[mid] || [];
+}
 function porData(a,b){ return a.d<b.d? 1 : a.d>b.d? -1 : 0; }   /* mais recente primeiro */
 function kcalRegAtiv(r){
   const s=r.s&&SPORT[r.s]; if(!s) return 0;
@@ -8517,7 +8581,14 @@ const DICAS={
   vegan:'Cada dieta é uma repartição diferente de hidratos, proteína e gordura; a «Personalizada» abre três sliders que somam sempre 100 %. Vegetariana e vegan são dietas diferentes: a vegetariana come ovos, lacticínios e mel, a vegan não come nada de origem animal — e as duas etiquetas são lidas dos ingredientes de cada receita, nunca escritas à mão.'
 };
 function dica(k,extra){ const t=DICAS[k]; if(!t) return '';
-  return `<button type="button" class="dica ${extra||''}" data-dica="${esc(t)}" aria-label="Explicação">i</button>`; }
+  /* O texto vai duas vezes: em data-dica, que desenha a bolha, e num elemento
+     de verdade que só o leitor de ecrã encontra. O aria-label continua a dar
+     o nome curto ao botão («Explicação»), e o aria-describedby entrega o texto
+     a seguir — que é a ordem por que se ouve: primeiro o que é, depois o que
+     diz, e o leitor deixa saltar a segunda parte se não a quiser. */
+  const id='dica-t'+(++_nDica);
+  return `<button type="button" class="dica ${extra||''}" data-dica="${esc(t)}"
+    aria-label="Explicação" aria-describedby="${id}">i<span id="${id}" class="so-leitor">${esc(t)}</span></button>`; }
 /* Despensa e Compras partilhavam os mesmos dados e viviam separadas: o fluxo
    natural — ver o que falta, comprar, arrumar — obrigava a saltar de separador
    no momento mais apressado da semana. Passam a ser duas vistas da Mercearia,
@@ -12090,6 +12161,10 @@ function indiceGlobal(){
    ['Lista de compras','mercearia'],['Despensa','mercearia'],['Preços','mercearia'],
    ['Cópias de segurança','dados'],['Paletas e temas','dados'],['Visita guiada','dados']]
    .forEach(([t,tab])=>ix.push({t, o:'Onde fica', fn:"go('"+tab+"')"}));
+  /* O título sem acentos e em minúsculas é o que a procura compara, e não muda
+     entre teclas — calculava-se as mil e cem vezes a cada letra escrita.
+     Fica guardado ao lado do título, uma vez por índice. */
+  ix.forEach(x=>{ x.k=semAcentos(x.t).toLowerCase(); });
   return ix;
 }
 let _ixGlobal=null;
@@ -12103,7 +12178,7 @@ function pesquisaGlobal(q){
   if(!_ixGlobal) _ixGlobal=indiceGlobal();
   const out=[];
   for(const x of _ixGlobal){
-    const n=semAcentos(x.t).toLowerCase();
+    const n=x.k;
     let pos=null;
     for(const t of termos){ const i=n.indexOf(t); if(i<0){ pos=null; break; } if(pos===null) pos=i; }
     if(pos===null) continue;
@@ -13355,7 +13430,20 @@ function fatorCompras(di,mk){
 /* ================= PENDÊNCIAS DO DIA =================
    O que a casa tem por despachar, contado uma vez e reutilizado no crachá do
    ícone da PWA, nos pontos da barra e no «Correu como planeado». */
+/* O que a casa tem por despachar é pedido quatro a seis vezes no mesmo desenho
+   — o crachá do ícone, os pontos da barra, o «correu como planeado», o fio do
+   dia — e cada pedido varre o plano da semana inteira e monta a lista de
+   compras do zero. O comentário por cima desta função sempre prometeu «contado
+   uma vez e reutilizado»; não havia memória nenhuma.
+
+   A conta é a mesma durante todo um desenho, porque nada muda o estado a meio.
+   Guarda-se, e deita-se fora no início de cada render() e sempre que se grava:
+   é mais seguro esquecer de mais do que servir uma conta velha. */
 function pendenciasHoje(){
+  if(_pendCache) return _pendCache;
+  return _pendCache=calculaPendencias();
+}
+function calculaPendencias(){
   const d=hojeISO(), out={ref:[], ativ:[], compras:0, pesagens:0};
   S.members.forEach(m=>{
     planeadasHojeSemRegisto(m).forEach(p=>out.ref.push({mid:m.id, mk:p.mk, meal:p.meal}));
@@ -23280,6 +23368,8 @@ function render(){
      dela, repondo dois passos atrás. Redesenhar significa que o gesto
      acabou, por isso é aqui que se compromete o que ficou pendente. */
   if(estadoAnterior!==null && instantaneo()!==estadoAnterior) save();
+  esquecePendencias();   /* a conta do que falta despachar é refeita uma vez por desenho */
+  _nDica=0;
   pintaNav();
   const el=document.getElementById('main');
   el.innerHTML = S.ui.tab==='atividade'? renderAtividade()
@@ -23460,8 +23550,15 @@ sincronizaCombos();
    sempre existiu em DICAS — faltava ligá-lo. Aqui e não dentro de pintaHist():
    pintaHist() corre a partir de save(), que corre durante o arranque, muito
    antes de DICAS existir — ler lá a constante deixava a app em branco. */
-(function(){ const d=document.getElementById('dica-desfazer');
-  if(d) d.setAttribute('data-dica', DICAS.desfazer||''); })();
+(function(){ const d=document.getElementById('dica-desfazer'); if(!d) return;
+  const t=DICAS.desfazer||'';
+  d.setAttribute('data-dica', t);
+  /* e o mesmo texto como elemento a sério, para o leitor de ecrã o alcançar —
+     como em todas as outras dicas, que o recebem já feito de dica() */
+  const s=document.createElement('span');
+  s.id='dica-desfazer-t'; s.className='so-leitor'; s.textContent=t;
+  d.appendChild(s); d.setAttribute('aria-describedby',s.id);
+})();
 aplicarTema();
 /* Em modo automático, seguir o sistema quando ele muda a meio da sessão. */
 try{ const mq=matchMedia('(prefers-color-scheme: dark)');
@@ -23469,10 +23566,6 @@ try{ const mq=matchMedia('(prefers-color-scheme: dark)');
   if(mq.addEventListener) mq.addEventListener('change',reagir); else if(mq.addListener) mq.addListener(reagir);
 }catch(e){}
 ligarOrientacao();
-/* O explicador do cabeçalho vive em HTML estático, fora dos templates — o
-   texto vem do mesmo registo que todos os outros, para não haver duas cópias. */
-(function(){ const d=document.getElementById('dica-desfazer');
-  if(d) d.setAttribute('data-dica', DICAS.desfazer); })();
 estadoAnterior=instantaneo();   /* base do histórico: o estado tal como foi carregado */
 /* Atalhos do ícone da PWA: um toque longo no ícone traz o gesto certo antes de
    a app abrir. O parâmetro é lido uma vez e limpo do endereço, para um
