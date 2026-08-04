@@ -4438,9 +4438,9 @@ P('arrozlampreia',[['Sangue','A lampreia sangra-se viva e o sangue apara-se em v
  ['Guisar','Postas no refogado, vinho tinto e água. Ferve pouco: lampreia cozida de mais desfaz-se.',20],
  ['Arroz','Arroz ao caldo a ferver. O sangue vinificado entra nos últimos minutos, fora do lume forte.',15],
  ['Servir','Salsa a fechar. É prato de janeiro a abril — fora disso não há lampreia que preste.']]);
-P('massadapeixe',[['Caldo','Espinhas e cabeças em água com um louro fazem o caldo. Vinte minutos chegam; mais do que isso amarga.',20],
+P('massadapeixe',[['Fazer o caldo','Espinhas e cabeças em água com um louro fazem o caldo. Vinte minutos chegam; mais do que isso amarga.',20],
  ['Refogado','Cebola, alho, tomate ralado e pimento em azeite, devagar, até desfazer.',12],
- ['Caldo','Caldo coado ao refogado, colorau fora do lume. Prova o sal antes da massa.',3],
+ ['Coar o caldo','Caldo coado ao refogado, colorau fora do lume. Prova o sal antes da massa.',3],
  ['Massa','Massa cotovelo ao caldo a ferver, mexendo de vez em quando para não pegar.',9],
  ['Peixe','Peixe em postas nos últimos cinco minutos. O tamboril aguenta mais, a pescada desfaz-se depressa.',5],
  ['Servir','Coentros fora do lume. Serve-se caldosa, em prato fundo.']]);
@@ -4466,9 +4466,9 @@ P('arrozfrango',[['Cozer','Frango a cozer em água com cebola, louro e sal, até
  ['Arroz','Arroz ao refogado a fritar um minuto, depois o caldo a ferver, três para um.',14],
  ['Juntar','Frango desfiado e ervilhas nos últimos cinco minutos.',5],
  ['Servir','Salsa a fechar. Sobra bem e reaquece melhor do que a maioria dos arrozes.']]);
-P('bavaroise',[['Gelatina','Folhas de gelatina em água muito fria, a demolhar. Água morna dissolve-as e perdem a força.',10],
+P('bavaroise',[['Demolhar a gelatina','Folhas de gelatina em água muito fria, a demolhar. Água morna dissolve-as e perdem a força.',10],
  ['Creme','Leite quente com as gemas e o açúcar, em lume brandíssimo, mexendo sempre até napar as costas da colher. Nunca ferver.',12],
- ['Gelatina','Gelatina escorrida ao creme ainda quente, a dissolver sem grumos.',2],
+ ['Dissolver a gelatina','Gelatina escorrida ao creme ainda quente, a dissolver sem grumos.',2],
  ['Morango','Morangos triturados e passados por passador, envolvidos no creme já morno.',5],
  ['Natas','Natas batidas em chantilly firme, envolvidas com movimentos largos e de baixo para cima.',6],
  ['Frigorífico','Taças ou forma, no frio pelo menos quatro horas. Desenforma-se com um segundo em água quente.',240]]);
@@ -4635,6 +4635,25 @@ P('pastelnata',[['Massa','Estende a massa folhada, enrola num cilindro apertado 
  ['Forno','O mais quente que o forno der, 250 °C ou mais, na prateleira de baixo. Estão prontos quando o creme tiver manchas quase pretas: é essa a queimadura que faz o pastel.',12],
  ['Servir','Desenformar mornos. Canela e açúcar em pó à mesa, por quem come.']]);
 
+/* As notas de bancada e os acertos de tempo guardam-se pelo título do passo,
+   para sobreviverem a uma reordenação. O preço é este: dois passos com o mesmo
+   título na mesma receita partilham a nota, e a que se escreve num aparece no
+   outro. Aconteceu na massada de peixe («Caldo» duas vezes) e na bavaroise
+   («Gelatina»), e não se via em lado nenhum. Como no aviso das secções do
+   supermercado, diz-se em voz alta a quem estiver a escrever passos.
+
+   semAcentos() é declaração de função, logo está içada: pode chamar-se daqui
+   apesar de estar escrita doze mil linhas abaixo. */
+(function(){
+  const maus=[];
+  Object.keys(PASSOS).forEach(id=>{
+    const ks=(PASSOS[id]||[]).map(p=>semAcentos(String(p[0]||'')).slice(0,24));
+    const rep=[...new Set(ks.filter((k,i)=>ks.indexOf(k)!==i))];
+    if(rep.length) maus.push(id+': '+rep.join('/'));
+  });
+  if(maus.length) console.warn('Família Fit — passos com título repetido, notas de bancada vão colidir ('
+    +maus.length+'): '+maus.join(' · '));
+})();
 
 /* ================= COMPOSIÇÃO DOS INGREDIENTES =================
    Valores por 100 g ou 100 ml de parte edível. A fonte principal é a Tabela
@@ -6283,8 +6302,13 @@ function sodioDe(nome){
 (function(){
   /* Object.keys(NUTRI) e não catalogoIngredientes(): essa memoriza em
      _catalogo, que só é declarado trezentas linhas abaixo — chamá-la daqui
-     apanhava a zona morta temporal e dava ecrã em branco. */
-  const cat=new Set(Object.keys(NUTRI));
+     apanhava a zona morta temporal e dava ecrã em branco.
+
+     NUTRI_EXTRA conta tanto como NUTRI: o kimchi, o missô e o sriracha vivem
+     lá, e sem eles o aviso acusava nove chaves órfãs que não eram órfãs
+     nenhumas. Um guarda que grita sem razão ensina a ignorá-lo, e a seguir
+     deixa passar o erro verdadeiro. */
+  const cat=new Set(Object.keys(NUTRI).concat(Object.keys(NUTRI_EXTRA)));
   const orfas=[...Object.keys(NA_INSA),...Object.keys(NA_ESTIMADO)].filter(k=>!cat.has(k));
   if(orfas.length) console.warn('Família Fit — chaves de sódio sem ingrediente correspondente ('
     +orfas.length+'): '+orfas.join(' · '));
@@ -6309,13 +6333,28 @@ const ACUCAR_LIVRE={
   'Ketchup':22, 'Molho barbecue':35, 'Molho teriyaki':16, 'Molho de vinagrete':8,
   'Bolacha Maria':22, 'Granola':20, 'Cacau em pó':2,
   'Leite achocolatado, UHT':9, 'Pastilha elástica':60,
-  /* sumos: a OMS conta-os, mesmo os de 100 % fruta */
-  'Sumo de laranja natural':8, 'Sumo de maçã':10,
+  /* Sumos: a OMS conta-os como açúcares livres, mesmo os de 100 % fruta e sem
+     nada adicionado — é a fruta espremida que liberta o açúcar da matriz.
+     O nome tem de ser o do catálogo («Laranja sumo natural», como no INSA) e
+     não o que soa natural em português: escrito «Sumo de laranja natural», a
+     chave nunca casava e o copo de sumo contava zero açúcar livre. */
+  'Laranja sumo natural':8,
 };
 /* Sem correspondência por prefixo, pela mesma razão do sódio: «Mel» não pode
    dar açúcar livre ao «Melão», nem «Chocolate, pó» ao chocolate de culinária
    que já cá está com valor próprio. Exato ou nada. */
 function acucarLivreDe(nome){ return temChave(ACUCAR_LIVRE,nome)? ACUCAR_LIVRE[nome] : 0; }
+/* O mesmo guarda do sódio, para a mesma armadilha: chave exata, falha calada.
+   Aqui em baixo e não junto ao outro, porque ACUCAR_LIVRE é const declarado
+   acima desta linha e abaixo daquela — lê-lo de lá apanhava a zona morta
+   temporal. Foi assim que «Sumo de laranja natural» ficou dois meses a valer
+   zero: o catálogo chama-lhe «Laranja sumo natural». */
+(function(){
+  const cat=new Set(Object.keys(NUTRI).concat(Object.keys(NUTRI_EXTRA)));
+  const orfas=Object.keys(ACUCAR_LIVRE).filter(k=>!cat.has(k));
+  if(orfas.length) console.warn('Família Fit — chaves de açúcar livre sem ingrediente correspondente ('
+    +orfas.length+'): '+orfas.join(' · '));
+})();
 const _atribIng=Object.create(null);
 function atributosIng(nome){
   if(nome in _atribIng) return _atribIng[nome];
@@ -7224,7 +7263,7 @@ function gravidezKcal(m){
   const base = t===1? 0 : t===2? 340 : 452;
   if(n===1) return base;
   if(n===2) return base===0? 0 : base+350;
-  return 0;   /* trigémeos: sem estimativa — ver avisoGravidez() */
+  return 0;   /* trigémeos: sem estimativa — ver semEstimativa(), logo abaixo */
 }
 function semEstimativa(m){ return gravida(m) && fetos(m)>=3; }
 /* ================= AMAMENTAR =================
@@ -8352,7 +8391,7 @@ function limparJejum(o,ids){
     d.im[mid]={ativo:!!c.ativo, h:clampNum(Math.round(parseFloat(c.h)||16),12,23),
                 inicio:clampNum(Math.round(parseFloat(c.inicio)||12),0,23)};
     /* O objetivo guarda-se como texto curto e é validado na leitura, por
-       objetivoJejum(), que já rejeita o que não está na tabela. Validá-lo aqui
+       objetivoJejumDe(), que já rejeita o que não está na tabela. Validá-lo aqui
        lia OBJETIVOS_JEJUM, que é declarado mil linhas abaixo — e como este
        saneador corre no arranque, a partir de migraRegistos(), quem tivesse
        ligado o jejum intermitente abria a app num ecrã em branco, sem nada na
@@ -13742,12 +13781,21 @@ function fioDoDia(){
     t:plural(falta,'coisa por comprar','coisas por comprar'),
     d:'para as refeições que faltam esta semana',
     accao:{rot:'Ver a lista', fn:"go('mercearia')"}});
-  /* sobras a vencer e o que tirar do congelador */
+  /* sobras a vencer e o que tirar do congelador. O prazo de quem está no
+     frigorífico conta-se em dias e é urgente; o do congelador conta-se em
+     meses, e o que aí vale a pena dizer é outra coisa — que já lá está há
+     muito tempo. */
   (S.sobras||[]).forEach(s=>{
-    const dias=diasDeSobra(s); if(dias===null||dias>1) return;
+    if(!(s.doses>0)) return;
+    const dias=diasRestantesSobra(s);
+    const congelada=(s.est||'frigo')==='cong';
+    if(congelada ? dias>14 : dias>1) return;
+    if(dias<0) return;   /* já venceu: é assunto do diário de desperdício, não do fio do dia */
     const r=RECIPES.find(x=>x.id===s.r); if(!r) return;
-    out.push({k:'sobra', h:HORA_LINHA.sobra, ico:'🥡',
-      t:'Sobra de '+r.n.toLowerCase(), d:dias<=0? 'é hoje ou nunca' : 'vence amanhã',
+    out.push({k:'sobra', h:HORA_LINHA.sobra, ico:congelada?'🧊':'🥡',
+      t:(congelada?'No congelador: ':'Sobra de ')+r.n.toLowerCase(),
+      d:congelada? plural(dias,'dia de prazo','dias de prazo')+' — vale a pena tirá-la'
+        : (dias<=0? 'é hoje ou nunca' : 'vence amanhã'),
       accao:{rot:'Ver sobras', fn:"go('mercearia')"}});
   });
   out.sort((a,b)=>a.h-b.h);
