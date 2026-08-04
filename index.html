@@ -1191,15 +1191,32 @@ input[type=range].com-detentes::-moz-range-track{
    sério, escondido à vista, e o botão aponta-lhe com aria-describedby.
    Não se usa display:none nem hidden de propósito — isso tirá-lo-ia da árvore
    outra vez, que é exatamente o problema que se está a resolver. */
+/* SEM white-space:nowrap. A receita clássica desta classe leva-o, e com textos
+   curtos não custa nada — mas a explicação do aviso tem 783 caracteres, e uma
+   linha que não parte obriga o browser a medir uma caixa de 4500 px de largura
+   dentro de um elemento de 1×1. Cada reflow paga essa conta, e o marcador «i»
+   provoca reflows a cada movimento do rato: a página encravava. Sem nowrap o
+   texto parte-se dentro do 1 px e a medição é trivial; para quem ouve, não
+   muda absolutamente nada. */
 .so-leitor{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
-  clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+  clip:rect(0 0 0 0);clip-path:inset(50%);border:0}
+/* A bolha desce do marcador — salvo quando não há espaço em baixo, e aí sobe.
+   A explicação do aviso ocupa 368 px de altura: aberta a partir de um «i» que
+   esteja na metade de baixo do ecrã, o fim do texto ficava fora da janela e
+   não havia como o ler. O lado é decidido em posicionaDica(), que marca o
+   botão com data-cima; o teto de altura é a rede para os casos em que nem
+   para cima cabe. */
 .dica::after{content:attr(data-dica);position:absolute;left:calc(-4px + var(--dx,0px));top:calc(100% + 8px);
   width:max-content;max-width:min(270px,calc(100vw - 24px));
+  max-height:min(320px,calc(100vh - 40px));overflow-y:auto;overscroll-behavior:contain;
   background:var(--ink);color:var(--card);padding:9px 12px;border-radius:9px;
   font:400 12.5px/1.45 inherit;letter-spacing:0;text-transform:none;text-align:left;white-space:normal;
   z-index:30;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.25);display:none}
 .dica::before{content:'';position:absolute;left:5px;top:calc(100% + 2px);
   border:6px solid transparent;border-bottom-color:var(--ink);z-index:31;display:none}
+.dica[data-cima]::after{top:auto;bottom:calc(100% + 8px)}
+.dica[data-cima]::before{top:auto;bottom:calc(100% + 2px);
+  border-bottom-color:transparent;border-top-color:var(--ink)}
 /* display em vez de visibility: uma bolha só escondida continuaria a contar
    para a largura do documento e punha a página a deslizar na horizontal. */
 .dica:hover::after,.dica:hover::before,.dica:focus-visible::after,.dica:focus-visible::before,
@@ -23505,7 +23522,7 @@ function render(){
   /* semeia os valores que só o atualizador escreve (pill de ritmo, etc.) */
   if(S.ui.tab==='nutricao' && S.members.length && !S.ui.histRef) atualizarNutricao();
   pintaModal();
-  montaColapsaveis(); marcaChipsPremidos(); pintaAura(); montaMembrosFixos();
+  montaColapsaveis(); marcaChipsPremidos(); ligarDicas(); pintaAura(); montaMembrosFixos();
   /* a bancada liga o toque de cotovelo depois de cada desenho, e le o passo
      em voz alta se a voz estiver ligada */
   if(S.ui.cozinha){ ligarCotovelo(); if(S.ui.voz && S.ui.cozinha.vista==='passos') lerPassoAtual(); }
@@ -23654,8 +23671,30 @@ function posicionaDica(d){
   if(esq+larg > W-12) dx=(W-12)-(esq+larg);
   if(esq+dx < 12) dx=12-esq;
   d.style.setProperty('--dx', Math.round(dx)+'px');
+  /* E o lado. A altura da bolha não se sabe antes de ela existir, por isso
+     estima-se pelo comprimento do texto — 270 px de largura dão cerca de 42
+     caracteres por linha, a 18 px de altura de linha. Basta para decidir; o
+     max-height do CSS trata do resto. */
+  const n=(d.getAttribute('data-dica')||'').length;
+  const alt=Math.min(320, 34+Math.ceil(n/42)*18);
+  const cabeAbaixo=r.bottom+8+alt <= innerHeight-8;
+  const cabeAcima=r.top-8-alt >= 8;
+  if(!cabeAbaixo && cabeAcima) d.setAttribute('data-cima','');
+  else d.removeAttribute('data-cima');
 }
-document.addEventListener('mouseover', e=>{ const d=e.target.closest&&e.target.closest('.dica'); if(d) posicionaDica(d); });
+/* mouseenter e não mouseover: o segundo borbulha e volta a disparar sempre que
+   o rato passa do «i» para o texto escondido que vive dentro do botão — e cada
+   disparo escreve uma custom property e lê getBoundingClientRect(), ou seja,
+   força um reflow. Com o rato a mover-se devagar sobre um alvo de 24 px isso
+   são dezenas de reflows por segundo, e a página deixa de responder.
+   mouseenter dispara uma vez, à entrada. Como não borbulha, regista-se em cada
+   marcador — e por isso corre a cada desenho, sobre os marcadores novos. */
+function ligarDicas(){
+  document.querySelectorAll('.dica:not([data-lig])').forEach(d=>{
+    d.setAttribute('data-lig','1');
+    d.addEventListener('mouseenter',()=>posicionaDica(d));
+  });
+}
 document.addEventListener('focusin', e=>{ const d=e.target.closest&&e.target.closest('.dica'); if(d) posicionaDica(d); });
 /* Ao toque não há hover: o marcador de explicação alterna com um toque. */
 document.addEventListener('click', e=>{
