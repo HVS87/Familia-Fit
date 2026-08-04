@@ -1242,7 +1242,19 @@ input[type=range].com-detentes::-moz-range-track{
   border-radius:999px;padding:5px 12px;font:700 12.5px/1 var(--fonte-ui);cursor:pointer;
   min-height:30px}
 .toast-acao:hover{background:rgba(255,255,255,.16)}
-.svgfx{display:block;width:100%;height:auto;pointer-events:none}
+/* Os gráficos são desenhados num viewBox à medida do telemóvel — 340 a 386 px
+   de largura — e com width:100% esticavam para o que houvesse. Num ecrã de
+   1280, o gráfico do peso passava de 340×132 para 1018×395: traços, tipos de
+   letra, pontos e rótulos tudo multiplicado por três, e as etiquetas dos eixos
+   a esbarrarem umas nas outras. Um gráfico é para se ler, não para encher a
+   largura da janela.
+
+   O teto de 420 fica um pouco acima do maior desenho (386), o que aproveita
+   um ecrã largo sem deformar nada: o pior caso passa a esticar 1,24× em vez
+   de 3×. Quem precisa de mais declara-o no próprio elemento — um max-width
+   inline ganha a este por ser inline, e é o caso das barras da semana, que
+   pedem 600, e do mosaico, que pede a largura do seu desenho. */
+.svgfx{display:block;width:100%;height:auto;pointer-events:none;max-width:420px}
 .f-ok{fill:var(--ok)} .f-warn{fill:var(--warn)} .f-bad{fill:var(--bad)}
 .f-mut{fill:var(--mut)} .f-line{fill:var(--line)} .f-ink{fill:var(--ink)}
 .f-acc{fill:var(--accent)} .f-energy{fill:var(--energy)} .f-party{fill:var(--party)}
