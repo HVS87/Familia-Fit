@@ -14473,6 +14473,9 @@ function botaoTalhao(chave){
     m? avatar(m,20) : '<span class="av talhao-vazio">·</span>'}</button>`;
 }
 function dividirPorCorredor(mids){
+  /* Só quem vive cá: um id que já não existe levaria consigo meia lista, e
+     ninguém a ia buscar. */
+  mids=(mids||[]).filter(id=>S.members.some(m=>m.id===id));
   if(!mids.length) return;
   const {items}=shoppingItems();
   const falta=itensEmFalta(items);
@@ -14485,8 +14488,13 @@ function dividirPorCorredor(mids){
      Alternar corredor sim, corredor não daria listas absurdas — a mercearia
      sozinha costuma ter mais items do que todas as outras secções juntas, e
      uma divisão de 51 contra 7 não é divisão nenhuma. Por isso cada corredor
-     vai para quem tiver menos coisas até ali: mantém o corredor inteiro com
-     a mesma pessoa e equilibra o cesto. */
+     vai para quem tiver menos coisas até ali.
+
+     Isto reparte melhor do que alternar, mas não promete cestos iguais, e
+     seria desonesto dizer que promete: manter cada corredor inteiro com uma
+     pessoa é a regra que manda, e quando um corredor sozinho vale metade da
+     lista — as frutas e legumes costumam valer — quem o apanha leva mais. O
+     que se faz é dizer como ficou, para quem divide poder trocar à mão. */
   const porSec={};
   falta.forEach(it=>{ const s=gruposCompras()[grupoDoItem(it)];
     (porSec[s]=porSec[s]||[]).push(it); });
@@ -14497,7 +14505,9 @@ function dividirPorCorredor(mids){
     carga[quem]+=porSec[s].length;
   });
   save('lista dividida'); render();
-  flash('ok','Lista dividida por '+listaPT(mids.map(id=>{const m=S.members.find(x=>x.id===id);return m? nomeCurto(m):'?';}))+'.',
+  const reparticao=mids.map(id=>{ const m=S.members.find(x=>x.id===id);
+    return (m? nomeCurto(m):'?')+' '+carga[id]; });
+  flash('ok','Lista dividida: '+listaPT(reparticao)+' '+(falta.length===1?'item':'itens')+'.',
     {rot:'Anular', fn:'desfazer()'});
 }
 function juntarTalhoes(){ S.talhoes={}; save('lista outra vez inteira'); render(); }
