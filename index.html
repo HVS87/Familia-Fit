@@ -5609,7 +5609,10 @@ NI('Sardinha em conserva em tomate',186,1.2,19.6,11.4,0,0,0);
 NI('Salmão fumado a frio',180,0,23.4,9.4,0,0,0);
 NI('Delícias do mar (surimi)',95,10.6,10.2,1.4,0,0,0);
 NI('Ovas de bacalhau demolhadas',114,0,20.6,3.5,0,0,0);
-NI('Perceves cozidos',80,0,17.1,1.1,0,0,0);
+/* «Perceves» era gralha, e não era inócua: a expressão dos crustáceos procura
+   «percebe» e não casava — o percebe cozido saía do catálogo sem alergénio
+   nenhum, ao lado do percebe cru, que casava. */
+NI('Percebes cozidos',80,0,17.1,1.1,0,0,0);
 NI('Camarão cozido descascado',99,0,21.5,1,0,0,0);
 NI('Mexilhão cozido',114,4.2,16.8,3.1,0,0,0);
 /* Carnes e enchidos correntes */
@@ -5921,6 +5924,16 @@ const ING_EXCECAO={
   'Molho de soja':['soja','gluten','leguminosa'], 'Molho teriyaki':['soja','gluten','leguminosa'], 'Algas nori':[],
   'Carne de porco':['carne','porco'], 'Molho barbecue':[], 'Molho picante':['picante'],
   'Chili em pó':['picante'],
+  /* O molho inglês leva anchova — está no rótulo do Lea & Perrins desde sempre,
+     e nenhuma expressão o adivinha a partir do nome «molho inglês». A app
+     servia-o na francesinha a quem tem alergia a peixe. A versão europeia leva
+     ainda vinagre de malte de cevada, que é glúten; a americana não leva. Como
+     em Portugal se vende a europeia, declara-se o glúten. */
+  'Molho inglês':['peixe','gluten'],
+  /* A morcela é sangue de porco com arroz ou cebola. A regra da carne procura
+     «chouriço», «salsicha», «toucinho» — nenhuma dessas palavras aparece em
+     «morcela», e a app dava-a a quem exclui porco ou carne. */
+  'Morcela de arroz':['carne','porco','cereal'],
   /* nomes do INSA onde a expressão acertaria pelo motivo errado */
   'Farinha de pau (mandioca)':[], 'Farinha de alfarroba':['leguminosa'],
   'Farinha de aveia':['gluten','cereal'], 'Flocos de arroz':['cereal'], 'Massa de arroz':['cereal'],
