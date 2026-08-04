@@ -1191,15 +1191,32 @@ input[type=range].com-detentes::-moz-range-track{
    sério, escondido à vista, e o botão aponta-lhe com aria-describedby.
    Não se usa display:none nem hidden de propósito — isso tirá-lo-ia da árvore
    outra vez, que é exatamente o problema que se está a resolver. */
+/* SEM white-space:nowrap. A receita clássica desta classe leva-o, e com textos
+   curtos não custa nada — mas a explicação do aviso tem 783 caracteres, e uma
+   linha que não parte obriga o browser a medir uma caixa de 4500 px de largura
+   dentro de um elemento de 1×1. Cada reflow paga essa conta, e o marcador «i»
+   provoca reflows a cada movimento do rato: a página encravava. Sem nowrap o
+   texto parte-se dentro do 1 px e a medição é trivial; para quem ouve, não
+   muda absolutamente nada. */
 .so-leitor{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
-  clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+  clip:rect(0 0 0 0);clip-path:inset(50%);border:0}
+/* A bolha desce do marcador — salvo quando não há espaço em baixo, e aí sobe.
+   A explicação do aviso ocupa 368 px de altura: aberta a partir de um «i» que
+   esteja na metade de baixo do ecrã, o fim do texto ficava fora da janela e
+   não havia como o ler. O lado é decidido em posicionaDica(), que marca o
+   botão com data-cima; o teto de altura é a rede para os casos em que nem
+   para cima cabe. */
 .dica::after{content:attr(data-dica);position:absolute;left:calc(-4px + var(--dx,0px));top:calc(100% + 8px);
   width:max-content;max-width:min(270px,calc(100vw - 24px));
+  max-height:min(320px,calc(100vh - 40px));overflow-y:auto;overscroll-behavior:contain;
   background:var(--ink);color:var(--card);padding:9px 12px;border-radius:9px;
   font:400 12.5px/1.45 inherit;letter-spacing:0;text-transform:none;text-align:left;white-space:normal;
   z-index:30;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.25);display:none}
 .dica::before{content:'';position:absolute;left:5px;top:calc(100% + 2px);
   border:6px solid transparent;border-bottom-color:var(--ink);z-index:31;display:none}
+.dica[data-cima]::after{top:auto;bottom:calc(100% + 8px)}
+.dica[data-cima]::before{top:auto;bottom:calc(100% + 2px);
+  border-bottom-color:transparent;border-top-color:var(--ink)}
 /* display em vez de visibility: uma bolha só escondida continuaria a contar
    para a largura do documento e punha a página a deslizar na horizontal. */
 .dica:hover::after,.dica:hover::before,.dica:focus-visible::after,.dica:focus-visible::before,
@@ -1225,7 +1242,19 @@ input[type=range].com-detentes::-moz-range-track{
   border-radius:999px;padding:5px 12px;font:700 12.5px/1 var(--fonte-ui);cursor:pointer;
   min-height:30px}
 .toast-acao:hover{background:rgba(255,255,255,.16)}
-.svgfx{display:block;width:100%;height:auto;pointer-events:none}
+/* Os gráficos são desenhados num viewBox à medida do telemóvel — 340 a 386 px
+   de largura — e com width:100% esticavam para o que houvesse. Num ecrã de
+   1280, o gráfico do peso passava de 340×132 para 1018×395: traços, tipos de
+   letra, pontos e rótulos tudo multiplicado por três, e as etiquetas dos eixos
+   a esbarrarem umas nas outras. Um gráfico é para se ler, não para encher a
+   largura da janela.
+
+   O teto de 420 fica um pouco acima do maior desenho (386), o que aproveita
+   um ecrã largo sem deformar nada: o pior caso passa a esticar 1,24× em vez
+   de 3×. Quem precisa de mais declara-o no próprio elemento — um max-width
+   inline ganha a este por ser inline, e é o caso das barras da semana, que
+   pedem 600, e do mosaico, que pede a largura do seu desenho. */
+.svgfx{display:block;width:100%;height:auto;pointer-events:none;max-width:420px}
 .f-ok{fill:var(--ok)} .f-warn{fill:var(--warn)} .f-bad{fill:var(--bad)}
 .f-mut{fill:var(--mut)} .f-line{fill:var(--line)} .f-ink{fill:var(--ink)}
 .f-acc{fill:var(--accent)} .f-energy{fill:var(--energy)} .f-party{fill:var(--party)}
@@ -1338,6 +1367,31 @@ input[type=range].com-detentes::-moz-range-track{
 .rc{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--card);display:flex;flex-direction:column;gap:6px}
 .rc h3{font-size:15.5px}
 .tag{display:inline-block;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:1px 7px;font-size:11.5px;color:var(--mut);margin:1px 2px 1px 0}
+/* ---- Um selo que se explica ----
+   Os símbolos da despensa — o 🌱 da época, o 🐟 do alergénio, a validade, a
+   fonte da composição — diziam-se pelo title do browser: um segundo de espera,
+   sem estilo, e invisível a quem usa toque. Passam a usar a mesma bolha dos
+   explicadores «i», que é imediata e aparece também com o teclado e ao toque.
+
+   O texto vive em data-dica, como nos «i», por isso herda o mesmo desenho e a
+   mesma lógica de posicionamento — incluindo escolher o lado quando não cabe
+   em baixo. O <span> a seguir é o mesmo texto para quem ouve: um title num
+   elemento sem papel nem foco não é anunciado de forma fiável. */
+.selo{position:relative;cursor:help}
+.selo::after{content:attr(data-dica);position:absolute;left:calc(-4px + var(--dx,0px));top:calc(100% + 8px);
+  width:max-content;max-width:min(250px,calc(100vw - 24px));
+  background:var(--ink);color:var(--card);padding:8px 11px;border-radius:9px;
+  font:400 12px/1.45 var(--fonte-ui);letter-spacing:0;text-transform:none;text-align:left;white-space:normal;
+  z-index:30;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.25);display:none}
+.selo::before{content:'';position:absolute;left:5px;top:calc(100% + 2px);
+  border:6px solid transparent;border-bottom-color:var(--ink);z-index:31;display:none}
+.selo[data-cima]::after{top:auto;bottom:calc(100% + 8px)}
+.selo[data-cima]::before{top:auto;bottom:calc(100% + 2px);
+  border-bottom-color:transparent;border-top-color:var(--ink)}
+.selo:hover::after,.selo:hover::before,
+.selo:focus-visible::after,.selo:focus-visible::before,
+.selo.on::after,.selo.on::before{display:block}
+.selo:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .ingr-lista{display:flex;flex-wrap:wrap;gap:5px 10px}
 .ingr{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--mut)}
 .ingr i{font-style:normal;font-weight:700;width:12px;text-align:center}
@@ -1458,6 +1512,20 @@ ul.fora li{margin:2px 0}
   font-variant-numeric:tabular-nums;letter-spacing:0;float:none !important}
 .cat-h.feita{color:var(--ok)}
 .cat-h.feita .cat-conta{color:var(--ok);border-color:var(--ok)}
+/* Secções da despensa. O <summary> traz um triângulo próprio que se atravessa
+   no flex do .cat-h — tira-se e põe-se um que roda com o estado, do lado do
+   texto e não do lado de fora. */
+.cat-sec>summary{cursor:pointer;list-style:none;min-height:24px}
+.cat-sec>summary::-webkit-details-marker{display:none}
+.cat-sec>summary::before{content:"▾";order:-1;font-size:11px;color:var(--mut);
+  display:inline-block;width:11px;flex:none}
+.cat-sec:not([open])>summary::before{transform:rotate(-90deg)}
+.cat-sec>summary:hover{color:var(--accent)}
+.cat-sec>summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.cat-sec:not([open])>summary{margin-bottom:2px}
+@media (prefers-reduced-motion: no-preference){
+  .cat-sec>summary::before{transition:transform .16s}
+}
 .co-topo{position:sticky;top:var(--hh,58px);z-index:8;background:var(--bg);padding:8px 0 10px;margin-bottom:6px}
 .shop .q{font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;font-size:12.5px}
 .shop li.done span{text-decoration-thickness:1.5px;text-decoration-color:var(--ok)}
@@ -1913,6 +1981,31 @@ function migraRegistos(s){
   s.ui = s.ui || {};
   if(!Array.isArray(s.ui.dietaF)) s.ui.dietaF = temChave(DIETAS_FILTRAVEIS,s.ui.dietaF)? [s.ui.dietaF] : [];
   if(!Array.isArray(s.ui.alergF)) s.ui.alergF = ehAlergenio(s.ui.alergF)? [s.ui.alergF] : [];
+  /* Que secções da despensa ficaram abertas. Vive em s.ui, logo entra por
+     ficheiro de cópia como tudo o resto: só se aceitam booleanos, e no máximo
+     uma entrada por secção que existe. */
+  if(s.ui.despSec && typeof s.ui.despSec==='object' && !Array.isArray(s.ui.despSec)){
+    const lim={};
+    Object.keys(s.ui.despSec).slice(0,40).forEach(k=>{
+      if(typeof k==='string' && k.length<=40 && typeof s.ui.despSec[k]==='boolean') lim[k]=s.ui.despSec[k]; });
+    s.ui.despSec=lim;
+  } else s.ui.despSec={};
+  s.ui.verFontes=!!s.ui.verFontes;   /* a proveniência é um sim ou não, e por omissão não */
+  /* O formulário de criação de objetivos vive em s.ui e é lido sem rede: uma
+     cópia de segurança feita antes de ele existir, ou um estado truncado,
+     deixava formCriacaoHtml() a ler .membros de null — e como o erro é dentro
+     de renderObjetivos(), levava o render inteiro atrás. Ecrã em branco, e sem
+     forma de sair, porque o separador aberto também está gravado. */
+  const fo=s.ui.objForm;
+  s.ui.objForm = (fo && typeof fo==='object' && !Array.isArray(fo)) ? {
+    membros: Array.isArray(fo.membros)? fo.membros.filter(x=>typeof x==='string').slice(0,20) : [],
+    tipo: ['perder','manter','ganhar'].indexOf(fo.tipo)>=0? fo.tipo : 'perder',
+    delta: clampNum(parseFloat(fo.delta)||5, 0, 100),
+    semanas: clampNum(Math.round(parseFloat(fo.semanas)||12), 1, 104),
+    split: clampNum(Math.round(parseFloat(fo.split)||50), 0, 100),
+    desporto: typeof fo.desporto==='string'? fo.desporto : null,
+    banda: clampNum(parseFloat(fo.banda)||2, 0, 20)
+  } : {membros:[],tipo:'perder',delta:5,semanas:12,split:50,desporto:null,banda:2};
   s.validades = limparValidades(s.validades);
   s.veredictos = limparVeredictos(s.veredictos, ids);
   s.brigada = limparBrigada(s.brigada, ids);
@@ -2461,10 +2554,10 @@ R('yakisoba','Yakisoba de legumes','asiatica',['vegetariana','lowfat'],440,66,14
 R('atumcouveflor','Bowl de atum com arroz de couve-flor','asiatica',['keto','lowcarb'],400,14,38,22,[['Atum fresco',160,'g'],['Couve-flor',200,'g'],['Abacate',0.5,'un'],['Molho de soja',12,'ml'],['Sementes de sésamo',8,'g']],null,7),
 
 /* ---------- Pequenos-almoços ---------- */
-R('aveia','Papas de aveia com fruta e canela','portuguesa',['lowfat','vegetariana'],390,58,14,11,[['Aveia em flocos',60,'g'],['Leite',200,'ml'],['Banana',1,'un'],['Canela',1,'g'],['Mel',10,'g']],['p']),
+R('aveia','Papas de aveia com fruta e canela','portuguesa',['lowfat','vegetariana','mediterranica'],390,58,14,11,[['Aveia em flocos',60,'g'],['Leite',200,'ml'],['Banana',1,'un'],['Canela',1,'g'],['Mel',10,'g']],['p']),
 R('torradasqueijo','Torradas de centeio com queijo fresco','portuguesa',['lowfat','vegetariana','mediterranica'],320,42,18,9,[['Pão de centeio',70,'g'],['Queijo fresco',80,'g'],['Tomate',1,'un'],['Azeite',5,'ml']],['p']),
 R('ovosmex','Ovos mexidos com espinafres','portuguesa',['keto','lowcarb','vegetariana'],310,5,22,23,[['Ovo',3,'un'],['Espinafres',60,'g'],['Manteiga',10,'g']],['p'],2),
-R('ovosabacate','Ovos escalfados com abacate e tomate','mediterranica',['keto','lowcarb','paleo'],360,6,16,28,[['Ovo',2,'un'],['Abacate',0.5,'un'],['Tomate',1,'un'],['Azeite',8,'ml'],['Limão',0.25,'un']],['p'],5),
+R('ovosabacate','Ovos escalfados com abacate e tomate','mediterranica',['keto','lowcarb','paleo','mediterranica'],360,6,16,28,[['Ovo',2,'un'],['Abacate',0.5,'un'],['Tomate',1,'un'],['Azeite',8,'ml'],['Limão',0.25,'un']],['p'],5),
 R('panquecas','Panquecas de banana e aveia','portuguesa',[],420,48,26,12,[['Ovo',2,'un'],['Banana',1,'un'],['Aveia em flocos',40,'g'],['Iogurte grego',80,'g'],['Fermento em pó',3,'g']],['p']),
 R('iogurtegranola','Iogurte grego com granola e frutos vermelhos','mediterranica',['vegetariana','mediterranica'],380,42,20,14,[['Iogurte grego',200,'g'],['Granola',40,'g'],['Frutos vermelhos',80,'g'],['Mel',10,'g']],['p','l'],0,['br','sn']),
 R('abacatetorrada','Torrada de abacate com ovo escalfado','mediterranica',['lowcarb','vegetariana','mediterranica'],420,28,18,26,[['Pão integral',60,'g'],['Abacate',0.5,'un'],['Ovo',1,'un'],['Limão',0.25,'un'],['Azeite',5,'ml']],['p'],7),
@@ -2473,7 +2566,7 @@ R('bowlfruta','Bowl de fruta com sementes e coco','mediterranica',['paleo','vege
 R('omeletequeijo','Omelete de queijo e ervas','francesa',['keto','lowcarb','vegetariana'],340,3,24,26,[['Ovo',3,'un'],['Queijo ralado',30,'g'],['Cebolinho',5,'g'],['Manteiga',10,'g']],['p']),
 R('crepesaveia','Crepes de aveia com banana','francesa',['lowfat','vegetariana'],400,60,16,10,[['Aveia em flocos',50,'g'],['Ovo',2,'un'],['Banana',1,'un'],['Leite',80,'ml'],['Canela',1,'g']],['p']),
 R('ovosbacon','Ovos com bacon e cogumelos','francesa',['keto','lowcarb'],430,4,26,35,[['Ovo',3,'un'],['Bacon',40,'g'],['Cogumelos',80,'g'],['Manteiga',8,'g']],['p']),
-R('ricotta','Tosta de ricotta com pêra e mel','italiana',['vegetariana'],390,50,16,13,[['Pão rústico',60,'g'],['Ricotta',90,'g'],['Pêra',1,'un'],['Mel',10,'g']],['p']),
+R('ricotta','Tosta de ricotta com pêra e mel','italiana',['vegetariana','mediterranica'],390,50,16,13,[['Pão rústico',60,'g'],['Ricotta',90,'g'],['Pêra',1,'un'],['Mel',10,'g']],['p']),
 R('congee','Congee de arroz com ovo e cebolinho','asiatica',['lowfat'],330,52,14,6,[['Arroz jasmim',60,'g'],['Caldo de galinha',300,'ml'],['Ovo',1,'un'],['Cebolinho',10,'g'],['Óleo de sésamo',5,'ml'],['Molho de soja',8,'ml']],['p']),
 R('tofumex','Tofu mexido com cúrcuma e legumes','asiatica',['vegetariana','lowcarb'],300,14,22,18,[['Tofu',150,'g'],['Cúrcuma',2,'g'],['Espinafres',50,'g'],['Tomate cereja',60,'g'],['Óleo de sésamo',8,'ml']],['p'],3),
 
@@ -2513,10 +2606,10 @@ R('mexilhoes','Mexilhões ao vapor com alho e coentros','portuguesa',['lowcarb',
 R('jardineira','Jardineira de vaca','portuguesa',[],520,48,34,20,[['Carne de vaca',150,'g'],['Batata',150,'g'],['Cenoura',80,'g'],['Ervilhas',60,'g'],['Cebola',0.5,'un'],['Azeite',10,'ml']],null,7),
 R('sopaabobora','Creme de abóbora com gengibre','portuguesa',['vegetariana','lowfat','mediterranica'],200,28,6,7,[['Abóbora',250,'g'],['Cenoura',80,'g'],['Cebola',0.5,'un'],['Gengibre',8,'g'],['Azeite',8,'ml']],['a','j','l'],7,['sop']),
 R('feijaofrade','Salada de feijão-frade com atum','portuguesa',['lowfat','mediterranica'],380,34,28,14,[['Feijão-frade cozido',130,'g'],['Atum em conserva',80,'g'],['Ovo',1,'un'],['Cebola',0.25,'un'],['Salsa',5,'g'],['Vinagre de vinho',5,'ml'],['Azeite',10,'ml']],['a','j','l'],9),
-R('paoovo','Pão de mistura com ovo mexido e tomate','portuguesa',['vegetariana'],380,40,22,14,[['Pão de mistura',70,'g'],['Ovo',2,'un'],['Tomate',1,'un'],['Azeite',5,'ml']],['p'],5),
+R('paoovo','Pão de mistura com ovo mexido e tomate','portuguesa',['vegetariana','mediterranica'],380,40,22,14,[['Pão de mistura',70,'g'],['Ovo',2,'un'],['Tomate',1,'un'],['Azeite',5,'ml']],['p'],5),
 R('torradapresunto','Torrada de pão alentejano com ovo e presunto','portuguesa',[],400,34,26,18,[['Pão alentejano',60,'g'],['Ovo',2,'un'],['Presunto',25,'g'],['Azeite',5,'ml']],['p'],3),
-R('iogurtemaca','Iogurte natural com maçã ralada e canela','portuguesa',['vegetariana','lowfat'],260,34,14,7,[['Iogurte natural',200,'g'],['Maçã',1,'un'],['Aveia em flocos',20,'g'],['Canela',1,'g']],['p','l'],4),
-R('broaqueijo','Broa de milho com queijo fresco e tomate','portuguesa',['vegetariana','lowfat'],340,44,18,10,[['Broa de milho',70,'g'],['Queijo fresco',80,'g'],['Tomate',1,'un'],['Azeite',5,'ml']],['p'],4),
+R('iogurtemaca','Iogurte natural com maçã ralada e canela','portuguesa',['vegetariana','lowfat','mediterranica'],260,34,14,7,[['Iogurte natural',200,'g'],['Maçã',1,'un'],['Aveia em flocos',20,'g'],['Canela',1,'g']],['p','l'],4),
+R('broaqueijo','Broa de milho com queijo fresco e tomate','portuguesa',['vegetariana','lowfat','mediterranica'],340,44,18,10,[['Broa de milho',70,'g'],['Queijo fresco',80,'g'],['Tomate',1,'un'],['Azeite',5,'ml']],['p'],4),
 R('tremocos','Tremoços com limão','portuguesa',['lowcarb','vegetariana','lowfat','mediterranica'],160,12,14,6,[['Tremoços',150,'g'],['Limão',0.5,'un']],['l'],7),
 R('bolinhos','Pastéis de bacalhau no forno','portuguesa',[],280,24,20,12,[['Bacalhau desfiado',80,'g'],['Batata',120,'g'],['Ovo',0.5,'un'],['Salsa',5,'g'],['Azeite',8,'ml']],['l'],3),
 R('sardinhapao','Sardinha de conserva no pão de centeio','portuguesa',['mediterranica'],320,30,22,12,[['Pão de centeio',60,'g'],['Sardinhas em conserva',80,'g'],['Tomate',1,'un'],['Azeite',4,'ml']],['l'],4),
@@ -2650,7 +2743,7 @@ R('ketosalmaoendro','Salmão com molho de endro e pepino','mediterranica',['keto
 R('ketochili','Chili sem feijão','mexicana',['keto','lowcarb','paleo'],460,14,38,28,[['Carne picada de vaca',160,'g'],['Tomate pelado',150,'g'],['Pimento',0.5,'un'],['Cebola',0.25,'un'],['Cominhos',2,'g'],['Chili em pó',3,'g'],['Azeite',10,'ml']],null,5),
 R('ketofrangoparmesao','Frango gratinado com courgette e parmesão','italiana',['keto','lowcarb'],485,10,44,30,[['Peito de frango',180,'g'],['Courgette',150,'g'],['Parmesão',30,'g'],['Nata',40,'ml'],['Azeite',8,'ml']],null,3),
 R('ketobowlatum','Bowl de atum, ovo e azeitonas','espanhola',['keto','lowcarb','mediterranica'],445,8,36,30,[['Atum em conserva',120,'g'],['Ovo',2,'un'],['Azeitonas',30,'g'],['Alface',50,'g'],['Tomate cereja',60,'g'],['Azeite',12,'ml']],['a','j','l'],3),
-R('ketoiogurtesementes','Iogurte grego com sementes e canela','mediterranica',['keto','lowcarb','vegetariana'],320,14,20,20,[['Iogurte grego',200,'g'],['Sementes de chia',15,'g'],['Sementes de linhaça',10,'g'],['Amêndoa',15,'g'],['Canela',1,'g']],['p','l'],9),
+R('ketoiogurtesementes','Iogurte grego com sementes e canela','mediterranica',['keto','lowcarb','vegetariana','mediterranica'],320,14,20,20,[['Iogurte grego',200,'g'],['Sementes de chia',15,'g'],['Sementes de linhaça',10,'g'],['Amêndoa',15,'g'],['Canela',1,'g']],['p','l'],9),
 R('ketobrocolosbacon','Brócolos salteados com bacon e amêndoa','americana',['keto','lowcarb','paleo'],345,12,16,26,[['Brócolos',200,'g'],['Bacon',40,'g'],['Amêndoa',20,'g'],['Alho',2,'dente'],['Azeite',8,'ml']],['a','j','l'],6),
 
 /* ---------- Peixe grelhado e no forno ---------- */
@@ -2697,7 +2790,7 @@ R('vgfeijoada','Feijoada vegetal de cogumelos portobello','portuguesa',[],0,0,0,
 R('ovoscebolinho','Ovos mexidos com cebolinho','portuguesa',[],0,0,0,0,[['Ovo',3,'un'],['Cebolinho',6,'g'],['Manteiga',8,'g'],['Nata para bater 35% gordura',15,'ml'],['Pimenta preta',0.5,'g']],['p','l'],0,['br']),
 R('ovosmexidosbacon','Ovos mexidos com bacon','americana',[],0,0,0,0,[['Ovo',3,'un'],['Bacon',40,'g'],['Manteiga',6,'g'],['Cebolinho',4,'g'],['Pimenta preta',0.5,'g']],['p','l'],0,['br']),
 R('ovosbenedict','Ovos Benedict','americana',[],0,0,0,0,[['Ovo',2,'un'],['Muffin inglês',60,'g'],['Fiambre',50,'g'],['Manteiga',30,'g'],['Gema de ovo de galinha, crua',18,'g'],['Limão',10,'ml'],['Vinagre de vinho',10,'ml'],['Cebolinho',3,'g']],['p'],0,['br']),
-R('ovosestrelados','Ovos estrelados','portuguesa',[],0,0,0,0,[['Ovo',2,'un'],['Azeite',12,'ml'],['Flor de sal',1,'g'],['Pimenta preta',0.5,'g']],['p','a','j'],0,['br']),
+R('ovosestrelados','Ovos estrelados','portuguesa',['mediterranica'],0,0,0,0,[['Ovo',2,'un'],['Azeite',12,'ml'],['Flor de sal',1,'g'],['Pimenta preta',0.5,'g']],['p','a','j'],0,['br']),
 /* O iogurte com granola já existe desde a primeira fornada com este mesmo id —
    uma segunda entrada com id repetido não dá erro nenhum: o find() devolve
    sempre a primeira e a segunda fica a assombrar as listas. */
@@ -4345,9 +4438,9 @@ P('arrozlampreia',[['Sangue','A lampreia sangra-se viva e o sangue apara-se em v
  ['Guisar','Postas no refogado, vinho tinto e água. Ferve pouco: lampreia cozida de mais desfaz-se.',20],
  ['Arroz','Arroz ao caldo a ferver. O sangue vinificado entra nos últimos minutos, fora do lume forte.',15],
  ['Servir','Salsa a fechar. É prato de janeiro a abril — fora disso não há lampreia que preste.']]);
-P('massadapeixe',[['Caldo','Espinhas e cabeças em água com um louro fazem o caldo. Vinte minutos chegam; mais do que isso amarga.',20],
+P('massadapeixe',[['Fazer o caldo','Espinhas e cabeças em água com um louro fazem o caldo. Vinte minutos chegam; mais do que isso amarga.',20],
  ['Refogado','Cebola, alho, tomate ralado e pimento em azeite, devagar, até desfazer.',12],
- ['Caldo','Caldo coado ao refogado, colorau fora do lume. Prova o sal antes da massa.',3],
+ ['Coar o caldo','Caldo coado ao refogado, colorau fora do lume. Prova o sal antes da massa.',3],
  ['Massa','Massa cotovelo ao caldo a ferver, mexendo de vez em quando para não pegar.',9],
  ['Peixe','Peixe em postas nos últimos cinco minutos. O tamboril aguenta mais, a pescada desfaz-se depressa.',5],
  ['Servir','Coentros fora do lume. Serve-se caldosa, em prato fundo.']]);
@@ -4373,9 +4466,9 @@ P('arrozfrango',[['Cozer','Frango a cozer em água com cebola, louro e sal, até
  ['Arroz','Arroz ao refogado a fritar um minuto, depois o caldo a ferver, três para um.',14],
  ['Juntar','Frango desfiado e ervilhas nos últimos cinco minutos.',5],
  ['Servir','Salsa a fechar. Sobra bem e reaquece melhor do que a maioria dos arrozes.']]);
-P('bavaroise',[['Gelatina','Folhas de gelatina em água muito fria, a demolhar. Água morna dissolve-as e perdem a força.',10],
+P('bavaroise',[['Demolhar a gelatina','Folhas de gelatina em água muito fria, a demolhar. Água morna dissolve-as e perdem a força.',10],
  ['Creme','Leite quente com as gemas e o açúcar, em lume brandíssimo, mexendo sempre até napar as costas da colher. Nunca ferver.',12],
- ['Gelatina','Gelatina escorrida ao creme ainda quente, a dissolver sem grumos.',2],
+ ['Dissolver a gelatina','Gelatina escorrida ao creme ainda quente, a dissolver sem grumos.',2],
  ['Morango','Morangos triturados e passados por passador, envolvidos no creme já morno.',5],
  ['Natas','Natas batidas em chantilly firme, envolvidas com movimentos largos e de baixo para cima.',6],
  ['Frigorífico','Taças ou forma, no frio pelo menos quatro horas. Desenforma-se com um segundo em água quente.',240]]);
@@ -4542,6 +4635,25 @@ P('pastelnata',[['Massa','Estende a massa folhada, enrola num cilindro apertado 
  ['Forno','O mais quente que o forno der, 250 °C ou mais, na prateleira de baixo. Estão prontos quando o creme tiver manchas quase pretas: é essa a queimadura que faz o pastel.',12],
  ['Servir','Desenformar mornos. Canela e açúcar em pó à mesa, por quem come.']]);
 
+/* As notas de bancada e os acertos de tempo guardam-se pelo título do passo,
+   para sobreviverem a uma reordenação. O preço é este: dois passos com o mesmo
+   título na mesma receita partilham a nota, e a que se escreve num aparece no
+   outro. Aconteceu na massada de peixe («Caldo» duas vezes) e na bavaroise
+   («Gelatina»), e não se via em lado nenhum. Como no aviso das secções do
+   supermercado, diz-se em voz alta a quem estiver a escrever passos.
+
+   semAcentos() é declaração de função, logo está içada: pode chamar-se daqui
+   apesar de estar escrita doze mil linhas abaixo. */
+(function(){
+  const maus=[];
+  Object.keys(PASSOS).forEach(id=>{
+    const ks=(PASSOS[id]||[]).map(p=>semAcentos(String(p[0]||'')).slice(0,24));
+    const rep=[...new Set(ks.filter((k,i)=>ks.indexOf(k)!==i))];
+    if(rep.length) maus.push(id+': '+rep.join('/'));
+  });
+  if(maus.length) console.warn('Família Fit — passos com título repetido, notas de bancada vão colidir ('
+    +maus.length+'): '+maus.join(' · '));
+})();
 
 /* ================= COMPOSIÇÃO DOS INGREDIENTES =================
    Valores por 100 g ou 100 ml de parte edível. A fonte principal é a Tabela
@@ -6190,8 +6302,13 @@ function sodioDe(nome){
 (function(){
   /* Object.keys(NUTRI) e não catalogoIngredientes(): essa memoriza em
      _catalogo, que só é declarado trezentas linhas abaixo — chamá-la daqui
-     apanhava a zona morta temporal e dava ecrã em branco. */
-  const cat=new Set(Object.keys(NUTRI));
+     apanhava a zona morta temporal e dava ecrã em branco.
+
+     NUTRI_EXTRA conta tanto como NUTRI: o kimchi, o missô e o sriracha vivem
+     lá, e sem eles o aviso acusava nove chaves órfãs que não eram órfãs
+     nenhumas. Um guarda que grita sem razão ensina a ignorá-lo, e a seguir
+     deixa passar o erro verdadeiro. */
+  const cat=new Set(Object.keys(NUTRI).concat(Object.keys(NUTRI_EXTRA)));
   const orfas=[...Object.keys(NA_INSA),...Object.keys(NA_ESTIMADO)].filter(k=>!cat.has(k));
   if(orfas.length) console.warn('Família Fit — chaves de sódio sem ingrediente correspondente ('
     +orfas.length+'): '+orfas.join(' · '));
@@ -6216,13 +6333,28 @@ const ACUCAR_LIVRE={
   'Ketchup':22, 'Molho barbecue':35, 'Molho teriyaki':16, 'Molho de vinagrete':8,
   'Bolacha Maria':22, 'Granola':20, 'Cacau em pó':2,
   'Leite achocolatado, UHT':9, 'Pastilha elástica':60,
-  /* sumos: a OMS conta-os, mesmo os de 100 % fruta */
-  'Sumo de laranja natural':8, 'Sumo de maçã':10,
+  /* Sumos: a OMS conta-os como açúcares livres, mesmo os de 100 % fruta e sem
+     nada adicionado — é a fruta espremida que liberta o açúcar da matriz.
+     O nome tem de ser o do catálogo («Laranja sumo natural», como no INSA) e
+     não o que soa natural em português: escrito «Sumo de laranja natural», a
+     chave nunca casava e o copo de sumo contava zero açúcar livre. */
+  'Laranja sumo natural':8,
 };
 /* Sem correspondência por prefixo, pela mesma razão do sódio: «Mel» não pode
    dar açúcar livre ao «Melão», nem «Chocolate, pó» ao chocolate de culinária
    que já cá está com valor próprio. Exato ou nada. */
 function acucarLivreDe(nome){ return temChave(ACUCAR_LIVRE,nome)? ACUCAR_LIVRE[nome] : 0; }
+/* O mesmo guarda do sódio, para a mesma armadilha: chave exata, falha calada.
+   Aqui em baixo e não junto ao outro, porque ACUCAR_LIVRE é const declarado
+   acima desta linha e abaixo daquela — lê-lo de lá apanhava a zona morta
+   temporal. Foi assim que «Sumo de laranja natural» ficou dois meses a valer
+   zero: o catálogo chama-lhe «Laranja sumo natural». */
+(function(){
+  const cat=new Set(Object.keys(NUTRI).concat(Object.keys(NUTRI_EXTRA)));
+  const orfas=Object.keys(ACUCAR_LIVRE).filter(k=>!cat.has(k));
+  if(orfas.length) console.warn('Família Fit — chaves de açúcar livre sem ingrediente correspondente ('
+    +orfas.length+'): '+orfas.join(' · '));
+})();
 const _atribIng=Object.create(null);
 function atributosIng(nome){
   if(nome in _atribIng) return _atribIng[nome];
@@ -7131,7 +7263,7 @@ function gravidezKcal(m){
   const base = t===1? 0 : t===2? 340 : 452;
   if(n===1) return base;
   if(n===2) return base===0? 0 : base+350;
-  return 0;   /* trigémeos: sem estimativa — ver avisoGravidez() */
+  return 0;   /* trigémeos: sem estimativa — ver semEstimativa(), logo abaixo */
 }
 function semEstimativa(m){ return gravida(m) && fetos(m)>=3; }
 /* ================= AMAMENTAR =================
@@ -8259,7 +8391,7 @@ function limparJejum(o,ids){
     d.im[mid]={ativo:!!c.ativo, h:clampNum(Math.round(parseFloat(c.h)||16),12,23),
                 inicio:clampNum(Math.round(parseFloat(c.inicio)||12),0,23)};
     /* O objetivo guarda-se como texto curto e é validado na leitura, por
-       objetivoJejum(), que já rejeita o que não está na tabela. Validá-lo aqui
+       objetivoJejumDe(), que já rejeita o que não está na tabela. Validá-lo aqui
        lia OBJETIVOS_JEJUM, que é declarado mil linhas abaixo — e como este
        saneador corre no arranque, a partir de migraRegistos(), quem tivesse
        ligado o jejum intermitente abria a app num ecrã em branco, sem nada na
@@ -8500,7 +8632,19 @@ const DICAS={
   balcao:'Escrever em vez de navegar. Aceita uma pesagem («Ana 62,4»), um treino («corri 8 km»), uma refeição («jantar feito») ou uma compra («comprei azeite»). Mostra sempre o que entendeu antes de gravar, e nada sai daqui para fora.',
   pessoa:'A folha de uma pessoa: o dia dela, os números dela, o que lhe falta confirmar. Abre-se com pressão longa no avatar, ou com o botão direito no computador.',
   imc:'Peso a dividir pela altura ao quadrado. É uma medida de rastreio para adultos: não distingue músculo de gordura, por isso um atleta pode aparecer em «excesso de peso» sem o estar. Em crianças lê-se por percentil para a idade, não por estes limites.',
-  basal:'As calorias que o corpo gasta em repouso absoluto, só para se manter vivo. Calculado por Mifflin-St Jeor nos adultos e por Schofield abaixo dos 19 anos.',
+  /* Dizia «Mifflin-St Jeor nos adultos e Schofield abaixo dos 19 anos», que
+     era verdade antes de o método passar a ser uma escolha da casa. Ficou a
+     descrever uma app que já não existia: o padrão é a Henry, e quem escolhe
+     a Mifflin vê os menores de 19 anos caírem na Henry, não na Schofield.
+     Um número de saúde tem de dizer de onde vem, e de onde vem hoje. */
+  basal:function(){
+    const M=METODOS_BMR[metodoBMR()];
+    return 'As calorias que o corpo gasta em repouso absoluto, só para se manter vivo. '
+      +'Nesta casa está escolhida a '+M.n+(M.recomendada? ', que é a recomendada' : '')+'.'
+      +(M.soAdulto? ' Como essa equação só existe para adultos, abaixo dos 19 anos a app usa a '
+          +METODOS_BMR[METODO_BMR_PADRAO].n+' — e diz que usou, em vez de aplicar uma equação fora do seu domínio.' : '')
+      +' O método muda-se na ficha de cada pessoa e vale para a casa toda.';
+  },
   gasto:'O gasto total do dia: o metabolismo basal multiplicado pelo nível de atividade, mais as deslocações, mais o desporto e, em quem está a crescer ou grávida, a energia dessa fase.',
   alvo:'O gasto ajustado pelo objetivo. É deste número que saem as gramas de cada macronutriente e as calorias sugeridas por refeição — é ele que liga este separador à Nutrição e ao Plano.',
   fase:'Bebé, criança, adolescente, adulto ou gravidez. A fase escolhe a equação de metabolismo, a faixa de macronutrientes aceitável e os limites de esforço recomendados.',
@@ -8598,7 +8742,7 @@ const DICAS={
   passaporte:'Os ingredientes que esta pessoa já provou, contados das refeições confirmadas. «Provou mas não gostou» não risca o sabor para sempre: faz a app voltar a propô-lo mais tarde noutra receita. A neofobia alimentar passa a jogo de descoberta em vez de guerra à mesa.',
   palpite:'Da cadência das tuas compras («leite: a cada 7±2 dias») sai um palpite do que já devia ter acabado. É um palpite e diz-se que é: aparece à parte do inventário real da despensa, e silencia-se com um toque se já não usarem.',
   sequencia:'Semanas em que se cumpriu pelo menos 80% do que estava planeado, contadas só de validações reais. Doença, férias ou lesão marcam-se como pausa: a sequência congela em vez de partir. Nem fogo, nem troféus, nem contadores agressivos — uma gripe não apaga dois meses de esforço.',
-  sobras:'O jantar de hoje é o almoço de amanhã em quase todas as casas. Ao confirmar uma refeição, a app pergunta se sobrou: a sobra fica no frigorífico durante três dias, com os macros que já se sabiam da receita, e come-se com um toque — sem cozinhar, sem comprar e sem duplicar contas.',
+  sobras:'O jantar de hoje é o almoço de amanhã em quase todas as casas. Ao confirmar uma refeição, a app pergunta se sobrou: a sobra fica guardada com os macros que já se sabiam da receita e come-se com um toque — sem cozinhar, sem comprar e sem duplicar contas. O prazo é o do prato e não um número redondo para todos: um risotto aguenta um dia no frigorífico, uma sopa de legumes aguenta quatro. Quem congela leva a tabela do congelador em vez da do frigorífico, e o que de lá sair volta com dois dias, porque comida descongelada não recupera o prazo que tinha.',
   marmitas:'Qualquer almoço se pode marcar «em marmita», pessoa a pessoa. Na véspera à noite o cartão «Hoje» lembra-o, com a dose já escalada a cada um, os alergénios da escola assinalados e as sobras disponíveis para a encher.',
   epoca:'Que ingredientes estão na época em Portugal, este mês — carapau no verão, grelos no inverno, cereja em junho. A tabela é local e o selo muda sozinho com o calendário: comprar na época é mais barato, mais fresco e mais saboroso.',
   custo:'Os preços são os do teu talão — a app nunca inventa um cêntimo. Com eles estima o custo por dose de cada receita, o da semana e o talão previsto da lista de compras, dizendo sempre quantos itens ficaram por preço. Cada preço escrito fica com a data: ao fim de três, aparece ao lado uma linha com a história dele, e a app passa a saber dizer se o preço de hoje está abaixo ou acima do costume desta casa.',
@@ -8640,7 +8784,20 @@ const DICAS={
   acompanhamento:'O que vai ao lado do prato: batatas, arroz, legumes ou salada. As calorias somam-se às do prato no total do dia, os ingredientes somam-se à lista de compras, mas não conta como uma refeição — um arroz de coentros não é um jantar. O 🔀 troca por outro que sirva a mesma mesa, e o «juntar» põe mais um ao lado: como o lugar do acompanhamento é um só, os que lá estiverem repartem-no entre si — meia dose de batatas e meia de salada, e as calorias, os macros e as quantidades a comprar seguem essa divisão. O preenchimento automático escolhe um para cada almoço e jantar, respeitando as mesmas dietas e exclusões. Escolher ou trocar cria também uma variante com o nome inteiro — «Bife com batatas fritas» —, com os ingredientes somados e o passo-a-passo dos dois escrito de seguida, arrumada no cartão do prato de origem.',
   vegan:'Cada dieta é uma repartição diferente de hidratos, proteína e gordura; a «Personalizada» abre três sliders que somam sempre 100 %. Vegetariana e vegan são dietas diferentes: a vegetariana come ovos, lacticínios e mel, a vegan não come nada de origem animal — e as duas etiquetas são lidas dos ingredientes de cada receita, nunca escritas à mão.'
 };
-function dica(k,extra){ const t=DICAS[k]; if(!t) return '';
+/* Um selo que se explica ao passar o rato, ao tocar ou ao chegar pelo teclado.
+   Recebe o que se vê e o que se lê. É um <button> e não um <span> porque tem de
+   ser alcançável pelo tabulador e responder ao toque — e um span com tabindex
+   dá um controlo sem papel nenhum na árvore de acessibilidade. O aria-label
+   leva o texto inteiro: aqui não há nome curto que faça sentido («🌱» não se
+   lê), e é o texto todo que interessa a quem ouve. */
+function selo(visto,texto,classe){
+  return `<button type="button" class="tag selo ${classe||''}" data-dica="${esc(texto)}"
+    aria-label="${esc(texto)}">${visto}</button>`;
+}
+/* Quase todas as dicas são texto fixo, mas algumas falam de uma escolha que a
+   casa fez — e um texto fixo sobre uma escolha mutável envelhece calado. Uma
+   entrada pode ser uma função, avaliada no momento de desenhar. */
+function dica(k,extra){ let t=DICAS[k]; if(typeof t==='function') t=t(); if(!t) return '';
   /* O texto vai duas vezes: em data-dica, que desenha a bolha, e num elemento
      de verdade que só o leitor de ecrã encontra. O aria-label continua a dar
      o nome curto ao botão («Explicação»), e o aria-describedby entrega o texto
@@ -9327,14 +9484,21 @@ function limparSobra(x,lookup){
   return s;
 }
 function limparSobraCru(x){ return limparSobra(x); }
-function guardarSobra(d,mk,rid,ac,doses){
-  const s=limparSobra({id:uid(), d, mk, r:rid, ac, doses});
+function guardarSobra(d,mk,rid,ac,doses,est){
+  const onde = est==='cong'? 'cong' : 'frigo';
+  const s=limparSobra({id:uid(), d, mk, r:rid, ac, doses, est:onde});
   if(!s || !(s.doses>0)) return null;
   if(!Array.isArray(S.sobras)) S.sobras=[];
   /* a mesma receita no mesmo dia junta-se, em vez de criar duas entradas — mas
      só dentro do mesmo sítio: o que está no congelador não se soma ao que está
-     no frigorífico, porque não têm o mesmo prazo nem o mesmo relógio */
-  const igual=S.sobras.find(x=>x.d===d && x.r===rid && (x.est||'frigo')==='frigo');
+     no frigorífico, porque não têm o mesmo prazo nem o mesmo relógio.
+
+     O destino tem de entrar aqui e não ser corrigido depois. Assumir sempre o
+     frigorífico e só a seguir carimbar est='cong' fazia com que as sobras do
+     almoço, que já lá estavam a arrefecer, fossem arrastadas para o congelador
+     com as do jantar — e ganhassem sessenta dias de prazo sem lá terem
+     estado. Num prazo de comida, o erro não pode ser para o lado generoso. */
+  const igual=S.sobras.find(x=>x.d===d && x.r===rid && (x.est||'frigo')===onde);
   if(igual){ igual.doses=Math.min(12, igual.doses+s.doses); return igual; }
   S.sobras.push(s); return s;
 }
@@ -9439,9 +9603,9 @@ function guardarFolhaSobra(onde){
   const conta=guardarFecho(f);
   const partes=[];
   if(f.doses>0){
-    const s=guardarSobra(f.d,f.mk,f.r,f.ac,f.doses);
-    const cong = onde==='cong' && s && podeCongelar(f.r);
-    if(cong){ s.est='cong'; s.dc=hojeISO(); }
+    const cong = onde==='cong' && podeCongelar(f.r);
+    const s=guardarSobra(f.d,f.mk,f.r,f.ac,f.doses, cong? 'cong':'frigo');
+    if(cong && s) s.dc=hojeISO();
     const rec=RECIPES.find(x=>x.id===f.r), c=conservacaoDe(rec);
     partes.push(nPT(f.doses,2).replace(',00','')+' dose'+(f.doses===1?'':'s')
       +(cong? ' no congelador — aguentam lá '+c.cong+' dias.'
@@ -13639,12 +13803,21 @@ function fioDoDia(){
     t:plural(falta,'coisa por comprar','coisas por comprar'),
     d:'para as refeições que faltam esta semana',
     accao:{rot:'Ver a lista', fn:"go('mercearia')"}});
-  /* sobras a vencer e o que tirar do congelador */
+  /* sobras a vencer e o que tirar do congelador. O prazo de quem está no
+     frigorífico conta-se em dias e é urgente; o do congelador conta-se em
+     meses, e o que aí vale a pena dizer é outra coisa — que já lá está há
+     muito tempo. */
   (S.sobras||[]).forEach(s=>{
-    const dias=diasDeSobra(s); if(dias===null||dias>1) return;
+    if(!(s.doses>0)) return;
+    const dias=diasRestantesSobra(s);
+    const congelada=(s.est||'frigo')==='cong';
+    if(congelada ? dias>14 : dias>1) return;
+    if(dias<0) return;   /* já venceu: é assunto do diário de desperdício, não do fio do dia */
     const r=RECIPES.find(x=>x.id===s.r); if(!r) return;
-    out.push({k:'sobra', h:HORA_LINHA.sobra, ico:'🥡',
-      t:'Sobra de '+r.n.toLowerCase(), d:dias<=0? 'é hoje ou nunca' : 'vence amanhã',
+    out.push({k:'sobra', h:HORA_LINHA.sobra, ico:congelada?'🧊':'🥡',
+      t:(congelada?'No congelador: ':'Sobra de ')+r.n.toLowerCase(),
+      d:congelada? plural(dias,'dia de prazo','dias de prazo')+' — vale a pena tirá-la'
+        : (dias<=0? 'é hoje ou nunca' : 'vence amanhã'),
       accao:{rot:'Ver sobras', fn:"go('mercearia')"}});
   });
   out.sort((a,b)=>a.h-b.h);
@@ -14385,6 +14558,9 @@ function botaoTalhao(chave){
     m? avatar(m,20) : '<span class="av talhao-vazio">·</span>'}</button>`;
 }
 function dividirPorCorredor(mids){
+  /* Só quem vive cá: um id que já não existe levaria consigo meia lista, e
+     ninguém a ia buscar. */
+  mids=(mids||[]).filter(id=>S.members.some(m=>m.id===id));
   if(!mids.length) return;
   const {items}=shoppingItems();
   const falta=itensEmFalta(items);
@@ -14397,8 +14573,13 @@ function dividirPorCorredor(mids){
      Alternar corredor sim, corredor não daria listas absurdas — a mercearia
      sozinha costuma ter mais items do que todas as outras secções juntas, e
      uma divisão de 51 contra 7 não é divisão nenhuma. Por isso cada corredor
-     vai para quem tiver menos coisas até ali: mantém o corredor inteiro com
-     a mesma pessoa e equilibra o cesto. */
+     vai para quem tiver menos coisas até ali.
+
+     Isto reparte melhor do que alternar, mas não promete cestos iguais, e
+     seria desonesto dizer que promete: manter cada corredor inteiro com uma
+     pessoa é a regra que manda, e quando um corredor sozinho vale metade da
+     lista — as frutas e legumes costumam valer — quem o apanha leva mais. O
+     que se faz é dizer como ficou, para quem divide poder trocar à mão. */
   const porSec={};
   falta.forEach(it=>{ const s=gruposCompras()[grupoDoItem(it)];
     (porSec[s]=porSec[s]||[]).push(it); });
@@ -14409,7 +14590,9 @@ function dividirPorCorredor(mids){
     carga[quem]+=porSec[s].length;
   });
   save('lista dividida'); render();
-  flash('ok','Lista dividida por '+listaPT(mids.map(id=>{const m=S.members.find(x=>x.id===id);return m? nomeCurto(m):'?';}))+'.',
+  const reparticao=mids.map(id=>{ const m=S.members.find(x=>x.id===id);
+    return (m? nomeCurto(m):'?')+' '+carga[id]; });
+  flash('ok','Lista dividida: '+listaPT(reparticao)+' '+(falta.length===1?'item':'itens')+'.',
     {rot:'Anular', fn:'desfazer()'});
 }
 function juntarTalhoes(){ S.talhoes={}; save('lista outra vez inteira'); render(); }
@@ -20349,6 +20532,12 @@ function juntarAcomp(di,mk){
 }
 function autoFill(){
   const dates=weekDates(S.week); const used=new Set(); let semSolucao=0;
+  /* Quantas receitas serviram toda a mesa em cada momento do dia. Não é
+     estatística: é o que explica um pequeno-almoço repetido sete dias
+     seguidos. Ver o mesmo prato toda a semana e não saber porquê parece um
+     defeito da app; saber que só uma das 45 serve a mesa inteira é uma
+     informação com que se pode fazer alguma coisa. */
+  const escolhaPorMomento={};
   Object.values(planWeek()).forEach(d=>MEALK.forEach(k=>d[k]?.r&&used.add(d[k].r)));
   /* o food prep já planeado pesa nas escolhas: uma receita que aproveita uma
      preparação que já se vai fazer poupa trabalho a quem cozinha */
@@ -20379,6 +20568,11 @@ function autoFill(){
        mais vale um jantar ambicioso do que nenhum. */
     if(ehSlotFragil(di,mk)){ const res=pool.filter(resistente); if(res.length) pool=res; }
     if(!pool.length){ semSolucao++; continue; }
+    /* guarda-se o menor leque encontrado neste momento do dia, e o total de
+       receitas que existem para ele — é a razão de uma semana monótona */
+    const antes=escolhaPorMomento[mk] || (escolhaPorMomento[mk]={servem:Infinity, dieta:0, total:doTipo.length, dias:0});
+    antes.dias++;
+    if(pool.length<antes.servem){ antes.servem=pool.length; antes.dieta=seguras.length; antes.total=doTipo.length; }
     /* Repetir é uma escolha da casa: quando está ligada, o que já entrou na
        semana ganha peso em vez de o perder — cozinha-se uma vez, come-se duas. */
     const fresh=pool.filter(r=>!used.has(r.id));
@@ -20417,6 +20611,24 @@ function autoFill(){
   }
   save('preenchimento automático da semana'); render();
   if(semSolucao) toast(semSolucao+' refeições sem solução: nenhuma receita serve toda a mesa');
+  else {
+    /* Com três ou menos receitas a servir a mesa toda, a semana vai repetir-se
+       — e mais vale dizê-lo do que deixar a pessoa a pensar que a app é que
+       está estragada. Diz-se o momento mais apertado e o que se pode fazer. */
+    const apertados=Object.entries(escolhaPorMomento).filter(([,v])=>v.servem<=3 && v.dias>v.servem)
+      .sort((a,b)=>a[1].servem-b[1].servem);
+    if(apertados.length){
+      const [mk,v]=apertados[0]; const nome=nomeRefeicao(mk).toLowerCase();
+      /* Duas contas diferentes: quantas passam nas dietas e vetos, e quantas
+         dessas ainda cabem no teto de calorias. Dizer só a segunda faria
+         parecer que o catálogo é pobre, quando o que aperta é o teto. */
+      const detalhe = v.dieta>v.servem
+        ? ' das '+v.dieta+' que passam nas dietas da mesa (em '+v.total+'), só '+v.servem+' cabem no teto de calorias'
+        : ' só '+plural(v.servem,'receita passa','receitas passam')+' nas dietas da mesa, em '+v.total;
+      toast('No '+nome+','+detalhe+' — por isso repete-se. Planeá-lo por pessoa, em vez de para a mesa toda, abre muito mais escolha.',
+        null, 'warn');
+    }
+  }
 }
 /* ================= SUGESTÕES PARA A SEMANA =================
    O problema real de uma casa com várias dietas não é escolher uma receita —
@@ -21823,10 +22035,50 @@ function limparDespensa(){
 }
 /* Filtro de texto sem re-render: mexer no #main destruiria a própria caixa
    de pesquisa a meio da escrita. Só se escondem/mostram as linhas. */
+/* ---- A despensa por secções ----
+   São 667 ingredientes mais os suplementos. Agrupados já estavam, mas numa
+   coluna corrida de centenas de linhas ninguém encontra nada: a leitura é
+   toda igual do princípio ao fim. Cada secção passa a dobrar, com a conta do
+   que já lá está — «3 de 42» diz mais, e num relance, do que quarenta e duas
+   linhas por ler.
+
+   Por omissão abrem-se as secções onde há alguma coisa em casa, que é a
+   pergunta com que se chega aqui: o que é que eu tenho. As vazias ficam
+   fechadas e à mão de quem as quiser encher. A partir do primeiro toque manda
+   a escolha da pessoa, guardada por secção. */
+function despensaCfg(){
+  if(!S.ui.despSec || typeof S.ui.despSec!=='object') S.ui.despSec={};
+  return S.ui.despSec;
+}
+function despensaAberta(cat,quantosTem){
+  const c=despensaCfg();
+  return typeof c[cat]==='boolean' ? c[cat] : quantosTem>0;
+}
+function guardaSecaoDespensa(el){
+  if(!el || !el.dataset) return;
+  despensaCfg()[el.dataset.cat]=el.open;
+  saveMeta();   /* é preferência de vista, não altera dados nem o desfazer */
+}
+function abrirTodasDespensa(abrir){
+  const c=despensaCfg();
+  document.querySelectorAll('#despensa-lista details.cat-sec').forEach(d=>{
+    d.open=!!abrir; c[d.dataset.cat]=!!abrir; });
+  saveMeta();
+}
 function filtrarDespensa(el){
   const q=(el.value||'').toLowerCase().trim();
   document.querySelectorAll('#despensa-lista li').forEach(li=>{
     li.style.display = !q || li.textContent.toLowerCase().indexOf(q)>=0 ? '' : 'none';
+  });
+  /* Uma secção fechada esconderia os resultados da procura, e a caixa parecia
+     não encontrar nada. Enquanto se procura, abrem-se as que têm resultados e
+     desaparecem as que não têm; ao limpar, tudo volta ao que a pessoa escolheu
+     — sem gravar nada, porque isto é o efeito da procura e não uma preferência. */
+  document.querySelectorAll('#despensa-lista details.cat-sec').forEach(d=>{
+    if(!q){ d.style.display=''; d.open=despensaAberta(d.dataset.cat, d.querySelectorAll('li.done').length); return; }
+    const achou=[...d.querySelectorAll('li')].some(li=>li.style.display!=='none');
+    d.style.display=achou?'':'none';
+    d.open=achou;
   });
 }
 function setAlergDesp(v){ S.ui.alergDesp=ehAlergenio(v)? v:''; saveMeta(); render(); }
@@ -21835,6 +22087,12 @@ function irPorPrecos(){ S.ui.precos=true; go('despensa'); }
 function guardarPreco(nome,v){ setPreco(nome,v); save('preço de '+nome); }
 function guardarValidade(nome,v){ setValidade(nome,v); save('validade de '+nome); render(); }
 function toggleValidades(){ S.ui.validades=!S.ui.validades; saveMeta(); render(); }
+/* A proveniência dos valores não vinha ligada nem se podia desligar: a despensa
+   marcava sozinha os que NÃO eram do INSA, o que dizia meia verdade — quem
+   visse um selo «FDA» num alimento e nada no seguinte não ficava a saber de
+   onde vinha o seguinte. Passa a ser uma escolha, e quando se faz mostra a
+   fonte de todos. Fica em s.ui e é preferência de vista, logo saveMeta(). */
+function toggleVerFontes(v){ S.ui.verFontes=!!v; saveMeta(); render(); }
 /* Os alergénios que os membros da casa têm marcados: são estes que valem a
    pena assinalar em cada ingrediente da despensa, e não os catorze todos. */
 function alergiasDaCasa(){
@@ -21864,7 +22122,10 @@ function listasPendentes(){
   return out;
 }
 function talvezPerguntarCompras(){
-  if(jaPerguntouCompras || modalAberto() || tourAtivo()) return;
+  /* No modo supermercado não se pergunta nada: essa pessoa está de pé num
+     corredor, com o carrinho numa mão e o telemóvel na outra. A pergunta
+     sobre a lista da semana passada espera pela cozinha. */
+  if(jaPerguntouCompras || modalAberto() || tourAtivo() || S.ui.mercado) return;
   jaPerguntouCompras=true;
   const listas=listasPendentes();
   if(!listas.length) return;
@@ -22083,9 +22344,19 @@ function renderDespensa(){
   ${filtro? `<div class="alerta" style="max-width:640px;margin-bottom:12px"><span aria-hidden="true">🚨</span>
     <span>${nFiltrado} ingrediente${nFiltrado===1?'':'s'} do catálogo ${nFiltrado===1?'traz':'trazem'} ${esc(RESTR[filtro].n.toLowerCase())}. ${esc(RESTR[filtro].d||'')}</span></div>`:''}
   <div class="card" style="max-width:640px">
+    <div class="row" style="margin-bottom:6px">
+      <button class="chip small" onclick="abrirTodasDespensa(true)">Abrir todas</button>
+      <button class="chip small" onclick="abrirTodasDespensa(false)">Fechar todas</button>
+      <span class="sub" style="margin-left:auto">${plural(grouped.filter(([,idx])=>idx.length).length,'secção','secções')}</span>
+    </div>
     <div id="despensa-lista">
-    ${grouped.filter(([,idx])=>idx.length).map(([cat,idx])=>`
-      <div class="cat-h">${icoCat(cat)} ${cat}</div>
+    ${grouped.filter(([,idx])=>idx.length).map(([cat,idx])=>{
+      const naDespensa=idx.filter(i=>S.despensa[catalogo[i]]).length;
+      const aberta=despensaAberta(cat,naDespensa);
+      return `
+      <details class="cat-sec" ${aberta?'open':''} data-cat="${esc(cat)}" ontoggle="guardaSecaoDespensa(this)">
+        <summary class="cat-h ${naDespensa===idx.length?'feita':''}">${icoCat(cat)} ${cat}
+          <span class="cat-conta">${naDespensa} de ${idx.length}</span></summary>
       <ul class="shop">${idx.map(i=>{
         const nome=catalogo[i], ok=!!S.despensa[nome];
         /* a etiqueta só aparece para os alergénios que alguém cá em casa tem:
@@ -22095,11 +22366,20 @@ function renderDespensa(){
         const rot = un==='g'? '€/kg' : un==='ml'? '€/L' : '€/'+un;
         const val=validadeDe(nome), dv=val? diasAteValidade(nome) : null;
         return `<li class="${ok?'done':''}"><label><input type="checkbox" ${ok?'checked':''} onchange="toggleDespensaIdx(${i})">
-          <span>${esc(nome)}${(function(){ const f=fonteDe(nome);
-            return f&&f.n!=='INSA'? ` <span class="tag fonte-${f.n.toLowerCase()}" title="${esc(f.d)}">${f.n}</span>`:''; })()}${
-            al.length? ' '+al.map(t=>`<span class="tag alerg" title="${esc(RESTR[t].n)}">${RESTR[t].i}</span>`).join(''):''}${
-            daEpoca(nome)? ' <span class="tag epoca">🌱</span>':''}${
-            val&&!S.ui.validades? ` <span class="tag ${classeValidade(dv)}" title="Validade: ${rotuloData(val)}">${rotuloValidade(dv)}</span>`:''}</span></label>${
+          <span>${esc(nome)}${(function(){ if(!S.ui.verFontes) return '';
+            const f=fonteDe(nome); if(!f) return '';
+            return ' '+selo(f.n,
+              'A composição deste alimento vem de '+f.d+'. A app usa o INSA primeiro, depois a UE e só por último a FDA — quando o mesmo alimento existe em mais do que uma tabela, fica o da fonte mais prioritária.',
+              'fonte-'+f.n.toLowerCase()); })()}${
+            al.length? ' '+al.map(t=>selo(RESTR[t].i,
+              'Traz '+RESTR[t].n.toLowerCase()+'. Está assinalado porque alguém cá em casa tem esta alergia ou intolerância marcada no perfil — não dispensa ler o rótulo da embalagem.',
+              'alerg')).join(''):''}${
+            daEpoca(nome)? ' '+selo('🌱',
+              'Está na época este mês, em Portugal continental. Fruta e legumes da época custam menos, sabem melhor e vêm de mais perto.',
+              'epoca'):''}${
+            val&&!S.ui.validades? ' '+selo(rotuloValidade(dv),
+              'Validade que escreveste: '+rotuloData(val)+'. A app põe à frente o que está mais perto de acabar, e nunca inventa um prazo.',
+              classeValidade(dv)):''}</span></label>${
           S.ui.precos? `<span class="preco"><input type="number" min="0" step="0.01" inputmode="decimal"
             value="${p? p.v : ''}" placeholder="—" aria-label="Preço de ${esc(nome)} em ${rot}"
             onchange="guardarPreco('${esc(nome).replace(/'/g,'&#39;')}',this.value)"><span class="sub">${rot}</span>${
@@ -22108,7 +22388,7 @@ function renderDespensa(){
             value="${val||''}" aria-label="Validade de ${esc(nome)}"
             onchange="guardarValidade('${esc(nome).replace(/'/g,'&#39;')}',this.value)">${
             dv!==null? `<span class="sub ${classeValidade(dv)}">${rotuloValidade(dv)}</span>`:''}</span>`:''}</li>`;
-      }).join('')}</ul>`).join('')}
+      }).join('')}</ul></details>`;}).join('')}
     </div>
   </div>
   <p class="sub" style="margin-top:12px">Marca o que já tens em casa: as receitas e a lista de compras passam a saber
@@ -22721,6 +23001,12 @@ function cartaoTabelas(){
     <p class="sub" style="margin-top:10px"><b>${Object.keys(NUTRI).length} ingredientes</b> à vista e
       <b>${totalX}</b> no catálogo oculto — que a app usa quando se acrescenta um ingrediente que não anda em
       receita nenhuma. Ao ser escolhido, passa a fazer parte do catálogo desta casa.</p>
+    <label class="toggle" style="margin-top:12px">
+      <input type="checkbox" ${S.ui.verFontes?'checked':''} onchange="toggleVerFontes(this.checked)">
+      <span>Mostrar a proveniência de cada ingrediente na despensa</span></label>
+    <p class="sub" style="margin-top:4px">Desligado, a despensa mostra só os nomes. Ligado, cada ingrediente leva
+      o selo da tabela de onde vieram os seus valores — <b>todos</b>, incluindo os do INSA, que são a maioria.
+      É informação de quem quer conferir; para cozinhar não é precisa, e por isso não vem ligada.</p>
     <div class="splabel" style="margin-top:14px"><span>Carregar uma tabela oficial</span></div>
     <p class="sub">As tabelas completas têm dezenas de milhares de linhas e vivem em ficheiros que se descarregam
       — não cabem escritas à mão nem se devem inventar. Descarrega o ficheiro da fonte e carrega-o aqui:
@@ -23009,6 +23295,12 @@ function renderDados(){
    no ecrã seria explicar o vazio, por isso esses passos têm condição e a
    visita salta-os. */
 function passosTour(){ return TOUR.filter(p=>!p.quando || (()=>{ try{ return !!p.quando(); }catch(e){ return false; } })()); }
+/* Um passo pode trazer o texto numa função em vez de numa cadeia. Não é
+   preciosismo: TOUR escreve-se quando o ficheiro é lido, e há coisas que só
+   existem depois — os pratos compostos, por exemplo, nascem no arranque a
+   partir dos acompanhamentos. Com o texto fixo, a visita dizia «422 receitas»
+   e o separador ao lado mostrava 447. Contar tarde é contar certo. */
+function textoTour(x){ return typeof x==='function'? x() : (x||''); }
 const TOUR=[
   {tab:'familia', sel:'#capa',
    t:'O caderno desta família',
@@ -23119,9 +23411,11 @@ const TOUR=[
    t:'Projeção de peso',
    d:'Mostra para onde o peso caminha se o alvo se mantiver, recalculando o gasto a cada semana — por isso a curva achata. A faixa verde é a zona de índice de massa corporal saudável para a altura.'},
   /* Os números vêm das próprias tabelas: um texto com a contagem escrita à mão
-     desatualiza-se na receita seguinte, e já desatualizou. */
+     desatualiza-se na receita seguinte, e já desatualizou. Numa função e não
+     numa cadeia, porque os pratos compostos entram em RECIPES depois de esta
+     linha correr — contada aqui, a receita dava 422 e o ecrã dava 447. */
   {tab:'receitas', sel:'#rec-busca',
-   t:`${RECIPES.length} receitas, ${Object.keys(CUIS).length} cozinhas`,
+   t:()=>`${RECIPES.length} receitas, ${Object.keys(CUIS).length} cozinhas`,
    d:`Peixe grelhado e no forno, marisco à portuguesa, carne na brasa com os cortes pelo nome, keto, vegan e muito mais — de ${CUIS.portuguesa.toLowerCase()} a ${CUIS.africana.toLowerCase()} e ${CUIS.brasileira.toLowerCase()}. Pesquisa por nome ou por ingrediente, e filtra por refeição, cozinha, dieta, categoria — entradas, pratos principais, brunch, snacks e sobremesas — ou «sem» um alergénio.`},
   {tab:'receitas', sel:'.rc',
    t:'Macros que saem dos ingredientes',
@@ -23361,8 +23655,8 @@ function pintaTour(){
   if(!c){ c=document.createElement('div'); c.id='tour-cartao'; c.className='tour-cartao';
     c.setAttribute('role','dialog'); c.setAttribute('aria-label','Visita guiada'); document.body.appendChild(c); }
   c.innerHTML=`<div class="row" style="justify-content:space-between;align-items:baseline">
-      <h3>${esc(p.t)}</h3><span class="sub">${S.ui.tourPasso+1} de ${passos.length}</span></div>
-    <p class="sub">${p.d}</p>
+      <h3>${esc(textoTour(p.t))}</h3><span class="sub">${S.ui.tourPasso+1} de ${passos.length}</span></div>
+    <p class="sub">${textoTour(p.d)}</p>
     <div class="tour-progresso" aria-hidden="true">${passos.map((_,i)=>`<i class="${i<=S.ui.tourPasso?'feito':''}"></i>`).join('')}</div>
     <div class="tour-acoes">
       <button class="btn ghost small" onclick="fecharTour()">Sair</button>
@@ -23472,7 +23766,7 @@ function cartaoBoasVindas(){
       <button class="btn ghost" onclick="addMember()">+ Criar primeiro perfil</button>
       <button class="btn ghost" onclick="go('dados')">Restaurar uma cópia</button>
     </div>
-    <p class="sub" style="margin-top:12px">A visita percorre os ${TABS.length} separadores em ${TOUR.length} passos, com uma família
+    <p class="sub" style="max-width:62ch;margin:12px auto 0">A visita percorre os ${TABS.length} separadores em cerca de ${passosTour().length} passos, com uma família
       de exemplo para veres tudo a funcionar. Podes sair a qualquer momento e apagar o exemplo no separador Dados.</p>
     <div style="max-width:62ch;margin:16px auto 0;text-align:left">${avisoResponsabilidade()}</div>
   </div>`;
@@ -23654,14 +23948,59 @@ function posicionaDica(d){
   if(esq+larg > W-12) dx=(W-12)-(esq+larg);
   if(esq+dx < 12) dx=12-esq;
   d.style.setProperty('--dx', Math.round(dx)+'px');
+  /* E o lado. A altura da bolha não se sabe antes de ela existir, por isso
+     estima-se pelo comprimento do texto — 270 px de largura dão cerca de 42
+     caracteres por linha, a 18 px de altura de linha. Basta para decidir; o
+     max-height do CSS trata do resto. */
+  const n=(d.getAttribute('data-dica')||'').length;
+  const alt=Math.min(320, 34+Math.ceil(n/42)*18);
+  const cabeAbaixo=r.bottom+8+alt <= innerHeight-8;
+  const cabeAcima=r.top-8-alt >= 8;
+  if(!cabeAbaixo && cabeAcima) d.setAttribute('data-cima','');
+  else d.removeAttribute('data-cima');
 }
-document.addEventListener('mouseover', e=>{ const d=e.target.closest&&e.target.closest('.dica'); if(d) posicionaDica(d); });
-document.addEventListener('focusin', e=>{ const d=e.target.closest&&e.target.closest('.dica'); if(d) posicionaDica(d); });
-/* Ao toque não há hover: o marcador de explicação alterna com um toque. */
+/* mouseenter e não mouseover: o segundo borbulha e volta a disparar sempre que
+   o rato passa do «i» para o texto escondido que vive dentro do botão — e cada
+   disparo escreve uma custom property e lê getBoundingClientRect(), ou seja,
+   força um reflow. Com o rato a mover-se devagar sobre um alvo de 24 px isso
+   são dezenas de reflows por segundo, e a página deixa de responder.
+   mouseenter dispara uma vez, à entrada. Como não borbulha, regista-se em cada
+   marcador — e por isso corre a cada desenho, sobre os marcadores novos. */
+/* Os «i» e os selos da despensa partilham tudo o que vem a seguir: a mesma
+   bolha, o mesmo posicionamento, o mesmo comportamento ao toque. */
+const SEL_DICA='.dica, .selo';
+function alternaBolha(d){
+  document.querySelectorAll('.dica.on, .selo.on').forEach(x=>{ if(x!==d) x.classList.remove('on'); });
+  if(d){ posicionaDica(d); d.classList.toggle('on'); }
+}
+/* Um tratador só, no documento, em vez de um por marcador.
+   Cada desenho refaz o innerHTML do main, portanto os marcadores são elementos
+   novos e voltavam a ser ligados um a um: na despensa isso eram 519 chamadas a
+   addEventListener por redesenho. Não é uma fuga — os antigos morrem com os
+   seus tratadores —, é trabalho a mais a cada tecla e a cada toque.
+
+   Usa-se mouseover, que borbulha e chega aqui, com a guarda que lhe dá o
+   comportamento de mouseenter: se o rato vinha de dentro do próprio marcador,
+   não entrou em lado nenhum e não há nada a recalcular. Sem esta guarda,
+   mover o rato sobre o «i» disparava um reflow por cada pixel percorrido — foi
+   o que encravou a página do aviso. */
+document.addEventListener('mouseover', e=>{
+  const d=e.target.closest && e.target.closest(SEL_DICA);
+  if(!d) return;
+  if(e.relatedTarget && d.contains(e.relatedTarget)) return;
+  posicionaDica(d);
+});
+document.addEventListener('focusin', e=>{ const d=e.target.closest&&e.target.closest(SEL_DICA); if(d) posicionaDica(d); });
+/* Ao toque não há hover: o marcador de explicação alterna com um toque.
+   O preventDefault não é cosmético: os selos da despensa vivem dentro do
+   <label> do ingrediente, e a acção por omissão de um clique dentro de um
+   label é activar o campo do label — tocar no 🌱 para saber o que quer dizer
+   marcava o alimento como estando em casa. A acção por omissão corre depois
+   de todos os tratadores, por isso preveni-la aqui chega. */
 document.addEventListener('click', e=>{
-  const d=e.target.closest && e.target.closest('.dica');
-  document.querySelectorAll('.dica.on').forEach(x=>{ if(x!==d) x.classList.remove('on'); });
-  if(d){ e.preventDefault(); posicionaDica(d); d.classList.toggle('on'); }
+  const d=e.target.closest && e.target.closest(SEL_DICA);
+  if(d) e.preventDefault();
+  alternaBolha(d);
 });
 aplicarEcra();
 /* Agora sim: já cá estão todas as constantes de que os combos precisam, e
@@ -23807,6 +24146,35 @@ function ligarLongPress(){
     e.preventDefault(); abrirPessoa(av.getAttribute('data-membro'));
   });
 }
+
+/* ===== OS ATALHOS DO ÍCONE =====
+   Quem instala a app tem, ao carregar longo no ícone, quatro entradas
+   declaradas no manifesto: refeição, treino, compras e pesagem. Estavam
+   declaradas e não estavam ligadas — as quatro abriam a capa, caladas, e a
+   promessa do menu não se cumpria em nenhuma.
+
+   Corre depois de load, porque o estado tem de estar lido: mandar abrir a
+   pesagem de alguém antes de haver gente não abre nada. E limpa-se o
+   parâmetro do endereço a seguir, para uma recarga não repetir a ação. */
+const ATALHOS={
+  refeicao:()=>{ if(!S.members.length) return; go('familia'); abrirFolhaRegisto(); },
+  treino:  ()=>{ if(!S.members.length) return; go('atividade'); },
+  /* o modo primeiro e o separador depois: ao contrário, go() ainda apanhava a
+     casa fora do supermercado e disparava a pergunta da lista da semana */
+  compras: ()=>{ abrirMercado(); go('mercearia'); },
+  /* sem argumento: a casa toda de uma vez, que é o que o botão de dentro
+     também faz. Abrir primeiro a ficha de alguém empilhava duas camadas, e
+     fechar a de cima deixava aberta uma que ninguém pediu. */
+  pesagem: ()=>{ if(!S.members.length) return; go('familia'); abrirPesagens(); }
+};
+function correAtalho(){
+  let k=null;
+  try{ k=new URLSearchParams(location.search).get('ir'); }catch(e){ return; }
+  if(!k || !temChave(ATALHOS,k)) return;
+  try{ ATALHOS[k](); }catch(e){ console.warn('Família Fit — atalho «'+k+'» falhou:', e); }
+  try{ history.replaceState(null,'',location.pathname+location.hash); }catch(e){}
+}
+window.addEventListener('load',correAtalho);
 
 /* Instalável no ecrã principal e utilizável sem rede (útil para a lista de
    compras no supermercado). Só corre em http/https — via file:// é ignorado. */
