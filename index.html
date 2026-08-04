@@ -8179,7 +8179,25 @@ function jejumDesaconselhado(m){
   if(f==='adolescente') return 'Na adolescência o crescimento ainda não terminou e o risco de relação perturbada com a comida é maior. O jejum aqui é assunto para o médico que segue o adolescente, não para uma app.';
   if(gravida(m)) return 'Na gravidez não se faz jejum: o aporte contínuo de energia e de glicose é o que sustenta o desenvolvimento fetal.';
   if(posparto(m) && semanasPosParto(m)<12) return 'No pós-parto recente, e sobretudo a amamentar, o jejum não tem indicação — a produção de leite tem um custo energético diário que não se suspende.';
+  /* A regra de cima só cobria as primeiras doze semanas, e a frase dizia
+     «sobretudo a amamentar» sem nunca perguntar se a pessoa amamenta. Quem
+     amamenta ao sexto mês tem o mesmo custo energético diário que tinha à
+     sexta semana; agora que o perfil tem o campo, a regra usa-o. */
+  if(amamenta(m)) return 'Enquanto amamentas, o jejum não tem indicação: a produção de leite gasta energia todos os dias, e essa conta não pára quando se pára de comer.';
+  /* Magreza é contraindicação em qualquer protocolo de jejum, e é dos poucos
+     sítios onde a app tem os dois números para o perceber sozinha. O limiar é
+     o da Organização Mundial de Saúde para baixo peso no adulto: IMC 18,5.
+     Abaixo disso o jejum não é uma escolha de estilo de vida. */
+  const im=imcDe(m);
+  if(im && im<18.5) return 'Com um índice de massa corporal de '+nPT(im,1)+', abaixo dos 18,5 que a Organização Mundial de Saúde usa como limiar de baixo peso, o jejum não tem indicação — e vale a pena falar com um médico sobre o peso antes de pensar em restringir mais.';
   return null;
+}
+/* O IMC a partir do que o perfil tem, ou null quando falta um dos dois. Existe
+   à parte porque o jejum precisa dele antes de haver ecrã nenhum. */
+function imcDe(m){
+  const p=parseFloat(m&&m.peso), a=parseFloat(m&&m.altura);
+  if(!Number.isFinite(p)||!Number.isFinite(a)||a<50) return null;
+  return p/Math.pow(a/100,2);
 }
 function jejumCfg(){
   if(!S.jejum || typeof S.jejum!=='object') S.jejum={im:{}, pontuais:[]};
