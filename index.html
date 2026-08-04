@@ -9469,14 +9469,21 @@ function limparSobra(x,lookup){
   return s;
 }
 function limparSobraCru(x){ return limparSobra(x); }
-function guardarSobra(d,mk,rid,ac,doses){
-  const s=limparSobra({id:uid(), d, mk, r:rid, ac, doses});
+function guardarSobra(d,mk,rid,ac,doses,est){
+  const onde = est==='cong'? 'cong' : 'frigo';
+  const s=limparSobra({id:uid(), d, mk, r:rid, ac, doses, est:onde});
   if(!s || !(s.doses>0)) return null;
   if(!Array.isArray(S.sobras)) S.sobras=[];
   /* a mesma receita no mesmo dia junta-se, em vez de criar duas entradas — mas
      só dentro do mesmo sítio: o que está no congelador não se soma ao que está
-     no frigorífico, porque não têm o mesmo prazo nem o mesmo relógio */
-  const igual=S.sobras.find(x=>x.d===d && x.r===rid && (x.est||'frigo')==='frigo');
+     no frigorífico, porque não têm o mesmo prazo nem o mesmo relógio.
+
+     O destino tem de entrar aqui e não ser corrigido depois. Assumir sempre o
+     frigorífico e só a seguir carimbar est='cong' fazia com que as sobras do
+     almoço, que já lá estavam a arrefecer, fossem arrastadas para o congelador
+     com as do jantar — e ganhassem sessenta dias de prazo sem lá terem
+     estado. Num prazo de comida, o erro não pode ser para o lado generoso. */
+  const igual=S.sobras.find(x=>x.d===d && x.r===rid && (x.est||'frigo')===onde);
   if(igual){ igual.doses=Math.min(12, igual.doses+s.doses); return igual; }
   S.sobras.push(s); return s;
 }
@@ -9581,9 +9588,9 @@ function guardarFolhaSobra(onde){
   const conta=guardarFecho(f);
   const partes=[];
   if(f.doses>0){
-    const s=guardarSobra(f.d,f.mk,f.r,f.ac,f.doses);
-    const cong = onde==='cong' && s && podeCongelar(f.r);
-    if(cong){ s.est='cong'; s.dc=hojeISO(); }
+    const cong = onde==='cong' && podeCongelar(f.r);
+    const s=guardarSobra(f.d,f.mk,f.r,f.ac,f.doses, cong? 'cong':'frigo');
+    if(cong && s) s.dc=hojeISO();
     const rec=RECIPES.find(x=>x.id===f.r), c=conservacaoDe(rec);
     partes.push(nPT(f.doses,2).replace(',00','')+' dose'+(f.doses===1?'':'s')
       +(cong? ' no congelador — aguentam lá '+c.cong+' dias.'
