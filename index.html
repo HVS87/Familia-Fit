@@ -1475,6 +1475,20 @@ ul.fora li{margin:2px 0}
   font-variant-numeric:tabular-nums;letter-spacing:0;float:none !important}
 .cat-h.feita{color:var(--ok)}
 .cat-h.feita .cat-conta{color:var(--ok);border-color:var(--ok)}
+/* Secções da despensa. O <summary> traz um triângulo próprio que se atravessa
+   no flex do .cat-h — tira-se e põe-se um que roda com o estado, do lado do
+   texto e não do lado de fora. */
+.cat-sec>summary{cursor:pointer;list-style:none;min-height:24px}
+.cat-sec>summary::-webkit-details-marker{display:none}
+.cat-sec>summary::before{content:"▾";order:-1;font-size:11px;color:var(--mut);
+  display:inline-block;width:11px;flex:none}
+.cat-sec:not([open])>summary::before{transform:rotate(-90deg)}
+.cat-sec>summary:hover{color:var(--accent)}
+.cat-sec>summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.cat-sec:not([open])>summary{margin-bottom:2px}
+@media (prefers-reduced-motion: no-preference){
+  .cat-sec>summary::before{transition:transform .16s}
+}
 .co-topo{position:sticky;top:var(--hh,58px);z-index:8;background:var(--bg);padding:8px 0 10px;margin-bottom:6px}
 .shop .q{font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;font-size:12.5px}
 .shop li.done span{text-decoration-thickness:1.5px;text-decoration-color:var(--ok)}
@@ -1930,6 +1944,15 @@ function migraRegistos(s){
   s.ui = s.ui || {};
   if(!Array.isArray(s.ui.dietaF)) s.ui.dietaF = temChave(DIETAS_FILTRAVEIS,s.ui.dietaF)? [s.ui.dietaF] : [];
   if(!Array.isArray(s.ui.alergF)) s.ui.alergF = ehAlergenio(s.ui.alergF)? [s.ui.alergF] : [];
+  /* Que secções da despensa ficaram abertas. Vive em s.ui, logo entra por
+     ficheiro de cópia como tudo o resto: só se aceitam booleanos, e no máximo
+     uma entrada por secção que existe. */
+  if(s.ui.despSec && typeof s.ui.despSec==='object' && !Array.isArray(s.ui.despSec)){
+    const lim={};
+    Object.keys(s.ui.despSec).slice(0,40).forEach(k=>{
+      if(typeof k==='string' && k.length<=40 && typeof s.ui.despSec[k]==='boolean') lim[k]=s.ui.despSec[k]; });
+    s.ui.despSec=lim;
+  } else s.ui.despSec={};
   s.validades = limparValidades(s.validades);
   s.veredictos = limparVeredictos(s.veredictos, ids);
   s.brigada = limparBrigada(s.brigada, ids);
@@ -21840,10 +21863,50 @@ function limparDespensa(){
 }
 /* Filtro de texto sem re-render: mexer no #main destruiria a própria caixa
    de pesquisa a meio da escrita. Só se escondem/mostram as linhas. */
+/* ---- A despensa por secções ----
+   São 667 ingredientes mais os suplementos. Agrupados já estavam, mas numa
+   coluna corrida de centenas de linhas ninguém encontra nada: a leitura é
+   toda igual do princípio ao fim. Cada secção passa a dobrar, com a conta do
+   que já lá está — «3 de 42» diz mais, e num relance, do que quarenta e duas
+   linhas por ler.
+
+   Por omissão abrem-se as secções onde há alguma coisa em casa, que é a
+   pergunta com que se chega aqui: o que é que eu tenho. As vazias ficam
+   fechadas e à mão de quem as quiser encher. A partir do primeiro toque manda
+   a escolha da pessoa, guardada por secção. */
+function despensaCfg(){
+  if(!S.ui.despSec || typeof S.ui.despSec!=='object') S.ui.despSec={};
+  return S.ui.despSec;
+}
+function despensaAberta(cat,quantosTem){
+  const c=despensaCfg();
+  return typeof c[cat]==='boolean' ? c[cat] : quantosTem>0;
+}
+function guardaSecaoDespensa(el){
+  if(!el || !el.dataset) return;
+  despensaCfg()[el.dataset.cat]=el.open;
+  saveMeta();   /* é preferência de vista, não altera dados nem o desfazer */
+}
+function abrirTodasDespensa(abrir){
+  const c=despensaCfg();
+  document.querySelectorAll('#despensa-lista details.cat-sec').forEach(d=>{
+    d.open=!!abrir; c[d.dataset.cat]=!!abrir; });
+  saveMeta();
+}
 function filtrarDespensa(el){
   const q=(el.value||'').toLowerCase().trim();
   document.querySelectorAll('#despensa-lista li').forEach(li=>{
     li.style.display = !q || li.textContent.toLowerCase().indexOf(q)>=0 ? '' : 'none';
+  });
+  /* Uma secção fechada esconderia os resultados da procura, e a caixa parecia
+     não encontrar nada. Enquanto se procura, abrem-se as que têm resultados e
+     desaparecem as que não têm; ao limpar, tudo volta ao que a pessoa escolheu
+     — sem gravar nada, porque isto é o efeito da procura e não uma preferência. */
+  document.querySelectorAll('#despensa-lista details.cat-sec').forEach(d=>{
+    if(!q){ d.style.display=''; d.open=despensaAberta(d.dataset.cat, d.querySelectorAll('li.done').length); return; }
+    const achou=[...d.querySelectorAll('li')].some(li=>li.style.display!=='none');
+    d.style.display=achou?'':'none';
+    d.open=achou;
   });
 }
 function setAlergDesp(v){ S.ui.alergDesp=ehAlergenio(v)? v:''; saveMeta(); render(); }
@@ -22100,9 +22163,19 @@ function renderDespensa(){
   ${filtro? `<div class="alerta" style="max-width:640px;margin-bottom:12px"><span aria-hidden="true">🚨</span>
     <span>${nFiltrado} ingrediente${nFiltrado===1?'':'s'} do catálogo ${nFiltrado===1?'traz':'trazem'} ${esc(RESTR[filtro].n.toLowerCase())}. ${esc(RESTR[filtro].d||'')}</span></div>`:''}
   <div class="card" style="max-width:640px">
+    <div class="row" style="margin-bottom:6px">
+      <button class="chip small" onclick="abrirTodasDespensa(true)">Abrir todas</button>
+      <button class="chip small" onclick="abrirTodasDespensa(false)">Fechar todas</button>
+      <span class="sub" style="margin-left:auto">${plural(grouped.filter(([,idx])=>idx.length).length,'secção','secções')}</span>
+    </div>
     <div id="despensa-lista">
-    ${grouped.filter(([,idx])=>idx.length).map(([cat,idx])=>`
-      <div class="cat-h">${icoCat(cat)} ${cat}</div>
+    ${grouped.filter(([,idx])=>idx.length).map(([cat,idx])=>{
+      const naDespensa=idx.filter(i=>S.despensa[catalogo[i]]).length;
+      const aberta=despensaAberta(cat,naDespensa);
+      return `
+      <details class="cat-sec" ${aberta?'open':''} data-cat="${esc(cat)}" ontoggle="guardaSecaoDespensa(this)">
+        <summary class="cat-h ${naDespensa===idx.length?'feita':''}">${icoCat(cat)} ${cat}
+          <span class="cat-conta">${naDespensa} de ${idx.length}</span></summary>
       <ul class="shop">${idx.map(i=>{
         const nome=catalogo[i], ok=!!S.despensa[nome];
         /* a etiqueta só aparece para os alergénios que alguém cá em casa tem:
@@ -22125,7 +22198,7 @@ function renderDespensa(){
             value="${val||''}" aria-label="Validade de ${esc(nome)}"
             onchange="guardarValidade('${esc(nome).replace(/'/g,'&#39;')}',this.value)">${
             dv!==null? `<span class="sub ${classeValidade(dv)}">${rotuloValidade(dv)}</span>`:''}</span>`:''}</li>`;
-      }).join('')}</ul>`).join('')}
+      }).join('')}</ul></details>`;}).join('')}
     </div>
   </div>
   <p class="sub" style="margin-top:12px">Marca o que já tens em casa: as receitas e a lista de compras passam a saber
