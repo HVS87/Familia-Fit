@@ -14558,7 +14558,15 @@ function folhaRegistoHtml(){
    pesagens novas e compras por confirmar. Uma de cada vez, e nunca duas vezes
    na mesma sessão — perguntar outra vez o que já foi respondido é ruído. */
 let jaPerguntouPeso=false, jaPerguntouCompras=false;
-function abrirModal(tipo,dados){ S.ui.modal=Object.assign({tipo},dados||{}); saveMeta(); render(); }
+/* Os três tipos que a app sabe desenhar. Um tipo que não esteja aqui deixava
+   S.ui.modal preenchido sem nada no ecrã: uma camada invisível que engolia o
+   Escape, travava o go() e não tinha botão de fechar — só se saía recarregando.
+   Recusar em voz alta é melhor do que abrir o nada. */
+const MODAIS=['peso','aviso','compras'];
+function abrirModal(tipo,dados){
+  if(MODAIS.indexOf(tipo)<0){ console.warn('Família Fit — modal desconhecido: '+tipo); return; }
+  S.ui.modal=Object.assign({tipo},dados||{}); saveMeta(); render();
+}
 function fecharModal(){ S.ui.modal=null; saveMeta(); render(); }
 function fundoModal(e){ if(e && e.target && e.target.classList.contains('mfundo')) fecharModal(); }
 function modalAberto(){ return S.ui.modal&&typeof S.ui.modal==='object'? S.ui.modal : null; }
