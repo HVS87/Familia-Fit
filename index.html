@@ -1468,6 +1468,25 @@ select.acomp.cheio{border-style:solid;background-color:var(--card);color:var(--i
 .ac-linha select.acomp{flex:1;min-width:0}
 .ac-troca{flex:none;margin-top:6px;padding:0 12px;min-height:42px;font-size:14px;line-height:1}
 .ac-divide{display:block;margin-top:4px;font-size:12px;color:var(--mut)}
+/* Os dois botões da ficha. Ficam em caixa própria, encostada à margem por um
+   filete, porque não são mais um botão entre botões: são a pergunta «e ao lado,
+   o quê?», que é a que muda o prato todo. No telemóvel passam a um por linha —
+   dois botões com este texto não cabem lado a lado sem partir palavras. */
+.lados-ficha{margin-top:12px;padding:10px 12px;border-radius:var(--r);
+  border:1px solid var(--line);border-left:3px solid var(--accent);background:var(--inset)}
+.lados-bt{gap:8px}
+.lados-bt .btn{flex:1 1 240px;justify-content:center;text-align:center}
+.lados-agora{margin:8px 0 0}
+.lado-painel{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
+.lado-lista{display:flex;flex-wrap:wrap;gap:6px;max-height:260px;overflow-y:auto;
+  overscroll-behavior:contain;padding:2px}
+/* inline-block e não o inline-flex do chip normal: com dois itens flex, um
+   nome comprido partia-se em duas linhas e as calorias ficavam encostadas ao
+   lado, longe da palavra a que pertencem. Assim o «· 146 kcal» segue a última
+   palavra do nome, como se fosse texto corrido — que é o que é. */
+.chip.lado-op{display:inline-block;text-align:left;max-width:100%;padding:5px 12px}
+.chip.lado-op[disabled]{opacity:.45;cursor:not-allowed}
+@media(max-width:520px){ .lados-bt .btn{flex:1 1 100%} }
 /* O nome do prato já com o que vai ao lado. Fica acima do seletor porque é a
    resposta à pergunta «o que é que se come hoje» — o seletor é como se muda,
    não é o que é. */
@@ -1781,7 +1800,7 @@ const ICO_SPORT={corrida:'🏃',ciclismo:'🚴',agua:'🏊',forca:'🏋️',corp
   raquete:'🎾',combate:'🥊',natureza:'⛰️',danca:'💃'};
 const ICO_CAT={'Peixe & Marisco':'🐟','Carne & Ovos':'🥩','Frutas & Legumes':'🥦',
   'Laticínios':'🥛','Mercearia & Outros':'🫙','Suplementos':'💊'};
-const ICO_REF={p:'🌅',a:'🍽️',l:'🍎',j:'🌙',ac:'🍚'};
+const ICO_REF={p:'🌅',a:'🍽️',l:'🍎',j:'🌙',ac:'🍚',mo:'🥄'};
 /* Os ícones são pratos e ingredientes, não bandeiras — a portuguesa é a
    exceção porque é a cozinha da casa. O feijão vale pela feijoada, que é o
    prato nacional brasileiro, e a salsicha pelas cozinhas do centro da Europa
@@ -11871,7 +11890,7 @@ function blocoSubstituicoes(r){
   const linhas=faltam.map(n=>({n, s:substitutosDe(n)})).filter(x=>x.s).slice(0,4);
   if(!linhas.length) return '';
   return `<div style="margin-top:14px">
-    <h3>Falta um? Troca-se ${dica('substituicoes')}</h3>
+    <h3>Falta um ingrediente? Troca-se ${dica('substituicoes')}</h3>
     ${linhas.map(x=>`<p class="sub" style="margin-top:6px"><b>${esc(x.n)}</b> →
       ${x.s.opcoes.map(o=>`<span class="tag ${o.tem?'val-ok':''}">${esc(o.n)}${o.tem?' ✓ tens':''}</span>`).join(' ')}
       <span style="display:block;opacity:.8">${esc(x.s.nota)}</span></p>`).join('')}
@@ -12460,6 +12479,130 @@ function blocoVeredictosDaCasa(r){
   return `<p class="sub" style="margin-top:8px">🗣 ${partes.join(' · ')}
     <span style="opacity:.7">— nas últimas ${SEMANAS_ARREFECER} semanas.</span></p>`;
 }
+/* ================= O QUE VAI AO LADO, ESCOLHIDO NA FICHA =================
+   O acompanhamento e o molho já se trocavam — mas só no plano da semana. Quem
+   estava a ler uma receita tinha de sair da ficha, ir ao plano, escolher o dia
+   e voltar, e por isso quase ninguém trocava nada. Os dois botões passam a
+   estar aqui, onde se está a olhar para o prato.
+
+   Não é uma segunda maneira de compor um prato: é a mesma, chamada de outro
+   sítio. Guarda-se o par {base, acompanhamentos, molho} e é registaCombo() que
+   soma os ingredientes, refaz os macros e reescreve os passos — a mesma função
+   que o plano chama. Uma correção na biblioteca chega aos dois ao mesmo tempo,
+   e nunca há duas contas para o mesmo prato. */
+function pratoBaseDe(r){
+  if(!r) return null;
+  return ehCombo(r)? (RECIPES.find(x=>x.id===r.base && !ehCombo(x))||null) : r;
+}
+function ladosDaFicha(r){
+  return {base:pratoBaseDe(r),
+    acs:(ehCombo(r)? (r.acIds||[]) : []).slice(),
+    mo:(ehCombo(r)? (r.moId||'') : '')};
+}
+/* Só um prato leva coisas ao lado: um molho não leva molho, e um
+   acompanhamento não é o centro da mesa. */
+function levaLado(r){ const b=pratoBaseDe(r); return !!b && !ehAcompanhamento(b) && !ehMolho(b); }
+/* Como no plano: não se oferece o que traz um alergénio ou quebra a dieta de
+   quem cá vive. O que fica de fora conta-se em voz alta, para a lista curta
+   não parecer um catálogo pobre. */
+function poolLadoFicha(tipo){
+  const casa=S.members||[];
+  return (tipo==='mo'? molhos() : acompanhamentos())
+    .filter(x=>!casa.length || avaliaReceita(x,casa,'j',false).ok)
+    .sort((a,b)=>{
+      const da=disponibilidadeReceita(a).pronta, db=disponibilidadeReceita(b).pronta;
+      if(da!==db) return da? -1 : 1;
+      return a.n.localeCompare(b.n,'pt');
+    });
+}
+function ladoFicha(tipo){ const f=fichaAberta(); if(!f) return;
+  f.lado=(f.lado===tipo)? '' : tipo; saveMeta(); render();
+  if(f.lado) setTimeout(()=>{ const el=document.getElementById('lado-painel'); if(el) scrollSuave(el); },0);
+}
+function poeLadoFicha(tipo,rid){
+  const f=fichaAberta(); if(!f) return;
+  const L=ladosDaFicha(RECIPES.find(x=>x.id===f.r));
+  if(!L.base) return;
+  const acs=L.acs.slice(); let mo=L.mo;
+  if(tipo==='mo'){ mo=(mo===rid)? '' : rid; }
+  else {
+    const j=acs.indexOf(rid);
+    if(j>=0) acs.splice(j,1);
+    else if(acs.length>=MAX_AC) return flash('warn','O lugar do lado já leva '+MAX_AC+
+      ' acompanhamentos. Tira um antes de juntar outro — passado isto deixa de ser acompanhamento.');
+    else acs.push(rid);
+  }
+  aplicaLadosFicha(L.base.id, acs, mo, f.n, f.lado);
+}
+/* O painel fica aberto depois da escolha: quem junta um acompanhamento quase
+   sempre quer ver logo o segundo, e fechá-lo obrigava a carregar outra vez no
+   botão a cada tentativa. Por isso a ficha é reapontada à mão em vez de passar
+   por abrirFicha(), que a abriria de painel fechado. */
+function aplicaLadosFicha(baseId, acs, mo, n, lado){
+  const irPara=(id,txt)=>{
+    if(!RECIPES.some(x=>x.id===id)) return flash('bad','Não foi possível compor este prato.');
+    S.ui.ficha={r:id, n:clampNum(n||1,1,MAX_DOSES), lado:lado||''};
+    saveMeta(); flash('ok',txt);
+  };
+  if(!acs.length && !mo){
+    save('prato sem acompanhamento');
+    return irPara(baseId,'Voltou ao prato simples, com as contas e os passos só dele.');
+  }
+  const combo=registaCombo(baseId, acs, mo);
+  if(!combo) return flash('bad','Não foi possível compor este prato.');
+  save('o que vai ao lado');
+  irPara(combo.id,'Agora é «'+combo.n+'» — ingredientes, calorias e passos já refeitos.');
+}
+function painelLadoFicha(r,tipo){
+  const L=ladosDaFicha(r), soUm=tipo==='mo';
+  const todos=soUm? molhos() : acompanhamentos();
+  const pool=poolLadoFicha(tipo), fora=todos.length-pool.length;
+  const postos=soUm? (L.mo? [L.mo] : []) : L.acs;
+  const cheio=!soUm && L.acs.length>=MAX_AC;
+  const rot=soUm? 'molho' : 'acompanhamento';
+  if(!pool.length) return `<div class="lado-painel" id="lado-painel">
+    <p class="sub">Não há nenhum ${rot} que sirva as dietas e as alergias desta casa.</p></div>`;
+  const linha=x=>{
+    const posto=postos.indexOf(x.id)>=0, pronta=disponibilidadeReceita(x).pronta;
+    return `<button class="chip lado-op ${posto?'on':''}" onclick="poeLadoFicha('${tipo}','${x.id}')"
+      aria-pressed="${posto}"
+      aria-label="${posto? 'Tirar ':(soUm&&L.mo? 'Trocar para ':'Juntar ')}${esc(x.n)}${posto?'':', '+x.k+' quilocalorias'}"
+      ${(!posto&&cheio)? 'disabled title="O lugar do lado já está cheio"':''}
+      >${posto? '✕ ' : ''}${esc(x.n)} <span class="sub">· ${x.k} kcal${pronta? ' · ✓ tens':''}</span></button>`;
+  };
+  return `<div class="lado-painel" id="lado-painel" role="group" aria-label="Escolher ${rot}">
+    <p class="sub" style="margin:0 0 8px">${soUm
+      ? 'Um molho de cada vez — dois no mesmo prato não é receita, é indecisão. Escolher outro troca o que está.'
+      : 'Até '+MAX_AC+' acompanhamentos, a repartirem o lugar do lado: dois são meia dose de cada, não duas doses.'}
+      Carrega no que está posto para o tirar. ${pool.filter(x=>disponibilidadeReceita(x).pronta).length
+        ? 'Aparecem primeiro os que já tens em casa.' : ''}</p>
+    <div class="lado-lista">${pool.map(linha).join('')}</div>
+    ${cheio? `<p class="sub" style="margin-top:8px">⚖ ${notaDivisao(L.acs.length)}. O lugar do lado está cheio.</p>`:''}
+    ${fora>0? `<p class="sub" style="margin-top:8px">${fora===1? 'Fica de fora 1 '+rot
+      : 'Ficam de fora '+fora+' '+(soUm?'molhos':'acompanhamentos')} por causa das dietas e das alergias marcadas nesta casa.</p>`:''}
+  </div>`;
+}
+function blocoLadosFicha(r,f){
+  if(!levaLado(r)) return '';
+  const L=ladosDaFicha(r);
+  const nomeDe=id=>{ const x=RECIPES.find(y=>y.id===id); return x? x.n : ''; };
+  const postos=[
+    L.acs.length? ICO_REF.ac+' '+L.acs.map(nomeDe).filter(Boolean).join(' · ') : '',
+    L.mo? ICO_REF.mo+' '+nomeDe(L.mo) : ''
+  ].filter(Boolean);
+  return `<div class="lados-ficha">
+    <div class="row lados-bt">
+      <button class="btn ${f.lado==='ac'?'':'ghost'}" onclick="ladoFicha('ac')" aria-expanded="${f.lado==='ac'}"
+        aria-controls="lado-painel">${ICO_REF.ac} Trocar/acrescentar acompanhamento</button>
+      <button class="btn ${f.lado==='mo'?'':'ghost'}" onclick="ladoFicha('mo')" aria-expanded="${f.lado==='mo'}"
+        aria-controls="lado-painel">${ICO_REF.mo} Trocar/acrescentar molho</button>
+    </div>
+    <p class="sub lados-agora">${postos.length
+      ? 'Neste prato: '+postos.join(' · ')+(L.acs.length>1? ' — '+notaDivisao(L.acs.length) : '')
+      : 'Prato só, sem nada ao lado. O que juntares entra nos ingredientes, nas calorias e nos passos.'}</p>
+    ${f.lado? painelLadoFicha(r,f.lado) : ''}
+  </div>`;
+}
 function fichaHtml(f){
   const r=RECIPES.find(x=>x.id===f.r); if(!r) return '';
   const passos=passosDaReceita(r,f.n), escritos=temPassosEscritos(r);
@@ -12499,6 +12642,7 @@ function fichaHtml(f){
         ${custo.com? `<div class="stat"><b>${nPT(custo.total,2)} €</b><span>Custo${custo.sem?'*':''}</span></div>`:''}
       </div>
       ${avisoAlergia(r,S.members)}
+      ${blocoLadosFicha(r,f)}
       ${notaHistoria(r)}
       ${blocoVariantes(r)}
       ${blocoGostos(r)}
@@ -13715,7 +13859,7 @@ function abrirPesquisa(){ S.ui.pesqAberta=true; S.ui.pesqQ='';
 function fecharPesquisa(){ S.ui.pesqAberta=false; saveMeta(); render(); }
 function setPesqQ(v){ S.ui.pesqQ=v; pintaPesquisa(); }
 function irReceita(id){ fecharPesquisa(); const r=RECIPES.find(x=>x.id===id); if(!r) return;
-  S.ui.busca=r.n; S.ui.mealF=ehAcompanhamento(r)?'ac':'todas'; S.ui.cuis='todas'; S.ui.dietaF=[];
+  S.ui.busca=r.n; S.ui.mealF=ehMolho(r)?'mo':ehAcompanhamento(r)?'ac':'todas'; S.ui.cuis='todas'; S.ui.dietaF=[];
   S.ui.soEpoca=false; go('receitas'); }
 function irIngrediente(n){ fecharPesquisa(); S.ui.mercVista='despensa'; go('mercearia');
   setTimeout(()=>{ const el=document.querySelector('#despensa-lista'); if(el) scrollSuave(el); },0);
@@ -18092,7 +18236,7 @@ function setBusca(v,el){
   const vazio=document.getElementById('rec-vazio');
   if(vazio) vazio.style.display=visiveis? 'none':'';
 }
-function setMealF(v){ S.ui.mealF=(v==='todas'||v==='ac'||MEALK.indexOf(v)>=0)? v:'todas'; S.ui.recLimite=LOTE_RECEITAS; saveMeta(); render(); }
+function setMealF(v){ S.ui.mealF=(v==='todas'||v==='ac'||v==='mo'||MEALK.indexOf(v)>=0)? v:'todas'; S.ui.recLimite=LOTE_RECEITAS; saveMeta(); render(); }
 function toggleComp(){ S.ui.soComp=!S.ui.soComp; saveMeta(); render(); }
 function toggleEpoca(){ S.ui.soEpoca=!S.ui.soEpoca; S.ui.recLimite=LOTE_RECEITAS; saveMeta(); render(); }
 function setCatF(k){ S.ui.catF=temChave(CATEG,k)? k:''; S.ui.recLimite=LOTE_RECEITAS; saveMeta(); render(); }
@@ -21136,12 +21280,14 @@ function renderNutricao(){
 /* ================= RECEITAS ================= */
 function renderReceitas(){
   const m = S.members.length? curM() : null;
-  /* «Todas as refeições» mostra os pratos; os acompanhamentos têm filtro
-     próprio, para não se misturarem com o que é uma refeição a sério. */
+  /* «Todas as refeições» mostra os pratos; os acompanhamentos e os molhos têm
+     filtro próprio, para não se misturarem com o que é uma refeição a sério —
+     ninguém janta um chimichurri, e ele estava a aparecer entre os jantares
+     porque o corte só conhecia os acompanhamentos. */
   /* o filtro de cozinha usa TODAS as cozinhas da receita: um melão com
      presunto é português e espanhol, e tem de aparecer nas duas listas */
   let list=RECIPES.filter(r=> (S.ui.cuis==='todas'||ehDaCozinha(r,S.ui.cuis))
-    && (S.ui.mealF==='todas'? !ehAcompanhamento(r) : r.mt.indexOf(S.ui.mealF)>=0));
+    && (S.ui.mealF==='todas'? !(ehAcompanhamento(r)||ehMolho(r)) : r.mt.indexOf(S.ui.mealF)>=0));
   /* cumulativos: a receita tem de cumprir todas as dietas marcadas e estar
      livre de todos os alergénios marcados ao mesmo tempo */
   const dF=dietasFiltro().filter(k=>temChave(DIETAS_FILTRAVEIS,k));
@@ -21253,6 +21399,8 @@ function renderReceitas(){
     <button class="chip ${S.ui.mealF==='todas'?'on':''}" aria-pressed="${S.ui.mealF==='todas'}" onclick="setMealF('todas')">Todas as refeições</button>
     ${MEALS.map(([kk,rot])=>`<button class="chip ${S.ui.mealF===kk?'on':''}" aria-pressed="${S.ui.mealF===kk}" onclick="setMealF('${kk}')">${ICO_REF[kk]||''} ${rot}</button>`).join('')}
     <button class="chip ${S.ui.mealF==='ac'?'on':''}" aria-pressed="${S.ui.mealF==='ac'}" onclick="setMealF('ac')">${ICO_REF.ac} Acompanhamentos</button>
+    <button class="chip ${S.ui.mealF==='mo'?'on':''}" aria-pressed="${S.ui.mealF==='mo'}" onclick="setMealF('mo')"
+      title="Molhos, marinadas e manteigas compostas — o que se junta a um prato já feito">${ICO_REF.mo} Molhos</button>
     <button class="chip ${S.ui.soEpoca?'on':''}" onclick="toggleEpoca()" aria-pressed="${!!S.ui.soEpoca}"
       title="Receitas com pelo menos um ingrediente na época em Portugal, este mês">🌱 Da época agora</button>
   </div>
@@ -24848,13 +24996,13 @@ const TOUR=[
      linha correr — contada aqui, a receita dava 422 e o ecrã dava 447. */
   {tab:'receitas', sel:'#rec-busca',
    t:()=>`${RECIPES.length} receitas, ${Object.keys(CUIS).length} cozinhas`,
-   d:`Peixe grelhado e no forno, marisco à portuguesa, carne na brasa com os cortes pelo nome, keto, vegan e muito mais — de ${CUIS.portuguesa.toLowerCase()} a ${CUIS.africana.toLowerCase()} e ${CUIS.brasileira.toLowerCase()}. Pesquisa por nome ou por ingrediente, e filtra por refeição, cozinha, dieta, categoria — entradas, pratos principais, brunch, snacks e sobremesas — ou «sem» um alergénio.`},
+   d:`Peixe grelhado e no forno, marisco à portuguesa, carne na brasa com os cortes pelo nome, keto, vegan e muito mais — de ${CUIS.portuguesa.toLowerCase()} a ${CUIS.africana.toLowerCase()} e ${CUIS.brasileira.toLowerCase()}. Pesquisa por nome ou por ingrediente, e filtra por refeição, cozinha, dieta, categoria — ${CATEG_K.map(k=>CATEG[k].n.toLowerCase()).join(', ')} — ou «sem» um alergénio. Os acompanhamentos e os molhos têm filtro próprio, ao lado das refeições: ninguém janta um chimichurri, mas ele vai a um bife.`},
   {tab:'receitas', sel:'.rc',
    t:'Macros que saem dos ingredientes',
    d:'As calorias e os macros de cada receita são calculados da composição de cada ingrediente (tabela do INSA), com as quantidades já multiplicadas pelas pessoas escolhidas. Os ✓ e ✗ mostram o que já tens na despensa.'},
   {tab:'receitas', sel:'.rc',
    t:'Toca na receita: os passos de preparação',
-   d:'Cada receita abre uma ficha com os ingredientes já na quantidade certa para quem vai comer, o que está e o que falta na despensa, e os passos de preparação escritos um a um, com os tempos. Daí segue-se para o modo Cozinha, um passo de cada vez em letra grande e com o ecrã impedido de adormecer — para se seguir a receita com as mãos na massa.'},
+   d:'Cada receita abre uma ficha com os ingredientes já na quantidade certa para quem vai comer, o que está e o que falta na despensa, e os passos de preparação escritos um a um, com os tempos. Lá dentro há dois botões — acompanhamento e molho — que compõem o prato: o mesmo bife com chimichurri ou com manteiga de alho é outro prato, e as calorias, os ingredientes e os passos refazem-se sozinhos. Daí segue-se para o modo Cozinha, um passo de cada vez em letra grande e com o ecrã impedido de adormecer — para se seguir a receita com as mãos na massa.'},
   {tab:'receitas', sel:'.filtros', antes:()=>{S.ui.dietaF=S.ui.dietaF||[];},
    t:'Dietas e alergénios, ao mesmo tempo',
    d:'Os dois filtros são listas de checks e somam-se em vez de se substituírem: marcar «vegetariana» e «sem glúten» mostra as receitas que são as duas coisas. É quase sempre assim que a pergunta se faz numa casa real — a dieta de um e a alergia de outro à mesma mesa. Além das dietas com macros próprios, há <b>kosher</b> e <b>halal</b>: a app afasta o que é claramente incompatível — porco, marisco, peixe sem barbatanas e escamas, álcool, carne e leite no mesmo prato — e diz com todas as letras que não consegue verificar abate nem certificação, que é o que verdadeiramente determina se um alimento o é. Nenhuma etiqueta de dieta é declarada: todas se verificam pelos ingredientes, pelos números (com um teto por receita de metade da dose diária) e pelo modo de preparação — um peito de frango é low fat, o mesmo frito por imersão não é.'},
