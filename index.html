@@ -1299,6 +1299,12 @@ input[type=range].com-detentes::-moz-range-track{
   @keyframes tour-entra{ from{ opacity:0; transform:translate(-50%,12px);} }
 }
 .tour-destaque{border:2px solid var(--accent);background:linear-gradient(135deg,var(--accent-soft),transparent 70%)}
+/* O aviso de que os dados só existem aqui. Fica alinhado à esquerda dentro de
+   um cartão centrado de propósito: é para se ler, não para se olhar. */
+.aviso-local{max-width:62ch;margin:14px auto 0;text-align:left;font-size:14px;line-height:1.55;
+  border-left:3px solid var(--warn);padding:2px 0 2px 12px;color:var(--fg-2)}
+.aviso-local p{margin:0}
+.aviso-local p+p{margin-top:8px}
 /* Cartões colapsáveis: o título ganha um botão que dobra o corpo, e o estado
    fica guardado por cartão — quem fecha a projeção de peso não a quer ver
    aberta outra vez amanhã. */
@@ -9846,6 +9852,7 @@ const DICAS={
   pesoTalao:'O total previsto do talão é um número opaco: 47 € não diz onde cortar. Estas barras mostram os itens que mais pesam no custo desta lista, com a secção do supermercado ao lado. Ver que o salmão e o queijo são metade do talão transforma o número numa decisão. Só entram os itens que já têm preço no teu talão — os outros ficam de fora e a app diz quantos são.',
   regresso:'Voltar depois de férias ou de uma gripe e encontrar tudo vazio ou falhado é o momento em que se desiste de uma app destas. A pausa declarada — que congela a sequência sem a partir — já existia, mas escondida num chip que só encontrava quem já tinha voltado. Agora é oferecida no próprio regresso, com as semanas em falta já apontadas, e a app não faz juízo nenhum sobre a ausência.',
   urgencia:'A lista de compras trata igual o açafrão de domingo e o frango de amanhã. Este bloco separa o que é preciso hoje ou amanhã: é a única parte da lista onde falhar tem consequência física — uma mesa sem jantar. O dia vem de quando cada ingrediente é usado pela primeira vez no plano da semana.',
+  trocasDieta:'A outra tabela de trocas dispara quando FALTA um ingrediente; esta dispara quando uma dieta desta casa o exclui. O caso que mais dói é a sobremesa: quem faz keto ou low carb tem o catálogo inteiro de doces fechado por causa de um ingrediente só, o açúcar — e trocá-lo abre-o quase todo. A app diz sempre o que muda na cozinha e não apenas nos macros, porque um adoçante não é açúcar com menos calorias: o eritritol adoça 70 % do que o açúcar adoça, não carameliza, não tosta e arrefece na boca; a stévia não dá corpo nenhum e desfaz a estrutura de um bolo; a farinha de amêndoa não tem glúten e não segura sozinha, além de trazer um alergénio. Uma sobremesa trocada é outra sobremesa, e quem a vai fazer tem direito a saber isso antes. Trocar cria uma variante da casa, com os macros recalculados; a receita original fica intacta. Como na outra tabela, nunca se sugere uma troca que traga um alergénio marcado em alguém desta casa.',
   substituicoes:'Quando falta um ingrediente que a receita pede, a app sugere o que se costuma pôr no lugar dele numa cozinha portuguesa, e diz o que muda no prato. São trocas de cozinha, não de tabela nutricional: os macros continuam a ser os dos ingredientes originais, porque a app não sabe qual das trocas foi feita. Uma troca nunca é sugerida se trouxer um alergénio marcado em alguém desta casa — essa é a regra que não se negoceia.',
   livro:'Uma vista de impressão que compõe as receitas da casa como um livro: capa com o nome da casa, cada receita com ingredientes, passos e a sua história, e um índice no fim. Sai pela impressão do browser, por isso dá papel ou PDF conforme escolheres — sem sair da app e sem enviar nada para lado nenhum.',
   historia:'Duas linhas opcionais numa receita da casa: de quem veio e a história por trás dela. Aparecem coladas na ficha, abrem o modo Cozinha e mudam o nome nos cartões de sugestão — «a receita da Avó Alice» em vez do nome seco. Entram na cópia de segurança como tudo o resto.',
@@ -11872,6 +11879,98 @@ function blocoSubstituicoes(r){
       os dos ingredientes originais. Nunca se sugere nada que traga um alergénio marcado nesta casa.</i></p>
   </div>`;
 }
+/* ================= TROCAS QUE A DIETA PEDE =================
+   A tabela de cima dispara quando FALTA um ingrediente. Esta dispara quando
+   uma dieta da casa o exclui — e o caso que mais dói é a sobremesa: quem faz
+   keto ou low carb tem o catálogo inteiro de doces fechado por causa de um
+   único ingrediente, o açúcar. Trocar esse ingrediente abre-o quase todo.
+
+   Cada troca diz o que muda na cozinha, e não só nos macros, porque um
+   adoçante não é açúcar com menos calorias: não carameliza, não dá corpo, não
+   alimenta fermento, e alguns arrefecem na boca. Uma sobremesa trocada é
+   outra sobremesa, e quem a faz tem direito a saber isso antes de a fazer. */
+const TROCAS_DIETA=[
+  {de:'Açúcar branco', por:'Eritritol', dietas:['keto','lowcarb'], razao:'açúcar',
+   nota:'Adoça cerca de 70 % do açúcar, por isso leva-se um terço a mais. Não carameliza nem tosta, e arrefece na boca — nota-se mais numa mousse fria do que num bolo. Em quantidade dá desconforto intestinal a algumas pessoas.'},
+  {de:'Açúcar amarelo', por:'Eritritol', dietas:['keto','lowcarb'], razao:'açúcar',
+   nota:'Perde-se o travo a melaço do açúcar amarelo, que é metade do sabor em bolos escuros. Não carameliza.'},
+  {de:'Mel', por:'Xarope de agave', dietas:['vegan'], razao:'origem animal',
+   nota:'O agave é de planta e é o substituto de sempre em pastelaria vegan. Adoça mais do que o mel: usa-se cerca de três quartos.'},
+  {de:'Mel', por:'Adoçante de stévia', dietas:['keto','lowcarb'], razao:'açúcar',
+   nota:'A stévia adoça muito mais e não dá corpo nenhum: um bolo perde estrutura e uma calda deixa de existir. Serve em cremes e iogurtes, não em massas.'},
+  {de:'Leite condensado açucarado', por:'Leite de coco', dietas:['keto','lowcarb','vegan'], razao:'açúcar e leite',
+   nota:'Muda o prato de nome: sem o açúcar do condensado a mousse não presta, e o leite de coco traz sabor próprio. É uma receita nova, não a mesma com menos açúcar.'},
+  {de:'Farinha', por:'Farinha de amêndoa', dietas:['keto','lowcarb'], razao:'hidratos',
+   nota:'Não tem glúten e por isso não segura sozinha: pede mais ovo e mais tempo a arrefecer antes de desenformar. E traz frutos secos, que é alergénio.'},
+  {de:'Farinha de trigo tipo 55', por:'Farinha de amêndoa', dietas:['keto','lowcarb'], razao:'hidratos',
+   nota:'Como acima: não folha nem levanta, e traz frutos secos.'},
+  {de:'Nata para bater 35% gordura', por:'Leite de coco', dietas:['vegan'], razao:'origem animal',
+   nota:'Bate-se se estiver muito frio e só a parte espessa da lata. O sabor a coco fica sempre.'},
+  {de:'Manteiga', por:'Óleo de coco', dietas:['vegan'], razao:'origem animal',
+   nota:'Sólido a frio como a manteiga, o que é raro entre as gorduras vegetais. Em massas quebradas resulta; em cremes deixa gosto.'},
+  {de:'Leite', por:'Bebida de amêndoa sem açúcar', dietas:['vegan','lowcarb'], razao:'origem animal e hidratos',
+   nota:'Muito mais fina do que o leite: cremes e pudins ficam menos encorpados e podem precisar de mais espessante.'},
+];
+/* As trocas que fazem sentido para esta receita e para esta casa: só as que
+   têm um ingrediente que a receita usa, só as que trazem um substituto que
+   existe no catálogo, e só as das dietas que alguém cá segue. */
+function trocasDietaDe(r, membros){
+  if(!r || !Array.isArray(r.i)) return [];
+  const gente=membros||S.members;
+  const dietas=[...new Set(gente.map(m=>m.dieta).filter(Boolean))];
+  const veta=[]; gente.forEach(m=>restricoesDe(m).forEach(k=>{ if(veta.indexOf(k)<0) veta.push(k); }));
+  const out=[];
+  TROCAS_DIETA.forEach(t=>{
+    if(!r.i.some(l=>l[0]===t.de)) return;
+    /* composicaoDe() e não temChave(NUTRI): o eritritol, a stévia e o xarope
+       de agave vivem no catálogo oculto, que é precisamente onde a app guarda
+       o que só se usa quando é preciso. Olhar só para o visível escondia
+       justamente as trocas que esta tabela existe para oferecer. */
+    if(!composicaoDe(t.por)) return;
+    /* nunca uma troca que traga um alergénio marcado nesta casa — a mesma
+       regra da outra tabela, e pela mesma razão */
+    if(atributosIng(t.por).some(k=>veta.indexOf(k)>=0)) return;
+    const quais=t.dietas.filter(d=>dietas.indexOf(d)>=0);
+    out.push({...t, quais, aqui:quais.length>0, tem:temNaDespensa(t.por)});
+  });
+  /* primeiro as que alguém cá em casa precisa mesmo */
+  return out.sort((a,b)=>(b.aqui?1:0)-(a.aqui?1:0));
+}
+/* Aplicar cria uma variante da casa, como a troca por preço — a receita
+   original fica intacta, que é a diferença entre variar e substituir. */
+function aplicarTrocaDieta(rid, de, por){
+  const base=RECIPES.find(x=>x.id===rid); if(!base) return;
+  /* usá-lo numa receita da casa é o que traz um ingrediente do catálogo
+     oculto para o visível — a partir daqui aparece na despensa e na lista */
+  promoveIngrediente(por);
+  const nova=variantePorTroca(base, de, por);
+  if(!nova) return flash('bad','Não foi possível criar a variante.');
+  save('troca de '+de.toLowerCase()+' por '+por.toLowerCase());
+  render(); irReceita(nova.id);
+  flash('ok','Feita a variante com '+por.toLowerCase()+'. A receita original ficou como estava.',
+    {rot:'Anular', fn:'desfazer()'});
+}
+function blocoTrocasDieta(r){
+  const t=trocasDietaDe(r);
+  if(!t.length) return '';
+  const doce=(r.cg||[]).indexOf('sob')>=0;
+  return `<div style="margin-top:14px">
+    <h3>Trocar por causa da dieta ${dica('trocasDieta')}</h3>
+    <p class="sub">${doce
+      ? 'Uma sobremesa fecha-se quase sempre por um ingrediente só. Trocá-lo abre-a — mas muda-a, e aqui diz-se como.'
+      : 'O que se pode trocar nesta receita para ela servir uma dieta da casa, e o que muda com isso.'}</p>
+    ${t.map(x=>`<div class="row" style="justify-content:space-between;align-items:flex-start;gap:10px;margin-top:10px">
+      <div style="min-width:0">
+        <b>${esc(x.de)}</b> → <span class="tag ${x.tem?'val-ok':''}">${esc(x.por)}${x.tem?' ✓ tens':''}</span>
+        ${x.quais.length? `<span class="tag">${x.quais.map(d=>esc(nomeDieta(d))).join(' · ')}</span>`:''}
+        <span class="sub" style="display:block;margin-top:3px">${esc(x.nota)}</span>
+      </div>
+      <button class="chip" style="flex:none" onclick="aplicarTrocaDieta('${esc(r.id)}','${esc(x.de)}','${esc(x.por)}')">Trocar</button>
+    </div>`).join('')}
+    <p class="sub" style="margin-top:10px"><i>Trocar cria uma variante da casa, com os macros recalculados do catálogo.
+      A receita original fica como está.</i></p>
+  </div>`;
+}
 /* ================= ESTA SEMANA POR MENOS X € =================
    A tabela de substituições acima só dispara quando FALTA um ingrediente.
    Aqui dispara quando ele PESA: no fim do mês, a diferença entre cumprir e
@@ -12416,6 +12515,7 @@ function fichaHtml(f){
       <h3 style="margin-top:14px">Ingredientes</h3>
       <div class="ingr-lista">${listaIngredientesComEstado(r,f.n)}</div>
       ${blocoSubstituicoes(r)}
+      ${blocoTrocasDieta(r)}
       ${reguasDaReceita(r)}
       <h3 style="margin-top:16px">Preparação ${escritos?'':dica('passosDerivados')}</h3>
       ${linhaTempoReceita(passos)}
@@ -13548,11 +13648,11 @@ function cartaoPrimeirosPassos(){
   if(feitos===m.length){ return `<div class="card" style="margin-bottom:16px;border-left:4px solid var(--ok)">
     <div class="row" style="justify-content:space-between">
       <div><b>✓ Primeiros passos completos</b>
-        <span class="sub" style="display:block">A casa está montada. A visita guiada fica sempre em Dados, se quiseres ver o resto.</span></div>
+        <span class="sub" style="display:block">A casa está organizada. A visita guiada fica sempre em Dados, se quiseres ver o resto.</span></div>
       <button class="chip" onclick="arrumarPrimeirosPassos()">Arrumar</button></div></div>`; }
   return `<div class="card card--capa" id="primeiros" style="margin-bottom:16px" data-col="fam-primeiros">
     <span class="lbl">Primeiros passos · ${feitos} de ${m.length}</span>
-    <h2 style="margin-top:2px">Montar a casa</h2>
+    <h2 style="margin-top:2px">Organizar a casa</h2>
     <div class="mbar" style="height:6px;margin-top:8px"><div style="width:${(feitos/m.length*100).toFixed(0)}%;background:var(--accent)"></div></div>
     ${m.map(x=>`<div class="row" style="justify-content:space-between;margin-top:10px;gap:8px">
       <div style="min-width:0"><b style="${x.ok?'color:var(--ok)':''}">${x.ok?'✓':'○'} ${esc(x.t)}</b>
@@ -25083,8 +25183,17 @@ function cartaoBoasVindas(){
     <div style="font-size:34px" aria-hidden="true">🍽️</div>
     <h2 style="margin-top:6px">Bem-vindos ao Família Fit</h2>
     <p class="sub" style="max-width:62ch;margin:8px auto 0">Alimentação e atividade física de toda a família num só sítio:
-      perfis por fase da vida, ${RECIPES.length} receitas ligadas à despensa, plano semanal, objetivos com estratégia e lista de compras.
-      Nada sai deste dispositivo.</p>
+      perfis por fase da vida, ${RECIPES.length} receitas ligadas à despensa, plano semanal, objetivos com estratégia e lista de compras.</p>
+    <div class="aviso-local">
+      <p><b>Tudo o que escreveres fica só neste dispositivo.</b> Não há conta, não há servidor,
+      nada é enviado para lado nenhum — os dados vivem na memória deste navegador e mais nada.
+      É por isso que a app funciona sem rede e não sabe quem tu és.</p>
+      <p>O reverso é que <b>ninguém tem uma cópia por ti</b>. Limpar os dados do navegador,
+      trocar de telemóvel ou de computador, ou reinstalar o sistema, apaga tudo — perfis,
+      pesagens, receitas da casa, o histórico inteiro — e não há como recuperar.
+      <b>Guarda uma cópia de segurança de vez em quando</b>, no separador Dados: é um ficheiro,
+      demora um instante, e é a única coisa que se interpõe entre o teu histórico e o nada.</p>
+    </div>
     <div class="row" style="justify-content:center;margin-top:18px">
       <button class="btn" onclick="iniciarTour(true)">✨ Fazer a visita guiada</button>
       <button class="btn ghost" onclick="addMember()">+ Criar primeiro perfil</button>
