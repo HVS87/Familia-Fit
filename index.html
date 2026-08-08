@@ -21762,7 +21762,10 @@ function setMeal(di,mk,rid){
      dele já estão no campo próprio, e aceitá-lo aqui contava-os duas vezes */
   if(rid && ehCombo(RECIPES.find(x=>x.id===rid))) return;
   const meal=planMeal(di,mk); meal.r=rid;
-  if(!rid) meal.ac=[];   /* tirar o prato tira os acompanhamentos: um arroz sozinho não é plano */
+  /* tirar o prato tira o que ia ao lado: um arroz sozinho não é plano, e um
+     molho sozinho ainda menos — ficava pendurado no dia, invisível no ecrã
+     porque a linha só aparece com prato, e a somar calorias na mesma */
+  if(!rid){ meal.ac=[]; meal.mo=''; }
   /* mudar o prato com acompanhamentos já postos é um par novo: «Bife com
      arroz» que passa a «Frango com arroz» é outra variante, e é agora que
      ela nasce */
@@ -23165,6 +23168,11 @@ function shoppingItems(){
       if(di<agg[key].di){ agg[key].di=di; agg[key].mk=mk; } });
     junta(r.i,fPrato);
     acs.forEach(x=>junta(x.i,q));
+    /* O molho entra por inteiro, e não à fatia: não reparte lugar com ninguém.
+       Sem esta linha, quem escolhia chimichurri chegava ao supermercado sem a
+       salsa na lista e descobria-o em casa, com a picanha já na brasa. */
+    const mo=molhoDe(meal);
+    if(mo) junta(mo.i,1);
   }
   /* Os suplementos consomem-se todos os dias, não por refeição planeada:
      entram na lista pelas doses de sete dias, para a compra da semana
