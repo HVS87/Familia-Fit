@@ -20723,18 +20723,20 @@ const EVITAR=[
 const EVITAR_SINAL={
   /* O mel é mel em qualquer preparação: o Clostridium botulinum resiste ao
      forno de uma tarte, e é por isso que o NHS o proíbe no primeiro ano sem
-     excepção de confeção. */
+     exceção de confeção. */
   'Mel': {re:/^Mel$/i},
   /* Só o fruto inteiro engasga. Onde os passos dizem que vai picado, moído,
      em pasta ou em farinha, o perigo não existe e o aviso não aparece. */
   'Frutos de casca rija e amendoins inteiros':
     {re:/^(Nozes|Amêndoa|Amendoim|Avelã|Caju|Castanha de caju|Pistácio|Noz-pecã|Pinhões|Mistura de frutos secos)/i,
      semPasso:/pica|moíd|moer|ralad|pasta|manteiga de|farinha de|em pó|tritur|lasca|lamina|esmaga|pisa/i},
-  /* A uva e o tomate cereja engasgam pela forma, e a forma perde-se ao cozer.
-     Só se assinalam quando não há passo que os leve ao lume. */
+  /* A uva e o tomate cereja engasgam pela forma, e a forma perde-se ao cozer
+     e ao cortar. As palavras da louça — tabuleiro, tacho, frigideira — contam
+     como lume: «espargos e tomate cereja num tabuleiro com azeite» é uma frase
+     que diz onde o tomate vai parar sem dizer a palavra forno. */
   'Uvas e tomate cherry inteiros':
     {re:/^(Uvas?|Tomate cereja)$/i,
-     semPasso:/corta|ao meio|em quatro|metade|assa|coze|saltea|forno|grelha|refoga|estufa|frita/i},
+     semPasso:/corta|ao meio|em quatro|metade|assa|coze|saltea|forno|grelha|refoga|estufa|frita|tabuleiro|tacho|panela|frigideira|lume/i},
   'Rebuçados, chupas, pastilhas, pipocas, marshmallows': {re:/^(Pipocas|Rebuçad|Marshmallow)/i},
   'Bebidas de arroz': {re:/^Bebida de arroz/i},
   /* O limite desta linha não é o dos outros. A própria entrada de EVITAR diz
@@ -20762,12 +20764,43 @@ const EVITAR_SINAL={
      que levam cenoura seria pôr um aviso de asfixia em cima de uma sopa de
      legumes. Fica na lista da secção infantil, que é onde se lê com tempo. */
 };
+/* O texto de todos os passos que fazem este prato. Um prato composto não tem
+   entrada própria em PASSOS: os seus passos são os da base mais os do
+   acompanhamento e do molho, e os ids desses estão dentro do id do combo. */
+function passosTexto(r){
+  const ids=[];
+  if(String(r.id).indexOf('c:')===0){
+    const par=r.id.slice(2).split('~');
+    par[0].split('+').forEach(x=>{ if(x) ids.push(x); });
+    if(par[1]) ids.push(par[1]);
+  } else ids.push(r.id);
+  if(r.base && ids.indexOf(r.base)<0) ids.push(r.base);
+  return ids.map(id=>(PASSOS[id]||[]).map(p=>p[0]+' '+p[1]).join(' ')).join(' ');
+}
+/* A preparação só desfaz o perigo do ingrediente de que fala. A primeira
+   versão varria o texto todo dos passos, e isso calava avisos por causa de
+   outro alimento: o «coco ralado» do bowl de fruta calava as amêndoas
+   inteiras que estavam ao lado, e o «Coze» das lentilhas calava o tomate
+   cereja cru da mesma salada. Eram sete pratos, todos deles comidos à mão.
+   Duas decisões, ambas a favor do aviso: se nenhuma frase nomear o
+   ingrediente, não se presume nada e o aviso fica; e «inteir…» ganha a
+   qualquer outra palavra, porque «inteiras ou grosseiramente picadas» é uma
+   frase real deste ficheiro e o que decide é a primeira metade. */
+function preparacaoDesfaz(nome,passos,re){
+  const raiz=semAcentos(String(nome).split(/[\s,(]/)[0]).toLowerCase().replace(/s$/,'');
+  if(raiz.length<3) return false;
+  const suas=String(passos).split(/[.;:!?\n]+/)
+    .filter(f=>semAcentos(f).toLowerCase().indexOf(raiz)>=0);
+  if(!suas.length) return false;
+  if(suas.some(f=>/inteir/i.test(f))) return false;
+  return suas.some(f=>re.test(f));
+}
 /* Os perigos desta receita para esta pessoa, pela idade em meses. Devolve as
    linhas de EVITAR que se aplicam, com o ingrediente que as dispara. */
 function perigosIdade(r,m){
   if(!r||!m) return [];
   const meses=idadeMeses(m);
-  const passos=(PASSOS[r.id]||[]).map(p=>p[0]+' '+p[1]).join(' ');
+  const passos=passosTexto(r);
   const out=[];
   EVITAR.forEach(e=>{
     const s=EVITAR_SINAL[e.n]; if(!s) return;
@@ -20779,8 +20812,9 @@ function perigosIdade(r,m){
     let itens=[];
     if(s.re){
       itens=(r.i||[]).map(l=>l[0]).filter(n=>s.re.test(n));
-      /* o perigo desaparece quando a preparação o desfaz */
-      if(itens.length && s.semPasso && s.semPasso.test(passos)) itens=[];
+      /* o perigo desaparece quando a preparação DAQUELE ingrediente o desfaz */
+      if(itens.length && s.semPasso)
+        itens=itens.filter(n=>!preparacaoDesfaz(n,passos,s.semPasso));
     }
     /* pratos que são crus por definição, identificados pelo id — a base do
        prato composto conta, para o combo herdar o aviso da receita de origem */
