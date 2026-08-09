@@ -741,7 +741,7 @@ ol.passos li span{color:var(--mut);font-size:14px;margin-top:2px}
 .talao{margin-top:12px;padding:10px 12px;border:1px dashed var(--line);border-radius:10px;background:var(--bg)}
 .talao .lbl{white-space:nowrap}
 .spark-preco{flex:none;margin-left:2px;opacity:.9}
-.preco input{width:76px;text-align:right;padding:4px 6px;font-size:13px}
+.preco input[type=number]{width:76px;text-align:right;padding:4px 6px;font-size:13px}
 .shop li:has(.preco){display:flex;align-items:center;gap:8px}
 .conv-linha{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px}
 .sobra-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--ok);
@@ -2758,7 +2758,7 @@ R('bbqfrango','Frango BBQ assado no forno','americana',[],560,48,44,20,[['Coxas 
 R('cobb','Salada Cobb','americana',['keto','lowcarb'],520,12,38,36,[['Peito de frango',120,'g'],['Ovo',1,'un'],['Bacon',30,'g'],['Abacate',0.5,'un'],['Alface romana',60,'g'],['Tomate cereja',60,'g'],['Queijo azul',25,'g'],['Azeite',10,'ml']],null,6),
 R('chowder','Chowder de milho e batata','americana',['vegetariana'],420,52,14,17,[['Milho',150,'g'],['Batata',120,'g'],['Leite',150,'ml'],['Cebola',0.5,'un'],['Aipo',40,'g'],['Manteiga',12,'g']],['a','j','l'],7,['sop']),
 R('pulledpork','Pulled pork assado devagar','americana',[],560,30,42,30,[['Carne de porco',180,'g'],['Molho barbecue',30,'g']],null,5),
-R('rolocarne','Rolo de carne no forno','americana',[],590,40,40,30,[['Carne picada de vaca',150,'g'],['Pão ralado',25,'g'],['Ovo',0.5,'un'],['Cebola',0.5,'un'],['Ketchup',15,'g']],null,4),
+R('rolocarne','Rolo de carne no forno','americana',[],0,0,0,0,[['Carne picada de vaca',150,'g'],['Leite',35,'ml'],['Pão ralado',25,'g'],['Ovo',0.5,'un'],['Cebola',0.5,'un'],['Ketchup',15,'g']],null,4),
 R('macandcheese','Mac and cheese com brócolos','americana',['vegetariana'],620,68,28,26,[['Massa curta',90,'g'],['Queijo cheddar',60,'g'],['Leite',120,'ml'],['Brócolos',100,'g'],['Farinha',10,'g'],['Manteiga',12,'g']],null,7),
 R('asasforno','Asas de frango no forno com aipo','americana',['keto','lowcarb','paleo'],470,6,40,32,[['Asas de frango',220,'g'],['Molho picante',20,'g'],['Aipo',80,'g'],['Pimentão-doce',2,'g'],['Azeite',8,'ml']],null,2),
 R('panquecasus','Panquecas americanas com frutos vermelhos','americana',['vegetariana'],480,66,16,16,[['Farinha',70,'g'],['Ovo',1,'un'],['Leite',120,'ml'],['Fermento em pó',4,'g'],['Frutos vermelhos',80,'g'],['Xarope de ácer',15,'g'],['Manteiga',10,'g']],['p'],4),
@@ -2855,7 +2855,7 @@ R('ervilhasovos','Ervilhas com ovos escalfados e bacon','portuguesa',['mediterra
 R('favaschourico','Favas com chouriço','portuguesa',['mediterranica'],0,0,0,0,[['Favas',250,'g'],['Chouriço',60,'g'],['Bacon',40,'g'],['Cebola',70,'g'],['Alho',2,'dente'],['Azeite',12,'ml'],['Coentros',6,'g'],['Louro',1,'g']],['a','j'],0,['pp']),
 R('francesinha','Sande quente de carnes com queijo gratinado','portuguesa',[],0,0,0,0,[['Pão de forma',80,'g'],['Bife de vaca',90,'g'],['Linguiça',50,'g'],['Salsicha fresca crua',50,'g'],['Fiambre',40,'g'],['Queijo flamengo',70,'g']],['a','j'],0,['pp']),
 R('empadaocarne','Empadão de carne','portuguesa',[],0,0,0,0,[['Carne picada de vaca',180,'g'],['Batata',300,'g'],['Cebola',70,'g'],['Alho',2,'dente'],['Tomate pelado',80,'g'],['Leite',60,'ml'],['Manteiga',15,'g'],['Azeite',10,'ml'],['Noz-moscada',0.5,'g'],['Salsa',5,'g']],['a','j'],0,['pp']),
-R('iscascebolada','Iscas de fígado salteadas','portuguesa',['lowcarb'],0,0,0,0,[['Vaca, fígado cru',180,'g'],['Azeite',5,'ml'],['Pimenta preta',0.5,'g']],['a','j'],0,['pp']),
+R('iscascebolada','Iscas de fígado salteadas','portuguesa',['lowcarb'],0,0,0,0,[['Vaca, fígado cru',180,'g'],['Vinho branco',40,'ml'],['Azeite',5,'ml'],['Pimenta preta',0.5,'g']],['a','j'],0,['pp']),
 R('feijoadatransmontana','Feijoada à transmontana','portuguesa',[],0,0,0,0,[['Feijão encarnado',90,'g'],['Porco, orelha cozida',25,'g'],['Porco, chispe',30,'g'],['Porco, entrecosto cru',40,'g'],['Chouriço',20,'g'],['Farinheira',15,'g'],['Couve galega',70,'g'],['Cenoura',50,'g'],['Cebola',50,'g'],['Alho',2,'dente'],['Azeite',8,'ml'],['Colorau',2,'g'],['Louro',1,'g']],['a','j'],0,['pp']),
 /* O Bacalhau à Brás já existe desde a primeira fornada com o id 'bras' — a
    segunda entrada duplicava-o na biblioteca e na pesquisa. */
@@ -3095,7 +3095,7 @@ R('acbmurrodcara','Batata a murro com alho e azeite','portuguesa',[],0,0,0,0,[['
 R('acrfeijaodpata','Arroz de feijão','portuguesa',[],0,0,0,0,[['Arroz carolino',60,'g'],['Feijão encarnado',60,'g'],['Cebola',0.5,'un'],['Azeite',10,'ml'],['Alho',1,'dente'],['Louro',1,'g'],['Salsa',3,'g']],['ac']),
 R('aclpurecouveflor','Puré de couve-flor','portuguesa',[],0,0,0,0,[['Couve-flor',250,'g'],['Nata',40,'ml'],['Alho',1,'dente'],['Manteiga',15,'g']],['ac']),
 R('aclpimentoassadodpxsa','Pimentos assados com azeite e alho','portuguesa',[],0,0,0,0,[['Pimento',0.5,'un'],['Azeite',5,'ml'],['Alho',1,'dente']],['ac']),
-R('acbmurrodpxsa','Batata a murro com alho e azeite','portuguesa',[],0,0,0,0,[['Azeite',15,'ml'],['Alho',2,'dente'],['Flor de sal',2,'g']],['ac']),
+R('acbmurrodpxsa','Batata a murro com alho e azeite','portuguesa',[],0,0,0,0,[['Batata nova',180,'g'],['Azeite',15,'ml'],['Alho',2,'dente'],['Flor de sal',2,'g']],['ac']),
 R('aclmigasfrade','Migas de feijão-frade, couve e broa','portuguesa',[],0,0,0,0,[['Feijão-frade cozido',90,'g'],['Couve-portuguesa crua',100,'g'],['Broa de milho',50,'g'],['Alho',2,'dente'],['Azeite',14,'ml'],['Coentros',8,'g'],['Vinagre de vinho',5,'ml']],['ac']),
 R('aclgrelosdbacb','Grelos salteados com alho e azeite','portuguesa',[],0,0,0,0,[['Grelos',80,'g'],['Alho',3,'dente'],['Azeite',12,'ml'],['Limão',0.25,'un']],['ac']),
 R('aclalface','Salada de alface com azeite','francesa',[],0,0,0,0,[['Alface',50,'g'],['Azeite',5,'ml']],['ac']),
@@ -4537,7 +4537,7 @@ P('salteado',[['Preparar','Corta tudo antes de acender o lume: um salteado não 
 P('caril',[['Pasta','Refoga a pasta de caril no óleo até libertar o aroma.',2],
  ['Leite de coco','Junta o leite de coco e deixa levantar fervura branda.',5],
  ['Legumes','Legumes por ordem de dureza, a cozinhar no molho.',15]]);
-P('poke',[['Arroz','Arroz cozido e temperado com vinagre, açúcar e sal, arrefecido a abanar.',20],
+P('poke',[['Congelar antes, sempre','Compra salmão próprio para consumo em cru e mete-o no congelador a −20 °C durante 24 horas antes de o usares. É o que a legislação europeia exige para inativar o anisakis, e nenhuma marinada o substitui.'],['Arroz','Arroz cozido e temperado com vinagre, açúcar e sal, arrefecido a abanar.',20],
  ['Salmão','Salmão muito fresco em cubos, marinado em soja e sésamo.',15],
  ['Montar','Arroz em baixo, salmão e legumes por cima, em setores.']]);
 P('padthai',[['Noodles','Noodles de arroz demolhados em água morna, não cozidos.',20],
@@ -4608,7 +4608,7 @@ P('enchiladas',[['Molho','Molho de tomate e chili, a apurar.',15],
 P('sopaasteca',[['Caldo','Tomate assado e triturado, com caldo de galinha, a apurar.',20],
  ['Tiras','Tiras de tortilha fritas ou assadas até estaladiças.',8],
  ['Montar','Caldo na taça, frango desfiado, tiras por cima só na hora — senão amolecem.']]);
-P('ceviche',[['Cortar','Peixe muito fresco em cubos iguais.'],
+P('ceviche',[['Congelar antes, sempre','Peixe próprio para consumo em cru, 24 horas no congelador a −20 °C antes de o usares — é o que a lei europeia exige contra o anisakis. A lima muda a textura e a cor, mas não mata parasita nenhum: não substitui a congelação.'],['Cortar','Peixe muito fresco em cubos iguais.'],
  ['Marinar','Sumo de lima a cobrir, com cebola roxa e sal. Quinze minutos: a lima «cozinha» o peixe, mas passado disso fica seco.',15],
  ['Servir','Coentros e malagueta à saída, bem frio.']]);
 P('rancheros',[['Aquecer o feijão','Feijão preto escorrido, aquecido num tacho pequeno com um fio de azeite e um pouco da própria água, até ficar cremoso.',6],
@@ -6309,7 +6309,46 @@ const FONTES={
 /* A fonte que está a ser usada quando as declarações correm. Cada bloco de
    NI() declara a sua antes de começar, e assim não é preciso repetir a origem
    em 647 linhas — nem arriscar esquecê-la numa. */
-let _fonteAtual='insa';
+/* ---- A fonte tem de ser declarada, não herdada ----
+   Isto começava em 'insa', e a primeira chamada a fonte() só aparecia
+   novecentas linhas abaixo. Resultado: os 667 NI() do bloco principal ficavam
+   todos carimbados «INSA» — incluindo 55 que trazem escrito ao lado
+   «// USDA» e o bloco brasileiro e africano, cujo próprio comentário diz que
+   vem do FoodData Central e da TACO. A app mostrava o selo INSA e a dica
+   dizia «Tabela da Composição de Alimentos, INSA/PortFIR v7.1 (2026)» sobre
+   números que o INSA nunca publicou — exactamente o que a gaveta «rótulo»
+   tinha sido criada para impedir.
+
+   Pior do que a etiqueta: como NI() se recusa a substituir um valor por outro
+   de fonte menos prioritária, estas entradas carimbadas com a prioridade do
+   INSA passavam a BLOQUEAR a importação da tabela verdadeira do INSA. O erro
+   deixava de ser corrigível pelo mecanismo que existe para o corrigir.
+
+   Agora nasce a nulo. Quem declarar um ingrediente sem dizer de onde ele vem
+   é avisado em voz alta, e o valor entra sem fonte em vez de entrar com uma
+   fonte falsa. Um esquecimento passa a ver-se; antes, ficava uma afirmação. */
+let _fonteAtual=null;
+/* Os que vêm de outra tabela no meio de um bloco declarado. Escrito à parte
+   porque são linhas soltas espalhadas por todo o catálogo, e envolver cada
+   uma em fonte()/fonte() punha cento e dez linhas de ruído entre os dados. */
+const FONTE_ING={
+  'Alecrim':'fda', 'Cebolinho':'fda', 'Chalota':'fda', 'Cogumelos shiitake':'fda',
+  'Endro':'fda', 'Louro':'fda', 'Repolho':'fda', 'Salva':'fda', 
+  'Bresaola':'fda', 'Salmão fumado':'fda', 'Colorau':'fda', 'Queijo feta':'fda',
+  'Queijo manchego':'fda', 'Queijo halloumi':'fda', 'Arroz arbóreo':'fda',
+  'Arroz para sushi':'fda', 'Noodles':'fda', 'Massa de arroz':'fda',
+  'Gnocchi de batata':'fda', 'Couscous':'fda', 'Bulgur':'fda', 'Quinoa':'fda',
+  'Granola':'fda', 'Farinha de amêndoa':'fda', 'Pão ralado':'fda', 'Pão pita':'fda',
+  'Pão de hambúrguer':'fda', 'Bagel':'fda', 'Tortilhas de milho':'fda',
+  'Tortilhas de trigo':'fda', 'Edamame':'fda', 'Manteiga de amendoim':'fda',
+  'Tahini':'fda', 'Óleo de sésamo':'fda', 'Batata palha':'fda', 'Xarope de ácer':'fda',
+  'Molho barbecue':'fda', 'Molho picante':'fda', 'Molho teriyaki':'fda',
+  'Molho de peixe':'fda', 'Pesto':'fda', 'Tomate pelado':'fda', 'Tomate seco':'fda',
+  'Vinho branco':'fda', 'Vinho tinto':'fda', 'Baunilha':'fda', 'Caril em pó':'fda',
+  'Chili em pó':'fda', 'Cominhos':'fda', 'Noz-moscada':'fda', 'Ervas de Provença':'fda',
+  'Pimenta preta':'fda', 'Pimentão-doce':'fda', 'Flor de sal':'fda',
+};
+const _semFonte=[];
 function fonte(f){ _fonteAtual=temChave(FONTES,f)? f : 'insa'; }
 /* O catálogo oculto: tudo o que a app conhece mas que não anda à frente de
    ninguém até ser preciso. Quando se acrescenta um ingrediente que não está
@@ -6319,12 +6358,19 @@ let _emExtra=false;
 function extra(v){ _emExtra=!!v; }
 function NI(nome,k,c,p,f,fib,un,sec,u){
   const alvo=_emExtra? NUTRI_EXTRA : NUTRI;
-  const novo={k,c,p,f,fib:fib||0,un:un||0,s:(sec===undefined?-1:sec),u:u||'g',fonte:_fonteAtual};
+  /* A excepção por ingrediente ganha à fonte do bloco: são os que vêm de outra
+     tabela no meio de uma lista declarada. */
+  const f0=temChave(FONTE_ING,nome)? FONTE_ING[nome] : _fonteAtual;
+  if(!f0) _semFonte.push(nome);
+  const novo={k,c,p,f,fib:fib||0,un:un||0,s:(sec===undefined?-1:sec),u:u||'g',fonte:f0};
   const jaLa=alvo[nome];
   /* Prioridade: um valor do INSA nunca é substituído por um do USDA, mesmo
      que o do USDA seja declarado depois. Sem isto, a ordem das linhas no
-     ficheiro decidia a composição — e a ordem das linhas não é um critério. */
-  if(jaLa && FONTES[jaLa.fonte].p <= FONTES[novo.fonte].p) return;
+     ficheiro decidia a composição — e a ordem das linhas não é um critério.
+     Sem fonte não há prioridade que se compare: quem não a declarou não ganha
+     a quem a declarou, e é substituído por qualquer coisa que traga origem. */
+  if(jaLa && jaLa.fonte && novo.fonte && FONTES[jaLa.fonte].p <= FONTES[novo.fonte].p) return;
+  if(jaLa && jaLa.fonte && !novo.fonte) return;
   alvo[nome]=novo;
 }
 /* A composição de um ingrediente, venha do catálogo visível ou do oculto. É
@@ -6446,6 +6492,10 @@ function importarTabela(input,fonteId){
 }
 
 /* ---- Ingredientes das receitas da biblioteca ---- */
+/* O grosso do catálogo é o INSA. Declara-se aqui, em voz alta, em vez de vir
+   herdado do valor inicial de uma variável — que foi como 55 linhas do USDA
+   acabaram a dizer que eram do INSA. */
+fonte('insa');
 NI('Abacate',176,2.3,1.1,17.4,3,140,2);
 NI('Abóbora',11,1.7,0.3,0.2,0.7,0,2);
 NI('Aipo',15,1.5,1.1,0.1,2,0,2);
@@ -6509,7 +6559,10 @@ NI('Tomate cereja',30,4,1,0.8,1.6,0,2);
 NI('Azeitonas',164,0,1.3,16.8,4,0,2);
 NI('Azeitonas pretas',164,0,1.3,16.8,4,0,2);
 NI('Alcaparras',44,4.9,2.4,0.9,3.2,0,2);
-NI('Algas nori',35,5,6,0.3,0.3,0,-1);  // USDA, hidratos convertidos para disponiveis
+/* A folha SECA, que e a que as receitas usam e a que o sodio ja assumia. Tinha
+   os macros da alga fresca do USDA (35 kcal) com o sodio da seca do INSA (3200
+   mg): um alimento de 35 kcal por 100 g nao pode ter 3200 mg de sodio. */
+NI('Algas nori',256,9.2,30.8,2.6,36,0,-1);   // INSA 250030
 NI('Peito de frango',108,0,24.1,1.2,0,0,1);
 NI('Coxas de frango',111,0,22,2.6,0,0,1);
 NI('Asas de frango',196,0,20.4,12.7,0,0,1);
@@ -7444,7 +7497,22 @@ const PC_EDIVEL={
   'Mexilhões':0.30, 'Amêijoas':0.30, 'Camarão':0.55,
   'Sardinhas':0.55, 'Carapau':0.55, 'Cavala':0.55, 'Truta':0.58,
   'Dourada':0.52, 'Robalo':0.52,
-  'Coxas de frango':0.75, 'Asas de frango':0.65, 'Costeletas de borrego':0.68
+  'Coxas de frango':0.75, 'Asas de frango':0.65, 'Costeletas de borrego':0.68,
+  /* A tabela é indexada por nome exacto, e o catálogo cresceu para além dela:
+     entraram nomes irmãos que ninguém acrescentou aqui. Confirma-se pela dose
+     que a receita pede — 400 g de sapateira ou 220 g de sardinha só fazem
+     sentido com casca e espinha, e a composição do INSA é da parte edível.
+     Sem isto a sapateira recheada dava 711 kcal e 83 g de proteína numa dose.
+
+     Ficam de fora de propósito os cortes ambíguos: as plumas e os secretos de
+     porco preto usam a linha da costeleta como composição mas vendem-se sem
+     osso, e a corvina de 200 g tanto pode ser peixe inteiro como posta. Onde
+     não se sabe, não se corta — errar para menos também é errar. */
+  'Sapateira crua':0.28, 'Berbigão cru':0.30,
+  'Camarão-tigre':0.55, 'Gamba crua':0.55,
+  'Sardinha gorda crua':0.55, 'Salmonete cru':0.50, 'Linguado cru':0.50,
+  'Costela de vaca crua':0.60, 'Porco, entrecosto cru':0.60,
+  'Frango inteiro com pele, cru':0.68
 };
 /* Converte uma linha de receita em gramas comestíveis. Devolve null quando não
    sabe — e quem chama tem de dizer isso a quem está a escrever a receita, em
@@ -7727,8 +7795,8 @@ const ING_EXCECAO={
   'Cogumelos ostra (pleurotus)':[], 'Cravinho':[], 'Rábano cru':[],
   'Feijão manteiga, seco, cru':['leguminosa'], 'Marmelada':[],
   'Farinha de milho tipo 70':['cereal'], 'Flocos de milho tipo "Corn Flakes"':['cereal'],
-  'Caldo de galinha':['aipo'], 'Caldo de legumes':['aipo'],
-  'Cubo de carne de galinha para caldo':['aipo'], 'Cubo de carne de vaca para caldo':['aipo'],
+  'Caldo de galinha':['aipo','carne'], 'Caldo de legumes':['aipo'],
+  'Cubo de carne de galinha para caldo':['aipo','carne'], 'Cubo de carne de vaca para caldo':['aipo','carne'],
   /* O pesto comercial troca com frequência o pinhão por caju ou amêndoa, que
      são dois dos oito da lista fechada — por omissão vale o lado seguro. */
   'Pesto':['lacticinio','frutosecos'], 'Rabanada':['gluten','cereal','lacticinio','ovo'],
@@ -8369,6 +8437,19 @@ const NA_DESCARTADO={
   camaraocozido:['Sal grosso'], /* água de cozer */
   polvocozido:['Sal grosso'], batatascozidas:['Sal grosso'],
   acbcoz:['Sal grosso'], acbmurro:['Sal grosso'],
+  /* A tabela ficou nas seis receitas antigas e não acompanhou a leva de pratos
+     de brasa, onde o sal grosso é exactamente da mesma natureza — e são os
+     próprios passos que o dizem: «cobre as sardinhas com sal grosso e deixa
+     uma hora; sacode-se o sal antes de ir à grelha». Contado a 100 %, o sal
+     que se sacode fazia oito pratos passarem sozinhos o limite do dia da OMS,
+     e um limite que dispara sem razão é um limite que se aprende a ignorar. */
+  chsardinhabrasa:['Sal grosso'], espetosardinhas:['Sal grosso'],
+  chrobalobrasa:['Sal grosso'], chfrangochurr:['Sal grosso'],
+  chfrangoguia:['Sal grosso'], chcabrito:['Sal grosso'],
+  chentremeada:['Sal grosso'], chcostporco:['Sal grosso'],
+  chentrecosto:['Sal grosso'], asadotira:['Sal grosso'],
+  perufumado:['Sal grosso'], cgalcatraespeto:['Sal grosso'],
+  sabashioyaki:['Sal grosso'],
 };
 /* ---- A terceira gaveta ----
    Havia duas: o INSA, e «estimado». Um valor do CoFID britânico, do CIQUAL
@@ -16223,7 +16304,8 @@ function fioDoDia(){
       accao:{rot:'Pesar', fn:"abrirPesagens('"+m.id+"')"}});
   });
   /* as refeições do dia, com quem come e o que vai ao lado */
-  const wk=(S.plans[S.week]||{})[di]||{};
+  /* A semana de HOJE, e nao a que estiver aberta no separador Plano. */
+  const wk=(S.plans[mondayISO(hojeISO())]||{})[di]||{};
   MEALK.forEach(mk=>{
     const meal=wk[mk]; if(!meal||!meal.r) return;
     const r=RECIPES.find(x=>x.id===meal.r); if(!r) return;
@@ -16276,9 +16358,15 @@ function fioDoDia(){
   return out;
 }
 function confirmarRefFio(mk){
-  const d=hojeISO(), di=diaSemana(d), meal=(S.plans[S.week]||{})[di]&&(S.plans[S.week])[di][mk];
+  const d=hojeISO(), di=diaSemana(d), _w=S.plans[mondayISO(d)]||{}, meal=_w[di]&&_w[di][mk];
   if(!meal||!meal.r) return;
-  const comem=S.members.filter(m=>meal.m.includes(m.id)&&!isCheat(m.id,d));
+  /* Quem já tem a refeição registada fica de fora. O botão «Comi» reaparece
+     enquanto faltar UMA pessoa por confirmar — e sem este filtro, carregar
+     nele para fechar a mesa voltava a registar quem já lá estava, e o dia
+     dessa pessoa passava a contar as calorias a dobrar. */
+  const jaTem=m=>(S.regRef||[]).some(r=>r.mid===m.id && r.d===d && r.mk===mk);
+  const comem=S.members.filter(m=>meal.m.includes(m.id)&&!isCheat(m.id,d)&&!jaTem(m));
+  if(!comem.length) return flash('warn','Já estava registada para toda a gente que estava à mesa.');
   registarRefeicao({d, mk, r:meal.r, ac:acIds(meal), mo:moId(meal), dose:1}, comem.map(m=>m.id), 'feita');
   save('refeição confirmada'); render();
   flash('ok','Registada para '+plural(comem.length,'pessoa','pessoas')+'.',
@@ -16587,7 +16675,7 @@ function folhaPessoaHtml(fo){
   const m=S.members.find(x=>x.id===fo.mid); if(!m) return '';
   const d=hojeISO(), di=diaSemana(d);
   const refs=MEALK.map(mk=>{
-    const meal=((S.plans[S.week]||{})[di]||{})[mk];
+    const meal=((S.plans[mondayISO(d)]||{})[di]||{})[mk];
     if(!meal||!meal.r||!meal.m.includes(m.id)) return null;
     const r=RECIPES.find(x=>x.id===meal.r); if(!r) return null;
     const feita=(S.regRef||[]).some(x=>x.mid===m.id&&x.d===d&&x.mk===mk&&x.estado==='feita');
@@ -16639,7 +16727,7 @@ function folhaPessoaHtml(fo){
 }
 function confirmarRefPessoa(mid,mk){
   const d=hojeISO(), di=diaSemana(d);
-  const meal=((S.plans[S.week]||{})[di]||{})[mk]; if(!meal||!meal.r) return;
+  const meal=((S.plans[mondayISO(d)]||{})[di]||{})[mk]; if(!meal||!meal.r) return;
   registarRefeicao({d, mk, r:meal.r, ac:acIds(meal), mo:moId(meal), dose:1},[mid],'feita');
   save('refeição confirmada'); render();
   flash('ok','Registada.',{rot:'Anular', fn:'desfazer()'});
@@ -26430,6 +26518,18 @@ function modalFimVisitaHtml(){
 }
 function apagarExemplo(){
   const n=S.members.length;
+  /* Isto apaga TUDO, e é a única acção da app que o faz sem retorno: o desfazer
+     não a alcança, porque a pilha vai com o resto. A caixa que a oferece
+     reaparece sempre que se revê a visita guiada, e a essa altura os perfis já
+     podem ser gente a sério — ninguém deve perder o histórico da casa por
+     carregar num botão que julgava ser sobre uma família de demonstração.
+     Pergunta-se, e diz-se o que se vai perder. */
+  const reg=(S.regRef||[]).length+(S.regAtiv||[]).length;
+  const aviso='Isto apaga tudo o que está nesta app: '
+    +plural(n,'perfil','perfis')+', o plano da semana, a despensa'
+    +(reg? ', e '+plural(reg,'registo','registos')+' de refeições e treinos' : '')
+    +'.\n\nOs dados só existem neste dispositivo — apagados aqui, não há de onde os trazer de volta.\n\nApagar mesmo?';
+  if(!confirm(aviso)) return;
   const avisar=S.meta.avisarAoSair, ui=S.ui;
   try{ localStorage.removeItem(KEY); }catch(e){}
   S=blank();
@@ -26923,6 +27023,16 @@ const _ausencia=diasDesdeUltimaAbertura();
 /* Um endereço com #plano abre no plano: serve para o atalho do ecrã inicial,
    para um favorito e para a partilha de uma ligação entre dois telemóveis
    da casa. Se o separador não existir, ignora-se em silêncio. */
+/* Um ingrediente sem fonte declarada e um ingrediente com fonte errada custam
+   o mesmo a quem lê a app, mas só o primeiro se vê. Diz-se em voz alta a quem
+   estiver a acrescentar linhas ao catálogo, como já se faz com os títulos de
+   passo repetidos e com as chaves órfãs das tabelas de sal. */
+(function(){
+  if(!_semFonte.length) return;
+  console.warn('Família Fit — '+_semFonte.length+' ingredientes declarados sem fonte ('
+    +_semFonte.slice(0,12).join(', ')+(_semFonte.length>12?'…':'')
+    +'). Falta um fonte(…) antes deles: sem isso a app não sabe de onde vem o número, e é melhor que o diga do que o invente.');
+})();
 (function(){ const t=separadorDoEndereco(); if(t) S.ui.tab=t; })();
 render();
 /* Quem esteve fora vê o convite hoje; a data só avança quando o dispensar ou
