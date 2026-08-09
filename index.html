@@ -5839,7 +5839,19 @@ const NUTRI={};
 const FONTES={
   insa:{n:'INSA', p:1, d:'Tabela da Composição de Alimentos, INSA/PortFIR v7.1 (2026)'},
   ue:  {n:'UE',   p:2, d:'Bases europeias harmonizadas (EuroFIR/EFSA), hidratos disponíveis'},
+  /* A tabela nacional do Brasil é o que a CIQUAL é para França: a fonte do
+     país de onde o alimento vem, e a única que publica o cupim ou o queijo
+     coalho. Fica no mesmo degrau das europeias porque é o mesmo tipo de
+     trabalho, e tem nome próprio porque chamar-lhe «UE» seria falso. */
+  tbca:{n:'TBCA', p:2, d:'Tabela Brasileira de Composição de Alimentos (FoRC/USP), hidratos disponíveis'},
   fda: {n:'FDA',  p:3, d:'USDA FoodData Central, convertido para hidratos disponíveis'},
+  /* O último degrau, e o único que não é uma tabela: um rótulo de marca. Vale
+     para o que é industrial e não tem entrada em tabela nenhuma — o golden
+     syrup, o za'atar, a pasta de azuki. Vale menos do que qualquer tabela e
+     por isso perde para todas, mas vale mais do que não ter valor. Sem esta
+     entrada, fonte() calava-se e devolvia «INSA» — a app passava a afirmar
+     que o INSA publicou um número que nunca viu. */
+  rotulo:{n:'Rótulo', p:4, d:'Rótulo de produto de marca, sem entrada em tabela de composição'},
 };
 /* A fonte que está a ser usada quando as declarações correm. Cada bloco de
    NI() declara a sua antes de começar, e assim não é preciso repetir a origem
@@ -6868,6 +6880,80 @@ NI('Feijão cozido em molho de tomate',81,15,5,0.5,4.9,0,4);
    fibra não vem declarada nessa análise e por isso fica a zero, que é o que
    se sabe — a aveia dá alguma, mas o valor não está publicado. */
 NI('Black pudding',277,14.8,9.1,20.6,0,0,1);
+
+/* ---- Os 61 que faltavam ----
+   Sessenta e um ingredientes que travavam 82 receitas ja escritas. Cada um
+   com fonte publicada e conferido por quem tentou derruba-lo: cinco fichas
+   nao passaram, e a razao de cada uma esta escrita no commit.
+   Os hidratos sao SEMPRE os disponiveis. Onde a fonte foi o USDA, que os da
+   por diferenca com a fibra la dentro, a fibra foi subtraida antes de entrar. */
+fonte('insa');
+NI('Açúcar em pó',397,99.3,0,0,0,0,4);
+NI('Pão de água',290,57.3,8.4,2.2,3.8,0,4);
+NI('Papo-seco',290,57.3,8.4,2.2,3.8,60,4);
+fonte('ue');
+NI('Baguete',287,58.3,8.27,1.4,2.7,250,4);
+NI('Bicarbonato de sódio',0.4,0,0.1,0,0,0,4);
+NI('Brioche',401,46,11.3,19.1,0.5,0,4);
+NI('Clotted cream',586,2.3,1.6,63.5,0,0,3);
+NI('Dashi em pó',223,31.1,24.2,0.3,0,0,4);
+NI('Dashi',2,0.3,0.3,0,0,0,4,'ml');
+NI('Farinha de arroz',357,73.9,7.62,2.5,3.3,0,4);
+NI('Farinha de trigo sarraceno',348,68.4,11.5,2.19,4.2,0,4);
+NI('Feijão urad (urad dal)',275,40.8,24.9,1.4,18.3,0,4);
+NI('Fette biscottate',387,75,11.3,6,3.5,8.75,4);
+NI('Golden syrup',298,79,0.3,0,0,0,4);
+NI('Haddock fumado',83,0,19.7,0.5,0,0,0);
+NI('Katsuobushi',332,0.8,77.1,2.9,0,0,4);
+NI('Massa filo',289,50.8,7.1,6,1.9,19,4);
+NI('Mirin',241,43.2,0.3,0,0,0,4,'ml');
+NI('Queijo provolone',374,2,28.1,28.2,0,0,3);
+NI('Sobrasada de Maiorca',595,0,12.9,61.4,0,0,1);
+fonte('tbca');
+NI('Cupim de vaca',215,0,19.4,15.2,0,0,1);
+NI('Queijo coalho',335,1.94,23.7,25.9,0,0,3);
+fonte('fda');
+NI('Aguardente',219,0,0,0,0,0,4,'ml');
+NI('Baço de vitela',98,0,18.3,2.2,0,0,1);
+NI('Bacon canadiano (peameal)',110,1.34,20.3,2.62,0,0,1);
+NI('Bife ancho de vaca',244,0,18.8,18.7,0,0,1);
+NI('Buttermilk',40,4.79,3.31,1.07,0,0,3,'ml');
+NI('Carne picada de borrego',282,0,16.6,23.4,0,0,1);
+NI('Cebola em pó',341,63.9,10.4,1.04,15.2,0,4);
+NI('Cebola verde',32,4.74,1.83,0.19,2.6,0,2);
+NI('Chá preto',1,0.3,0,0,0,0,4,'ml');
+NI('Chorizo criollo',296,3.78,13.6,25.1,0,0,1);
+NI('Contrafilé de vaca',199,0,21.3,12.7,0,0,1);
+NI('Coração de galinha',153,0.71,15.6,9.33,0,6.1,1);
+NI('Costeleta de vaca com osso',316,0,16.3,27.3,0,0,1);
+NI('Entraña de vaca',232,0.35,18,17.6,0,0,1);
+NI('Farinha de milho nixtamalizada (masa harina)',363,70.19,8.46,3.69,6.4,0,4);
+NI('Flocos de pimento vermelho seco',318,29.4,12,17.3,27.2,0,4);
+NI('Leitelho',40,4.79,3.31,1.07,0,0,3,'ml');
+NI('Malagueta seca',324,41.2,10.6,5.81,28.7,0,4);
+NI('Matzá',395,80.7,10,1.4,3,28,4);
+NI('Mollejas de vitela',101,0,17.2,3.1,0,0,1);
+NI('Peito de vaca (brisket)',253,0.56,18.4,19.1,0,0,1);
+NI('Peito de vaca salgado (corned beef)',198,0.14,14.7,14.9,0,0,1);
+NI('Pulmão de vitela',90,0,16.3,2.3,0,0,1);
+NI('Rum',219,0,0,0,0,0,4,'ml');
+NI('Sementes de aipo',392,29.6,18.1,25.3,11.8,0,4);
+NI('Sementes de alcaravia',333,11.9,19.8,14.6,38,0,4);
+NI('Sementes de erva-doce',345,12.5,15.8,14.9,39.8,0,4);
+NI('Sementes de feno-grego',323,33.8,23,6.41,24.6,0,4);
+NI('Sobrecoxa de frango',221,0.25,16.5,16.6,0,0,1);
+NI('Tomilho seco',276,26.9,9.11,7.43,37,0,4);
+NI('Vinagre de sidra',21,0.93,0,0,0,0,4,'ml');
+NI('Whisky',219,0,0,0,0,0,4,'ml');
+fonte('rotulo');
+NI('Bagas de berberis',313,65.2,3.4,2.9,8,0,4);
+NI('Linguiça toscana',268,1,12,24,0,0,1);
+NI('Lorne sausage',213,13.3,17.5,9.6,0,67.5,1);
+NI('Pasta doce de feijão azuki (anko)',193,39.2,6,0.4,4.6,0,4);
+NI('Paximadi (tosta de cevada)',411,75.2,13.1,3.4,13.8,0,4);
+NI('Pimento choricero seco',282,48,12,3.3,15,0,4);
+NI('Za\'atar',522,35,13,32,21,0,4);
+fonte('insa');
 fonte('insa');
 
 /* Parte edível. Compram-se 350 g de mexilhões e comem-se cerca de 100: o
@@ -7073,6 +7159,40 @@ const ING_REGRAS=[
    custa mais do que a tabela toda. A exceção substitui a regra, não a
    completa: o que estiver aqui é a lista final de atributos desse nome. */
 const ING_EXCECAO={
+  /* ---- Os 61 que entraram, conferidos um a um ----
+     Comparou-se o que a app deduzia do nome com o que a ficha de origem
+     declara, e em vinte e cinco casos não batia certo. Nas duas direcções, e
+     as duas contam.
+
+     Vinte e uma vezes a app não via um alergénio que lá está: o haddock
+     fumado é PEIXE e o nome não o diz; o dashi e o katsuobushi também; o
+     brioche leva glúten, ovo E leite; o papo-seco, a baguete, a fette
+     biscottate e o matzá levam glúten e nenhum se chama pão; o za'atar leva
+     sésamo; a lorne sausage leva glúten e sulfitos. Cada um destes era um
+     aviso que não aparecia a quem depende dele.
+
+     Quatro vezes a app via um alergénio que lá não está, e isso não é
+     inofensivo: uma app que grita glúten sobre farinha de arroz ensina a não
+     acreditar nos avisos dela. O trigo sarraceno é o caso exemplar — chama-se
+     trigo, não é trigo, e não tem glúten nenhum. */
+  'Linguiça toscana':['soja','carne','porco'],
+  'Chorizo criollo':['sulfitos','carne','porco'],
+  'Sobrasada de Maiorca':['carne','porco'],
+  'Lorne sausage':['gluten','sulfitos','carne','porco'],
+  'Haddock fumado':['peixe'],
+  'Buttermilk':['lacticinio'], 'Clotted cream':['lacticinio'],
+  'Farinha de arroz':['cereal'],
+  'Farinha de trigo sarraceno':['cereal'],
+  'Farinha de milho nixtamalizada (masa harina)':['cereal'],
+  'Brioche':['gluten','ovo','lacticinio','cereal'],
+  'Papo-seco':['gluten','cereal'], 'Baguete':['gluten','cereal'],
+  'Fette biscottate':['gluten','cereal'], 'Matzá':['gluten','cereal'],
+  'Vinagre de sidra':['sulfitos'],
+  'Flocos de pimento vermelho seco':['picante'],
+  'Za\'atar':['sesamo'],
+  'Sementes de feno-grego':['leguminosa'],
+  'Mirin':['alcool'], 'Rum':['alcool'], 'Whisky':['alcool'],
+  'Dashi':['peixe'], 'Dashi em pó':['peixe'], 'Katsuobushi':['peixe'],
   'Noz-moscada':[], 'Leite de coco':[], 'Óleo de coco':[], 'Coco ralado':[],
   'Manteiga de amendoim':['amendoim','leguminosa'], 'Farinha de amêndoa':['frutosecos'],
   'Tortilhas de milho':['cereal'], 'Broa de milho':['gluten','cereal'], 'Molho de peixe':['peixe'],
