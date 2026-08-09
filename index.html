@@ -5765,7 +5765,7 @@ P('tortaazeitao',[['Bater as gemas','Separa os ovos. Bate as gemas com a maior p
  ['Cozer a massa','Espalha a massa fina num tabuleiro forrado e untado e leva a 220 °C com calor de baixo cerca de quinze minutos.',15],
  ['Doce de ovos','Ferve a água com o restante açúcar até ponto de fio, retira do lume e deita sobre as gemas restantes, mexendo sem parar.',12],
  ['Barrar e enrolar','Desenforma ainda quente, tira o papel, barra logo com o doce de ovos e polvilha com canela. Corta em tiras e enrola com o pano.',10]]);
-P('paodedeus',[['Activar o fermento','Desfaz o fermento no leite morno com uma pitada de açúcar e espera que ganhe espuma à superfície.',10],
+P('paodedeus',[['Ativar o fermento','Desfaz o fermento no leite morno com uma pitada de açúcar e espera que ganhe espuma à superfície.',10],
  ['Amassar','Junta a farinha, o açúcar, o ovo e o leite com fermento e amassa. Só depois incorpora a manteiga aos poucos, até a massa ficar sedosa.',15],
  ['Levedar','Tapa e deixa crescer até dobrar de volume, em sítio abrigado de correntes de ar.',60],
  ['Tender','Divide a massa em bolas iguais, achata-as ligeiramente e dispõe-as no tabuleiro com espaço entre elas.',10],
@@ -6317,7 +6317,7 @@ const FONTES={
    «// USDA» e o bloco brasileiro e africano, cujo próprio comentário diz que
    vem do FoodData Central e da TACO. A app mostrava o selo INSA e a dica
    dizia «Tabela da Composição de Alimentos, INSA/PortFIR v7.1 (2026)» sobre
-   números que o INSA nunca publicou — exactamente o que a gaveta «rótulo»
+   números que o INSA nunca publicou — exatamente o que a gaveta «rótulo»
    tinha sido criada para impedir.
 
    Pior do que a etiqueta: como NI() se recusa a substituir um valor por outro
@@ -6359,7 +6359,7 @@ let _emExtra=false;
 function extra(v){ _emExtra=!!v; }
 function NI(nome,k,c,p,f,fib,un,sec,u){
   const alvo=_emExtra? NUTRI_EXTRA : NUTRI;
-  /* A excepção por ingrediente ganha à fonte do bloco: são os que vêm de outra
+  /* A exceção por ingrediente ganha à fonte do bloco: são os que vêm de outra
      tabela no meio de uma lista declarada. */
   const f0=temChave(FONTE_ING,nome)? FONTE_ING[nome] : _fonteAtual;
   if(!f0) _semFonte.push(nome);
@@ -7499,7 +7499,7 @@ const PC_EDIVEL={
   'Sardinhas':0.55, 'Carapau':0.55, 'Cavala':0.55, 'Truta':0.58,
   'Dourada':0.52, 'Robalo':0.52,
   'Coxas de frango':0.75, 'Asas de frango':0.65, 'Costeletas de borrego':0.68,
-  /* A tabela é indexada por nome exacto, e o catálogo cresceu para além dela:
+  /* A tabela é indexada por nome exato, e o catálogo cresceu para além dela:
      entraram nomes irmãos que ninguém acrescentou aqui. Confirma-se pela dose
      que a receita pede — 400 g de sapateira ou 220 g de sardinha só fazem
      sentido com casca e espinha, e a composição do INSA é da parte edível.
@@ -7718,7 +7718,7 @@ const ING_EXCECAO={
   'Shichimi togarashi':['sesamo','picante'],
   /* ---- Os 61 que entraram, conferidos um a um ----
      Comparou-se o que a app deduzia do nome com o que a ficha de origem
-     declara, e em vinte e cinco casos não batia certo. Nas duas direcções, e
+     declara, e em vinte e cinco casos não batia certo. Nas duas direções, e
      as duas contam.
 
      Vinte e uma vezes a app não via um alergénio que lá está: o haddock
@@ -8439,7 +8439,7 @@ const NA_DESCARTADO={
   polvocozido:['Sal grosso'], batatascozidas:['Sal grosso'],
   acbcoz:['Sal grosso'], acbmurro:['Sal grosso'],
   /* A tabela ficou nas seis receitas antigas e não acompanhou a leva de pratos
-     de brasa, onde o sal grosso é exactamente da mesma natureza — e são os
+     de brasa, onde o sal grosso é exatamente da mesma natureza — e são os
      próprios passos que o dizem: «cobre as sardinhas com sal grosso e deixa
      uma hora; sacode-se o sal antes de ir à grelha». Contado a 100 %, o sal
      que se sacode fazia oito pratos passarem sozinhos o limite do dia da OMS,
@@ -19556,7 +19556,7 @@ const MAX_COMBOS=120;
 function ehCombo(r){ return !!r && r.co===true; }
 /* O molho entra na chave depois de um til, e não de um mais, para os pares
    guardados antes de os molhos existirem continuarem a dar exatamente a
-   mesma chave — sem isso, uma actualização apagava as variantes todas. */
+   mesma chave — sem isso, uma atualização apagava as variantes todas. */
 function idCombo(base,acs,mo){
   return COMBO_PREFIXO+base+'+'+(acs||[]).slice().sort().join('+')+(mo? '~'+mo : '');
 }
@@ -20707,7 +20707,7 @@ const EVITAR=[
 /* ---- Da lista para o prato ----
    Esta tabela era a melhor peça de segurança da app e a mais inútil: dizia,
    com fonte ao lado, que o mel dá botulismo antes do ano e que uma uva inteira
-   encaixa exactamente na traqueia de uma criança — e depois desenhava uma
+   encaixa exatamente na traqueia de uma criança — e depois desenhava uma
    lista estática que ninguém cruzava com quem estava à mesa. O plano guarda em
    `meal.m` quem come cada refeição, e nenhuma das leituras filtrava por idade.
 
@@ -26656,7 +26656,7 @@ function modalFimVisitaHtml(){
 }
 function apagarExemplo(){
   const n=S.members.length;
-  /* Isto apaga TUDO, e é a única acção da app que o faz sem retorno: o desfazer
+  /* Isto apaga TUDO, e é a única ação da app que o faz sem retorno: o desfazer
      não a alcança, porque a pilha vai com o resto. A caixa que a oferece
      reaparece sempre que se revê a visita guiada, e a essa altura os perfis já
      podem ser gente a sério — ninguém deve perder o histórico da casa por
