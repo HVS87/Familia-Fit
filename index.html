@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt">
+<html lang="pt-PT">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -19407,6 +19407,17 @@ function sincronizaReceitas(){
   for(let i=RECIPES.length-1;i>=0;i--) if(RECIPES[i].u) RECIPES.splice(i,1);
   if(!Array.isArray(S.receitas)) S.receitas=[];
   S.receitas.forEach(x=>{
+    /* O id de uma receita da casa acaba dentro de onclick="abrirFicha('…')".
+       limparReceita() já o valida à entrada — no editor e na importação — mas
+       esta função lia S.receitas como se ela fosse sempre de confiança, e não
+       é: uma cópia de segurança mexida à mão, ou o localStorage editado na
+       consola, chegam aqui sem passar por lá. Um id forjado tornava-se id de
+       receita e ia parar a um atributo de evento.
+
+       Não se corrige o id: deita-se fora a entrada. Um id inválido não pode
+       ter sido criado pela app, e renomeá-lo em silêncio deixaria o plano e as
+       favoritas a apontar para uma receita que já não tem aquele nome. */
+    if(!/^[A-Za-z0-9_-]{1,64}$/.test(String(x.id||''))) return;
     const m=macrosDeIngredientes(x.i,x.doses);
     const r={id:x.id, n:x.n, coz:x.coz, d:[], k:m.k, c:Math.round(m.c), p:Math.round(m.p),
       f:Math.round(m.f), fib:Math.round(m.fib), i:x.i.map(l=>[l[0], Math.round(l[1]/Math.max(1,x.doses)*100)/100, l[2]]),
