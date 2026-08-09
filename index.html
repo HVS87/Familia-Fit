@@ -18780,9 +18780,31 @@ function nomeCurtoMolho(r){
   if(MO_CURTO[r.id]) return MO_CURTO[r.id];
   return r.n.replace(/\s+(com|de churrasqueira|à moda de).*$/i,'').toLowerCase();
 }
+/* ---- Os pratos que já tinham nome antes de terem peças ----
+   Um bife à Marrare é um bife do lombo com molho à Marrare, e desmontá-lo nas
+   duas peças é o que o torna trocável. Mas a soma das peças chama-se «Bife do
+   lombo grelhado e molho à Marrare», e isso não é o nome do prato: é a
+   descrição dele. O nome é «Bife à Marrare», tem duzentos anos e é por ele que
+   se procura.
+
+   Por isso a combinação que reconstrói um prato com nome próprio recupera-o.
+   Não é uma excepção ao nome composto — é o reconhecimento de que houve prato
+   antes de haver peças, e de que quem escreve «marrare» na pesquisa quer
+   aquilo. A chave é a mesma que gera o combo, e por isso não há maneira de
+   apontar para um par que não exista. */
+const NOME_COMBO={};
+/* Os pares que a app traz de casa. Ver a nota em sincronizaCombos(): estes não
+   são dados de ninguém, são biblioteca — e é por isso que não vivem em S. */
+const COMBOS_BASE=[];
+function nomeCombo(baseId,acs,mo){
+  const k=idCombo(baseId,acs,mo);
+  return temChave(NOME_COMBO,k)? NOME_COMBO[k] : '';
+}
 function nomeComposto(prato,acs,mo){
   if(!prato) return '';
   if((!acs||!acs.length) && !mo) return prato.n;
+  const proprio=nomeCombo(prato.id,(acs||[]).map(a=>a.id), mo? mo.id : '');
+  if(proprio) return proprio;
   /* Sem acompanhamento e só com molho, o molho toma o lugar da frase: «Bife
      com chimichurri». Com os dois, o molho vem sempre no fim, porque é o que
      se põe por cima no prato e é assim que se diz em voz alta. */
@@ -18872,7 +18894,16 @@ function sincronizaCombos(){
   const moVivo=x=>{ const m=RECIPES.find(r=>r.id===x && !ehCombo(r)); return !!m && ehMolho(m); };
   S.combos=combosCfg().filter(c=>c && pratoVivo(c.base)
     && ((c.ac||[]).some(acVivo) || moVivo(c.mo)));
-  S.combos.forEach(c=>{
+  /* Os combos da casa são os que cada um montou, e vivem no estado — entram e
+     saem, e o teto vai deitando fora os mais antigos. Os do catálogo não: um
+     bife à Marrare tem de estar lá para toda a gente no primeiro arranque, sem
+     ninguém o ter montado, ou o prato desaparecia do livro por não haver quem
+     o pedisse. Ficam fora do estado, e por isso fora do teto e fora da cópia
+     de segurança — são biblioteca, não são dados de quem usa a app. */
+  const todos=COMBOS_BASE.filter(c=>c && pratoVivo(c.base)
+      && ((c.ac||[]).some(acVivo) || moVivo(c.mo)))
+    .concat(S.combos);
+  todos.forEach(c=>{
     const prato=RECIPES.find(x=>x.id===c.base && !ehCombo(x));
     if(!prato || ehAcompanhamento(prato) || ehMolho(prato)) return;
     const acs=(c.ac||[]).map(id=>RECIPES.find(x=>x.id===id && !ehCombo(x))).filter(x=>ehAcompanhamento(x));
@@ -18917,6 +18948,10 @@ function registaCombo(baseId,ids,moId2){
   if(mo){ const m=RECIPES.find(x=>x.id===mo); if(!m || !ehMolho(m)) return null; }
   const id=idCombo(baseId,ac,mo);
   const lista=combosCfg();
+  /* Um par que a app já traz não se volta a guardar no estado: ficaria lá a
+     ocupar lugar no teto e a empurrar para fora um que alguém tivesse mesmo
+     montado. A receita composta existe na mesma — vem do catálogo. */
+  if(COMBOS_BASE.some(c=>idCombo(c.base,c.ac||[],c.mo||'')===id)) return RECIPES.find(x=>x.id===id)||null;
   if(!lista.some(c=>idCombo(c.base,c.ac||[],c.mo||'')===id)){
     lista.push(mo? {base:baseId, ac, mo} : {base:baseId, ac});
     while(lista.length>MAX_COMBOS) lista.shift();
