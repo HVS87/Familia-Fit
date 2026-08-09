@@ -19028,6 +19028,30 @@ function nomeComposto(prato,acs,mo){
     : !/\scom\s/i.test(n)? ' com ' : (/\se\s/i.test(n)? ', e ' : ' e ');
   return n+lig+listaPT(partes);
 }
+/* ---- A mesma coisa, medida de duas maneiras ----
+   O prato pede «meia cebola» e o molho pede «40 g de cebola». É a mesma
+   cebola, e tem de dar uma linha só: duas linhas fazem quem cozinha cortar
+   duas vezes, fazem a lista de compras pedir a mais, e fazem a despensa dizer
+   que falta um ingrediente que já lá está. Não é um caso raro — de 35 020
+   pares possíveis de prato com acompanhamento ou molho, 18 698 partilham pelo
+   menos um ingrediente.
+
+   Soma-se pela unidade que a casa já usa para aquele ingrediente, com o peso
+   médio da unidade que a tabela de composição publica. Quando não há por onde
+   converter — um ingrediente sem peso por unidade, ou gramas contra mililitros,
+   que pedia uma densidade que a app não tem — as linhas ficam separadas. É
+   honesto, e é preferível a somar peras com maçãs. */
+function juntaIngrediente(lista,nome,q,u){
+  const i=lista.findIndex(x=>x[0]===nome && x[2]===u);
+  if(i>=0){ lista[i]=[nome, Math.round((lista[i][1]+q)*100)/100, u]; return; }
+  const j=lista.findIndex(x=>x[0]===nome);
+  if(j>=0){
+    const [uA,qA]=normalizaUnidade(nome,lista[j][1],lista[j][2]);
+    const [uB,qB]=normalizaUnidade(nome,q,u);
+    if(uA===uB){ lista[j]=[nome, Math.round((qA+qB)*100)/100, uA]; return; }
+  }
+  lista.push([nome,q,u]);
+}
 function minutosDe(id){ return (PASSOS[id]||[]).reduce((t,p)=>t+(p[2]||0),0); }
 /* O passo-a-passo composto. Não é uma colagem: entre o prato e cada
    acompanhamento entra uma nota com o tempo que ele leva ao todo, que é a
@@ -19115,10 +19139,7 @@ function sincronizaCombos(){
        um e a dose dele já é a de uma pessoa. */
     const fatia=fatiaAc(acs), ing=prato.i.map(l=>l.slice());
     const somar=(lista,peso)=>lista.forEach(l=>{
-      const q=Math.round(l[1]*peso*100)/100;
-      const j=ing.findIndex(x=>x[0]===l[0] && x[2]===l[2]);
-      if(j>=0) ing[j]=[l[0], Math.round((ing[j][1]+q)*100)/100, l[2]];
-      else ing.push([l[0],q,l[2]]);
+      juntaIngrediente(ing, l[0], Math.round(l[1]*peso*100)/100, l[2]);
     });
     acs.forEach(a=>somar(a.i,fatia));
     if(mo) somar(mo.i,1);
@@ -23823,8 +23844,16 @@ function normalizaUnidade(nome,quant,u){
   if(!alvo || alvo===u) return [u,quant];
   const c=composicaoDe(nome);
   if(!c||!c.un) return [u,quant];        /* sem peso por unidade não se converte */
-  if(u==='un' && (alvo==='g'||alvo==='ml')) return [alvo, quant*c.un];
-  if((u==='g'||u==='ml') && alvo==='un')   return [alvo, quant/c.un];
+  /* «un», «dente» e «colher» são todas contagens, e a tabela de composição só
+     publica um peso médio por unidade — o mesmo que gramasDe() já usa para os
+     macros. Antes só «un» convertia, e por isso o alho ficava com duas linhas
+     em 156 pares de prato com acompanhamento: 189 receitas medem-no aos dentes
+     e uma mede-o em gramas, e as duas apareciam lado a lado como se fossem
+     ingredientes diferentes. */
+  const massa=x=>x==='g'||x==='ml';
+  if(!massa(u) && massa(alvo)) return [alvo, quant*c.un];
+  if(massa(u) && !massa(alvo)) return [alvo, quant/c.un];
+  if(!massa(u) && !massa(alvo)) return [alvo, quant];   /* dente e un pesam o mesmo aqui */
   /* g <-> ml não se converte: densidade não é um dado que a app tenha */
   return [u,quant];
 }
