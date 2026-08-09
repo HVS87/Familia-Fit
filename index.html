@@ -8775,7 +8775,10 @@ function alertasDoDia(di,date){
     const comem=S.members.filter(m=>meal.m.includes(m.id)&&!isCheat(m.id,date));
     [meal.r].concat(ladoIds(meal)).filter(Boolean).forEach(rid=>{
       const r=RECIPES.find(x=>x.id===rid); if(!r) return;
-      if(comem.some(m=>alergenicosDe(r,m).length)) out.push(mk);
+      /* O perigo pela idade entra pela mesma porta do alergénio: uma uva
+         inteira num prato que uma criança de três anos vai comer tem de
+         marcar o dia tal como marca uma alergia. */
+      if(comem.some(m=>alergenicosDe(r,m).length || perigosIdade(r,m).length)) out.push(mk);
     });
   });
   return [...new Set(out)];
@@ -13727,7 +13730,7 @@ function fichaHtml(f){
         <div class="stat"><b style="color:var(--mf)">${r.f*f.n} g</b><span>Gordura</span></div>
         ${custo.com? `<div class="stat"><b>${nPT(custo.total,2)} €</b><span>Custo${custo.sem?'*':''}</span></div>`:''}
       </div>
-      ${avisoAlergia(r,S.members)}
+      ${avisoAlergia(r,S.members)}${avisoIdade(r,S.members)}
       ${blocoLadosFicha(r,f)}
       ${notaHistoria(r)}
       ${blocoVariantes(r)}
@@ -16317,7 +16320,7 @@ function fioDoDia(){
     out.push({k:'ref', h:HORA_LINHA[mk]||12, mk, ico:ICO_REF[mk]||'🍽️',
       t:nomeDaRefeicao(meal)||r.n,
       d:comem.map(m=>nomeCurto(m)).join(', ')+(acs.length>1? ' · '+notaDivisao(acs.length) : ''),
-      alerta:avisoAlergia(r, comem.concat(membrosVirtuais(meal)), true)? true:false,
+      alerta:(avisoAlergia(r, comem.concat(membrosVirtuais(meal)), true)||avisoIdade(r,comem))? true:false,
       feito:jaFeita,
       accao: jaFeita? null : {rot:'Comi', fn:"confirmarRefFio('"+mk+"')"},
       extra: jaFeita? null : {rot:'Cozinhar', fn:"cozinharRefeicao("+di+",'"+mk+"','"+d+"')"}});
@@ -20283,7 +20286,7 @@ function recipeCard(r,n){
       <div class="sub">${esc(textoConservacao(r))}<br><i>Prazos genéricos e conservadores para sobras refrigeradas, no frigorífico a 4 °C ou menos. Não substituem o cheiro, o aspeto e o bom senso.</i></div></details>
     ${S.members.length? `<div class="row" style="margin-top:2px"><span class="sub">Compatível:</span>
       ${comp.length? comp.map(m=>avatar(m,22)).join('') : '<span class="sub">— só como refeição livre</span>'}</div>`:''}
-    ${avisoAlergia(r,S.members)}
+    ${avisoAlergia(r,S.members)}${avisoIdade(r,S.members)}
     ${vetados.length? `<div class="sub" style="color:var(--warn)">⚠ ${vetados.map(x=>nomeCurto(x.m)+' não come '+x.itens.map(esc).join(', ')).join(' · ')}</div>`:''}
     <div class="row" style="margin-top:2px">
       <button class="chip" onclick="abrirCozinha('${r.id}',${n||1})">👨‍🍳 Cozinhar</button>
@@ -20701,6 +20704,106 @@ const EVITAR=[
   {n:'Bebidas geladas tipo granizado', ate:84, dep:'', porque:'Glicerol. O NHS desaconselha até aos 7 anos.', f:'nhs'},
   {n:'Enchidos, caldos e molhos industrializados', ate:null, dep:'', porque:'Sal a mais para a idade, e aditivos que a criança não precisa.', f:'cdb'}
 ];
+/* ---- Da lista para o prato ----
+   Esta tabela era a melhor peça de segurança da app e a mais inútil: dizia,
+   com fonte ao lado, que o mel dá botulismo antes do ano e que uma uva inteira
+   encaixa exactamente na traqueia de uma criança — e depois desenhava uma
+   lista estática que ninguém cruzava com quem estava à mesa. O plano guarda em
+   `meal.m` quem come cada refeição, e nenhuma das leituras filtrava por idade.
+
+   Agora cada linha que tem um perigo FÍSICO — asfixia, botulismo, mercúrio,
+   listeria, cru — leva consigo o que se procura nos ingredientes e no nome do
+   prato. As linhas difusas («sal adicionado», «açúcar adicionado») ficam sem
+   sinal de propósito: a app já conta o sódio e os açúcares livres do dia, e um
+   aviso que dispara em tudo é um aviso que se aprende a ignorar.
+
+   `so` limita a regra ao estado em que o perigo existe: uma uva inteira é
+   perigosa, cortada em quatro não é, e a receita que já a manda cortar não
+   deve ser assinalada. */
+const EVITAR_SINAL={
+  /* O mel é mel em qualquer preparação: o Clostridium botulinum resiste ao
+     forno de uma tarte, e é por isso que o NHS o proíbe no primeiro ano sem
+     excepção de confeção. */
+  'Mel': {re:/^Mel$/i},
+  /* Só o fruto inteiro engasga. Onde os passos dizem que vai picado, moído,
+     em pasta ou em farinha, o perigo não existe e o aviso não aparece. */
+  'Frutos de casca rija e amendoins inteiros':
+    {re:/^(Nozes|Amêndoa|Amendoim|Avelã|Caju|Castanha de caju|Pistácio|Noz-pecã|Pinhões|Mistura de frutos secos)/i,
+     semPasso:/pica|moíd|moer|ralad|pasta|manteiga de|farinha de|em pó|tritur|lasca|lamina|esmaga|pisa/i},
+  /* A uva e o tomate cereja engasgam pela forma, e a forma perde-se ao cozer.
+     Só se assinalam quando não há passo que os leve ao lume. */
+  'Uvas e tomate cherry inteiros':
+    {re:/^(Uvas?|Tomate cereja)$/i,
+     semPasso:/corta|ao meio|em quatro|metade|assa|coze|saltea|forno|grelha|refoga|estufa|frita/i},
+  'Rebuçados, chupas, pastilhas, pipocas, marshmallows': {re:/^(Pipocas|Rebuçad|Marshmallow)/i},
+  'Bebidas de arroz': {re:/^Bebida de arroz/i},
+  /* O limite desta linha não é o dos outros. A própria entrada de EVITAR diz
+     que o NHS desaconselha tubarão, espadarte e marlim ATÉ AOS 16 ANOS por
+     causa do mercúrio — e um limite de cinco, que é o que serve para o
+     engasgamento, deixava de fora justamente as idades em que a exposição
+     acumulada mais pesa. */
+  'Peixes grandes predadores':
+    {re:/^(Espadarte|Atum fresco|Peixe-espada|Tubarão|Cação|Maruca|Pata-roxa|Tintureira|Marlim)/i,
+     ate:192},
+  /* Pela receita e não pelo texto dos passos. A primeira versão procurava
+     «cru» nos passos e assinalava a sopa de legumes por causa de «legumes
+     crus» — 49 falsos positivos, e um aviso que dispara numa sopa é um aviso
+     que se aprende a fechar sem ler. Aqui estão os pratos que SÃO crus por
+     definição, listados pelo id. */
+  'Ovos, carne, peixe e marisco crus ou mal cozinhados':
+    {ids:['ceviche','poke','chirashi','tartarevaca','carpacciovaca','vitelotonato',
+          'ovosbenedict','eggsflorentine','cilbir','tiramisu','mousse','maionesecaseira']},
+  'Leite e queijos não pasteurizados; queijos de pasta mole com bolor':
+    {re:/^(Queijo brie|Queijo camembert|Queijo gorgonzola|Queijo roquefort|Queijo azul)/i},
+  'Bebidas geladas tipo granizado': {re:/granizado|slush/i},
+  /* «Cenoura e maçã cruas em pedaços» fica sem sinal de propósito. O perigo é
+     o pedaço duro, e nada no ficheiro distingue a cenoura que vai ralada para
+     uma salada da que vai aos cubos para uma sopa. Assinalar as 29 receitas
+     que levam cenoura seria pôr um aviso de asfixia em cima de uma sopa de
+     legumes. Fica na lista da secção infantil, que é onde se lê com tempo. */
+};
+/* Os perigos desta receita para esta pessoa, pela idade em meses. Devolve as
+   linhas de EVITAR que se aplicam, com o ingrediente que as dispara. */
+function perigosIdade(r,m){
+  if(!r||!m) return [];
+  const meses=idadeMeses(m);
+  const passos=(PASSOS[r.id]||[]).map(p=>p[0]+' '+p[1]).join(' ');
+  const out=[];
+  EVITAR.forEach(e=>{
+    const s=EVITAR_SINAL[e.n]; if(!s) return;
+    /* O limite é o da linha; quando ela diz `null` («sempre, em criança»),
+       vale o que o sinal declarar, e na falta disso os cinco anos que a DGS e
+       o NHS usam para o engasgamento e para o cru. */
+    const limite = Number.isFinite(s.ate)? s.ate : (e.ate===null? 60 : e.ate);
+    if(meses>=limite) return;
+    let itens=[];
+    if(s.re){
+      itens=(r.i||[]).map(l=>l[0]).filter(n=>s.re.test(n));
+      /* o perigo desaparece quando a preparação o desfaz */
+      if(itens.length && s.semPasso && s.semPasso.test(passos)) itens=[];
+    }
+    /* pratos que são crus por definição, identificados pelo id — a base do
+       prato composto conta, para o combo herdar o aviso da receita de origem */
+    if(s.ids && (s.ids.indexOf(r.id)>=0 || (r.base && s.ids.indexOf(r.base)>=0))) itens=['o modo de preparação'];
+    if(itens.length) out.push({e, itens:[...new Set(itens)], limite});
+  });
+  return out;
+}
+function avisoIdade(r,membros){
+  const linhas=[];
+  (membros||[]).forEach(m=>{
+    const p=perigosIdade(r,m); if(!p.length) return;
+    const meses=idadeMeses(m);
+    const idade = meses<24? plural(Math.round(meses),'mês','meses') : plural(Math.floor(meses/12),'ano','anos');
+    linhas.push('<b>'+esc(m.nome.split(' ')[0])+'</b> ('+idade+'): '
+      +p.map(x=>esc(x.e.n.toLowerCase())+' — '+esc(x.e.porque)
+        +(x.e.dep? ' <i>'+esc(x.e.dep)+'</i>':'')).join(' · '));
+  });
+  if(!linhas.length) return '';
+  return `<div class="alerta forte"><span aria-hidden="true">🧒</span><span>Não é para esta idade — ${linhas.join('<br>')}
+    <span style="display:block;opacity:.85;margin-top:4px">Isto é risco de engasgamento ou de intoxicação, não é uma questão de gosto.
+    Em caso de dúvida, quem decide é o pediatra.</span></span></div>`;
+}
 /* ================= A CALCULADORA DOS PEQUENOS =================
    Três cursores — idade, peso e percentil — e tudo o resto sai deles. O
    percentil não é só um resultado: também é um cursor, e puxá-lo move o
@@ -23837,7 +23940,7 @@ function mealBlock(di,mk,label,date){
       ${v.alguma? carimbo('ref:'+date+':'+mk) : v.falhou? carimbo('ref:'+date+':'+mk,'falhou') : ''}
       ${r&&v.cheia&&comem.length>1? `<span class="mesa-cheia" title="Mesa cheia: comeram todos os que estavam previstos">${mesaSvg(comem.length,comem.length,30)}</span>`:''}
     </div>
-    ${r? [r].concat(acs).map(x=>avisoAlergia(x,comem.concat(membrosVirtuais(meal)),true)).join('') : ''}
+    ${r? [r].concat(acs).map(x=>avisoAlergia(x,comem.concat(membrosVirtuais(meal)),true)+avisoIdade(x,comem)).join('') : ''}
     ${(function(){
       /* Com acompanhamento escolhido, o que vai à mesa já não é «Bife»: é
          «Bife com batatas fritas». O cartão diz o nome inteiro, e o nome
