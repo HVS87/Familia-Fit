@@ -7171,118 +7171,333 @@ const ING_EXCECAO={
    escrito porque é o tipo de erro que volta sozinho.
 
    Valores em mg de sódio por 100 g (ou 100 ml de bebida). */const NA_INSA={
+  'Abacaxi':2,   /* INSA Ananás */
+  'Abrótea crua':63,   /* INSA 800 Abrótea crua */
   'Alcaparras':2960,   /* Alcaparras (picles) */
+  'Algas nori':3200,   /* INSA 250030 Algas nori */
   'Alheira':680,   /* Alheira crua */
+  'Amêijoas':240,   /* INSA 907 Amêijoa crua */
+  'Amêndoa':6,   /* INSA Amêndoa, miolo, com pele */
+  'Amêndoa, miolo, torrada, sem pele':6,   /* INSA Amêndoa, miolo, torrada, sem pele */
+  'Amendoim':7,   /* INSA Amendoim, miolo */
   'Amendoim, miolo, torrado com sal':400,
   'Amendoim, miolo, torrado sem sal':0,
   'Atum em conserva':440,   /* Atum conserva em óleo */
+  'Atum fresco':45,   /* INSA 811 Atum fresco cru */
+  'Avelã, miolo':2,   /* INSA Avelã, miolo */
   'Azeitonas':2120,   /* Azeitona */
   'Azeitonas pretas':2120,   /* Azeitona */
   'Bacalhau (posta)':1480,   /* Bacalhau seco e salgado, demolhado cru */
+  'Bacalhau demolhado cru':1480,   /* INSA 804 Bacalhau seco e salgado, demolhado cru */
   'Bacalhau desfiado':1480,   /* Bacalhau seco e salgado, demolhado cru */
   'Bacalhau, ovas cruas':120,
   'Bacon':1200,
+  'Bagas goji secas':420,   /* INSA Bagas goji secas */
+  'Bebida de amêndoa sem açúcar':42,   /* INSA 250001 */
+  'Bebida de aveia':33,   /* INSA 240007 Bebida vegetal à base de aveia (alternativa ao leite) */
+  'Bebida de soja sem açúcar':21,   /* INSA IS542 */
+  'Berbigão cru':380,   /* INSA 919 Berbigão cru */
+  'Besugo cru':120,   /* INSA 1920000019 Besugo cru */
+  'Bife de vaca':60,   /* INSA IS217 Vaca, bife cru (valor médio de acém, alcatra e lombo) */
+  'Bifes de peru':63,   /* INSA IS284 Peru, peito sem pele, cru */
+  'Bochechas de porco':120,   /* INSA Porco, cabeça */
   'Bolacha de água e sal':560,   /* Bolacha água e sal */
   'Bolacha Maria':440,
+  'Borrego':64,   /* INSA IS096 Borrego, perna ou costeleta crua */
+  'Borrego, perna crua':64,   /* INSA IS096 Borrego, perna ou costeleta crua */
+  'Bulgur':9.5,   /* INSA 2122000006 Bulgur */
+  'Búzio cru':380,   /* INSA 1900000100 Búzio cru */
+  'Cabrito, costeleta crua':94,   /* INSA IS126 Cabrito, costeleta crua */
+  'Cabrito, peito cru':82,   /* INSA IS127 Cabrito, peito cru */
+  'Cabrito, perna crua':77,   /* INSA IS128 Cabrito, perna crua */
+  'Cação cru':170,   /* INSA 815 Cação cru */
+  'Cacau em pó':34,   /* INSA Cacau em pó */
+  'Cachucho cru':61,   /* INSA 2120000014 Cachucho cru */
+  'Caju':10,   /* INSA Castanha de caju torrada, sem sal */
   'Caldo de galinha':320,   /* Caldo preparado com cubo de carne de galinha (diluição 2%) */
+  'Camarão':190,   /* INSA 969 Camarão cru */
+  'Camarão cozido descascado':1600,   /* INSA 971 Camarão cozido */
+  'Camarão-tigre':190,   /* INSA 969 Camarão cru */
+  'Canónigos crus':9.5,   /* INSA 1900000026 Canónigos crus */
+  'Cantarilho (Redfish) cru':78,   /* INSA 902 Cantarilho (Redfish) cru */
+  'Caracol, cru':73,   /* INSA 1900000115 Caracol, cru */
+  'Carambola':3,   /* INSA 623 Carambola */
+  'Carapau':80,   /* INSA 817 Carapau cru */
+  'Caril em pó':52,   /* INSA Caril em pó */
+  'Carne de porco':86,   /* INSA IS155 Porco, perna magra crua */
+  'Carne de vaca':53,   /* INSA IS198 Vaca para cozer ou estufar meio gorda crua */
+  'Carne picada de vaca':64,   /* INSA IS293 Vaca, hambúrguer cru */
+  'Carneiro, costeleta crua':88,   /* INSA IS097 Carneiro, costeleta crua */
+  'Carneiro, pá crua':66,   /* INSA IS098 Carneiro, pá crua */
+  'Carneiro, peito gordo, cru':110,   /* INSA IS099 Carneiro, peito gordo, cru */
+  'Carneiro, perna gorda, crua':60,   /* INSA IS100 Carneiro, perna gorda, crua */
+  'Carneiro, perna magra, crua':110,   /* INSA IS101 Carneiro, perna magra, crua */
+  'Caseína':10,   /* INSA 1900000084 Caseína */
   'Castanha de caju torrada e salgada':320,
+  'Castanha do Brasil':3,   /* INSA Castanha do Brasil */
+  'Castanha pilada':17,   /* INSA Castanha pilada */
+  'Castanhas':9,   /* INSA Castanha, miolo */
+  'Cavala':78,   /* INSA 820 Cavala crua */
+  'Cavala em filetes, conserva em azeite':620,   /* INSA 822 Cavala em filetes, conserva em azeite */
+  'Cavalo, bife de alcatra crua':51,   /* INSA IS141 Cavalo, bife de alcatra crua */
+  'Cavalo, lombo ou pá cru':48,   /* INSA IS142 Cavalo, lombo ou pá cru */
+  'Cebolinho':3,   /* INSA 1194 Cebolinho fresco */
+  'Cerefólio fresco':10,   /* INSA 1195 Cerefólio fresco */
   'Cerveja branca':0,
+  'Cherne cru':110,   /* INSA 896 Cherne cru */
+  'Chicharro cru':80,   /* INSA 823 Chicharro cru */
+  'Choco cru':200,   /* INSA 912 Choco cru */
+  'Chocolate culinária, tablete':17,   /* INSA Chocolate culinária, tablete */
+  'Chocolate de culinária':17,   /* INSA Chocolate culinária, tablete */
+  'Chocolate de leite, tablete':120,   /* INSA Chocolate de leite, tablete */
+  'Chocolate negro (aproximadamente 50% cacau)':12,   /* INSA Chocolate negro (aproximadamente 50% cacau) */
+  'Chocolate, pó':11,   /* INSA Chocolate, pó */
   'Chouriço':2480,   /* Chouriço de carne de porco, cru */
   'Chouriço de carne de porco, cru':2480,
+  'Chouriço de carne de porco, gordo, cru':2630,   /* INSA IS342 Chouriço de carne de porco, gordo, cru */
+  'Chouriço de sangue':1100,   /* INSA IS345 Chouriço de sangue, cru */
   'Chucrute':480,
   'Clara de ovo de galinha, crua':200,
+  'Clara de ovo de galinha, pasteurizada':150,   /* INSA Clara de ovo de galinha, pasteurizada */
+  'Coco ralado':28,   /* INSA Coco seco, ralado */
+  'Codorniz carne sem pele, crua':45,   /* INSA IS302 Codorniz carne sem pele, crua */
+  'Codorniz com pele, crua':47,   /* INSA IS301 Codorniz com pele, crua */
+  'Coelho':58,   /* INSA IS274 Coelho cru */
   'Cogumelos enlatados, escorridos':360,
+  'Compota de fruta':11,   /* INSA Compota de cereja */
+  'Corvina crua':56,   /* INSA 826 Corvina crua */
+  'Costeletas de borrego':64,   /* INSA IS096 Borrego, perna ou costeleta crua */
+  'Coxas de frango':90,   /* INSA IS012 Frango, perna sem pele, crua */
+  'Creme culinário líquido, 65% gordura, com sal':1200,   /* INSA IS383 Creme culinário líquido, 65% gordura, com sal */
+  'Creme vegetal culinário, 75% gordura, sem sal':6,   /* INSA IS375 Creme vegetal culinário, 75% gordura, sem sal */
+  'Creme vegetal de soja para barrar':300,   /* INSA 250031 Creme vegetal de soja para barrar */
+  'Creme vegetal para barrar 35% gordura, com fitosteróis':39,   /* INSA IS376 Creme vegetal para barrar 35% gordura, com fitosteróis */
+  'Creme vegetal para barrar 37% gordura':300,   /* INSA IS378 Creme vegetal para barrar 37% gordura */
+  'Creme vegetal para barrar 58% gordura, com cálcio':600,   /* INSA IS399 Creme vegetal para barrar 58% gordura, com cálcio */
+  'Creme vegetal para barrar 70% gordura, 53% ácidos gordos monoinsaturados':870,   /* INSA IS398 */
+  'Creme vegetal para barrar 70% gordura, com sal':1200,   /* INSA IS377 Creme vegetal para barrar 70% gordura, com sal */
+  'Creme vegetal para barrar 72% gordura, 33% ácidos gordos polinsaturados':340,   /* INSA IS374 */
+  'Cubo de carne de galinha para caldo':16300,   /* INSA Cubo de carne de galinha para caldo */
+  'Cubo de carne de vaca para caldo':15000,   /* INSA Cubo de carne de vaca para caldo */
+  'Damasco seco':44,   /* INSA Alperce seco */
+  'Dourada':59,   /* INSA 828 Dourada crua */
+  'Enguia crua':77,   /* INSA 831 Enguia crua */
+  'Espadarte':72,   /* INSA 834 Espadarte cru */
+  'Esparguete':5,   /* INSA 417 Esparguete cru */
+  'Faneca crua':68,   /* INSA 2120000015 Faneca crua */
+  'Farelo de trigo':28,   /* INSA 1900000075 Farelo de trigo */
   'Farinheira':960,   /* Farinheira crua */
+  'Feijoa (polpa)':3,   /* INSA 1900000011 Feijoa (polpa) */
+  'Fermento de padeiro':23,   /* INSA Fermento fresco de padeiro */
+  'Fermento em pó':18500,   /* INSA Fermento em pó */
+  'Fermento seco de padeiro':48,   /* INSA Fermento seco de padeiro */
   'Fiambre':920,   /* Fiambre, perna */
   'Fiambre de aves':920,
   'Fiambre, pá':960,
   'Fiambre, peito de frango':960,
   'Fiambre, perna':920,
+  'Fisális':0.9,   /* INSA 1900000029 Fisális */
+  'Flocos de centeio':40,   /* INSA 1900000072 Flocos de centeio */
+  'Flocos de cevada':5,   /* INSA 1900000073 Flocos de cevada */
   'Flor de sal':40000,
+  'Folhas de rabanete cruas':110,   /* INSA 1900000027 Folhas de rabanete cruas */
+  'Frango (1/4), perna com costa e pele, crua':81,   /* INSA IS015 Frango (1/4), perna com costa e pele, crua */
+  'Frango inteiro com pele, cru':70,   /* INSA IS016 Frango inteiro com pele, cru */
+  'Frango inteiro sem pele, cru':77,   /* INSA IS017 Frango inteiro sem pele, cru */
+  'Frango, peito com pele, cru':72,   /* INSA IS010 Frango, peito com pele, cru */
+  'Frango, pele crua':50,   /* INSA IS013 Frango, pele crua */
+  'Gamba crua':190,   /* INSA 1920000020 Gamba crua */
+  'Garoupa crua':130,   /* INSA 899 Garoupa crua */
+  'Gelatina em folhas':32,   /* INSA Gelatina desidratada (pó ou folha) */
   'Gema de ovo de galinha, crua':40,
+  'Gema de ovo de galinha, pasteurizada':71,   /* INSA Gema de ovo de galinha, pasteurizada */
+  'Gérmen de trigo':5.5,   /* INSA 1900000076 Gérmen de trigo */
+  'Goraz cru':100,   /* INSA 837 Goraz cru */
+  'Grão-de-bico cozido':250,   /* INSA 536 Grão-de-bico, demolhado, cozido */
+  'Grão-de-bico seco cru':6,   /* INSA 535 Grão-de-bico, seco, cru */
+  'Grão-de-bico, seco, cru':6,   /* INSA 535 Grão-de-bico, seco, cru */
+  'Grilo doméstico, pó':350,   /* INSA 260002 Grilo doméstico, pó */
+  'Imperador cru':72,   /* INSA 841 Imperador cru */
+  'Iogurte de aroma':70,   /* INSA 1900000102 Iogurte meio gordo, aromatizado, açucarado */
   'Iogurte grego':40,   /* Iogurte grego natural */
+  'Iogurte grego natural':32,   /* INSA 2122000008 Iogurte grego natural */
   /* «Iogurte grego magro natural» ficava aqui com 0 mg — impossível, porque
      todo o leite traz sódio. A chave estava truncada, por isso o zero nunca
-     chegou a ser lido; corrigi-la seria passar a afirmar o zero. Fica sem
-     valor, e a app conta-o como omissão em vez de somar uma mentira. */
+     chegou a ser lido; corrigi-la seria passar a afirmar o zero, e por isso
+     ficou sem valor durante muito tempo.
+     Fica escrito porque se percebeu porquê: a linha do INSA tem mesmo 0 no
+     campo do sódio e 0 no do sal, mas dá 0,75 g de cinza, 180 mg de potássio
+     e 120 mg de cálcio — um iogurte com essa cinza não pode ter sódio nenhum.
+     É um campo por preencher, não uma medição. O valor está agora na tabela
+     de baixo, com a fonte que o mediu (USDA 170894, 36 mg, n=18), que bate
+     certo com o iogurte grego gordo do próprio INSA (32 mg). */
   'Iogurte magro, natural':80,   /* Iogurte magro, natural  */
   'Iogurte natural':80,   /* Iogurte magro, natural  */
+  'Javali cru':94,   /* INSA Javali cru */
+  'Jindungo (piri-piri)':12,   /* INSA 1900000013 Malagueta vermelha fresca */
   'Ketchup':1240,   /* Molho de tomate, "ketchup" */
+  'Lagosta crua':88,   /* INSA 2120000016 Lagosta crua */
+  'Lagostim cru':320,   /* INSA 922 Lagostim cru */
+  'Lampreia crua':350,   /* INSA 1900000101 Lampreia crua */
+  'Lapas cruas':420,   /* INSA 2120000019 Lapas cruas */
+  'Lebre crua':77,   /* INSA Lebre crua */
   'Leite':40,   /* Leite meio gordo, UHT */
   'Leite achocolatado, UHT':40,   /* Leite achocolatado, UHT  */
   'Leite condensado açucarado':160,   /* Leite condensado */
   'Leite de cabra cru':40,
   'Leite de coco':0,   /* Leite de coco, enlatado */
   'Leite de ovelha cru':40,
+  'Leite gordo especial, pasteurizado':37,   /* INSA IS030 Leite gordo especial, pasteurizado */
   'Leite gordo, pasteurizado':40,
   'Leite gordo, pó':360,
   'Leite gordo, UHT':40,
   'Leite magro de pastagem, UHT':40,
   'Leite magro, pó':520,
   'Leite magro, UHT':40,
+  'Leite meio gordo de pastagem, UHT':34,   /* INSA 1234 Leite meio gordo de pastagem, UHT */
   'Leite meio gordo, pó':440,
+  'Leite meio gordo, UHT':40,   /* INSA IS025 Leite meio gordo, UHT */
+  'Leite sem lactose meio gordo':40,   /* INSA 1900000063 Leite meio gordo sem lactose, UHT */
+  'Linguado cru':88,   /* INSA 845 Linguado cru */
   'Linguiça':2920,
+  'Lulas':200,   /* INSA 914 Lula crua */
   'Maionese':120,   /* Maionese caseira, com ovo e óleo de soja */
+  'Maionese caseira, com ovo e óleo de soja':120,   /* INSA Maionese caseira, com ovo e óleo de soja */
+  'Manjerona seca':77,   /* INSA Manjerona seca */
   'Manteiga':760,   /* Manteiga com sal */
   'Manteiga sem sal':0,
   'Margarina':1120,
   'Margarina 3/4, de girassol':240,
+  'Margarina culinária para folhados, com sal':970,   /* INSA IS380 Margarina culinária para folhados, com sal */
+  'Margarina industrial para pastelaria, com sal':1200,   /* INSA IS379 Margarina industrial para pastelaria, com sal */
+  'Margarina vegetal culinária, 80% gordura, com sal':1200,   /* INSA IS381 Margarina vegetal culinária, 80% gordura, com sal */
+  'Margarina vegetal culinária, com alho e sal':1200,   /* INSA IS382 Margarina vegetal culinária, com alho e sal */
+  'Marmelada':2,   /* INSA Marmelada */
+  'Maruca crua':120,   /* INSA 848 Maruca crua */
+  'Massa com ovo crua':19,   /* INSA 422 Massa com ovo crua */
+  'Massa cotovelo crua':5,   /* INSA 417 Esparguete cru */
+  'Massa cozida':240,   /* INSA 419 Esparguete cozido */
+  'Massa curta':5,   /* INSA 417 Esparguete cru */
   'Massa de pimentão':1320,
   'Massa folhada, congelada':0,
   'Massa para pizza':280,
+  'Massa pequena':5,   /* INSA 418 Massa miúda crua */
   'Massa quebrada':480,   /* Massa quebrada para quiche */
+  'Mexilhão cozido':360,   /* INSA 910 Mexilhão cozido sem sal */
+  'Mexilhões':290,   /* INSA 909 Mexilhão cru */
+  'Millet, cru, seco':10,   /* INSA 220026 Millet, cru, seco */
   'Minarina (meia margarina)':160,
   'Missô branco':3960,   /* Miso, pasta de soja fermentada com arroz integral e cevada */
+  'Molho branco com caldo de carne de vaca':770,   /* INSA Molho branco com caldo de carne de vaca */
   'Molho de mostarda':320,   /* Molho de mostarda  */
   'Molho de soja':5600,
   'Molho de tomate':200,
   'Molho de vinagrete':720,
   'Molho para francesinha':280,
   'Molho verde':320,
+  'Morcela de arroz':510,   /* INSA IS350 Morcela crua */
   'Mortadela':1560,
   'Mostarda':760,   /* Condimento de mostarda */
   'Mostarda de Dijon':760,   /* Condimento de mostarda */
   'Mozzarella':160,   /* Queijo Mozzarella fresco */
   'Mozzarella fresca':160,   /* Queijo Mozzarella fresco */
+  'Múcua (fruto do embondeiro, baobab)':3.2,   /* INSA 2120000001 Múcua (fruto do embondeiro, baobab) */
+  'Nabiça crua':40,   /* INSA 1900000032 Nabiça crua */
+  'Nabiças cozidas':39,   /* INSA 240004 Nabiças cozidas */
   'Nata':40,   /* Nata UHT 35% gordura */
   'Nata maturada pasteurizada 30% gordura':40,
   'Nata para bater 35% gordura':40,   /* Nata para bater pasteurizada 34% gordura */
   'Nata para bater pasteurizada 34% gordura':40,
   'Nata pasteurizada 33% gordura':40,
   'Nata pasteurizada 36% gordura':40,
+  'Nata pasteurizada para café, 15% gordura':41,   /* INSA IS064 Nata pasteurizada para café, 15% gordura */
+  'Natas para culinária 18%':41,   /* INSA IS064 Nata pasteurizada para café, 15% gordura */
+  'Ostra, crua':370,   /* INSA 911 Ostra, crua */
   'Ovo':0,   /* Ovo de galinha inteiro, cru */
+  'Ovo de codorniz, cru':110,   /* INSA Ovo de codorniz, cru */
+  'Ovo de galinha cozido':140,   /* INSA IS086 Ovo de galinha, cozido */
+  'Ovo de galinha líquido, pasteurizado':120,   /* INSA IS095 Ovo de galinha líquido, pasteurizado */
+  'Ovo de galinha, escalfado':140,   /* INSA IS087 Ovo de galinha, escalfado */
+  'Ovo de galinha, estrelado':250,   /* INSA Ovo de galinha, estrelado */
   'Paio de lombo':3520,
   'Paio de lombo entremeado':1760,
   'Pão alentejano':600,   /* Pão de trigo */
   'Pão de centeio':520,
   'Pão de centeio integral':240,
   'Pão de forma':400,   /* Pão de forma, de trigo enriquecido */
+  'Pão de forma, de trigo com passas':290,   /* INSA 432 Pão de forma, de trigo com passas */
   'Pão de leite (trigo)':440,
   'Pão de mistura':600,   /* Pão de mistura de trigo e centeio */
   'Pão de trigo com redução de sal':80,
+  'Pão de trigo integral com passas':92,   /* INSA 436 Pão de trigo integral com passas */
+  'Pão de trigo integral com sementes de sésamo':55,   /* INSA 434 Pão de trigo integral com sementes de sésamo */
+  'Pão de trigo integral com soja':200,   /* INSA 435 Pão de trigo integral com soja */
   'Pão integral':480,   /* Pão de trigo integral */
   'Pão pita':440,
   'Pão ralado':440,
   'Pão rústico':600,   /* Pão de trigo */
+  'Pargo legítimo cru':65,   /* INSA 850 Pargo legítimo cru */
+  'Pargo mulato cru':81,   /* INSA 853 Pargo mulato cru */
   'Parmesão':760,   /* Queijo Parmesão */
+  'Passas':53,   /* INSA Uva seca (passas) */
+  'Pasta de aves (paté), caseira':730,   /* INSA IS356 Pasta de aves (paté), caseira */
   'Pasta de miso':3960,   /* Miso, pasta de soja fermentada com arroz integral e cevada */
+  'Pastilha elástica':32,   /* INSA Pastilha elástica */
+  'Pato com pele, cru':68,   /* INSA IS277 Pato com pele, cru */
+  'Peito de frango':60,   /* INSA IS011 Frango, peito sem pele, cru */
+  'Peito de pato':92,   /* INSA Pato sem pele, cru */
+  'Peixe-espada-branco cru':77,   /* INSA 856 Peixe-espada-branco cru */
+  'Peixe-espada-preto cru':140,   /* INSA 859 Peixe-espada-preto cru */
+  'Perdiz crua':60,   /* INSA IS305 Perdiz crua */
+  'Peru fatiado':870,   /* INSA Fiambre, peito de peru */
+  'Peru inteiro com pele, cru':49,   /* INSA IS285 Peru inteiro com pele, cru */
+  'Peru, peito com pele, cru':64,   /* INSA IS282 Peru, peito com pele, cru */
+  'Peru, perna com pele, crua':83,   /* INSA IS283 Peru, perna com pele, crua */
+  'Pescada':100,   /* INSA 966 Pescada crua (valor médio) */
+  'Pescada da África do Sul crua':120,   /* INSA 862 Pescada da África do Sul crua */
+  'Pescada do Chile crua':85,   /* INSA 865 Pescada do Chile crua */
+  'Pescada europeia crua':69,   /* INSA 868 Pescada europeia crua */
   'Picles de pepino':280,
+  'Pinhões':1,   /* INSA Pinhão, miolo */
   'Pistácio torrado e salgado':640,
   'Pistácio torrado, sem sal':0,
+  'Placas de lasanha':11,   /* INSA 424 Massa para lasanha crua */
+  'Polvo':260,   /* INSA 917 Polvo cru */
+  'Porco, baço':130,   /* INSA Porco, baço */
+  'Porco, cabeça':120,   /* INSA Porco, cabeça */
+  'Porco, chispe':71,   /* INSA Porco, chispe */
+  'Porco, costeleta gorda crua':61,   /* INSA IS151 Porco, costeleta gorda crua */
+  'Porco, costeleta meio gorda crua':100,   /* INSA IS152 Porco, costeleta meio gorda crua */
+  'Porco, entrecosto cru':72,   /* INSA IS156 Porco, entrecosto cru */
+  'Porco, febras magras cruas':86,   /* INSA IS155 Porco, perna magra crua */
+  'Porco, jarrete':100,   /* INSA Porco, jarrete */
+  'Porco, lombo cru':53,   /* INSA IS153 Porco, lombo cru */
+  'Porco, toucinho entremeado fresco, cru':68,   /* INSA IS307 Porco, toucinho entremeado fresco, cru */
+  'Porco, toucinho entremeado ligeiramente salgado, cru':1420,   /* INSA IS308 Porco, toucinho entremeado ligeiramente salgado, cru */
+  'Porco, toucinho entremeado magro':190,   /* INSA Porco, toucinho entremeado magro */
+  'Pota crua':210,   /* INSA 1900000060 Pota crua */
   'Presunto':2560,
+  'Presunto de porco preto':2570,   /* INSA IS357 Presunto */
+  'Proteína texturizada de soja':0,   /* INSA 2122000005 Proteína texturizada de soja */
   'Queijo Amarelo da Beira Baixa':600,
   'Queijo Brie':560,
   'Queijo Camembert':600,
   'Queijo cheddar':720,
   'Queijo creme':1000,   /* Queijo creme para barrar */
+  'Queijo creme para barrar, alto teor polinsaturados':980,   /* INSA IS056 Queijo creme para barrar, alto teor polinsaturados */
   'Queijo de Azeitão':600,
   'Queijo de cabra':600,   /* Queijo de cabra curado */
+  'Queijo de cabra atabafado, curado':1100,   /* INSA 220015 Queijo de cabra atabafado, curado */
+  'Queijo de cabra atabafado, fresco':400,   /* INSA 220004 Queijo de cabra atabafado, fresco */
   'Queijo de Castelo Branco':640,
   'Queijo de Évora':520,
+  'Queijo de mistura (vaca, cabra e ovelha)':600,   /* INSA 220021 Queijo de mistura (vaca, cabra e ovelha) */
   'Queijo de Nisa':600,
   'Queijo de ovelha curado':600,
   'Queijo de ovelha, amanteigado':600,
   'Queijo de vaca curado':520,
+  'Queijo de vaca curado, magro':500,   /* INSA 220018 Queijo de vaca curado, magro */
+  'Queijo de vaca curado, meio gordo':600,   /* INSA 220017 Queijo de vaca curado, meio gordo */
   'Queijo de vaca, amanteigado':600,
   'Queijo Emmental':400,
   'Queijo flamengo':520,
@@ -7296,28 +7511,85 @@ const ING_EXCECAO={
   'Queijo gruyère':680,
   'Queijo Mascarpone':80,
   'Queijo Mestiço de Tolosa':840,
+  'Queijo parmesão ralado':770,   /* INSA IS051 Queijo Parmesão */
+  'Queijo Quark natural magro':41,   /* INSA IS060 Queijo Quark natural magro */
   'Queijo Quark natural meio gordo':40,
   'Queijo Raclette':680,
   'Queijo ralado':760,   /* Queijo Parmesão */
   'Queijo São Jorge':720,
   'Queijo Serpa':800,
   'Queijo Serra da Estrela':600,
+  'Queijo Serra da Estrela, velho':790,   /* INSA IS054 Queijo Serra da Estrela, velho */
+  'Quivi, "Kiwi"':9,   /* INSA 657 Quivi, \ */
+  'Rabanada':85,   /* INSA 511 Rabanada */
+  'Rábano cru':7,   /* INSA 1900000015 Rábano cru */
+  'Raia crua':220,   /* INSA 870 Raia crua */
+  'Rebentos de alfalfa crus':6,   /* INSA 1900000020 Rebentos de alfalfa crus */
+  'Rebentos de bambu crus':3,   /* INSA 1900000019 Rebentos de bambu crus */
+  'Rebentos de feijão mungo':22,   /* INSA 250027 Rebentos de feijão mungo */
+  'Rebentos de soja':22,   /* INSA 1900000022 Rebentos de soja crus */
+  'Repolho':7,   /* INSA 552 Couve-branca crua */
   'Requeijão':200,   /* Requeijão de vaca */
   'Requeijão de cabra':0,
+  'Requeijão de mistura (ovelha e cabra)':400,   /* INSA 220012 Requeijão de mistura (ovelha e cabra) */
+  'Robalo':95,   /* INSA 871 Robalo cru */
+  'Safio cru':84,   /* INSA 875 Safio cru */
   'Salame':2320,
+  'Salicórnia fresca':1270,   /* INSA 220023 Salicórnia fresca */
+  'Salmão':38,   /* INSA 876 Salmão cru */
+  'Salmão fresco':38,   /* INSA 876 Salmão cru */
+  'Salmonete cru':96,   /* INSA 2120000013 Salmonete cru */
   'Salpicão':4400,
   'Salsicha fresca crua':720,
   'Salsicha tipo Frankfurt':1000,
+  'Sangue de porco':210,   /* INSA Porco, sangue cru */
+  'Sapateira crua':280,   /* INSA 1900000065 Sapateira crua */
+  'Sarda crua':76,   /* INSA 879 Sarda crua */
+  'Sardinha gorda crua':65,   /* INSA 882 Sardinha gorda crua */
+  'Sardinha meio gorda conserva em água, sem espinha e sem pele':46,   /* INSA 890 Sardinha meio gorda conserva em água, sem espinha e sem pele */
+  'Sardinha meio gorda conserva em azeite':190,   /* INSA 888 Sardinha meio gorda conserva em azeite */
+  'Sardinhas':65,   /* INSA 882 Sardinha gorda crua */
   'Sardinhas em conserva':40,   /* Sardinha meio gorda conserva em água, sem espinha e sem pele */
+  'Seitan':190,   /* INSA 2122000004 Seitan */
+  'Shortening para pastelaria':0,   /* INSA IS396 Shortening para pastelaria */
+  'Shortening para restaurante':0,   /* INSA IS397 Shortening para restaurante */
+  'Soja, farinha com baixo teor de gordura':13,   /* INSA 541 Soja, farinha com baixo teor de gordura */
+  'Soja, grão seco, cru':4,   /* INSA 539 Soja, grão seco, cru */
+  'Solha crua':110,   /* INSA 891 Solha crua */
+  'Sultanas':19,   /* INSA Sultanas */
   'Tahini':40,   /* Tahini  */
+  'Tamarilho sem pele':1,   /* INSA 1900000012 Tamarilho sem pele */
+  'Tamarindo cru':15,   /* INSA Tamarindo cru */
+  'Tamboril cru':86,   /* INSA 893 Tamboril cru */
+  'Tângera':4,   /* INSA 690 Tângera */
+  'Tapioca':4,   /* INSA 454 Tapioca */
+  'Tofu':6,   /* INSA 545 Tofu simples */
   'Tomate concentrado':120,
   'Tomate seco':160,
   'Tosta de trigo':400,
   'Tosta de trigo integral':440,
   'Tosta de trigo sem sal':40,
+  'Tosta integral':430,   /* INSA 442 Tosta de trigo integral */
+  'Tremoços':910,   /* INSA 548 Tremoço, cozido e salgado */
+  'Trigo Sarraceno (grão) cru':0,   /* INSA 2122000002 Trigo Sarraceno (grão) cru */
+  'Truta':41,   /* INSA 905 Truta arco-íris crua */
+  'Túbera (trufa) crua':5,   /* INSA 618 Túbera (trufa) crua */
+  'Vaca para assar crua':67,   /* INSA IS196 Vaca para assar crua */
+  'Vaca para cozer ou estufar magra crua':66,   /* INSA IS197 Vaca para cozer ou estufar magra crua */
+  'Vaca, fígado cru':130,   /* INSA IS324 Vaca, fígado cru */
+  'Vaca, lombo magro cru':60,   /* INSA IS195 Vaca, lombo magro cru */
+  'Veado cru':62,   /* INSA Veado cru */
+  'Vieira, crua':160,   /* INSA 1900000098 Vieira, crua */
   'Vinho branco':0,   /* Vinho maduro branco, teor alcoólico ≥12,5% vol. */
   'Vinho do Porto':0,   /* Vinho do Porto, seco */
   'Vinho tinto':0,   /* Vinho maduro tinto, teor alcoólico <12,5% vol. */
+  'Vitela':25,   /* INSA Vitela, bife cru */
+  'Vitela, chambão cru':25,   /* INSA Vitela, chambão cru */
+  'Vitela, costeleta crua':26,   /* INSA IS223 Vitela, costeleta crua */
+  'Vitela, lombo cru':24,   /* INSA IS222 Vitela, lombo cru */
+  'Vitela, pá crua':25,   /* INSA Vitela, pá crua */
+  'Vitela, peito magro cru':28,   /* INSA IS224 Vitela, peito magro cru */
+  'Wasabi, raiz crua':21,   /* INSA Wasabi, raiz crua */
 };
 const NA_ESTIMADO={
   'Anchovas':3500,
@@ -7328,6 +7600,8 @@ const NA_ESTIMADO={
      INSA não deu é o erro que esta separação existe para impedir. */
   'Black pudding':830,   /* LGC, Analytical survey of meat products, 1990-91 */
   'Feijão cozido em molho de tomate':261,   /* Public Health England, 2013 */
+  'Manteiga magra':520,   /* rotulo */
+  'Psílio em pó':111,   /* USDA 2280974 PSYLLIUM HUSK SOLUBLE FIBER POWDER */
   /* Farinhas sem sal: o valor é quase nada, mas tem de estar escrito. Sem ele,
      uma receita de arepas ou de msemen fica sem total de sal e a app diz «sem
      valor» — o que é honesto mas inútil quando o número existe e é zero. */
@@ -7339,7 +7613,6 @@ const NA_ESTIMADO={
   'Burrata':200,
   'Caldo de legumes':300,
   'Carne seca (charque)':2000,
-  'Delícias do mar (surimi)':800,
   'Iogurte de soja natural':35,
   'Kimchi':500,
   'Leite de coco light':15,
@@ -7370,6 +7643,7 @@ const NA_ESTIMADO={
   'Requeijão cremoso (catupiry)':400,
   'Ricotta':85,
   'Sal grosso':38700,
+  'Tinta de choco':3320,   /* rotulo Tinta de sepia */
   'Tomate pelado':200,
   'Toucinho fumado':1500,
   /* «Manteiga com sal» não tinha valor, com o nome a anunciar o sal — o pior
@@ -7417,7 +7691,51 @@ const NA_DESCARTADO={
    Metê-lo em «estimado» dizia a quem lê que o número era um palpite, e não
    era; metê-lo em «INSA» era pior ainda. Fica aqui, com o nome certo, e a
    app diz qual das três é. */
-const NA_TABELA={};
+const NA_TABELA={
+  'Adoçante de stévia':4,   /* CIQUAL 31087 Édulcorant à base d'extrait de stévia */
+  'Asas de frango':86,   /* CIQUAL 36023 Poulet, aile, viande et peau crues */
+  'Atum em conserva ao natural':293,   /* CoFID Tuna, canned in brine, drained */
+  'Bacalhau salgado seco':7030,   /* USDA 174190 Fish, cod, Atlantic, dried and salted */
+  'Bife do lombo de vaca':62,   /* CIQUAL 6116 Boeuf, filet cru */
+  'Cabrito, cabeça crua':82,   /* CIQUAL 21800 Chevreau, viande crue */
+  'Cacau em pó sem açúcar':45,   /* CIQUAL 18100 Cacao, sans sucres ajoutés, poudre soluble */
+  'Chalota':5,   /* CIQUAL 20097 Échalote, crue */
+  'Costela de vaca crua':49,   /* CIQUAL 6122 Boeuf, plat de côtes cru */
+  'Couscous':7,   /* CIQUAL 9681 Graine de couscous (semoule de blé dur précuite), à cuire */
+  'Delícias do mar (surimi)':628,   /* CIQUAL 26046 Surimi, bâtonnets, tranche ou râpé saveur crabe */
+  'Endro':27,   /* CIQUAL 11093 Aneth, frais */
+  'Eritritol':0,   /* USDA 2392047 ERYTHRITOL NATURAL SWEETENER */
+  'Ervas de Provença':35,   /* CIQUAL 11060 Herbes de Provence, séchées */
+  'Frango, coxa sem pele crua':95,   /* CIQUAL 36019 Poulet, haut de cuisse, viande crue */
+  'Galinha de angola com pele, crua':67,   /* USDA 172416 Guinea hen, meat and skin, raw */
+  'Ghee':2,   /* USDA 173412 Butter oil, anhydrous */
+  'Gnocchi de batata':468,   /* CIQUAL 26264 Gnocchi à la pomme de terre, à cuire */
+  'Granola':47,   /* CIQUAL 32108 */
+  'Iogurte grego magro natural':36,   /* USDA 170894 Yogurt, Greek, plain, nonfat */
+  'Levedura nutricional':141,   /* CIQUAL 11009 Levure de bière en paillettes */
+  'Maionese ligeira':936,   /* CIQUAL 11079 */
+  'Maminha de vaca crua':54,   /* USDA 174772  fat, choice, raw */
+  'Massa integral crua':6.2,   /* CIQUAL 9870 Pâtes sèches, au blé complet, crues */
+  'Noodles':397,   /* CIQUAL 9863 */
+  'Ovo de pata cru':146,   /* USDA 172189 Egg, duck, whole, fresh, raw */
+  'Peru, bife da perna cru':124,   /* CIQUAL 36307 Dinde, cuisse, viande crue */
+  'Polpa de tomate':28,   /* USDA 170460 Tomato products, canned, puree, without salt added */
+  'Pombo cru':53,   /* CIQUAL 36600 Pigeon, viande crue */
+  'Porco, orelha cozida':167,   /* USDA 167858 */
+  'Queijo de barrar light':367,   /* CIQUAL 12069 */
+  'Rabo de porco':63,   /* USDA 168291 Pork, fresh, variety meats and by-products, tail, raw */
+  'Salmão fumado':1220,   /* CIQUAL 26037 Saumon fumé */
+  'Salmão fumado a frio':1184,   /* CoFID Salmon, smoked (cold-smoked) */
+  'Sardinha em conserva em tomate':315,   /* CoFID Sardines, canned in tomato sauce, whole contents */
+  'Tempeh':39,   /* CIQUAL 20917 Tempeh */
+  'Tofu firme':10,   /* CIQUAL 20904 Tofu nature, préemballé */
+  'Tortilhas de milho':430,   /* CIQUAL 7813 Tortilla souple (à garnir), à base de maïs */
+  'Tortilhas de trigo':650,   /* CIQUAL 7815 Tortilla souple (à garnir), à base de blé */
+  'Vaca, acém cru':49,   /* CIQUAL 6270 Boeuf, paleron cru */
+  'Vaca, alcatra crua':54,   /* CIQUAL 6206 Boeuf, rumsteck cru */
+  'Xarope de ácer':10.5,   /* CIQUAL 31034 Sirop d'érable */
+  'Xarope de agave':4,   /* CIQUAL 31089 Sirop d'agave */
+};
 function sodioDe(nome){
   if(temChave(NA_INSA,nome)) return NA_INSA[nome];
   if(temChave(NA_TABELA,nome)) return NA_TABELA[nome];
