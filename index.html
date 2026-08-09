@@ -1806,7 +1806,7 @@ const ICO_REF={p:'🌅',a:'🍽️',l:'🍎',j:'🌙',ac:'🍚',mo:'🥄'};
    prato nacional brasileiro, e a salsicha pelas cozinhas do centro da Europa
    que não têm separador próprio. */
 const ICO_COZ={portuguesa:'🇵🇹',italiana:'🍝',francesa:'🥐',mediterranica:'🫒',asiatica:'🍜',
-  espanhola:'🥘',britanica:'🫖',mexicana:'🌮',americana:'🍔',indiana:'🍛',brasileira:'🫘',africana:'🌍',outras:'🌭'};
+  japonesa:'🍣',espanhola:'🥘',britanica:'🫖',mexicana:'🌮',americana:'🍔',indiana:'🍛',brasileira:'🫘',africana:'🌍',outras:'🌭'};
 const ICO_SUPL={proteico:'🥤',vitaminico:'💊',mineral:'🧂',composto:'🐟'};
 const ICO_FASE={bebe:'🍼',crianca:'🧒',adolescente:'🧑',adulto:'🧑‍🦱'};
 function SP(id,nome,cat,mets,dicas,dist){ return {id,nome,cat,mets,dicas:dicas||null,dist:dist||null}; }
@@ -2357,10 +2357,18 @@ const DIETS = {
    A britânica estava aí até o pequeno-almoço inglês entrar a sério: um full
    English, o porridge escocês, os tattie scones, o Welsh rarebit e o beans on
    toast são uma cozinha inteira de manhã, não um caso isolado. Uma cozinha
-   ganha separador quando já não cabe no «Outras». */
+   ganha separador quando já não cabe no «Outras».
+
+   A japonesa saiu da «Asiática» pela mesma razão por que a indiana já tinha
+   saído: «Asiática» é meio mundo, e enfiar no mesmo separador um pad thai
+   tailandês, um bibimbap coreano, um congee chinês e um ramen japonês diz a
+   quem procura que são a mesma coisa — e não são. O Japão tem despensa
+   própria (dashi, miso, mirin, saké de cozinha, molho de soja japonês),
+   técnica própria e uma gramática de refeição própria, a do arroz com sopa e
+   três acompanhamentos. Quem quer jantar japonês não quer jantar asiático. */
 const CUIS = {portuguesa:'Portuguesa',mediterranica:'Mediterrânica',espanhola:'Espanhola',italiana:'Italiana',
   francesa:'Francesa',britanica:'Britânica',mexicana:'Mexicana',americana:'Norte-americana',asiatica:'Asiática',
-  indiana:'Indiana',brasileira:'Brasileira',africana:'Africana',outras:'Outras'};
+  japonesa:'Japonesa',indiana:'Indiana',brasileira:'Brasileira',africana:'Africana',outras:'Outras'};
 const BASE_ACT = {sedentario:['Sedentário (escritório, pouco movimento)',1.2],leve:['Leve (em pé parte do dia)',1.35],moderado:['Moderado (trabalho ativo)',1.5],intenso:['Intenso (trabalho físico pesado)',1.65]};
 const COMMUTE = {nenhum:['Carro / transportes',0],pe30:['A pé (~30 min/dia)',1.75],pe60:['A pé (~1 h/dia)',3.5],bici:['Bicicleta (~30 min/dia)',3.4]}; // valor = MET·h efetivos/dia útil
 const GOALS = {perder:['Perder peso',-0.15],manter:['Manter peso',0],ganhar:['Ganhar massa',0.10]};
@@ -2566,7 +2574,7 @@ R('poke','Poke bowl de salmão','asiatica',[],520,58,30,18,[['Salmão fresco',12
 R('padthai','Pad thai de camarão','asiatica',[],540,65,28,18,[['Massa de arroz',80,'g'],['Camarão',100,'g'],['Ovo',1,'un'],['Rebentos de soja',60,'g'],['Amendoim',20,'g'],['Lima',0.5,'un'],['Molho de peixe',15,'ml']]),
 R('beefbroc','Vaca salteada com brócolos','asiatica',['keto','lowcarb'],430,12,38,26,[['Bife de vaca',160,'g'],['Brócolos',150,'g'],['Alho',2,'dente'],['Molho de soja',15,'ml'],['Gengibre',8,'g'],['Óleo de sésamo',10,'ml']],null,4),
 R('noodles','Sopa asiática de noodles e frango','asiatica',['lowfat'],430,55,32,8,[['Noodles',70,'g'],['Peito de frango',120,'g'],['Caldo de galinha',400,'ml'],['Cogumelos shiitake',50,'g'],['Cebolinho',10,'g'],['Molho de soja',10,'ml']],null,0,['sop']),
-R('tofu','Tofu teriyaki com legumes','asiatica',['vegetariana','lowfat'],380,40,22,14,[['Tofu',150,'g'],['Molho teriyaki',20,'ml'],['Brócolos',100,'g'],['Cenoura',60,'g'],['Arroz jasmim',60,'g'],['Sementes de sésamo',5,'g']]),
+R('tofu','Tofu teriyaki com legumes','japonesa',['vegetariana','lowfat'],380,40,22,14,[['Tofu',150,'g'],['Molho teriyaki',20,'ml'],['Brócolos',100,'g'],['Cenoura',60,'g'],['Arroz jasmim',60,'g'],['Sementes de sésamo',5,'g']]),
 
 /* ---------- Mais pratos principais ---------- */
 R('feijoada','Feijoada à portuguesa','portuguesa',[],620,48,38,30,[['Feijão encarnado',120,'g'],['Carne de porco',100,'g'],['Chouriço',30,'g'],['Couve',80,'g'],['Cenoura',60,'g'],['Cebola',0.5,'un'],['Azeite',8,'ml']]),
@@ -2587,9 +2595,9 @@ R('tabule','Tabule de quinoa com legumes','mediterranica',['vegetariana','lowfat
 R('moussaka','Moussaka de beringela','mediterranica',[],560,34,32,32,[['Beringela',200,'g'],['Carne picada de vaca',120,'g'],['Tomate pelado',120,'g'],['Cebola',0.5,'un'],['Queijo feta',40,'g'],['Farinha',15,'g'],['Leite',150,'ml'],['Manteiga',15,'g'],['Canela',1,'g'],['Azeite',12,'ml']]),
 R('salmaolentilhas','Salmão com lentilhas e endro','mediterranica',['mediterranica','lowfat'],520,38,40,24,[['Salmão',170,'g'],['Lentilhas',90,'g'],['Cenoura',60,'g'],['Endro',4,'g'],['Limão',0.5,'un'],['Azeite',10,'ml']]),
 R('frittata','Frittata de legumes','mediterranica',['keto','lowcarb','vegetariana','mediterranica'],340,10,22,24,[['Ovo',3,'un'],['Courgette',100,'g'],['Pimento',0.5,'un'],['Queijo feta',40,'g'],['Azeite',10,'ml']],null,3),
-R('ramen','Ramen de miso com ovo','asiatica',[],520,64,26,16,[['Noodles',80,'g'],['Pasta de miso',25,'g'],['Ovo',1,'un'],['Cogumelos shiitake',60,'g'],['Rebentos de soja',60,'g'],['Cebolinho',10,'g'],['Óleo de sésamo',8,'ml']],null,0,['sop']),
-R('tikka','Caril de frango tikka com iogurte','asiatica',['lowcarb'],450,20,44,22,[['Peito de frango',180,'g'],['Iogurte natural',80,'g'],['Tomate pelado',100,'g'],['Caril em pó',8,'g'],['Gengibre',10,'g'],['Alho',2,'dente'],['Azeite',8,'ml']],null,3),
-R('yakisoba','Yakisoba de legumes','asiatica',['vegetariana','lowfat'],440,66,14,13,[['Noodles',80,'g'],['Couve',80,'g'],['Cenoura',60,'g'],['Pimento',0.5,'un'],['Molho de soja',15,'ml'],['Gengibre',8,'g'],['Óleo de sésamo',8,'ml']]),
+R('ramen','Ramen de miso com ovo','japonesa',[],520,64,26,16,[['Noodles',80,'g'],['Pasta de miso',25,'g'],['Ovo',1,'un'],['Cogumelos shiitake',60,'g'],['Rebentos de soja',60,'g'],['Cebolinho',10,'g'],['Óleo de sésamo',8,'ml']],null,0,['sop']),
+R('tikka','Caril de frango tikka com iogurte','indiana',['lowcarb'],450,20,44,22,[['Peito de frango',180,'g'],['Iogurte natural',80,'g'],['Tomate pelado',100,'g'],['Caril em pó',8,'g'],['Gengibre',10,'g'],['Alho',2,'dente'],['Azeite',8,'ml']],null,3),
+R('yakisoba','Yakisoba de legumes','japonesa',['vegetariana','lowfat'],440,66,14,13,[['Noodles',80,'g'],['Couve',80,'g'],['Cenoura',60,'g'],['Pimento',0.5,'un'],['Molho de soja',15,'ml'],['Gengibre',8,'g'],['Óleo de sésamo',8,'ml']]),
 R('atumcouveflor','Bowl de atum com arroz de couve-flor','asiatica',['keto','lowcarb'],400,14,38,22,[['Atum fresco',160,'g'],['Couve-flor',200,'g'],['Abacate',0.5,'un'],['Molho de soja',12,'ml'],['Sementes de sésamo',8,'g']],null,7),
 
 /* ---------- Pequenos-almoços ---------- */
@@ -2622,8 +2630,8 @@ R('bruschetta','Bruschetta de tomate e manjericão','italiana',['vegetariana','l
 R('espetadinhas','Espetadas de tomate cereja e mozzarella','italiana',['keto','lowcarb','vegetariana','mediterranica'],210,7,12,15,[['Tomate cereja',120,'g'],['Mozzarella',80,'g'],['Manjericão',5,'g'],['Azeite',8,'ml']],['l'],2),
 R('frutossecos','Mistura de frutos secos e sementes','francesa',['keto','lowcarb','paleo','vegetariana'],280,10,9,24,[['Nozes',25,'g'],['Amêndoa',20,'g'],['Sementes de abóbora',15,'g']],['l'],5),
 R('iogurtecompota','Iogurte natural com frutos vermelhos','francesa',['vegetariana','lowfat'],230,32,12,6,[['Iogurte natural',200,'g'],['Frutos vermelhos',80,'g'],['Mel',10,'g']],['l']),
-R('edamame','Edamame com flor de sal','asiatica',['vegetariana','lowcarb','lowfat'],180,14,15,7,[['Edamame',150,'g'],['Flor de sal',2,'g']],['l'],7),
-R('pepinosesamo','Pepino marinado com sementes de sésamo','asiatica',['keto','lowcarb','vegetariana'],150,8,5,11,[['Pepino',1,'un'],['Sementes de sésamo',10,'g'],['Molho de soja',8,'ml'],['Óleo de sésamo',8,'ml']],['l'],2),
+R('edamame','Edamame com flor de sal','japonesa',['vegetariana','lowcarb','lowfat'],180,14,15,7,[['Edamame',150,'g'],['Flor de sal',2,'g']],['l'],7),
+R('pepinosesamo','Pepino marinado com sementes de sésamo','japonesa',['keto','lowcarb','vegetariana'],150,8,5,11,[['Pepino',1,'un'],['Sementes de sésamo',10,'g'],['Molho de soja',8,'ml'],['Óleo de sésamo',8,'ml']],['l'],2),
 /* ---------- Portuguesa: mais pratos, pequenos-almoços e lanches ---------- */
 R('bacalhaunatas','Bacalhau com natas','portuguesa',[],620,48,36,30,[['Bacalhau desfiado',120,'g'],['Batata',180,'g'],['Nata',80,'ml'],['Cebola',0.5,'un'],['Leite',60,'ml'],['Farinha',12,'g'],['Manteiga',15,'g'],['Azeite',10,'ml']],null,4),
 R('gomesdesa','Bacalhau à Gomes de Sá','portuguesa',['mediterranica'],520,40,38,22,[['Bacalhau (posta)',150,'g'],['Batata',180,'g'],['Ovo',1,'un'],['Cebola',0.5,'un'],['Leite',100,'ml'],['Azeitonas pretas',20,'g'],['Azeite',15,'ml'],['Salsa',5,'g']],null,5),
@@ -2762,7 +2770,7 @@ R('sandeperu','Sanduíche de peru com abacate','americana',[],480,46,34,18,[['P�
 
 /* ---------- Asiática ---------- */
 R('bibimbap','Bibimbap de vaca e legumes','asiatica',[],560,66,32,18,[['Arroz para sushi',80,'g'],['Bife de vaca',120,'g'],['Espinafres',60,'g'],['Cenoura',60,'g'],['Rebentos de soja',60,'g'],['Ovo',1,'un'],['Molho de soja',10,'ml'],['Óleo de sésamo',8,'ml']],null,6),
-R('misotofu','Sopa de miso com tofu e cogumelos','asiatica',['lowcarb','vegetariana'],220,14,18,10,[['Pasta de miso',25,'g'],['Tofu',120,'g'],['Cogumelos shiitake',40,'g'],['Algas nori',3,'g'],['Cebolinho',8,'g']],['a','j','l'],3,['sop']),
+R('misotofu','Sopa de miso com tofu e cogumelos','japonesa',['lowcarb','vegetariana'],220,14,18,10,[['Pasta de miso',25,'g'],['Tofu',120,'g'],['Cogumelos shiitake',40,'g'],['Algas nori',3,'g'],['Cebolinho',8,'g']],['a','j','l'],3,['sop']),
 R('frangocaju','Frango salteado com caju e pimento','asiatica',['lowcarb'],480,26,40,24,[['Peito de frango',160,'g'],['Caju',25,'g'],['Pimento',1,'un'],['Cebola',0.5,'un'],['Molho de soja',15,'ml'],['Gengibre',8,'g'],['Óleo de sésamo',8,'ml']],null,4),
 R('saladarepolho','Salada asiática de repolho e amendoim','asiatica',['lowcarb','vegetariana'],280,20,10,18,[['Repolho',120,'g'],['Cenoura',60,'g'],['Amendoim',25,'g'],['Coentros',6,'g'],['Lima',0.5,'un'],['Molho de soja',10,'ml'],['Óleo de sésamo',10,'ml']],['a','j','l'],6),
 
@@ -3012,7 +3020,30 @@ R('caldeiradaenguias','Caldeirada de enguias','portuguesa',[],0,0,0,0,[['Enguia 
 R('arrozfrango','Arroz de frango','portuguesa',['mediterranica'],0,0,0,0,[['Frango inteiro com pele, cru',150,'g'],['Arroz carolino',70,'g'],['Cebola',0.5,'un'],['Alho',2,'dente'],['Tomate',1,'un'],['Cenoura',50,'g'],['Ervilhas',40,'g'],['Azeite',15,'ml'],['Louro',1,'g'],['Colorau',2,'g'],['Salsa',5,'g']],['a','j'],0,['pp']),
 /* ---- Salmão, de todas as maneiras ---- */
 R('salmaogrelhado','Salmão grelhado com limão e endro','portuguesa',['mediterranica'],0,0,0,0,[['Salmão',180,'g'],['Limão',0.5,'un'],['Endro',4,'g'],['Azeite',10,'ml'],['Flor de sal',1,'g'],['Pimenta preta',0.5,'g']],['a','j'],0,['pp']),
-R('salmaoteriyaki','Salmão glaceado com teriyaki e sésamo','asiatica',[],0,0,0,0,[['Salmão',170,'g'],['Molho teriyaki',30,'ml'],['Sementes de sésamo',6,'g'],['Gengibre',6,'g'],['Alho',1,'dente'],['Óleo de sésamo',6,'ml'],['Cebolinho',5,'g']],['a','j'],0,['pp']),
+R('salmaoteriyaki','Salmão glaceado com teriyaki e sésamo','japonesa',[],0,0,0,0,[['Salmão',170,'g'],['Molho teriyaki',30,'ml'],['Sementes de sésamo',6,'g'],['Gengibre',6,'g'],['Alho',1,'dente'],['Óleo de sésamo',6,'ml'],['Cebolinho',5,'g']],['a','j'],0,['pp']),
+/* ---- Cozinha japonesa ----
+   A gramática desta cozinha é o ichijū sansai: arroz, uma sopa e três
+   acompanhamentos. Não é um prato ao centro — é uma mesa posta, e por isso
+   quase tudo o que se segue foi escrito para caber ao lado de outra coisa.
+
+   O que entra aqui entra com a despensa que a app tem hoje. O saké de
+   cozinha, o vinagre de arroz, o kombu, a wakame, o panko, a soba e o udon
+   ainda não têm composição no catálogo, e por isso ficam de fora pratos que
+   sem eles seriam uma imitação: não há sushi sem arroz avinagrado, não há
+   sunomono sem wakame, e não há zaru soba sem soba. Está escrito para se
+   saber o que falta, e não para parecer que não falta nada.
+
+   Fonte de cada receita na nota da linha. */
+R('sabashioyaki','Cavala grelhada com sal à japonesa','japonesa',['keto','lowcarb','paleo','lowfat'],0,0,0,0,[['Cavala',180,'g'],['Sal grosso',3,'g'],['Rabanete branco cru',60,'g'],['Limão',0.5,'un'],['Molho de soja',5,'ml']],['a','j'],0,['pp']),
+R('onigirisalmao','Onigiri de salmão','japonesa',[],0,0,0,0,[['Arroz para sushi',50,'g'],['Salmão',50,'g'],['Algas nori',2,'g'],['Sal grosso',1,'g'],['Sementes de sésamo',3,'g']],['l','p'],0,['sn','br']),
+R('onigiriatum','Onigiri de atum com maionese','japonesa',[],0,0,0,0,[['Arroz para sushi',50,'g'],['Atum em conserva ao natural',45,'g'],['Maionese',12,'g'],['Algas nori',2,'g'],['Sal grosso',1,'g'],['Molho de soja',3,'ml']],['l','p'],0,['sn','br']),
+R('tamagoyaki','Tamagoyaki, a omelete enrolada','japonesa',['keto','lowcarb'],0,0,0,0,[['Ovo',2,'un'],['Açúcar branco',4,'g'],['Molho de soja',4,'ml'],['Óleo alimentar',5,'ml']],['p','l'],0,['br','sn']),
+R('karaage','Karaage, frango frito à japonesa','japonesa',[],0,0,0,0,[['Coxas de frango',180,'g'],['Gengibre',6,'g'],['Alho',1,'dente'],['Molho de soja',12,'ml'],['Óleo de sésamo',3,'ml'],['Batata, fécula',20,'g'],['Farinha',10,'g'],['Óleo alimentar',15,'ml'],['Limão',0.25,'un']],['a','j'],0,['pp']),
+R('tonkatsu','Tonkatsu, costeleta de porco panada','japonesa',[],0,0,0,0,[['Porco, lombo cru',150,'g'],['Ovo',0.5,'un'],['Farinha',15,'g'],['Pão ralado',35,'g'],['Óleo alimentar',12,'ml'],['Repolho',100,'g'],['Sal grosso',1,'g'],['Pimenta preta',0.5,'g']],['a','j'],0,['pp']),
+R('gomaae','Espinafres com molho de sésamo','japonesa',['vegan','mediterranica'],0,0,0,0,[['Espinafres',150,'g'],['Sementes de sésamo',12,'g'],['Molho de soja',8,'ml'],['Açúcar branco',3,'g']],['ac'],0),
+R('gohan','Arroz branco japonês','japonesa',['vegan'],0,0,0,0,[['Arroz para sushi',75,'g']],['ac'],0),
+R('karejapones','Caril japonês de frango','japonesa',[],0,0,0,0,[['Coxas de frango',150,'g'],['Cebola',120,'g'],['Cenoura',80,'g'],['Batata',110,'g'],['Caril em pó',8,'g'],['Farinha',10,'g'],['Manteiga',10,'g'],['Óleo alimentar',8,'ml'],['Molho de soja',8,'ml'],['Arroz para sushi',70,'g']],['a','j'],0,['pp']),
+R('acmtonkatsu','Molho tonkatsu','japonesa',[],0,0,0,0,[['Molho inglês',15,'ml'],['Ketchup',10,'g'],['Molho de soja',5,'ml'],['Açúcar amarelo',3,'g'],['Sementes de sésamo',2,'g']],['mo']),
 R('salmaoforno','Salmão no forno com espargos e tomate cereja','mediterranica',['mediterranica'],0,0,0,0,[['Salmão',180,'g'],['Espargos',120,'g'],['Tomate cereja',100,'g'],['Azeite',12,'ml'],['Alho',2,'dente'],['Limão',0.5,'un'],['Orégãos',2,'g']],['a','j'],0,['pp']),
 R('salmaocrostaervas','Salmão em crosta de ervas e mostarda','francesa',[],0,0,0,0,[['Salmão',180,'g'],['Pão ralado',25,'g'],['Mostarda de Dijon',12,'g'],['Salsa',8,'g'],['Endro',4,'g'],['Manteiga',12,'g'],['Limão',0.25,'un']],['a','j'],0,['pp']),
 R('saladasalmaofumado','Salada de salmão fumado com abacate e endro','mediterranica',['mediterranica'],0,0,0,0,[['Salmão fumado',80,'g'],['Abacate',0.5,'un'],['Rúcula',50,'g'],['Pepino',60,'g'],['Endro',4,'g'],['Alcaparras',8,'g'],['Azeite',10,'ml'],['Limão',0.5,'un']],['a','l','j'],0,['ent','pp']),
@@ -4682,6 +4713,53 @@ P('salmaogrelhado',[['Temperar','Salmão com sal e pimenta só na hora — o sal
  ['Grelhar','Grelha ou frigideira bem quente, pele para baixo primeiro, e não se mexe. Dois terços do tempo desse lado.',7],
  ['Virar','Vira uma única vez. O centro fica rosado — salmão cozido de todo perde a gordura toda.',3],
  ['Fechar','Limão, endro e um fio de azeite fora do lume.']]);
+P('sabashioyaki',[['Salgar e esperar','Faz três golpes rasos na pele e salga os dois lados com generosidade. Deixa vinte minutos à temperatura da cozinha: o sal puxa a água à superfície e é isso que firma a carne e concentra o sabor.',20],
+ ['Secar bem','Limpa a água que subiu com papel e tira o sal a mais. Peixe húmido cola-se à grelha e cozinha em vez de tostar.'],
+ ['Grelhar pela pele','Grelha ou grelhador do forno bem quente, pele para cima se for grelhador de cima, e sete a dez minutos sem andar a mexer. Está pronto quando a pele empola e a parte mais grossa se separa à garfada.',10],
+ ['Rabanete ralado','Rala o rabanete branco e espreme-o de leve. Serve ao lado, com o limão e umas gotas de soja: o ralado corta a gordura da cavala, que é toda a razão de ele estar no prato.']]);
+P('onigirisalmao',[['Arroz na medida certa','Coze o arroz e deixa-o tapado dez minutos. Trabalha-o ainda morno — frio não cola, a escaldar não se aguenta na mão.',10],
+ ['Salmão desfeito','Grelha o salmão, tira-lhe a pele e desfaz em lascas com um garfo. Uma pitada de sal no peixe e não no arroz todo.',8],
+ ['Molhar as mãos','Molha as mãos em água com sal antes de cada bola. É o que impede o arroz de se agarrar aos dedos, e o sal fica na casca em vez de ficar na massa.'],
+ ['Apertar em triângulo','Meia mão-cheia de arroz, o recheio no meio, mais arroz por cima. Aperta com três apertos firmes e não mais: um onigiri esmagado fica pesado como massa.'],
+ ['Nori no fim','A tira de nori entra à hora de comer, não antes. Posta cedo, absorve a humidade do arroz e perde a estaladiça toda.']]);
+P('onigiriatum',[['Arroz morno','Coze o arroz e deixa-o repousar tapado. Trabalha-o morno, como no de salmão.',10],
+ ['Atum escorrido','Escorre bem o atum e envolve com a maionese e umas gotas de soja. Se levar água a mais, o recheio molha o arroz e a bola abre-se.'],
+ ['Mãos molhadas','Molha as mãos em água com sal a cada bola.'],
+ ['Fechar o recheio','Cava um buraco no arroz, mete o recheio e fecha com arroz por cima antes de dar a forma. O atum tem de ficar escondido, ou sai pela primeira dentada.'],
+ ['Nori à mesa','Enrola a tira de nori só quando fores comer.']]);
+P('tamagoyaki',[['Cortar os ovos, não bater','Desfaz os ovos com os pauzinhos em ziguezague, a raspar o fundo da taça, até a clara deixar de se ver em fios. Bater incorpora ar, e o ar faz bolhas que estragam as camadas.'],
+ ['Temperar','Junta o açúcar e a soja e mexe até dissolver. É um doce salgado: o açúcar não é engano, é a receita.'],
+ ['Primeira camada','Frigideira em lume médio, untada. Deita uma camada fina, fura as bolhas que aparecerem e, quando a superfície ainda estiver húmida, enrola do lado de lá para ti.',3],
+ ['Camadas seguintes','Unta outra vez, levanta o rolo para o ovo cru correr por baixo, e enrola por cima. Repete até acabar a mistura. Untar a frigideira a cada camada é o que faz as camadas separarem-se.',5],
+ ['Firmar e cortar','Aperta o rolo ainda quente num pano ou numa esteira e deixa arrefecer cinco minutos antes de cortar em seis. Cortado a escaldar, desfaz-se.',5]]);
+P('karaage',[['Marinar','Corta o frango em pedaços de dois dedos e envolve com o gengibre e o alho ralados, a soja e o óleo de sésamo. Meia hora no frigorífico, e não mais de uma: a soja começa a curar a carne e ela fica seca.',30],
+ ['Duas camadas de pó','Escorre a marinada, passa primeiro pela farinha e só depois pela fécula de batata. São duas e não uma: a farinha agarra-se à carne húmida, a fécula é o que fica estaladiço.'],
+ ['Primeira fritura a 160 °C','Óleo a 160 °C e três a cinco pedaços de cada vez. Noventa segundos, e sai para uma grelha. Não está dourado nem tem de estar — esta fritura é para cozinhar por dentro.',3],
+ ['Segunda fritura a 180 °C','Sobe o óleo para 180 °C e devolve os pedaços quarenta e cinco segundos, até ficarem dourados. É a segunda que faz a crosta; sem ela o karaage fica pálido e mole.',2],
+ ['Escorrer de pé','Escorre em grelha e nunca em papel deitado — o vapor preso por baixo amolece a crosta em menos de um minuto. Limão à parte.']]);
+P('tonkatsu',[['Preparar a carne','Dá uns golpes no nervo que rodeia o lombo para a costeleta não encolher e enrolar na fritura. Tempera com sal e pimenta dos dois lados.'],
+ ['Farinha, ovo, pão','Passa por farinha, sacode o excesso, depois pelo ovo batido e por fim pelo pão ralado, apertando de leve. Em Portugal o pão ralado fino substitui o panko — fica boa crosta, mas mais cerrada e menos aérea do que a japonesa.'],
+ ['Fritar a 170 °C','Óleo a 170 °C e a costeleta lá dentro sem apinhar. Cinco a seis minutos, virando uma vez, até ficar da cor do mel. Óleo mais quente doura antes de o porco estar feito por dentro, e o porco cozinha-se sempre por completo.',6],
+ ['Descansar de pé','Escorre em grelha, de pé, cinco minutos. Deitada em papel, a crosta de baixo cozinha no seu próprio vapor.',5],
+ ['Repolho em fio','Corta o repolho o mais fino que conseguires e deixa-o em água fria dez minutos. Escorre bem: é o que fica crocante e fresco ao lado da fritura, e não é guarnição a mais — faz parte do prato.',10],
+ ['Cortar em tiras','Corta a costeleta em tiras de dois dedos antes de levar à mesa, para se comer com pauzinhos.']]);
+P('gomaae',[['Escaldar de pé','Água a ferver com sal, os talos primeiro vinte segundos e só depois as folhas mais trinta. Assim tudo fica no ponto ao mesmo tempo.',1],
+ ['Água gelada','Passa logo por água com gelo. Pára a cozedura e é o que mantém o verde vivo em vez do verde tristonho.'],
+ ['Espremer a sério','Aperta os espinafres com as duas mãos até deixarem de largar água, e corta em troços de dois dedos. Espinafre mal espremido dilui o molho todo.'],
+ ['Sésamo pisado','Torra as sementes de sésamo numa frigideira seca até cheirarem, e pisa-as no almofariz até metade estar em pasta. É aí que o sésamo larga o óleo e o molho ganha corpo.',3],
+ ['Envolver','Junta a soja e o açúcar ao sésamo, mistura e envolve os espinafres. Come à temperatura da cozinha, não gelado.']]);
+P('gohan',[['Lavar até a água sair clara','Lava o arroz em água fria, esfregando de leve com a mão, e troca a água quatro ou cinco vezes até deixar de sair leitosa. É o amido de fora que se está a tirar, e é ele que faz o arroz empapar.',5],
+ ['Demolhar','Deixa o arroz de molho trinta minutos e escorre. O grão absorve água por igual antes de ir ao lume, e coze do meio para fora em vez de cozer só por fora.',30],
+ ['Cozer tapado','Água pelo mesmo volume do arroz, tapa, deixa levantar fervura e baixa para o mínimo doze minutos. Não destapes: o vapor é o que coze.',12],
+ ['Descansar e soltar','Fora do lume, tapado, dez minutos. Só então abre e solta o arroz com uma espátula, com cortes de baixo para cima. Mexer com colher esmaga o grão.',10]]);
+P('karejapones',[['Alourar a cebola','Cebola em meias-luas no óleo, lume médio, até ficar dourada e doce. É o passo longo do prato e é ele que dá o fundo — quinze minutos que não se encurtam.',15],
+ ['Selar e cozer','Junta o frango em pedaços, deixa-o ganhar cor e acrescenta a cenoura e a batata em pedaços grandes. Cobre com água a rasar e coze até a batata ceder à faca.',20],
+ ['Roux de caril','Noutra frigideira, derrete a manteiga, junta a farinha e mexe dois minutos, e só então o caril em pó, mais um minuto para acordar as especiarias. Sem este roux o caril japonês não tem a textura de veludo que o distingue do indiano.',4],
+ ['Ligar o molho','Tira uma concha do caldo, desfaz o roux nela até não ter grumos e devolve tudo ao tacho. Cozinha mais cinco minutos em lume brando, mexendo — daqui para a frente pega no fundo com facilidade.',5],
+ ['Apurar e servir','Prova, junta a soja e deixa repousar antes de servir sobre o arroz. Como quase todos os guisados, no dia seguinte está melhor.']]);
+P('acmtonkatsu',[['Misturar tudo','Junta o molho inglês, o ketchup, a soja e o açúcar amarelo e mexe até o açúcar desaparecer. É um molho de frasco feito em casa, e faz-se em dois minutos.',2],
+ ['Sésamo no fim','Torra as sementes de sésamo numa frigideira seca e junta-as inteiras. Postas antes, amolecem no vinagre e perdem o estalido.',3],
+ ['Deixar casar','Meia hora no frigorífico antes de servir. Acabado de misturar sabe às partes; passado esse tempo sabe a molho.',30]]);
 P('salmaoteriyaki',[['Marinar','Salmão no teriyaki com gengibre e alho ralados, quinze minutos. Mais tempo e o açúcar queima ao grelhar.',15],
  ['Selar','Frigideira quente com óleo de sésamo, salmão a corar de ambos os lados.',6],
  ['Glacear','A marinada ao lume a reduzir até brilhar, e o salmão a rolar lá dentro.',4],
