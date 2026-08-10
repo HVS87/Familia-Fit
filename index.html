@@ -27030,9 +27030,61 @@ function ligarPegaDaFolha(){
 }
 /* A caixa de diálogo vive fora do #main: se vivesse lá dentro, qualquer
    redesenho de separador a apagava a meio de a estarem a preencher. */
+/* Quem abriu a camada. Ao fechar, o foco tem de voltar ao botão que a abriu:
+   sem isto aterra no <body>, e quem anda de teclado ou de leitor de ecrã fica
+   no princípio da página a ter de percorrer a app outra vez até ao sítio onde
+   estava. São seis funções de fechar — ficha, cozinha, folha, mercado, modal,
+   pesquisa — e todas passam por aqui, por isso a memória é uma só e vive no
+   sítio onde a camada nasce e morre.
+
+   Guardar o próprio nó não serve: fechar chama render(), que reescreve o
+   #main inteiro, e o botão que se guardou deixa de estar no documento — a
+   primeira versão desta correção não devolvia o foco a lado nenhum por isso
+   mesmo. Guarda-se antes a maneira de o voltar a encontrar depois de o HTML
+   ser outro: o id, se tiver, senão o onclick, que nesta app é único por
+   acção e é o que sobrevive ao redesenho. */
+function marcaFoco(el){
+  if(!el || el===document.body) return null;
+  if(el.id) return '#'+CSS.escape(el.id);
+  const on=el.getAttribute && el.getAttribute('onclick');
+  if(on) return el.tagName.toLowerCase()+'[onclick="'+CSS.escape(on)+'"]';
+  return null;
+}
+function achaFoco(marca){
+  if(!marca) return null;
+  let el=null;
+  try{ el=document.querySelector(marca); }catch(e){ return null; }
+  return (el && el.offsetParent!==null)? el : null;
+}
+/* Nem ler o foco em pintaModal chega: abrirFicha() muda o estado e chama
+   render(), que reescreve o #main ANTES de a camada ser pintada — quando
+   pintaModal corre, o botão já não existe e o foco já caiu no <body>. Por
+   isso segue-se o foco à medida que ele anda, e guarda-se sempre a última
+   marca de fora da camada. */
+let _ultimoFoco=null, _focoAntes=null;
+function lembraFoco(alvo){
+  const cx=document.getElementById('modal-raiz');
+  if(!alvo || (cx && cx.contains(alvo))) return;
+  const m=marcaFoco(alvo);
+  if(m) _ultimoFoco=m;
+}
+document.addEventListener('focusin',e=>lembraFoco(e.target));
+/* O clique também conta, e não é redundância: no Safari carregar num botão não
+   lhe dá o foco, e quem abre a camada com o rato ficaria sem marca nenhuma.
+   No teclado a tecla Enter sobre um botão dispara na mesma um clique, por isso
+   os dois caminhos passam por aqui. Fase de captura, para se registar antes de
+   o onclick trocar o ecrã todo. */
+document.addEventListener('click',e=>{
+  const a=e.target && e.target.closest && e.target.closest('button,a[href],[onclick],[tabindex]');
+  if(a) lembraFoco(a);
+},true);
 function pintaModal(){
   let cx=document.getElementById('modal-raiz');
   if(!cx){ cx=document.createElement('div'); cx.id='modal-raiz'; document.body.appendChild(cx); }
+  const jaHavia=!!cx.innerHTML;
+  /* guardado antes de a camada existir, senão o que se guardava era o primeiro
+     botão de dentro dela */
+  if(!jaHavia) _focoAntes=_ultimoFoco;
   const mo=modalAberto(), fo=folhaMesa();
   const fi=fichaAberta();
   /* A camada é a única parte da app que se desenha a partir de um estado
@@ -27067,6 +27119,14 @@ function pintaModal(){
   }
   if(S.ui.pesqAberta) pintaPesquisa();
   if(mo || (fo&&fo.tipo!=='mesa')){ const f=cx.querySelector('input,button'); if(f) setTimeout(()=>f.focus(),0); }
+  /* fechou-se: devolve o foco a quem a abriu, se ele ainda existir. O #main
+     redesenha-se por baixo e o botão pode ter deixado de existir — nesse caso
+     não se força nada, que é melhor do que atirar o foco para um sítio ao
+     acaso. */
+  if(jaHavia && !cx.innerHTML){
+    const marca=_focoAntes; _focoAntes=null;
+    if(marca) setTimeout(()=>{ const el=achaFoco(marca); if(el){ try{ el.focus(); }catch(e){} } },0);
+  }
   trancarFundo(!!cx.innerHTML);
   /* o botão de registo vive fora do #main, para não piscar a cada redesenho
      de separador — mas some quando há uma folha ou um diálogo por cima */
