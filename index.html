@@ -16358,7 +16358,11 @@ function fioDoDia(){
     out.push({k:'ref', h:HORA_LINHA[mk]||12, mk, ico:ICO_REF[mk]||'🍽️',
       t:nomeDaRefeicao(meal)||r.n,
       d:comem.map(m=>nomeCurto(m)).join(', ')+(acs.length>1? ' · '+notaDivisao(acs.length) : ''),
-      alerta:(avisoAlergia(r, comem.concat(membrosVirtuais(meal)), true)||avisoIdade(r,comem))? true:false,
+      /* O 🚨 tem de acender pelo prato inteiro. Olhava só para `r` e um bebé
+         de nove meses com um molho de laranja e mel ao lado ficava sem sinal
+         nenhum na linha do dia. */
+      alerta:[r].concat(ladosDe(meal)).some(x=>
+        avisoAlergia(x, comem.concat(membrosVirtuais(meal)), true)||avisoIdade(x,comem)),
       feito:jaFeita,
       accao: jaFeita? null : {rot:'Comi', fn:"confirmarRefFio('"+mk+"')"},
       extra: jaFeita? null : {rot:'Cozinhar', fn:"cozinharRefeicao("+di+",'"+mk+"','"+d+"')"}});
@@ -17936,9 +17940,16 @@ function blocoMarmitasHoje(){
             return m? nPT(doseSugerida(m,rec,x.mk),2).replace(',00','')+'×' : ''; }).join(' / ')} dose
         ${acs.length? '· com '+acs.map(y=>esc(y.n)).join(' + ') : ''}
         ${sobra? '<span style="color:var(--ok)"> · há sobra para encher</span>':''}
-        ${(function(){ const al=x.quem.map(id=>S.members.find(y=>y.id===id)).filter(Boolean)
-            .flatMap(m=>alergenicosDe(rec,m).map(a=>nomeCurto(m)+': '+a.nome.toLowerCase()));
-          return al.length? '<span style="color:var(--bad)"> · 🚨 '+esc(al.join(', '))+'</span>':''; })()}
+        ${(function(){
+          /* A marmita é o almoço de amanhã de uma criança, e é a refeição que
+             ninguém vai rever à mesa: se o aviso não vier aqui, não vem em
+             lado nenhum. Corre o prato e os lados, e o perigo de idade ao lado
+             do alergénio. */
+          const quem=x.quem.map(id=>S.members.find(y=>y.id===id)).filter(Boolean);
+          const al=[rec].concat(ladosDe(x.meal)).flatMap(p=>quem.flatMap(m=>
+            alergenicosDe(p,m).map(a=>nomeCurto(m)+': '+a.nome.toLowerCase())
+              .concat(perigosIdade(p,m).map(g=>nomeCurto(m)+' ('+idadeCurta(m)+'): '+g.e.n.toLowerCase()))));
+          return al.length? '<span style="color:var(--bad)"> · 🚨 '+esc([...new Set(al)].join(', '))+'</span>':''; })()}
       </div>`;}).join('')}
     <p class="sub" style="margin-top:6px">Prepara-se hoje à noite. As doses já vêm escaladas a cada pessoa.</p>
   </div>`;
@@ -17955,10 +17966,17 @@ function cartaoHoje(){
     const r=RECIPES.find(x=>x.id===meal.r); if(!r) return;
     const comem=S.members.filter(m=>meal.m.includes(m.id)&&!isCheat(m.id,dataISO));
     const acs=acompsDe(meal);
-    /* o acompanhamento vai para a mesa como o prato: o alergénio dele é tão
-       do dia de hoje como o do bife */
-    [r].concat(acs).forEach(rec=>comem.forEach(m=>{ const al=alergenicosDe(rec,m);
-      if(al.length) alertas.push(nomeCurto(m)+': '+al.map(a=>a.nome.toLowerCase()).join(', ')+' em '+esc(rec.n)); }));
+    /* o acompanhamento e o molho vão para a mesa como o prato: o alergénio
+       deles é tão do dia de hoje como o do bife — e o perigo de idade também.
+       Este cartão mostrava o alergénio e calava o resto, e um banner que
+       acende para uns perigos e não para outros ensina que o silêncio dele
+       quer dizer «não há nada». */
+    [r].concat(ladosDe(meal)).forEach(rec=>comem.forEach(m=>{
+      const al=alergenicosDe(rec,m);
+      if(al.length) alertas.push(nomeCurto(m)+': '+al.map(a=>a.nome.toLowerCase()).join(', ')+' em '+esc(rec.n));
+      perigosIdade(rec,m).forEach(p=>alertas.push(
+        nomeCurto(m)+' ('+idadeCurta(m)+'): '+p.e.n.toLowerCase()+' em '+esc(rec.n)));
+    }));
     const v=estadoValidacaoRef(comem,dataISO,mk);
     linhas.push(`<button class="hoje-linha ${v.alguma?'a-tinta':''}" style="width:100%;text-align:left;border:none;background:none;cursor:pointer;font:inherit;color:inherit"
       onclick="abrirFolhaMesa('${dataISO}','${mk}')"
@@ -20890,12 +20908,18 @@ function perigosIdade(r,m){
   });
   return out;
 }
+/* A idade escrita como se diz: em meses até aos dois anos, em anos daí em
+   diante. Vive à parte porque o cartão «À mesa hoje» também a diz, em texto
+   corrido em vez de HTML. */
+function idadeCurta(m){
+  const meses=idadeMeses(m);
+  return meses<24? plural(Math.round(meses),'mês','meses') : plural(Math.floor(meses/12),'ano','anos');
+}
 function avisoIdade(r,membros){
   const linhas=[];
   (membros||[]).forEach(m=>{
     const p=perigosIdade(r,m); if(!p.length) return;
-    const meses=idadeMeses(m);
-    const idade = meses<24? plural(Math.round(meses),'mês','meses') : plural(Math.floor(meses/12),'ano','anos');
+    const idade=idadeCurta(m);
     linhas.push('<b>'+esc(m.nome.split(' ')[0])+'</b> ('+idade+'): '
       +p.map(x=>esc(x.e.n.toLowerCase())+' — '+esc(x.e.porque)
         +(x.e.dep? ' <i>'+esc(x.e.dep)+'</i>':'')).join(' · '));
@@ -23510,6 +23534,12 @@ function acIds(meal){
   return out;
 }
 function acompsDe(meal){ return acIds(meal).map(id=>RECIPES.find(x=>x.id===id)).filter(Boolean); }
+/* Tudo o que vai ao prato além do prato: os acompanhamentos E o molho. Os
+   avisos de alergénio e de idade tinham de percorrer isto e percorriam
+   `acompsDe`, que deixa o molho de fora — e um molho de laranja e mel dado a
+   um bebé de nove meses é botulismo com o mesmo nome de sempre. `ladoIds` já
+   somava os dois; faltava a versão que devolve as receitas. */
+function ladosDe(meal){ return ladoIds(meal).map(id=>RECIPES.find(x=>x.id===id)).filter(Boolean); }
 /* A fatia que cabe a cada acompanhamento. Zero sem nenhum, para as somas
    ficarem naturalmente a zero em vez de precisarem de um caso especial. */
 function fatiaAc(acs){ return acs&&acs.length? 1/acs.length : 0; }
@@ -24041,7 +24071,7 @@ function mealBlock(di,mk,label,date){
       ${v.alguma? carimbo('ref:'+date+':'+mk) : v.falhou? carimbo('ref:'+date+':'+mk,'falhou') : ''}
       ${r&&v.cheia&&comem.length>1? `<span class="mesa-cheia" title="Mesa cheia: comeram todos os que estavam previstos">${mesaSvg(comem.length,comem.length,30)}</span>`:''}
     </div>
-    ${r? [r].concat(acs).map(x=>avisoAlergia(x,comem.concat(membrosVirtuais(meal)),true)+avisoIdade(x,comem)).join('') : ''}
+    ${r? [r].concat(ladosDe(meal)).map(x=>avisoAlergia(x,comem.concat(membrosVirtuais(meal)),true)+avisoIdade(x,comem)).join('') : ''}
     ${(function(){
       /* Com acompanhamento escolhido, o que vai à mesa já não é «Bife»: é
          «Bife com batatas fritas». O cartão diz o nome inteiro, e o nome
@@ -26090,9 +26120,13 @@ function tamanho(){
 /* O cartão das tabelas de composição: mostra de onde vêm os números que a app
    já tem, e deixa carregar os ficheiros oficiais completos. */
 function cartaoTabelas(){
-  const conta={insa:0, ue:0, fda:0};
+  /* Os contadores nasciam com as três gavetas do princípio — insa, ue, fda — e
+     ficaram lá quando a TBCA, a MEXT e o rótulo se juntaram a FONTES. A linha
+     desenha-se a partir de FONTES, e as três novas escreviam «undefined no
+     catálogo» à vista de quem abre os Dados. Contam-se as que existirem. */
+  const conta={}, contaX={};
+  Object.keys(FONTES).forEach(k=>{ conta[k]=0; contaX[k]=0; });
   Object.keys(NUTRI).forEach(n=>{ const f=NUTRI[n].fonte||'insa'; if(conta[f]!==undefined) conta[f]++; });
-  const contaX={insa:0, ue:0, fda:0};
   Object.keys(NUTRI_EXTRA).forEach(n=>{ const f=NUTRI_EXTRA[n].fonte||'insa'; if(contaX[f]!==undefined) contaX[f]++; });
   const totalX=Object.keys(NUTRI_EXTRA).length;
   return `<div class="card" data-col="dados-tabelas">
