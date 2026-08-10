@@ -688,7 +688,15 @@ table.marcos thead th:first-child,table.marcos tbody th{text-align:left}
 .cozinha.trancada .cozinha-fundo,.cozinha.trancada .coz-vistas{opacity:.35;pointer-events:none}
 .cozinha-topo{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--card);
   border-bottom:1px solid var(--line);flex:none}
-.cozinha-corpo{flex:1;overflow:auto;padding:22px 20px;display:flex;flex-direction:column;justify-content:center;
+/* `justify-content:center` só centra enquanto o conteúdo couber. Quando não
+   cabe — um passo com lista comprida de ingredientes num telemóvel deitado —
+   o centro empurra o topo para fora da área que rola, e o princípio da lista
+   fica inalcançável: não há scroll para trás do início. `safe center` só é
+   respeitado por parte dos motores, por isso a regra centra apenas quando há
+   espaço a sobrar, e nunca quando falta. A primeira declaração é o recuo para
+   quem não conheça `safe`. */
+.cozinha-corpo{flex:1;overflow:auto;padding:22px 20px;display:flex;flex-direction:column;
+  justify-content:flex-start;justify-content:safe center;
   max-width:640px;margin:0 auto;width:100%}
 .coz-t{font-size:clamp(24px,6vw,34px);margin-bottom:10px}
 .coz-d{font-size:clamp(17px,4.4vw,21px);line-height:1.5}
@@ -715,8 +723,13 @@ html[data-dispositivo="telefone"][data-orient="retrato"] .timers{bottom:calc(70p
   box-shadow:var(--shadow);min-height:44px;color:var(--ink)}
 .timer b{font:700 15px/1.1 var(--fonte-display);font-variant-numeric:tabular-nums}
 .timer span{font-size:10px;color:var(--mut)}
-.timer.pronto{background:var(--ok);border-color:var(--ok);color:#fff}
-.timer.pronto span{color:#fff;opacity:.85}
+/* Branco fixo sobre o verde só funcionava no modo claro. No escuro o --ok é um
+   verde claro e o branco por cima dava 2,26:1 — o temporizador que grita
+   «pronto» era o texto mais difícil de ler da app. O --on-accent segue o modo
+   e mede 5,99:1 no pior dos catorze cruzamentos de paleta e modo. A opacidade
+   dos 10 px saiu: a mistura com o fundo levava-a para o limite dos 4,5:1. */
+.timer.pronto{background:var(--ok);border-color:var(--ok);color:var(--on-accent)}
+.timer.pronto span{color:var(--on-accent)}
 @media (prefers-reduced-motion: no-preference){ .timer.pronto{animation:pisca 1s ease-in-out infinite}
   @keyframes pisca{ 50%{ filter:brightness(1.25) } } }
 
@@ -2690,7 +2703,12 @@ R('saladalaranja','Salada de laranja, azeitona e cebola roxa','mediterranica',['
 /* ---------- Espanhola ---------- */
 R('paella','Paella de marisco','espanhola',['mediterranica'],540,66,34,14,[['Arroz arbóreo',80,'g'],['Camarão',80,'g'],['Mexilhões',100,'g'],['Lulas',60,'g'],['Pimento',0.5,'un'],['Tomate',1,'un'],['Açafrão',0.5,'g'],['Azeite',10,'ml']],null,3),
 R('tortilla','Tortilha de batata','espanhola',['vegetariana'],420,34,16,24,[['Batata',200,'g'],['Ovo',3,'un'],['Cebola',0.5,'un'],['Azeite',18,'ml']],['a','j','l'],4),
-R('gazpacho','Gaspacho andaluz','espanhola',['lowcarb','paleo','vegetariana','mediterranica'],200,18,4,13,[['Tomate',3,'un'],['Pepino',0.5,'un'],['Pimento',0.5,'un'],['Alho',1,'dente'],['Vinagre de vinho',5,'ml'],['Azeite',14,'ml']],['a','j','l'],4,['sop']),
+/* O pão estava no passo e não na lista, e por isso não entrava nos alergénios
+   nem nos macros: o prato dizia-se sem glúten, lowcarb e paleo com pão lá
+   dentro. Quem filtra por glúten filtra por causa de doença celíaca. O
+   gaspacho andaluz leva mesmo pão — é ele que dá o corpo e a cor —, por isso
+   entra na lista, e saem as duas dietas que ele desmente. */
+R('gazpacho','Gaspacho andaluz','espanhola',['vegetariana','mediterranica'],0,0,0,0,[['Tomate',3,'un'],['Pepino',0.5,'un'],['Pimento',0.5,'un'],['Alho',1,'dente'],['Pão rústico',30,'g'],['Vinagre de vinho',5,'ml'],['Azeite',14,'ml']],['a','j','l'],0,['sop']),
 R('polvogalega','Polvo à galega','espanhola',['mediterranica'],420,26,36,20,[['Polvo',200,'g'],['Batata',150,'g'],['Pimentão-doce',2,'g'],['Flor de sal',1,'g'],['Azeite',15,'ml']],null,3),
 R('gambasajillo','Gambas al ajillo','espanhola',['keto','lowcarb','paleo','mediterranica'],330,4,34,20,[['Camarão',200,'g'],['Alho',4,'dente'],['Malagueta',1,'un'],['Salsa',5,'g'],['Azeite',18,'ml']],null,1),
 R('pisto','Pisto manchego com ovo','espanhola',['lowcarb','vegetariana','mediterranica'],350,22,14,22,[['Courgette',100,'g'],['Pimento',1,'un'],['Tomate pelado',150,'g'],['Cebola',0.5,'un'],['Ovo',1,'un'],['Azeite',14,'ml']],null,6),
@@ -2770,7 +2788,11 @@ R('sandeperu','Sanduíche de peru com abacate','americana',[],480,46,34,18,[['P�
 
 /* ---------- Asiática ---------- */
 R('bibimbap','Bibimbap de vaca e legumes','asiatica',[],560,66,32,18,[['Arroz para sushi',80,'g'],['Bife de vaca',120,'g'],['Espinafres',60,'g'],['Cenoura',60,'g'],['Rebentos de soja',60,'g'],['Ovo',1,'un'],['Molho de soja',10,'ml'],['Óleo de sésamo',8,'ml']],null,6),
-R('misotofu','Sopa de miso com tofu e cogumelos','japonesa',['lowcarb','vegetariana'],220,14,18,10,[['Pasta de miso',25,'g'],['Tofu',120,'g'],['Cogumelos shiitake',40,'g'],['Algas nori',3,'g'],['Cebolinho',8,'g']],['a','j','l'],3,['sop']),
+/* O primeiro passo dizia «Aquece o caldo» e caldo nenhum estava na lista: a
+   sopa era feita de miso dissolvido em água. Fica com kombu, que é o dashi de
+   alga — o de compra e o katsuobushi levam bonito, e com esses o prato deixava
+   de ser vegetariano e ganhava peixe nos alergénios. */
+R('misotofu','Sopa de miso com tofu e cogumelos','japonesa',['lowcarb','vegetariana'],0,0,0,0,[['Kombu seco',5,'g'],['Pasta de miso',25,'g'],['Tofu',120,'g'],['Cogumelos shiitake',40,'g'],['Algas nori',3,'g'],['Cebolinho',8,'g']],['a','j','l'],0,['sop']),
 R('frangocaju','Frango salteado com caju e pimento','asiatica',['lowcarb'],480,26,40,24,[['Peito de frango',160,'g'],['Caju',25,'g'],['Pimento',1,'un'],['Cebola',0.5,'un'],['Molho de soja',15,'ml'],['Gengibre',8,'g'],['Óleo de sésamo',8,'ml']],null,4),
 R('saladarepolho','Salada asiática de repolho e amendoim','asiatica',['lowcarb','vegetariana'],280,20,10,18,[['Repolho',120,'g'],['Cenoura',60,'g'],['Amendoim',25,'g'],['Coentros',6,'g'],['Lima',0.5,'un'],['Molho de soja',10,'ml'],['Óleo de sésamo',10,'ml']],['a','j','l'],6),
 
@@ -3433,7 +3455,7 @@ R('chfrangochurr','Frango de churrasqueira na brasa','portuguesa',[],0,0,0,0,[['
 R('chfrangoguia','Frango pequeno aberto na brasa','portuguesa',['mediterranica'],0,0,0,0,[['Frango inteiro com pele, cru',320,'g'],['Limão',10,'g'],['Sal grosso',2,'g']],['a','j'],0,['pp']),
 R('chentrecosto','Entrecosto na brasa','portuguesa',[],0,0,0,0,[['Porco, entrecosto cru',250,'g'],['Alho',2,'dente'],['Limão',20,'g'],['Colorau',2,'g'],['Vinho branco',20,'ml'],['Louro',0.5,'g'],['Azeite',8,'ml'],['Sal grosso',4,'g'],['Pimenta preta',1,'g'],['Salsa',3,'g']],['a','j'],0,['pp']),
 R('chfebras','Febras de porco na brasa','portuguesa',[],0,0,0,0,[['Porco, febras magras cruas',180,'g'],['Alho',2,'dente'],['Massa de pimentão',10,'g'],['Louro',0.5,'g'],['Vinho branco',15,'ml'],['Azeite',8,'ml'],['Sal grosso',3,'g'],['Limão',15,'g']],['a','j'],0,['pp']),
-R('chentremeada','Entremeada na brasa','portuguesa',[],0,0,0,0,[['Porco, toucinho entremeado fresco, cru',160,'g'],['Alho',1,'dente'],['Limão',15,'g'],['Colorau',2,'g'],['Sal grosso',4,'g'],['Pimenta preta',1,'g']],['a','j'],0,['pp']),
+R('chentremeada','Entremeada na brasa','portuguesa',[],0,0,0,0,[['Porco, toucinho entremeado magro',160,'g'],['Alho',1,'dente'],['Limão',15,'g'],['Colorau',2,'g'],['Sal grosso',4,'g'],['Pimenta preta',1,'g']],['a','j'],0,['pp']),
 R('chcostporco','Costeletas de porco na brasa','portuguesa',[],0,0,0,0,[['Porco, costeleta meio gorda crua',220,'g'],['Alho',1,'dente'],['Louro',0.5,'g'],['Vinho branco',10,'ml'],['Sal grosso',4,'g'],['Pimenta preta',1,'g']],['a','j'],0,['pp']),
 R('chespetadanorte','Espetada de porco à moda do Norte','portuguesa',[],0,0,0,0,[['Carne de porco',180,'g'],['Massa de pimentão',12,'g'],['Alho',2,'dente'],['Louro',0.5,'g'],['Vinho branco',15,'ml'],['Pimento',40,'g'],['Cebola',40,'g'],['Chouriço',20,'g'],['Azeite',8,'ml'],['Sal grosso',3,'g']],['a','j'],0,['pp']),
 R('chenchidos','Farinheira e morcela na brasa','portuguesa',[],0,0,0,0,[['Farinheira',60,'g'],['Morcela de arroz',50,'g'],['Azeite',5,'ml'],['Pão de mistura',40,'g']],['a','j'],0,['ent']),
@@ -3667,7 +3689,7 @@ P('nasigoreng',[['Arroz frio','Usa arroz cozido do dia anterior, bem frio e solt
  ['Arroz','Arroz de volta, molho de soja e açúcar, saltando sempre em lume muito forte.',4],
  ['Ovo','Estrela o ovo à parte e serve por cima, com a gema mole.',3]]);
 
-P('uvaslima',[['Preparar','Lava as uvas e corta ao meio se forem graúdas; tira as grainhas.'],
+P('uvaslima',[['Preparar','Lava as uvas, corta-as ao comprido em quatro e tira as grainhas. Ao meio não chega: é ao comprido e em quatro que a uva deixa de encaixar na traqueia de uma criança.'],
  ['Temperar','Sumo de lima por cima e envolve.'],
  ['Servir','Raspa de lima e hortelã picada à saída. Melhor bem fresco.']]);
 P('pannacotta',[['Gelatina','Demolha as folhas de gelatina em água muito fria até amolecerem.',5],
@@ -4523,7 +4545,11 @@ P('pinchos',[['Marinar','Porco em cubos com especiarias moriscas, alho e azeite,
 P('manchego',[['Servir','Manchego em cunhas, com marmelada e amêndoas torradas ao lado.']]);
 P('salmorejo',[['Triturar','Tomate, pão, alho e sal, triturados muito bem.'],
  ['Emulsionar','Azeite em fio até ficar espesso e cor-de-laranja — mais denso do que um gaspacho.'],
- ['Servir','Muito frio, com ovo cozido e presunto picados por cima.',120]]);
+ /* O presunto saiu do passo: não estava na lista de ingredientes, não entrava
+    nos alergénios nem nos macros, e o prato dá-se por vegetariano. Em Córdova
+    leva-o — mas quem o puser deixa de poder confiar no rótulo, e o rótulo é o
+    que a app promete. */
+ ['Servir','Muito frio, com ovo cozido picado por cima.',120]]);
 P('pilpil',[['Confitar','Bacalhau com a pele para baixo em azeite morno com alho, em lume muito brando. O azeite nunca deve fritar.',15],
  ['Retirar','Tira o bacalhau e deixa o azeite arrefecer até ficar morno.'],
  ['Ligar','Move a frigideira em círculos, sem parar, até o azeite emulsionar com a gelatina do peixe e ficar branco e cremoso.',10]]);
@@ -4578,7 +4604,7 @@ P('pepinosesamo',[['Esmagar','Esmaga o pepino com a lâmina da faca antes de cor
 P('bibimbap',[['Legumes','Cada legume salteado e temperado à parte, para manter a cor e o sabor próprios.',20],
  ['Carne','Vaca marinada em soja e sésamo, salteada em lume forte.',5],
  ['Montar','Arroz na taça, os legumes em setores, a carne ao centro e o ovo por cima. Mistura-se à mesa.']]);
-P('misotofu',[['Dashi','Aquece o caldo sem deixar ferver.'],
+P('misotofu',[['Dashi de kombu','Põe o kombu em água fria e leva ao lume devagar. Tira-o mesmo antes de ferver — passa disso e o caldo fica a amargo e a cola. O dashi de compra e o katsuobushi levam bonito; este é de alga, e é por isso que a sopa se mantém vegetariana.',12],
  ['Miso','Dissolve o miso numa concha de caldo à parte e junta FORA da fervura.'],
  ['Tofu','Tofu em cubos e cogumelos, só para aquecer.',3]]);
 P('frangocaju',[['Marinar','Frango em cubos com soja e amido.',20],
@@ -4653,8 +4679,11 @@ P('bbqfrango',[['Marinar no barbecue','Coxas no molho barbecue, o tempo que houv
 P('cobb',[['Componentes','Ovo cozido, bacon estaladiço, frango grelhado e abacate, tudo preparado à parte.',20],
  ['Montar','Dispostos em filas sobre a alface, sem misturar — é essa a graça da Cobb.'],
  ['Temperar','Vinagrete à parte, para cada um servir.']]);
-P('chowder',[['Bacon','Bacon a render a gordura numa panela funda.',6],
- ['Refogado','Cebola e aipo na gordura do bacon.',8],
+/* O primeiro passo mandava render bacon num prato que se diz vegetariano e
+   cuja lista de ingredientes traz manteiga e não traz bacon. Dois sinais
+   contra um: quem manda é a lista, e é a manteiga que abre o refogado. */
+P('chowder',[['Manteiga','Manteiga a derreter numa panela funda, sem deixar alourar.',3],
+ ['Refogado','Cebola e aipo na manteiga, até ficarem translúcidos.',8],
  ['Cozer','Batata e milho com caldo, até a batata desfazer nas pontas.',20],
  ['Acabar','Natas ou leite fora da fervura, para não talhar.']]);
 P('pulledpork',[['Esfregar de véspera','Esfrega o porco com o tempero e deixa-o no frigorífico de um dia para o outro.',720],
@@ -8451,6 +8480,15 @@ const NA_DESCARTADO={
   chentrecosto:['Sal grosso'], asadotira:['Sal grosso'],
   perufumado:['Sal grosso'], cgalcatraespeto:['Sal grosso'],
   sabashioyaki:['Sal grosso'],
+  /* Faltavam duas do mesmo bloco de churrasco, e são elas próprias que o
+     dizem: a costela no bafo manda «espalha o sal grosso pelos dois lados,
+     pressiona para agarrar e sacode o excesso», e o medalhão manda «sacode o
+     excesso antes de pôr no lume». Ao lado, o espeto de alcatra já cá estava e
+     diz o mesmo por outras palavras — «do sal seco, o que sobra bate-se e cai».
+     Três receitas irmãs tratadas de duas maneiras é o que faz uma tabela
+     destas perder o sentido. Fica de fora o molho de alho e salsa: lá o sal
+     grosso é o abrasivo para pisar o alho e vai inteiro para dentro do molho. */
+  cgcostelabafo:['Sal grosso'], cgmedalhao:['Sal grosso'],
 };
 /* ---- A terceira gaveta ----
    Havia duas: o INSA, e «estimado». Um valor do CoFID britânico, do CIQUAL
@@ -19465,10 +19503,21 @@ function limparReceita(x){
      aparecia nas duas listas e podia ir a acompanhar-se a si próprio. */
   const bruto=Array.isArray(x.mt)? x.mt.filter((k,i,a)=>(MEALK.indexOf(k)>=0||k==='ac')&&a.indexOf(k)===i) : [];
   const mt=bruto.indexOf('ac')>=0? ['ac'] : bruto;
-  const cat=catalogoIngredientes();
+  /* O catálogo COMPLETO, e não só o visível. O editor de receitas da casa
+     oferece os 88 ingredientes do catálogo oculto, e ao escolhê-los chama
+     promoveIngrediente(), que os copia para NUTRI em memória — durante a
+     sessão tudo funciona. Ao recarregar, NUTRI volta ao que o ficheiro
+     declara, e esta validação, que só olhava para o visível, deitava fora
+     esses ingredientes; quando eram todos, o `return null` de baixo apagava a
+     receita inteira. Uma receita da casa feita com «Atum em conserva ao
+     natural» e «Bacalhau demolhado cru» desaparecia ao fim de um F5, sem
+     aviso nenhum. A promoção repete-se aqui para a composição continuar a
+     resolver-se pelo caminho normal depois de a receita ser lida. */
+  const cat=catalogoCompleto();
   const i=(Array.isArray(x.i)? x.i : [])
     .filter(l=>Array.isArray(l)&&cat.indexOf(l[0])>=0&&(parseFloat(l[1])||0)>0)
-    .map(l=>[l[0], Math.round((parseFloat(l[1])||0)*100)/100, unidadeDe(l[0])])
+    .map(l=>{ promoveIngrediente(l[0]);
+              return [l[0], Math.round((parseFloat(l[1])||0)*100)/100, unidadeDe(l[0])]; })
     .slice(0,40);
   if(!i.length) return null;
   const out={id:'u_'+limparId(String(x.id||'').replace(/^u_/,'')),
@@ -20731,12 +20780,22 @@ const EVITAR_SINAL={
     {re:/^(Nozes|Amêndoa|Amendoim|Avelã|Caju|Castanha de caju|Pistácio|Noz-pecã|Pinhões|Mistura de frutos secos)/i,
      semPasso:/pica|moíd|moer|ralad|pasta|manteiga de|farinha de|em pó|tritur|lasca|lamina|esmaga|pisa/i},
   /* A uva e o tomate cereja engasgam pela forma, e a forma perde-se ao cozer
-     e ao cortar. As palavras da louça — tabuleiro, tacho, frigideira — contam
-     como lume: «espargos e tomate cereja num tabuleiro com azeite» é uma frase
-     que diz onde o tomate vai parar sem dizer a palavra forno. */
+     e ao cortar — mas só ao corte que a própria linha de EVITAR manda dar:
+     «cortados ao comprido em quatro podem sempre». Partir ao meio não chega, e
+     era «corta» e «ao meio» que aqui estavam: a receita das uvas com raspas de
+     lima dizia «corta ao meio se forem graúdas» e com isso desligava o aviso.
+     As palavras da louça — tabuleiro, tacho, frigideira — contam como lume:
+     «espargos e tomate cereja num tabuleiro com azeite» é uma frase que diz
+     onde o tomate vai parar sem dizer a palavra forno.
+     A âncora final matava a regra: no catálogo as uvas chamam-se «Uva de mesa
+     (branca e tinta)», «Uva tinta (5 variedades)» e «Uva branca (5
+     variedades)», e nenhuma é exactamente «Uva» — só o «Tomate cereja» é, e
+     era por isso que a linha parecia funcionar enquanto as duas receitas com
+     uva inteira passavam caladas. Sem âncora basta o começo do nome; a uva
+     passa não engasga e é ela que o parêntese negativo deixa de fora. */
   'Uvas e tomate cherry inteiros':
-    {re:/^(Uvas?|Tomate cereja)$/i,
-     semPasso:/corta|ao meio|em quatro|metade|assa|coze|saltea|forno|grelha|refoga|estufa|frita|tabuleiro|tacho|panela|frigideira|lume/i},
+    {re:/^(Uvas?\b(?!\s*passa)|Tomate cereja)/i,
+     semPasso:/em quatro|ao comprido|aos quartos|assa|coze|saltea|forno|grelha|refoga|estufa|frita|tabuleiro|tacho|panela|frigideira|lume/i},
   'Rebuçados, chupas, pastilhas, pipocas, marshmallows': {re:/^(Pipocas|Rebuçad|Marshmallow)/i},
   'Bebidas de arroz': {re:/^Bebida de arroz/i},
   /* O limite desta linha não é o dos outros. A própria entrada de EVITAR diz
@@ -20751,10 +20810,18 @@ const EVITAR_SINAL={
      «cru» nos passos e assinalava a sopa de legumes por causa de «legumes
      crus» — 49 falsos positivos, e um aviso que dispara numa sopa é um aviso
      que se aprende a fechar sem ler. Aqui estão os pratos que SÃO crus por
-     definição, listados pelo id. */
+     definição, listados pelo id.
+     São ids de RECEITA, e quatro deles não eram: «mousse» é a chave de família
+     em VARIANTES, e «tartarevaca», «carpacciovaca» e «maionesecaseira» não
+     correspondem a receita nenhuma. O preço eram os dois pratos que a linha
+     existe para apanhar: a mousse de chocolate leva as gemas para dentro do
+     chocolate morno e as claras em castelo por cima, e a de lima leva mesmo
+     «Clara de ovo de galinha, crua». A de manga fica de fora de propósito —
+     leva gelatina, natas e leite condensado, não leva ovo. As receitas com
+     «Maionese» também não: essa é a de compra e vem pasteurizada. */
   'Ovos, carne, peixe e marisco crus ou mal cozinhados':
-    {ids:['ceviche','poke','chirashi','tartarevaca','carpacciovaca','vitelotonato',
-          'ovosbenedict','eggsflorentine','cilbir','tiramisu','mousse','maionesecaseira']},
+    {ids:['ceviche','poke','chirashi','vitelotonato','ovosbenedict',
+          'eggsflorentine','cilbir','tiramisu','moussechoc','mousselima']},
   'Leite e queijos não pasteurizados; queijos de pasta mole com bolor':
     {re:/^(Queijo brie|Queijo camembert|Queijo gorgonzola|Queijo roquefort|Queijo azul)/i},
   'Bebidas geladas tipo granizado': {re:/granizado|slush/i},
@@ -27170,6 +27237,25 @@ const _ausencia=diasDesdeUltimaAbertura();
   console.warn('Família Fit — '+_semFonte.length+' ingredientes declarados sem fonte ('
     +_semFonte.slice(0,12).join(', ')+(_semFonte.length>12?'…':'')
     +'). Falta um fonte(…) antes deles: sem isso a app não sabe de onde vem o número, e é melhor que o diga do que o invente.');
+})();
+/* Quatro dos doze ids do sinal dos crus não correspondiam a receita nenhuma —
+   um era a chave de família das mousses, os outros três nunca existiram — e o
+   silêncio durou porque nada os desmentia: uma regra que não apanha nada
+   comporta-se exactamente como uma regra que não tem nada a apanhar. Numa
+   tabela de segurança essa é a avaria pior, porque parece funcionar. Passa a
+   dizer-se em voz alta. */
+(function(){
+  const idsMortos=[], semAlvo=[], cat=Object.keys(NUTRI).concat(Object.keys(NUTRI_EXTRA));
+  Object.keys(EVITAR_SINAL).forEach(k=>{
+    const s=EVITAR_SINAL[k];
+    (s.ids||[]).forEach(id=>{ if(!RECIPES.some(r=>r.id===id)) idsMortos.push(k+' → '+id); });
+    if(s.re && !cat.some(n=>s.re.test(n))) semAlvo.push(k);
+  });
+  if(idsMortos.length) console.warn('Família Fit — EVITAR_SINAL aponta para receitas que não existem ('
+    +idsMortos.length+'): '+idsMortos.join(' · ')+'. Estas linhas nunca avisam ninguém.');
+  if(semAlvo.length) console.warn('Família Fit — regras de EVITAR_SINAL sem um único ingrediente que lhes corresponda ('
+    +semAlvo.length+'): '+semAlvo.join(' · ')
+    +'. Ou o catálogo ainda não tem esses alimentos, ou a expressão está errada — as uvas já estiveram nesta lista por causa de uma âncora a mais.');
 })();
 (function(){ const t=separadorDoEndereco(); if(t) S.ui.tab=t; })();
 render();
