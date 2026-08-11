@@ -3270,6 +3270,17 @@ R('paomisto','Papo-seco com queijo e fiambre','portuguesa',[],0,0,0,0,[['Papo-se
 R('paointegralqueijo','Pão integral com queijo fresco','portuguesa',['vegetariana','lowfat'],0,0,0,0,[['Pão integral',65,'g'],['Queijo fresco',60,'g']],['p','l'],0,['sn','br']),
 R('paocenteiofiambre','Pão de centeio com fiambre','portuguesa',[],0,0,0,0,[['Pão de centeio',65,'g'],['Fiambre',40,'g'],['Manteiga',6,'g']],['p','l'],0,['sn','br']),
 R('paoleitemanteiga','Pão de leite com manteiga','portuguesa',['vegetariana'],0,0,0,0,[['Pão de leite (trigo)',55,'g'],['Manteiga',10,'g']],['p'],0,['sn','br']),
+/* Pão sem glúten, de forno de casa. Toda a biblioteca de pães desta app é de
+   trigo, de centeio ou de mistura, e quem tem doença celíaca ficava com o
+   catálogo inteiro fechado ao pequeno-almoço. Isto é doença e não dieta: uma
+   migalha de trigo faz estrago intestinal a quem a tem, e por isso a receita
+   diz o que há a dizer sobre a bancada e a torradeira, que é onde o mal
+   costuma entrar em casa.
+   A farinha de arroz e a de trigo sarraceno levam «cereal» nos alergénios e
+   NÃO levam «glúten» — o trigo sarraceno não é trigo apesar do nome, e o
+   catálogo já os distingue. Aveia fica de fora de propósito: mesmo a que é
+   certificada não serve a toda a gente, e há celíacos que reagem à avenina. */
+R('paosemgluten','Pão sem glúten de arroz e trigo sarraceno','portuguesa',['vegetariana','vegan'],0,0,0,0,[['Farinha de arroz',30,'g'],['Farinha de trigo sarraceno',15,'g'],['Batata, fécula',12,'g'],['Polvilho azedo',8,'g'],['Psílio em pó',3.5,'g'],['Fermento seco de padeiro',1.2,'g'],['Açúcar branco',3,'g'],['Azeite',4,'ml'],['Sal grosso',1.2,'g']],['p','l'],0,['br','sn']),
 /* Iogurte: o natural sem açúcar é o ponto de partida, e a fruta é o que se lhe
    junta. Separados de propósito — o açúcar da fruta inteira não conta como
    açúcar livre para a OMS, e o do iogurte de aromas conta. */
@@ -5590,6 +5601,14 @@ P('iogurtebanana',[['Cortar','Banana em rodelas, cortada na hora — passados mi
 P('iogurtemorango',[['Cortar','Morangos aos quartos, ao comprido.',3],
  ['Juntar','Morangos por cima do iogurte, e esmaga dois ou três para soltarem o sumo e corarem a taça.',1]]);
 P('iogurtevermelhos',[['Juntar','Frutos vermelhos por cima do iogurte, inteiros. Se forem de congelador, deixa-os cinco minutos fora — gelados, ficam ácidos.',5]]);
+P('paosemgluten',[['Antes de começar','Bancada, taça, colher e formas lavadas de fresco, e farinhas de embalagem fechada. Numa cozinha onde também se amassa pão de trigo, a contaminação não vem do forno: vem do pano, da tábua e da farinha que ficou no ar. Torradeira à parte, ou sacos próprios — as migalhas da grelha chegam.',5],
+ ['Gel de psyllium','Mistura o psílio (nos pacotes vem «psyllium husk») com 240 ml de água morna e deixa cinco minutos até formar um gel espesso. É este gel que faz o que a rede de glúten faria: sem ele a massa cresce e desaba no forno.',5],
+ ['Fermento','Fermento seco e açúcar noutros 60 ml de água morna — morna e não quente: acima dos 45 °C mata-se o fermento antes de ele trabalhar. Espera que ganhe espuma.',10],
+ ['Secos','Peneira as farinhas com a fécula, o polvilho e o sal. Peneirar não é preciosismo: a farinha de arroz apelmaça e fica em pelotas que não desaparecem depois.',3],
+ ['Amassar','Junta o gel, o fermento e o azeite aos secos e bate dois minutos. Esta massa não se amassa com as mãos nem se sova — é mais mole do que a de trigo, quase uma pasta grossa, e é assim que deve ficar. Não juntes farinha para a endurecer.',4],
+ ['Levedar','Forma untada, massa alisada com a colher molhada, tapada, num sítio morno até crescer para metade a mais. Uma vez só: sem glúten não há segunda levedação que se aguente.',60],
+ ['Cozer','Forno a 200 °C, quarenta minutos. Está pronto quando o fundo soar a oco e o centro passar dos 96 °C — sem glúten, a cor engana e o miolo fica cru com o pão já castanho por fora.',40],
+ ['Arrefecer','Sobre uma grelha, e não se corta antes de estar frio de todo. Cortado a morno, o miolo agarra-se à faca e o pão fica com aspeto de cru. É a parte mais difícil e a que mais decide o resultado.',120]]);
 P('tigelacereais',[['Tigela','Granola na tigela e o leite por cima, e não ao contrário: a granola de baixo amolece antes de se chegar a ela.',2],
  ['Banana','Banana em rodelas por cima.',1]]);
 P('toucinhoceu',[['Calda','Açúcar e água ao lume até ponto de pérola — quando a calda cai do garfo num fio que não parte.',10],
