@@ -26516,6 +26516,17 @@ function juntar(txt){
     if(S.objetivos.some(x=>x.id===o.id)) return;   // já existe — não duplica
     S.objetivos.push(Object.assign({},o,{membroId:mid})); objetivosNovos++;
   });
+  /* Os ingredientes que a outra casa escreveu à mão entram ANTES das receitas
+     que os usam. lerPacote já os põe no catálogo em memória (senão as receitas
+     do ficheiro nem sobreviviam ao saneamento de limparReceita), mas «juntar»
+     não os guardava em S.ingredientes — e o catálogo em memória não sobrevive
+     a um F5, porque load() o reconstrói só a partir do que está gravado. A
+     farinha da outra casa deixava de existir na abertura seguinte,
+     limparReceita deitava fora a linha, e a receita junta ontem aparecia hoje
+     com menos um ingrediente: macros errados e o alergénio dessa linha calado.
+     Um nome que já cá exista ganha, que é a regra de tudo o mais neste botão. */
+  if(!Array.isArray(S.ingredientes)) S.ingredientes=[];
+  (d.ingredientes||[]).forEach(g=>{ if(!S.ingredientes.some(x=>x.n===g.n)) S.ingredientes.push(g); });
   let receitasNovas=0;
   if(!Array.isArray(S.receitas)) S.receitas=[];
   (d.receitas||[]).forEach(r=>{
@@ -26596,6 +26607,42 @@ function juntar(txt){
     if(!Object.keys(S.gostos[rid]).length) delete S.gostos[rid];
   });
   if(!S.ui.mid && S.members[0]) S.ui.mid=S.members[0].id;
+  /* «Juntar» funde dezasseis das quarenta estruturas que lerPacote lê. As
+     outras não têm aqui regra de fusão, e cada uma precisaria da sua chave
+     natural (uma sobra é única por receita e por dia, um preço por loja e por
+     data) — uma fusão à pressa estragava o que já cá está, que é o que este
+     botão promete não fazer. Ficarem de fora é defensável; ficarem de fora em
+     SILÊNCIO, debaixo de uma mensagem que abre com «Cópia integrada», não é:
+     quem juntou a cópia do telemóvel antigo ficou convencido de que o
+     congelador, os preços e a ordem dos corredores tinham vindo. Nomeia-se só
+     o que o ficheiro trazia mesmo preenchido; as quatro que lerPacote devolve
+     sempre com valor — casa, cozPref, prefCuisine e metodoBMR — só se nomeiam
+     quando diferem do que cá está e do valor por omissão. */
+  const conta=v=>Array.isArray(v)? v.length : (v&&typeof v==='object')? Object.keys(v).length : 0;
+  const difMapa=(a,b)=>Object.keys(a||{}).some(k=>(a||{})[k]!==(b||{})[k]);
+  const casaDif=['nome','lema','orcamento'].some(k=>(d.casa||{})[k]&&(d.casa||{})[k]!==(S.casa||{})[k]);
+  const deFora=[
+    [conta(d.sobras),'o congelador'],
+    [conta(d.precos),'os preços'],
+    [conta(d.festas),'as datas da casa'],
+    [conta(d.pausas),'as pausas'],
+    [conta(d.diario),'o diário'],
+    [conta(d.combos),'as variantes'],
+    [conta(d.rituais),'os rituais'],
+    [conta(d.extras),'os extras da lista'],
+    [conta(d.aindaHa),'o «ainda há»'],
+    [conta(d.visitas),'as visitas'],
+    [conta(d.ementas),'as ementas'],
+    [conta(d.anos),'os anos'],
+    [conta(d.provas),'as provas'],
+    [conta(d.bebidas),'as bebidas'],
+    [conta(d.notasCozinha),'as notas de cozinha'],
+    [conta(d.corredores)||conta(d.trilhos)||conta(d.talhoes),'a ordem do supermercado'],
+    [casaDif,'o nome, o lema e o orçamento da casa'],
+    [difMapa(d.cozPref,S.cozPref)&&difMapa(d.cozPref,limparCozPref(null)),'as preferências de cozinha'],
+    [d.prefCuisine!=='todas'&&d.prefCuisine!==S.prefCuisine,'a cozinha preferida'],
+    [d.metodoBMR&&d.metodoBMR!==METODO_BMR_PADRAO&&d.metodoBMR!==S.metodoBMR,'a equação do metabolismo basal']
+  ].filter(x=>x[0]).map(x=>x[1]);
   save('juntar cópia');   /* com nome, para o Ctrl+Z dizer o que desfaz */
   flash('ok','Cópia integrada: '+plural(novos,'perfil novo','perfis novos')+', '
     +plural(refeicoes,'refeição acrescentada','refeições acrescentadas')+', '
@@ -26603,7 +26650,9 @@ function juntar(txt){
     +plural(objetivosNovos,'objetivo novo','objetivos novos')+', '
     +plural(pesagens,'pesagem nova','pesagens novas')+' e '
     +plural(registos,'registo novo','registos novos')+'. Perfis com o mesmo nome foram '
-    +'tratados como a mesma pessoa e as refeições e objetivos já existentes ficaram intactos.');
+    +'tratados como a mesma pessoa e as refeições e objetivos já existentes ficaram intactos.'
+    +(deFora.length? ' O ficheiro trazia mais coisas que o «juntar» não sabe fundir — NÃO entraram: '
+      +deFora.join(', ')+'. Para as trazeres usa «Substituir», que troca tudo o que está aqui pelo conteúdo da cópia.' : ''));
 }
 function importarFicheiro(input,modo){
   const f=input.files && input.files[0]; if(!f) return;
