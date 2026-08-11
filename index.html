@@ -26034,7 +26034,12 @@ function pacote(){
          sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa, pausas:S.pausas, diario:S.diario, cozPref:S.cozPref, metodoBMR:S.metodoBMR,
          validades:S.validades, veredictos:S.veredictos, brigada:S.brigada, desperdicio:S.desperdicio,
          gostos:S.gostos, jejum:S.jejum, combos:S.combos, rituais:S.rituais, extras:S.extras, aindaHa:S.aindaHa,
-         visitas:S.visitas, ementas:S.ementas, anos:S.anos, provas:S.provas, bebidas:S.bebidas, notasCozinha:S.notasCozinha}}; }
+         visitas:S.visitas, ementas:S.ementas, anos:S.anos, provas:S.provas, bebidas:S.bebidas, notasCozinha:S.notasCozinha,
+         /* A ordem aprendida do supermercado ficava de fora da cópia e o
+            «substituir» apagava-a: meses a corrigir a ordem dos corredores
+            desapareciam ao restaurar um ficheiro de ontem. Entra no
+            instantâneo do desfazer desde sempre; faltava aqui. */
+         corredores:S.corredores, trilhos:S.trilhos, talhoes:S.talhoes}}; }
 function textoCopia(){ return JSON.stringify(pacote(),null,2); }
 function marcarExportado(){ S.meta.exportadoEm=new Date().toISOString(); S.meta.semCopia=false; saveMeta(); }
 function nomeFicheiro(){ return 'familia-fit-'+iso(new Date())+'.json'; }
@@ -26167,6 +26172,12 @@ function lerPacote(txt){
   /* As receitas da casa são saneadas antes dos planos: um plano que aponte
      para uma receita importada tem de a encontrar, senão a refeição entrava
      vazia sem ninguém perceber que a receita veio no ficheiro. */
+  /* Pela terceira vez no mesmo ficheiro, e pela mesma razão: limparReceita
+     valida os ingredientes contra o catálogo, e uma receita importada feita
+     com um ingrediente que a outra casa escreveu à mão desaparecia aqui, em
+     silêncio, antes sequer de chegar a ser importada. Os ingredientes do
+     ficheiro entram no catálogo primeiro. */
+  aplicaIngredientesDaCasa(limparIngredientes(d.ingredientes));
   const receitas=[], vistosRec={};
   if(Array.isArray(d.receitas)) d.receitas.forEach(x=>{
     const lr=limparReceita(x); if(!lr) return;
@@ -26338,6 +26349,25 @@ function lerPacote(txt){
               medicoes, regAtiv, regRef, sobras, precos, festas, casa, pausas, diario, cozPref,
               validades, veredictos, brigada, desperdicio, gostos, jejum, combos, rituais, extras, aindaHa, visitas, ementas, anos, provas, bebidas, notasCozinha,
               prefCuisine:temChave(CUIS,d.prefCuisine)?d.prefCuisine:'todas',
+              /* Cinco estruturas saíam na cópia e nunca voltavam da leitura, o
+                 que quer dizer que «substituir» as apagava sem aviso:
+                 - `ingredientes`, os que a casa escreveu à mão. Com eles
+                   perdidos, limparReceita deixava de reconhecer os nomes e as
+                   receitas feitas com eles desapareciam a seguir — a mesma
+                   avaria que já apagava receitas pelo catálogo oculto, agora
+                   pela porta da cópia de segurança. Entram ANTES de as
+                   receitas serem saneadas, e por isso são lidos no topo desta
+                   função e não aqui.
+                 - `metodoBMR`, a equação de metabolismo basal. Restaurar
+                   repunha-a em Henry e mudava os alvos calóricos da casa toda
+                   sem nada no ecrã a dizê-lo.
+                 - `corredores`, `trilhos` e `talhoes`, a ordem do supermercado
+                   aprendida ao longo de meses. */
+              ingredientes:limparIngredientes(d.ingredientes),
+              metodoBMR:temChave(METODOS_BMR,d.metodoBMR)? d.metodoBMR : METODO_BMR_PADRAO,
+              corredores:(d.corredores&&typeof d.corredores==='object')? d.corredores : {},
+              trilhos:(d.trilhos&&typeof d.trilhos==='object')? d.trilhos : {},
+              talhoes:(d.talhoes&&typeof d.talhoes==='object')? d.talhoes : {},
               week:dataValida(d.week)? mondayISO(new Date(d.week+'T12:00:00')) : mondayISO(new Date()) }};
 }
 function substituir(txt){
