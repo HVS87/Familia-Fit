@@ -22801,10 +22801,39 @@ function cartaoJejum(m){
   const j=janelaIM(m.id);
   const meus=c.pontuais.filter(x=>x.mid===m.id).slice().sort((a,b)=>a.d<b.d?-1:1);
   const emCurso=jejumDeHoje(m.id);
+  /* «Não oferecer» e «não deixar desfazer» são coisas diferentes, e até aqui
+     eram a mesma coisa. Quem tinha um jejum marcado e depois engravidou — ou
+     desceu de peso até o IMC cair abaixo dos 18,5 — perdia o cartão inteiro e,
+     com ele, o ✕ do jejum pontual e o botão de desligar o intermitente. O
+     estado ficava vivo e a mandar nas contas: medido num perfil com 48 h
+     marcadas, o cartão passava de 17 613 para 1 837 caracteres, sem um único
+     controlo, enquanto alvoDoDia continuava a cortar o alvo do dia por causa
+     do jejum. A app dizia a uma grávida para comer menos por causa de um jejum
+     que não a deixava cancelar.
+     Com bloqueio, fecha-se a criação de jejuns novos — o botão «+ Marcar um
+     jejum» continua do lado de lá, e marcarRamadao e marcarQuaresma já tinham
+     a sua guarda — e mantém-se tudo o que serve para desfazer o que já lá
+     estava. A app não dá conselho clínico: diz o que fez às contas e devolve a
+     decisão a quem acompanha. */
   if(bloqueio) return `<div class="card" data-col="nu-jejum" style="margin-top:16px">
     <h2>Jejum ${dica('jejum')}</h2>
     <div class="alerta forte" style="margin-top:10px"><span aria-hidden="true">⚕️</span><span>
       <b>Não disponível para este perfil.</b> ${esc(bloqueio)}</span></div>
+    ${(ativo||meus.length)? `<div class="alerta" style="margin-top:10px"><span aria-hidden="true">⏳</span><span>
+      <b>Ficou jejum marcado de antes desta mudança no perfil</b>, e ele continua a contar: os dias que cobre
+      ficam com o alvo de calorias mais baixo e aparecem assinalados no plano da semana. Podes desmarcá-lo
+      aqui em baixo. O que fazer a seguir decide-se com quem te acompanha — a app limita-se a desfazer o que
+      ela própria marcou.</span></div>`:''}
+    ${ativo? `<div class="splabel" style="margin-top:14px"><span>Jejum intermitente</span></div>
+    <label class="toggle"><input type="checkbox" checked onchange="setJejumIM('${m.id}','ativo',this.checked)">
+      <span>Comprimir a janela de alimentação</span></label>`:''}
+    ${meus.length? `<div class="splabel" style="margin-top:14px"><span>Jejuns pontuais</span>
+      <output>${plural(meus.length,'marcado','marcados')}</output></div>
+    <div style="margin-top:6px">${meus.map(x=>`<div class="vere-linha">
+      <span class="vere-quem">${x.horas>=48? '🔴':x.horas>=24?'🟡':'🟢'} <b>${x.horas} h</b>
+        <span class="sub">· ${rotuloData(x.d)}</span></span>
+      <button class="btn danger small" onclick="apagarJejumPontual('${x.id}')" aria-label="Apagar este jejum">✕</button>
+    </div>`).join('')}</div>`:''}
   </div>`;
   return `<div class="card" data-col="nu-jejum" style="margin-top:16px">
     <h2>Jejum ${dica('jejum')}</h2>
