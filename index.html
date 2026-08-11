@@ -733,6 +733,23 @@ html[data-dispositivo="telefone"][data-orient="retrato"] .timers{bottom:calc(70p
 @media (prefers-reduced-motion: no-preference){ .timer.pronto{animation:pisca 1s ease-in-out infinite}
   @keyframes pisca{ 50%{ filter:brightness(1.25) } } }
 
+/* ===== MOVIMENTO: EXERCÍCIOS ILUSTRADOS =====
+   Os bonecos herdam a cor do texto e por isso funcionam em qualquer paleta e
+   modo; só a seta do movimento leva a cor de destaque. */
+.mov{border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-top:8px}
+.mov summary{display:flex;align-items:baseline;gap:8px;cursor:pointer;flex-wrap:wrap}
+.mov summary::-webkit-details-marker{display:none}
+.mov summary::before{content:'▸';flex:none;transition:transform .15s}
+.mov[open] summary::before{transform:rotate(90deg)}
+@media (prefers-reduced-motion: reduce){ .mov summary::before{transition:none} }
+.mov-passos{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px}
+.mov-passo{flex:1 1 220px;max-width:340px;display:flex;gap:10px;align-items:flex-start;margin:0}
+.mov-fig{width:104px;height:78px;flex:none;stroke:currentColor;stroke-width:3;
+  stroke-linecap:round;stroke-linejoin:round;fill:none;background:var(--bg);border-radius:8px}
+.mov-fig .mov-seta{stroke:var(--accent);stroke-width:2.5}
+.mov-passo figcaption{font-size:13px;line-height:1.45;color:var(--mut)}
+.mov-passo figcaption b{color:var(--ink)}
+
 /* ===== DA ÉPOCA E CONVIDADOS ===== */
 .tag.epoca{border-color:var(--ok);color:var(--ok)}
 .tag.cat-ent{border-color:var(--ok);color:var(--ok)}
@@ -1883,6 +1900,202 @@ const SPORTS=[
   SP('ballet','Ballet / dança contemporânea','danca',[4.8,6.0,7.5])
 ];
 const SPORT={}; SPORTS.forEach(s=>{ SPORT[s.id]=s; });
+
+/* ================= MOVIMENTO: EXERCÍCIOS ILUSTRADOS =================
+   Calistenia da manhã, alívio da ciática, aquecimento e alongamentos por
+   desporto. Nem um exercício foi inventado pela app: cada um traz a fonte ao
+   lado — NHS (as páginas de exercício para a ciática, os alongamentos de
+   flexibilidade e o wake-up workout), o hospital South Tees do NHS (o
+   deslizamento do nervo ciático), o serviço MSK de Dorset do NHS (báscula
+   pélvica, rolar os joelhos, afundo profundo), a Mayo Clinic (a estrutura de
+   aquecimento e retorno à calma) e a ACSM/AHA (alongar no fim, com o músculo
+   quente). As ilustrações são bonecos de traço desenhados pela app — não há
+   imagens externas porque a app não faz rede.
+
+   O boneco: cada pose é um conjunto de articulações. cb=cabeça (centro),
+   om=ombros, an=anca, b1/b2=braços [cotovelo,mão], p1/p2=pernas [joelho,pé].
+   parede desenha uma linha vertical, banco um assento, seta o movimento. */
+function figSvg(P,rotulo){
+  const li=pts=>`<polyline points="${pts.map(p=>p.join(',')).join(' ')}"/>`;
+  let s='';
+  if(P.chao!==false) s+=`<line x1="6" y1="82" x2="114" y2="82" opacity=".3"/>`;
+  if(P.parede!=null) s+=`<line x1="${P.parede}" y1="8" x2="${P.parede}" y2="82" opacity=".3"/>`;
+  if(P.banco) s+=`<polyline points="${P.banco[0]-14},82 ${P.banco[0]-14},${P.banco[1]} ${P.banco[0]+10},${P.banco[1]} ${P.banco[0]+10},82" opacity=".3"/>`;
+  s+=`<circle cx="${P.cb[0]}" cy="${P.cb[1]}" r="5.5"/>`;
+  s+=li([P.om,P.an]);
+  if(P.b1) s+=li([P.om].concat(P.b1));
+  if(P.b2) s+=li([P.om].concat(P.b2));
+  if(P.p1) s+=li([P.an].concat(P.p1));
+  if(P.p2) s+=li([P.an].concat(P.p2));
+  if(P.seta){ const [x1,y1,x2,y2]=P.seta;
+    const a=Math.atan2(y2-y1,x2-x1), L=7;
+    s+=`<g class="mov-seta"><path d="M${x1} ${y1} Q ${(x1+x2)/2+(y1-y2)*0.3} ${(y1+y2)/2+(x2-x1)*0.3} ${x2} ${y2}"/>`
+      +`<path d="M${x2-L*Math.cos(a-0.5)} ${y2-L*Math.sin(a-0.5)} L${x2} ${y2} L${x2-L*Math.cos(a+0.5)} ${y2-L*Math.sin(a+0.5)}"/></g>`; }
+  return `<svg class="mov-fig" viewBox="0 0 120 90" role="img" aria-label="${esc(rotulo||'')}">${s}</svg>`;
+}
+/* As poses repetem-se muito; as bases evitam escrever a mesma figura 20 vezes. */
+const POSE_PE={cb:[60,13],om:[60,22],an:[60,47],b1:[[55,33],[54,43]],b2:[[65,33],[66,43]],p1:[[57,64],[56,81]],p2:[[63,64],[64,81]]};
+const POSE_DEITADO={cb:[22,73],om:[31,76],an:[58,76],b1:[[40,79],[48,79]],b2:[[41,77],[49,77]],p1:[[70,60],[76,80]],p2:[[72,62],[78,80]],chao:true};
+function MV(id,n,serie,fonte,passos){ return {id,n,serie,fonte,passos}; }
+const MOVS=[
+ /* ---- aquecer (dinâmico, Mayo Clinic: 5-10 minutos antes do esforço) ---- */
+ MV('marcha','Marcha no lugar','60 segundos','Mayo Clinic',[
+  {t:'De pé, levanta um joelho de cada vez, como a marchar sem sair do sítio. Os braços acompanham.',
+   f:Object.assign({},POSE_PE,{p1:[[52,57],[52,70]],b1:[[67,30],[72,38]],b2:[[53,31],[48,39]],seta:[52,70,52,60]})},
+  {t:'Troca de perna a um ritmo confortável. É aquecimento: deve apetecer continuar, não parar.',
+   f:Object.assign({},POSE_PE,{p2:[[68,57],[68,70]],b2:[[53,30],[48,38]],b1:[[67,31],[72,39]],seta:[68,70,68,60]})}]),
+ MV('circulos','Círculos com os braços','10 para a frente, 10 para trás','NHS (wake-up workout)',[
+  {t:'Braços esticados à altura dos ombros.',
+   f:Object.assign({},POSE_PE,{b1:[[47,23],[36,24]],b2:[[73,23],[84,24]]})},
+  {t:'Desenha círculos pequenos com as mãos, primeiro para a frente, depois para trás.',
+   f:Object.assign({},POSE_PE,{b1:[[47,23],[36,24]],b2:[[73,23],[84,24]],seta:[88,18,84,30]})}]),
+ MV('gatovaca','Gato e vaca','8 lentos','NHS (flexibilidade)',[
+  {t:'De gatas, mãos por baixo dos ombros e joelhos por baixo das ancas. Arredonda as costas para cima, como um gato, a olhar para os joelhos.',
+   f:{cb:[88,48],om:[78,42],an:[48,46],b1:[[78,56],[77,68]],b2:[[80,56],[81,68]],p1:[[48,62],[38,68]],p2:[[50,64],[40,70]],seta:[62,34,66,30]}},
+  {t:'Deixa depois a barriga descair e o olhar subir, devagar. Alterna entre as duas sem forçar.',
+   f:{cb:[90,33],om:[78,42],an:[48,44],b1:[[78,56],[77,68]],b2:[[80,56],[81,68]],p1:[[48,62],[38,68]],p2:[[50,64],[40,70]],seta:[62,52,66,56]}}]),
+ MV('polichinelo','Polichinelo','15 a 20','NHS (wake-up workout)',[
+  {t:'De pé, pés juntos e braços ao lado do corpo.',f:POSE_PE},
+  {t:'Num salto pequeno, abre as pernas e leva os braços acima da cabeça. Volta com outro salto. Sem saltar também vale: abre uma perna de cada vez.',
+   f:Object.assign({},POSE_PE,{b1:[[52,12],[47,4]],b2:[[68,12],[73,4]],p1:[[52,63],[45,80]],p2:[[68,63],[75,80]]})}]),
+ MV('balancoperna','Balanço de perna','10 com cada perna','Mayo Clinic',[
+  {t:'Uma mão na parede para equilibrar. Balança a perna de fora para a frente e para trás, solta, sem forçar a altura.',
+   f:{cb:[54,13],om:[54,22],an:[54,47],b1:[[42,28],[29,28]],b2:[[60,33],[61,43]],p1:[[52,64],[51,81]],p2:[[64,58],[72,68]],parede:28,seta:[76,66,60,74]}}]),
+ MV('rotacaotronco','Rotação do tronco','10 para cada lado','NHS (flexibilidade)',[
+  {t:'De pé, braços dobrados à frente do peito. Roda o tronco para um lado e para o outro, devagar, com as ancas quietas.',
+   f:Object.assign({},POSE_PE,{b1:[[50,28],[44,25]],b2:[[70,28],[76,25]],seta:[78,20,42,20]})}]),
+ /* ---- exercitar (calistenia) ---- */
+ MV('agachamento','Agachamento','10 a 15','NHS (strength and flex)',[
+  {t:'Pés à largura dos ombros, braços esticados à frente.',
+   f:Object.assign({},POSE_PE,{b1:[[49,26],[39,26]],b2:[[51,28],[41,28]]})},
+  {t:'Dobra os joelhos e leva as ancas para trás, como a sentar numa cadeira que não está lá. Costas direitas, calcanhares no chão. Sobe sem pressa.',
+   f:{cb:[51,26],om:[54,34],an:[64,57],b1:[[43,38],[33,38]],b2:[[45,40],[35,40]],p1:[[55,66],[53,81]],p2:[[58,67],[56,81]],seta:[70,50,70,62]}}]),
+ MV('flexaoparede','Flexões na parede','8 a 12','NHS (strength and flex)',[
+  {t:'Mãos na parede à altura dos ombros, pés a um passo de distância. O corpo é uma tábua inclinada.',
+   f:{cb:[64,20],om:[62,28],an:[52,52],b1:[[74,31],[85,33]],b2:[[75,33],[86,35]],p1:[[48,66],[45,81]],p2:[[50,67],[47,81]],parede:87}},
+  {t:'Dobra os cotovelos e aproxima o peito da parede, devagar, e empurra de volta. Quando ficar fácil, passa para as flexões com joelhos no chão.',
+   f:{cb:[72,22],om:[70,30],an:[56,53],b1:[[79,40],[86,36]],b2:[[80,42],[87,38]],p1:[[50,66],[46,81]],p2:[[52,67],[48,81]],parede:87,seta:[64,16,76,16]}}]),
+ MV('flexaojoelhos','Flexões com joelhos no chão','6 a 10','NHS (strength and flex)',[
+  {t:'Joelhos no chão, mãos por baixo dos ombros, corpo em linha dos joelhos à cabeça.',
+   f:{cb:[36,44],om:[44,50],an:[68,62],b1:[[44,64],[43,78]],b2:[[46,64],[45,78]],p1:[[80,72],[90,64]],p2:[[82,74],[92,66]]}},
+  {t:'Desce o peito dobrando os cotovelos, e empurra o chão para subir. O corpo desce inteiro, sem dobrar a anca.',
+   f:{cb:[34,58],om:[42,62],an:[68,66],b1:[[50,72],[42,78]],b2:[[52,74],[44,80]],p1:[[80,74],[90,66]],p2:[[82,76],[92,68]],seta:[30,50,30,62]}}]),
+ MV('prancha','Prancha nos antebraços','20 a 30 segundos','NHS (strength and flex)',[
+  {t:'Antebraços no chão, cotovelos por baixo dos ombros, corpo em linha da cabeça aos pés. Barriga apertada, sem deixar a anca descair nem subir. Respira.',
+   f:{cb:[28,50],om:[38,55],an:[64,58],b1:[[36,68],[26,74]],b2:[[38,70],[28,76]],p1:[[78,64],[92,76]],p2:[[80,66],[94,78]]}}]),
+ MV('pontegluteos','Ponte de glúteos','10, com 2 segundos em cima','NHS (MSK Dorset)',[
+  {t:'Deitado de costas, joelhos dobrados, pés no chão à largura das ancas, braços ao lado.',f:POSE_DEITADO},
+  {t:'Aperta os glúteos e levanta as ancas até o corpo fazer uma linha dos ombros aos joelhos. Aguenta dois segundos e desce devagar.',
+   f:{cb:[22,73],om:[31,76],an:[56,58],b1:[[40,79],[48,79]],b2:[[41,77],[49,77]],p1:[[70,56],[76,80]],p2:[[72,58],[78,80]],seta:[56,70,56,56]}}]),
+ MV('afundo','Afundo','8 com cada perna','NHS (strength and flex)',[
+  {t:'De pé, mãos nas ancas. Dá um passo largo em frente.',
+   f:Object.assign({},POSE_PE,{b1:[[52,38],[56,44]],b2:[[68,38],[64,44]]})},
+  {t:'Dobra os dois joelhos até o de trás quase tocar no chão. O joelho da frente fica por cima do tornozelo. Empurra de volta e troca.',
+   f:{cb:[58,22],om:[58,30],an:[56,56],b1:[[52,40],[55,46]],b2:[[64,40],[61,46]],p1:[[70,64],[70,80]],p2:[[46,70],[36,80]],seta:[58,44,58,54]}}]),
+ MV('gemeos','Elevação de gémeos','15','NHS (strength and flex)',[
+  {t:'De pé, perto de uma parede para apoiar os dedos se precisares.',f:Object.assign({},POSE_PE,{parede:30,b1:[[46,28],[31,28]]})},
+  {t:'Sobe aos bicos dos pés, devagar, e desce ainda mais devagar. É a descida que trabalha.',
+   f:{cb:[60,9],om:[60,18],an:[60,43],b1:[[46,24],[31,24]],b2:[[65,29],[66,39]],p1:[[57,60],[56,77]],p2:[[63,60],[64,77]],parede:30,seta:[74,70,74,58]}}]),
+ MV('birddog','Pássaro-cão','8 com cada lado','NHS (strength and flex)',[
+  {t:'De gatas, costas direitas como uma mesa.',
+   f:{cb:[86,38],om:[76,42],an:[48,46],b1:[[76,56],[75,68]],b2:[[78,56],[79,68]],p1:[[48,62],[38,68]],p2:[[50,64],[40,70]]}},
+  {t:'Estica ao mesmo tempo um braço em frente e a perna contrária atrás, até ficarem na linha das costas. Aguenta dois segundos, volta, e troca.',
+   f:{cb:[86,36],om:[76,42],an:[48,46],b1:[[88,36],[100,32]],b2:[[78,56],[79,68]],p1:[[34,42],[22,38]],p2:[[50,64],[40,70]],seta:[96,28,104,26]}}]),
+ MV('abdominalcurto','Abdominal curto','10 a 12','NHS (strength and flex)',[
+  {t:'Deitado de costas, joelhos dobrados, mãos ao lado da cabeça — sem puxar o pescoço.',
+   f:Object.assign({},POSE_DEITADO,{b1:[[26,68],[21,65]],b2:[[28,70],[23,67]]})},
+  {t:'Levanta os ombros do chão a olhar para o teto, dois segundos em cima, e desce devagar. Sobe pouco: é curto de nome e de movimento.',
+   f:{cb:[28,60],om:[35,68],an:[58,76],b1:[[28,60],[24,56]],b2:[[30,62],[26,58]],p1:[[70,60],[76,80]],p2:[[72,62],[78,80]],seta:[26,70,30,58]}}]),
+ MV('cadeira','Cadeira na parede','20 a 30 segundos','NHS (strength and flex)',[
+  {t:'Costas encostadas à parede, desliza até os joelhos fazerem um ângulo reto, como sentado numa cadeira invisível. Aguenta, a respirar, e sobe.',
+   f:{cb:[47,26],om:[47,34],an:[47,56],b1:[[45,44],[44,52]],b2:[[49,44],[48,52]],p1:[[63,56],[63,80]],p2:[[65,58],[65,80]],parede:44}}]),
+ /* ---- alongar (estático, no fim, com o músculo quente — ACSM/AHA) ---- */
+ MV('alongpescoco','Rotação do pescoço','5 segundos, 3 vezes cada lado','NHS (flexibilidade)',[
+  {t:'Sentado ou de pé, ombros em baixo, olhar em frente. Roda a cabeça para um ombro até onde for confortável, aguenta cinco segundos, volta ao centro, e troca.',
+   f:Object.assign({},POSE_PE,{seta:[70,10,50,10]})}]),
+ MV('alonglateral','Flexão lateral','2 segundos, 3 vezes cada lado','NHS (flexibilidade)',[
+  {t:'De pé, pés à largura das ancas, braços ao lado. Desliza uma mão pela perna abaixo, a sentir o alongamento do outro lado da cintura. Sem inclinar para a frente.',
+   f:{cb:[55,14],om:[57,23],an:[60,47],b1:[[52,36],[49,47]],b2:[[68,30],[70,40]],p1:[[57,64],[56,81]],p2:[[63,64],[64,81]],seta:[49,50,47,58]}}]),
+ MV('gemeosparede','Alongamento de gémeos','20 segundos cada perna, 3 vezes','NHS (flexibilidade)',[
+  {t:'Mãos na parede, uma perna atrás esticada com o calcanhar no chão, a da frente dobrada. Chega a anca à frente até sentir a barriga da perna de trás. Troca.',
+   f:{cb:[42,18],om:[44,26],an:[56,48],b1:[[34,29],[25,30]],b2:[[36,31],[26,32]],p1:[[52,62],[48,81]],p2:[[66,64],[76,81]],parede:24}}]),
+ MV('isquios','Alongamento dos isquiotibiais','20 a 30 segundos cada perna','Mayo Clinic',[
+  {t:'Um calcanhar à frente no chão, ponta do pé para cima, perna esticada. Dobra a de trás e inclina o tronco à frente pela anca, costas direitas, mãos na coxa.',
+   f:{cb:[50,22],om:[54,30],an:[52,50],b1:[[58,40],[62,48]],b2:[[60,42],[64,50]],p1:[[64,62],[74,77]],p2:[[48,64],[46,81]],seta:[44,26,38,32]}}]),
+ MV('quadricipite','Alongamento do quadricípite','20 segundos cada perna','NHS (MSK Dorset)',[
+  {t:'De pé, apoia-te numa parede se precisares. Dobra uma perna atrás e segura o pé com a mão do mesmo lado, joelhos juntos, até sentir a frente da coxa. Troca.',
+   f:{cb:[54,13],om:[54,22],an:[54,47],b1:[[42,28],[29,28]],b2:[[64,36],[60,50]],p1:[[52,64],[51,81]],p2:[[62,62],[58,48]],parede:28}}]),
+ MV('peito','Alongamento do peito','20 a 30 segundos','Mayo Clinic',[
+  {t:'Antebraço na ombreira de uma porta, cotovelo à altura do ombro. Dá um passo pequeno em frente até sentir o peito a abrir. Troca de braço.',
+   f:{cb:[56,16],om:[58,25],an:[56,50],b1:[[70,22],[74,10]],b2:[[52,36],[50,46]],p1:[[54,66],[50,81]],p2:[[62,66],[66,81]],parede:75,seta:[46,30,40,30]}}]),
+ MV('crianca','Posição de descanso','30 segundos','NHS (flexibilidade)',[
+  {t:'De joelhos, sentado sobre os calcanhares, deixa o tronco descair à frente com os braços esticados no chão. Respira fundo e deixa as costas alongarem.',
+   f:{cb:[32,54],om:[42,58],an:[72,64],b1:[[30,64],[19,68]],b2:[[32,66],[21,70]],p1:[[76,76],[62,78]],p2:[[78,78],[64,80]]}}]),
+ /* ---- ciática (NHS, South Tees NHS, MSK Dorset NHS) ---- */
+ MV('joelhopeito','Joelho ao peito','20 a 30 segundos, 3 a 5 vezes','NHS',[
+  {t:'Deitado de costas, joelhos dobrados, pés no chão.',f:POSE_DEITADO},
+  {t:'Puxa um joelho ao peito com as mãos, suavemente, e mantém 20 a 30 segundos. Desce e troca. O alongamento sente-se; a dor não deve aumentar.',
+   f:{cb:[22,73],om:[31,76],an:[58,76],b1:[[40,66],[47,60]],b2:[[42,68],[49,62]],p1:[[48,58],[42,66]],p2:[[72,62],[86,78]],seta:[48,54,38,62]}}]),
+ MV('rolarjoelhos','Rolar os joelhos','10 segundos, 3 vezes cada lado','NHS (MSK Dorset)',[
+  {t:'Deitado de costas, joelhos dobrados e juntos, braços afastados. Deixa os joelhos cair para um lado, devagar, sem os ombros saírem do chão. Volta e troca.',
+   f:Object.assign({},POSE_DEITADO,{b1:[[20,78],[14,79]],b2:[[44,78],[52,79]],seta:[78,58,62,52]})}]),
+ MV('bascula','Báscula pélvica','5 segundos, 5 vezes','NHS (MSK Dorset)',[
+  {t:'Deitado de costas, joelhos dobrados. Aperta a barriga e achata o fundo das costas contra o chão, como a esconder a curva. Cinco segundos e solta.',
+   f:Object.assign({},POSE_DEITADO,{seta:[50,66,50,74]})}]),
+ MV('deslizanervo','Deslizamento do nervo ciático','10 lentos com cada perna','NHS (South Tees)',[
+  {t:'Sentado num banco, costas direitas. Estica um joelho com a ponta do pé em riste e, ao mesmo tempo, olha para cima.',
+   f:{cb:[48,24],om:[48,33],an:[48,58],b1:[[46,44],[45,54]],b2:[[50,44],[49,54]],p1:[[70,56],[84,50]],p2:[[54,68],[52,80]],banco:[48,58],seta:[52,14,58,10]}},
+  {t:'Volta com o pé ao chão enquanto baixas o queixo ao peito. Devagar, num movimento só. Nunca deve doer — se doer, para.',
+   f:{cb:[50,28],om:[48,33],an:[48,58],b1:[[46,44],[45,54]],b2:[[50,44],[49,54]],p1:[[62,70],[62,80]],p2:[[54,68],[52,80]],banco:[48,58],seta:[58,22,54,30]}}]),
+ MV('piriforme','Alongamento do piriforme','30 segundos, 3 vezes cada lado','NHS',[
+  {t:'Deitado de costas, cruza um tornozelo sobre o joelho contrário.',
+   f:{cb:[22,73],om:[31,76],an:[58,76],b1:[[40,78],[48,78]],b2:[[42,76],[50,76]],p1:[[70,60],[76,78]],p2:[[64,64],[72,58]]}},
+  {t:'Segura a coxa de baixo com as duas mãos e puxa-a ao peito até sentir alongar no glúteo do lado cruzado. Mantém, a respirar, e troca.',
+   f:{cb:[22,73],om:[31,76],an:[58,76],b1:[[42,66],[52,62]],b2:[[44,68],[54,64]],p1:[[56,58],[64,70]],p2:[[52,62,],[60,54]],seta:[64,52,50,58]}}]),
+ MV('afundoprofundo','Afundo profundo','5 segundos, 3 vezes cada lado','NHS (MSK Dorset)',[
+  {t:'Ajoelha num joelho, o outro pé à frente no chão. De frente, levanta o joelho de trás do chão e sente a frente da anca a alongar. Cinco segundos, e troca.',
+   f:{cb:[56,24],om:[56,32],an:[54,58],b1:[[50,42],[53,48]],b2:[[62,42],[59,48]],p1:[[68,62],[68,80]],p2:[[44,74],[32,78]],seta:[48,64,48,72]}}]),
+];
+const MOV={}; MOVS.forEach(x=>{ MOV[x.id]=x; });
+/* Os três conjuntos da manhã. A rotação é pelo dia do ano — pequenas variações
+   todos os dias, sem nunca pedir equipamento nem mais de dez minutos. */
+const MATINAL=[
+ {k:'A', n:'Acordar o corpo',
+  aq:['marcha','circulos','gatovaca'], ex:['agachamento','flexaoparede','pontegluteos','prancha'], al:['alongpescoco','isquios','gemeosparede','crianca']},
+ {k:'B', n:'Pernas e fôlego',
+  aq:['marcha','polichinelo','balancoperna'], ex:['afundo','gemeos','birddog','prancha'], al:['quadricipite','isquios','alonglateral','crianca']},
+ {k:'C', n:'Tronco e postura',
+  aq:['marcha','rotacaotronco','gatovaca'], ex:['agachamento','flexaojoelhos','abdominalcurto','cadeira'], al:['peito','alongpescoco','alonglateral','gemeosparede']},
+];
+const CIATICA=['joelhopeito','rolarjoelhos','bascula','deslizanervo','piriforme','afundoprofundo','pontegluteos'];
+/* Aquecimento e alongamentos por categoria de desporto. O aquecimento é
+   dinâmico e vem antes (Mayo Clinic: 5 a 10 minutos); os alongamentos são
+   estáticos e vêm no fim, com o músculo quente (ACSM/AHA). */
+const AQUECE_CAT={
+ corrida:['marcha','balancoperna','polichinelo'], ciclismo:['marcha','balancoperna','rotacaotronco'],
+ forca:['marcha','circulos','agachamento'], agua:['circulos','rotacaotronco','balancoperna'],
+ bola:['marcha','polichinelo','balancoperna'], raquete:['polichinelo','circulos','rotacaotronco'],
+ combate:['polichinelo','rotacaotronco','circulos'], danca:['marcha','circulos','balancoperna'],
+ corpo:['gatovaca','rotacaotronco'], natureza:['marcha','balancoperna','circulos'],
+};
+const ALONGA_CAT={
+ corrida:['gemeosparede','isquios','quadricipite'], ciclismo:['quadricipite','isquios','peito'],
+ forca:['peito','quadricipite','crianca'], agua:['peito','alongpescoco','alonglateral'],
+ bola:['isquios','quadricipite','gemeosparede'], raquete:['peito','alonglateral','gemeosparede'],
+ combate:['isquios','peito','alongpescoco'], danca:['gemeosparede','isquios','alonglateral'],
+ corpo:['crianca','alongpescoco'], natureza:['gemeosparede','quadricipite','isquios'],
+};
+function fichaMov(id,aberto){
+  const e=MOV[id]; if(!e) return '';
+  return `<details class="mov"${aberto?' open':''}><summary><b>${esc(e.n)}</b>
+      <span class="sub">· ${esc(e.serie)}</span><span class="tag" style="margin-left:auto">${esc(e.fonte)}</span></summary>
+    <div class="mov-passos">${e.passos.map((p,i)=>`<figure class="mov-passo">
+      ${figSvg(p.f, e.n+' — passo '+(i+1))}
+      <figcaption><b>${e.passos.length>1? (i+1)+'.' : ''}</b> ${esc(p.t)}</figcaption>
+    </figure>`).join('')}</div>
+  </details>`;
+}
+function listaMovs(ids){ return (ids||[]).map(id=>fichaMov(id)).join(''); }
 function nivelIndice(i){ const n=NIVEIS.findIndex(x=>x[0]===i); return n<0? 1 : n; }
 function velocidade(s){ const sp=SPORT[s.s]; if(!sp||!sp.dist) return 0;
   const v=parseFloat(s.v); return isFinite(v)&&v>0 ? Math.min(Math.max(v,sp.dist.vmin),sp.dist.vmax) : sp.dist.vdef; }
@@ -11246,6 +11459,8 @@ const DICAS={
   acog:'Tudo o que este cartão diz vem do Committee Opinion n.º 804 do American College of Obstetricians and Gynecologists (2020) — a recomendação de 150 minutos por semana, as modalidades seguras, as que se desaconselham e porquê, as contraindicações absolutas e os sinais para parar. Nem um número nem uma modalidade foram decididos pela app. E nada disto substitui a consulta: há contraindicações que só uma consulta identifica, e são elas que mandam. No pós-parto a orientação não dá um calendário fixo — diz que se retoma gradualmente assim que for clinicamente seguro, conforme o tipo de parto e as complicações que tenha havido — e é isso que a app repete, em vez de inventar uma semana a partir da qual se pode correr.',
   tabelas:'Três tabelas oficiais cobrem a mesma comida com números diferentes, e a diferença não é ruído: a convenção europeia declara hidratos disponíveis, sem fibra, e a norte-americana declara-os por diferença, com a fibra lá dentro. Somar as duas sem converter dá erros de dezenas de gramas. A prioridade é a que faz sentido numa casa portuguesa — INSA primeiro, porque é a que conhece o carapau, a couve galega e o queijo da Serra; depois a UE, com a mesma convenção; e só por último a FDA, que é a que mais precisa de conversão. Um valor do INSA nunca é substituído por um do USDA, mesmo que este seja carregado depois: a ordem por que as coisas chegam não é um critério.',
   jejum:'Duas coisas diferentes com o mesmo nome. O jejum intermitente comprime a janela em que se come sem mudar o total do dia — é um horário, não um défice, e o alvo de calorias não desce por causa dele. Um jejum pontual de 24 horas ou mais é outra coisa: é um dia sem comida, com um défice do tamanho do gasto desse dia, e a partir de certa duração deixa de ser uma escolha alimentar e passa a ser um assunto clínico. A app trata os dois de forma diferente e diz porquê. Não fica disponível para crianças, adolescentes, grávidas nem no pós-parto recente — não é a app a decidir por ninguém, é a app a não oferecer uma ferramenta que nesses casos não tem indicação.',
+  movimento:'Nem um exercício foi inventado pela app. A calistenia e os alongamentos vêm das páginas de exercício do NHS (flexibilidade, strength and flex, wake-up workout), a estrutura de aquecimento e retorno à calma vem da Mayo Clinic (5 a 10 minutos de movimento antes; abrandar e alongar no fim), e a regra de alongar no fim com o músculo quente é a da ACSM e da American Heart Association. As séries e os tempos são os das próprias fontes. Os desenhos são da app, porque a app não faz rede — e um desenho que se percebe vale por uma fotografia que não se pode ter.',
+  ciatica:'Estes exercícios vêm das páginas do NHS para a ciática: o joelho ao peito e o alongamento do piriforme do NHS, o deslizamento do nervo do hospital South Tees, e a báscula pélvica, o rolar de joelhos e o afundo profundo do serviço músculo-esquelético de Dorset. São exercícios gerais para a maioria das pessoas — não tratam a causa, e quem tem uma condição diagnosticada segue o fisioterapeuta, não a app. Os sinais de alarme no topo são citados do NHS e passam à frente de tudo: com qualquer um deles, é urgência, não é exercício.',
   comecarTreinar:'Um plano de treino começa por haver onde treinar. A app abre uma pesquisa de ginásios, piscinas, clubes, treinadores e estúdios perto de ti — mas convém saber como: a app não faz chamadas de rede nenhumas. Pede a posição ao browser, que é uma API local com permissão explícita, e usa-a para montar uma ligação para um mapa. A ligação só abre quando lhe tocas, e até lá as coordenadas não saem do dispositivo. Não são gravadas, não entram na cópia de segurança e desaparecem ao fechar a app. O OpenStreetMap vem primeiro porque não exige conta nem rastreia quem pesquisa.',
   naArea:'Para quem está de férias ou em viagem e quer manter o ritmo. Além de ginásios e piscinas para um dia solto, procura o que não precisa de inscrição nenhuma: trilhos e percursos pedestres, ciclovias e ecopistas, equipamentos de manutenção ao ar livre e polidesportivos. Funciona da mesma forma — a app monta a ligação, o browser é que a abre, e a posição fica só nesta sessão.',
   renutricao:'Sair de um jejum longo é o momento de maior risco de todo o processo — mais do que o jejum em si. Quando a insulina volta a subir de repente, puxa fosfato, potássio e magnésio para dentro das células e esvazia-os do sangue: chama-se síndrome de realimentação e pode ser grave. A app propõe-se sozinha porque é precisamente o momento em que ninguém se lembra de o fazer, e faz o alvo de calorias subir por degraus ao longo de vários dias em vez de saltar de zero para o normal — quanto mais longo o jejum, mais lenta a subida. Os critérios de risco elevado são os do NICE (guideline CG32), escritos para doentes internados em desnutrição: se algum se aplicar, a saída do jejum é assunto de consulta e não de app. Acima de 72 horas, com acompanhamento médico e análises, sempre.',
@@ -18924,7 +19139,8 @@ function blocoDesporto(m,s,i){
       <select onchange="updSport('${m.id}',${i},'s',this.value)" aria-label="Desporto">${opcoesDesporto(s.s)}</select>
       <button class="btn danger small" onclick="delSport('${m.id}',${i})" aria-label="Remover desporto">✕</button>
     </div>${miolo}
-    ${linhaDiasPlano(m,s,i)}</div>`;
+    ${linhaDiasPlano(m,s,i)}
+    ${blocoAqueceAlonga(s.s)}</div>`;
 }
 /* Em que dias da semana este treino acontece. Os dias só repartem o volume que
    já estava no plano — o total semanal, e portanto o gasto calórico, não muda
@@ -19665,6 +19881,66 @@ function cartaoComecarTreinar(m){
 function abrirProcura(){ S.ui.procuraAberta=true; saveMeta(); render();
   setTimeout(()=>{ const el=document.getElementById('atv-procura'); if(el) scrollSuave(el); },0); }
 function fecharProcura(){ S.ui.procuraAberta=false; saveMeta(); render(); }
+/* O conjunto da manhã roda pelo dia do ano: variação sem decisão nenhuma a
+   tomar antes do café. */
+function conjuntoDoDia(){
+  const h=hojeISO();
+  const dia=Math.round((new Date(h+'T12:00:00')-new Date(h.slice(0,4)+'-01-01T12:00:00'))/86400000);
+  return MATINAL[dia%MATINAL.length];
+}
+function cartaoMovimentoManha(){
+  const c=conjuntoDoDia();
+  return `<div class="card" data-col="atv-manha">
+    <div class="row" style="justify-content:space-between;align-items:baseline">
+      <h2>Movimento da manhã ${dica('movimento')}</h2>
+      <span class="pill">Conjunto ${c.k} · ${esc(c.n)}</span></div>
+    <p class="sub" style="margin-top:4px">Dez minutos de calistenia ao acordar, sem equipamento. O conjunto muda
+      todos os dias — hoje é o ${c.k}, amanhã segue a rotação — e tem sempre as três partes pela ordem certa:
+      aquecer a mexer, exercitar, e alongar no fim com o músculo quente. Cada exercício mostra os passos em
+      desenho; ao ritmo de cada um, e as crianças entram à brincadeira, não à série.</p>
+    <div class="splabel" style="margin-top:12px"><span>1 · Aquecer</span><output>${c.aq.length} movimentos</output></div>
+    ${listaMovs(c.aq)}
+    <div class="splabel" style="margin-top:12px"><span>2 · Exercitar</span><output>${c.ex.length} exercícios</output></div>
+    ${listaMovs(c.ex)}
+    <div class="splabel" style="margin-top:12px"><span>3 · Alongar</span><output>${c.al.length} alongamentos</output></div>
+    ${listaMovs(c.al)}
+    <p class="sub" style="margin-top:10px">Para se sentir, não para doer: para imediatamente se houver dor aguda
+      ou má disposição — é a regra do NHS, e é a desta casa.</p>
+  </div>`;
+}
+function cartaoCiatica(){
+  return `<div class="card" data-col="atv-ciatica">
+    <details>
+      <summary style="cursor:pointer"><h2 style="display:inline">Aliviar a ciática ${dica('ciatica')}</h2>
+        <span class="sub" style="display:block;margin-top:4px">Exercícios suaves do NHS para a dor que desce pela perna. Abrir quando fizer falta.</span></summary>
+      <div class="alerta forte" style="margin-top:12px"><span aria-hidden="true">🚨</span><span>
+        <b>Vai já a uma urgência</b> se tiveres ciática dos dois lados; fraqueza ou dormência nas duas pernas,
+        forte ou a piorar; dormência à volta dos genitais ou do ânus; dificuldade nova em urinar ou em controlar
+        a urina; ou deixares de dar conta de precisar de evacuar. São os sinais de alarme do NHS, e não esperam.</span></div>
+      <p class="sub" style="margin-top:10px">Fora disso, o conselho do NHS é claro: continua a mexer-te e evita
+        ficar muito tempo sentado ou deitado — mesmo que mexer incomode, não faz mal e ajuda a recuperar mais
+        depressa. Estes exercícios fazem-se no chão ou num banco, devagar, e <b>nenhum deve aumentar a dor</b>:
+        desconforto suave é normal, dor a aumentar é sinal para parar. Se ao fim de umas semanas não melhorar,
+        fala com o médico de família.</p>
+      <div style="margin-top:10px">${listaMovs(CIATICA)}</div>
+    </details>
+  </div>`;
+}
+/* O aquecimento e os alongamentos certos para um desporto do plano — a
+   categoria decide, e aparecem dentro do próprio bloco do desporto. */
+function blocoAqueceAlonga(spId){
+  const sp=SPORT[spId]; if(!sp) return '';
+  const aq=AQUECE_CAT[sp.cat]||AQUECE_CAT.corrida, al=ALONGA_CAT[sp.cat]||ALONGA_CAT.corrida;
+  return `<details class="mov" style="margin-top:8px">
+    <summary><b>Aquecimento e alongamentos</b><span class="sub">· para ${esc(sp.nome.toLowerCase())}</span></summary>
+    <p class="sub" style="margin:8px 0 0">Antes: 5 a 10 minutos a mexer, do leve para o vivo (Mayo Clinic).
+      No fim, e não antes: alongar com o músculo quente (ACSM/AHA).</p>
+    <div class="splabel" style="margin-top:10px"><span>Antes — aquecer</span></div>
+    ${listaMovs(aq)}
+    <div class="splabel" style="margin-top:10px"><span>No fim — alongar</span></div>
+    ${listaMovs(al)}
+  </details>`;
+}
 function renderAtividade(){
   if(!S.members.length) return noMembers();
   if(S.ui.histAtiv) return renderHistAtiv();
@@ -19676,6 +19952,8 @@ function renderAtividade(){
     ${temPlano? cartaoRegistarAtiv(m,true) : ''}
     ${temPlano? cartaoProximosTreinos(m) : ''}
     ${temPlano? cartaoGraficoAtiv(m) : ''}
+    ${cartaoMovimentoManha()}
+    ${cartaoCiatica()}
     ${cartaoPartilhaAtiv()}
     <div class="card ${temPlano?'':'card--capa'}" data-col="atv-diaadia">
       <h2>Dia-a-dia de ${esc(m.nome)}</h2>
