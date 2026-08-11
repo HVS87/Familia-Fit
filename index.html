@@ -22827,6 +22827,11 @@ function cartaoJejum(m){
     ${ativo? `<div class="splabel" style="margin-top:14px"><span>Jejum intermitente</span></div>
     <label class="toggle"><input type="checkbox" checked onchange="setJejumIM('${m.id}','ativo',this.checked)">
       <span>Comprimir a janela de alimentação</span></label>`:''}
+    ${ramadaoMarcado(m.id)? `<div class="vere-linha" style="margin-top:10px">
+      <span class="vere-quem">🌙 <b>Ramadão planeado</b>
+        <span class="sub">· desligar o intermitente não o desmarca</span></span>
+      <button class="btn danger small" onclick="desmarcarRamadao('${m.id}')">Desmarcar</button>
+    </div>`:''}
     ${meus.length? `<div class="splabel" style="margin-top:14px"><span>Jejuns pontuais</span>
       <output>${plural(meus.length,'marcado','marcados')}</output></div>
     <div style="margin-top:6px">${meus.map(x=>`<div class="vere-linha">
@@ -23009,6 +23014,38 @@ function blocoAutofagia(){
 }
 /* Os dois calendários. A Quaresma calcula-se ao dia; o Ramadão estima-se, e a
    app diz que estima em vez de fingir que sabe. */
+/* Planear tinha botão e desmarcar não tinha. O Ramadão guarda-se em
+   c.im[mid].ramadao e a Quaresma em dois jejuns pontuais; desligar o toggle do
+   intermitente deixava o `ramadao` para trás e a linha continuava a dizer
+   «Planear», como se nada tivesse acontecido. Quem marca tem de poder
+   desmarcar pelo mesmo sítio por onde marcou — e ver, na linha, que está
+   marcado. */
+function ramadaoMarcado(mid){ const im=jejumCfg().im[mid]; return !!(im && im.ramadao); }
+function quaresmaMarcada(mid,cinzas,sexta){
+  return jejumCfg().pontuais.filter(x=>x.mid===mid && (x.d===cinzas||x.d===sexta)).length;
+}
+function desmarcarRamadao(mid){
+  const c=jejumCfg(), im=c.im[mid];
+  if(!im || !im.ramadao) return;
+  delete im.ramadao;
+  im.ativo=false;
+  if(im.obj==='ritual') delete im.obj;
+  save('Ramadão desmarcado');
+  flash('ok','Ramadão desmarcado: a janela de alimentação deixa de estar comprimida e o alvo de calorias volta ao normal.',
+    {rot:'Anular', fn:'desfazer()'});
+  render();
+}
+function desmarcarQuaresma(mid,cinzas,sexta){
+  const c=jejumCfg();
+  const antes=c.pontuais.length;
+  c.pontuais=c.pontuais.filter(x=>!(x.mid===mid && (x.d===cinzas||x.d===sexta)));
+  const n=antes-c.pontuais.length;
+  if(!n) return;
+  save('Quaresma desmarcada');
+  flash('ok',plural(n,'dia de jejum desmarcado','dias de jejum desmarcados')+' — o alvo de calorias desses dias volta ao normal.',
+    {rot:'Anular', fn:'desfazer()'});
+  render();
+}
 function blocoCalendarios(m){
   const ano=new Date().getFullYear();
   const q=quaresmaDe(ano), qs=quaresmaDe(ano+1);
@@ -23025,7 +23062,9 @@ function blocoCalendarios(m){
       <span class="vere-quem">🌙 <b>Ramadão</b>
         <span class="sub">· ${proxR? fmtShort(proxR.inicio)+' a '+fmtShort(proxR.fim)+' de '+proxR.inicio.slice(0,4) : 'sem estimativa'}${
           ramadaoAtual? ' · a decorrer' : ''}</span></span>
-      ${proxR? `<button class="btn small" onclick="marcarRamadao('${m.id}','${proxR.inicio}','${proxR.fim}')">Planear</button>`:''}
+      ${ramadaoMarcado(m.id)
+        ? `<button class="btn danger small" onclick="desmarcarRamadao('${m.id}')">Desmarcar</button>`
+        : (proxR? `<button class="btn small" onclick="marcarRamadao('${m.id}','${proxR.inicio}','${proxR.fim}')">Planear</button>`:'')}
     </div>
     ${proxR? `<p class="sub">${(function(){ const hj=horasJejumRamadao(proxR.inicio), hf=horasJejumRamadao(proxR.fim);
       return hj&&hf? 'Em Portugal continental, do nascer ao pôr do sol são cerca de <b>'+nPT(hj.horas,1)+' h</b> no primeiro dia e <b>'
@@ -23038,7 +23077,9 @@ function blocoCalendarios(m){
       <span class="vere-quem">✝️ <b>Quaresma</b>
         <span class="sub">· ${fmtShort(proxQ.inicio)} a ${fmtShort(proxQ.fim)} de ${proxQ.inicio.slice(0,4)}${
           quaresmaAtual? ' · a decorrer':''}</span></span>
-      <button class="btn small" onclick="marcarQuaresma('${m.id}','${proxQ.cinzas}','${proxQ.sextaSanta}')">Planear</button>
+      ${quaresmaMarcada(m.id,proxQ.cinzas,proxQ.sextaSanta)
+        ? `<button class="btn danger small" onclick="desmarcarQuaresma('${m.id}','${proxQ.cinzas}','${proxQ.sextaSanta}')">Desmarcar</button>`
+        : `<button class="btn small" onclick="marcarQuaresma('${m.id}','${proxQ.cinzas}','${proxQ.sextaSanta}')">Planear</button>`}
     </div>
     <p class="sub">Quarta-Feira de Cinzas a ${fmtShort(proxQ.cinzas)}, Sexta-Feira Santa a ${fmtShort(proxQ.sextaSanta)},
       Páscoa a ${fmtShort(proxQ.pascoa)}. São os dois dias em que a prática tradicional pede jejum; as sextas-feiras
