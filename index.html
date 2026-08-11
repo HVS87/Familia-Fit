@@ -2055,6 +2055,28 @@ const MOVS=[
  MV('afundoprofundo','Afundo profundo','5 segundos, 3 vezes cada lado','NHS (MSK Dorset)',[
   {t:'Ajoelha num joelho, o outro pé à frente no chão. De frente, levanta o joelho de trás do chão e sente a frente da anca a alongar. Cinco segundos, e troca.',
    f:{cb:[56,24],om:[56,32],an:[54,58],b1:[[50,42],[53,48]],b2:[[62,42],[59,48]],p1:[[68,62],[68,80]],p2:[[44,74],[32,78]],seta:[48,64,48,72]}}]),
+ /* ---- reforço muscular (NHS: strength exercises e strength and flex) ---- */
+ MV('flexaocompleta','Flexões completas','5 a 10','NHS (strength and flex)',[
+  {t:'Prancha alta: mãos por baixo dos ombros, braços esticados, corpo em linha da cabeça aos pés. É a progressão a seguir às flexões com joelhos.',
+   f:{cb:[30,42],om:[40,48],an:[66,56],b1:[[40,62],[39,78]],b2:[[42,64],[41,80]],p1:[[80,64],[94,76]],p2:[[82,66],[96,78]]}},
+  {t:'Desce o peito dobrando os cotovelos junto ao corpo, e empurra o chão para subir. A anca não sobe nem desce sozinha: o corpo move-se inteiro.',
+   f:{cb:[28,58],om:[38,62],an:[66,64],b1:[[46,72],[39,78]],b2:[[48,74],[41,80]],p1:[[80,70],[94,78]],p2:[[82,72],[96,80]],seta:[26,48,26,60]}}]),
+ MV('pranchalateral','Prancha lateral com joelhos','10 a 20 segundos cada lado','NHS (strength and flex)',[
+  {t:'Deitado de lado com os joelhos dobrados, antebraço no chão com o cotovelo por baixo do ombro.',
+   f:{cb:[26,58],om:[34,62],an:[56,68],b1:[[32,74],[24,78]],b2:[[42,66],[48,70]],p1:[[70,60],[82,72]],p2:[[71,62],[83,74]],chao:true}},
+  {t:'Levanta a anca do chão até o tronco ficar em linha, apoiado no antebraço e nos joelhos. Aguenta, a respirar, e troca de lado. Trabalha os oblíquos sem carregar o pescoço.',
+   f:{cb:[28,44],om:[36,50],an:[58,60],b1:[[34,64],[26,78]],b2:[[44,54],[50,58]],p1:[[72,64],[84,76]],p2:[[73,66],[85,78]],seta:[58,70,58,58]}}]),
+ MV('elevacaolateral','Elevação lateral da perna','5 com cada perna','NHS (força)',[
+  {t:'De pé, mãos no encosto de uma cadeira ou na parede. Levanta uma perna para o lado, esticada, com as costas e a bacia direitas — o tronco não se inclina. Desce devagar e troca.',
+   f:{cb:[54,13],om:[54,22],an:[54,47],b1:[[42,28],[29,28]],b2:[[60,33],[61,43]],p1:[[52,64],[51,81]],p2:[[68,58],[80,66]],parede:28,seta:[72,70,80,62]}}]),
+ MV('extensaoperna','Extensão da perna atrás','5 segundos, 5 com cada perna','NHS (força)',[
+  {t:'De pé, mãos no apoio. Leva uma perna atrás, esticada, sem inclinar o tronco nem arquear as costas — o movimento é pequeno e vem do glúteo. Cinco segundos, desce, e troca.',
+   f:{cb:[52,13],om:[52,22],an:[52,47],b1:[[40,28],[27,28]],b2:[[58,33],[59,43]],p1:[[50,64],[49,81]],p2:[[64,56],[76,62]],parede:26,seta:[70,66,78,60]}}]),
+ MV('levantarsentar','Levantar e sentar','5, lentas','NHS (força)',[
+  {t:'Sentado à beira de uma cadeira firme, pés à largura das ancas, tronco ligeiramente à frente.',
+   f:{cb:[48,26],om:[48,35],an:[48,58],b1:[[46,46],[45,55]],b2:[[50,46],[49,55]],p1:[[62,66],[60,80]],p2:[[64,68],[62,80]],banco:[48,58]}},
+  {t:'Levanta-te devagar usando as pernas, não os braços, e senta-te outra vez ainda mais devagar. É o exercício mais útil da lista: é o gesto de todos os dias.',
+   f:{cb:[52,14],om:[52,23],an:[52,48],b1:[[48,34],[47,44]],b2:[[56,34],[57,44]],p1:[[50,64],[49,81]],p2:[[56,65],[57,81]],banco:[48,58],seta:[40,50,40,30]}}]),
  /* ---- pilates de solo (NHS: principiantes, fisioterapia de Cambridgeshire,
     programa de core do Royal Berkshire) ---- */
  MV('respiracao','Respiração de costelas','5 respirações lentas','NHS (Cambridgeshire)',[
@@ -2114,6 +2136,19 @@ const CIATICA=['joelhopeito','rolarjoelhos','bascula','deslizanervo','piriforme'
    partilhados com os outros conjuntos de propósito — a báscula pélvica do
    NHS é a mesma quer se lhe chame fisioterapia, pilates ou ciática, e
    duplicá-la seria inventar diferenças que as fontes não têm. */
+/* Os três conjuntos de reforço, nos mesmos moldes: aquecer, exercitar,
+   alongar, rotação pelo dia do ano. Sem equipamento além do tapete — a parede,
+   uma cadeira da cozinha e o peso do próprio corpo chegam, e é assim que o NHS
+   os ensina. A regra de frequência também é dele: força pelo menos duas vezes
+   por semana. */
+const FORCA=[
+ {k:'F-A', n:'Abdominais e centro',
+  aq:['marcha','circulos','gatovaca'], ex:['abdominalcurto','prancha','pranchalateral','toquesdedos','birddog'], al:['crianca','rolarjoelhos','alonglateral']},
+ {k:'F-B', n:'Pernas e glúteos',
+  aq:['marcha','balancoperna','polichinelo'], ex:['agachamento','afundo','gemeos','elevacaolateral','extensaoperna','pontegluteos'], al:['quadricipite','isquios','gemeosparede']},
+ {k:'F-C', n:'Tronco, braços e postura',
+  aq:['marcha','circulos','rotacaotronco'], ex:['flexaoparede','flexaojoelhos','flexaocompleta','cadeira','levantarsentar'], al:['peito','alongpescoco','crianca']},
+];
 const PILATES=[
  {k:'P-A', n:'Fundações',
   aq:['respiracao','bascula','gatovaca'], ex:['deslizarcalcanhar','abdominalcurto','pontearticulada','concha'], al:['joelhopeito','rolarjoelhos','crianca']},
@@ -11513,6 +11548,7 @@ const DICAS={
   acog:'Tudo o que este cartão diz vem do Committee Opinion n.º 804 do American College of Obstetricians and Gynecologists (2020) — a recomendação de 150 minutos por semana, as modalidades seguras, as que se desaconselham e porquê, as contraindicações absolutas e os sinais para parar. Nem um número nem uma modalidade foram decididos pela app. E nada disto substitui a consulta: há contraindicações que só uma consulta identifica, e são elas que mandam. No pós-parto a orientação não dá um calendário fixo — diz que se retoma gradualmente assim que for clinicamente seguro, conforme o tipo de parto e as complicações que tenha havido — e é isso que a app repete, em vez de inventar uma semana a partir da qual se pode correr.',
   tabelas:'Três tabelas oficiais cobrem a mesma comida com números diferentes, e a diferença não é ruído: a convenção europeia declara hidratos disponíveis, sem fibra, e a norte-americana declara-os por diferença, com a fibra lá dentro. Somar as duas sem converter dá erros de dezenas de gramas. A prioridade é a que faz sentido numa casa portuguesa — INSA primeiro, porque é a que conhece o carapau, a couve galega e o queijo da Serra; depois a UE, com a mesma convenção; e só por último a FDA, que é a que mais precisa de conversão. Um valor do INSA nunca é substituído por um do USDA, mesmo que este seja carregado depois: a ordem por que as coisas chegam não é um critério.',
   jejum:'Duas coisas diferentes com o mesmo nome. O jejum intermitente comprime a janela em que se come sem mudar o total do dia — é um horário, não um défice, e o alvo de calorias não desce por causa dele. Um jejum pontual de 24 horas ou mais é outra coisa: é um dia sem comida, com um défice do tamanho do gasto desse dia, e a partir de certa duração deixa de ser uma escolha alimentar e passa a ser um assunto clínico. A app trata os dois de forma diferente e diz porquê. Não fica disponível para crianças, adolescentes, grávidas nem no pós-parto recente — não é a app a decidir por ninguém, é a app a não oferecer uma ferramenta que nesses casos não tem indicação.',
+  forca:'Os exercícios de força vêm da página de strength exercises do NHS (a flexão na parede, o mini-agachamento, a elevação de gémeos, a elevação lateral da perna, a extensão atrás e o levantar-sentar, com as séries da própria página) e do plano strength and flex (as flexões com joelhos e completas, a prancha, a prancha lateral). A frequência — força pelo menos duas vezes por semana — é a recomendação do NHS, que é a mesma da OMS. Sem equipamento de propósito: a parede, uma cadeira firme e o peso do corpo chegam para todos os grupos, e é exatamente assim que o NHS os ensina a quem treina em casa.',
   pilates:'Os exercícios vêm de três fontes do NHS: a página de pilates para principiantes (o curl up, a centena, o alongamento de uma perna, a concha e a ponte, com o que cada um trabalha), a fisioterapia de Cambridgeshire (o alcance por cima, o deslizar do calcanhar, a abertura do joelho e o alcance duplo, com o padrão de respiração — inspirar a preparar, expirar a mover) e o programa de core do Royal Berkshire (a ponte articulada vértebra a vértebra, a centena na «mesa» e os toques na água). As três dizem o mesmo nos princípios: coluna neutra, expiração no esforço, e qualidade antes de quantidade. O NHS descreve o pilates como adequado a todas as idades e níveis — e mesmo assim, com um problema de saúde ou dúvida, primeiro o médico de família.',
   movimento:'Nem um exercício foi inventado pela app. A calistenia e os alongamentos vêm das páginas de exercício do NHS (flexibilidade, strength and flex, wake-up workout), a estrutura de aquecimento e retorno à calma vem da Mayo Clinic (5 a 10 minutos de movimento antes; abrandar e alongar no fim), e a regra de alongar no fim com o músculo quente é a da ACSM e da American Heart Association. As séries e os tempos são os das próprias fontes. Os desenhos são da app, porque a app não faz rede — e um desenho que se percebe vale por uma fotografia que não se pode ter.',
   ciatica:'Estes exercícios vêm das páginas do NHS para a ciática: o joelho ao peito e o alongamento do piriforme do NHS, o deslizamento do nervo do hospital South Tees, e a báscula pélvica, o rolar de joelhos e o afundo profundo do serviço músculo-esquelético de Dorset. São exercícios gerais para a maioria das pessoas — não tratam a causa, e quem tem uma condição diagnosticada segue o fisioterapeuta, não a app. Os sinais de alarme no topo são citados do NHS e passam à frente de tudo: com qualquer um deles, é urgência, não é exercício.',
@@ -19964,6 +20000,27 @@ function cartaoMovimentoManha(){
       ou má disposição — é a regra do NHS, e é a desta casa.</p>
   </div>`;
 }
+function cartaoForca(){
+  const c=rodaConjunto(FORCA);
+  return `<div class="card" data-col="atv-forca">
+    <details>
+      <summary style="cursor:pointer"><h2 style="display:inline">Reforço muscular ${dica('forca')}</h2>
+        <span class="sub" style="display:block;margin-top:4px">Conjunto ${c.k} · ${esc(c.n)} — abdominais e os grandes grupos, sem equipamento. Roda todos os dias.</span></summary>
+      <p class="sub" style="margin-top:10px">Força com o peso do próprio corpo: a parede, uma cadeira da cozinha e um
+        tapete chegam. Os três conjuntos cobrem os grupos todos — hoje ${c.n.toLowerCase()}, amanhã segue a rotação — e
+        o NHS pede força <b>pelo menos duas vezes por semana</b>. Nas flexões há escada: parede, joelhos, completas —
+        sobe-se um degrau quando o de baixo ficar fácil, e desce-se num dia pior sem drama nenhum.</p>
+      <div class="splabel" style="margin-top:12px"><span>1 · Aquecer</span><output>${c.aq.length} movimentos</output></div>
+      ${listaMovs(c.aq)}
+      <div class="splabel" style="margin-top:12px"><span>2 · Exercitar</span><output>${c.ex.length} exercícios</output></div>
+      ${listaMovs(c.ex)}
+      <div class="splabel" style="margin-top:12px"><span>3 · Alongar</span><output>${c.al.length} alongamentos</output></div>
+      ${listaMovs(c.al)}
+      <p class="sub" style="margin-top:10px">Sobe as repetições devagar, de semana a semana — é o conselho do NHS.
+        E como sempre: dor aguda ou má disposição é sinal para parar já.</p>
+    </details>
+  </div>`;
+}
 function cartaoPilates(){
   const c=rodaConjunto(PILATES);
   return `<div class="card" data-col="atv-pilates">
@@ -20031,6 +20088,7 @@ function renderAtividade(){
     ${temPlano? cartaoProximosTreinos(m) : ''}
     ${temPlano? cartaoGraficoAtiv(m) : ''}
     ${cartaoMovimentoManha()}
+    ${cartaoForca()}
     ${cartaoPilates()}
     ${cartaoCiatica()}
     ${cartaoPartilhaAtiv()}
