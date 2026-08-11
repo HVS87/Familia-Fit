@@ -22839,6 +22839,16 @@ function cartaoJejum(m){
         <span class="sub">· ${rotuloData(x.d)}</span></span>
       <button class="btn danger small" onclick="apagarJejumPontual('${x.id}')" aria-label="Apagar este jejum">✕</button>
     </div>`).join('')}</div>`:''}
+    ${/* A rampa de renutrição já aceite continua a baixar o alvo de hoje pelo
+         fatorRenutricao, e o botão que a desliga vivia só no cartão normal, do
+         lado de lá deste return. Quem fez 48 h, aceitou a rampa e só depois
+         desceu abaixo dos 18,5 de IMC ficava com o alvo cortado sem controlo à
+         vista — a única saída era apagar o próprio jejum para desligar outra
+         coisa. Aparece só quando a rampa já está ligada: com ela desligada,
+         blocoRenutricao ofereceria «Adaptar o plano», que é criar estado novo e
+         baixar o alvo de quem já está abaixo do peso, e isso continua fechado
+         aqui. */
+      (S.jejum&&S.jejum.renutricao&&S.jejum.renutricao[m.id])? blocoRenutricao(m) : ''}
   </div>`;
   return `<div class="card" data-col="nu-jejum" style="margin-top:16px">
     <h2>Jejum ${dica('jejum')}</h2>
