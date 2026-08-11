@@ -778,6 +778,11 @@ ol.passos li span{color:var(--mut);font-size:14px;margin-top:2px}
 .tag.fonte-insa{border-color:var(--ok);color:var(--ok)}
 .tag.fonte-ue{border-color:var(--accent);color:var(--accent)}
 .tag.fonte-fda{border-color:var(--mut);color:var(--mut)}
+.tag.fonte-tbca,.tag.fonte-mext{border-color:var(--accent);color:var(--accent)}
+.tag.fonte-rotulo{border-color:var(--warn);color:var(--warn)}
+/* O da casa leva traço interrompido: é o único selo que não corresponde a
+   nenhuma tabela publicada, e a forma diz isso a quem não distingue as cores. */
+.tag.fonte-casa{border-style:dashed;border-color:var(--warn);color:var(--warn)}
 /* Uma receita que se pode cozinhar já distingue-se por uma barra à esquerda e
    pelo fundo — nunca só pela cor: a etiqueta «Pronta a cozinhar» continua lá,
    e é ela que carrega a informação para quem não distingue os verdes. */
@@ -3213,6 +3218,66 @@ R('arrozdoce','Arroz doce','portuguesa',[],0,0,0,0,[['Arroz carolino',25,'g'],['
 R('toucinhoceu','Toucinho do céu','portuguesa',[],0,0,0,0,[['Açúcar branco',22,'g'],['Amêndoa',17,'g'],['Gema de ovo de galinha, crua',15,'g'],['Ovo',0.25,'un'],['Manteiga',6,'g'],['Farinha',4,'g'],['Raspa de limão',0.5,'g']],['l'],0,['sob']),
 R('farofias','Farófias','portuguesa',[],0,0,0,0,[['Clara de ovo de galinha, crua',45,'g'],['Leite',125,'ml'],['Açúcar branco',26,'g'],['Gema de ovo de galinha, crua',17,'g'],['Canela',0.5,'g'],['Raspa de limão',1,'g']],['l'],0,['sob']),
 R('paodelo','Pão de ló','portuguesa',[],0,0,0,0,[['Ovo',0.4,'un'],['Gema de ovo de galinha, crua',5,'g'],['Açúcar branco',11,'g'],['Farinha',7,'g'],['Raspa de limão',0.3,'g']],['p','l'],0,['sob']),
+/* ---- Gelados e sorvetes ----
+   Duas bases e não uma: o gelado é creme — natas, leite, gema — e o sorvete é
+   fruta e calda, sem lacticínio nenhum. É por isso que os sabores são
+   variantes dentro de cada base e não uma família só: quem não pode leite
+   escolhe entre os sorvetes todos e não tem de ler cinco fichas para descobrir
+   qual deles lhe serve.
+   As quantidades são por dose servida — uma bola generosa, à volta de 110 g de
+   gelado ou 130 g de sorvete —, e não pelo tabuleiro que se faz de uma vez. */
+R('geladobaunilha','Gelado de baunilha','italiana',['vegetariana'],0,0,0,0,[['Nata para bater 35% gordura',45,'ml'],['Leite',55,'ml'],['Açúcar branco',22,'g'],['Gema de ovo de galinha, crua',15,'g'],['Baunilha',1,'g']],['l'],0,['sob']),
+R('geladochoc','Gelado de chocolate','italiana',['vegetariana'],0,0,0,0,[['Nata para bater 35% gordura',45,'ml'],['Leite',55,'ml'],['Chocolate de culinária',20,'g'],['Açúcar branco',14,'g'],['Gema de ovo de galinha, crua',15,'g'],['Cacau em pó',3,'g']],['l'],0,['sob']),
+R('geladomorango','Gelado de morango','italiana',['vegetariana'],0,0,0,0,[['Morango',70,'g'],['Nata para bater 35% gordura',40,'ml'],['Leite',45,'ml'],['Açúcar branco',20,'g'],['Gema de ovo de galinha, crua',12,'g'],['Limão',5,'ml']],['l'],0,['sob']),
+R('geladocafe','Gelado de café','italiana',['vegetariana'],0,0,0,0,[['Nata para bater 35% gordura',45,'ml'],['Leite',45,'ml'],['Café expresso',30,'ml'],['Açúcar branco',22,'g'],['Gema de ovo de galinha, crua',15,'g']],['l'],0,['sob']),
+R('geladopistacio','Gelado de pistácio','italiana',['vegetariana'],0,0,0,0,[['Nata para bater 35% gordura',45,'ml'],['Leite',55,'ml'],['Pistácio torrado, sem sal',22,'g'],['Açúcar branco',20,'g'],['Gema de ovo de galinha, crua',15,'g']],['l'],0,['sob']),
+R('sorvetelimao','Sorvete de limão','italiana',['vegan','vegetariana','lowfat'],0,0,0,0,[['Limão',60,'ml'],['Açúcar branco',28,'g'],['Raspa de limão',2,'g']],['l'],0,['sob']),
+R('sorvetemanga','Sorvete de manga','italiana',['vegan','vegetariana','lowfat'],0,0,0,0,[['Manga',130,'g'],['Açúcar branco',20,'g'],['Lima',10,'ml']],['l'],0,['sob']),
+R('sorvetemorango','Sorvete de morango','italiana',['vegan','vegetariana','lowfat'],0,0,0,0,[['Morango',130,'g'],['Açúcar branco',24,'g'],['Limão',8,'ml']],['l'],0,['sob']),
+R('sorveteframboesa','Sorvete de framboesa','italiana',['vegan','vegetariana','lowfat'],0,0,0,0,[['Framboesa',120,'g'],['Açúcar branco',26,'g'],['Limão',8,'ml']],['l'],0,['sob']),
+R('sorvetemaracuja','Sorvete de maracujá','italiana',['vegan','vegetariana','lowfat'],0,0,0,0,[['Maracujá',110,'g'],['Açúcar branco',30,'g'],['Lima',8,'ml']],['l'],0,['sob']),
+/* ---- O pequeno-almoço de todos os dias ----
+   A biblioteca tinha papas de aveia e tostas de centeio e não tinha nada do
+   que se come de facto a correr, de pé na cozinha: a torrada com manteiga, o
+   galão, o croissant do café da esquina. Um plano que só sabe contar o que é
+   exemplar não conta a semana de ninguém. */
+/* Torradas: o que muda de uma para a outra é o pão, a manteiga e o que se
+   bebe ao lado. São variantes umas das outras e não seis receitas — o cartão
+   único poupa a lista de vinte entradas quase iguais. */
+R('torradaformaleite','Torradas de pão de forma com manteiga e leite','portuguesa',['vegetariana'],0,0,0,0,[['Pão de forma',60,'g'],['Manteiga',12,'g'],['Leite meio gordo, UHT',200,'ml']],['p'],0,['br']),
+R('torradaformasem','Torradas de pão de forma sem manteiga, com leite','portuguesa',['vegetariana','lowfat'],0,0,0,0,[['Pão de forma',60,'g'],['Leite meio gordo, UHT',200,'ml']],['p'],0,['br']),
+R('torradaformagalao','Torradas de pão de forma com manteiga e galão','portuguesa',['vegetariana'],0,0,0,0,[['Pão de forma',60,'g'],['Manteiga',12,'g'],['Leite meio gordo, UHT',180,'ml'],['Café expresso',30,'ml'],['Açúcar branco',5,'g']],['p'],0,['br']),
+R('torradamistura','Torradas de pão de mistura com manteiga e galão','portuguesa',['vegetariana'],0,0,0,0,[['Pão de mistura',65,'g'],['Manteiga',12,'g'],['Leite meio gordo, UHT',180,'ml'],['Café expresso',30,'ml']],['p'],0,['br']),
+R('torradaintegral','Torradas de pão integral com manteiga e leite','portuguesa',['vegetariana'],0,0,0,0,[['Pão integral',65,'g'],['Manteiga',10,'g'],['Leite meio gordo, UHT',200,'ml']],['p'],0,['br']),
+R('torradaalentejano','Torradas de pão alentejano com manteiga e café','portuguesa',['vegetariana'],0,0,0,0,[['Pão alentejano',70,'g'],['Manteiga',14,'g'],['Café expresso',60,'ml']],['p'],0,['br']),
+R('torradadoce','Torradas com manteiga e marmelada','portuguesa',['vegetariana'],0,0,0,0,[['Pão de forma',60,'g'],['Manteiga',10,'g'],['Marmelada',25,'g'],['Leite meio gordo, UHT',200,'ml']],['p'],0,['br']),
+/* Croissant: com e sem manteiga, e o recheio a mudar. O croissant já leva 21 g
+   de gordura por cada 100 — a manteiga por cima é uma escolha e não uma
+   obrigação, e é por isso que há variante sem ela. */
+R('croissantmisto','Croissant com queijo e fiambre','francesa',[],0,0,0,0,[['Croissant',1,'un'],['Queijo flamengo',30,'g'],['Fiambre',30,'g']],['p','l'],0,['sn','br']),
+R('croissantmistomant','Croissant com manteiga, queijo e fiambre','francesa',[],0,0,0,0,[['Croissant',1,'un'],['Manteiga',8,'g'],['Queijo flamengo',30,'g'],['Fiambre',30,'g']],['p','l'],0,['sn','br']),
+R('croissantqueijo','Croissant só com queijo','francesa',['vegetariana'],0,0,0,0,[['Croissant',1,'un'],['Queijo flamengo',35,'g']],['p','l'],0,['sn','br']),
+R('croissantfiambre','Croissant só com fiambre','francesa',[],0,0,0,0,[['Croissant',1,'un'],['Fiambre',40,'g']],['p','l'],0,['sn','br']),
+R('croissantmanteiga','Croissant com manteiga','francesa',['vegetariana'],0,0,0,0,[['Croissant',1,'un'],['Manteiga',10,'g']],['p'],0,['sn','br']),
+R('croissantdoce','Croissant com manteiga e marmelada','francesa',['vegetariana'],0,0,0,0,[['Croissant',1,'un'],['Manteiga',8,'g'],['Marmelada',25,'g']],['p'],0,['sn','br']),
+R('croissantsimples','Croissant simples com galão','francesa',['vegetariana'],0,0,0,0,[['Croissant',1,'un'],['Leite meio gordo, UHT',180,'ml'],['Café expresso',30,'ml']],['p'],0,['br']),
+/* Pão, sem ir ao forno. É a sandes que se leva na mão, e é o pão que muda. */
+R('paomanteiga','Papo-seco com manteiga','portuguesa',['vegetariana'],0,0,0,0,[['Papo-seco',1,'un'],['Manteiga',12,'g']],['p'],0,['sn','br']),
+R('paomanteigagalao','Papo-seco com manteiga e galão','portuguesa',['vegetariana'],0,0,0,0,[['Papo-seco',1,'un'],['Manteiga',12,'g'],['Leite meio gordo, UHT',180,'ml'],['Café expresso',30,'ml']],['p'],0,['br']),
+R('paoqueijo','Papo-seco com queijo','portuguesa',['vegetariana'],0,0,0,0,[['Papo-seco',1,'un'],['Queijo flamengo',35,'g']],['p','l'],0,['sn','br']),
+R('paofiambre','Papo-seco com fiambre','portuguesa',[],0,0,0,0,[['Papo-seco',1,'un'],['Fiambre',40,'g']],['p','l'],0,['sn','br']),
+R('paomisto','Papo-seco com queijo e fiambre','portuguesa',[],0,0,0,0,[['Papo-seco',1,'un'],['Queijo flamengo',30,'g'],['Fiambre',30,'g'],['Manteiga',6,'g']],['p','l'],0,['sn','br']),
+R('paointegralqueijo','Pão integral com queijo fresco','portuguesa',['vegetariana','lowfat'],0,0,0,0,[['Pão integral',65,'g'],['Queijo fresco',60,'g']],['p','l'],0,['sn','br']),
+R('paocenteiofiambre','Pão de centeio com fiambre','portuguesa',[],0,0,0,0,[['Pão de centeio',65,'g'],['Fiambre',40,'g'],['Manteiga',6,'g']],['p','l'],0,['sn','br']),
+R('paoleitemanteiga','Pão de leite com manteiga','portuguesa',['vegetariana'],0,0,0,0,[['Pão de leite (trigo)',55,'g'],['Manteiga',10,'g']],['p'],0,['sn','br']),
+/* Iogurte: o natural sem açúcar é o ponto de partida, e a fruta é o que se lhe
+   junta. Separados de propósito — o açúcar da fruta inteira não conta como
+   açúcar livre para a OMS, e o do iogurte de aromas conta. */
+R('iogurtenatural','Iogurte natural sem açúcar','portuguesa',['vegetariana','lowfat'],0,0,0,0,[['Iogurte natural',200,'g']],['p','l'],0,['sn','br']),
+R('iogurtebanana','Iogurte natural com banana','portuguesa',['vegetariana','lowfat'],0,0,0,0,[['Iogurte natural',180,'g'],['Banana',1,'un']],['p','l'],0,['sn','br']),
+R('iogurtemorango','Iogurte natural com morango','portuguesa',['vegetariana','lowfat'],0,0,0,0,[['Iogurte natural',180,'g'],['Morango',120,'g']],['p','l'],0,['sn','br']),
+R('iogurtevermelhos','Iogurte natural com frutos vermelhos','portuguesa',['vegetariana','lowfat'],0,0,0,0,[['Iogurte natural',180,'g'],['Frutos vermelhos',100,'g']],['p','l'],0,['sn','br']),
+R('tigelacereais','Tigela de granola com leite','portuguesa',['vegetariana'],0,0,0,0,[['Granola',50,'g'],['Leite meio gordo, UHT',200,'ml'],['Banana',0.5,'un']],['p'],0,['br']),
 /* ---- Carne: panados, rolo e wellington ----
    Três pratos que pedem acompanhamento, e é isso que os põe aqui: são a
    melhor demonstração de que o prato e o que vai ao lado são uma escolha só.
@@ -5422,6 +5487,111 @@ P('arrozdoce',[['Arroz','Arroz carolino cozido em pouca água a ferver, até qua
  ['Gemas','Fora do lume, tempera as gemas com umas colheres do arroz quente antes de as juntar — juntá-las diretamente coalha-as.',3],
  ['Apurar','Volta ao lume brandíssimo um minuto, sem ferver. Manteiga e raspa de limão a fechar.',2],
  ['Canela','Travessas rasas e canela em pó por cima, à mão ou com os desenhos do costume. Come-se frio.']]);
+/* ---- Gelados, sorvetes e o pequeno-almoço de todos os dias ---- */
+/* O creme é o mesmo nos cinco gelados: o que muda é o que se lhe dá a beber.
+   Escrito por extenso no de baunilha, e resumido nos outros, para quem lê a
+   ficha do de pistácio não ter de andar para trás. */
+P('geladobaunilha',[['Infusão','Leite e natas ao lume brando com a baunilha aberta ao meio. Tira do lume ao primeiro fumo e deixa em infusão vinte minutos, tapado.',22],
+ ['Gemas','Bate as gemas com o açúcar até esbranquiçarem. Junta o leite morno em fio, a mexer sempre — de uma vez, coalha.',5],
+ ['Cozer o creme','Volta ao lume muito brando até velar as costas da colher, aos 82 °C. Não deixes ferver: a partir dos 85 °C a gema coalha e o creme fica granuloso.',10],
+ ['Arrefecer','Passa por um passador fino e arrefece depressa, com a taça sobre gelo. Depois frigorífico, pelo menos quatro horas — creme morno faz cristais grandes.',240],
+ ['Gelar','Na máquina, vinte minutos. Sem máquina, congelador e bater com um garfo de meia em meia hora, três vezes: é o bater que parte o gelo.',60],
+ ['Servir','Tira do congelador cinco minutos antes. Gelado servido a menos de −15 °C não sabe a nada — o frio adormece a língua.',5]]);
+P('geladochoc',[['Chocolate','Derrete o chocolate no leite e nas natas mornas, com o cacau peneirado. Sem uma gota de água a cair lá dentro.',8],
+ ['Creme','Gemas batidas com o açúcar, o leite achocolatado em fio, e ao lume brando até velar a colher — 82 °C, nunca a ferver.',12],
+ ['Arrefecer e gelar','Coa, arrefece sobre gelo, quatro horas de frigorífico e vinte minutos de máquina. Sem máquina, bate de meia em meia hora, três vezes.',300]]);
+P('geladomorango',[['Morango','Tritura os morangos com o limão e metade do açúcar. Deixa meia hora — o açúcar puxa o sumo e a cor fixa-se.',30],
+ ['Creme','Gemas com o resto do açúcar, leite e natas mornos em fio, ao lume brando até velar a colher. Fora do lume, junta o puré.',14],
+ ['Arrefecer e gelar','Arrefece sobre gelo, quatro horas de frigorífico, e gela. Fruta gelada sem creme faz pedra: é a gordura que a mantém macia.',300]]);
+P('geladocafe',[['Infusão','Leite e natas mornos com o café acabado de tirar. O café frio perde o aroma todo — vai quente para o leite.',6],
+ ['Creme','Gemas batidas com o açúcar, o leite em fio, e ao lume brando até velar a colher, aos 82 °C.',12],
+ ['Arrefecer e gelar','Coa, arrefece sobre gelo, quatro horas de frigorífico e vinte minutos de máquina.',300]]);
+P('geladopistacio',[['Pistácio','Tritura os pistácios com metade do açúcar até virarem pasta. Sem açúcar, a máquina só faz farinha e a gordura não solta.',10],
+ ['Creme','Gemas com o resto do açúcar, leite e natas mornos em fio, ao lume brando até velar a colher. Junta a pasta de pistácio fora do lume.',14],
+ ['Arrefecer e gelar','Arrefece sobre gelo, quatro horas de frigorífico, e gela.',300]]);
+/* Os sorvetes não levam lacticínio nenhum: é fruta e calda. A calda é a mesma
+   nos cinco — açúcar e água em partes iguais, ao lume até dissolver. */
+P('sorvetelimao',[['Calda','Dissolve o açúcar em igual peso de água, ao lume, até ficar transparente. Deixa arrefecer por completo.',10],
+ ['Sumo','Junta o sumo e a raspa de limão à calda fria. Prova: um sorvete de citrino sabe sempre mais ácido depois de gelado do que na taça.',3],
+ ['Gelar','Congelador, e bate com um garfo de meia em meia hora, três vezes. Sem lacticínio não há gordura a impedir os cristais — o bater é tudo.',180],
+ ['Servir','Tira cinco minutos antes de servir.',5]]);
+P('sorvetemanga',[['Puré','Tritura a manga bem madura com a lima até ficar liso. Manga rija não presta: o açúcar dela é que dá o corpo.',5],
+ ['Calda','Açúcar dissolvido em igual peso de água, ao lume, e arrefecido. Junta ao puré.',10],
+ ['Gelar','Congelador, a bater com um garfo de meia em meia hora, três vezes.',180]]);
+P('sorvetemorango',[['Puré','Tritura os morangos com o limão e passa por um passador para tirar os grainhos.',6],
+ ['Calda','Açúcar dissolvido em igual peso de água, arrefecido, e junto ao puré.',10],
+ ['Gelar','Congelador, a bater com um garfo de meia em meia hora, três vezes.',180]]);
+P('sorveteframboesa',[['Puré','Tritura as framboesas e passa por um passador — os grainhos da framboesa ficam entre os dentes e estragam a textura.',6],
+ ['Calda','Açúcar dissolvido em igual peso de água, arrefecido, e junto ao puré com o limão.',10],
+ ['Gelar','Congelador, a bater com um garfo de meia em meia hora, três vezes.',180]]);
+P('sorvetemaracuja',[['Polpa','Tira a polpa dos maracujás e passa metade por um passador; a outra metade fica com as sementes, que dão o estaladiço.',6],
+ ['Calda','Açúcar dissolvido em igual peso de água, arrefecido, e junto à polpa com a lima.',10],
+ ['Gelar','Congelador, a bater com um garfo de meia em meia hora, três vezes.',180]]);
+/* Torradas, croissants, pão e iogurte: passos curtos de propósito. São
+   receitas de dois minutos e a ficha existe para a conta do dia, não para
+   ensinar a torrar pão — mas o que há para dizer, diz-se. */
+P('torradaformaleite',[['Torrar','Torradeira no meio: dourado e não castanho. Pão queimado é amargo e não se salva a raspar.',3],
+ ['Manteiga','Manteiga logo à saída, com o pão a escaldar — é assim que ela entra em vez de ficar por cima.',1],
+ ['Leite','Leite quente ao lado. Come-se antes de a torrada amolecer.',2]]);
+P('torradaformasem',[['Torrar','Torradeira no meio, até ficar dourado.',3],
+ ['Servir','Sem manteiga a torrada seca depressa — corta-a só na hora e come de seguida, com o leite ao lado.',2]]);
+P('torradaformagalao',[['Torrar','Torradeira no meio, até ficar dourado.',3],
+ ['Manteiga','Manteiga à saída, com o pão ainda a escaldar.',1],
+ ['Galão','Leite quente e o café por cima, num copo alto. O açúcar é opcional — o galão de casa leva menos do que o do café.',3]]);
+P('torradamistura',[['Torrar','O pão de mistura tem miolo mais húmido: leva mais um bocado de torradeira do que o de forma.',4],
+ ['Manteiga','Manteiga à saída.',1],
+ ['Galão','Leite quente com o café por cima.',3]]);
+P('torradaintegral',[['Torrar','Torradeira no meio. O integral tosta mais depressa por causa do farelo — vigia-o.',3],
+ ['Manteiga','Manteiga à saída.',1],
+ ['Leite','Leite quente ao lado.',2]]);
+P('torradaalentejano',[['Fatiar','Fatias grossas, de dois dedos — o pão alentejano não se corta fino, esfarela.',2],
+ ['Torrar','Grelhador ou frigideira seca, até marcar dos dois lados. A torradeira não chega para esta fatia.',5],
+ ['Manteiga','Manteiga a derreter na fatia quente, e o café ao lado.',2]]);
+P('torradadoce',[['Torrar','Torradeira no meio, até ficar dourado.',3],
+ ['Manteiga e marmelada','Manteiga primeiro, marmelada por cima. A manteiga faz de barreira e impede o pão de encharcar.',2],
+ ['Leite','Leite quente ao lado.',2]]);
+P('croissantmisto',[['Aquecer','Forno a 160 °C cinco minutos, ou torradeira de grelha. No micro-ondas fica borracha.',5],
+ ['Abrir','Abre ao meio com uma faca de serra, sem separar de todo.',1],
+ ['Rechear','Queijo primeiro, fiambre por cima, e fecha. Se quiseres o queijo derretido, mais dois minutos no forno.',2]]);
+P('croissantmistomant',[['Aquecer','Forno a 160 °C cinco minutos.',5],
+ ['Barrar','Manteiga no croissant ainda quente, dos dois lados abertos.',1],
+ ['Rechear','Queijo e fiambre, e fecha.',2]]);
+P('croissantqueijo',[['Aquecer','Forno a 160 °C cinco minutos.',5],
+ ['Rechear','Queijo aberto ao meio. Dois minutos a mais no forno derretem-no.',2]]);
+P('croissantfiambre',[['Aquecer','Forno a 160 °C cinco minutos.',5],
+ ['Rechear','Fiambre aberto ao meio, já fora do forno — aquecido demais, o fiambre solta água e molha a massa.',2]]);
+P('croissantmanteiga',[['Aquecer','Forno a 160 °C cinco minutos, até a massa voltar a estalar.',5],
+ ['Manteiga','Manteiga no croissant quente. Já leva muita da sua — põe pouca.',1]]);
+P('croissantdoce',[['Aquecer','Forno a 160 °C cinco minutos.',5],
+ ['Barrar','Manteiga primeiro, marmelada por cima.',2]]);
+P('croissantsimples',[['Aquecer','Forno a 160 °C cinco minutos, ou come-o como veio da padaria.',5],
+ ['Galão','Leite quente com o café por cima, num copo alto.',3]]);
+P('paomanteiga',[['Abrir','Abre o papo-seco ao meio com a mão, não com faca: a mão deixa o miolo em relevo e a manteiga agarra-se melhor.',1],
+ ['Manteiga','Manteiga à temperatura da cozinha espalha-se; acabada de sair do frigorífico rasga o miolo.',1]]);
+P('paomanteigagalao',[['Abrir','Abre o papo-seco ao meio com a mão.',1],
+ ['Manteiga','Manteiga à temperatura da cozinha.',1],
+ ['Galão','Leite quente com o café por cima.',3]]);
+P('paoqueijo',[['Abrir','Abre o papo-seco ao meio.',1],
+ ['Queijo','Queijo em fatias finas, que cobrem melhor do que uma grossa.',1]]);
+P('paofiambre',[['Abrir','Abre o papo-seco ao meio.',1],
+ ['Fiambre','Fiambre dobrado em vez de esticado: ganha volume e não escorrega.',1]]);
+P('paomisto',[['Abrir','Abre o papo-seco ao meio.',1],
+ ['Barrar','Manteiga fina dos dois lados — é ela que impede o pão de secar até à hora do lanche.',1],
+ ['Rechear','Queijo e fiambre, e fecha.',1]]);
+P('paointegralqueijo',[['Fatiar','Duas fatias de pão integral.',1],
+ ['Queijo fresco','Queijo fresco esmagado com o garfo espalha-se sem rasgar o pão.',2]]);
+P('paocenteiofiambre',[['Fatiar','Duas fatias de pão de centeio, que é denso e chega bem.',1],
+ ['Barrar e rechear','Manteiga fina e o fiambre por cima.',2]]);
+P('paoleitemanteiga',[['Abrir','Abre o pão de leite ao meio.',1],
+ ['Manteiga','Manteiga fina. O pão de leite já é doce e mole — mais gordura tira-lhe o contraste.',1]]);
+P('iogurtenatural',[['Servir','Taça e colher. O iogurte natural sem açúcar é o ponto de partida de todas as variantes: o que se lhe junta é escolha de quem come, e fica visível na conta do dia.',2]]);
+P('iogurtebanana',[['Cortar','Banana em rodelas, cortada na hora — passados minutos escurece.',2],
+ ['Juntar','Rodelas por cima do iogurte. O açúcar da banana inteira não conta como açúcar livre para a OMS; o do iogurte de aromas conta.',1]]);
+P('iogurtemorango',[['Cortar','Morangos aos quartos, ao comprido.',3],
+ ['Juntar','Morangos por cima do iogurte, e esmaga dois ou três para soltarem o sumo e corarem a taça.',1]]);
+P('iogurtevermelhos',[['Juntar','Frutos vermelhos por cima do iogurte, inteiros. Se forem de congelador, deixa-os cinco minutos fora — gelados, ficam ácidos.',5]]);
+P('tigelacereais',[['Tigela','Granola na tigela e o leite por cima, e não ao contrário: a granola de baixo amolece antes de se chegar a ela.',2],
+ ['Banana','Banana em rodelas por cima.',1]]);
 P('toucinhoceu',[['Calda','Açúcar e água ao lume até ponto de pérola — quando a calda cai do garfo num fio que não parte.',10],
  ['Amêndoa','Amêndoa moída fina à calda ainda quente, a envolver fora do lume.',4],
  ['Gemas','Gemas passadas por um passador e temperadas com a calda morna, aos poucos. É aqui que a maioria dos doces conventuais se estraga.',5],
@@ -6335,6 +6505,15 @@ const FONTES={
      entrada, fonte() calava-se e devolvia «INSA» — a app passava a afirmar
      que o INSA publicou um número que nunca viu. */
   rotulo:{n:'Rótulo', p:4, d:'Rótulo de produto de marca, sem entrada em tabela de composição'},
+  /* O degrau mais baixo, e o único que a app não escreveu: o que a casa
+     acrescentou à mão. Existe porque o catálogo nunca vai ter tudo — falta
+     sempre a marca do supermercado do lado — e a alternativa a deixar
+     escrever era deixar a receita sem esse ingrediente, o que é pior: um
+     alimento que não entra na conta é um alimento que não existe para os
+     alergénios, para o sódio e para as calorias do dia. Marcado como tal em
+     todo o lado, e nunca por cima de uma tabela: quem escreve à mão é quem
+     assume o número, e a app não finge que ele veio do INSA. */
+  casa:{n:'Da casa', p:5, d:'Escrito à mão por quem usa a app, a partir do rótulo ou de outra tabela'},
 };
 /* A fonte que está a ser usada quando as declarações correm. Cada bloco de
    NI() declara a sua antes de começar, e assim não é preciso repetir a origem
@@ -7487,6 +7666,10 @@ NI('Chorizo criollo',296,3.78,13.6,25.1,0,0,1);
 NI('Contrafilé de vaca',199,0,21.3,12.7,0,0,1);
 NI('Coração de galinha',153,0.71,15.6,9.33,0,6.1,1);
 NI('Costeleta de vaca com osso',316,0,16.3,27.3,0,0,1);
+/* Croissant de manteiga, USDA FDC 174987. Os 45,8 g de hidratos totais menos
+   os 2,6 de fibra dão os 43,2 disponíveis que esta app usa. 57 g é o peso de
+   um croissant de padaria — o de pacote anda pelos 40. */
+NI('Croissant',406,43.2,8.2,21,2.6,57,4);
 NI('Entraña de vaca',232,0.35,18,17.6,0,0,1);
 NI('Farinha de milho nixtamalizada (masa harina)',363,70.19,8.46,3.69,6.4,0,4);
 NI('Flocos de pimento vermelho seco',318,29.4,12,17.3,27.2,0,4);
@@ -7772,6 +7955,11 @@ const ING_EXCECAO={
   'Farinha de milho nixtamalizada (masa harina)':['cereal'],
   'Brioche':['gluten','ovo','lacticinio','cereal'],
   'Papo-seco':['gluten','cereal'], 'Baguete':['gluten','cereal'],
+  /* O croissant não tem «pão» no nome e por isso escapava à expressão que
+     apanha os cereais com glúten. Leva trigo e leva manteiga — as duas coisas
+     têm de estar cá, senão um croissant apresenta-se a quem tem doença celíaca
+     como se não tivesse nada. */
+  'Croissant':['gluten','cereal','lacticinio'],
   'Fette biscottate':['gluten','cereal'], 'Matzá':['gluten','cereal'],
   'Vinagre de sidra':['sulfitos'],
   'Flocos de pimento vermelho seco':['picante'],
@@ -8546,6 +8734,13 @@ function sodioDe(nome){
   if(temChave(NA_INSA,nome)) return NA_INSA[nome];
   if(temChave(NA_TABELA,nome)) return NA_TABELA[nome];
   if(temChave(NA_ESTIMADO,nome)) return NA_ESTIMADO[nome];
+  /* O que a casa escreveu à mão. O rótulo europeu dá SAL em gramas e a app
+     conta SÓDIO em miligramas: 1 g de sal são 400 mg de sódio (o factor é
+     2,5 no sentido contrário). Sem esta linha, o campo do sal no formulário
+     era um campo que não fazia nada — e um alimento salgado entrava no dia
+     como se não tivesse sal nenhum. */
+  const g=(ingredientesDaCasa()||[]).find(x=>x.n===nome);
+  if(g) return Math.round((parseFloat(g.sal)||0)*400);
   return NA_RESIDUAL.test(nome)? 0 : null;
 }
 function sodioDeOutraTabela(nome){ return temChave(NA_TABELA,nome); }
@@ -8942,6 +9137,10 @@ const KEY='familiaFitV1', APPID='familia-fit', FORMATO=1;
 let saveErr='', msg=null;
 function blank(){ return {members:[],cheats:{},plans:{},bought:{},prefCuisine:'todas',objetivos:[],despensa:{},
   receitas:[],
+  /* ingredientes: os que faltavam ao catálogo e alguém escreveu à mão a partir
+     do rótulo. Ficam na gaveta «Da casa», que é a de prioridade mais baixa —
+     um número escrito à mão não se põe por cima de uma tabela oficial. */
+  ingredientes:[],
   /* medicoes: {membro:[{d,p}]} por ordem de data — o peso deixa de ser um
      número solto e passa a ter história. regAtiv/regRef: o que foi mesmo
      feito e comido, por oposição ao plano, que é o que se tenciona fazer. */
@@ -9055,6 +9254,44 @@ sincronizaReceitas();   /* as receitas da casa entram na biblioteca antes do pri
    aponta para um combo (eles nunca são o prato de uma refeição, só a leitura
    dela), esperar pelo fim do ficheiro não custa nada. */
 migraRegistos(S);       /* e só depois se validam os registos, que podem apontar a elas */
+/* ================= OS INGREDIENTES QUE A CASA ACRESCENTA =================
+   O catálogo tem 743 linhas e mesmo assim não tem o pão da padaria da esquina
+   nem a marca branca do supermercado. Sem maneira de os acrescentar, a saída
+   era deixá-los fora da receita — e um alimento fora da receita não conta para
+   os alergénios, para o sódio, para as calorias nem para a lista de compras.
+   Escreve-se à mão, com os números do rótulo, e fica marcado como escrito à
+   mão em todo o lado onde a proveniência aparece. */
+function limparIngredientes(x){
+  if(!Array.isArray(x)) return [];
+  const vistos=Object.create(null), out=[];
+  const num=(v,max)=>{ const q=parseFloat(v); return Number.isFinite(q)? clampNum(Math.round(q*100)/100,0,max) : 0; };
+  x.forEach(g=>{
+    if(!g || typeof g!=='object') return;
+    const n=String(g.n||'').trim().replace(/\s+/g,' ').slice(0,60);
+    if(!n || temChave(vistos,n)) return;
+    vistos[n]=1;
+    const u=['g','ml','un'].indexOf(g.u)>=0? g.u : 'g';
+    const sec=Number.isInteger(g.s)&&g.s>=0&&g.s<CATS.length? g.s : -1;
+    out.push({n, k:num(g.k,900), c:num(g.c,100), p:num(g.p,100), f:num(g.f,100),
+      fib:num(g.fib,100), un:num(g.un,3000), s:sec, u,
+      sal:num(g.sal,60), de:String(g.de||'').trim().slice(0,140)});
+  });
+  return out.slice(0,300);
+}
+/* Um nome que já exista no catálogo é recusado no formulário, e recusado
+   outra vez aqui: o ficheiro de cópia de outra casa, ou uma versão nova da
+   app que entretanto publicou esse alimento, não podem fazer com que um
+   número escrito à mão passe a valer por cima do INSA sem ninguém dar por
+   isso. Em caso de choque, ganha a tabela. */
+function aplicaIngredientesDaCasa(lista){
+  (lista||[]).forEach(g=>{
+    if(temChave(NUTRI,g.n)) return;
+    NUTRI[g.n]={k:g.k, c:g.c, p:g.p, f:g.f, fib:g.fib, un:g.un, s:g.s, u:g.u, fonte:'casa'};
+  });
+  invalidaCatalogos();
+}
+function ingredientesDaCasa(){ return Array.isArray(S.ingredientes)? S.ingredientes : []; }
+function ehDaCasa(nome){ return !!(NUTRI[nome] && NUTRI[nome].fonte==='casa'); }
 function load(){
   let s=null;
   try{ s=JSON.parse(localStorage.getItem(KEY)); }catch(e){}
@@ -9062,6 +9299,12 @@ function load(){
   const b=blank();
   if(!dataValida(s.week)) s.week=mondayISO(new Date());   /* semana corrompida não prende a app */
   s.members.forEach(normalizaMembro);
+  /* A ordem aqui não é indiferente: limparReceita valida os ingredientes
+     contra o catálogo, e uma receita da casa feita com um ingrediente escrito
+     à mão desaparecia se ele ainda não lá estivesse. Os da casa entram
+     primeiro. */
+  s.ingredientes=limparIngredientes(s.ingredientes);
+  aplicaIngredientesDaCasa(s.ingredientes);
   s.receitas=Array.isArray(s.receitas)? s.receitas.map(limparReceita).filter(Boolean) : [];
   return Object.assign(b, s, {ui:Object.assign(b.ui,s.ui||{}), meta:Object.assign(b.meta,s.meta||{})});
 }
@@ -9117,7 +9360,7 @@ let pilhaUndo=[], pilhaRedo=[], estadoAnterior=null, ultimaDesc=null;
 function instantaneo(){ return JSON.stringify({members:S.members, cheats:S.cheats, plans:S.plans,
   bought:S.bought, week:S.week, prefCuisine:S.prefCuisine, objetivos:S.objetivos, despensa:S.despensa,
   corredores:S.corredores, trilhos:S.trilhos, talhoes:S.talhoes,
-  receitas:S.receitas, medicoes:S.medicoes, regAtiv:S.regAtiv, regRef:S.regRef,
+  receitas:S.receitas, ingredientes:S.ingredientes, medicoes:S.medicoes, regAtiv:S.regAtiv, regRef:S.regRef,
   sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa, pausas:S.pausas, diario:S.diario, cozPref:S.cozPref, metodoBMR:S.metodoBMR,
   validades:S.validades, veredictos:S.veredictos, brigada:S.brigada, desperdicio:S.desperdicio,
   gostos:S.gostos, jejum:S.jejum, combos:S.combos, rituais:S.rituais, extras:S.extras, aindaHa:S.aindaHa,
@@ -9126,6 +9369,9 @@ function aplicaInstantaneo(js){
   const d=JSON.parse(js);
   S.members=d.members; S.cheats=d.cheats; S.plans=d.plans; S.bought=d.bought;
   S.week=d.week; S.prefCuisine=d.prefCuisine; S.objetivos=d.objetivos||[]; S.despensa=d.despensa||{};
+  /* outra vez antes das receitas, pela mesma razão do arranque */
+  S.ingredientes=limparIngredientes(d.ingredientes);
+  aplicaIngredientesDaCasa(S.ingredientes);
   S.receitas=Array.isArray(d.receitas)? d.receitas : [];
   S.medicoes=d.medicoes&&typeof d.medicoes==='object'? d.medicoes : {};
   S.regAtiv=Array.isArray(d.regAtiv)? d.regAtiv : [];
@@ -16066,7 +16312,7 @@ const VARIANTES=[
   {k:'risotto',  n:'Risotto',      ids:['risotto','risottoacafrao']},
   {k:'feijoada', n:'Feijoada',     ids:['feijoada','feijoadatransmontana','feijoadabr','vgfeijoada']},
   {k:'ovosmex',  n:'Ovos mexidos', ids:['ovosmex','ovoscebolinho','ovosmexidosbacon']},
-  {k:'iogurte',  n:'Iogurte com…', ids:['iogurtegranola','iogurtecompota','iogurtemaca','iogurtefigos','ketoiogurtesementes']},
+  {k:'iogurte',  n:'Iogurte com…', ids:['iogurtenatural','iogurtebanana','iogurtemorango','iogurtevermelhos','iogurtegranola','iogurtecompota','iogurtemaca','iogurtefigos','ketoiogurtesementes']},
   {k:'batido',   n:'Batido',       ids:['batido','licuado']},
   {k:'tosta',    n:'Tosta',        ids:['ricotta','tostaatum','tostatomate']},
   {k:'espetada', n:'Espetadas',    ids:['espetadas','espetadavaca','espetadinhas','pinchos','cgespetada']},
@@ -16076,6 +16322,15 @@ const VARIANTES=[
   {k:'rojoes',   n:'Rojões',       ids:['rojoes','rojoesminho']},
   {k:'caldeirada',n:'Caldeirada',  ids:['caldeirada','caldeiradarica','caldeiradaenguias']},
   {k:'mousse',   n:'Mousse',       ids:['moussechoc','moussemanga','mousselima']},
+  /* Gelado e sorvete são duas famílias e não uma. O gelado é creme e leva
+     leite, natas e gema; o sorvete é fruta e calda e não leva lacticínio
+     nenhum. Juntá-los num cartão só obrigava quem não pode leite a abrir dez
+     fichas para descobrir quais cinco lhe servem. */
+  {k:'gelado',   n:'Gelado',       ids:['geladobaunilha','geladochoc','geladomorango','geladocafe','geladopistacio']},
+  {k:'sorvete',  n:'Sorvete',      ids:['sorvetelimao','sorvetemanga','sorvetemorango','sorveteframboesa','sorvetemaracuja']},
+  {k:'torradas', n:'Torradas',     ids:['torradaformaleite','torradaformasem','torradaformagalao','torradamistura','torradaintegral','torradaalentejano','torradadoce','torradasqueijo','torradapresunto']},
+  {k:'croissant',n:'Croissant',    ids:['croissantmisto','croissantmistomant','croissantqueijo','croissantfiambre','croissantmanteiga','croissantdoce','croissantsimples']},
+  {k:'paosandes',n:'Pão com…',     ids:['paomanteiga','paomanteigagalao','paoqueijo','paofiambre','paomisto','paointegralqueijo','paocenteiofiambre','paoleitemanteiga']},
   {k:'arrozprato',n:'Arroz de…',   ids:['arrozfrango','arrozlampreia','arroztamboril','arrozmarisco','arrozpato','arrozpolvo']},
   {k:'rolo',     n:'Rolo de carne',ids:['rolocarne','roloport']},
   /* Cinco maneiras de tratar a mesma posta. Não são o mesmo prato, mas quem
@@ -17331,7 +17586,7 @@ let jaPerguntouPeso=false, jaPerguntouCompras=false;
    S.ui.modal preenchido sem nada no ecrã: uma camada invisível que engolia o
    Escape, travava o go() e não tinha botão de fechar — só se saía recarregando.
    Recusar em voz alta é melhor do que abrir o nada. */
-const MODAIS=['peso','aviso','compras'];
+const MODAIS=['peso','aviso','compras','ingrediente'];
 function abrirModal(tipo,dados){
   if(MODAIS.indexOf(tipo)<0){ console.warn('Família Fit — modal desconhecido: '+tipo); return; }
   S.ui.modal=Object.assign({tipo},dados||{}); saveMeta(); render();
@@ -17363,6 +17618,135 @@ function abrirPesagens(mid){
   setTimeout(()=>{ const c=document.querySelector('.campo-peso'); if(c) c.focus(); },0);
 }
 function setModalCampo(campo,val){ const mo=modalAberto(); if(!mo) return; mo[campo]=val; }
+/* ---- O formulário do ingrediente novo ----
+   Abre a partir do editor de receitas (quando o que se procura não está na
+   lista) e a partir do separador Dados, que é onde o catálogo se explica. */
+function abrirNovoIngrediente(nome){
+  abrirModal('ingrediente',{g:{n:String(nome||''),k:'',c:'',p:'',f:'',fib:'',un:'',sal:'',s:4,u:'g',de:''}});
+}
+function setIngCampo(campo,val){
+  const mo=modalAberto(); if(!mo||!mo.g) return;
+  if(campo==='s'){ mo.g.s=parseInt(val,10); return; }
+  mo.g[campo]=val;
+  if(campo==='u'||campo==='n'){ saveMeta(); render(); }
+  else { const a=document.getElementById('ing-conta'); if(a) a.innerHTML=contaIngredienteHtml(); }
+}
+/* O que se diz de errado antes de deixar gravar. A energia é o único campo
+   mesmo obrigatório: sem ela o ingrediente não sabe contar nada. */
+function ingValido(g){
+  const n=String(g.n||'').trim();
+  if(n.length<2) return 'Escreve o nome do alimento.';
+  if(temChave(NUTRI,n)) return ehDaCasa(n)
+    ? 'Já existe um ingrediente da casa com este nome. Apaga o antigo ou escolhe outro nome.'
+    : '«'+n+'» já está no catálogo, com valores de tabela oficial. Um nome escrito à mão não se põe por cima de uma tabela — dá-lhe outro nome, por exemplo com a marca à frente.';
+  if(temChave(NUTRI_EXTRA,n)) return '«'+n+'» já existe no catálogo escondido. Escolhe-o no editor de receitas em vez de o escreveres outra vez.';
+  const k=parseFloat(g.k);
+  if(!Number.isFinite(k)||k<0) return 'Falta a energia por 100 '+(g.u==='un'?'g':g.u)+'. É o único número sem o qual o ingrediente não conta nada.';
+  if(k>900) return 'Mais de 900 kcal por 100 g é mais do que gordura pura (899). Confirma o rótulo.';
+  if(g.u==='un' && !(parseFloat(g.un)>0)) return 'Se a unidade é «unidade», diz quantos gramas pesa uma.';
+  const soma=(parseFloat(g.c)||0)+(parseFloat(g.p)||0)+(parseFloat(g.f)||0)+(parseFloat(g.fib)||0);
+  if(soma>100) return 'Os macros somam '+nPT(soma,1)+' g em 100 g. Não cabem.';
+  return null;
+}
+/* A conta que o formulário faz enquanto se escreve: os macros declarados
+   contra a energia declarada. Não impede de gravar — há alimentos em que a
+   soma não bate por causa do álcool ou dos ácidos orgânicos —, mas diz. */
+function contaIngredienteHtml(){
+  const mo=modalAberto(); if(!mo||!mo.g) return '';
+  const g=mo.g, k=parseFloat(g.k);
+  if(!Number.isFinite(k)||k<=0) return '<span class="sub">Escreve a energia para a app poder conferir os macros.</span>';
+  const est=(parseFloat(g.c)||0)*4+(parseFloat(g.p)||0)*4+(parseFloat(g.f)||0)*9+(parseFloat(g.fib)||0)*2;
+  if(!est) return '<span class="sub">Sem macros declarados a app conta só as calorias — e o balanço do dia fica cego a proteína e gordura.</span>';
+  const d=Math.round((est-k)/k*100);
+  const bate=Math.abs(d)<=15;
+  return `<span class="sub" style="color:var(--${bate?'ok':'warn'})">Os macros dão ${Math.round(est)} kcal e declaraste ${Math.round(k)}${
+    bate? ' — batem certo.' : ' — ficam '+Math.abs(d)+'% '+(d>0?'acima':'abaixo')+'. Confirma o rótulo; se o alimento levar álcool, é normal a energia ser maior.'}</span>`;
+}
+function guardarIngrediente(){
+  const mo=modalAberto(); if(!mo||!mo.g) return;
+  const erro=ingValido(mo.g);
+  if(erro){ flash('bad',erro); return; }
+  const g=mo.g, num=v=>{ const q=parseFloat(v); return Number.isFinite(q)? q : 0; };
+  if(!Array.isArray(S.ingredientes)) S.ingredientes=[];
+  S.ingredientes.push({n:String(g.n).trim().replace(/\s+/g,' ').slice(0,60),
+    k:num(g.k), c:num(g.c), p:num(g.p), f:num(g.f), fib:num(g.fib),
+    un:g.u==='un'? num(g.un) : 0, s:Number.isInteger(g.s)? g.s : 4, u:g.u,
+    sal:num(g.sal), de:String(g.de||'').trim().slice(0,140)});
+  S.ingredientes=limparIngredientes(S.ingredientes);
+  aplicaIngredientesDaCasa(S.ingredientes);
+  S.ui.modal=null;
+  save('ingrediente «'+g.n+'» acrescentado ao catálogo');
+  flash('ok','«'+String(g.n).trim()+'» já está no catálogo. Fica marcado como escrito à mão.');
+}
+/* Apagar não mexe nas receitas que já o usam: o ingrediente sai do catálogo,
+   mas quem já o pôs numa receita da casa fica com ele lá — apagá-lo por baixo
+   seria mudar receitas que ninguém pediu para mudar. Diz-se quantas são. */
+function apagarIngrediente(nome){
+  const usadoEm=(S.receitas||[]).filter(r=>(r.i||[]).some(l=>l[0]===nome)).map(r=>r.n);
+  const aviso=usadoEm.length
+    ? '\n\nEstá em '+plural(usadoEm.length,'receita da casa','receitas da casa')+': '+usadoEm.slice(0,4).join(', ')
+      +(usadoEm.length>4?'…':'')+'. Essas receitas ficam com ele, mas ele deixa de aparecer para escolher.'
+    : '';
+  if(!confirm('Apagar «'+nome+'» do catálogo da casa?'+aviso)) return;
+  S.ingredientes=(S.ingredientes||[]).filter(g=>g.n!==nome);
+  delete NUTRI[nome];
+  invalidaCatalogos();
+  save('ingrediente «'+nome+'» apagado do catálogo');
+}
+function modalIngredienteHtml(mo){
+  const g=mo.g||{}, un=g.u==='un';
+  const por=un? '100 g' : ('100 '+(g.u||'g'));
+  const campo=(id,rot,val,extra)=>`<div style="flex:1;min-width:104px">
+    <label class="lbl" for="ing-${id}">${rot}</label>
+    <input id="ing-${id}" type="number" min="0" step="0.1" inputmode="decimal" value="${esc(String(val||''))}"
+      ${extra||''} oninput="setIngCampo('${id}',this.value)"></div>`;
+  return `<div class="mfundo" onclick="fundoModal(event)">
+    <div class="mcaixa" role="dialog" aria-modal="true" aria-labelledby="ing-t" style="max-width:600px">
+      <h2 id="ing-t">Acrescentar um ingrediente ao catálogo</h2>
+      <p class="sub" style="margin-top:6px">Para o que a app não tem: o pão da padaria da esquina, a marca branca do supermercado.
+        Copia os números do rótulo — são sempre por 100 g ou 100 ml. Fica marcado como <b>escrito à mão</b> em todo o lado onde a proveniência aparece,
+        e nunca se põe por cima de um valor de tabela oficial.</p>
+      <div style="margin-top:12px">
+        <label class="lbl" for="ing-n">Nome do alimento</label>
+        <input id="ing-n" type="text" maxlength="60" value="${esc(String(g.n||''))}" placeholder="Pão de forma integral (marca X)"
+          oninput="setIngCampo('n',this.value)"></div>
+      <div class="row" style="margin-top:10px;gap:10px;align-items:flex-end">
+        <div style="flex:1;min-width:120px"><label class="lbl" for="ing-u">Mede-se em</label>
+          <select id="ing-u" onchange="setIngCampo('u',this.value)">
+            <option value="g"${g.u==='g'?' selected':''}>gramas</option>
+            <option value="ml"${g.u==='ml'?' selected':''}>mililitros</option>
+            <option value="un"${un?' selected':''}>unidades</option>
+          </select></div>
+        ${un? campo('un','Quanto pesa uma (g)',g.un,'max="3000"') : ''}
+        <div style="flex:1;min-width:140px"><label class="lbl" for="ing-s">Corredor do supermercado</label>
+          <select id="ing-s" onchange="setIngCampo('s',this.value)">
+            ${CATS.map((c,i)=>`<option value="${i}"${g.s===i?' selected':''}>${esc(c.n)}</option>`).join('')}
+          </select></div>
+      </div>
+      <p class="sub" style="margin-top:12px"><b>Por ${por}</b>, como vem no rótulo:</p>
+      <div class="row" style="gap:10px;margin-top:4px">
+        ${campo('k','Energia (kcal)',g.k,'max="900" required')}
+        ${campo('c','Hidratos (g)',g.c,'max="100"')}
+        ${campo('p','Proteína (g)',g.p,'max="100"')}
+      </div>
+      <div class="row" style="gap:10px;margin-top:8px">
+        ${campo('f','Gordura (g)',g.f,'max="100"')}
+        ${campo('fib','Fibra (g)',g.fib,'max="100"')}
+        ${campo('sal','Sal (g)',g.sal,'max="60"')}
+      </div>
+      <p class="sub" style="margin-top:8px">O rótulo europeu escreve «hidratos de carbono» já sem a fibra, que vem numa linha à parte — é assim que a app os quer.
+        O sal também vem no rótulo; se lá estiver sódio em vez de sal, multiplica por 2,5.</p>
+      <div id="ing-conta" style="margin-top:8px">${contaIngredienteHtml()}</div>
+      <div style="margin-top:10px">
+        <label class="lbl" for="ing-de">De onde vieram estes números</label>
+        <input id="ing-de" type="text" maxlength="140" value="${esc(String(g.de||''))}" placeholder="Rótulo da embalagem, lote de março"
+          oninput="setIngCampo('de',this.value)"></div>
+      <div class="row" style="margin-top:14px;justify-content:flex-end">
+        <button class="btn ghost" onclick="fecharModal()">Cancelar</button>
+        <button class="btn" onclick="guardarIngrediente()">Acrescentar ao catálogo</button>
+      </div>
+    </div></div>`;
+}
 function setPesagem(mid,val){ const mo=modalAberto(); if(!mo) return; mo.vals[mid]=val; }
 function guardarPesagens(){
   const mo=modalAberto(); if(!mo) return;
@@ -20247,7 +20631,10 @@ function cartaoEditor(){
     <div style="margin-top:14px">
       <div class="row" style="justify-content:space-between">
         <label class="lbl" style="margin:0">Ingredientes — quantidades da receita inteira</label>
-        <button class="btn ghost small" onclick="edAddIng()">+ Ingrediente</button>
+        <div class="row" style="gap:6px">
+          <button class="btn ghost small" onclick="edAddIng()">+ Ingrediente</button>
+          <button class="btn ghost small" onclick="abrirNovoIngrediente('')">Não está na lista…</button>
+        </div>
       </div>
       ${e.i.length? `<div class="ed-lista">${e.i.map((l,idx)=>`<div class="ed-linha">
         <!-- Cada linha tinha aqui as seiscentas e tal opções do catálogo, e uma
@@ -25624,7 +26011,7 @@ function pacote(){
   return {app:APPID, formato:FORMATO, exportadoEm:new Date().toISOString(),
   dados:{members:S.members, cheats:S.cheats, plans:S.plans, bought:S.bought,
          prefCuisine:S.prefCuisine, week:S.week, objetivos:S.objetivos, despensa:S.despensa,
-         receitas:S.receitas, medicoes:S.medicoes, regAtiv:S.regAtiv, regRef:S.regRef,
+         receitas:S.receitas, ingredientes:S.ingredientes, medicoes:S.medicoes, regAtiv:S.regAtiv, regRef:S.regRef,
          sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa, pausas:S.pausas, diario:S.diario, cozPref:S.cozPref, metodoBMR:S.metodoBMR,
          validades:S.validades, veredictos:S.veredictos, brigada:S.brigada, desperdicio:S.desperdicio,
          gostos:S.gostos, jejum:S.jejum, combos:S.combos, rituais:S.rituais, extras:S.extras, aindaHa:S.aindaHa,
@@ -26143,6 +26530,23 @@ function cartaoTabelas(){
     <p class="sub" style="margin-top:10px"><b>${Object.keys(NUTRI).length} ingredientes</b> à vista e
       <b>${totalX}</b> no catálogo oculto — que a app usa quando se acrescenta um ingrediente que não anda em
       receita nenhuma. Ao ser escolhido, passa a fazer parte do catálogo desta casa.</p>
+    <div class="splabel" style="margin-top:14px"><span>Os que a casa acrescentou</span>
+      <output>${plural(ingredientesDaCasa().length,'ingrediente','ingredientes')}</output></div>
+    <p class="sub" style="margin-top:6px">O catálogo nunca vai ter tudo — falta sempre a marca do supermercado do lado.
+      Escreve-se à mão, com os números do rótulo, e a partir daí o alimento conta como qualquer outro: entra nos macros,
+      nos alergénios, no sódio do dia e na lista de compras. Fica com o selo <span class="tag fonte-casa">Da casa</span>,
+      que é o degrau mais baixo — <b>um número escrito à mão nunca se põe por cima de uma tabela oficial</b>.</p>
+    ${ingredientesDaCasa().length? `<div style="margin-top:8px">${ingredientesDaCasa().map(g=>`
+      <div class="vere-linha">
+        <span class="vere-quem"><b>${esc(g.n)}</b>
+          <span class="sub">${nPT(g.k,0)} kcal por 100 ${g.u==='un'?'g':g.u}${g.u==='un'? ' · uma pesa '+nPT(g.un,0)+' g':''}${
+            g.de? ' · '+esc(g.de) : ''}</span></span>
+        <button class="btn danger small" onclick="apagarIngrediente('${esc(g.n).replace(/'/g,"\\'")}')"
+          aria-label="Apagar ${esc(g.n)} do catálogo da casa">Apagar</button>
+      </div>`).join('')}</div>` : ''}
+    <div class="row" style="margin-top:10px">
+      <button class="btn ghost small" onclick="abrirNovoIngrediente('')">+ Acrescentar um ingrediente</button>
+    </div>
     <label class="toggle" style="margin-top:12px">
       <input type="checkbox" ${S.ui.verFontes?'checked':''} onchange="toggleVerFontes(this.checked)">
       <span>Mostrar a proveniência de cada ingrediente na despensa</span></label>
@@ -27103,6 +27507,7 @@ function pintaModal(){
          : mo.tipo==='fimVisita'? modalFimVisitaHtml()
          : mo.tipo==='jejum'? modalJejumHtml(mo)
          : mo.tipo==='bandeja'? modalBandejaHtml(mo)
+         : mo.tipo==='ingrediente'? modalIngredienteHtml(mo)
          : mo.tipo==='aviso'? modalAvisoHtml() : '')
     : fo? (fo.tipo==='mesa'? folhaMesaHtml(fo) : fo.tipo==='registo'? folhaRegistoHtml()
          : fo.tipo==='pessoa'? folhaPessoaHtml(fo)
