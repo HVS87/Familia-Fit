@@ -4748,7 +4748,7 @@ P('cacioepepe',[['Pimenta','Toca a pimenta em grão, moída grossa, numa frigide
 P('panzanella',[['Pão','Pão duro em pedaços, humedecido com água e vinagre e espremido.'],
  ['Tomate','Tomate maduro em pedaços, com sal, a largar o suco.',15],
  ['Juntar','Envolve tudo com cebola, manjericão e azeite; repousa antes de servir.',30]]);
-P('acquapazza',[['Base','Alho e tomate cereja no azeite, a abrir.',5],
+P('acquapazza',[['Base','Alho e tomate cereja a abrir no azeite, em lume médio.',5],
  ['Peixe','Robalo por cima, com água e vinho branco a meia altura.'],
  ['Cozinhar','Tapado, em lume brando, regando o peixe com o caldo.',15],
  ['Servir','Salsa e o caldo por cima.']]);
@@ -6268,7 +6268,7 @@ P('folarchaves',[['Fazer a cova','Põe a farinha na bancada e abre uma cova ao m
 P('sopacastanhas',[['Pelar as castanhas','Dá um golpe na casca e escalda as castanhas em água a ferver. Tira a casca e a pele interior ainda quentes, que é quando saem inteiras.',15],
  ['Alourar a cebola','Derrete a manteiga no tacho e deixa a cebola picada ficar transparente, sem tomar cor escura.',6],
  ['Cozer','Junta a batata em cubos e as castanhas, tempera com sal e cobre com água. Deixa cozer até tudo estar macio ao garfo.',20],
- ['Triturar','Passa com a varinha até ficar um creme liso. A castanha engrossa muito ao arrefecer, por isso deixa a sopa mais fluida do que a queres servir.',3],
+ ['Triturar','Passa as castanhas com a varinha até ficar um creme liso. A castanha engrossa muito ao arrefecer, por isso deixa a sopa mais fluida do que a queres servir.',3],
  ['Acabar com leite','Junta o leite, deixa levantar fervura e retira logo do lume. O leite suaviza o doce da castanha; se ferver muito, talha o sabor.',3]]);
 P('papasabobora',[['Preparar a abóbora','Escolhe uma abóbora bem madura, que é a que adoça as papas. Abre em gomos, tira as sementes e a casca e corta em pedaços pequenos.',10],
  ['Cozer','Cobre com água, junta o sal e a banha e deixa cozer até desfazer ao toque da colher.',20],
@@ -10176,6 +10176,21 @@ const MICROS=[['vitD','Vitamina D','µg'],['ferro','Ferro','mg'],['calcio','Cál
 function ddrMicro(m){
   const a=idadeAnos(m), meses=idadeMeses(m), f=m.sexo==='f';
   if(gravida(m)) return {vitD:15,ferro:27,calcio:1000,magnesio:350,b12:2.6,folato:600,vitC:85,zinco:11,omega3:null};
+  /* A lactação tinha função desde sempre e já pesava nas calorias, mas aqui não
+     existia: quem amamenta em exclusivo caía na linha da mulher adulta e via
+     «100 % da referência» com 400 µg de folato, 75 mg de vitamina C, 8 mg de
+     zinco e 2,4 µg de B12. As referências do IOM para a lactação — a fonte que
+     o rodapé desta mesma tabela nomeia — são 500, 120, 12 e 2,8: a app estava a
+     dizer 100 % a quem está nos 80 %. O ferro anda ao contrário (9 mg e não 18,
+     porque a menstruação costuma estar suspensa), e é isso que prova que a
+     linha não foi omitida por cautela — simplesmente nunca foi escrita.
+     São duas linhas e não uma porque o IOM dá valores próprios à mãe
+     adolescente, e uma linha só fá-la-ia DESCER de 1300 para 1000 mg de cálcio
+     — justamente na idade em que o osso ainda está a fechar. Os limites
+     superiores não mudam: em ulMicro() a linha da adulta e a da adolescente já
+     são as da lactação. */
+  if(amamenta(m) && a<19) return {vitD:15,ferro:10,calcio:1300,magnesio:360,b12:2.8,folato:500,vitC:115,zinco:13,omega3:null};
+  if(amamenta(m))         return {vitD:15,ferro:9,calcio:1000,magnesio:310,b12:2.8,folato:500,vitC:120,zinco:12,omega3:null};
   if(meses<7)  return {vitD:10,ferro:0.27,calcio:200,magnesio:30,b12:0.4,folato:65,vitC:40,zinco:2,omega3:null};
   if(meses<13) return {vitD:10,ferro:11,calcio:260,magnesio:75,b12:0.5,folato:80,vitC:50,zinco:3,omega3:null};
   if(a<4)  return {vitD:15,ferro:7,calcio:700,magnesio:80,b12:0.9,folato:150,vitC:15,zinco:3,omega3:null};
@@ -12567,6 +12582,20 @@ const CONSERVA=[
   {k:'peixe',    at:['peixe','crustaceos','moluscos'],
    frigo:2, cong:60, nota:'Peixe e marisco cozinhados aguentam menos: dois dias no frigorífico.',
    reaq:'Reaquecer devagar, tapado, para não secar; no forno a 150 °C ou na frigideira com um fio de água.'},
+  /* Cru não é cozinhado, e a tabela não os distinguia: o ceviche caía no
+     escalão do peixe e recebia dois dias com uma nota que lhe dizia na cara
+     «cozinhados». Pior era o congelador — 60 dias num prato cujo primeiro
+     passo já obrigou a congelar o peixe 24 h a −20 °C contra o anisakis: seria
+     o segundo ciclo, e a app repete em todo o lado que comida descongelada não
+     recupera o prazo que tinha. Com cong:0 o botão de congelar desaparece,
+     como já desaparece nos pratos de ovo. Vem antes do escalão do arroz de
+     propósito: quem desempata é o frigorífico mais curto e, em empate, fica o
+     primeiro da lista — e o poke é peixe cru antes de ser arroz. A nota fala de
+     peixe E de carne porque o tártaro e o carpaccio já estão na expressão, à
+     espera das receitas que hão de vir. */
+  {k:'cru',      re:/ceviche|poke|chirashi|sashimi|tártaro|tartare|carpaccio/i, soNome:true,
+   frigo:1, cong:0, nota:'Peixe e carne crus comem-se no próprio dia: a lima e o vinagre mudam a textura, não esterilizam nada.',
+   reaq:'Não se reaquece — e o que sobrou de ontem não se guarda para amanhã.'},
   {k:'arroz',    re:/arroz|risoto|risott/i,
    frigo:1, cong:30, nota:'Arroz cozinhado arrefece-se depressa e come-se no dia seguinte — é o alimento com menos folga.',
    reaq:'Reaquecer bem quente, uma vez só, com uma colher de água para soltar o grão.'},
@@ -18657,7 +18686,7 @@ function blocoMarmitasHoje(){
           const quem=x.quem.map(id=>S.members.find(y=>y.id===id)).filter(Boolean);
           const al=[rec].concat(ladosDe(x.meal)).flatMap(p=>quem.flatMap(m=>
             alergenicosDe(p,m).map(a=>nomeCurto(m)+': '+a.nome.toLowerCase())
-              .concat(perigosIdade(p,m).map(g=>nomeCurto(m)+' ('+idadeCurta(m)+'): '+g.e.n.toLowerCase()))));
+              .concat(perigosIdade(p,m).map(g=>nomeCurto(m)+' ('+rotuloPerigo(m)+'): '+g.e.n.toLowerCase()))));
           return al.length? '<span style="color:var(--bad)"> · 🚨 '+esc([...new Set(al)].join(', '))+'</span>':''; })()}
       </div>`;}).join('')}
     <p class="sub" style="margin-top:6px">Prepara-se hoje à noite. As doses já vêm escaladas a cada pessoa.</p>
@@ -18684,7 +18713,7 @@ function cartaoHoje(){
       const al=alergenicosDe(rec,m);
       if(al.length) alertas.push(nomeCurto(m)+': '+al.map(a=>a.nome.toLowerCase()).join(', ')+' em '+esc(rec.n));
       perigosIdade(rec,m).forEach(p=>alertas.push(
-        nomeCurto(m)+' ('+idadeCurta(m)+'): '+p.e.n.toLowerCase()+' em '+esc(rec.n)));
+        nomeCurto(m)+' ('+rotuloPerigo(m)+'): '+p.e.n.toLowerCase()+' em '+esc(rec.n)));
     }));
     const v=estadoValidacaoRef(comem,dataISO,mk);
     linhas.push(`<button class="hoje-linha ${v.alguma?'a-tinta':''}" style="width:100%;text-align:left;border:none;background:none;cursor:pointer;font:inherit;color:inherit"
@@ -21600,8 +21629,13 @@ const EVITAR=[
    `meal.m` quem come cada refeição, e nenhuma das leituras filtrava por idade.
 
    Agora cada linha que tem um perigo FÍSICO — asfixia, botulismo, mercúrio,
-   listeria, cru — leva consigo o que se procura nos ingredientes e no nome do
-   prato. As linhas difusas («sal adicionado», «açúcar adicionado») ficam sem
+   listeria, cru — leva consigo o que se procura nos ingredientes. Só nos
+   ingredientes: perigosIdade lê `r.i` e nunca `r.n`, e é por isso que os três
+   sinais escritos a pensar no nome do prato — pipocas e rebuçados, bebidas de
+   arroz, granizados — ainda não apanham nada: não há esses alimentos no
+   catálogo. Ficam à espera das receitas que hão de vir, e o saneador do
+   arranque diz em voz alta quais são, para o silêncio não voltar a passar por
+   «não havia nada a apanhar». As linhas difusas («sal adicionado», «açúcar adicionado») ficam sem
    sinal de propósito: a app já conta o sódio e os açúcares livres do dia, e um
    aviso que dispara em tudo é um aviso que se aprende a ignorar.
 
@@ -21614,9 +21648,16 @@ const EVITAR_SINAL={
      exceção de confeção. */
   'Mel': {re:/^Mel$/i},
   /* Só o fruto inteiro engasga. Onde os passos dizem que vai picado, moído,
-     em pasta ou em farinha, o perigo não existe e o aviso não aparece. */
+     em pasta ou em farinha, o perigo não existe e o aviso não aparece.
+     «Castanha de caju» era uma alternativa a mais e a menos ao mesmo tempo: o
+     caju já vinha apanhado pela alternativa anterior, e o único fruto de casca
+     rija que uma receita desta casa serve inteiro — os 120 g de «Castanhas
+     assadas», servidas «envoltas num pano, para descascarem quentes» — não
+     casava com nada. O prefixo «Castanha» apanha as duas coisas, e apanha
+     também as castanhas do Brasil e a pilada, que ainda não estão em receita
+     nenhuma mas hão de estar. */
   'Frutos de casca rija e amendoins inteiros':
-    {re:/^(Nozes|Amêndoa|Amendoim|Avelã|Caju|Castanha de caju|Pistácio|Noz-pecã|Pinhões|Mistura de frutos secos)/i,
+    {re:/^(Nozes|Amêndoa|Amendoim|Avelã|Caju|Castanha|Pistácio|Noz-pecã|Pinhões|Mistura de frutos secos)/i,
      semPasso:/pica|moíd|moer|ralad|pasta|manteiga de|farinha de|em pó|tritur|lasca|lamina|esmaga|pisa/i},
   /* A uva e o tomate cereja engasgam pela forma, e a forma perde-se ao cozer
      e ao cortar — mas só ao corte que a própria linha de EVITAR manda dar:
@@ -21662,7 +21703,15 @@ const EVITAR_SINAL={
     {ids:['ceviche','poke','chirashi','vitelotonato','ovosbenedict',
           'eggsflorentine','cilbir','tiramisu','moussechoc','mousselima']},
   'Leite e queijos não pasteurizados; queijos de pasta mole com bolor':
-    {re:/^(Queijo brie|Queijo camembert|Queijo gorgonzola|Queijo roquefort|Queijo azul)/i},
+    /* A frase que a app mostra ao lado nomeia «queijo de cabra curado com
+       casca» e a expressão não o conhecia — nem conhecia um único queijo de
+       leite cru português, que numa casa portuguesa é o que está mesmo no
+       frigorífico: Serra da Estrela, Azeitão, Serpa, Nisa, Évora, Castelo
+       Branco, Mestiço de Tolosa. Os dois leites crus do catálogo trazem a
+       palavra «cru» no próprio nome e também escapavam. O «Queijo de cabra»
+       genérico fica de fora de propósito: o da salada vai ao forno, e o calor
+       resolve a Listeria. */
+    {re:/^(Queijo brie|Queijo camembert|Queijo gorgonzola|Queijo roquefort|Queijo azul|Queijo Serra da Estrela|Queijo de Azeitão|Queijo Serpa|Queijo de Nisa|Queijo de Évora|Queijo de Castelo Branco|Queijo Mestiço de Tolosa|Queijo de cabra atabafado|Leite de cabra cru|Leite de ovelha cru)/i},
   'Bebidas geladas tipo granizado': {re:/granizado|slush/i},
   /* «Cenoura e maçã cruas em pedaços» fica sem sinal de propósito. O perigo é
      o pedaço duro, e nada no ficheiro distingue a cenoura que vai ralada para
@@ -21714,7 +21763,17 @@ function perigosIdade(r,m){
        vale o que o sinal declarar, e na falta disso os cinco anos que a DGS e
        o NHS usam para o engasgamento e para o cru. */
     const limite = Number.isFinite(s.ate)? s.ate : (e.ate===null? 60 : e.ate);
-    if(meses>=limite) return;
+    /* Segundo eixo, além da idade. As linhas cujo perigo é biológico e não de
+       calibre — cru, listeria, mercúrio — não passam com os anos: valem também
+       para quem está grávida. Faltava só isto, porque a tabela já estava toda
+       escrita: as chamadas a gravida() eram todas de energia, macros,
+       suplementos, exercício e jejum, nenhuma de segurança alimentar, e um
+       ceviche ou uma Cobb com queijo azul entravam no plano de uma grávida sem
+       uma palavra quando o mesmo prato, com uma criança de 4 anos à mesa,
+       mostrava a faixa vermelha. O engasgamento fica de fora: esse é de dentes
+       e do calibre da traqueia, e passa com a idade. */
+    const naGravidez = gravida(m) && /crus|listeria|mercúrio/i.test(e.n+' '+e.porque);
+    if(meses>=limite && !naGravidez) return;
     let itens=[];
     if(s.re){
       itens=(r.i||[]).map(l=>l[0]).filter(n=>s.re.test(n));
@@ -21736,19 +21795,26 @@ function idadeCurta(m){
   const meses=idadeMeses(m);
   return meses<24? plural(Math.round(meses),'mês','meses') : plural(Math.floor(meses/12),'ano','anos');
 }
+/* Uma grávida de 34 anos não é «esta idade»: o rótulo diz o estado que fez
+   nascer o aviso, senão a faixa lê-se como engano da app e perde a força que
+   devia ter. Uma função só, porque a mesma frase «Nome (rótulo): perigo» é
+   montada em três sítios — o aviso, o cartão de hoje e as marmitas — e um
+   rótulo que dissesse «grávida» num e «(34 anos)» nos outros seria a app a
+   contradizer-se sobre a mesma pessoa no mesmo ecrã. */
+function rotuloPerigo(m){ return gravida(m)? 'grávida' : idadeCurta(m); }
 function avisoIdade(r,membros){
   const linhas=[];
   (membros||[]).forEach(m=>{
     const p=perigosIdade(r,m); if(!p.length) return;
-    const idade=idadeCurta(m);
+    const idade=rotuloPerigo(m);
     linhas.push('<b>'+esc(m.nome.split(' ')[0])+'</b> ('+idade+'): '
       +p.map(x=>esc(x.e.n.toLowerCase())+' — '+esc(x.e.porque)
         +(x.e.dep? ' <i>'+esc(x.e.dep)+'</i>':'')).join(' · '));
   });
   if(!linhas.length) return '';
-  return `<div class="alerta forte"><span aria-hidden="true">🧒</span><span>Não é para esta idade — ${linhas.join('<br>')}
-    <span style="display:block;opacity:.85;margin-top:4px">Isto é risco de engasgamento ou de intoxicação, não é uma questão de gosto.
-    Em caso de dúvida, quem decide é o pediatra.</span></span></div>`;
+  return `<div class="alerta forte"><span aria-hidden="true">🧒</span><span>Não é para toda a gente à mesa — ${linhas.join('<br>')}
+    <span style="display:block;opacity:.85;margin-top:4px">Isto é risco de engasgamento, de infeção ou de intoxicação, não é uma questão de gosto.
+    Em caso de dúvida, quem decide é o pediatra ou quem segue a gravidez.</span></span></div>`;
 }
 /* ================= A CALCULADORA DOS PEQUENOS =================
    Três cursores — idade, peso e percentil — e tudo o resto sai deles. O
@@ -22818,6 +22884,13 @@ function chipBebida(x){
     style="background:none;border:none;cursor:pointer;color:inherit;padding:0 2px"
     onclick="apagarBebida('${x.id}')" aria-label="Apagar ${esc(b.n)}">✕</button>`;
 }
+/* A barra do álcool não pinta veredicto. As primeiras dez unidades da semana
+   estavam a verde — a mesma cor com que a app diz «dentro do recomendado» na
+   fibra, no sódio e nos açúcares livres — três linhas acima de um rodapé que
+   garante que a app não define limite «seguro» porque a OMS diz que não existe
+   nenhum. Não havia fonte para o 10 nem para o 20, a cor é a primeira coisa que
+   se lê, e estava a desmentir o texto no mesmo ecrã. Conta-se e mostra-se, sem
+   aprovar. */
 function cartaoAlcool(m){
   if(!podeBeber(m)) return '';
   const u=unidadesDaSemana(m.id);
@@ -22833,7 +22906,7 @@ function cartaoAlcool(m){
     ${hoje.length? `<p class="sub" style="margin-top:10px"><b>Hoje:</b> ${
       hoje.map(chipBebida).join(' · ')} — ${kcalHoje} kcal somadas ao dia.</p>`:''}
     <div class="splabel" style="margin-top:12px"><span>Unidades nos últimos 7 dias</span><output>${nPT(u,1)}</output></div>
-    <div class="mbar" style="height:12px"><div style="width:${Math.min(100,u/20*100).toFixed(1)}%;background:${u<=10?'var(--ok)':u<=20?'var(--warn)':'var(--bad)'}"></div></div>
+    <div class="mbar" style="height:12px"><div style="width:${Math.min(100,u/20*100).toFixed(1)}%;background:var(--mut)"></div></div>
     <p class="sub" style="margin-top:8px">Uma unidade são cerca de 10 g de etanol (SICAD). As calorias entram no dia a 7 kcal por grama — o fator que quase ninguém aplica.</p>
     <p class="sub" style="margin-top:8px"><i><b>A OMS é explícita (2023): não existe um nível de consumo de álcool isento de risco para a saúde.</b>
       A app conta e mostra; não define um limite «seguro», porque não há nenhum que uma fonte oficial sustente como tal.</i></p>
@@ -27531,7 +27604,7 @@ const TOUR=[
    d:'A barra reparte o gasto entre metabolismo basal, dia-a-dia, deslocações e desporto. A linha tracejada marca o alvo alimentar: a distância entre o fim da barra e a linha é o défice ou o excedente do plano.'},
   {tab:'nutricao', sel:'#nu-r-obj',
    t:'Nutrição — objetivo e macros',
-   d:'O objetivo é um slider contínuo de −25 % a +20 % do gasto, com o ritmo em quilos por semana e travão quando o alvo desce abaixo do metabolismo basal. A dieta escolhida — incluindo vegetariana e vegan, que a app distingue — vira gramas de hidratos, proteína e gordura.'},
+   d:'O objetivo é um slider contínuo de −25 % a +20 % do gasto, com o ritmo em quilos por semana e um aviso a vermelho quando o alvo desce abaixo do metabolismo basal — a app avisa com mais força, não trava: quem decide é quem come. A dieta escolhida — incluindo vegetariana e vegan, que a app distingue — vira gramas de hidratos, proteína e gordura.'},
   {tab:'nutricao', sel:'#fr-cartao', quando:()=>S.members.length&&temPlanoNut(curM()),
    t:'Registar o que se comeu',
    d:'Tal como na Atividade Física: definido o plano, o destaque passa para o registo. As refeições planeadas que ficaram por confirmar aparecem em cima ao entrar no perfil — «comi», «comi outra coisa» (e regista-se o que foi) ou «rever o plano», quando um prato nunca se cumpre. Uma refeição partilhada confirma-se de uma vez para todos os que estavam à mesa.'},
