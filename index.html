@@ -1970,7 +1970,7 @@ const MOVS=[
    f:Object.assign({},POSE_PE,{b1:[[49,26],[39,26]],b2:[[51,28],[41,28]]})},
   {t:'Dobra os joelhos e leva as ancas para trás, como a sentar numa cadeira que não está lá. Costas direitas, calcanhares no chão. Sobe sem pressa.',
    f:{cb:[51,26],om:[54,34],an:[64,57],b1:[[43,38],[33,38]],b2:[[45,40],[35,40]],p1:[[55,66],[53,81]],p2:[[58,67],[56,81]],seta:[70,50,70,62]}}]),
- MV('flexaoparede','Flexões na parede','8 a 12','NHS (strength and flex)',[
+ MV('flexaoparede','Flexões na parede','3 séries de 5 a 10','NHS (força)',[
   {t:'Mãos na parede à altura dos ombros, pés a um passo de distância. O corpo é uma tábua inclinada.',
    f:{cb:[64,20],om:[62,28],an:[52,52],b1:[[74,31],[85,33]],b2:[[75,33],[86,35]],p1:[[48,66],[45,81]],p2:[[50,67],[47,81]],parede:87}},
   {t:'Dobra os cotovelos e aproxima o peito da parede, devagar, e empurra de volta. Quando ficar fácil, passa para as flexões com joelhos no chão.',
@@ -1992,7 +1992,7 @@ const MOVS=[
    f:Object.assign({},POSE_PE,{b1:[[52,38],[56,44]],b2:[[68,38],[64,44]]})},
   {t:'Dobra os dois joelhos até o de trás quase tocar no chão. O joelho da frente fica por cima do tornozelo. Empurra de volta e troca.',
    f:{cb:[58,22],om:[58,30],an:[56,56],b1:[[52,40],[55,46]],b2:[[64,40],[61,46]],p1:[[70,64],[70,80]],p2:[[46,70],[36,80]],seta:[58,44,58,54]}}]),
- MV('gemeos','Elevação de gémeos','15','NHS (strength and flex)',[
+ MV('gemeos','Elevação de gémeos','5 a 15, lentas','NHS (força)',[
   {t:'De pé, perto de uma parede para apoiar os dedos se precisares.',f:Object.assign({},POSE_PE,{parede:30,b1:[[46,28],[31,28]]})},
   {t:'Sobe aos bicos dos pés, devagar, e desce ainda mais devagar. É a descida que trabalha.',
    f:{cb:[60,9],om:[60,18],an:[60,43],b1:[[46,24],[31,24]],b2:[[65,29],[66,39]],p1:[[57,60],[56,77]],p2:[[63,60],[64,77]],parede:30,seta:[74,70,74,58]}}]),
@@ -2949,7 +2949,12 @@ R('guacamole','Guacamole com bastonetes de aipo','mediterranica',['keto','lowcar
 R('bruschetta','Bruschetta de tomate e manjericão','italiana',['vegetariana','lowfat','mediterranica'],260,36,7,10,[['Pão rústico',60,'g'],['Tomate',2,'un'],['Manjericão',5,'g'],['Alho',1,'dente'],['Azeite',8,'ml']],['l']),
 R('espetadinhas','Espetadas de tomate cereja e mozzarella','italiana',['keto','lowcarb','vegetariana','mediterranica'],210,7,12,15,[['Tomate cereja',120,'g'],['Mozzarella',80,'g'],['Manjericão',5,'g'],['Azeite',8,'ml']],['l'],2),
 R('frutossecos','Mistura de frutos secos e sementes','francesa',['keto','lowcarb','paleo','vegetariana'],280,10,9,24,[['Nozes',25,'g'],['Amêndoa',20,'g'],['Sementes de abóbora',15,'g']],['l'],5),
-R('iogurtecompota','Iogurte natural com frutos vermelhos','francesa',['vegetariana','lowfat'],230,32,12,6,[['Iogurte natural',200,'g'],['Frutos vermelhos',80,'g'],['Mel',10,'g']],['l']),
+/* O nome dizia «com frutos vermelhos» e calava o mel — que é o ingrediente que
+   dispara o aviso do botulismo aos bebés e que conta nos açúcares livres. E
+   com a variante nova, sem mel, havia duas receitas com o mesmo nome no mesmo
+   cartão de família: quem escolhia às cegas não sabia qual levava mel. O nome
+   passa a dizer o que a taça tem. */
+R('iogurtecompota','Iogurte natural com frutos vermelhos e mel','francesa',['vegetariana','lowfat'],230,32,12,6,[['Iogurte natural',200,'g'],['Frutos vermelhos',80,'g'],['Mel',10,'g']],['l']),
 R('edamame','Edamame com flor de sal','japonesa',['vegetariana','lowcarb','lowfat'],180,14,15,7,[['Edamame',150,'g'],['Flor de sal',2,'g']],['l'],7),
 R('pepinosesamo','Pepino marinado com sementes de sésamo','japonesa',['keto','lowcarb','vegetariana'],150,8,5,11,[['Pepino',1,'un'],['Sementes de sésamo',10,'g'],['Molho de soja',8,'ml'],['Óleo de sésamo',8,'ml']],['l'],2),
 /* ---------- Portuguesa: mais pratos, pequenos-almoços e lanches ---------- */
@@ -11573,7 +11578,7 @@ const DICAS={
   tabelas:'Três tabelas oficiais cobrem a mesma comida com números diferentes, e a diferença não é ruído: a convenção europeia declara hidratos disponíveis, sem fibra, e a norte-americana declara-os por diferença, com a fibra lá dentro. Somar as duas sem converter dá erros de dezenas de gramas. A prioridade é a que faz sentido numa casa portuguesa — INSA primeiro, porque é a que conhece o carapau, a couve galega e o queijo da Serra; depois a UE, com a mesma convenção; e só por último a FDA, que é a que mais precisa de conversão. Um valor do INSA nunca é substituído por um do USDA, mesmo que este seja carregado depois: a ordem por que as coisas chegam não é um critério.',
   jejum:'Duas coisas diferentes com o mesmo nome. O jejum intermitente comprime a janela em que se come sem mudar o total do dia — é um horário, não um défice, e o alvo de calorias não desce por causa dele. Um jejum pontual de 24 horas ou mais é outra coisa: é um dia sem comida, com um défice do tamanho do gasto desse dia, e a partir de certa duração deixa de ser uma escolha alimentar e passa a ser um assunto clínico. A app trata os dois de forma diferente e diz porquê. Não fica disponível para crianças, adolescentes, grávidas nem no pós-parto recente — não é a app a decidir por ninguém, é a app a não oferecer uma ferramenta que nesses casos não tem indicação.',
   diabetes:'O campo diz à app o que ela deve DEIXAR de fazer, e é essa a sua função. O que o cartão afirma tem dono: «não há dieta especial para a diabetes» é do NHS e da Diabetes UK; a regra do jejum — plano acordado com a equipa, medicação ajustada, glicemia a mandar — é da Diabetes UK, e é por a app não saber nada disso que ela deixa de propor jejuns a este perfil; os 14 g de fibra por 1000 kcal são dos Standards of Care da ADA; a equipa alargada da diabetes gestacional é da norma da DGS. «Pessoa com diabetes» é a linguagem que a DGS usa e que o NHS recomenda. O que o cartão NÃO diz também é decisão: a app não classifica o tipo, não sugere alvos de glicemia nem de HbA1c, não mexe em medicação e não pontua alimentos por índice glicémico — nada disso tem lugar fora da consulta. E uma honestidade a mais: não há norma portuguesa que fixe valores alimentares para a diabetes — a DGS remete o plano para a equipa de saúde, e é isso mesmo que a app repete.',
-  forca:'Os exercícios de força vêm da página de strength exercises do NHS (a flexão na parede, o mini-agachamento, a elevação de gémeos, a elevação lateral da perna, a extensão atrás e o levantar-sentar, com as séries da própria página) e do plano strength and flex (as flexões com joelhos e completas, a prancha, a prancha lateral). A frequência — força pelo menos duas vezes por semana — é a recomendação do NHS, que é a mesma da OMS. Sem equipamento de propósito: a parede, uma cadeira firme e o peso do corpo chegam para todos os grupos, e é exatamente assim que o NHS os ensina a quem treina em casa.',
+  forca:'Os exercícios de força vêm da página de strength exercises do NHS (a flexão na parede, o mini-agachamento, a elevação de gémeos, a elevação lateral da perna, a extensão atrás e o levantar-sentar, com as séries da própria página) e do plano strength and flex (as flexões com joelhos e completas, a prancha, a prancha lateral). A frequência — força pelo menos duas vezes por semana — é a recomendação do NHS, que é a mesma da OMS. Sem equipamento de propósito: a parede, uma cadeira firme e o peso do corpo chegam para todos os grupos, e é exatamente assim que o NHS os ensina a quem treina em casa. Uma honestidade sobre as séries: onde a página do NHS dá números — as flexões na parede em 3 séries de 5 a 10, as elevações e extensões em 5, o levantar-sentar em 5 lentas —, são esses. Onde o plano do NHS é em vídeo e não os publica por escrito, as séries são as habituais de principiante e a fonte cobre a técnica, não a conta. Em qualquer dos casos, a regra do próprio NHS manda: começa por baixo e sobe devagar, semana a semana.',
   pilates:'Os exercícios vêm de três fontes do NHS: a página de pilates para principiantes (o curl up, a centena, o alongamento de uma perna, a concha e a ponte, com o que cada um trabalha), a fisioterapia de Cambridgeshire (o alcance por cima, o deslizar do calcanhar, a abertura do joelho e o alcance duplo, com o padrão de respiração — inspirar a preparar, expirar a mover) e o programa de core do Royal Berkshire (a ponte articulada vértebra a vértebra, a centena na «mesa» e os toques na água). As três dizem o mesmo nos princípios: coluna neutra, expiração no esforço, e qualidade antes de quantidade. O NHS descreve o pilates como adequado a todas as idades e níveis — e mesmo assim, com um problema de saúde ou dúvida, primeiro o médico de família.',
   movimento:'Nem um exercício foi inventado pela app. A calistenia e os alongamentos vêm das páginas de exercício do NHS (flexibilidade, strength and flex, wake-up workout), a estrutura de aquecimento e retorno à calma vem da Mayo Clinic (5 a 10 minutos de movimento antes; abrandar e alongar no fim), e a regra de alongar no fim com o músculo quente é a da ACSM e da American Heart Association. As séries e os tempos são os das próprias fontes. Os desenhos são da app, porque a app não faz rede — e um desenho que se percebe vale por uma fotografia que não se pode ter.',
   ciatica:'Estes exercícios vêm das páginas do NHS para a ciática: o joelho ao peito e o alongamento do piriforme do NHS, o deslizamento do nervo do hospital South Tees, e a báscula pélvica, o rolar de joelhos e o afundo profundo do serviço músculo-esquelético de Dorset. São exercícios gerais para a maioria das pessoas — não tratam a causa, e quem tem uma condição diagnosticada segue o fisioterapeuta, não a app. Os sinais de alarme no topo são citados do NHS e passam à frente de tudo: com qualquer um deles, é urgência, não é exercício.',
@@ -21690,7 +21695,7 @@ const EVITAR_SINAL={
      onde o tomate vai parar sem dizer a palavra forno.
      A âncora final matava a regra: no catálogo as uvas chamam-se «Uva de mesa
      (branca e tinta)», «Uva tinta (5 variedades)» e «Uva branca (5
-     variedades)», e nenhuma é exactamente «Uva» — só o «Tomate cereja» é, e
+     variedades)», e nenhuma é exatamente «Uva» — só o «Tomate cereja» é, e
      era por isso que a linha parecia funcionar enquanto as duas receitas com
      uva inteira passavam caladas. Sem âncora basta o começo do nome; a uva
      passa não engasga e é ela que o parêntese negativo deixa de fora. */
@@ -28175,7 +28180,7 @@ function ligarPegaDaFolha(){
    primeira versão desta correção não devolvia o foco a lado nenhum por isso
    mesmo. Guarda-se antes a maneira de o voltar a encontrar depois de o HTML
    ser outro: o id, se tiver, senão o onclick, que nesta app é único por
-   acção e é o que sobrevive ao redesenho. */
+   ação e é o que sobrevive ao redesenho. */
 function marcaFoco(el){
   if(!el || el===document.body) return null;
   if(el.id) return '#'+CSS.escape(el.id);
@@ -28469,7 +28474,7 @@ const _ausencia=diasDesdeUltimaAbertura();
 /* Quatro dos doze ids do sinal dos crus não correspondiam a receita nenhuma —
    um era a chave de família das mousses, os outros três nunca existiram — e o
    silêncio durou porque nada os desmentia: uma regra que não apanha nada
-   comporta-se exactamente como uma regra que não tem nada a apanhar. Numa
+   comporta-se exatamente como uma regra que não tem nada a apanhar. Numa
    tabela de segurança essa é a avaria pior, porque parece funcionar. Passa a
    dizer-se em voz alta. */
 (function(){
@@ -28490,15 +28495,16 @@ render();
 /* Quem esteve fora vê o convite hoje; a data só avança quando o dispensar ou
    quando a ausência já não conta. */
 if(_ausencia<DIAS_AUSENTE){ S.ui.ultimaAbertura=hojeISO(); saveMeta(); }
+/* Havia DOIS leitores do «?ir=» do manifesto, e o vivo era o pior: este corria
+   aos 700 ms com destinos escritos à pressa — as compras iam para go('compras'),
+   um separador que não existe — enquanto a tabela ATALHOS, pensada e comentada
+   caso a caso, nunca chegava a correr: o IIFE do arranque limpa o parâmetro do
+   endereço antes de o «load» disparar, e o segundo leitor encontrava sempre o
+   endereço já limpo. Fica um leitor só, a usar a tabela boa. */
 function correrAtalho(){
   if(!atalhoArranque) return;
   const ir=atalhoArranque; atalhoArranque=null;
-  if(!S.members.length) return;
-  const mid=S.ui.mid||S.members[0].id;
-  if(ir==='refeicao'){ go('nutricao'); abrirFormRef(mid); }
-  else if(ir==='treino'){ go('atividade'); abrirFormAtiv(mid); }
-  else if(ir==='compras'){ go('compras'); abrirMercado(); }
-  else if(ir==='pesagem'){ go('familia'); abrirPesagens(); }
+  if(temChave(ATALHOS,ir)){ try{ ATALHOS[ir](); }catch(e){ console.warn('Família Fit — atalho «'+ir+'» falhou:', e); } }
 }
 /* A pergunta das pesagens fica para depois do primeiro desenho: quem abre a
    app e vê uma caixa antes de ver a app não sabe o que está a responder. E
@@ -28553,14 +28559,9 @@ const ATALHOS={
      fechar a de cima deixava aberta uma que ninguém pediu. */
   pesagem: ()=>{ if(!S.members.length) return; go('familia'); abrirPesagens(); }
 };
-function correAtalho(){
-  let k=null;
-  try{ k=new URLSearchParams(location.search).get('ir'); }catch(e){ return; }
-  if(!k || !temChave(ATALHOS,k)) return;
-  try{ ATALHOS[k](); }catch(e){ console.warn('Família Fit — atalho «'+k+'» falhou:', e); }
-  try{ history.replaceState(null,'',location.pathname+location.hash); }catch(e){}
-}
-window.addEventListener('load',correAtalho);
+/* O leitor duplicado que aqui vivia saiu: lia o mesmo «?ir=» ao «load», mas o
+   IIFE do arranque já tinha limpo o endereço e ele nunca encontrava nada.
+   Quem corre a tabela é correrAtalho(), aos 700 ms, com o estado já lido. */
 
 /* Instalável no ecrã principal e utilizável sem rede (útil para a lista de
    compras no supermercado). Só corre em http/https — via file:// é ignorado. */
