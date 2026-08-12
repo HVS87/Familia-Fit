@@ -1939,7 +1939,7 @@ const POSE_DEITADO={cb:[22,73],om:[31,76],an:[58,76],b1:[[40,79],[48,79]],b2:[[4
 function MV(id,n,serie,fonte,passos){ return {id,n,serie,fonte,passos}; }
 const MOVS=[
  /* ---- aquecer (dinâmico, Mayo Clinic: 5-10 minutos antes do esforço) ---- */
- MV('marcha','Marcha no lugar','60 segundos','Mayo Clinic',[
+ MV('marcha','Marcha no lugar','60 segundos','Mayo Clinic (estrutura)',[
   {t:'De pé, levanta um joelho de cada vez, como a marchar sem sair do sítio. Os braços acompanham.',
    f:Object.assign({},POSE_PE,{p1:[[52,57],[52,70]],b1:[[67,30],[72,38]],b2:[[53,31],[48,39]],seta:[52,70,52,60]})},
   {t:'Troca de perna a um ritmo confortável. É aquecimento: deve apetecer continuar, não parar.',
@@ -1949,7 +1949,7 @@ const MOVS=[
    f:Object.assign({},POSE_PE,{b1:[[47,23],[36,24]],b2:[[73,23],[84,24]]})},
   {t:'Desenha círculos pequenos com as mãos, primeiro para a frente, depois para trás.',
    f:Object.assign({},POSE_PE,{b1:[[47,23],[36,24]],b2:[[73,23],[84,24]],seta:[88,18,84,30]})}]),
- MV('gatovaca','Gato e vaca','8 lentos','NHS (flexibilidade)',[
+ MV('gatovaca','Gato e vaca','8 lentos','NHS (Royal Berkshire)',[
   {t:'De gatas, mãos por baixo dos ombros e joelhos por baixo das ancas. Arredonda as costas para cima, como um gato, a olhar para os joelhos.',
    f:{cb:[88,48],om:[78,42],an:[48,46],b1:[[78,56],[77,68]],b2:[[80,56],[81,68]],p1:[[48,62],[38,68]],p2:[[50,64],[40,70]],seta:[62,34,66,30]}},
   {t:'Deixa depois a barriga descair e o olhar subir, devagar. Alterna entre as duas sem forçar.',
@@ -1958,10 +1958,10 @@ const MOVS=[
   {t:'De pé, pés juntos e braços ao lado do corpo.',f:POSE_PE},
   {t:'Num salto pequeno, abre as pernas e leva os braços acima da cabeça. Volta com outro salto. Sem saltar também vale: abre uma perna de cada vez.',
    f:Object.assign({},POSE_PE,{b1:[[52,12],[47,4]],b2:[[68,12],[73,4]],p1:[[52,63],[45,80]],p2:[[68,63],[75,80]]})}]),
- MV('balancoperna','Balanço de perna','10 com cada perna','Mayo Clinic',[
+ MV('balancoperna','Balanço de perna','10 com cada perna','Mayo Clinic (estrutura)',[
   {t:'Uma mão na parede para equilibrar. Balança a perna de fora para a frente e para trás, solta, sem forçar a altura.',
    f:{cb:[54,13],om:[54,22],an:[54,47],b1:[[42,28],[29,28]],b2:[[60,33],[61,43]],p1:[[52,64],[51,81]],p2:[[64,58],[72,68]],parede:28,seta:[76,66,60,74]}}]),
- MV('rotacaotronco','Rotação do tronco','10 para cada lado','NHS (flexibilidade)',[
+ MV('rotacaotronco','Rotação do tronco','10 para cada lado','clássico de aquecimento',[
   {t:'De pé, braços dobrados à frente do peito. Roda o tronco para um lado e para o outro, devagar, com as ancas quietas.',
    f:Object.assign({},POSE_PE,{b1:[[50,28],[44,25]],b2:[[70,28],[76,25]],seta:[78,20,42,20]})}]),
  /* ---- exercitar (calistenia) ---- */
@@ -1983,7 +1983,7 @@ const MOVS=[
  MV('prancha','Prancha nos antebraços','20 a 30 segundos','NHS (strength and flex)',[
   {t:'Antebraços no chão, cotovelos por baixo dos ombros, corpo em linha da cabeça aos pés. Barriga apertada, sem deixar a anca descair nem subir. Respira.',
    f:{cb:[28,50],om:[38,55],an:[64,58],b1:[[36,68],[26,74]],b2:[[38,70],[28,76]],p1:[[78,64],[92,76]],p2:[[80,66],[94,78]]}}]),
- MV('pontegluteos','Ponte de glúteos','10, com 2 segundos em cima','NHS (MSK Dorset)',[
+ MV('pontegluteos','Ponte de glúteos','10, com 2 segundos em cima','NHS (Royal Berkshire)',[
   {t:'Deitado de costas, joelhos dobrados, pés no chão à largura das ancas, braços ao lado.',f:POSE_DEITADO},
   {t:'Aperta os glúteos e levanta as ancas até o corpo fazer uma linha dos ombros aos joelhos. Aguenta dois segundos e desce devagar.',
    f:{cb:[22,73],om:[31,76],an:[56,58],b1:[[40,79],[48,79]],b2:[[41,77],[49,77]],p1:[[70,56],[76,80]],p2:[[72,58],[78,80]],seta:[56,70,56,56]}}]),
@@ -1992,7 +1992,7 @@ const MOVS=[
    f:Object.assign({},POSE_PE,{b1:[[52,38],[56,44]],b2:[[68,38],[64,44]]})},
   {t:'Dobra os dois joelhos até o de trás quase tocar no chão. O joelho da frente fica por cima do tornozelo. Empurra de volta e troca.',
    f:{cb:[58,22],om:[58,30],an:[56,56],b1:[[52,40],[55,46]],b2:[[64,40],[61,46]],p1:[[70,64],[70,80]],p2:[[46,70],[36,80]],seta:[58,44,58,54]}}]),
- MV('gemeos','Elevação de gémeos','5 a 15, lentas','NHS (força)',[
+ MV('gemeos','Elevação de gémeos','5, lentas','NHS (força)',[
   {t:'De pé, perto de uma parede para apoiar os dedos se precisares.',f:Object.assign({},POSE_PE,{parede:30,b1:[[46,28],[31,28]]})},
   {t:'Sobe aos bicos dos pés, devagar, e desce ainda mais devagar. É a descida que trabalha.',
    f:{cb:[60,9],om:[60,18],an:[60,43],b1:[[46,24],[31,24]],b2:[[65,29],[66,39]],p1:[[57,60],[56,77]],p2:[[63,60],[64,77]],parede:30,seta:[74,70,74,58]}}]),
@@ -2019,18 +2019,18 @@ const MOVS=[
  MV('gemeosparede','Alongamento de gémeos','20 segundos cada perna, 3 vezes','NHS (flexibilidade)',[
   {t:'Mãos na parede, uma perna atrás esticada com o calcanhar no chão, a da frente dobrada. Chega a anca à frente até sentir a barriga da perna de trás. Troca.',
    f:{cb:[42,18],om:[44,26],an:[56,48],b1:[[34,29],[25,30]],b2:[[36,31],[26,32]],p1:[[52,62],[48,81]],p2:[[66,64],[76,81]],parede:24}}]),
- MV('isquios','Alongamento dos isquiotibiais','20 a 30 segundos cada perna','Mayo Clinic',[
+ MV('isquios','Alongamento dos isquiotibiais','20 a 30 segundos cada perna','ACSM/AHA',[
   {t:'Um calcanhar à frente no chão, ponta do pé para cima, perna esticada. Dobra a de trás e inclina o tronco à frente pela anca, costas direitas, mãos na coxa.',
    f:{cb:[50,22],om:[54,30],an:[52,50],b1:[[58,40],[62,48]],b2:[[60,42],[64,50]],p1:[[64,62],[74,77]],p2:[[48,64],[46,81]],seta:[44,26,38,32]}}]),
- MV('quadricipite','Alongamento do quadricípite','20 segundos cada perna','NHS (MSK Dorset)',[
+ MV('quadricipite','Alongamento do quadricípite','5 segundos, 3 vezes cada perna','NHS (MSK Dorset)',[
   {t:'De pé, apoia-te numa parede se precisares. Dobra uma perna atrás e segura o pé com a mão do mesmo lado, joelhos juntos, até sentir a frente da coxa. Troca.',
    f:{cb:[54,13],om:[54,22],an:[54,47],b1:[[42,28],[29,28]],b2:[[64,36],[60,50]],p1:[[52,64],[51,81]],p2:[[62,62],[58,48]],parede:28}}]),
- MV('peito','Alongamento do peito','20 a 30 segundos','Mayo Clinic',[
+ MV('peito','Alongamento do peito','20 a 30 segundos','ACSM/AHA',[
   {t:'Antebraço na ombreira de uma porta, cotovelo à altura do ombro. Dá um passo pequeno em frente até sentir o peito a abrir. Troca de braço.',
    f:{cb:[56,16],om:[58,25],an:[56,50],b1:[[70,22],[74,10]],b2:[[52,36],[50,46]],p1:[[54,66],[50,81]],p2:[[62,66],[66,81]],parede:75,seta:[46,30,40,30]}}]),
- MV('crianca','Posição de descanso','30 segundos','NHS (flexibilidade)',[
+ MV('crianca','Posição de descanso','30 segundos','clássico de alongamento',[
   {t:'De joelhos, sentado sobre os calcanhares, deixa o tronco descair à frente com os braços esticados no chão. Respira fundo e deixa as costas alongarem.',
-   f:{cb:[32,54],om:[42,58],an:[72,64],b1:[[30,64],[19,68]],b2:[[32,66],[21,70]],p1:[[76,76],[62,78]],p2:[[78,78],[64,80]]}}]),
+   f:{cb:[32,54],om:[42,58],an:[72,64],b1:[[30,64],[19,68]],b2:[[32,66],[21,70]],p1:[[62,78],[78,78]],p2:[[64,80],[80,80]]}}]),
  /* ---- ciática (NHS, South Tees NHS, MSK Dorset NHS) ---- */
  MV('joelhopeito','Joelho ao peito','20 a 30 segundos, 3 a 5 vezes','NHS',[
   {t:'Deitado de costas, joelhos dobrados, pés no chão.',f:POSE_DEITADO},
@@ -2054,7 +2054,7 @@ const MOVS=[
    f:{cb:[22,73],om:[31,76],an:[58,76],b1:[[42,66],[52,62]],b2:[[44,68],[54,64]],p1:[[56,58],[64,70]],p2:[[52,62,],[60,54]],seta:[64,52,50,58]}}]),
  MV('afundoprofundo','Afundo profundo','5 segundos, 3 vezes cada lado','NHS (MSK Dorset)',[
   {t:'Ajoelha num joelho, o outro pé à frente no chão. De frente, levanta o joelho de trás do chão e sente a frente da anca a alongar. Cinco segundos, e troca.',
-   f:{cb:[56,24],om:[56,32],an:[54,58],b1:[[50,42],[53,48]],b2:[[62,42],[59,48]],p1:[[68,62],[68,80]],p2:[[44,74],[32,78]],seta:[48,64,48,72]}}]),
+   f:{cb:[56,24],om:[56,32],an:[54,58],b1:[[50,42],[53,48]],b2:[[62,42],[59,48]],p1:[[68,62],[68,80]],p2:[[44,74],[32,78]],seta:[48,74,48,64]}}]),
  /* ---- reforço muscular (NHS: strength exercises e strength and flex) ---- */
  MV('flexaocompleta','Flexões completas','5 a 10','NHS (strength and flex)',[
   {t:'Prancha alta: mãos por baixo dos ombros, braços esticados, corpo em linha da cabeça aos pés. É a progressão a seguir às flexões com joelhos.',
@@ -2065,7 +2065,7 @@ const MOVS=[
   {t:'Deitado de lado com os joelhos dobrados, antebraço no chão com o cotovelo por baixo do ombro.',
    f:{cb:[26,58],om:[34,62],an:[56,68],b1:[[32,74],[24,78]],b2:[[42,66],[48,70]],p1:[[70,60],[82,72]],p2:[[71,62],[83,74]],chao:true}},
   {t:'Levanta a anca do chão até o tronco ficar em linha, apoiado no antebraço e nos joelhos. Aguenta, a respirar, e troca de lado. Trabalha os oblíquos sem carregar o pescoço.',
-   f:{cb:[28,44],om:[36,50],an:[58,60],b1:[[34,64],[26,78]],b2:[[44,54],[50,58]],p1:[[72,64],[84,76]],p2:[[73,66],[85,78]],seta:[58,70,58,58]}}]),
+   f:{cb:[28,44],om:[36,50],an:[58,60],b1:[[34,76],[24,78]],b2:[[44,54],[50,58]],p1:[[72,64],[84,76]],p2:[[73,66],[85,78]],seta:[58,70,58,58]}}]),
  MV('elevacaolateral','Elevação lateral da perna','5 com cada perna','NHS (força)',[
   {t:'De pé, mãos no encosto de uma cadeira ou na parede. Levanta uma perna para o lado, esticada, com as costas e a bacia direitas — o tronco não se inclina. Desce devagar e troca.',
    f:{cb:[54,13],om:[54,22],an:[54,47],b1:[[42,28],[29,28]],b2:[[60,33],[61,43]],p1:[[52,64],[51,81]],p2:[[68,58],[80,66]],parede:28,seta:[72,70,80,62]}}]),
@@ -2078,7 +2078,12 @@ const MOVS=[
   {t:'Levanta-te devagar usando as pernas, não os braços, e senta-te outra vez ainda mais devagar. É o exercício mais útil da lista: é o gesto de todos os dias.',
    f:{cb:[52,14],om:[52,23],an:[52,48],b1:[[48,34],[47,44]],b2:[[56,34],[57,44]],p1:[[50,64],[49,81]],p2:[[56,65],[57,81]],banco:[48,58],seta:[40,50,40,30]}}]),
  /* ---- pilates de solo (NHS: principiantes, fisioterapia de Cambridgeshire,
-    programa de core do Royal Berkshire) ---- */
+    programa de core do Royal Berkshire). O rótulo de fonte de cada ficha é
+    literal: «Royal Berkshire» só onde o folheto de core tem mesmo o exercício
+    (ponte articulada — o folheto deixa as repetições em branco, os números
+    são da app); a centena e os toques na água são clássicos do pilates de
+    solo que nenhuma página NHS acessível prescreve com números — o rótulo
+    di-lo, e a técnica segue os princípios das páginas citadas ao lado. ---- */
  MV('respiracao','Respiração de costelas','5 respirações lentas','NHS (Cambridgeshire)',[
   {t:'Sentado com as pernas cruzadas ou numa cadeira, mãos nas costelas. Inspira pelo nariz a sentir as costelas abrirem para os lados; expira pela boca a fechá-las. No pilates é a expiração que acompanha o esforço.',
    f:{cb:[56,28],om:[56,38],an:[56,64],b1:[[46,48],[52,46]],b2:[[66,48],[60,46]],p1:[[72,70],[50,76]],p2:[[70,74],[48,78]],seta:[70,44,78,42]}}]),
@@ -2090,12 +2095,12 @@ const MOVS=[
   {t:'Deitado de costas, joelhos dobrados, costas em posição neutra — nem coladas nem arqueadas.',f:POSE_DEITADO},
   {t:'Expira e desliza um calcanhar pelo chão até a perna esticar, sem a bacia se mexer — é ela que estás a treinar a segurar. Inspira a voltar. Troca.',
    f:{cb:[22,73],om:[31,76],an:[58,76],b1:[[40,79],[48,79]],b2:[[41,77],[49,77]],p1:[[76,77],[92,79]],p2:[[72,62],[78,80]],seta:[80,72,92,74]}}]),
- MV('centena','A centena','5 a 10 respirações (até 100 batimentos)','NHS (Royal Berkshire)',[
+ MV('centena','A centena','5 a 10 respirações (até 100 batimentos)','clássico do pilates',[
   {t:'Deitado de costas, sobe uma perna e depois a outra até à «mesa»: ancas e joelhos a 90 graus. As costas ficam apoiadas no chão.',
    f:{cb:[22,73],om:[31,76],an:[58,76],b1:[[40,79],[48,79]],b2:[[41,77],[49,77]],p1:[[60,58],[74,58]],p2:[[62,60],[76,60]]}},
   {t:'Enrola a cabeça e os ombros, estica os braços ao lado das ancas e bate-os no ar, curtos e vivos — cinco batimentos a inspirar, cinco a expirar. Se o pescoço cansar, pousa a cabeça e continua só com os braços.',
    f:{cb:[27,64],om:[34,70],an:[58,76],b1:[[42,66],[52,64]],b2:[[44,68],[54,66]],p1:[[60,58],[74,58]],p2:[[62,60],[76,60]],seta:[54,60,54,70]}}]),
- MV('toquesdedos','Toques na água','8 a 10 com cada perna','NHS (Royal Berkshire)',[
+ MV('toquesdedos','Toques na água','8 a 10 com cada perna','clássico do pilates',[
   {t:'Deitado de costas, pernas na «mesa», costas apoiadas e barriga ligada.',
    f:{cb:[22,73],om:[31,76],an:[58,76],b1:[[40,79],[48,79]],b2:[[41,77],[49,77]],p1:[[60,58],[74,58]],p2:[[62,60],[76,60]]}},
   {t:'Expira e desce uma perna a tocar com os dedos no chão — como a molhar o pé numa piscina —, sem pousar o pé todo nem deixar as costas arquear. Inspira a subir. Alterna.',
@@ -2104,7 +2109,7 @@ const MOVS=[
   {t:'Deitado de lado, cabeça apoiada no braço, joelhos dobrados e pés alinhados com as costas.',
    f:{cb:[22,62],om:[30,66],an:[54,70],b1:[[24,58],[18,62]],b2:[[36,72],[42,74]],p1:[[68,60],[80,72]],p2:[[69,62],[81,74]],chao:true}},
   {t:'Com os pés juntos, abre o joelho de cima como uma concha, sem a bacia rodar para trás. Fecha devagar. Trabalha o glúteo que segura a bacia e protege as costas.',
-   f:{cb:[22,62],om:[30,66],an:[54,70],b1:[[24,58],[18,62]],b2:[[36,72],[42,74]],p1:[[68,60],[80,72]],p2:[[64,48],[80,60]],seta:[70,54,66,44]}}]),
+   f:{cb:[22,62],om:[30,66],an:[54,70],b1:[[24,58],[18,62]],b2:[[36,72],[42,74]],p1:[[68,60],[80,72]],p2:[[62,50],[80,72]],seta:[70,54,66,44]}}]),
  MV('pontearticulada','Ponte articulada','6 a 8, lentas','NHS (Royal Berkshire)',[
   {t:'Deitado de costas, joelhos dobrados. Começa por bascular a bacia — esvazia a curva das costas contra o chão.',
    f:Object.assign({},POSE_DEITADO,{seta:[50,66,50,74]})},
@@ -6904,7 +6909,15 @@ function NI(nome,k,c,p,f,fib,un,sec,u){
      ficheiro decidia a composição — e a ordem das linhas não é um critério.
      Sem fonte não há prioridade que se compare: quem não a declarou não ganha
      a quem a declarou, e é substituído por qualquer coisa que traga origem. */
-  if(jaLa && jaLa.fonte && novo.fonte && FONTES[jaLa.fonte].p <= FONTES[novo.fonte].p) return;
+  if(jaLa && jaLa.fonte && novo.fonte && FONTES[jaLa.fonte].p <= FONTES[novo.fonte].p){
+    /* Dois NI() da MESMA fonte com valores diferentes é sempre um erro de
+       transcrição — um dos dois está errado e a regra de prioridade calava-o
+       (aconteceu com cinco pares do INSA: pães, chocolate e mostarda). Entre
+       fontes diferentes o descarte é o desenho; dentro da mesma, é aviso. */
+    if(jaLa.fonte===novo.fonte && (jaLa.k!==novo.k||jaLa.c!==novo.c||jaLa.p!==novo.p||jaLa.f!==novo.f))
+      console.warn('Família Fit — NI duplicado da mesma fonte ('+f0+') com valores diferentes, o segundo foi ignorado: '+nome);
+    return;
+  }
   if(jaLa && jaLa.fonte && !novo.fonte) return;
   alvo[nome]=novo;
 }
@@ -7859,18 +7872,24 @@ NI('Massa cozida',144,29.9,4.7,0.6,1.8,0,4);
 NI('Aveia em flocos',372,58.7,13.5,7,9.7,0,4);
 NI('Farinha integral de trigo',321,58.9,11.9,2.2,10.7,0,4);
 NI('Farinha de centeio',324,64.1,8.3,1.6,11.7,0,4);
-NI('Pão de mistura',245,47.1,7.8,1.4,4.7,0,4);
-NI('Pão integral',228,41.2,8.6,2.3,6.6,0,4);
-NI('Pão de centeio',231,43.7,6.9,1.5,6.5,0,4);
+/* Aqui havia segundas transcrições INSA de Pão de mistura (245/47,1), Pão
+   integral (228/41,2) e Pão de centeio (231/43,7) — mortas desde sempre: a
+   regra de prioridade fazia ganhar as primeiras (272/53,8 · 232/39,9 ·
+   268/56,4), que são as que as receitas sempre contaram. Removidas para o
+   ficheiro não afirmar valores que não estão em vigor; se um dia se conferir
+   a tabela do INSA linha a linha e a razão estiver do lado destas, é trocar
+   os números lá em cima, não ressuscitar linhas mortas. */
 NI('Tosta integral',390,63.4,12.4,7.2,9.4,0,4);
 NI('Bolacha de água e sal',419,71.9,10.2,10.4,3.1,0,4);
 NI('Mel',313,77.3,0.4,0,0,0,4);
 NI('Compota de fruta',256,63.1,0.4,0.1,1,0,4);
-NI('Chocolate de culinária',516,54.2,5.2,30.6,7.5,0,4);
+/* Segunda transcrição INSA do Chocolate de culinária (516/54,2) removida —
+   morta; vale a de cima (502/44, «Chocolate culinária, tablete»). */
 NI('Cacau em pó sem açúcar',343,11.5,20.4,21.7,33.2,0,4);
 NI('Natas para culinária 18%',188,3.4,2.5,18,0,0,3);
 NI('Maionese ligeira',290,7.5,1,28.1,0,0,4);
-NI('Mostarda de Dijon',143,2.5,7.5,10.2,4.5,0,4);
+/* Segunda transcrição INSA da Mostarda de Dijon (143 kcal) removida — morta;
+   vale a de cima (158). */
 /* O que a UE harmoniza e o INSA não cobre com este nome */
 fonte('ue');
 NI('Bebida de aveia',45,6.6,0.9,1.4,0.8,0,3,'ml');
@@ -8284,8 +8303,11 @@ const ING_EXCECAO={
   /* O croissant não tem «pão» no nome e por isso escapava à expressão que
      apanha os cereais com glúten. Leva trigo e leva manteiga — as duas coisas
      têm de estar cá, senão um croissant apresenta-se a quem tem doença celíaca
-     como se não tivesse nada. */
-  'Croissant':['gluten','cereal','lacticinio'],
+     como se não tivesse nada. E leva ovo: o croissant de café português é do
+     tipo brioche, com ovo na massa, e mesmo o folhado é pincelado com ovo —
+     o mesmo precedente do Pão de leite. A composição usada (USDA 174987, 67 mg
+     de colesterol) também é a de um croissant com ovo. */
+  'Croissant':['gluten','cereal','lacticinio','ovo'],
   'Fette biscottate':['gluten','cereal'], 'Matzá':['gluten','cereal'],
   'Vinagre de sidra':['sulfitos'],
   'Flocos de pimento vermelho seco':['picante'],
@@ -8344,6 +8366,18 @@ const ING_EXCECAO={
   /* O pesto comercial troca com frequência o pinhão por caju ou amêndoa, que
      são dois dos oito da lista fechada — por omissão vale o lado seguro. */
   'Pesto':['lacticinio','frutosecos'], 'Rabanada':['gluten','cereal','lacticinio','ovo'],
+  /* A granola, comercial ou caseira, leva quase sempre amêndoa, avelã ou caju
+     — a composição usada (USDA, 17 g de gordura) é a de uma granola com frutos
+     secos. Mesma política do Pesto: por omissão vale o lado seguro, o rótulo
+     é que manda. */
+  'Granola':['gluten','cereal','frutosecos'],
+  /* O chocolate de tablete vendido cá leva por regra lecitina de soja como
+     emulsionante — soja de declaração obrigatória no anexo II (a isenção do
+     regulamento cobre só o óleo refinado, não a lecitina). Há marcas com
+     lecitina de girassol, por isso é lado seguro, não certeza: o rótulo manda. */
+  'Chocolate de culinária':['soja'],
+  'Chocolate negro (aproximadamente 50% cacau)':['soja'],
+  'Chocolate de leite, tablete':['lacticinio','soja'],
   'Massa com ovo crua':['gluten','cereal','ovo'],
   /* O pão de leite é pincelado com ovo: a DGS nomeia-o expressamente no guia
      de alergia alimentar na restauração. */
@@ -9120,7 +9154,16 @@ const ACUCAR_LIVRE={
 /* Sem correspondência por prefixo, pela mesma razão do sódio: «Mel» não pode
    dar açúcar livre ao «Melão», nem «Chocolate, pó» ao chocolate de culinária
    que já cá está com valor próprio. Exato ou nada. */
-function acucarLivreDe(nome){ return temChave(ACUCAR_LIVRE,nome)? ACUCAR_LIVRE[nome] : 0; }
+function acucarLivreDe(nome){
+  if(temChave(ACUCAR_LIVRE,nome)) return ACUCAR_LIVRE[nome];
+  /* O mesmo fallback do sódio, pela mesma razão: um ingrediente da casa tem a
+     linha «dos quais açúcares» do rótulo, e sem isto os produtos que uma casa
+     mais escreve à mão — bolachas, cereais, cremes de barrar — entravam no
+     cartão dos açúcares livres como se não tivessem açúcar nenhum. Num
+     produto processado contam-se todos como livres: é o lado seguro da OMS. */
+  const g=ingredientesDaCasa().find(x=>x.n===nome);
+  return g? (g.al||0) : 0;
+}
 /* O mesmo guarda do sódio, para a mesma armadilha: chave exata, falha calada.
    Aqui em baixo e não junto ao outro, porque ACUCAR_LIVRE é const declarado
    acima desta linha e abaixo daquela — lê-lo de lá apanhava a zona morta
@@ -9600,7 +9643,7 @@ function limparIngredientes(x){
     const sec=Number.isInteger(g.s)&&g.s>=0&&g.s<CATS.length? g.s : -1;
     out.push({n, k:num(g.k,900), c:num(g.c,100), p:num(g.p,100), f:num(g.f,100),
       fib:num(g.fib,100), un:num(g.un,3000), s:sec, u,
-      sal:num(g.sal,60), de:String(g.de||'').trim().slice(0,140)});
+      sal:num(g.sal,60), al:num(g.al,100), de:String(g.de||'').trim().slice(0,140)});
   });
   return out.slice(0,300);
 }
@@ -9610,8 +9653,20 @@ function limparIngredientes(x){
    número escrito à mão passe a valer por cima do INSA sem ninguém dar por
    isso. Em caso de choque, ganha a tabela. */
 function aplicaIngredientesDaCasa(lista){
+  /* Esta função é a fonte única de verdade do que é «da casa» em NUTRI: antes
+     de aplicar a lista, apaga do catálogo os da casa que já não estão nela.
+     Sem esta purga, três portas deixavam fantasmas no catálogo da sessão —
+     cancelar uma importação (lerPacote já tinha mexido em NUTRI), o Ctrl+Z de
+     «ingrediente acrescentado», e substituir por uma cópia antiga — e uma
+     receita feita com o fantasma perdia a linha em silêncio no F5 seguinte. */
+  const querem=Object.create(null);
+  (lista||[]).forEach(g=>{ querem[g.n]=1; });
+  Object.keys(NUTRI).forEach(n=>{ if(NUTRI[n].fonte==='casa' && !temChave(querem,n)) delete NUTRI[n]; });
   (lista||[]).forEach(g=>{
     if(temChave(NUTRI,g.n)) return;
+    /* o catálogo oculto também é tabela: um nome que lá exista não entra como
+       «casa» — promoveIngrediente vai lá buscar o oficial quando for preciso */
+    if(temChave(NUTRI_EXTRA,g.n)) return;
     NUTRI[g.n]={k:g.k, c:g.c, p:g.p, f:g.f, fib:g.fib, un:g.un, s:g.s, u:g.u, fonte:'casa'};
   });
   invalidaCatalogos();
@@ -10195,14 +10250,17 @@ function ddrMicro(m){
      superiores não mudam: em ulMicro() a linha da adulta e a da adolescente já
      são as da lactação. */
   if(amamenta(m) && a<19) return {vitD:15,ferro:10,calcio:1300,magnesio:360,b12:2.8,folato:500,vitC:115,zinco:13,omega3:null};
-  if(amamenta(m))         return {vitD:15,ferro:9,calcio:1000,magnesio:310,b12:2.8,folato:500,vitC:120,zinco:12,omega3:null};
+  /* O magnésio do IOM sobe aos 31 anos (310→320 na mulher e na lactação,
+     400→420 no homem) — usar a faixa 19-30 para todos os adultos mostrava
+     «100% da referência» a quem estava uns 3% abaixo dela. */
+  if(amamenta(m))         return {vitD:15,ferro:9,calcio:1000,magnesio:a<31?310:320,b12:2.8,folato:500,vitC:120,zinco:12,omega3:null};
   if(meses<7)  return {vitD:10,ferro:0.27,calcio:200,magnesio:30,b12:0.4,folato:65,vitC:40,zinco:2,omega3:null};
   if(meses<13) return {vitD:10,ferro:11,calcio:260,magnesio:75,b12:0.5,folato:80,vitC:50,zinco:3,omega3:null};
   if(a<4)  return {vitD:15,ferro:7,calcio:700,magnesio:80,b12:0.9,folato:150,vitC:15,zinco:3,omega3:null};
   if(a<9)  return {vitD:15,ferro:10,calcio:1000,magnesio:130,b12:1.2,folato:200,vitC:25,zinco:5,omega3:null};
   if(a<14) return {vitD:15,ferro:8,calcio:1300,magnesio:240,b12:1.8,folato:300,vitC:45,zinco:8,omega3:null};
   if(a<19) return {vitD:15,ferro:f?15:11,calcio:1300,magnesio:f?360:410,b12:2.4,folato:400,vitC:f?65:75,zinco:f?9:11,omega3:null};
-  return {vitD:15,ferro:(f&&a<51)?18:8,calcio:1000,magnesio:f?310:400,b12:2.4,folato:400,vitC:f?75:90,zinco:f?8:11,omega3:null};
+  return {vitD:15,ferro:(f&&a<51)?18:8,calcio:1000,magnesio:f?(a<31?310:320):(a<31?400:420),b12:2.4,folato:400,vitC:f?75:90,zinco:f?8:11,omega3:null};
 }
 function ulMicro(m){
   const a=idadeAnos(m), meses=idadeMeses(m);
@@ -11191,6 +11249,13 @@ function jejumDesaconselhado(m){
      perguntar, em vez de dar conselho que não é dela. Quem tinha jejuns
      marcados antes de preencher o campo continua a poder desmarcá-los: essa
      porta ficou aberta para todos os bloqueios. */
+  /* O 'pre' tem texto próprio: a regra da Diabetes UK (ajustar medicação,
+     glicemias de interrupção) é para quem TEM diabetes — pô-la na boca da
+     fonte para a hiperglicemia intermédia seria esticar a citação, e chamar
+     «diabetes» a quem marcou pré-diabetes seria rotular a pessoa com uma
+     condição que ela disse não ter. O bloqueio mantém-se: é decisão
+     conservadora da app, assumida como tal. */
+  if(m.diabetes==='pre') return 'Marcaste pré-diabetes, e aqui a app é conservadora de propósito: não propõe jejuns a quem anda a vigiar a glicemia. Não é uma regra de nenhuma fonte — é a app a não fingir que sabe. Se o jejum te interessa, quem te segue é que pode dizer se faz sentido no teu caso.';
   if(m.diabetes) return 'Com diabetes, o jejum não se marca numa app: a Diabetes UK exige um plano acordado com a equipa de saúde — a medicação pode precisar de ajuste, e há regras de glicemia para interromper que só quem te segue pode definir. É com essa equipa que a decisão se toma.';
   /* Magreza é contraindicação em qualquer protocolo de jejum, e é dos poucos
      sítios onde a app tem os dois números para o perceber sozinha. O limiar é
@@ -11297,8 +11362,17 @@ function horasDeJejumNoDia(mid,d){
 }
 function emJejumPontual(mid,d){ return horasDeJejumNoDia(mid,d)>=12; }
 function jejumDeHoje(mid){
+  /* O teste tem de ser por jejum, não pelo total do membro: com dois jejuns
+     marcados (um a decorrer, um futuro), «horas hoje > 0» era verdade para
+     qualquer um deles, e o find devolvia o primeiro do array — o banner
+     mostrava a data do jejum errado. Mesma aritmética de cobertura que
+     horasDeJejumNoDia usa, aplicada a cada jejum individualmente. */
   const h=hojeISO();
-  return jejumCfg().pontuais.find(j=>j.mid===mid && horasDeJejumNoDia(mid,h)>0) || null;
+  return jejumCfg().pontuais.find(j=>{
+    if(j.mid!==mid) return false;
+    const ini=diasEntre(j.d,h)*24 - j.inicio;
+    return Math.min(24,j.horas-ini) > Math.max(0,-ini);
+  }) || null;
 }
 /* ================= RENUTRIÇÃO FASEADA =================
    Sair de um jejum longo com uma refeição normal é o momento de maior risco de
@@ -11578,9 +11652,9 @@ const DICAS={
   tabelas:'Três tabelas oficiais cobrem a mesma comida com números diferentes, e a diferença não é ruído: a convenção europeia declara hidratos disponíveis, sem fibra, e a norte-americana declara-os por diferença, com a fibra lá dentro. Somar as duas sem converter dá erros de dezenas de gramas. A prioridade é a que faz sentido numa casa portuguesa — INSA primeiro, porque é a que conhece o carapau, a couve galega e o queijo da Serra; depois a UE, com a mesma convenção; e só por último a FDA, que é a que mais precisa de conversão. Um valor do INSA nunca é substituído por um do USDA, mesmo que este seja carregado depois: a ordem por que as coisas chegam não é um critério.',
   jejum:'Duas coisas diferentes com o mesmo nome. O jejum intermitente comprime a janela em que se come sem mudar o total do dia — é um horário, não um défice, e o alvo de calorias não desce por causa dele. Um jejum pontual de 24 horas ou mais é outra coisa: é um dia sem comida, com um défice do tamanho do gasto desse dia, e a partir de certa duração deixa de ser uma escolha alimentar e passa a ser um assunto clínico. A app trata os dois de forma diferente e diz porquê. Não fica disponível para crianças, adolescentes, grávidas nem no pós-parto recente — não é a app a decidir por ninguém, é a app a não oferecer uma ferramenta que nesses casos não tem indicação.',
   diabetes:'O campo diz à app o que ela deve DEIXAR de fazer, e é essa a sua função. O que o cartão afirma tem dono: «não há dieta especial para a diabetes» é do NHS e da Diabetes UK; a regra do jejum — plano acordado com a equipa, medicação ajustada, glicemia a mandar — é da Diabetes UK, e é por a app não saber nada disso que ela deixa de propor jejuns a este perfil; os 14 g de fibra por 1000 kcal são dos Standards of Care da ADA; a equipa alargada da diabetes gestacional é da norma da DGS. «Pessoa com diabetes» é a linguagem que a DGS usa e que o NHS recomenda. O que o cartão NÃO diz também é decisão: a app não classifica o tipo, não sugere alvos de glicemia nem de HbA1c, não mexe em medicação e não pontua alimentos por índice glicémico — nada disso tem lugar fora da consulta. E uma honestidade a mais: não há norma portuguesa que fixe valores alimentares para a diabetes — a DGS remete o plano para a equipa de saúde, e é isso mesmo que a app repete.',
-  forca:'Os exercícios de força vêm da página de strength exercises do NHS (a flexão na parede, o mini-agachamento, a elevação de gémeos, a elevação lateral da perna, a extensão atrás e o levantar-sentar, com as séries da própria página) e do plano strength and flex (as flexões com joelhos e completas, a prancha, a prancha lateral). A frequência — força pelo menos duas vezes por semana — é a recomendação do NHS, que é a mesma da OMS. Sem equipamento de propósito: a parede, uma cadeira firme e o peso do corpo chegam para todos os grupos, e é exatamente assim que o NHS os ensina a quem treina em casa. Uma honestidade sobre as séries: onde a página do NHS dá números — as flexões na parede em 3 séries de 5 a 10, as elevações e extensões em 5, o levantar-sentar em 5 lentas —, são esses. Onde o plano do NHS é em vídeo e não os publica por escrito, as séries são as habituais de principiante e a fonte cobre a técnica, não a conta. Em qualquer dos casos, a regra do próprio NHS manda: começa por baixo e sobe devagar, semana a semana.',
-  pilates:'Os exercícios vêm de três fontes do NHS: a página de pilates para principiantes (o curl up, a centena, o alongamento de uma perna, a concha e a ponte, com o que cada um trabalha), a fisioterapia de Cambridgeshire (o alcance por cima, o deslizar do calcanhar, a abertura do joelho e o alcance duplo, com o padrão de respiração — inspirar a preparar, expirar a mover) e o programa de core do Royal Berkshire (a ponte articulada vértebra a vértebra, a centena na «mesa» e os toques na água). As três dizem o mesmo nos princípios: coluna neutra, expiração no esforço, e qualidade antes de quantidade. O NHS descreve o pilates como adequado a todas as idades e níveis — e mesmo assim, com um problema de saúde ou dúvida, primeiro o médico de família.',
-  movimento:'Nem um exercício foi inventado pela app. A calistenia e os alongamentos vêm das páginas de exercício do NHS (flexibilidade, strength and flex, wake-up workout), a estrutura de aquecimento e retorno à calma vem da Mayo Clinic (5 a 10 minutos de movimento antes; abrandar e alongar no fim), e a regra de alongar no fim com o músculo quente é a da ACSM e da American Heart Association. As séries e os tempos são os das próprias fontes. Os desenhos são da app, porque a app não faz rede — e um desenho que se percebe vale por uma fotografia que não se pode ter.',
+  forca:'Os exercícios de força vêm da página de strength exercises do NHS (a flexão na parede, a elevação de gémeos, a elevação lateral da perna, a extensão atrás e o levantar-sentar, com as séries da própria página) e do plano strength and flex (as flexões com joelhos e completas, a prancha, a prancha lateral). A frequência — força pelo menos duas vezes por semana — é a recomendação do NHS, que é a mesma da OMS. Sem equipamento de propósito: a parede, uma cadeira firme e o peso do corpo chegam para todos os grupos, e é exatamente assim que o NHS os ensina a quem treina em casa. Uma honestidade sobre as séries: onde a página do NHS dá números — as flexões na parede em 3 séries de 5 a 10, as elevações e extensões em 5, o levantar-sentar em 5 lentas —, são esses. Onde o plano do NHS é em vídeo e não os publica por escrito, as séries são as habituais de principiante e a fonte cobre a técnica, não a conta. Em qualquer dos casos, a regra do próprio NHS manda: começa por baixo e sobe devagar, semana a semana.',
+  pilates:'Os exercícios vêm de fontes do NHS e do repertório clássico do solo, e o rótulo de cada ficha diz qual é qual: a página de pilates para principiantes descreve o método e a concha; a fisioterapia de Cambridgeshire dá o alcance por cima, o deslizar do calcanhar, a abertura do joelho e o alcance duplo, com o padrão de respiração — inspirar a preparar, expirar a mover; e o programa de core do Royal Berkshire dá a ponte articulada vértebra a vértebra (o folheto deixa as repetições em branco de propósito, para o fisioterapeuta — os números da ficha são os habituais de principiante). A centena e os toques na água são clássicos do pilates de solo que nenhuma destas páginas prescreve por escrito: a técnica segue os mesmos princípios, e a ficha não lhes pendura nenhuma fonte que não os tenha. Todas dizem o mesmo no essencial: coluna neutra, expiração no esforço, e qualidade antes de quantidade. O NHS descreve o pilates como adequado a todas as idades e níveis — e mesmo assim, com um problema de saúde ou dúvida, primeiro o médico de família.',
+  movimento:'Nem um exercício foi inventado pela app. A calistenia e os alongamentos vêm das páginas de exercício do NHS (flexibilidade, strength and flex, wake-up workout), a estrutura de aquecimento e retorno à calma vem da Mayo Clinic (5 a 10 minutos de movimento antes; abrandar e alongar no fim), e a regra de alongar no fim com o músculo quente é a da ACSM e da American Heart Association. Sobre as séries e os tempos, a honestidade completa: onde a fonte publica números — as séries do NHS para a força, os tempos do músculo-esquelético de Dorset para a ciática — são esses; onde a fonte é um vídeo, um folheto sem números ou só a estrutura, as séries são as habituais de principiante e a fonte cobre a técnica, não a conta. O rótulo de cada ficha diz de onde ela vem. Os desenhos são da app, porque a app não faz rede — e um desenho que se percebe vale por uma fotografia que não se pode ter.',
   ciatica:'Estes exercícios vêm das páginas do NHS para a ciática: o joelho ao peito e o alongamento do piriforme do NHS, o deslizamento do nervo do hospital South Tees, e a báscula pélvica, o rolar de joelhos e o afundo profundo do serviço músculo-esquelético de Dorset. São exercícios gerais para a maioria das pessoas — não tratam a causa, e quem tem uma condição diagnosticada segue o fisioterapeuta, não a app. Os sinais de alarme no topo são citados do NHS e passam à frente de tudo: com qualquer um deles, é urgência, não é exercício.',
   comecarTreinar:'Um plano de treino começa por haver onde treinar. A app abre uma pesquisa de ginásios, piscinas, clubes, treinadores e estúdios perto de ti — mas convém saber como: a app não faz chamadas de rede nenhumas. Pede a posição ao browser, que é uma API local com permissão explícita, e usa-a para montar uma ligação para um mapa. A ligação só abre quando lhe tocas, e até lá as coordenadas não saem do dispositivo. Não são gravadas, não entram na cópia de segurança e desaparecem ao fechar a app. O OpenStreetMap vem primeiro porque não exige conta nem rastreia quem pesquisa.',
   naArea:'Para quem está de férias ou em viagem e quer manter o ritmo. Além de ginásios e piscinas para um dia solto, procura o que não precisa de inscrição nenhuma: trilhos e percursos pedestres, ciclovias e ecopistas, equipamentos de manutenção ao ar livre e polidesportivos. Funciona da mesma forma — a app monta a ligação, o browser é que a abre, e a posição fica só nesta sessão.',
@@ -18000,6 +18074,20 @@ function setIngCampo(campo,val){
   if(campo==='u'||campo==='n'){ saveMeta(); render(); }
   else { const a=document.getElementById('ing-conta'); if(a) a.innerHTML=contaIngredienteHtml(); }
 }
+/* Os alergénios de um ingrediente da casa são deduzidos do nome pelas mesmas
+   expressões do catálogo — e um nome de marca engana-as com facilidade
+   («Bolachas da avó» não diz trigo nem leite). Mostrar a dedução no
+   formulário é o mínimo honesto: a pessoa vê o que a app percebeu e pode
+   completar o nome até os avisos ficarem certos. */
+function alergDeduzidosHtml(nome){
+  const n=String(nome||'').trim();
+  if(n.length<2) return '';
+  const tags=atributosIng(n).filter(t=>temChave(RESTR,t));
+  return `<p class="sub" style="margin-top:6px">${tags.length
+    ? 'Pelo nome, a app deduz: <b>'+tags.map(t=>RESTR[t].i+' '+RESTR[t].n.toLowerCase()).join(', ')+'</b>.'
+    : 'Pelo nome, a app não deduz nenhum alergénio.'}
+    Se o rótulo declarar mais alergénios, põe-nos no nome — por exemplo «… (com trigo e leite)» — para os avisos da mesa os apanharem.</p>`;
+}
 /* O que se diz de errado antes de deixar gravar. A energia é o único campo
    mesmo obrigatório: sem ela o ingrediente não sabe contar nada. */
 function ingValido(g){
@@ -18009,12 +18097,21 @@ function ingValido(g){
     ? 'Já existe um ingrediente da casa com este nome. Apaga o antigo ou escolhe outro nome.'
     : '«'+n+'» já está no catálogo, com valores de tabela oficial. Um nome escrito à mão não se põe por cima de uma tabela — dá-lhe outro nome, por exemplo com a marca à frente.';
   if(temChave(NUTRI_EXTRA,n)) return '«'+n+'» já existe no catálogo escondido. Escolhe-o no editor de receitas em vez de o escreveres outra vez.';
+  /* «mel» ao lado de «Mel» passava a guarda exata e criava um gémeo que as
+     contas do sal e do açúcar — indexadas pelo nome exato — não encontravam:
+     20 g de «mel» contavam 0 g de açúcares livres. A comparação normalizada
+     fecha a mesma armadilha que já mordeu o «Sumo de laranja natural». */
+  const nb=semAcentos(n).toLowerCase();
+  const gemeo=Object.keys(NUTRI).find(x=>semAcentos(x).toLowerCase()===nb)
+    || Object.keys(NUTRI_EXTRA).find(x=>semAcentos(x).toLowerCase()===nb);
+  if(gemeo) return '«'+n+'» só difere de «'+gemeo+'» em maiúsculas ou acentos, e as contas do catálogo procuram o nome exato. Dá-lhe outro nome, por exemplo com a marca à frente.';
   const k=parseFloat(g.k);
   if(!Number.isFinite(k)||k<0) return 'Falta a energia por 100 '+(g.u==='un'?'g':g.u)+'. É o único número sem o qual o ingrediente não conta nada.';
   if(k>900) return 'Mais de 900 kcal por 100 g é mais do que gordura pura (899). Confirma o rótulo.';
   if(g.u==='un' && !(parseFloat(g.un)>0)) return 'Se a unidade é «unidade», diz quantos gramas pesa uma.';
   const soma=(parseFloat(g.c)||0)+(parseFloat(g.p)||0)+(parseFloat(g.f)||0)+(parseFloat(g.fib)||0);
   if(soma>100) return 'Os macros somam '+nPT(soma,1)+' g em 100 g. Não cabem.';
+  if((parseFloat(g.al)||0)>(parseFloat(g.c)||0)) return 'A linha «dos quais açúcares» não pode ser maior do que os hidratos — no rótulo ela vive dentro deles.';
   return null;
 }
 /* A conta que o formulário faz enquanto se escreve: os macros declarados
@@ -18040,7 +18137,7 @@ function guardarIngrediente(){
   S.ingredientes.push({n:String(g.n).trim().replace(/\s+/g,' ').slice(0,60),
     k:num(g.k), c:num(g.c), p:num(g.p), f:num(g.f), fib:num(g.fib),
     un:g.u==='un'? num(g.un) : 0, s:Number.isInteger(g.s)? g.s : 4, u:g.u,
-    sal:num(g.sal), de:String(g.de||'').trim().slice(0,140)});
+    sal:num(g.sal), al:num(g.al), de:String(g.de||'').trim().slice(0,140)});
   S.ingredientes=limparIngredientes(S.ingredientes);
   aplicaIngredientesDaCasa(S.ingredientes);
   S.ui.modal=null;
@@ -18050,6 +18147,10 @@ function guardarIngrediente(){
 /* Apagar não mexe nas receitas que já o usam: o ingrediente sai do catálogo,
    mas quem já o pôs numa receita da casa fica com ele lá — apagá-lo por baixo
    seria mudar receitas que ninguém pediu para mudar. Diz-se quantas são. */
+/* O botão da lista passa o índice, não o nome: um nome com barra invertida no
+   fim rebentava a string do onclick e o ingrediente ficava impossível de
+   apagar pela interface. */
+function apagarIngredienteIdx(i){ const g=ingredientesDaCasa()[i]; if(g) apagarIngrediente(g.n); }
 function apagarIngrediente(nome){
   const usadoEm=(S.receitas||[]).filter(r=>(r.i||[]).some(l=>l[0]===nome)).map(r=>r.n);
   const aviso=usadoEm.length
@@ -18058,7 +18159,11 @@ function apagarIngrediente(nome){
     : '';
   if(!confirm('Apagar «'+nome+'» do catálogo da casa?'+aviso)) return;
   S.ingredientes=(S.ingredientes||[]).filter(g=>g.n!==nome);
-  delete NUTRI[nome];
+  /* Só se apaga de NUTRI o que é mesmo da casa: se uma versão nova da app
+     entretanto publicou este nome em tabela oficial, a entrada em vigor é a
+     oficial — apagá-la tirava o ingrediente do seletor e da despensa até ao
+     próximo arranque. */
+  if(ehDaCasa(nome)) delete NUTRI[nome];
   invalidaCatalogos();
   save('ingrediente «'+nome+'» apagado do catálogo');
 }
@@ -18079,6 +18184,7 @@ function modalIngredienteHtml(mo){
         <label class="lbl" for="ing-n">Nome do alimento</label>
         <input id="ing-n" type="text" maxlength="60" value="${esc(String(g.n||''))}" placeholder="Pão de forma integral (marca X)"
           oninput="setIngCampo('n',this.value)"></div>
+      ${alergDeduzidosHtml(g.n)}
       <div class="row" style="margin-top:10px;gap:10px;align-items:flex-end">
         <div style="flex:1;min-width:120px"><label class="lbl" for="ing-u">Mede-se em</label>
           <select id="ing-u" onchange="setIngCampo('u',this.value)">
@@ -18103,8 +18209,12 @@ function modalIngredienteHtml(mo){
         ${campo('fib','Fibra (g)',g.fib,'max="100"')}
         ${campo('sal','Sal (g)',g.sal,'max="60"')}
       </div>
+      <div class="row" style="gap:10px;margin-top:8px">
+        ${campo('al','Dos quais açúcares (g)',g.al,'max="100"')}
+      </div>
       <p class="sub" style="margin-top:8px">O rótulo europeu escreve «hidratos de carbono» já sem a fibra, que vem numa linha à parte — é assim que a app os quer.
-        O sal também vem no rótulo; se lá estiver sódio em vez de sal, multiplica por 2,5.</p>
+        O sal também vem no rótulo; se lá estiver sódio em vez de sal, multiplica por 2,5. A linha «dos quais açúcares»
+        conta para o cartão do sal e dos açúcares: num produto processado a app conta-os todos como livres, que é o lado seguro da OMS.</p>
       <div id="ing-conta" style="margin-top:8px">${contaIngredienteHtml()}</div>
       <div style="margin-top:10px">
         <label class="lbl" for="ing-de">De onde vieram estes números</label>
@@ -20106,7 +20216,8 @@ function cartaoCiatica(){
       <div class="alerta forte" style="margin-top:12px"><span aria-hidden="true">🚨</span><span>
         <b>Vai já a uma urgência</b> se tiveres ciática dos dois lados; fraqueza ou dormência nas duas pernas,
         forte ou a piorar; dormência à volta dos genitais ou do ânus; dificuldade nova em urinar ou em controlar
-        a urina; ou deixares de dar conta de precisar de evacuar. São os sinais de alarme do NHS, e não esperam.</span></div>
+        a urina; ou deixares de dar conta de precisar de evacuar, ou de conseguir controlar as fezes — sendo
+        novo para ti. São os sinais de alarme do NHS, e não esperam.</span></div>
       <p class="sub" style="margin-top:10px">Fora disso, o conselho do NHS é claro: continua a mexer-te e evita
         ficar muito tempo sentado ou deitado — mesmo que mexer incomode, não faz mal e ajuda a recuperar mais
         depressa. Estes exercícios fazem-se no chão ou num banco, devagar, e <b>nenhum deve aumentar a dor</b>:
@@ -23743,13 +23854,14 @@ function cartaoDiabetes(m){
         os Standards of Care da ADA usam 14 g por cada 1000 kcal) para toda a gente — com diabetes valem pelo menos
         o mesmo.</span></span></div>
       <div class="vere-linha"><span class="vere-quem">⏳ <b>Jejum, não</b>
-        <span class="sub">A app deixa de propor jejuns a este perfil. A Diabetes UK exige plano acordado com a
-        equipa — medicação ajustada e regras de glicemia para interromper — e isso a app nem sabe nem pode saber.
-        O Ramadão com diabetes decide-se com a equipa, não com o calendário.</span></span></div>
+        <span class="sub">${m.diabetes==='pre'
+          ? 'A app deixa de propor jejuns a este perfil — decisão conservadora da app, não regra de nenhuma fonte: quem anda a vigiar a glicemia decide isto com quem o segue, não com um calendário.'
+          : 'A app deixa de propor jejuns a este perfil. A Diabetes UK exige plano acordado com a equipa — medicação ajustada e regras de glicemia para interromper — e isso a app nem sabe nem pode saber. O Ramadão com diabetes decide-se com a equipa, não com o calendário.'}</span></span></div>
       ${m.diabetes==='gest'? `<div class="vere-linha"><span class="vere-quem">🤰 <b>Na gravidez, a equipa é maior</b>
         <span class="sub">A norma da DGS para a diabetes gestacional põe à mesa dietista, obstetra, endocrinologista e
-        enfermeiro — o acompanhamento é da consulta, e os avisos alimentares da gravidez já estão ligados nas fichas
-        e no plano.</span></span></div>`:''}
+        enfermeiro — o acompanhamento é da consulta.${gravida(m)
+          ? ' Os avisos alimentares da gravidez já estão ligados nas fichas e no plano.'
+          : ' Os avisos alimentares da gravidez (queijos de leite cru, peixe cru, mercúrio) só ligam quando «Grávida» estiver marcado no perfil — se a gravidez ainda está a decorrer, marca-o lá; se já terminou, fala com a equipa sobre atualizar este campo.'}</span></span></div>`:''}
     </div>
     <p class="sub" style="margin-top:10px">Diz-se «pessoa com diabetes», e é assim que esta app fala. E nada aqui
       substitui a consulta: a app não diagnostica, não classifica, não mexe em medicação e não define alvos de
@@ -23764,7 +23876,15 @@ function renderNutricao(){
   const gkg=m.peso>0? mk.p/m.peso:0;
   /* Num bebé, o simulador de macros de adulto não diz nada de útil: o que
      conta é o percentil, o leite e o horário das tomadas. */
-  if(faseDe(m)==='bebe') return memberPicker()+avisoPediatra(m)+`<div class="grid g2">${moduloBebe(m)}</div>`
+  /* O campo da diabetes aceita valor em qualquer perfil, mas o caminho do
+     bebé sai daqui sem cartaoDiabetes — sem esta nota, o campo prometia
+     «pôr os hidratos à vista» e não mudava nada de visível. A nota honesta
+     é a única coisa que a app pode dizer: diabetes num bebé é da consulta. */
+  if(faseDe(m)==='bebe') return memberPicker()+avisoPediatra(m)
+    +(m.diabetes? `<div class="alerta" style="margin-bottom:12px"><span aria-hidden="true">💙</span><span>
+      <b>Diabetes num bebé é inteiramente da consulta.</b> O campo ficou marcado no perfil, mas a app não muda
+      nada aqui: alimentação, contagens e alvos de um bebé com diabetes definem-se com a equipa que o segue.</span></div>` : '')
+    +`<div class="grid g2">${moduloBebe(m)}</div>`
     +cartaoCalcBebe()+cartaoIntroducao()+cartaoEvitar();
   const definido=temPlanoNut(m);
   return memberPicker()+avisoPediatra(m)+cartaoValidacaoRef(m)+cartaoDiabetes(m)
@@ -27007,11 +27127,21 @@ function lerPacote(txt){
               week:dataValida(d.week)? mondayISO(new Date(d.week+'T12:00:00')) : mondayISO(new Date()) }};
 }
 function substituir(txt){
-  const {d,erro}=lerPacote(txt); if(erro) return flash('bad',erro);
+  /* lerPacote mexe no catálogo em memória ANTES de qualquer confirmação (tem
+     de ser assim, senão as receitas do ficheiro não sobreviviam ao
+     saneamento). Por isso, qualquer saída que não seja «substituí mesmo»
+     reaplica a lista da casa em vigor — a purga dentro de
+     aplicaIngredientesDaCasa varre os ingredientes do ficheiro rejeitado. */
+  const {d,erro}=lerPacote(txt);
+  if(erro){ aplicaIngredientesDaCasa(ingredientesDaCasa()); return flash('bad',erro); }
   if(S.members.length && !confirm('Substituir os dados atuais ('+S.members.length+' perfis) pelos da cópia ('
-    +d.members.length+' perfis)?\n\nOs dados que estão neste dispositivo perdem-se.')) return;
+    +d.members.length+' perfis)?\n\nOs dados que estão neste dispositivo perdem-se.')){
+    aplicaIngredientesDaCasa(ingredientesDaCasa()); return; }
   const antigo=S.meta;
   S=Object.assign(blank(), d);
+  /* a cópia manda: os da casa do dispositivo antigo que ela não traz saem do
+     catálogo em memória já aqui, não só no próximo arranque */
+  aplicaIngredientesDaCasa(S.ingredientes);
   sincronizaReceitas(); sincronizaCombos();
   migraRegistos(S);   /* o peso do perfil volta a ser o da última pesagem da cópia */
   S.meta=Object.assign(S.meta,{avisarAoSair:antigo.avisarAoSair, exportadoEm:antigo.exportadoEm});
@@ -27031,7 +27161,10 @@ function substituir(txt){
     +plural(Object.keys(d.plans).length,'semana','semanas')+' de plano.');
 }
 function juntar(txt){
-  const {d,erro}=lerPacote(txt); if(erro) return flash('bad',erro);
+  const {d,erro}=lerPacote(txt);
+  /* mesma razão do substituir: um ficheiro rejeitado não deixa ingredientes
+     fantasma no catálogo da sessão */
+  if(erro){ aplicaIngredientesDaCasa(ingredientesDaCasa()); return flash('bad',erro); }
   if(!S.medicoes||typeof S.medicoes!=='object') S.medicoes={};
   if(!Array.isArray(S.regAtiv)) S.regAtiv=[];
   if(!Array.isArray(S.regRef)) S.regRef=[];
@@ -27083,6 +27216,10 @@ function juntar(txt){
      Um nome que já cá exista ganha, que é a regra de tudo o mais neste botão. */
   if(!Array.isArray(S.ingredientes)) S.ingredientes=[];
   (d.ingredientes||[]).forEach(g=>{ if(!S.ingredientes.some(x=>x.n===g.n)) S.ingredientes.push(g); });
+  /* o teto dos 300 aplica-se à fusão como a tudo o resto, e a reaplicação
+     varre do catálogo em memória o que a fusão tenha deixado de fora */
+  S.ingredientes=limparIngredientes(S.ingredientes);
+  aplicaIngredientesDaCasa(S.ingredientes);
   let receitasNovas=0;
   if(!Array.isArray(S.receitas)) S.receitas=[];
   (d.receitas||[]).forEach(r=>{
@@ -27145,12 +27282,26 @@ function juntar(txt){
   /* jejum: o horário de quem já cá está não se toca; os jejuns pontuais
      juntam-se pela chave natural (pessoa, dia) */
   const jc=jejumCfg();
+  /* O bloqueio vale também para o que entra por cópia: o cartão bloqueado
+     promete manter só o que foi marcado ANTES da mudança no perfil — deixar
+     a fusão criar jejuns novos para uma grávida, uma criança ou um perfil
+     com diabetes seria abrir por fora a porta que a app fechou por dentro.
+     Os excluídos contam-se e dizem-se na mensagem final, como o resto. */
+  const jejunsBarrados=new Set();
+  const jejumBarrado=mid=>{
+    const alvo=S.members.find(m=>m.id===mid);
+    if(!alvo) return true;
+    if(jejumDesaconselhado(alvo)){ jejunsBarrados.add(alvo.nome); return true; }
+    return false;
+  };
   Object.keys((d.jejum&&d.jejum.im)||{}).forEach(mid0=>{ const mid=mapa[mid0]||mid0;
     if(!S.members.some(m=>m.id===mid)) return;
+    if(jejumBarrado(mid)) return;
     if(!jc.im[mid]) jc.im[mid]=d.jejum.im[mid0]; });
   ((d.jejum&&d.jejum.pontuais)||[]).forEach(j0=>{
     const j=Object.assign({},j0,{mid:mapa[j0.mid]||j0.mid});
     if(!S.members.some(m=>m.id===j.mid)) return;
+    if(jejumBarrado(j.mid)) return;
     if(jc.pontuais.some(x=>x.mid===j.mid&&x.d===j.d)) return;
     jc.pontuais.push(j); });
   /* gostos: o que já cá está ganha, como em tudo o resto */
@@ -27207,6 +27358,8 @@ function juntar(txt){
     +plural(pesagens,'pesagem nova','pesagens novas')+' e '
     +plural(registos,'registo novo','registos novos')+'. Perfis com o mesmo nome foram '
     +'tratados como a mesma pessoa e as refeições e objetivos já existentes ficaram intactos.'
+    +(jejunsBarrados.size? ' Os jejuns da cópia para '+[...jejunsBarrados].join(', ')
+      +' NÃO entraram: o perfil atual (gravidez, diabetes, idade ou peso) desaconselha jejum, e o bloqueio vale também para o que vem por cópia.' : '')
     +(deFora.length? ' O ficheiro trazia mais coisas que o «juntar» não sabe fundir — NÃO entraram: '
       +deFora.join(', ')+'. Para as trazeres usa «Substituir», que troca tudo o que está aqui pelo conteúdo da cópia.' : ''));
 }
@@ -27267,15 +27420,16 @@ function cartaoTabelas(){
     <div class="splabel" style="margin-top:14px"><span>Os que a casa acrescentou</span>
       <output>${plural(ingredientesDaCasa().length,'ingrediente','ingredientes')}</output></div>
     <p class="sub" style="margin-top:6px">O catálogo nunca vai ter tudo — falta sempre a marca do supermercado do lado.
-      Escreve-se à mão, com os números do rótulo, e a partir daí o alimento conta como qualquer outro: entra nos macros,
-      nos alergénios, no sódio do dia e na lista de compras. Fica com o selo <span class="tag fonte-casa">Da casa</span>,
+      Escreve-se à mão, com os números do rótulo, e a partir daí o alimento conta nos macros, no sal e nos açúcares do dia
+      e na lista de compras. Os alergénios são deduzidos do nome — num nome de marca podem falhar, e o formulário mostra
+      o que a app deduziu. Fica com o selo <span class="tag fonte-casa">Da casa</span>,
       que é o degrau mais baixo — <b>um número escrito à mão nunca se põe por cima de uma tabela oficial</b>.</p>
-    ${ingredientesDaCasa().length? `<div style="margin-top:8px">${ingredientesDaCasa().map(g=>`
+    ${ingredientesDaCasa().length? `<div style="margin-top:8px">${ingredientesDaCasa().map((g,gi)=>`
       <div class="vere-linha">
         <span class="vere-quem"><b>${esc(g.n)}</b>
           <span class="sub">${nPT(g.k,0)} kcal por 100 ${g.u==='un'?'g':g.u}${g.u==='un'? ' · uma pesa '+nPT(g.un,0)+' g':''}${
-            g.de? ' · '+esc(g.de) : ''}</span></span>
-        <button class="btn danger small" onclick="apagarIngrediente('${esc(g.n).replace(/'/g,"\\'")}')"
+            g.de? ' · '+esc(g.de) : ''}${ehDaCasa(g.n)? '' : ' · <b>fora de uso: a tabela oficial ganhou a este nome</b>'}</span></span>
+        <button class="btn danger small" onclick="apagarIngredienteIdx(${gi})"
           aria-label="Apagar ${esc(g.n)} do catálogo da casa">Apagar</button>
       </div>`).join('')}</div>` : ''}
     <div class="row" style="margin-top:10px">
