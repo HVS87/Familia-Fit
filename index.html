@@ -743,7 +743,13 @@ html[data-dispositivo="telefone"][data-orient="retrato"] .timers{bottom:calc(70p
 .mov[open] summary::before{transform:rotate(90deg)}
 @media (prefers-reduced-motion: reduce){ .mov summary::before{transition:none} }
 .mov-passos{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px}
-.mov-passo{flex:1 1 250px;max-width:380px;display:flex;gap:12px;align-items:flex-start;margin:0}
+/* A legenda desce para baixo da figura quando não tiver pelo menos 190 px:
+   com as figuras a 148 px, num telemóvel de 345 px sobravam 109 px para o
+   texto — dezassete caracteres por linha, que é uma coluna que ninguém lê.
+   Assim, no telemóvel a figura fica em cima e o texto à largura toda; a
+   partir do tablet voltam a ficar lado a lado, que é onde isso ajuda. */
+.mov-passo{flex:1 1 250px;max-width:460px;display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start;margin:0}
+.mov-passo figcaption{flex:1 1 190px;min-width:0}
 .mov-fig{width:148px;height:111px;flex:none;stroke:currentColor;stroke-width:4;
   stroke-linecap:round;stroke-linejoin:round;fill:none;background:var(--bg);border-radius:8px}
 .mov-fig .mov-cenario{stroke-width:2;opacity:.35}
