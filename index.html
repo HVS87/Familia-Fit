@@ -956,7 +956,7 @@ a{color:var(--accent);text-underline-offset:2px}
 a:hover{color:var(--ink)}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
 header{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10;
-  position:sticky;isolation:isolate}
+  isolation:isolate}
 /* Aura: as cores dos membros da família esbatidas no topo do cabeçalho, para
    a app ter a cara de quem a usa. O gradiente é montado em JS a partir das
    cores escolhidas; sem membros, não aparece nada. */
@@ -2923,6 +2923,10 @@ const COZ_EXTRA={
      com hortelã todos os dias é a libanesa — é lá que quem procura o vai
      procurar. */
   halloumi:['libanesa'],
+  /* O pastizzi é maltês e o pane cunzato é siciliano — as duas ilhas do mesmo
+     mar, e as duas receitas fazem-se em qualquer cozinha italiana. */
+  pastizzi:['italiana'],
+  panecunzato:['italiana'],
 };
 function cozinhasDe(r){
   if(!r) return [];
@@ -3204,6 +3208,11 @@ R('saladarepolho','Salada asiática de repolho e amendoim','asiatica',['lowcarb'
 
 /* ---------- Keto: pratos desenhados para ficar abaixo dos 10 g de hidrato líquido ---------- */
 R('ketofrangocreme','Frango com natas e espinafres','portuguesa',['keto','lowcarb'],540,8,42,38,[['Peito de frango',180,'g'],['Espinafres',100,'g'],['Nata',80,'ml'],['Parmesão',15,'g'],['Alho',2,'dente'],['Manteiga',12,'g']],null,3),
+/* O id promete um puré de couve-flor e a receita é um bife: é o resto de
+   quando os acompanhamentos viviam dentro dos pratos, e o puré saiu daqui para
+   ter cartão próprio (`aclpurecouveflor`). O id fica como está de propósito —
+   é ele que está guardado nos favoritos, no plano e no histórico de quem já
+   usa a app, e renomeá-lo órfãos esses dados sem nada em troca. */
 R('ketopurecouveflor','Bife de vaca selado','portuguesa',['keto','lowcarb'],530,14,42,34,[['Bife de vaca',170,'g'],['Manteiga',5,'g']],null,6),
 R('ketoalmondegas','Almôndegas com courgette e mozzarella','italiana',['keto','lowcarb'],510,12,40,34,[['Carne picada de vaca',160,'g'],['Courgette',200,'g'],['Mozzarella',60,'g'],['Tomate pelado',80,'g'],['Ovo',0.5,'un'],['Manjericão',5,'g'],['Azeite',10,'ml']],null,4),
 R('ketosaladabacon','Salada de frango, abacate e bacon','americana',['keto','lowcarb','paleo'],560,12,36,42,[['Peito de frango',130,'g'],['Abacate',1,'un'],['Bacon',30,'g'],['Alface romana',60,'g'],['Limão',0.5,'un'],['Azeite',10,'ml']],null,8),
@@ -3275,7 +3284,7 @@ R('camaraotigre','Camarão-tigre grelhado','portuguesa',['keto','lowcarb','paleo
 R('camaraocozido','Camarão cozido','portuguesa',['keto','lowcarb','paleo','mediterranica'],0,0,0,0,[['Camarão',200,'g'],['Sal grosso',8,'g'],['Louro',1,'g'],['Limão',10,'ml']],['a','j'],0,['ent']),
 R('chouricoassado','Chouriço assado','portuguesa',['keto','lowcarb'],0,0,0,0,[['Chouriço',90,'g'],['Pão rústico',40,'g']],['a','j'],0,['ent']),
 R('saladapolvoent','Salada de polvo','portuguesa',['lowcarb','paleo','mediterranica'],0,0,0,0,[['Polvo',180,'g'],['Cebola roxa',60,'g'],['Pimento',60,'g'],['Salsa',6,'g'],['Azeite',15,'ml'],['Vinagre de vinho',8,'ml'],['Louro',1,'g']],['a','j'],0,['ent']),
-R('burratalimao','Burrata com raspas de limão','italiana',['keto','lowcarb','mediterranica'],0,0,0,0,[['Burrata',60,'g'],['Raspa de limão',2,'g'],['Azeite',8,'ml'],['Pimenta preta',0.5,'g'],['Manjericão',3,'g'],['Pão rústico',25,'g'],['Flor de sal',1,'g']],['a','j'],0,['ent','br']),
+R('burratalimao','Burrata com raspas de limão','italiana',['keto','lowcarb','mediterranica'],0,0,0,0,[['Burrata',60,'g'],['Raspa de limão',2,'g'],['Azeite',8,'ml'],['Pimenta preta',0.5,'g'],['Manjericão',3,'g'],['Pão rústico',25,'g'],['Flor de sal',1,'g']],['p','a','j'],0,['ent','br']),
 R('presuntoent','Presunto','espanhola',['keto','lowcarb','paleo'],0,0,0,0,[['Presunto',70,'g'],['Pão rústico',30,'g'],['Azeite',6,'ml']],['a','j','l'],0,['ent','sn']),
 
 /* ---------- Cozinha portuguesa ---------- */
@@ -3478,7 +3487,7 @@ R('karaage','Karaage, frango frito à japonesa','japonesa',[],0,0,0,0,[['Coxas d
 R('tonkatsu','Tonkatsu, costeleta de porco panada','japonesa',[],0,0,0,0,[['Porco, lombo cru',150,'g'],['Ovo',0.5,'un'],['Farinha',15,'g'],['Pão ralado',35,'g'],['Óleo alimentar',12,'ml'],['Repolho',100,'g'],['Sal grosso',1,'g'],['Pimenta preta',0.5,'g']],['a','j'],0,['pp']),
 R('gomaae','Espinafres com molho de sésamo','japonesa',['vegan','mediterranica'],0,0,0,0,[['Espinafres',150,'g'],['Sementes de sésamo',12,'g'],['Molho de soja',8,'ml'],['Açúcar branco',3,'g']],['ac'],0),
 /* ---- Grécia e Líbano ----
-   Esta nota pedia separador próprio para as duas, e ele foi feito: `grega`,
+   Esta nota pedia separador próprio para as duas, e eles foram feitos: `grega`,
    `libanesa` e `marroquina` são cozinhas com chave própria em CUIS, e o que
    estava arrumado na «mediterrânica» só por não haver onde o pôr passou para
    elas. A «mediterrânica» fica com o que é mesmo transversal — o padrão
@@ -3542,7 +3551,7 @@ R('kousamahshi','Kousa mahshi, courgettes recheadas','libanesa',['mediterranica'
 R('lahmmashwi','Lahm mashwi, kebab de borrego no espeto','libanesa',['mediterranica'],0,0,0,0,[['Borrego, perna crua',160,'g'],['Cebola',60,'g'],['Alho',2,'dente'],['Azeite',10,'ml'],['Limão',0.5,'un'],['Pimenta preta',1,'g'],['Canela',0.5,'g'],['Noz-moscada',0.3,'g'],['Flor de sal',1,'g'],['Pão pita',60,'g'],['Tomate',1,'un'],['Cebola roxa',30,'g']],['a','j'],0,['pp']),
 R('kafta','Kafta mashwiya, espetadas de carne picada','libanesa',[],0,0,0,0,[['Carne picada de borrego',90,'g'],['Carne picada de vaca',70,'g'],['Cebola',50,'g'],['Salsa',15,'g'],['Pimenta preta',1,'g'],['Canela',0.5,'g'],['Noz-moscada',0.3,'g'],['Cravinho',0.2,'g'],['Flor de sal',1.2,'g'],['Pão pita',60,'g'],['Tomate',1,'un']],['a','j'],0,['pp']),
 R('kaftasanieh','Kafta bil sanieh, kafta no forno com batata','libanesa',[],0,0,0,0,[['Carne picada de borrego',100,'g'],['Cebola',60,'g'],['Salsa',12,'g'],['Batata',200,'g'],['Tomate',120,'g'],['Polpa de tomate',40,'g'],['Azeite',10,'ml'],['Canela',0.5,'g'],['Pimenta preta',1,'g'],['Flor de sal',1.2,'g']],['a','j'],0,['pp']),
-R('kibbehfrito','Kibbeh rasas, croquetes de bulgur e carne','libanesa',[],0,0,0,0,[['Bulgur',45,'g'],['Carne picada de borrego',100,'g'],['Cebola',60,'g'],['Pinhões',8,'g'],['Canela',0.7,'g'],['Pimenta preta',0.5,'g'],['Flor de sal',1.2,'g'],['Óleo alimentar',10,'ml']],['a','j'],0,['pp','ent','sn']),
+R('kibbehfrito','Kibbeh rasas, croquetes de bulgur e carne','libanesa',[],0,0,0,0,[['Bulgur',45,'g'],['Carne picada de borrego',100,'g'],['Cebola',60,'g'],['Pinhões',8,'g'],['Canela',0.7,'g'],['Pimenta preta',0.5,'g'],['Flor de sal',1.2,'g'],['Óleo alimentar',10,'ml']],['l','a','j'],0,['pp','ent','sn']),
 R('kibbehabobora','Kibbeh bil laqtin, de abóbora e espinafres','libanesa',['vegetariana','vegan','mediterranica'],0,0,0,0,[['Abóbora',200,'g'],['Bulgur',60,'g'],['Farinha',15,'g'],['Grão-de-bico cozido',80,'g'],['Espinafres',80,'g'],['Cebola',50,'g'],['Azeite',15,'ml'],['Cominhos',1.5,'g'],['Canela',0.5,'g'],['Limão',0.25,'un'],['Flor de sal',1,'g']],['a','j'],0,['pp','ent']),
 R('kibbehnayyeh','Kibbeh nayyeh, o kibbeh cru','libanesa',[],0,0,0,0,[['Borrego, perna crua',120,'g'],['Bulgur',35,'g'],['Cebola',40,'g'],['Hortelã',5,'g'],['Azeite',15,'ml'],['Pimenta preta',1,'g'],['Canela',0.3,'g'],['Flor de sal',1.2,'g'],['Pão pita',50,'g']],['a','j'],0,['ent']),
 R('gohan','Arroz branco japonês','japonesa',['vegan'],0,0,0,0,[['Arroz para sushi',75,'g']],['ac'],0),
@@ -3868,7 +3877,17 @@ R('fulmedames','Ful medames','libanesa',['vegetariana','vegan','mediterranica'],
 /* Manakish de za'atar: o pão plano do pequeno-almoço libanês. O za'atar é uma
    mistura de tomilho, sumagre e sésamo — aqui está pelas partes que o
    catálogo conhece, e quem tiver a mistura pronta usa-a em vez destas. */
-R('manakish','Manakish de za\'atar','mediterranica',['vegetariana','vegan','mediterranica'],0,0,0,0,[['Farinha de trigo tipo 65',85,'g'],['Azeite',12,'ml'],['Sementes de sésamo',8,'g'],['Orégãos',3,'g'],['Tomilho fresco',3,'g'],['Fermento de padeiro',2,'g'],['Flor de sal',1,'g']],['p','l'],0,['br']),
+R('manakish','Manakish de za\'atar','libanesa',['vegetariana','vegan','mediterranica'],0,0,0,0,[['Farinha de trigo tipo 65',85,'g'],['Azeite',12,'ml'],['Sementes de sésamo',8,'g'],['Orégãos',3,'g'],['Tomilho fresco',3,'g'],['Fermento de padeiro',2,'g'],['Flor de sal',1,'g']],['p','l'],0,['br']),
+/* ---- Za'atar ----
+   O za'atar é ao mesmo tempo uma erva, uma mistura e um pequeno-almoço. A
+   mistura da casa faz-se aqui — e faz-se sem sumagre, que é o ingrediente que
+   a app não tem por não lhe ter encontrado fonte de composição fiável; o
+   limão dos passos faz o ácido que ele faria. O manakish é o pão que a leva,
+   e havia um só: entra o de queijo, que é o outro que se come no Líbano ao
+   pequeno-almoço, e o frango que a mistura tempera ao jantar. */
+R('acmzaatar','Za\'atar, a mistura da casa','libanesa',['vegetariana','vegan','mediterranica'],0,0,0,0,[['Tomilho seco',6,'g'],['Sementes de sésamo',6,'g'],['Orégãos',3,'g'],['Flor de sal',1.5,'g'],['Limão',0.25,'un']],['mo']),
+R('manakishqueijo','Manakish de queijo','libanesa',['vegetariana'],0,0,0,0,[['Farinha de trigo tipo 65',85,'g'],['Fermento de padeiro',2,'g'],['Azeite',10,'ml'],['Mozzarella',50,'g'],['Queijo feta',20,'g'],['Sementes de sésamo',3,'g'],['Flor de sal',1,'g']],['p','l'],0,['br']),
+R('frangozaatar','Frango assado com za\'atar e limão','libanesa',['lowcarb','mediterranica'],0,0,0,0,[['Coxas de frango',200,'g'],['Za\'atar',8,'g'],['Azeite',12,'ml'],['Limão',0.5,'un'],['Alho',3,'dente'],['Cebola',80,'g'],['Flor de sal',1.5,'g'],['Pimenta preta',0.5,'g']],['a','j'],0,['pp']),
 /* Msemen: a crepe folhada do Magrebe. A sêmola é obrigatória — com farinha só,
    a massa estica mas não folha. Dobra-se em quatro com azeite pelo meio, e é
    essa dobra que faz as camadas. */
@@ -3964,7 +3983,7 @@ R('cogumelostosta','Cogumelos na torrada','britanica',[],0,0,0,0,[['Pão rústic
 
 /* ---------- Mediterrâneo ---------- */
 R('simit','Simit com queijo branco','mediterranica',['mediterranica'],0,0,0,0,[['Farinha de trigo tipo 65',65,'g'],['Fermento seco de padeiro',2,'g'],['Flor de sal',1.5,'g'],['Melaço',15,'ml'],['Sementes de sésamo',15,'g'],['Azeite',3,'ml'],['Queijo feta',40,'g'],['Tomate',60,'g'],['Pepino',50,'g'],['Azeitonas pretas',15,'g']],['p','l'],0,['br']),
-R('cilbir','Ovos escalfados em iogurte de alho','mediterranica',['mediterranica'],0,0,0,0,[['Iogurte grego natural',150,'g'],['Alho',1,'dente'],['Ovo',2,'un'],['Vinagre de vinho',15,'ml'],['Flor de sal',1,'g'],['Pão pita',50,'g'],['Endro',2,'g']],['p'],0,['br']),
+R('cilbir','Çilbir (ovos turcos), ovos escalfados em iogurte de alho','mediterranica',['mediterranica'],0,0,0,0,[['Iogurte grego natural',150,'g'],['Alho',1,'dente'],['Ovo',2,'un'],['Vinagre de vinho',15,'ml'],['Flor de sal',1,'g'],['Pão pita',50,'g'],['Endro',2,'g']],['p'],0,['br']),
 R('balila','Balila de grão-de-bico','libanesa',['mediterranica'],0,0,0,0,[['Grão-de-bico cozido',150,'g'],['Alho',1,'dente'],['Limão',0.5,'un'],['Azeite',10,'ml'],['Cominhos',2,'g'],['Flor de sal',1,'g'],['Salsa',5,'g'],['Hortelã',2,'g'],['Pão pita',40,'g'],['Cebola roxa',20,'g'],['Rabanete cru',30,'g']],['p','l'],0,['br']),
 R('fatteh','Fatteh de grão-de-bico com iogurte','libanesa',['mediterranica'],0,0,0,0,[['Grão-de-bico cozido',120,'g'],['Iogurte natural',150,'g'],['Tahini',5,'g'],['Pinhões',6,'g'],['Pão pita',20,'g'],['Ghee',5,'g'],['Alho',1,'dente'],['Cominhos',1.5,'g'],['Azeite',5,'ml'],['Salsa',2,'g'],['Flor de sal',1,'g']],['p','l'],0,['br']),
 R('shakshukaverde','Shakshuka verde','mediterranica',['mediterranica'],0,0,0,0,[['Azeite',15,'ml'],['Couve-de-Bruxelas crua',55,'g'],['Cebola roxa',30,'g'],['Alho',1,'dente'],['Couve galega',55,'g'],['Espinafres',40,'g'],['Malagueta',0.5,'g'],['Sementes de coentro',1,'g'],['Cominhos',1,'g'],['Limão',0.25,'un'],['Ovo',2,'un'],['Salsa',4,'g'],['Queijo feta',30,'g'],['Flor de sal',1,'g']],['p','l'],0,['br']),
@@ -4060,8 +4079,8 @@ R('tigelle','Tigelle modenesi','italiana',[],0,0,0,0,[['Farinha de trigo tipo 55
    das outras e não três entradas soltas na grelha. A burrata serve-se à
    temperatura da cozinha — fria do frigorífico, a stracciatella lá dentro
    fica dura e não escorre, que é a única coisa que ela tem de fazer. */
-R('burrataforno','Burrata com tomate cereja no forno','italiana',['vegetariana','mediterranica'],0,0,0,0,[['Burrata',80,'g'],['Tomate cereja',150,'g'],['Azeite',8,'ml'],['Alho',1,'dente'],['Manjericão',4,'g'],['Orégãos',0.5,'g'],['Pão rústico',30,'g'],['Flor de sal',1,'g']],['a','j'],0,['ent','br']),
-R('burratapesto','Burrata com confit de tomate cereja e pesto','italiana',['vegetariana','mediterranica'],0,0,0,0,[['Burrata',70,'g'],['Tomate cereja',140,'g'],['Azeite',10,'ml'],['Pesto',10,'g'],['Alho',1,'dente'],['Tomilho fresco',1,'g'],['Pão rústico',30,'g'],['Flor de sal',1,'g']],['a','j'],0,['ent','br']),
+R('burrataforno','Burrata com tomate cereja no forno','italiana',['vegetariana','mediterranica'],0,0,0,0,[['Burrata',80,'g'],['Tomate cereja',150,'g'],['Azeite',8,'ml'],['Alho',1,'dente'],['Manjericão',4,'g'],['Orégãos',0.5,'g'],['Pão rústico',30,'g'],['Flor de sal',1,'g']],['p','a','j'],0,['ent','br']),
+R('burratapesto','Burrata com confit de tomate cereja e pesto','italiana',['vegetariana','mediterranica'],0,0,0,0,[['Burrata',70,'g'],['Tomate cereja',140,'g'],['Azeite',10,'ml'],['Pesto',10,'g'],['Alho',1,'dente'],['Tomilho fresco',1,'g'],['Pão rústico',30,'g'],['Flor de sal',1,'g']],['p','a','j'],0,['ent','br']),
 
 /* ---- Pizza, a família ----
    A base é sempre a mesma — massa, molho de tomate e mozzarella —, e o que a
@@ -4081,6 +4100,13 @@ R('pizzanapoli','Pizza napolitana de anchovas e alcaparras','italiana',[],0,0,0,
 R('pizzavegetariana','Pizza de legumes assados','italiana',['vegetariana','mediterranica'],0,0,0,0,[['Farinha',90,'g'],['Fermento de padeiro',3,'g'],['Tomate pelado',80,'g'],['Mozzarella',65,'g'],['Pimento',50,'g'],['Courgette',60,'g'],['Cogumelos',50,'g'],['Azeitonas',15,'g'],['Manjericão',4,'g'],['Azeite',8,'ml'],['Flor de sal',2,'g']],['a','j'],0,['pp']),
 R('pizzatonno','Pizza de atum e cebola','italiana',[],0,0,0,0,[['Farinha',90,'g'],['Fermento de padeiro',3,'g'],['Tomate pelado',80,'g'],['Mozzarella',60,'g'],['Atum em conserva ao natural',55,'g'],['Cebola roxa',30,'g'],['Orégãos',1,'g'],['Azeite',8,'ml'],['Flor de sal',2,'g']],['a','j'],0,['pp']),
 R('pizzahavaiana','Pizza havaiana de fiambre e ananás','italiana',[],0,0,0,0,[['Farinha',90,'g'],['Fermento de padeiro',3,'g'],['Tomate pelado',80,'g'],['Mozzarella',70,'g'],['Fiambre',40,'g'],['Ananás',60,'g'],['Orégãos',1,'g'],['Azeite',6,'ml'],['Flor de sal',2,'g']],['a','j'],0,['pp']),
+/* A burrata não é cobertura: parte-se por cima da pizza já feita. Por isso
+   esta leva menos mozzarella do que as outras — a burrata acaba o trabalho. */
+/* A napolitana com burrata por cima. O sal já vem todo das anchovas, das
+   alcaparras e das azeitonas — esta é a única pizza da família sem flor de sal
+   na massa da cobertura, e leva menos mozzarella pela mesma razão da outra. */
+R('pizzanapoliburrata','Pizza de anchovas, alcaparras, azeitonas e burrata','italiana',[],0,0,0,0,[['Farinha',90,'g'],['Fermento de padeiro',3,'g'],['Tomate pelado',80,'g'],['Mozzarella',35,'g'],['Burrata',50,'g'],['Anchovas',12,'g'],['Alcaparras',8,'g'],['Azeitonas',12,'g'],['Orégãos',1,'g'],['Azeite',6,'ml'],['Manjericão',4,'g'],['Flor de sal',1,'g']],['a','j'],0,['pp']),
+R('pizzaburrata','Pizza de burrata, alho e manjericão','italiana',['vegetariana'],0,0,0,0,[['Farinha',90,'g'],['Fermento de padeiro',3,'g'],['Tomate pelado',80,'g'],['Mozzarella',30,'g'],['Burrata',60,'g'],['Alho',2,'dente'],['Manjericão',6,'g'],['Azeite',8,'ml'],['Flor de sal',2,'g']],['a','j'],0,['pp']),
 
 /* ---- Panquecas, uma para cada casa ----
    Havia três — as de banana e aveia, as americanas com frutos vermelhos e as
@@ -4100,18 +4126,46 @@ R('panquecasintegrais','Panquecas integrais com frutos vermelhos','americana',['
 R('panquecasproteina','Panquecas de proteína e aveia','americana',['vegetariana'],0,0,0,0,[['Aveia em flocos',35,'g'],['Proteína de ervilha em pó',25,'g'],['Ovo',1,'un'],['Leite',100,'ml'],['Fermento em pó',3,'g'],['Frutos vermelhos',60,'g'],['Canela',1,'g'],['Flor de sal',1,'g']],['p'],0,['br']),
 
 /* ---- Gumbo ----
-   O prato da Luisiana, e o único desta app que começa por uma hora de atenção
+   O prato da Luisiana, e o único desta app que começa por meia hora de atenção
    a um tacho onde não se pode ir fazer outra coisa: o roux escuro é farinha e
    gordura mexidas até à cor de chocolate, e queima-se em dez segundos de
    distração. O que vai lá dentro varia de casa para casa; o que não varia é o
    roux, a trindade (cebola, aipo e pimento) e o arroz por baixo. */
 R('gumbo','Gumbo da Luisiana com camarão e frango','americana',[],0,0,0,0,[['Farinha',18,'g'],['Óleo de girassol',14,'ml'],['Cebola',60,'g'],['Aipo',40,'g'],['Pimento',50,'g'],['Alho',2,'dente'],['Coxas de frango',70,'g'],['Camarão',80,'g'],['Chouriço',25,'g'],['Quiabo cru',80,'g'],['Tomate pelado',60,'g'],['Arroz agulha',45,'g'],['Colorau',2,'g'],['Louro',0.5,'g'],['Tomilho fresco',1,'g'],['Malagueta',1,'g'],['Flor de sal',1.5,'g'],['Cebola verde',10,'g']],['a','j'],0,['pp']),
 
-/* ---- Quindim ----
-   Gema, açúcar e coco, e mais nada. Coze em banho-maria e desenforma-se ao
-   contrário: o coco sobe durante a cozedura e fica na base da forma, que passa
-   a ser o topo do doce. É por isso que um quindim tem sempre duas camadas sem
-   ninguém as ter montado. */
+/* ================= AS MESMAS RECEITAS, EM KETO =================
+   A app tinha vinte e cinco pratos keto, e eram todos pratos keto de origem:
+   ovos, abacate, salmão, bombas de gordura. O que faltava era a outra metade
+   da pergunta — «e o que a minha casa come todos os dias, dá para fazer
+   assim?». Estas treze são a resposta: os pratos que já cá estavam, com a
+   substituição que a comunidade keto documenta há anos, e não uma invenção.
+
+   A regra da app é uma conta e não uma opinião: a etiqueta «keto» sai sozinha
+   quando os hidratos líquidos por dose ficam em 10 g ou abaixo. Todas as
+   doses aqui foram desenhadas com folga para isso — e as que quase não tinham
+   folga ficaram de fora, por muito que circulem na internet.
+
+   TRÊS COISAS QUE PARECEM KETO E NÃO SÃO, e que por isso não estão aqui:
+   a abóbora-espaguete (perto de 5 g por 100, contra 2 da courgette — uma dose
+   a sério gasta o orçamento todo); a base de pizza de couve-flor (a couve-flor
+   sozinha come 7 a 8 g, e depois ainda falta o molho e o queijo — a massa
+   «fathead» de mozzarella e farinha de amêndoa é a única que fecha a conta);
+   e o chocolate de culinária em sobremesas, que a 52 g por 100 estoira o teto
+   com vinte gramas. Nas sobremesas quem serve é o cacau em pó sem açúcar. */
+R('ketobacalhaunatas','Bacalhau com natas e couve-flor','portuguesa',[],0,0,0,0,[['Bacalhau desfiado',130,'g'],['Couve-flor',160,'g'],['Nata',70,'ml'],['Cebola',0.25,'un'],['Manteiga',15,'g'],['Azeite',8,'ml'],['Queijo flamengo',25,'g'],['Noz-moscada',0.3,'g']],['a','j'],0,['pp']),
+R('ketobras','Bacalhau à Brás com courgette','portuguesa',[],0,0,0,0,[['Bacalhau desfiado',130,'g'],['Courgette',180,'g'],['Ovo',3,'un'],['Cebola',0.25,'un'],['Alho-francês',40,'g'],['Azeitonas pretas',20,'g'],['Azeite',15,'ml'],['Salsa',5,'g']],['a','j'],0,['pp']),
+R('ketocaldoverde','Caldo verde com couve-flor','portuguesa',[],0,0,0,0,[['Couve galega',80,'g'],['Couve-flor',150,'g'],['Chouriço',25,'g'],['Cebola',0.25,'un'],['Alho',1,'dente'],['Azeite',12,'ml']],['a','j'],0,['sop']),
+R('ketoarrozpato','Arroz de pato com couve-flor','portuguesa',[],0,0,0,0,[['Couve-flor',180,'g'],['Peito de pato',150,'g'],['Chouriço',30,'g'],['Cebola',0.25,'un'],['Louro',1,'g'],['Azeite',8,'ml'],['Salsa',3,'g']],['a','j'],0,['pp']),
+R('ketopizza','Pizza margherita de massa fathead','italiana',['vegetariana'],0,0,0,0,[['Mozzarella',120,'g'],['Farinha de amêndoa',30,'g'],['Queijo creme',15,'g'],['Ovo',0.5,'un'],['Tomate pelado',40,'g'],['Manjericão',5,'g'],['Azeite',6,'ml'],['Orégãos',1,'g'],['Flor de sal',1,'g']],['a','j'],0,['pp']),
+R('ketobolonhesa','Bolonhesa com esparguete de courgette','italiana',[],0,0,0,0,[['Courgette',200,'g'],['Carne picada de vaca',120,'g'],['Tomate pelado',70,'g'],['Cebola',0.25,'un'],['Alho',1,'dente'],['Parmesão',15,'g'],['Azeite',10,'ml'],['Manjericão',4,'g']],['a','j'],0,['pp']),
+R('ketocarbonara','Carbonara com esparguete de courgette','italiana',[],0,0,0,0,[['Courgette',220,'g'],['Gema de ovo de galinha, crua',36,'g'],['Bacon',45,'g'],['Pecorino romano',25,'g'],['Pimenta preta',1,'g'],['Azeite',5,'ml']],['a','j'],0,['pp']),
+R('ketorisotto','Risotto de cogumelos com couve-flor','italiana',['vegetariana'],0,0,0,0,[['Couve-flor',160,'g'],['Cogumelos',120,'g'],['Cebola',0.25,'un'],['Vinho branco',20,'ml'],['Parmesão',20,'g'],['Nata',40,'ml'],['Manteiga',12,'g'],['Salsa',3,'g']],['a','j'],0,['pp']),
+R('ketohamburguer','Hambúrguer em folha de alface','americana',[],0,0,0,0,[['Carne picada de vaca',160,'g'],['Queijo cheddar',30,'g'],['Alface romana',60,'g'],['Tomate',0.5,'un'],['Cebola roxa',0.15,'un'],['Bacon',25,'g'],['Maionese',15,'g']],['a','j'],0,['pp']),
+R('ketopaonuvem','Pão nuvem','americana',['vegetariana'],0,0,0,0,[['Ovo',2,'un'],['Queijo creme',30,'g'],['Fermento em pó',1,'g'],['Flor de sal',0.5,'g']],['p','l'],0,['br','sn']),
+R('ketopaoamendoa','Pão de farinha de amêndoa e psílio','americana',['vegetariana'],0,0,0,0,[['Farinha de amêndoa',50,'g'],['Psílio em pó',8,'g'],['Ovo',1,'un'],['Fermento em pó',3,'g'],['Manteiga',12,'g'],['Sementes de sésamo',3,'g'],['Flor de sal',1,'g']],['p','l'],0,['br','sn']),
+R('ketomoussechoc','Mousse de chocolate com eritritol','portuguesa',['vegetariana'],0,0,0,0,[['Nata para bater 35% gordura',80,'ml'],['Cacau em pó sem açúcar',10,'g'],['Eritritol',15,'g'],['Baunilha',0.5,'g'],['Flor de sal',0.3,'g']],['l'],0,['sob']),
+R('ketocheesecake','Cheesecake com base de farinha de amêndoa','americana',['vegetariana'],0,0,0,0,[['Queijo creme',70,'g'],['Eritritol',18,'g'],['Ovo',0.35,'un'],['Nata para bater 35% gordura',15,'ml'],['Farinha de amêndoa',18,'g'],['Manteiga',10,'g'],['Baunilha',0.5,'g'],['Raspa de limão',0.5,'g']],['l'],0,['sob']),
+
 /* ---- Salada de feta ----
    Não é a salada grega, que já cá está: a horiatiki é tomate, pepino, cebola e
    um bloco de feta por cima. Esta é a do verão grego — melancia e feta, o doce
@@ -4124,6 +4178,11 @@ R('saladafeta','Salada de feta com melancia e hortelã','grega',['vegetariana','
    colorau, curcuma, canela e malagueta — e leva grão-de-bico. Sem ras el
    hanout de compra, os passos dizem como se faz com o que há na despensa. */
 R('shakshukamarroquina','Shakshuka marroquina com grão-de-bico','marroquina',['vegetariana','mediterranica'],0,0,0,0,[['Ovo',3,'un'],['Tomate pelado',200,'g'],['Grão-de-bico cozido',80,'g'],['Pimento',60,'g'],['Cebola',60,'g'],['Alho',2,'dente'],['Azeite',12,'ml'],['Colorau',2,'g'],['Cominhos',2,'g'],['Curcuma em pó',1,'g'],['Canela',0.5,'g'],['Malagueta',1.5,'g'],['Coentros',8,'g'],['Flor de sal',1.5,'g']],['p','a','j'],0,['br','pp']),
+/* ---- Quindim ----
+   Gema, açúcar e coco, com um fio de leite e a manteiga que unta a forma. Coze
+   em banho-maria e desenforma-se ao contrário: o coco sobe durante a cozedura
+   e fica na base da forma, que passa a ser o topo do doce. É por isso que um
+   quindim tem sempre duas camadas sem ninguém as ter montado. */
 R('quindim','Quindim de coco','brasileira',[],0,0,0,0,[['Gema de ovo de galinha, crua',30,'g'],['Açúcar branco',35,'g'],['Coco ralado',15,'g'],['Manteiga',5,'g'],['Leite',15,'ml']],['l'],0,['sob']),
 R('bavaroisemanga','Bavaroise de manga','francesa',[],0,0,0,0,[['Manga',90,'g'],['Nata para bater 35% gordura',60,'ml'],['Leite',50,'ml'],['Gema de ovo de galinha, crua',18,'g'],['Açúcar branco',22,'g'],['Gelatina em folhas',2,'g'],['Limão',0.25,'un']],['l'],0,['sob']),
 
@@ -4191,7 +4250,11 @@ R('accacobrasa','Bolo do caco na brasa','portuguesa',[],0,0,0,0,[['Farinha de tr
 R('acsalbatata','Salada de batata com maionese e ovo','americana',[],0,0,0,0,[['Batata',180,'g'],['Maionese',25,'g'],['Mostarda',4,'g'],['Ovo de galinha cozido',30,'g'],['Aipo',20,'g'],['Cebola roxa',15,'g'],['Vinagre de vinho',5,'ml'],['Salsa',2,'g'],['Pimenta preta',0.3,'g']],['ac']),
 R('accoleslaw','Coleslaw','americana',[],0,0,0,0,[['Couve-branca crua',130,'g'],['Cenoura',30,'g'],['Maionese',25,'g'],['Vinagre de vinho',8,'ml'],['Açúcar branco',6,'g'],['Mostarda',3,'g'],['Pimenta preta',0.3,'g']],['ac']),
 R('acfeijaofrade','Salada de feijão-frade com cebola e coentros','portuguesa',['mediterranica'],0,0,0,0,[['Feijão-frade cozido',150,'g'],['Cebola',30,'g'],['Pimento',25,'g'],['Coentros',5,'g'],['Azeite',12,'ml'],['Vinagre de vinho',6,'ml'],['Flor de sal',1,'g'],['Pimenta preta',0.3,'g']],['ac']),
-R('acmelanciafeta','Salada de melancia com feta e hortelã','mediterranica',['mediterranica'],0,0,0,0,[['Melancia sem casca',160,'g'],['Queijo feta',30,'g'],['Hortelã',3,'g'],['Azeite',6,'ml'],['Lima',8,'g'],['Pimenta preta',0.3,'g']],['ac']),
+/* A dose de acompanhamento da salada que está em `saladafeta`: metade da
+   melancia e menos de metade da feta, para ir ao lado de um grelhado em vez de
+   ser o prato. O nome diz qual é qual — «ao lado» — porque dois cartões com
+   nomes quase iguais na mesma cozinha são um convite ao engano. */
+R('acmelanciafeta','Melancia com feta e hortelã, ao lado','grega',['mediterranica'],0,0,0,0,[['Melancia sem casca',160,'g'],['Queijo feta',30,'g'],['Hortelã',3,'g'],['Azeite',6,'ml'],['Lima',8,'g'],['Pimenta preta',0.3,'g']],['ac']),
 R('acvinagrete','Vinagrete de churrasco','brasileira',['mediterranica'],0,0,0,0,[['Tomate',70,'g'],['Cebola',25,'g'],['Pimento',20,'g'],['Salsa',3,'g'],['Cebolinho',2,'g'],['Vinagre de vinho',8,'ml'],['Azeite',10,'ml'],['Açúcar branco',2,'g'],['Flor de sal',1,'g']],['ac']),
 R('actropeiro','Feijão tropeiro','brasileira',[],0,0,0,0,[['Feijão catarino, seco, cru',32,'g'],['Farinha de pau (mandioca)',20,'g'],['Bacon',15,'g'],['Linguiça',25,'g'],['Ovo',25,'g'],['Couve galega',20,'g'],['Cebola',12,'g'],['Alho',1,'dente'],['Salsa',2,'g'],['Cebolinho',2,'g']],['ac']),
 R('acmacfumado','Mac and cheese fumado na churrasqueira','americana',[],0,0,0,0,[['Massa cotovelo crua',70,'g'],['Manteiga',12,'g'],['Farinha de trigo tipo 65',10,'g'],['Leite',120,'ml'],['Queijo cheddar',45,'g'],['Queijo Gouda',20,'g'],['Queijo creme',15,'g'],['Mostarda',2,'g'],['Colorau',0.5,'g'],['Pimenta preta',0.3,'g'],['Sal grosso',1,'g']],['ac']),
@@ -5015,11 +5078,11 @@ P('pizza',[['Massa, e sal longe do fermento','Amassa a farinha com 55 ml de águ
  ['Esticar com as mãos','Do centro para fora, com as pontas dos dedos, deixando a borda mais grossa por tocar. O rolo esmaga o gás todo que a levedação criou e a borda nunca mais sobe.'],
  ['Molho cru','Esmaga o tomate pelado com as mãos ou o garfo, com uma pitada de sal e um fio de azeite. Não se cozinha: coze em cima da pizza, e cozido antes fica doce e escuro.',3],
  ['Molho, queijo, manjericão','Molho em espiral até dois dedos da borda, a mozzarella escorrida em pedaços e o manjericão. Molho a mais alaga a massa e ela nunca coze por baixo.'],
- ['Forno no máximo','O forno o mais quente que tiver, com o tabuleiro ou a pedra já a aquecer lá dentro há meia hora. Oito a dez minutos, até a borda ganhar manchas escuras. Azeite cru à saída.',10]]);
+ ['Forno no máximo','Forno o mais quente que tiveres, com o tabuleiro ou a pedra já a aquecer lá dentro há meia hora. Oito a dez minutos, até a borda ganhar manchas escuras. Azeite cru à saída.',10]]);
 P('pizzaprosciutto',[['Massa','Farinha, 55 ml de água morna, fermento e sal, amassados até a massa deixar de colar. O sal por cima da farinha, nunca sobre o fermento.',10],
  ['Levedar','Tapada, até dobrar — duas horas na cozinha ou uma noite no frigorífico.',120],
  ['Esticar e cobrir','Estica com as mãos, deixando a borda grossa. Molho de tomate cru esmagado, mozzarella escorrida, e mais nada por agora.'],
- ['Forno no máximo','Oito a dez minutos no forno mais quente que tiver, com o tabuleiro já quente.',10],
+ ['Forno no máximo','Oito a dez minutos no forno mais quente que tiveres, com o tabuleiro já quente.',10],
  ['Presunto e rúcula CRUS, à saída','As duas coisas põem-se com a pizza já fora do forno. O presunto cozido perde a gordura e fica a couro; a rúcula murcha e amarga. Fio de azeite e serve.']]);
 P('pizzafunghi',[['Massa','Farinha, 55 ml de água morna, fermento e sal, amassados dez minutos.',10],
  ['Levedar','Até dobrar, tapada.',120],
@@ -5063,8 +5126,8 @@ P('burratalimao',[['Fora do frigorífico','Tira a burrata do frio meia hora ante
  ['Pão ao lado','Pão rústico torrado, para levar o que fica no prato.',4]]);
 P('burrataforno',[['Forno bem quente','Forno a 220 °C. O tomate cereja quer calor forte e pouco tempo: brando, coze e desfaz-se em água.',10],
  ['Tomate inteiro, com pele','Tomate cereja inteiro num tabuleiro pequeno, com o alho esmagado com casca, azeite, sal e orégãos. Cortados ao meio largam o sumo todo antes de assar.'],
- ['Assar até rebentarem','Quinze a vinte minutos, até a pele estalar e alguns rebentarem. É aí que o açúcar do tomate concentra.',18],
- ['A burrata NÃO vai ao forno','Põe o tomate quente à volta da burrata à temperatura da cozinha, e nunca a burrata dentro do forno: ao calor, ela derrete e vira uma poça de soro.'],
+ ['Assar até rebentarem','Quinze a vinte minutos, até a pele estalar e alguns rebentarem. É aí que o açúcar do tomate se concentra.',18],
+ ['A burrata NÃO vai ao forno','Põe o tomate quente à volta da burrata, que está à temperatura da cozinha, e nunca a burrata dentro do forno: ao calor, ela derrete e vira uma poça de soro.'],
  ['Servir logo','Com o azeite do tabuleiro por cima, manjericão e pão torrado. Come-se enquanto o tomate ainda está quente e o queijo ainda está frio.']]);
 P('burratapesto',[['Confit é lume brando e tempo','Confit não é assar: é cozinhar submerso em gordura a temperatura baixa. Forno a 120 °C, e o tomate cereja num tabuleiro pequeno coberto de azeite até meia altura, com o alho e o tomilho.',5],
  ['Uma hora e meia sem pressa','Noventa minutos a 120 °C. Os tomates enrugam e ficam doces sem se desfazerem. A 200 °C fazia-se em vinte, mas saía tomate assado — que é outra coisa e está na receita ao lado.',90],
@@ -5088,7 +5151,7 @@ P('panquecassemgluten',[['Duas farinhas e não uma','Farinha de arroz sozinha d�
  ['Virar mais tarde','Estas demoram mais a firmar. Espera até as bordas estarem secas e a base soltar-se sozinha da frigideira.',4],
  ['Servir','Com xarope de ácer, ou com fruta se preferires deixá-lo de fora.']]);
 P('panquecasintegrais',[['Farinha integral quer mais tempo','Mistura a farinha integral com o fermento, a canela e o sal, e junta o ovo com o leite. Deixa hidratar quinze minutos — o farelo absorve água devagar e sem isso a panqueca fica seca.',15],
- ['Mexer só até ligar','Grumos são bem-vindos. A massa integral é mais pesada e mexê-la de mais torna-a de borracha.'],
+ ['Mexer só até ligar','Grumos são bem-vindos. A massa integral é mais pesada e mexê-la de mais torna-a borrachuda.'],
  ['Azeite em vez de manteiga','Aqui vai azeite: mantém a receita sem gordura de leite a mais e aguenta melhor o lume médio.'],
  ['Virar às bolhas','Dois minutos de um lado, até as bolhas abrirem; um do outro.',3],
  ['Frutos vermelhos no fim','Por cima e não dentro da massa — dentro, largam água e a panqueca fica roxa e mole.']]);
@@ -5098,13 +5161,111 @@ P('panquecasproteina',[['Aveia moída','Mói os flocos de aveia no copo da varin
  ['Lume brando e paciência','Proteína queima antes de a panqueca cozer por dentro. Lume médio-baixo, três minutos de um lado.',4],
  ['Servir','Com os frutos vermelhos e a canela por cima.']]);
 P('gumbo',[['O roux é o prato','Farinha e óleo em partes iguais, em tacho de fundo grosso, lume médio-baixo, a mexer SEM PARAR. Vai de louro a caramelo a chocolate escuro. Vinte a trinta minutos em que não se faz mais nada — em dez segundos de distração queima, e queimado deita-se fora e começa-se de novo, porque amarga o tacho todo.',25],
- ['A trindade no roux a ferver','Cebola, aipo e pimento picados, atirados de uma vez para o roux quente. Baixam-lhe a temperatura de repente e param a cozedura da farinha, que é exatamente o que se quer.',8],
- ['Chouriço e frango','Junta o chouriço em rodelas e as coxas em pedaços, e deixa-os pegar cor no roux com o alho, o colorau, o tomilho e o louro.',10],
+ ['A trindade no roux a fumegar','Cebola, aipo e pimento picados, atirados de uma vez para o roux quente. Baixam-lhe a temperatura de repente e param a cozedura da farinha, que é exatamente o que se quer.',8],
+ ['Chouriço e frango','Junta o chouriço em rodelas e as coxas em pedaços, e deixa-os ganhar cor no roux com o alho, o colorau, o tomilho e o louro.',10],
  ['Caldo aos poucos','Água ou caldo, meia concha de cada vez, a desfazer o roux antes de juntar mais. De uma vez, o roux empelota e nunca mais liga.',5],
  ['Apurar','Junta o tomate e deixa em lume brando quarenta e cinco minutos, destapado, até engrossar e a gordura subir à superfície — tira-a com a concha.',45],
  ['Quiabo nos últimos vinte','O quiabo em rodelas nos últimos vinte minutos: é ele que acaba de engrossar. Posto ao princípio, desfaz-se e fica só a viscosidade.',20],
- ['Camarão no fim','O camarão nos últimos cinco minutos, e desliga. Mais do que isso e fica borracha.',5],
+ ['Camarão no fim','O camarão nos últimos cinco minutos, e desliga. Mais do que isso, e fica uma borracha.',5],
  ['Arroz por baixo','Serve-se o arroz cozido no prato e o gumbo por cima — nunca cozido dentro, senão bebe o caldo todo. Cebola verde picada em cima.']]);
+P('ketobacalhaunatas',[['Couve-flor em rodelas, não em floretes','Corta a couve-flor em fatias de meio centímetro pelo caule, para ficarem lâminas que se sobrepõem como a batata. Em floretes, o prato fica com buracos e o molho escorre por eles.',8],
+ ['Secar no forno primeiro','Lâminas num tabuleiro, 200 °C, quinze minutos, sem gordura. É o passo que decide tudo: couve-flor crua larga água no forno e transforma o gratinado numa sopa.',15],
+ ['Sem roux','Não leva farinha. As natas reduzem-se em lume brando com a noz-moscada até napar a colher — cinco minutos chegam, e é o queijo que acaba de engrossar.',6],
+ ['Cebola e bacalhau','Cebola em meias-luas no azeite e na manteiga até ficar translúcida, e o bacalhau desfiado só a aquecer. Muito tempo ao lume e desfia-se em nada.',10],
+ ['Camadas e gratinar','Couve-flor, bacalhau, natas, e o queijo por cima. Forno a 200 °C até borbulhar e dourar.',20]]);
+P('ketobras',[['Juliana fina, e sal para escorrer','Courgette em palitos finos como a batata palha. Salga-os e deixa-os quinze minutos num passador — a courgette é 95% água, e esta é a única forma de a tirar antes de ela sair na frigideira.',15],
+ ['Espremer com pano','Aperta os palitos num pano limpo até deixarem de pingar. Este passo não se salta: sem ele, o Brás fica uma papa.',5],
+ ['Fritar em duas vezes','Frigideira bem quente, em camada única e aos poucos, até ganharem cor. Todos de uma vez, cozem no próprio vapor.',10],
+ ['Alho-francês e cebola','Aloura a cebola e o alho-francês no azeite. O alho-francês está aqui por causa da doçura que a batata levava — é o que evita que o prato saiba a nada.',10],
+ ['Bacalhau e ovos fora do lume','Junta o bacalhau, depois a courgette, e por fim os ovos batidos com o lume no mínimo, a mexer sem parar. Tira do lume ainda cremoso: o calor da frigideira acaba o trabalho.',3],
+ ['Servir','Azeitonas e salsa por cima. Come-se logo — o Brás, keto ou não, não espera.']]);
+P('ketocaldoverde',[['Couve-flor no lugar da batata','Couve-flor aos pedaços a cozer com a cebola e o alho em água temperada, até desfazer ao garfo.',18],
+ ['Triturar bem','Varinha até ficar um creme liso. A couve-flor tritura mais depressa do que a batata e engrossa menos — quer-se ficar num creme, não numa sopa aguada, por isso pouca água.',3],
+ ['Couve em juliana muito fina','Couve galega enrolada e cortada em fios, o mais fino que a faca deixar. Numa sopa que perdeu o amido da batata, é a couve que dá corpo à colher.',8],
+ ['Cozer a couve três minutos','Só três. Mais tempo e ela amarelece e amarga — o defeito mais comum de um caldo verde, com batata ou sem ela.',3],
+ ['Chouriço e azeite','Rodelas de chouriço escaldadas à parte, e o azeite cru na taça. Sem a batata, é o azeite que faz o prato ficar de pé.']]);
+P('ketoarrozpato',[['Pato com a pele para baixo, a frio','Peito de pato numa frigideira FRIA, pele para baixo, lume médio-baixo. É a única carne que se põe em frigideira fria: a gordura tem de derreter devagar antes de a pele tostar.',15],
+ ['Guardar a gordura','Escorre a gordura que largou e guarda-a — é nela que a couve-flor vai cozinhar, e é o que faz este prato saber a arroz de pato e não a couve-flor.',2],
+ ['Couve-flor ralada, não picada','Rala a couve-flor no ralador grosso ou dá-lhe pulsos curtos na picadora, até ficar do tamanho de grãos de arroz. Triturada de mais vira puré.',6],
+ ['Saltear seca','Couve-flor na gordura do pato, lume alto, sem tapar, cinco a seis minutos. Tapada, coze a vapor e fica mole.',6],
+ ['Montar e ir ao forno','Camada de couve-flor, o pato desfiado e o chouriço em rodelas por cima. Forno a 200 °C até o chouriço estalar.',15]]);
+P('ketopizza',[['Fathead: queijo derretido é a massa','Mozzarella e queijo creme no micro-ondas, um minuto, a mexer a meio, até estar tudo derretido e ligado. Não é uma massa de farinha: é queijo que arrefece em forma de massa.',3],
+ ['Trabalhar depressa','Junta a farinha de amêndoa e o ovo ao queijo AINDA QUENTE e amassa com as mãos molhadas. Frio, o queijo firma e a massa nunca liga.',3],
+ ['Esticar entre papéis','Estende entre duas folhas de papel vegetal, com o rolo. Diretamente na bancada, cola-se toda.'],
+ ['Pré-cozer a base sozinha','200 °C durante dez minutos, e pica com um garfo as bolhas que subirem. Sem esta pré-cozedura, a base fica húmida por baixo da cobertura.',10],
+ ['Cobrir e acabar','Tomate, manjericão e orégãos, e mais oito minutos até as bordas dourarem. Azeite à saída.',8]]);
+P('ketobolonhesa',[['Courgette em espiral, e sal','Passa a courgette no espiralizador ou corta-a em fitas com o descascador. Salga e deixa escorrer vinte minutos.',20],
+ ['Espremer','Aperta as fitas num pano. A courgette larga meio copo de água por cada courgette — água que ia toda para o molho.',5],
+ ['Molho apurado e curto','Carne alourada, cebola e alho, e o tomate a apurar em lume brando. Menos tomate do que na bolonhesa de massa, de propósito: é ele que traz os hidratos.',25],
+ ['Courgette CRUA no prato','As fitas não se cozinham. Põem-se cruas no prato e o molho a ferver por cima — o calor dele basta para as amaciar. Salteadas antes, desfazem-se.'],
+ ['Parmesão e manjericão','Por cima, na hora.']]);
+P('ketocarbonara',[['Fitas de courgette, salgadas e escorridas','Como na bolonhesa: fitas, sal, vinte minutos a escorrer, e espremer num pano.',20],
+ ['Bacon primeiro, e a gordura fica','Bacon em cubos numa frigideira fria, lume médio, até estalar. A gordura que largou é a base do molho e não se deita fora.',10],
+ ['Creme sem natas','Gemas batidas com o pecorino ralado e muita pimenta moída. A carbonara nunca levou natas — nem esta, nem a de massa.'],
+ ['Courgette na gordura do bacon','Saltear as fitas dois minutos, lume alto. Só dois: quer-se quente, não cozido.',2],
+ ['FORA do lume','Tira a frigideira do lume, conta até dez, e só depois junta as gemas, a mexer depressa. No lume, a gema coalha e fica uma omelete com courgette — o erro que estraga esta receita, com massa ou sem ela.']]);
+P('ketorisotto',[['Couve-flor em grão de arroz','Rala a couve-flor até ficar do tamanho de grãos. Uma metade fina e outra mais grossa dá textura mais parecida com a do arroz.',6],
+ ['Cogumelos primeiro, e a seco','Lâminas em frigideira quente sem gordura, até largarem a água e ela evaporar. Depois é que entra a manteiga.',8],
+ ['Sem tostar, sem caldo','Ao contrário do risotto de arroz, não há grão para tostar nem caldo para absorver: a couve-flor não absorve nada. O vinho entra só pelo aroma e evapora.',3],
+ ['Cremoso com natas e queijo','Couve-flor na frigideira dos cogumelos, cinco minutos, e depois as natas e o parmesão fora do lume. É daqui que vem a cremosidade que no risotto vinha do amido.',6],
+ ['Servir logo','O risotto de couve-flor não espera nem se reaquece bem — perde a textura e fica papa.']]);
+P('ketohamburguer',[['Folhas inteiras e secas','Escolhe as folhas maiores e mais firmes da alface romana, lava-as e SECA-AS bem. Molhadas, o hambúrguer escorrega e desfaz-se na mão.',5],
+ ['Carne com sal só no fim','Molda os hambúrgueres sem os apertar e salga-os só quando forem para a frigideira. Salgados antes, a carne perde água e fica seca.'],
+ ['Cova no meio','Faz uma cova com o polegar no centro de cada um. A carne incha ao meio ao cozinhar, e sem a cova sai uma bola.'],
+ ['Frigideira a fumegar','Lume alto, sem mexer, três minutos de cada lado. O queijo entra no último minuto, com a frigideira tapada para derreter.',6],
+ ['Maionese, não ketchup','O ketchup são quatro gramas de hidratos por colher, quase todos açúcar. A maionese não tem nenhum, e é ela que faz o papel aqui.'],
+ ['Montar em duas folhas','Duas folhas sobrepostas por baixo, o hambúrguer, e mais duas por cima. Embrulha em papel vegetal para segurar — come-se à mão, como deve ser.']]);
+P('ketopaonuvem',[['Separar os ovos com cuidado','Claras numa taça absolutamente limpa e seca. Um vestígio de gema ou de gordura e as claras nunca sobem.'],
+ ['Claras em castelo firme','Bate as claras com o fermento em pó até fazerem picos que não caem quando se vira a taça. É o único ar que este pão tem.',5],
+ ['Gemas com o queijo creme','Bate as gemas com o queijo creme e o sal até ficar liso, sem grumos.'],
+ ['Envolver, nunca mexer','Junta um terço das claras às gemas para aliviar, e envolve o resto com a espátula, de baixo para cima. Mexido, perde o ar todo e sai uma bolacha.'],
+ ['Montinhos no tabuleiro','Colheradas em papel vegetal, achatadas de leve, bem separadas.'],
+ ['Forno brando e demorado','150 °C durante vinte e cinco minutos, até dourarem. Alto, incham e colapsam. Frios, aguentam dois dias em caixa fechada e ficam melhores no segundo.',25]]);
+P('ketopaoamendoa',[['Psílio primeiro, na água','Mistura o psílio em pó com 80 ml de água morna e deixa dez minutos até virar gel. É este gel que faz o papel do glúten — sem ele, o pão de amêndoa esfarela-se ao cortar.',10],
+ ['Secos à parte','Farinha de amêndoa, fermento em pó, sésamo e sal misturados numa taça.'],
+ ['Juntar tudo depressa','O ovo, a manteiga derretida e o gel de psílio nos secos, amassados um minuto. A massa fica pegajosa e é assim mesmo.',2],
+ ['Moldar com as mãos molhadas','Forma um pão redondo e faz dois cortes por cima. As mãos molhadas são o que impede a massa de colar aos dedos.'],
+ ['Forno a 180 °C','Quarenta minutos, até soar oco por baixo. O psílio dá-lhe um tom acinzentado por dentro que é normal e não é cru.',40],
+ ['Arrefecer POR COMPLETO','Não se corta quente. Este pão acaba de firmar a arrefecer, e cortado morno esmaga-se todo.',60]]);
+P('ketomoussechoc',[['Eritritol em pó','Se o eritritol for granulado, mói-o no moinho até ficar pó. Em grão, não dissolve nas natas frias e a mousse fica com areia — é o defeito clássico das sobremesas com este adoçante.',2],
+ ['Tudo bem frio','Natas, taça e varas no frigorífico meia hora antes. Natas mornas não montam.',30],
+ ['Cacau peneirado','Peneira o cacau sobre as natas ainda líquidas, com o eritritol, a baunilha e o sal. Atirado por cima das natas já batidas, faz grumos que não saem.'],
+ ['Bater até picos moles','Bate até fazer picos que dobram na ponta. Passar disso e as natas talham e viram manteiga com cacau.',4],
+ ['Frio duas horas','Taças individuais, tapadas, no frigorífico. Sem ovo e sem gelatina, é o frio que a firma.',120]]);
+P('ketocheesecake',[['Base de amêndoa e manteiga','Farinha de amêndoa com a manteiga derretida e metade do eritritol, pressionada no fundo de uma forma pequena com o fundo de um copo.',5],
+ ['Pré-cozer a base','180 °C durante dez minutos, até dourar nas bordas. Sem isto, a base fica húmida por baixo do recheio.',10],
+ ['Queijo à temperatura da cozinha','O queijo creme tem de estar mole. Frio, fica com grumos que não se desfazem — e num cheesecake sem farinha nada os disfarça.',60],
+ ['Bater DEVAGAR','Queijo, eritritol, ovo, natas, baunilha e raspa de limão, na velocidade mínima. Ar batido para dentro é o que faz o cheesecake subir no forno e rachar ao arrefecer.',4],
+ ['Banho-maria e forno brando','160 °C, com um tabuleiro de água quente na prateleira de baixo. Trinta e cinco minutos: o centro tem de abanar ainda quando se mexe a forma.',35],
+ ['Arrefecer no forno apagado','Porta entreaberta, uma hora, e só depois quatro horas de frigorífico. A mudança brusca de temperatura é o que racha os cheesecakes.',60]]);
+P('acmzaatar',[['Tomilho seco, e não fresco','O za'+String.fromCharCode(39)+'atar faz-se com a erva seca e esfarelada. Fresca traz água, e a mistura ganha bolor em dias em vez de durar meses.'],
+ ['Sésamo tostado a seco','Frigideira sem gordura, lume médio, a abanar, até as sementes ficarem douradas e começarem a saltar. É onde está metade do sabor da mistura.',4],
+ ['Sem sumagre, com limão','A mistura de origem leva sumagre, que dá o ácido e a cor vinosa. Esta app não o tem — não lhe encontrou tabela de composição fiável — e por isso o ácido entra na hora de usar, com raspa e sumo de limão sobre o prato.'],
+ ['Pisar, não moer','Almofariz e não moinho: pisado grosseiramente, o za'+String.fromCharCode(39)+'atar mantém textura no pão e no iogurte. Moído a pó, empasta.',3],
+ ['Guardar ao escuro','Frasco fechado, longe da luz. Dura três meses com sabor a sério, e um ano com sabor a pó.']]);
+P('manakishqueijo',[['Massa de manakish','Farinha, água morna, fermento, azeite e sal, amassados até ficar lisa. É a mesma massa do manakish de za'+String.fromCharCode(39)+'atar.',10],
+ ['Levedar','Tapada, uma hora e meia, até dobrar.',90],
+ ['Dois queijos e não um','Mozzarella pelo derretimento, feta pelo sal. O queijo akkawi do Líbano faz as duas coisas sozinho; fora de lá, é esta mistura que mais se aproxima.'],
+ ['Discos com borda baixa','Estica em discos de um dedo de espessura e faz covas com as pontas dos dedos, para o queijo não escorregar todo para o meio.'],
+ ['Forno muito quente','230 °C, oito a dez minutos, até o queijo borbulhar e a base ficar dourada. Come-se quente, dobrado ao meio, com hortelã e azeitonas ao lado.',10]]);
+P('frangozaatar',[['Marinada seca','Za'+String.fromCharCode(39)+'atar, azeite, alho pisado, sumo de metade do limão e sal, esfregados nas coxas com a mão, por dentro e por fora da pele.',8],
+ ['Uma hora, pelo menos','Tapado no frigorífico. O za'+String.fromCharCode(39)+'atar precisa de tempo no azeite para largar o que tem — usado seco no momento, fica areia por cima da pele.',60],
+ ['Cebola por baixo','Cebola em rodelas grossas no fundo do tabuleiro e o frango por cima, com a pele voltada para cima. A cebola coze no suco e não deixa a carne colar.'],
+ ['Forno alto, sem tapar','200 °C, quarenta minutos, sem virar. A pele tem de ficar estaladiça e o suco sair claro quando se pica a parte mais grossa.',40],
+ ['Limão à saída','O resto do limão espremido em cima já fora do forno, e mais uma pitada de za'+String.fromCharCode(39)+'atar. Ambos perdem o perfume se forem ao calor.']]);
+P('pizzanapoliburrata',[['Massa','Farinha, 55 ml de água morna, fermento e sal, amassados dez minutos.',10],
+ ['Levedar','Até dobrar, tapada.',120],
+ ['Sal nenhum na cobertura','Anchovas, alcaparras e azeitonas trazem o sal todo de que esta pizza precisa. Prova o molho antes de o espalhar e resiste ao instinto de salgar.'],
+ ['Alcaparras enxaguadas','Passa as alcaparras por água fria e seca-as. Direto do frasco, trazem salmoura que salga a pizza inteira e amolece a massa.'],
+ ['Esticar e cobrir','Molho de tomate, metade da mozzarella do costume, os filetes de anchova, as alcaparras e as azeitonas. Orégãos por cima.'],
+ ['Forno no máximo','Oito a dez minutos, até a borda manchar.',10],
+ ['Burrata à saída','A burrata parte-se à mão sobre a pizza já fora do forno, e o manjericão por cima dela. Dentro do forno derretia — e é ela que faz o contraponto doce ao sal de tudo o resto.']]);
+P('pizzaburrata',[['Massa','Farinha, 55 ml de água morna, fermento e sal, amassados dez minutos.',10],
+ ['Levedar','Até dobrar, tapada.',120],
+ ['Alho no azeite, não na pizza','Alho laminado fino a infundir no azeite morno cinco minutos, fora do lume. Espalhado cru sobre a massa, queima no forno a 250 °C e amarga.',5],
+ ['Menos mozzarella do que o costume','Metade da mozzarella das outras: a burrata é que acaba o trabalho, e as duas juntas em dose cheia dão uma pizza que escorre.'],
+ ['Forno no máximo','Molho de tomate, a mozzarella e o azeite de alho. Oito a dez minutos.',10],
+ ['Burrata à saída, partida à mão','A burrata parte-se por cima da pizza já fora do forno, com as mãos. No forno derretia e virava soro; partida à faca, perde a stracciatella para a tábua. Manjericão e o resto do azeite de alho.']]);
 P('saladafeta',[['Melancia bem fria, feta à temperatura da cozinha','A melancia sai do frigorífico na hora; a feta, meia hora antes. É o contraste de temperaturas que faz esta salada, tanto como o de sabores.',30],
  ['Cubos do mesmo tamanho','Melancia e feta em cubos de dois centímetros, iguais, para cada garfada apanhar os dois. Feta esfarelada perde-se no fundo da taça.'],
  ['Cebola roxa a perder o ardor','Cebola em meias-luas muito finas, dez minutos no sumo de limão antes de entrar. Crua e grossa, é a única coisa que se prova.',10],
@@ -5617,7 +5778,7 @@ P('lambkorma',[['Cebola','Cebola em fatias finas a fritar em ghee até castanha 
 P('carilcamarao',[['Cascas','As cascas do camarão fritas em óleo dão um caldo curto que é onde está o sabor. Coa e reserva.',10],
  ['Base','Cebola, alho e gengibre a refogar; curcuma e caril fora do lume forte, que queimam.',10],
  ['Tomate','Tomate ralado a desfazer, depois o leite de coco e o caldo das cascas.',12],
- ['Camarão','Camarão nos últimos três minutos. Mais do que isso e fica borracha.',3],
+ ['Camarão','Camarão nos últimos três minutos. Mais do que isso, e fica uma borracha.',3],
  ['Fechar','Coentros e lima fora do lume. Arroz branco ao lado.']]);
 P('vindaloo',[['Vinha de alhos','Alho, malagueta e especiarias moídas com o vinagre até formar pasta. É daqui que vem o nome: «vinha d’alhos».',10],
  ['Marinar','Porco em cubos na pasta, de véspera no frigorífico. Menos do que uma noite não chega.',720],
@@ -5703,7 +5864,7 @@ P('tonkatsu',[['Preparar a carne','Dá uns golpes no nervo que rodeia o lombo pa
 P('pastitsio',[['Carne','Refoga cebola e alho em azeite, junta a carne de borrego e deixa-a soltar-se. Tomate, canela e noz-moscada, e apura em lume brando até quase seco. A canela na carne é o que faz este prato grego e não uma lasanha.',30],
  ['Massa','Coze a massa em água com sal até ficar bem al dente — vai acabar de cozer no forno, e a que sai mole do tacho sai papa do tabuleiro.',8],
  ['Bechamel','Manteiga e farinha em roux claro, leite morno aos poucos sem parar de mexer, até napar a colher. Fora do lume, o parmesão e o ovo batido — o ovo é o que o faz firmar em fatia.',12],
- ['Montar','Metade da massa no fundo, a carne toda, o resto da massa, e o béchamel por cima a cobrir os cantos todos.',6],
+ ['Montar','Metade da massa no fundo, a carne toda, o resto da massa, e o bechamel por cima a cobrir os cantos todos.',6],
  ['Forno','180 °C até a superfície estar dourada e firme ao toque.',40],
  ['Descanso','Vinte minutos fora do forno antes de cortar. Cortado a sair, escorre e desfaz-se.',20]]);
 P('stifado',[['Selar','Carne aos cubos, seca com papel, selada em azeite bem quente aos poucos. Tacho cheio de uma vez coze em vez de corar.',12],
@@ -5840,7 +6001,7 @@ P('kousamahshi',[['Escavar sem furar','Corta o pé às courgettes e escava o mio
  ['Deitadas no tacho','Arruma-as deitadas e apertadas num tacho, cobre com a polpa de tomate diluída em água e um fio de azeite. Um prato por cima impede-as de flutuar.'],
  ['Lume brando, tapado','Quarenta minutos em lume brando, tapado, até a courgette ceder à faca e o arroz estar cozido. Serve com o próprio molho e iogurte ao lado.',40]]);
 P('lahmmashwi',[['Cubos do tamanho certo','Corta a perna de borrego em cubos de três centímetros, com a gordura entremeada. Cubos pequenos secam antes de ganhar cor; grandes ficam crus por dentro.',10],
- ['Marinada seca de cebola','Rala a cebola e esprime-lhe o sumo por cima da carne, com o alho pisado, o azeite, a pimenta, a canela e a noz-moscada. É o sumo da cebola que amacia — a cebola aos pedaços queima no espeto e não serve para isto.',10],
+ ['Marinada de sumo de cebola','Rala a cebola e esprime-lhe o sumo por cima da carne, com o alho pisado, o azeite, a pimenta, a canela e a noz-moscada. É o sumo da cebola que amacia — a cebola aos pedaços queima no espeto e não serve para isto.',10],
  ['Frio, e sem sal','Tapado no frigorífico, quatro horas ou de véspera. O sal só entra na hora de espetar: posto antes, puxa a água da carne para fora e ela assa em vez de grelhar.',240],
  ['Espetar folgado','Cubos nos espetos com um dedo de folga entre eles, para o calor circular. Espetos de madeira ficam meia hora de molho em água antes, ou ardem.',8],
  ['Brasa alta e curta','Grelha muito quente, oito a dez minutos, a virar de quarto em quarto. O borrego é bom rosado no centro — passado demais fica seco e forte.',10],
@@ -5864,7 +6025,7 @@ P('kibbehfrito',[['Bulgur fino, só demolhado','Cobre o bulgur fino com água fr
  ['Recheio à parte','Aloura o resto da cebola, junta a restante carne, a canela e a pimenta, e no fim os pinhões tostados. Deixa arrefecer: recheio quente amolece a casca por dentro.',12],
  ['Tender com o dedo molhado','Uma bola de massa na mão molhada, o indicador a abrir um cone fino, o recheio lá dentro e as pontas fechadas em bico. Água na mão é o que impede a massa de colar e rachar.',20],
  ['Frigorífico antes da fritura','Meia hora no frio. Kibbeh à temperatura da cozinha abre no óleo e larga o recheio todo.',30],
- ['Óleo a 175 °C','Frita aos poucos em óleo a 175 °C, cinco a seis minutos, até ficarem castanhos-escuros. Óleo morno encharca; óleo a fumegar queima a casca com a carne ainda crua.',6],
+ ['Óleo a 175 °C','Frita aos poucos em óleo a 175 °C, cinco a seis minutos, até ficarem castanho-escuros. Óleo morno encharca; óleo a fumegar queima a casca com a carne ainda crua.',6],
  ['Escorrer de pé','Sobre grelha e não sobre papel — em cima do papel, o fundo cozinha no próprio vapor e perde a crosta.']]);
 P('kibbehabobora',[['Abóbora assada e escorrida','Assa a abóbora aos cubos até ceder, esmaga-a e deixa-a escorrer num passador. Cozida em água fica aguada, e massa aguada não se tende.',35],
  ['Bulgur na abóbora quente','Junta o bulgur fino à abóbora ainda morna e deixa-o inchar vinte minutos. Não leva água nenhuma: a humidade da abóbora chega.',20],
@@ -5872,7 +6033,7 @@ P('kibbehabobora',[['Abóbora assada e escorrida','Assa a abóbora aos cubos at�
  ['Recheio de espinafres','Cebola em azeite, os espinafres a murchar, o grão-de-bico ligeiramente esmagado e sumo de limão. Esprime bem os espinafres — é o mesmo erro da abóbora, na mesma massa.',12],
  ['Duas camadas no tabuleiro','Metade da massa espalhada no fundo, o recheio por cima, a outra metade a fechar. Risca losangos à faca e rega com o resto do azeite.',10],
  ['Forno','200 °C durante trinta e cinco minutos, até a superfície ficar tostada. É o kibbeh dos dias sem carne, e come-se morno ou frio.',35]]);
-P('kibbehnayyeh',[['Isto é carne crua','O kibbeh nayyeh come-se cru e não há passo nenhum que o torne seguro depois. Pede ao talho carne de perna de borrego magra, do dia, e que a pique à tua frente — carne picada de balcão não serve. Faz-se e come-se dentro de duas horas, sempre em cima de gelo.'],
+P('kibbehnayyeh',[['Isto é carne crua','O kibbeh nayyeh come-se cru e não há passo nenhum que o torne seguro depois. Pede no talho carne de perna de borrego magra, do dia, e que a piquem à tua frente — carne picada de balcão não serve. Faz-se e come-se dentro de duas horas, sempre em cima de gelo.'],
  ['Quem não o deve comer','Carne crua não se serve a grávidas, a crianças, a quem tenha mais de 65 anos nem a quem esteja imunodeprimido. A app assinala-o sozinha quando algum deles está à mesa.'],
  ['Bulgur muito fino','Cobre o bulgur fino com água gelada dez minutos e esprime até ficar seco ao toque. Água gelada, não fria de torneira: a carne nunca deve subir de temperatura.',10],
  ['Cebola em pasta','Reduz a cebola a pasta no almofariz com o sal, a pimenta e a canela. Aos pedaços, sente-se a cebola crua e mais nada.',8],
@@ -7069,7 +7230,7 @@ P('acvinagretebr',[['Cortar tudo miúdo','Corta o tomate, a cebola e o pimento e
  ['Temperar a dois para um','Junta duas partes de azeite para uma de vinagre, o sal e a pimenta, e envolve. Não é uma vinagreta emulsionada: é uma salada picada que se serve à colher sobre a carne.',3],
  ['Frio antes de servir','Leva ao frigorífico vinte minutos antes de ir para a mesa e junta a salsa picada só no fim. Come-se no próprio dia, ao lado da picanha ou da linguiça.',20]]);
 P('acchermoula',[['Ervas em partes iguais','Pica os coentros e a salsa juntos, quase em partes iguais. A chermoula é sobretudo herbácea: as especiarias entram para dar fundo, não para mandar no molho.'],
- ['Alho e especiarias','No almofariz, pisa o alho com o sal até fazer pasta e junta os cominhos, o colorau e a cúrcuma. Pisa mais um pouco para as especiarias libertarem o óleo e ganharem cor.'],
+ ['Alho e especiarias','No almofariz, pisa o alho com o sal até fazer pasta e junta os cominhos, o colorau e a curcuma. Pisa mais um pouco para as especiarias libertarem o óleo e ganharem cor.'],
  ['Limão e azeite','Junta as ervas, o sumo de limão e o azeite em fio, sempre a pisar, até ficar uma pasta espessa e verde-escura que se agarra à colher.'],
  ['Marinar ou servir','Usa metade para marinar peixe ou espetadas de borrego uma hora antes da brasa, e guarda a outra metade crua para servir por cima à saída da grelha. A crua é que tem o aroma.',60]]);
 P('acsalmoriglio',[['Esmagar alho e ervas','Pica o alho muito fino e esfarela os orégãos entre os dedos, junto com a salsa picada. Junta tudo numa taça com o sal grosso e a pimenta preta moída na hora.'],
@@ -7603,6 +7764,17 @@ function composicaoDe(nome){
 function fonteDe(nome){
   const c=composicaoDe(nome);
   return c? (FONTES[c.fonte]||FONTES.insa) : null;
+}
+/* A CHAVE da fonte, e não o objeto. É ela que serve para compor nomes de
+   classe: quem os construía a partir do nome de apresentação produzia
+   `fonte-rótulo` (com acento, que o CSS não tem) e `fonte-da casa` — que o
+   HTML parte em duas classes, «fonte-da» e «casa», nenhuma das quais existe.
+   As duas fontes que a app quer marcar com tracejado, por virem de rótulo ou
+   da própria casa em vez de tabela publicada, eram justamente as duas que
+   ficavam sem marca nenhuma. */
+function chaveFonteDe(nome){
+  const c=composicaoDe(nome);
+  return c && temChave(FONTES,c.fonte)? c.fonte : 'insa';
 }
 /* Promove um ingrediente do catálogo oculto para o visível. Acontece quando
    alguém o usa numa receita da casa ou o marca na despensa: a partir daí faz
@@ -8542,7 +8714,12 @@ NI('Nabiças cozidas',18,0.5,2,0.3,2.5,0,2);
 NI('Pimento assado em conserva',24,3.1,1,0.3,1.8,0,2);
 NI('Rabanete branco cru',15,1.9,0.9,0.1,1.5,0,2);
 NI('Tomate chucha',19,2.6,0.9,0.3,1.3,90,2);
-NI('Abacaxi',49,10.6,0.4,0.2,1.2,0,2);
+/* «Abacaxi» e «Ananás» são a mesma fruta, e o catálogo tinha-os com valores a
+   17% de distância — um do INSA e outro de outra tabela. O nome fica, porque é
+   o que se diz nas receitas brasileiras onde aparece; a composição passa a ser
+   a mesma do ananás, que é a do INSA, pela mesma regra que rege todo o resto
+   do ficheiro: entre duas fontes para o mesmo alimento, ganha a nacional. */
+NI('Abacaxi',42,8.6,0.5,0,1.1,0,2);
 NI('Cereja',63,13.4,1,0.3,1.3,0,2);
 NI('Damasco seco',232,50.3,3.4,0.6,7.3,0,2);
 NI('Laranja sumo natural',42,9.1,0.7,0.1,0.2,0,2,'ml');
@@ -9052,6 +9229,16 @@ const ING_EXCECAO={
   /* castanha portuguesa e pinhão: fora da lista fechada dos oito */
   'Castanha cozida sem sal':[], 'Castanha pilada':[], 'Castanha, miolo':[], 'Castanhas':[],
   'Pinhões':[], 'Pinhão, miolo':[],
+  /* A gelatina de folhas é colagénio de porco ou de vaca, e não havia regra
+     nenhuma que lho dissesse: as sobremesas que a levam — as bavaroises, a
+     panna cotta, a mousse de manga — saíam VEGETARIANAS, e ainda por cima
+     kosher e halal. É o mesmo buraco do pastrami, num ingrediente que quase
+     ninguém associa a carne por não ter aspeto nem nome de carne. Fica
+     `carne` e `porco`: a esmagadora maioria da gelatina de mercearia é
+     suína, e quem exclui porco não pode receber estes pratos como seguros.
+     Quem usa gelatina de peixe ou ágar-ágar troca o ingrediente na receita. */
+  'Gelatina em folhas':['carne','porco'],
+  'Gelatina em pó':['carne','porco'],
   /* Onde o nome engana a expressão, ou onde o produto real leva coisas que o
      nome não diz. Os caldos e cubos são o caso clássico do aipo escondido,
      e as autoridades assinalam-no expressamente. */
@@ -9952,7 +10139,7 @@ const RE_NAO_PALEO=/ketchup|maionese|molho barbecue|molho ingl|molho teriyaki|mo
    âncora e a alternativa explícita, e não um simples /batata/. A fécula
    entra na exclusão por ser amido de batata isolado, que é o oposto de um
    alimento inteiro. */
-const RE_BATATA_NAO_PALEO=/\bbatata(?!-?\s?doce)|\bgnocchi|\bpurê de batata|\bfécula de batata/i;
+const RE_BATATA_NAO_PALEO=/\bbatata(?!-?\s?doce)|\bgnocchi/i;
 /* O que os passos dizem sobre a confeção. Fritar por imersão muda o prato de
    forma que nenhum ingrediente denuncia: o óleo que entra não está na lista. */
 const RE_FRITURA=/fritadeira|fritar em óleo|óleo abundante|por imersão|em imersão|airfryer não|banho de óleo|fritura profunda/i;
@@ -10072,15 +10259,18 @@ const ALIAS_BUSCA={
   acmoutabal:'mutabal baba ganoush',
   tabule:'tabbouleh taboule',
   fattoush:'fatush',
-  souvlaki:'gyros giros espetada'
+  /* «gyros» NÃO entra aqui: é carne de espeto vertical fatiada, e o souvlaki é
+     espetada de cubos. São pratos diferentes, e a regra deste bloco é só o que
+     é a mesma coisa com outro nome. */
+  souvlaki:'espetada espetadas'
 };
 /* Um id de receita declarado duas vezes não dá erro nenhum: ficam dois cartões
    na grelha, `find()` devolve sempre o primeiro, e o P() do segundo apaga em
    silêncio os passos do primeiro — a receita que se abre mostra a preparação
    de outra. Aconteceu com o shish taouk, e só se viu porque alguém foi
    procurar. Havia guardas para títulos de passo repetidos, para NI duplicado,
-   para chaves de sódio órfãs e para receitas a zero calorias; faltava a deste,
-   que é o que estraga mais coisas de uma vez (favoritos, plano e passaporte
+   para chaves de sódio órfãs e para receitas a zero calorias; faltava o dos
+   ids de receita, que é o que estraga mais coisas de uma vez (favoritos, plano e passaporte
    ficam todos a apontar ao mesmo id para dois pratos diferentes). */
 (function(){
   const vistos=Object.create(null), rep=[];
@@ -11013,8 +11203,10 @@ function hidratosMin(m){ if(idadeAnos(m)<1) return 0; return gravida(m)? 175 : a
    grávidas — o slider de objetivo fica limitado a manutenção ou acima. */
 /* Quem amamenta pode perder peso — a orientação é que perca devagar, e não que
    não perca. O que não pode é somar um défice agressivo por cima do custo do
-   leite. Por isso o défice continua permitido, mas travado: ver LIMITE_DEFICE_
-   LACTACAO em objetivoPctSeguro(). */
+   leite. Por isso o défice continua permitido, mas travado: o travão é
+   DEFICE_MAX_LACTACAO, aplicado dentro de targetKcal(). O comentário mandava
+   ver uma função que já não corria e uma constante com outro nome — quem fosse
+   verificar o travão lia a implementação certa no sítio errado. */
 function permiteDefice(m){ return faseDe(m)==='adulto' && !gravida(m); }
 /* Perder mais de meio quilo por semana a amamentar é onde as orientações
    começam a avisar sobre a produção de leite. Meio quilo por semana são cerca
@@ -11022,11 +11214,6 @@ function permiteDefice(m){ return faseDe(m)==='adulto' && !gravida(m); }
    da lactação, um défice de 25 % come o leite antes de comer a gordura. O teto
    fica nos 10 %, que é a banda em que a perda é lenta e a produção aguenta. */
 const DEFICE_MAX_LACTACAO=10;
-function objetivoPctSeguro(m){
-  const p=parseFloat(m.objetivoPct)||0;
-  if(p>=0 || !amamenta(m)) return p;
-  return Math.max(p, -DEFICE_MAX_LACTACAO);
-}
 function deficeTravadoPelaLactacao(m){
   return amamenta(m) && (parseFloat(m.objetivoPct)||0) < -DEFICE_MAX_LACTACAO;
 }
@@ -13589,10 +13776,34 @@ const CONSERVA=[
      primeiro da lista — e o poke é peixe cru antes de ser arroz. A nota fala de
      peixe E de carne porque o tártaro e o carpaccio já estão na expressão, à
      espera das receitas que hão de vir. */
+  /* Queijo fresco e fruta crua ao lado dele. A app oferecia CONGELAR uma
+     burrata — uma bola de queijo fresco cheia de soro, cujos próprios passos
+     dizem «serve logo» e «come-se enquanto o tomate ainda está quente e o
+     queijo ainda está frio». Congelada, a stracciatella separa-se e o que
+     descongela é queijo em água. O mesmo vale para a mozzarella fresca da
+     caprese e para a melancia da salada de feta: a fruta com muita água
+     desfaz-se em papa ao descongelar. Um dia, e o botão de congelar
+     desaparece — como já desaparece nos pratos de ovo e nos crus. */
+  {k:'queijofresco', re:/burrata|caprese|mozzarella fresca|melancia|stracciatella/i,
+   frigo:1, cong:0, nota:'Queijo fresco e fruta com muita água comem-se no dia: o frio do congelador separa o soro e o que volta é outra coisa.',
+   reaq:'Não se reaquece nem se congela — serve-se à temperatura da cozinha, tirado do frio meia hora antes.'},
   {k:'cru',      re:/ceviche|poke|chirashi|sashimi|tártaro|tartare|carpaccio|nayyeh/i, soNome:true,
    frigo:1, cong:0, nota:'Peixe e carne crus comem-se no próprio dia: a lima, o vinagre e o sal mudam a textura, não esterilizam nada.',
    reaq:'Não se reaquece — e o que sobrou de ontem não se guarda para amanhã.'},
+  /* O que dá ao arroz o prazo mais curto de todos é o Bacillus cereus no GRÃO
+     COZINHADO. A expressão apanhava a palavra em qualquer forma, e por isso
+     dava um dia de frigorífico a sete pratos que não têm arroz nenhum lá
+     dentro: as panquecas sem glúten e o pão sem glúten (farinha de arroz), o
+     sunomono e dois molhos japoneses (vinagre de arroz), as chouriças de
+     arroz e o pad thai (massa de arroz — que sem isto teria os três dias das
+     massas). As panquecas sem glúten anunciavam um dia enquanto as quatro
+     irmãs da mesma família anunciavam dois.
+     Não leva `soNome:true`: um prato com arroz cozinhado dentro e sem a
+     palavra no nome — o kousa mahshi, os recheados — tem de continuar a
+     apanhar o prazo curto. O que sai são as formas em que o arroz já não é
+     grão: farinha, vinagre, massa, bebida, e a morcela que dele se faz. */
   {k:'arroz',    re:/arroz|risoto|risott/i,
+   excepto:/farinha de arroz|vinagre de arroz|massa de arroz|bebida de arroz|morcela de arroz|arroz tufado|leite de arroz|sem glúten de arroz/i,
    frigo:1, cong:30, nota:'Arroz cozinhado arrefece-se depressa e come-se no dia seguinte — é o alimento com menos folga.',
    reaq:'Reaquecer bem quente, uma vez só, com uma colher de água para soltar o grão.'},
   {k:'carne',    at:['carne'],
@@ -13636,7 +13847,13 @@ function conservacaoDe(r){
   const at=r.at||[];
   let base=null;
   CONSERVA.forEach(x=>{
-    const casa = x.at ? x.at.some(k=>at.indexOf(k)>=0) : x.re.test(x.soNome? nome : texto);
+    const onde = x.soNome? nome : texto;
+    let casa = x.at ? x.at.some(k=>at.indexOf(k)>=0) : x.re.test(onde);
+    /* `excepto` tira do escalão o que só lá entrou por uma forma derivada do
+       ingrediente — a farinha de arroz não é arroz cozinhado. Aplica-se ao
+       texto sem essas formas, para «arroz» a sério continuar a contar num
+       prato que tenha as duas coisas. */
+    if(casa && x.excepto && !x.re.test(onde.replace(new RegExp(x.excepto.source,'gi'),' '))) casa=false;
     if(!casa) return;
     if(!base || x.frigo<base.frigo) base=x;
   });
@@ -17734,15 +17951,21 @@ const VARIANTES=[
   {k:'panquecas',n:'Panquecas',    ids:['panquecas','panquecasus','panquecasclassicas','panquecasintegrais','panquecassemgluten','panquecasvegan','panquecasproteina','ketopanquecas']},
   /* A mesma massa, o mesmo molho, o mesmo queijo: o que muda é o que vai por
      cima, e é isso que se escolhe. */
-  {k:'pizza',    n:'Pizza',        ids:['pizza','pizzaprosciutto','pizzafunghi','pizzadiavola','pizzaqueijos','pizzanapoli','pizzavegetariana','pizzatonno','pizzahavaiana']},
+  {k:'pizza',    n:'Pizza',        ids:['pizza','pizzaprosciutto','pizzafunghi','pizzadiavola','pizzaqueijos','pizzanapoli','pizzavegetariana','pizzatonno','pizzahavaiana','pizzaburrata','pizzanapoliburrata','ketopizza']},
   /* A mesma bola de queijo, com o tomate cru, assado depressa ou em confit. */
   {k:'burrata',  n:'Burrata',      ids:['burratalimao','burrataforno','burratapesto']},
+  {k:'manakish', n:'Manakish',     ids:['manakish','manakishqueijo']},
+  /* A mesma massa de bulgur e carne, em quatro formas — e a mesma carne
+     picada temperada, em duas. Ficaram como seis cartões soltos quando o
+     próprio ALIAS_BUSCA já os trata como o mesmo prato. */
+  {k:'kibbeh',   n:'Kibbeh',       ids:['kibbehforno','kibbehfrito','kibbehabobora','kibbehnayyeh']},
+  {k:'kafta',    n:'Kafta',        ids:['kafta','kaftasanieh']},
   {k:'bavaroise',n:'Bavaroise',    ids:['bavaroise','bavaroisemanga']},
   /* A mesma frigideira de ovos escalfados no molho, com o tempero de cada casa
      que a tem por sua: cominhos no Levante, ras el hanout no Magrebe, verde
      com espinafres e feta. */
   {k:'shakshuka',n:'Shakshuka',    ids:['shakshuka','shakshukaverde','shakshukamarroquina']},
-  {k:'risotto',  n:'Risotto',      ids:['risotto','risottoacafrao']},
+  {k:'risotto',  n:'Risotto',      ids:['risotto','risottoacafrao','ketorisotto']},
   {k:'feijoada', n:'Feijoada',     ids:['feijoada','feijoadatransmontana','feijoadabr','vgfeijoada']},
   {k:'ovosmex',  n:'Ovos mexidos', ids:['ovosmex','ovoscebolinho','ovosmexidosbacon']},
   {k:'iogurte',  n:'Iogurte com…', ids:['iogurtenatural','iogurtebanana','iogurtemorango','iogurtevermelhos','iogurtegranola','iogurtecompota','iogurtemaca','iogurtefigos','ketoiogurtesementes']},
@@ -17750,11 +17973,13 @@ const VARIANTES=[
   {k:'tosta',    n:'Tosta',        ids:['ricotta','tostaatum','tostatomate']},
   {k:'espetada', n:'Espetadas',    ids:['espetadas','espetadavaca','espetadinhas','pinchos','cgespetada']},
   {k:'caril',    n:'Caril',        ids:['caril','tikka']},
-  {k:'arrozac',  n:'Arroz (acompanhamento)', ids:['acrtomate','acrcoentros','acracafrao']},
+  /* o arroz de couve-flor estava fora desta família e é justamente a
+     alternativa que se procura ao abrir o cartão do arroz */
+  {k:'arrozac',  n:'Arroz (acompanhamento)', ids:['acrtomate','acrcoentros','acracafrao','acrcouveflor']},
   {k:'bowlatum', n:'Bowl de atum', ids:['atumcouveflor','ketobowlatum']},
   {k:'rojoes',   n:'Rojões',       ids:['rojoes','rojoesminho']},
   {k:'caldeirada',n:'Caldeirada',  ids:['caldeirada','caldeiradarica','caldeiradaenguias']},
-  {k:'mousse',   n:'Mousse',       ids:['moussechoc','moussemanga','mousselima']},
+  {k:'mousse',   n:'Mousse',       ids:['moussechoc','moussemanga','mousselima','ketomoussechoc']},
   /* O folhado de camembert é a mesma roda de queijo dentro da mesma massa: o
      que muda é o que se lhe põe em cima antes de fechar. */
   {k:'folhadocamembert', n:'Folhado de camembert', ids:['folhadocamembert','folhadocamembertdoce','folhadocamembertmel']},
@@ -17765,7 +17990,7 @@ const VARIANTES=[
   /* Os dois cheesecakes são famílias separadas, como o gelado e o sorvete: o
      de Nova Iorque é denso e cozido sobre bolacha, o japonês é soufflé em
      banho-maria. Dentro de cada uma, o que muda é o coulis. */
-  {k:'cheesecake', n:'Cheesecake', ids:['cheesecakeny','cheesecakemorango','cheesecakeframboesa','cheesecakevermelhos','cheesecakemanga','cheesecakemaracuja','cheesecakelimao']},
+  {k:'cheesecake', n:'Cheesecake', ids:['cheesecakeny','cheesecakemorango','cheesecakeframboesa','cheesecakevermelhos','cheesecakemanga','cheesecakemaracuja','cheesecakelimao','ketocheesecake']},
   {k:'cheesecakejp', n:'Cheesecake japonês', ids:['cheesecakejapones','cheesecakejpmorango','cheesecakejpvermelhos','cheesecakejpmanga']},
   /* Gelado e sorvete são duas famílias e não uma. O gelado é creme e leva
      leite, natas e gema; o sorvete é fruta e calda e não leva lacticínio
@@ -17776,11 +18001,16 @@ const VARIANTES=[
   {k:'torradas', n:'Torradas',     ids:['torradaformaleite','torradaformasem','torradaformagalao','torradamistura','torradaintegral','torradaalentejano','torradadoce','torradasqueijo','torradapresunto']},
   {k:'croissant',n:'Croissant',    ids:['croissantmisto','croissantmistomant','croissantqueijo','croissantfiambre','croissantmanteiga','croissantdoce','croissantsimples']},
   {k:'paosandes',n:'Pão com…',     ids:['paomanteiga','paomanteigagalao','paoqueijo','paofiambre','paomisto','paointegralqueijo','paocenteiofiambre','paoleitemanteiga']},
-  {k:'arrozprato',n:'Arroz de…',   ids:['arrozfrango','arrozlampreia','arroztamboril','arrozmarisco','arrozpato','arrozpolvo']},
+  {k:'arrozprato',n:'Arroz de…',   ids:['arrozfrango','arrozlampreia','arroztamboril','arrozmarisco','arrozpato','arrozpolvo','ketoarrozpato']},
   {k:'rolo',     n:'Rolo de carne',ids:['rolocarne','roloport']},
   /* Cinco maneiras de tratar a mesma posta. Não são o mesmo prato, mas quem
      abre a despensa com bacalhau lá dentro está a escolher entre elas. */
-  {k:'bacalhau', n:'Bacalhau no forno', ids:['bacalhaunatas','gomesdesa','zedopipo','bacespiritual','bacbroa']},
+  {k:'bacalhau', n:'Bacalhau no forno', ids:['bacalhaunatas','gomesdesa','zedopipo','bacespiritual','bacbroa','ketobacalhaunatas']},
+  {k:'bras',     n:'Bacalhau à Brás',  ids:['bras','ketobras']},
+  {k:'caldoverde',n:'Caldo verde',     ids:['caldoverde','ketocaldoverde']},
+  {k:'esparguete',n:'Esparguete',      ids:['bolonhesa','carbonara','ketobolonhesa','ketocarbonara']},
+  {k:'hamburguer',n:'Hambúrguer',      ids:['hamburguer','ketohamburguer']},
+  {k:'paoketo', n:'Pão sem farinha',   ids:['ketopaonuvem','ketopaoamendoa']},
   /* ---- O mesmo prato, molho diferente ----
      Estas são o caso mais puro de variante: a mesma peça de carne ou de peixe
      na mesma frigideira, e o que muda é o que se deita por cima. Estavam a
@@ -21586,7 +21816,7 @@ function pratoGrafico(pct,tam){
 /* Construída à primeira leitura, e não aqui em cima: limparReceita chama
    unidadeDe() a partir de load(), que corre muito antes desta linha. Com uma
    tabela declarada com const, uma única receita da casa gravada bastava para
-   a app não arrancar — «Cannot access 'UNID_ING' before initialization». É o
+   a app não arrancar — «Cannot access '_unidIng' before initialization». É o
    mesmo motivo por que o catálogo de ingredientes também é preguiçoso. */
 /* var e não let, de propósito: a declaração iça e nasce a undefined, por isso
    unidIng() funciona mesmo quando é chamada de load(), lá em cima. Com let,
@@ -27796,7 +28026,7 @@ function renderDespensa(){
             const f=fonteDe(nome); if(!f) return '';
             return ' '+selo(f.n,
               'A composição deste alimento vem de '+f.d+'. A app usa o INSA primeiro, depois a UE e só por último a FDA — quando o mesmo alimento existe em mais do que uma tabela, fica o da fonte mais prioritária.',
-              'fonte-'+f.n.toLowerCase()); })()}${
+              'fonte-'+chaveFonteDe(nome)); })()}${
             al.length? ' '+al.map(t=>selo(RESTR[t].i,
               'Traz '+RESTR[t].n.toLowerCase()+'. Está assinalado porque alguém cá em casa tem esta alergia ou intolerância marcada no perfil — não dispensa ler o rótulo da embalagem.',
               'alerg')).join(''):''}${
@@ -29353,9 +29583,17 @@ function cartaoBoasVindas(){
       <b>Guarda uma cópia de segurança de vez em quando</b>, no separador Dados: é um ficheiro,
       demora um instante, e é a única coisa que se interpõe entre o teu histórico e o nada.</p>
     </div>
+    ${/* Quem chega aqui DEPOIS de já ter feito a visita — apagou o exemplo, ou
+         limpou os dados para começar a sério — não precisa que ela seja outra
+         vez o botão em destaque; precisa de criar o primeiro perfil. O flag
+         tourVisto era escrito em dois sítios e nunca lido em nenhum: ficava a
+         guardar uma resposta que ninguém chegava a perguntar. */''}
     <div class="row" style="justify-content:center;margin-top:18px">
-      <button class="btn" onclick="iniciarTour(true)">✨ Fazer a visita guiada</button>
-      <button class="btn ghost" onclick="addMember()">+ Criar primeiro perfil</button>
+      ${S.ui.tourVisto
+        ? `<button class="btn" onclick="addMember()">+ Criar primeiro perfil</button>
+           <button class="btn ghost" onclick="iniciarTour(true)">✨ Rever a visita guiada</button>`
+        : `<button class="btn" onclick="iniciarTour(true)">✨ Fazer a visita guiada</button>
+           <button class="btn ghost" onclick="addMember()">+ Criar primeiro perfil</button>`}
       <button class="btn ghost" onclick="go('dados')">Restaurar uma cópia</button>
     </div>
     <p class="sub" style="max-width:62ch;margin:12px auto 0">A visita percorre os ${TABS.length} separadores em cerca de ${passosTour().length} passos, com uma família
