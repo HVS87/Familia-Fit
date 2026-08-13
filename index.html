@@ -1850,7 +1850,8 @@ const ICO_REF={p:'🌅',a:'🍽️',l:'🍎',j:'🌙',ac:'🍚',mo:'🥄'};
    prato nacional brasileiro, e a salsicha pelas cozinhas do centro da Europa
    que não têm separador próprio. */
 const ICO_COZ={portuguesa:'🇵🇹',italiana:'🍝',francesa:'🥐',mediterranica:'🫒',asiatica:'🍜',
-  japonesa:'🍣',espanhola:'🥘',britanica:'🫖',mexicana:'🌮',americana:'🍔',indiana:'🍛',brasileira:'🫘',africana:'🌍',outras:'🌭'};
+  japonesa:'🍣',espanhola:'🥘',britanica:'🫖',grega:'🏛️',libanesa:'🧆',marroquina:'🕌',
+  mexicana:'🌮',americana:'🍔',indiana:'🍛',brasileira:'🫘',africana:'🌍',outras:'🌭'};
 const ICO_SUPL={proteico:'🥤',vitaminico:'💊',mineral:'🧂',composto:'🐟'};
 const ICO_FASE={bebe:'🍼',crianca:'🧒',adolescente:'🧑',adulto:'🧑‍🦱'};
 function SP(id,nome,cat,mets,dicas,dist){ return {id,nome,cat,mets,dicas:dicas||null,dist:dist||null}; }
@@ -2752,8 +2753,15 @@ const DIETS = {
    própria (dashi, miso, mirin, saké de cozinha, molho de soja japonês),
    técnica própria e uma gramática de refeição própria, a do arroz com sopa e
    três acompanhamentos. Quem quer jantar japonês não quer jantar asiático. */
+/* A grega, a libanesa e a marroquina estavam todas dentro de «mediterrânica»,
+   que assim virava um saco de cem receitas onde nada se encontrava: uma
+   moussaka, um húmus e um tagine não são a mesma cozinha, e quem procura
+   «grego» quer os pratos gregos, não uma lista com tabule e falafel pelo
+   meio. Ganham nome próprio, e a mediterrânica fica com o que é mesmo dela —
+   o peixe assado, as saladas de leguminosas, o azeite como método. */
 const CUIS = {portuguesa:'Portuguesa',mediterranica:'Mediterrânica',espanhola:'Espanhola',italiana:'Italiana',
-  francesa:'Francesa',britanica:'Britânica',mexicana:'Mexicana',americana:'Norte-americana',asiatica:'Asiática',
+  francesa:'Francesa',britanica:'Britânica',grega:'Grega',libanesa:'Libanesa',marroquina:'Marroquina',
+  mexicana:'Mexicana',americana:'Norte-americana',asiatica:'Asiática',
   japonesa:'Japonesa',indiana:'Indiana',brasileira:'Brasileira',africana:'Africana',outras:'Outras'};
 const BASE_ACT = {sedentario:['Sedentário (escritório, pouco movimento)',1.2],leve:['Leve (em pé parte do dia)',1.35],moderado:['Moderado (trabalho ativo)',1.5],intenso:['Intenso (trabalho físico pesado)',1.65]};
 const COMMUTE = {nenhum:['Carro / transportes',0],pe30:['A pé (~30 min/dia)',1.75],pe60:['A pé (~1 h/dia)',3.5],bici:['Bicicleta (~30 min/dia)',3.4]}; // valor = MET·h efetivos/dia útil
@@ -2949,11 +2957,11 @@ R('nicoise','Salada de atum, ovo e batata nova','francesa',['lowcarb','mediterra
 R('omelete','Omelete de ervas','francesa',['keto','lowcarb','vegetariana'],330,4,20,26,[['Ovo',3,'un'],['Manteiga',10,'g'],['Cebolinho',5,'g']],null,1),
 R('provencal','Frango à provençal','francesa',['paleo','lowcarb','lowfat','mediterranica'],400,14,42,19,[['Coxas de frango',200,'g'],['Tomate',2,'un'],['Azeitonas',25,'g'],['Alho',2,'dente'],['Vinho branco',40,'ml'],['Ervas de Provença',2,'g'],['Azeite',8,'ml']],null,3),
 R('sopacebola','Sopa de cebola gratinada','francesa',['vegetariana'],350,35,14,17,[['Cebola',2,'un'],['Caldo de legumes',300,'ml'],['Vinho branco',40,'ml'],['Pão rústico',40,'g'],['Queijo gruyère',30,'g'],['Manteiga',10,'g']],null,0,['sop']),
-R('grega','Salada grega','mediterranica',['keto','lowcarb','vegetariana','mediterranica'],360,14,12,28,[['Queijo feta',80,'g'],['Pepino',0.5,'un'],['Tomate',2,'un'],['Cebola roxa',0.25,'un'],['Azeitonas',30,'g'],['Orégãos',2,'g'],['Azeite',12,'ml']],null,4),
+R('grega','Salada grega','grega',['keto','lowcarb','vegetariana','mediterranica'],360,14,12,28,[['Queijo feta',80,'g'],['Pepino',0.5,'un'],['Tomate',2,'un'],['Cebola roxa',0.25,'un'],['Azeitonas',30,'g'],['Orégãos',2,'g'],['Azeite',12,'ml']],null,4),
 R('robalo','Robalo no forno com legumes','mediterranica',['keto','lowcarb','paleo','lowfat','mediterranica'],380,12,40,19,[['Robalo',250,'g'],['Courgette',100,'g'],['Pimento',0.5,'un'],['Tomate cereja',80,'g'],['Limão',0.5,'un'],['Azeite',10,'ml']],null,3),
-R('humus','Húmus com pão pita e crudités','mediterranica',['vegetariana','lowfat','mediterranica'],410,55,14,15,[['Grão-de-bico cozido',120,'g'],['Tahini',15,'g'],['Limão',0.5,'un'],['Pão pita',1,'un'],['Cenoura',80,'g'],['Pepino',0.5,'un'],['Azeite',8,'ml']]),
+R('humus','Húmus com pão pita e crudités','libanesa',['vegetariana','lowfat','mediterranica'],410,55,14,15,[['Grão-de-bico cozido',120,'g'],['Tahini',15,'g'],['Limão',0.5,'un'],['Pão pita',1,'un'],['Cenoura',80,'g'],['Pepino',0.5,'un'],['Azeite',8,'ml']]),
 R('espetadas','Espetadas de frango com iogurte e limão','mediterranica',['lowcarb','lowfat','mediterranica'],420,18,45,18,[['Peito de frango',170,'g'],['Iogurte grego',60,'g'],['Limão',0.5,'un'],['Pimento',0.5,'un'],['Cebola',0.5,'un'],['Azeite',6,'ml']],null,2),
-R('couscous','Couscous de legumes com hortelã','mediterranica',['vegetariana','lowfat','mediterranica'],430,70,12,11,[['Couscous',80,'g'],['Grão-de-bico cozido',60,'g'],['Cenoura',60,'g'],['Courgette',60,'g'],['Passas',20,'g'],['Hortelã',5,'g'],['Azeite',8,'ml']]),
+R('couscous','Couscous de legumes com hortelã','marroquina',['vegetariana','lowfat','mediterranica'],430,70,12,11,[['Couscous',80,'g'],['Grão-de-bico cozido',60,'g'],['Cenoura',60,'g'],['Courgette',60,'g'],['Passas',20,'g'],['Hortelã',5,'g'],['Azeite',8,'ml']]),
 R('salteado','Salteado de frango com gengibre','asiatica',['lowcarb','lowfat'],400,20,40,17,[['Peito de frango',160,'g'],['Brócolos',100,'g'],['Pimento',0.5,'un'],['Cenoura',60,'g'],['Molho de soja',15,'ml'],['Gengibre',10,'g'],['Óleo de sésamo',8,'ml']],null,5),
 R('caril','Caril de legumes com leite de coco','asiatica',['lowcarb','vegetariana','paleo'],420,20,8,35,[['Leite de coco',150,'ml'],['Couve-flor',120,'g'],['Beringela',80,'g'],['Espinafres',50,'g'],['Caril em pó',8,'g'],['Cebola',0.5,'un'],['Óleo de coco',8,'ml']],null,6),
 R('poke','Poke bowl de salmão','asiatica',[],520,58,30,18,[['Salmão fresco',120,'g'],['Arroz para sushi',80,'g'],['Abacate',0.5,'un'],['Pepino',0.5,'un'],['Edamame',50,'g'],['Molho de soja',15,'ml'],['Sementes de sésamo',5,'g']]),
@@ -2977,8 +2985,8 @@ R('cassoulet','Cassoulet de feijão branco','francesa',[],580,52,36,24,[['Feijã
 R('quiche','Quiche de alho-francês','francesa',['vegetariana'],510,38,18,32,[['Massa quebrada',55,'g'],['Alho-francês',150,'g'],['Ovo',2,'un'],['Nata',60,'ml'],['Queijo gruyère',30,'g']]),
 R('coqauvin','Coq au vin','francesa',['lowcarb'],480,14,44,26,[['Coxas de frango',200,'g'],['Vinho tinto',100,'ml'],['Cogumelos',100,'g'],['Cenoura',80,'g'],['Cebola',0.5,'un'],['Manteiga',12,'g']],null,4),
 R('sopapeixe','Sopa de peixe à francesa','francesa',['lowfat','mediterranica'],320,22,32,11,[['Pescada',180,'g'],['Tomate',2,'un'],['Batata',100,'g'],['Alho-francês',80,'g'],['Açafrão',0.5,'g'],['Azeite',8,'ml']],null,0,['sop']),
-R('tabule','Tabule de quinoa com legumes','mediterranica',['vegetariana','lowfat','mediterranica'],420,58,14,14,[['Quinoa',70,'g'],['Tomate',2,'un'],['Pepino',0.5,'un'],['Hortelã',8,'g'],['Salsa',8,'g'],['Limão',0.5,'un'],['Azeite',10,'ml']]),
-R('moussaka','Moussaka de beringela','mediterranica',[],560,34,32,32,[['Beringela',200,'g'],['Carne picada de vaca',120,'g'],['Tomate pelado',120,'g'],['Cebola',0.5,'un'],['Queijo feta',40,'g'],['Farinha',15,'g'],['Leite',150,'ml'],['Manteiga',15,'g'],['Canela',1,'g'],['Azeite',12,'ml']]),
+R('tabule','Tabule de quinoa com legumes','libanesa',['vegetariana','lowfat','mediterranica'],420,58,14,14,[['Quinoa',70,'g'],['Tomate',2,'un'],['Pepino',0.5,'un'],['Hortelã',8,'g'],['Salsa',8,'g'],['Limão',0.5,'un'],['Azeite',10,'ml']]),
+R('moussaka','Moussaka de beringela','grega',[],560,34,32,32,[['Beringela',200,'g'],['Carne picada de vaca',120,'g'],['Tomate pelado',120,'g'],['Cebola',0.5,'un'],['Queijo feta',40,'g'],['Farinha',15,'g'],['Leite',150,'ml'],['Manteiga',15,'g'],['Canela',1,'g'],['Azeite',12,'ml']]),
 R('salmaolentilhas','Salmão salteado com endro e limão','mediterranica',['mediterranica','lowfat'],520,38,40,24,[['Salmão',170,'g'],['Endro',4,'g'],['Limão',0.5,'un'],['Azeite',10,'ml']]),
 R('frittata','Frittata de legumes','mediterranica',['keto','lowcarb','vegetariana','mediterranica'],340,10,22,24,[['Ovo',3,'un'],['Courgette',100,'g'],['Pimento',0.5,'un'],['Queijo feta',40,'g'],['Azeite',10,'ml']],null,3),
 R('ramen','Ramen de miso com ovo','japonesa',[],520,64,26,16,[['Noodles',80,'g'],['Pasta de miso',25,'g'],['Ovo',1,'un'],['Cogumelos shiitake',60,'g'],['Rebentos de soja',60,'g'],['Cebolinho',10,'g'],['Óleo de sésamo',8,'ml']],null,0,['sop']),
@@ -3010,7 +3018,7 @@ R('ovoscozidos','Ovos cozidos com flor de sal','portuguesa',['keto','lowcarb','p
 R('tostaatum','Tosta de atum com tomate','portuguesa',['lowfat','mediterranica'],300,34,22,8,[['Pão integral',60,'g'],['Atum em conserva',80,'g'],['Tomate',1,'un'],['Azeite',5,'ml']],['l']),
 R('requeijao','Requeijão com pão de centeio e mel','portuguesa',['vegetariana','lowfat'],290,38,15,9,[['Pão de centeio',60,'g'],['Requeijão',80,'g'],['Mel',10,'g']],['l']),
 R('queijoazeitonas','Queijo fresco com azeitonas e orégãos','mediterranica',['keto','lowcarb','vegetariana','mediterranica'],190,4,14,13,[['Queijo fresco',100,'g'],['Azeitonas',25,'g'],['Orégãos',1,'g'],['Azeite',5,'ml']],['l'],1),
-R('humuspequeno','Húmus com palitos de legumes','mediterranica',['vegetariana','lowfat','mediterranica'],240,28,9,10,[['Grão-de-bico cozido',80,'g'],['Tahini',10,'g'],['Cenoura',80,'g'],['Pepino',0.5,'un'],['Azeite',5,'ml']],['l'],7),
+R('humuspequeno','Húmus com palitos de legumes','libanesa',['vegetariana','lowfat','mediterranica'],240,28,9,10,[['Grão-de-bico cozido',80,'g'],['Tahini',10,'g'],['Cenoura',80,'g'],['Pepino',0.5,'un'],['Azeite',5,'ml']],['l'],7),
 R('guacamole','Guacamole com bastonetes de aipo','mediterranica',['keto','lowcarb','paleo','vegetariana','mediterranica'],230,12,4,19,[['Abacate',1,'un'],['Lima',0.5,'un'],['Aipo',80,'g'],['Coentros',5,'g']],['l'],8),
 R('bruschetta','Bruschetta de tomate e manjericão','italiana',['vegetariana','lowfat','mediterranica'],260,36,7,10,[['Pão rústico',60,'g'],['Tomate',2,'un'],['Manjericão',5,'g'],['Alho',1,'dente'],['Azeite',8,'ml']],['l']),
 R('espetadinhas','Espetadas de tomate cereja e mozzarella','italiana',['keto','lowcarb','vegetariana','mediterranica'],210,7,12,15,[['Tomate cereja',120,'g'],['Mozzarella',80,'g'],['Manjericão',5,'g'],['Azeite',8,'ml']],['l'],2),
@@ -3054,12 +3062,12 @@ R('sardinhapao','Sardinha de conserva no pão de centeio','portuguesa',['mediter
 R('castanhas','Castanhas assadas','portuguesa',['vegetariana','lowfat'],210,44,3,2,[['Castanhas',120,'g']],['l'],6),
 
 /* ---------- Mediterrânica ---------- */
-R('souvlaki','Souvlaki de porco grelhado','mediterranica',['lowcarb','mediterranica'],0,0,0,0,[['Carne de porco',170,'g'],['Limão',0.5,'un'],['Orégãos',2,'g'],['Azeite',10,'ml']],null,2),
-R('falafel','Falafel assado com salada','mediterranica',['vegetariana','mediterranica'],0,0,0,0,[['Grão-de-bico cozido',150,'g'],['Coentros',8,'g'],['Cominhos',2,'g'],['Alface',50,'g'],['Tomate',1,'un'],['Azeite',10,'ml']],null,12),
+R('souvlaki','Souvlaki de porco grelhado','grega',['lowcarb','mediterranica'],0,0,0,0,[['Carne de porco',170,'g'],['Limão',0.5,'un'],['Orégãos',2,'g'],['Azeite',10,'ml']],null,2),
+R('falafel','Falafel assado com salada','libanesa',['vegetariana','mediterranica'],0,0,0,0,[['Grão-de-bico cozido',150,'g'],['Coentros',8,'g'],['Cominhos',2,'g'],['Alface',50,'g'],['Tomate',1,'un'],['Azeite',10,'ml']],null,12),
 R('peixecrosta','Dourada assada em crosta de sal com legumes','mediterranica',['keto','lowcarb','paleo','mediterranica'],380,12,42,18,[['Dourada',280,'g'],['Courgette',100,'g'],['Tomate cereja',80,'g'],['Limão',0.5,'un'],['Alecrim',3,'g'],['Azeite',10,'ml']],null,4),
 R('saladalentilhas','Salada morna de lentilhas com feta','mediterranica',['vegetariana','mediterranica'],440,46,22,18,[['Lentilhas',100,'g'],['Queijo feta',50,'g'],['Tomate cereja',80,'g'],['Cebola roxa',0.25,'un'],['Salsa',8,'g'],['Limão',0.5,'un'],['Azeite',12,'ml']],null,10),
 R('shakshuka','Shakshuka de ovos em tomate','mediterranica',['lowcarb','vegetariana','mediterranica'],360,22,20,22,[['Ovo',3,'un'],['Tomate pelado',200,'g'],['Pimento',0.5,'un'],['Cebola',0.5,'un'],['Cominhos',2,'g'],['Azeite',12,'ml']],['p','a','j'],5),
-R('tagine','Tagine de frango com limão e azeitonas','mediterranica',['lowcarb','mediterranica'],470,26,44,20,[['Coxas de frango',200,'g'],['Limão',1,'un'],['Azeitonas',30,'g'],['Cebola',0.5,'un'],['Cenoura',80,'g'],['Cominhos',2,'g'],['Azeite',10,'ml']],null,5),
+R('tagine','Tagine de frango com limão e azeitonas','marroquina',['lowcarb','mediterranica'],470,26,44,20,[['Coxas de frango',200,'g'],['Limão',1,'un'],['Azeitonas',30,'g'],['Cebola',0.5,'un'],['Cenoura',80,'g'],['Cominhos',2,'g'],['Azeite',10,'ml']],null,5),
 R('beringelarecheada','Beringela recheada com carne e pinhões','mediterranica',['lowcarb','mediterranica'],480,24,32,28,[['Beringela',250,'g'],['Carne picada de vaca',120,'g'],['Tomate pelado',80,'g'],['Pinhões',15,'g'],['Cebola',0.5,'un'],['Azeite',12,'ml']],null,8),
 R('saladapolvo','Salada de polvo com grão e coentros','mediterranica',['mediterranica'],420,30,34,18,[['Polvo',180,'g'],['Grão-de-bico cozido',100,'g'],['Cebola roxa',0.25,'un'],['Coentros',8,'g'],['Limão',0.5,'un'],['Azeite',12,'ml']],null,7),
 R('bulgur','Bulgur com legumes assados e hortelã','mediterranica',['vegetariana','lowfat','mediterranica'],430,66,14,12,[['Bulgur',80,'g'],['Beringela',80,'g'],['Courgette',80,'g'],['Pimento',0.5,'un'],['Tomate cereja',60,'g'],['Hortelã',6,'g'],['Azeite',8,'ml']],null,11),
@@ -3073,7 +3081,7 @@ R('halloumi','Halloumi grelhado com tomate e hortelã','mediterranica',['keto','
 R('iogurtefigos','Iogurte grego com figos e nozes','mediterranica',['vegetariana','mediterranica'],380,34,18,18,[['Iogurte grego',180,'g'],['Figos',100,'g'],['Nozes',20,'g'],['Mel',8,'g']],['p','l'],4),
 R('ovosfeta','Ovos escalfados com espinafres e feta','mediterranica',['keto','lowcarb','vegetariana','mediterranica'],360,8,26,25,[['Ovo',3,'un'],['Espinafres',80,'g'],['Queijo feta',40,'g'],['Azeite',8,'ml']],['p'],2),
 R('tostatomate','Tosta de tomate, azeite e orégãos','mediterranica',['vegetariana','mediterranica'],300,40,8,12,[['Pão rústico',70,'g'],['Tomate',2,'un'],['Alho',1,'dente'],['Orégãos',1,'g'],['Azeite',12,'ml']],['p','l'],5),
-R('tzatziki','Tzatziki com palitos de pepino e cenoura','mediterranica',['lowcarb','vegetariana','mediterranica'],200,14,10,12,[['Iogurte grego',150,'g'],['Pepino',0.5,'un'],['Cenoura',80,'g'],['Alho',1,'dente'],['Endro',3,'g'],['Azeite',8,'ml']],['l'],3),
+R('tzatziki','Tzatziki com palitos de pepino e cenoura','grega',['lowcarb','vegetariana','mediterranica'],200,14,10,12,[['Iogurte grego',150,'g'],['Pepino',0.5,'un'],['Cenoura',80,'g'],['Alho',1,'dente'],['Endro',3,'g'],['Azeite',8,'ml']],['l'],3),
 R('melaopresunto','Melão com presunto','mediterranica',['lowfat','mediterranica'],220,26,16,6,[['Melão',200,'g'],['Presunto',50,'g']],['l'],2),
 R('tamaras','Tâmaras recheadas com amêndoa','mediterranica',['vegetariana','paleo'],250,34,6,10,[['Tâmaras',60,'g'],['Amêndoa',25,'g']],['l'],6),
 R('saladalaranja','Salada de laranja, azeitona e cebola roxa','mediterranica',['vegetariana','mediterranica'],200,26,3,10,[['Laranja',2,'un'],['Azeitonas',25,'g'],['Cebola roxa',0.25,'un'],['Orégãos',1,'g'],['Azeite',10,'ml']],['l'],6),
@@ -3104,12 +3112,12 @@ R('salmorejo','Salmorejo cordobês','espanhola',['vegetariana','mediterranica'],
 R('pilpil','Bacalhau al pil-pil','espanhola',['keto','lowcarb','mediterranica'],480,4,40,34,[['Bacalhau (posta)',180,'g'],['Alho',4,'dente'],['Malagueta',1,'un'],['Azeite',30,'ml']],null,1),
 
 /* ---------- Italiana ---------- */
-R('carbonara','Esparguete à carbonara','italiana',[],620,72,28,24,[['Esparguete',90,'g'],['Ovo',2,'un'],['Bacon',40,'g'],['Parmesão',20,'g'],['Pimenta preta',1,'g']],null,4),
+R('carbonara','Esparguete à carbonara','italiana',[],0,0,0,0,[['Esparguete',90,'g'],['Gema de ovo de galinha, crua',36,'g'],['Bacon',40,'g'],['Pecorino romano',20,'g'],['Pimenta preta',1,'g']],null,4),
 R('puttanesca','Esparguete à puttanesca','italiana',['mediterranica'],540,74,18,18,[['Esparguete',90,'g'],['Tomate pelado',150,'g'],['Azeitonas',30,'g'],['Alcaparras',10,'g'],['Anchovas',15,'g'],['Alho',2,'dente'],['Azeite',12,'ml']],null,6),
 R('parmigiana','Beringela à parmegiana','italiana',['lowcarb','vegetariana','mediterranica'],480,28,24,30,[['Beringela',250,'g'],['Tomate pelado',150,'g'],['Mozzarella',80,'g'],['Parmesão',15,'g'],['Manjericão',5,'g'],['Azeite',14,'ml']],null,8),
 R('risottoacafrao','Risotto à milanesa','italiana',['vegetariana'],520,68,14,20,[['Arroz para risotto',80,'g'],['Caldo de legumes',350,'ml'],['Cebola',0.5,'un'],['Açafrão',0.5,'g'],['Parmesão',20,'g'],['Manteiga',12,'g']],null,2),
 R('vitelotonato','Vitela cozida em fatias finas','italiana',['keto','lowcarb'],0,0,0,0,[['Vitela',160,'g']],null,1),
-R('cacioepepe','Cacio e pepe','italiana',['vegetariana'],560,76,22,18,[['Esparguete',90,'g'],['Parmesão',35,'g'],['Pimenta preta',2,'g'],['Azeite',6,'ml']],null,4),
+R('cacioepepe','Cacio e pepe','italiana',['vegetariana'],0,0,0,0,[['Esparguete',90,'g'],['Pecorino romano',35,'g'],['Pimenta preta',2,'g'],['Azeite',6,'ml']],null,4),
 R('panzanella','Panzanella','italiana',['vegetariana','mediterranica'],380,46,10,17,[['Pão rústico',70,'g'],['Tomate',3,'un'],['Pepino',0.5,'un'],['Cebola roxa',0.25,'un'],['Manjericão',6,'g'],['Vinagre de vinho',6,'ml'],['Azeite',12,'ml']],['a','j','l'],7),
 R('acquapazza','Robalo all’acqua pazza','italiana',['keto','lowcarb','paleo','mediterranica'],380,10,42,18,[['Robalo',250,'g'],['Tomate cereja',100,'g'],['Azeitonas',20,'g'],['Alho',2,'dente'],['Salsa',5,'g'],['Vinho branco',50,'ml'],['Azeite',12,'ml']],null,3),
 R('polpette','Almôndegas no forno com tomate','italiana',['lowcarb'],460,18,38,26,[['Carne picada de vaca',160,'g'],['Ovo',0.5,'un'],['Pão ralado',20,'g'],['Tomate pelado',150,'g'],['Parmesão',12,'g'],['Manjericão',5,'g'],['Azeite',10,'ml']],null,4),
@@ -3463,27 +3471,50 @@ R('gomaae','Espinafres com molho de sésamo','japonesa',['vegan','mediterranica'
    isso não está aqui.
 
    Fonte de cada receita na nota. */
-R('gemista','Gemista, tomates e pimentos recheados','mediterranica',['vegetariana','vegan','mediterranica'],0,0,0,0,[['Tomate',2,'un'],['Pimento',1,'un'],['Arroz agulha',60,'g'],['Cebola',0.5,'un'],['Alho',2,'dente'],['Salsa',8,'g'],['Hortelã',4,'g'],['Azeite',15,'ml'],['Batata',80,'g'],['Flor de sal',2,'g']],['a','j'],0,['pp']),
-R('briam','Briam, legumes assados à grega','mediterranica',['vegetariana','vegan','mediterranica','lowfat'],0,0,0,0,[['Courgette',150,'g'],['Beringela',120,'g'],['Batata',150,'g'],['Cebola',0.5,'un'],['Tomate',1,'un'],['Alho',3,'dente'],['Azeite',18,'ml'],['Orégãos',2,'g'],['Salsa',6,'g']],['a','j'],0,['pp']),
-R('fasolada','Fasolada, sopa de feijão branco','mediterranica',['vegetariana','vegan','mediterranica','lowfat'],0,0,0,0,[['Feijão branco',80,'g'],['Cenoura',80,'g'],['Aipo',50,'g'],['Cebola',0.5,'un'],['Polpa de tomate',60,'g'],['Azeite',15,'ml'],['Louro',1,'g'],['Salsa',5,'g']],['a','j'],0,['sop']),
-R('avgolemono','Sopa avgolemono de frango e limão','mediterranica',['mediterranica'],0,0,0,0,[['Peito de frango',100,'g'],['Arroz carolino',40,'g'],['Ovo',1,'un'],['Limão',0.5,'un'],['Cebola',0.25,'un'],['Cenoura',40,'g'],['Aipo',30,'g'],['Azeite',6,'ml']],['a','j'],0,['sop']),
-R('keftedes','Keftedes, almôndegas gregas de hortelã','mediterranica',[],0,0,0,0,[['Carne picada de vaca',160,'g'],['Pão ralado',25,'g'],['Cebola',0.5,'un'],['Alho',2,'dente'],['Hortelã',6,'g'],['Ovo',0.5,'un'],['Farinha',15,'g'],['Azeite',15,'ml'],['Limão',0.25,'un']],['a','j'],0,['pp']),
-R('gigantes','Gigantes plaki, feijão no forno com tomate','mediterranica',['vegetariana','vegan','mediterranica'],0,0,0,0,[['Feijão manteiga, seco, cru',80,'g'],['Polpa de tomate',120,'g'],['Cebola',0.5,'un'],['Alho',3,'dente'],['Salsa',8,'g'],['Azeite',18,'ml'],['Canela',0.5,'g']],['a','j'],0,['pp','ent']),
-R('spanakopita','Spanakopita de espinafres e feta','mediterranica',['vegetariana'],0,0,0,0,[['Massa filo',4,'un'],['Espinafres',200,'g'],['Queijo feta',80,'g'],['Cebolinho',15,'g'],['Ovo',1,'un'],['Azeite',15,'ml'],['Noz-moscada',0.2,'g']],['a','j','l'],0,['pp','sn']),
+/* ---- Mais três libanesas ----
+   O fattoush é a salada do pão que sobrou, torrado e partido à mão, com
+   sumagre; o baba ganoush é a beringela queimada na chama com tahine; o
+   shish taouk é o espeto de frango marinado em iogurte e alho. */
+R('fattoush','Fattoush, a salada do pão torrado','libanesa',['vegetariana','vegan'],0,0,0,0,[['Pão pita',45,'g'],['Alface romana',80,'g'],['Tomate',1,'un'],['Pepino',80,'g'],['Cebola roxa',30,'g'],['Salsa',10,'g'],['Hortelã',6,'g'],['Azeite',18,'ml'],['Limão',0.5,'un'],['Flor de sal',1,'g']],['a','j'],0,['ent','pp']),
+R('babaganoush','Baba ganoush de beringela queimada','libanesa',['vegetariana','vegan','lowcarb'],0,0,0,0,[['Beringela',250,'g'],['Tahini',25,'g'],['Alho',2,'dente'],['Limão',0.5,'un'],['Azeite',12,'ml'],['Coentros',6,'g'],['Cominhos',1,'g'],['Flor de sal',1,'g']],['a','j','l'],0,['ent']),
+R('shishtaouk','Shish taouk, espetadas de frango em iogurte','libanesa',['lowcarb'],0,0,0,0,[['Peito de frango',180,'g'],['Iogurte grego',60,'g'],['Alho',3,'dente'],['Limão',0.5,'un'],['Azeite',10,'ml'],['Pimentão-doce',2,'g'],['Cominhos',1,'g'],['Canela',0.5,'g'],['Pão pita',50,'g']],['a','j'],0,['pp']),
+/* ---- Tagines: três, com as três bases que a cozinha marroquina usa ----
+   O tagine é o recipiente de barro com chaminé cónica que devolve o vapor ao
+   prato — daí cozinhar-se com quase nada de líquido. Sem tagine, um tacho de
+   fundo grosso com tampa pesada e lume muito brando faz o mesmo trabalho, e
+   os passos dizem-no. As três bases: borrego com fruta seca e mel, frango
+   com grão e legumes, e o de legumes com couscous ao lado. */
+R('taginenborrego','Tagine de borrego com damascos e amêndoa','marroquina',[],0,0,0,0,[['Borrego, perna crua',170,'g'],['Damasco seco',35,'g'],['Amêndoa',15,'g'],['Cebola',1,'un'],['Alho',3,'dente'],['Mel',12,'g'],['Azeite',12,'ml'],['Canela',1.5,'g'],['Gengibre',2,'g'],['Curcuma em pó',1.5,'g'],['Coentros',8,'g'],['Flor de sal',2,'g']],['a','j'],0,['pp']),
+R('taginegrao','Tagine de frango com grão-de-bico e abóbora','marroquina',[],0,0,0,0,[['Coxas de frango',180,'g'],['Grão-de-bico cozido',90,'g'],['Abóbora',140,'g'],['Cebola',0.5,'un'],['Alho',2,'dente'],['Tomate pelado',100,'g'],['Azeite',12,'ml'],['Cominhos',2,'g'],['Curcuma em pó',1.5,'g'],['Gengibre',2,'g'],['Coentros',8,'g'],['Limão',0.25,'un']],['a','j'],0,['pp']),
+R('taginelegumes','Tagine de legumes com couscous','marroquina',['vegetariana','vegan'],0,0,0,0,[['Courgette',120,'g'],['Cenoura',100,'g'],['Abóbora',100,'g'],['Grão-de-bico cozido',80,'g'],['Cebola',0.5,'un'],['Tomate pelado',100,'g'],['Couscous',60,'g'],['Azeite',12,'ml'],['Cominhos',2,'g'],['Curcuma em pó',1.5,'g'],['Canela',1,'g'],['Passas',15,'g'],['Coentros',8,'g']],['a','j'],0,['pp']),
+R('gemista','Gemista, tomates e pimentos recheados','grega',['vegetariana','vegan','mediterranica'],0,0,0,0,[['Tomate',2,'un'],['Pimento',1,'un'],['Arroz agulha',60,'g'],['Cebola',0.5,'un'],['Alho',2,'dente'],['Salsa',8,'g'],['Hortelã',4,'g'],['Azeite',15,'ml'],['Batata',80,'g'],['Flor de sal',2,'g']],['a','j'],0,['pp']),
+/* ---- Mais três gregas ----
+   O pastitsio é o primo grego da lasanha, com canela na carne e béchamel por
+   cima; o stifado é o guisado de cebolinhas com vinagre e canela; e o
+   galaktoboureko é a sobremesa de sêmola em massa filo com calda. */
+R('pastitsio','Pastitsio, o gratinado grego de massa e carne','grega',[],0,0,0,0,[['Massa cotovelo crua',60,'g'],['Carne picada de borrego',75,'g'],['Tomate pelado',120,'g'],['Cebola',0.5,'un'],['Alho',2,'dente'],['Leite',100,'ml'],['Manteiga',12,'g'],['Farinha',12,'g'],['Parmesão',15,'g'],['Ovo',0.5,'un'],['Canela',1,'g'],['Noz-moscada',0.3,'g'],['Azeite',8,'ml']],['a','j'],0,['pp']),
+R('stifado','Stifado de vaca com cebolinhas','grega',[],0,0,0,0,[['Carne de vaca',180,'g'],['Cebola',180,'g'],['Alho',3,'dente'],['Tomate pelado',120,'g'],['Vinho tinto',60,'ml'],['Vinagre de vinho',15,'ml'],['Azeite',15,'ml'],['Canela',1,'g'],['Louro',1,'g'],['Cravinho',0.3,'g']],['a','j'],0,['pp']),
+R('galaktoboureko','Galaktoboureko, o doce de sêmola em massa filo','grega',['vegetariana'],0,0,0,0,[['Massa filo',35,'g'],['Leite',130,'ml'],['Sêmola de trigo',18,'g'],['Açúcar branco',28,'g'],['Ovo',0.5,'un'],['Manteiga',15,'g'],['Limão',0.2,'un'],['Canela',0.5,'g']],['l'],0,['sob']),
+R('briam','Briam, legumes assados à grega','grega',['vegetariana','vegan','mediterranica','lowfat'],0,0,0,0,[['Courgette',150,'g'],['Beringela',120,'g'],['Batata',150,'g'],['Cebola',0.5,'un'],['Tomate',1,'un'],['Alho',3,'dente'],['Azeite',18,'ml'],['Orégãos',2,'g'],['Salsa',6,'g']],['a','j'],0,['pp']),
+R('fasolada','Fasolada, sopa de feijão branco','grega',['vegetariana','vegan','mediterranica','lowfat'],0,0,0,0,[['Feijão branco',80,'g'],['Cenoura',80,'g'],['Aipo',50,'g'],['Cebola',0.5,'un'],['Polpa de tomate',60,'g'],['Azeite',15,'ml'],['Louro',1,'g'],['Salsa',5,'g']],['a','j'],0,['sop']),
+R('avgolemono','Sopa avgolemono de frango e limão','grega',['mediterranica'],0,0,0,0,[['Peito de frango',100,'g'],['Arroz carolino',40,'g'],['Ovo',1,'un'],['Limão',0.5,'un'],['Cebola',0.25,'un'],['Cenoura',40,'g'],['Aipo',30,'g'],['Azeite',6,'ml']],['a','j'],0,['sop']),
+R('keftedes','Keftedes, almôndegas gregas de hortelã','grega',[],0,0,0,0,[['Carne picada de vaca',160,'g'],['Pão ralado',25,'g'],['Cebola',0.5,'un'],['Alho',2,'dente'],['Hortelã',6,'g'],['Ovo',0.5,'un'],['Farinha',15,'g'],['Azeite',15,'ml'],['Limão',0.25,'un']],['a','j'],0,['pp']),
+R('gigantes','Gigantes plaki, feijão no forno com tomate','grega',['vegetariana','vegan','mediterranica'],0,0,0,0,[['Feijão manteiga, seco, cru',80,'g'],['Polpa de tomate',120,'g'],['Cebola',0.5,'un'],['Alho',3,'dente'],['Salsa',8,'g'],['Azeite',18,'ml'],['Canela',0.5,'g']],['a','j'],0,['pp','ent']),
+R('spanakopita','Spanakopita de espinafres e feta','grega',['vegetariana'],0,0,0,0,[['Massa filo',4,'un'],['Espinafres',200,'g'],['Queijo feta',80,'g'],['Cebolinho',15,'g'],['Ovo',1,'un'],['Azeite',15,'ml'],['Noz-moscada',0.2,'g']],['a','j','l'],0,['pp','sn']),
 R('soutzoukakia','Soutzoukakia de Esmirna','mediterranica',[],0,0,0,0,[['Carne picada de vaca',160,'g'],['Pão ralado',25,'g'],['Alho',3,'dente'],['Cominhos',3,'g'],['Polpa de tomate',120,'g'],['Vinho tinto',30,'ml'],['Azeite',12,'ml'],['Salsa',5,'g']],['a','j'],0,['pp']),
-R('acmelitzano','Melitzanosalata, pasta de beringela assada','mediterranica',['vegetariana','vegan','mediterranica'],0,0,0,0,[['Beringela assada',80,'g'],['Alho',1,'dente'],['Azeite',10,'ml'],['Limão',0.25,'un'],['Salsa',4,'g']],['mo']),
-R('actirokafteri','Tirokafteri, pasta picante de feta','mediterranica',['vegetariana'],0,0,0,0,[['Queijo feta',50,'g'],['Iogurte grego',30,'g'],['Malagueta',3,'g'],['Azeite',8,'ml'],['Limão',0.25,'un']],['mo']),
+R('acmelitzano','Melitzanosalata, pasta de beringela assada','grega',['vegetariana','vegan','mediterranica'],0,0,0,0,[['Beringela assada',80,'g'],['Alho',1,'dente'],['Azeite',10,'ml'],['Limão',0.25,'un'],['Salsa',4,'g']],['mo']),
+R('actirokafteri','Tirokafteri, pasta picante de feta','grega',['vegetariana'],0,0,0,0,[['Queijo feta',50,'g'],['Iogurte grego',30,'g'],['Malagueta',3,'g'],['Azeite',8,'ml'],['Limão',0.25,'un']],['mo']),
 R('aclhorta','Horta, verduras cozidas com azeite e limão','mediterranica',['vegetariana','vegan','mediterranica','lowfat'],0,0,0,0,[['Grelos',180,'g'],['Azeite',12,'ml'],['Limão',0.5,'un'],['Flor de sal',1,'g']],['ac']),
 R('hummus','Hummus de grão-de-bico e tahini','mediterranica',['vegetariana','vegan','mediterranica'],0,0,0,0,[['Grão-de-bico cozido',120,'g'],['Tahini',25,'g'],['Limão',0.5,'un'],['Alho',1,'dente'],['Azeite',12,'ml'],['Cominhos',1,'g']],['l','a'],0,['ent','sn']),
 R('acmoutabal','Moutabal de beringela e tahini','mediterranica',['vegetariana','vegan','mediterranica'],0,0,0,0,[['Beringela assada',80,'g'],['Tahini',15,'g'],['Iogurte grego',20,'g'],['Alho',1,'dente'],['Limão',0.25,'un']],['mo']),
-R('mujadara','Mujadara de lentilhas, arroz e cebola','mediterranica',['vegetariana','vegan','mediterranica'],0,0,0,0,[['Lentilhas',70,'g'],['Arroz agulha',45,'g'],['Cebola',1.5,'un'],['Azeite',20,'ml'],['Cominhos',3,'g'],['Flor de sal',2,'g']],['a','j'],0,['pp']),
+R('mujadara','Mujadara de lentilhas, arroz e cebola','libanesa',['vegetariana','vegan','mediterranica'],0,0,0,0,[['Lentilhas',70,'g'],['Arroz agulha',45,'g'],['Cebola',1.5,'un'],['Azeite',20,'ml'],['Cominhos',3,'g'],['Flor de sal',2,'g']],['a','j'],0,['pp']),
 R('shishtaouk','Shish taouk, espetadas de frango do Líbano','mediterranica',['mediterranica'],0,0,0,0,[['Peito de frango',180,'g'],['Iogurte natural',60,'g'],['Limão',0.5,'un'],['Alho',3,'dente'],['Colorau',3,'g'],['Azeite',10,'ml'],['Pimenta preta',1,'g']],['a','j'],0,['pp']),
-R('acbatataharra','Batata harra, batata picante com coentros','mediterranica',['vegetariana','vegan','mediterranica'],0,0,0,0,[['Batata',200,'g'],['Coentros',10,'g'],['Alho',4,'dente'],['Malagueta',2,'g'],['Limão',0.25,'un'],['Azeite',18,'ml'],['Flor de sal',1,'g']],['ac']),
-R('kibbehforno','Kibbeh no forno','mediterranica',[],0,0,0,0,[['Bulgur',60,'g'],['Carne picada de borrego',150,'g'],['Cebola',1,'un'],['Canela',1,'g'],['Pimenta preta',1,'g'],['Azeite',15,'ml'],['Flor de sal',2,'g']],['a','j'],0,['pp']),
-R('acmtoum','Toum, molho de alho libanês','mediterranica',['vegetariana','vegan'],0,0,0,0,[['Alho',5,'dente'],['Óleo alimentar',30,'ml'],['Limão',0.25,'un'],['Flor de sal',1,'g']],['mo']),
+R('acbatataharra','Batata harra, batata picante com coentros','libanesa',['vegetariana','vegan','mediterranica'],0,0,0,0,[['Batata',200,'g'],['Coentros',10,'g'],['Alho',4,'dente'],['Malagueta',2,'g'],['Limão',0.25,'un'],['Azeite',18,'ml'],['Flor de sal',1,'g']],['ac']),
+R('kibbehforno','Kibbeh no forno','libanesa',[],0,0,0,0,[['Bulgur',60,'g'],['Carne picada de borrego',150,'g'],['Cebola',1,'un'],['Canela',1,'g'],['Pimenta preta',1,'g'],['Azeite',15,'ml'],['Flor de sal',2,'g']],['a','j'],0,['pp']),
+R('acmtoum','Toum, molho de alho libanês','libanesa',['vegetariana','vegan'],0,0,0,0,[['Alho',5,'dente'],['Óleo alimentar',30,'ml'],['Limão',0.25,'un'],['Flor de sal',1,'g']],['mo']),
 R('labneh','Labneh com za\'atar e azeite','mediterranica',['vegetariana','mediterranica'],0,0,0,0,[['Iogurte grego',180,'g'],['Za\'atar',5,'g'],['Azeite',12,'ml'],['Flor de sal',2,'g'],['Pão pita',60,'g']],['p','l'],0,['br','sn']),
-R('sfiha','Sfiha, empadas abertas de carne','mediterranica',[],0,0,0,0,[['Farinha',70,'g'],['Carne picada de borrego',90,'g'],['Tomate',1,'un'],['Cebola',0.5,'un'],['Iogurte natural',20,'g'],['Azeite',12,'ml'],['Canela',0.5,'g'],['Fermento de padeiro',3,'g']],['a','l','j'],0,['pp','sn']),
-R('kousamahshi','Kousa mahshi, courgettes recheadas','mediterranica',['mediterranica'],0,0,0,0,[['Courgette',300,'g'],['Arroz agulha',50,'g'],['Carne picada de borrego',90,'g'],['Polpa de tomate',80,'g'],['Hortelã',5,'g'],['Canela',0.5,'g'],['Azeite',12,'ml']],['a','j'],0,['pp']),
+R('sfiha','Sfiha, empadas abertas de carne','libanesa',[],0,0,0,0,[['Farinha',70,'g'],['Carne picada de borrego',90,'g'],['Tomate',1,'un'],['Cebola',0.5,'un'],['Iogurte natural',20,'g'],['Azeite',12,'ml'],['Canela',0.5,'g'],['Fermento de padeiro',3,'g']],['a','l','j'],0,['pp','sn']),
+R('kousamahshi','Kousa mahshi, courgettes recheadas','libanesa',['mediterranica'],0,0,0,0,[['Courgette',300,'g'],['Arroz agulha',50,'g'],['Carne picada de borrego',90,'g'],['Polpa de tomate',80,'g'],['Hortelã',5,'g'],['Canela',0.5,'g'],['Azeite',12,'ml']],['a','j'],0,['pp']),
 R('gohan','Arroz branco japonês','japonesa',['vegan'],0,0,0,0,[['Arroz para sushi',75,'g']],['ac'],0),
 R('karejapones','Caril japonês de frango','japonesa',[],0,0,0,0,[['Coxas de frango',150,'g'],['Cebola',120,'g'],['Cenoura',80,'g'],['Batata',110,'g'],['Caril em pó',8,'g'],['Farinha',10,'g'],['Manteiga',10,'g'],['Óleo alimentar',8,'ml'],['Molho de soja',8,'ml'],['Arroz para sushi',70,'g']],['a','j'],0,['pp']),
 R('acmtonkatsu','Molho tonkatsu','japonesa',[],0,0,0,0,[['Molho inglês',15,'ml'],['Ketchup',10,'g'],['Molho de soja',5,'ml'],['Açúcar amarelo',3,'g'],['Sementes de sésamo',2,'g']],['mo']),
@@ -3811,7 +3842,7 @@ R('manakish','Manakish de za\'atar','mediterranica',['vegetariana','vegan','medi
 /* Msemen: a crepe folhada do Magrebe. A sêmola é obrigatória — com farinha só,
    a massa estica mas não folha. Dobra-se em quatro com azeite pelo meio, e é
    essa dobra que faz as camadas. */
-R('msemen','Msemen com mel','mediterranica',['vegetariana','mediterranica'],0,0,0,0,[['Farinha de trigo tipo 65',50,'g'],['Sêmola de trigo',40,'g'],['Azeite',15,'ml'],['Mel',15,'g'],['Flor de sal',1,'g']],['p','l'],0,['br']),
+R('msemen','Msemen com mel','marroquina',['vegetariana','mediterranica'],0,0,0,0,[['Farinha de trigo tipo 65',50,'g'],['Sêmola de trigo',40,'g'],['Azeite',15,'ml'],['Mel',15,'g'],['Flor de sal',1,'g']],['p','l'],0,['br']),
 
 /* ---------- França: petit-déjeuner e goûter ---------- */
 /* Pain perdu: pão duro salvo em leite e ovo, frito em manteiga. O nome diz o
@@ -3905,7 +3936,7 @@ R('cogumelostosta','Cogumelos na torrada','britanica',[],0,0,0,0,[['Pão rústic
 R('simit','Simit com queijo branco','mediterranica',['mediterranica'],0,0,0,0,[['Farinha de trigo tipo 65',65,'g'],['Fermento seco de padeiro',2,'g'],['Flor de sal',1.5,'g'],['Melaço',15,'ml'],['Sementes de sésamo',15,'g'],['Azeite',3,'ml'],['Queijo feta',40,'g'],['Tomate',60,'g'],['Pepino',50,'g'],['Azeitonas pretas',15,'g']],['p','l'],0,['br']),
 R('cilbir','Ovos escalfados em iogurte de alho','mediterranica',['mediterranica'],0,0,0,0,[['Iogurte grego natural',150,'g'],['Alho',1,'dente'],['Ovo',2,'un'],['Vinagre de vinho',15,'ml'],['Flor de sal',1,'g'],['Pão pita',50,'g'],['Endro',2,'g']],['p'],0,['br']),
 R('balila','Balila de grão-de-bico','mediterranica',['mediterranica'],0,0,0,0,[['Grão-de-bico cozido',150,'g'],['Alho',1,'dente'],['Limão',0.5,'un'],['Azeite',10,'ml'],['Cominhos',2,'g'],['Flor de sal',1,'g'],['Salsa',5,'g'],['Hortelã',2,'g'],['Pão pita',40,'g'],['Cebola roxa',20,'g'],['Rabanete cru',30,'g']],['p','l'],0,['br']),
-R('fatteh','Fatteh de grão-de-bico com iogurte','mediterranica',['mediterranica'],0,0,0,0,[['Grão-de-bico cozido',120,'g'],['Iogurte natural',150,'g'],['Tahini',5,'g'],['Pinhões',6,'g'],['Pão pita',20,'g'],['Ghee',5,'g'],['Alho',1,'dente'],['Cominhos',1.5,'g'],['Azeite',5,'ml'],['Salsa',2,'g'],['Flor de sal',1,'g']],['p','l'],0,['br']),
+R('fatteh','Fatteh de grão-de-bico com iogurte','libanesa',['mediterranica'],0,0,0,0,[['Grão-de-bico cozido',120,'g'],['Iogurte natural',150,'g'],['Tahini',5,'g'],['Pinhões',6,'g'],['Pão pita',20,'g'],['Ghee',5,'g'],['Alho',1,'dente'],['Cominhos',1.5,'g'],['Azeite',5,'ml'],['Salsa',2,'g'],['Flor de sal',1,'g']],['p','l'],0,['br']),
 R('shakshukaverde','Shakshuka verde','mediterranica',['mediterranica'],0,0,0,0,[['Azeite',15,'ml'],['Couve-de-Bruxelas crua',55,'g'],['Cebola roxa',30,'g'],['Alho',1,'dente'],['Couve galega',55,'g'],['Espinafres',40,'g'],['Malagueta',0.5,'g'],['Sementes de coentro',1,'g'],['Cominhos',1,'g'],['Limão',0.25,'un'],['Ovo',2,'un'],['Salsa',4,'g'],['Queijo feta',30,'g'],['Flor de sal',1,'g']],['p','l'],0,['br']),
 R('baghrir','Baghrir, crepes dos mil buracos','mediterranica',[],0,0,0,0,[['Sêmola de trigo',60,'g'],['Farinha de trigo tipo 55',30,'g'],['Fermento seco de padeiro',2,'g'],['Fermento em pó',3,'g'],['Açúcar branco',2,'g'],['Flor de sal',1,'g'],['Mel',15,'g'],['Manteiga',8,'g']],['p','l'],0,['br']),
 R('harcha','Harcha de sêmola','mediterranica',[],0,0,0,0,[['Sêmola de trigo',70,'g'],['Manteiga',18,'g'],['Leite meio gordo, UHT',35,'ml'],['Açúcar branco',4,'g'],['Fermento em pó',2.5,'g'],['Flor de sal',1,'g'],['Mel',12,'g']],['p','l'],0,['br']),
@@ -4156,7 +4187,7 @@ P('croquetescarne',[['Carne','Refoga a cebola e o alho na manteiga, junta a carn
  ['Moldar','Com as mãos untadas, molda cilindros do tamanho de um dedo gordo. Passa por ovo batido e depois por pão ralado, a apertar bem.',15],
  ['Fritar','Frita em óleo quente até dourar por todos os lados, poucos de cada vez, e escorre em papel. No forno também vai: 200 °C com um fio de óleo, a virar a meio.',8],
  ['Servir','Um croquete é petisco; cinco com arroz e salada são um prato — ajusta a dose na ficha e a conta faz-se sozinha.']]);
-P('croquetesalheira',[['Recheio','Tira a pele à alheira e desfaz o recheio com um garfo. Já vem temperado e cozinhado: não precisa de lume, só de forma.',5],
+P('croquetesalheira',[['Recheio','Tira a pele à alheira e desfaz o recheio com um garfo. Já vem temperada e pré-cozida, mas a alheira come-se sempre cozinhada — a fritura a seguir não é só para a crosta.',5],
  ['Moldar','Molda cilindros pequenos, passa por ovo batido e pão ralado, a apertar para não abrirem.',12],
  ['Fritar','Óleo quente, poucos de cada vez, até dourarem — a alheira já está feita, é só criar a crosta. Escorre em papel e serve com salsa.',6]]);
 P('alheiraovo',[['Batatas','Batatas às rodelas grossas, fritas ou assadas no forno com azeite.',25],
@@ -5229,10 +5260,13 @@ P('ketochili',[['Refogado','Cebola, alho e pimento.',8],
 /* ================= PASSOS: NORTE-AMERICANA ================= */
 P('hamburguer',[['Moldar','Carne fria, moldada sem apertar — apertada fica dura. Uma cova no centro impede que inche.'],
  ['Temperar','Sal só na altura de ir para a grelha: antes, puxa a água.'],
- ['Grelhar','Frigideira ou grelha muito quente, virando uma vez só.',8],
- ['Repousar','Três minutos antes de montar.',3]]);
-P('bbqfrango',[['Marinar no barbecue','Coxas no molho barbecue, o tempo que houver. De véspera é melhor, mas uma hora já se nota.',120],
- ['Assar e pincelar','Forno a 190 °C, pincelando com o molho a cada dez minutos, até a pele ficar lacada e a carne soltar-se do osso.',40],
+ ['Grelhar','Frigideira ou grelha muito quente, virando uma vez só. É carne picada e come-se bem passada: sem centro rosado, ou 70 °C no meio. Ao contrário de um bife inteiro, aqui o que estava à superfície foi lá para dentro na máquina de picar.',8],
+ ['Queijo','Nos últimos trinta segundos, o cheddar por cima da carne e a tampa da frigideira em cima: é o vapor que o derrete sem queimar o fundo.',1],
+ ['Pão','Abre o pão e toca-lhe com o miolo na gordura que ficou na frigideira, até tostar. Pão frio num hambúrguer quente encharca.',2],
+ ['Montar','Ketchup na base, alface, rodelas de tomate e cebola, a carne com o queijo por cima e a tampa do pão. A alface debaixo da carne protege o pão do suco.',3],
+ ['Repousar','Três minutos antes de morder — a carne acabada de sair da grelha larga tudo à primeira dentada.',3]]);
+P('bbqfrango',[['Marinar no barbecue','Guarda um terço do molho à parte, num pote fechado — é esse que vai pincelar. As coxas ficam no resto, o tempo que houver: de véspera é melhor, mas uma hora já se nota.',120],
+ ['Assar e pincelar','Forno a 190 °C, pincelando de dez em dez minutos com o molho que ficou de parte, até a pele ficar lacada e a carne soltar-se do osso. O molho onde a carne crua esteve não volta a tocar na comida — ou então ferve dois minutos primeiro.',40],
  ['Pimentão no fim','Polvilha com o pimentão-doce à saída do forno. Dentro do forno queima e amarga.']]);
 P('cobb',[['Componentes','Ovo cozido, bacon estaladiço, frango grelhado e abacate, tudo preparado à parte.',20],
  ['Montar','Dispostos em filas sobre a alface, sem misturar — é essa a graça da Cobb.'],
@@ -5447,6 +5481,52 @@ P('tonkatsu',[['Preparar a carne','Dá uns golpes no nervo que rodeia o lombo pa
  ['Descansar de pé','Escorre em grelha, de pé, cinco minutos. Deitada em papel, a crosta de baixo cozinha no seu próprio vapor.',5],
  ['Repolho em fio','Corta o repolho o mais fino que conseguires e deixa-o em água fria dez minutos. Escorre bem: é o que fica crocante e fresco ao lado da fritura, e não é guarnição a mais — faz parte do prato.',10],
  ['Cortar em tiras','Corta a costeleta em tiras de dois dedos antes de levar à mesa, para se comer com pauzinhos.']]);
+P('pastitsio',[['Carne','Refoga cebola e alho em azeite, junta a carne de borrego e deixa-a soltar-se. Tomate, canela e noz-moscada, e apura em lume brando até quase seco. A canela na carne é o que faz este prato grego e não uma lasanha.',30],
+ ['Massa','Coze a massa em água com sal até ficar bem al dente — vai acabar de cozer no forno, e a que sai mole do tacho sai papa do tabuleiro.',8],
+ ['Béchamel','Manteiga e farinha em roux claro, leite morno aos poucos sem parar de mexer, até napar a colher. Fora do lume, o parmesão e o ovo batido — o ovo é o que a faz firmar em fatia.',12],
+ ['Montar','Metade da massa no fundo, a carne toda, o resto da massa, e o béchamel por cima a cobrir os cantos todos.',6],
+ ['Forno','180 °C até a superfície estar dourada e firme ao toque.',40],
+ ['Descanso','Vinte minutos fora do forno antes de cortar. Cortado a sair, escorre e desfaz-se.',20]]);
+P('stifado',[['Selar','Carne aos cubos, seca com papel, selada em azeite bem quente aos poucos. Tacho cheio de uma vez coze em vez de corar.',12],
+ ['Cebolinhas','As cebolas inteiras, se forem pequenas, ou em gomos grossos. Aloura-as no mesmo tacho, na gordura da carne.',10],
+ ['Apurar','Junta a carne, o alho, o tomate, o vinho, o vinagre, a canela, o louro e o cravinho. Tapa e deixa em lume brandíssimo — o stifado não se mexe muito, para as cebolas não desfazerem.',120],
+ ['Ponto','Está no ponto quando a carne se desfaz ao garfo e o molho está escuro e espesso. Se secar antes disso, junta água a ferver.',10],
+ ['Repouso','Do dia para o outro é melhor: é um guisado, e o tempo faz-lhe o resto.']]);
+P('galaktoboureko',[['Creme','Leite ao lume com metade do açúcar. Quando ferver, chove a sêmola em fio, sem parar de mexer, até engrossar. Fora do lume, o ovo batido e a raspa de limão.',15],
+ ['Arrefecer','Tapa o creme à superfície com película e deixa arrefecer bem — creme quente derrete a massa filo.',20],
+ ['Camadas','Pincela cada folha de filo com manteiga derretida e forra a forma, deixando as pontas de fora. Filo desprotegido seca em minutos: mantém as folhas por usar debaixo de um pano húmido.',12],
+ ['Fechar','O creme dentro, as pontas dobradas por cima, mais duas folhas pinceladas a fechar. Corta os quadrados ANTES de ir ao forno — depois de cozida, a massa estilhaça.',6],
+ ['Forno','170 °C até estar dourado e estaladiço.',45],
+ ['Calda','O resto do açúcar em calda com um pouco de água e limão. Regra que não falha: calda FRIA sobre doce QUENTE, ou o contrário — nunca os dois à mesma temperatura, senão a massa encharca.',10]]);
+P('fattoush',[['Pão torrado','Abre o pão pita, corta em pedaços e leva ao forno ou à frigideira seca até estarem estaladiços. É pão do dia anterior que faz esta salada: era essa a ideia toda.',8],
+ ['Legumes','Alface partida à mão, tomate em gomos, pepino em meias-luas grossas, cebola roxa fina. Tudo em pedaços grandes — o fattoush não é uma salada picada.',10],
+ ['Molho','Azeite, sumo de limão e sal, batidos. Se tiveres sumagre, é aqui que entra: uma colher de chá dá o ácido perfumado que distingue esta salada.',3],
+ ['Juntar','As ervas picadas grosseiramente, o molho, e o pão só no fim. Pão junto cedo de mais amolece, e o pão estaladiço é o prato.',3]]);
+P('babaganoush',[['Queimar a beringela','Beringela inteira sobre a chama do fogão ou debaixo do grelhador, a virar, até a pele estar preta e ela colapsar. É o fumo desta queimadura que faz o baba ganoush — no forno sai bom, mas sai outra coisa.',25],
+ ['Escorrer','Abre a beringela, tira a polpa com uma colher e deixa-a escorrer num passador uns dez minutos. Beringela aguada dá pasta aguada.',10],
+ ['Bater','Esmaga a polpa com o garfo — não é puré de varinha, quer-se textura. Junta o tahine, o alho esmagado, o limão, o sal e os cominhos.',6],
+ ['Servir','Azeite generoso por cima e coentros picados. Com pão pita quente.']]);
+P('shishtaouk',[['Marinada','Iogurte, alho esmagado, sumo de limão, azeite, pimentão-doce, cominhos e canela. O iogurte não é só sabor: o ácido e o cálcio amaciam o frango sem o desfazer, ao contrário de uma marinada só de limão.',10],
+ ['Frio','Frango aos cubos na marinada, tapado, no frigorífico. Quatro horas chegam, de véspera é melhor.',240],
+ ['Espetar','Cubos nos espetos sem apertar, para o calor passar entre eles. Espetos de madeira ficam meia hora de molho em água antes.',8],
+ ['Grelhar','Grelha bem quente, a virar de dois em dois minutos, até estar dourado por fora. Frango come-se sempre bem passado: sem rosado junto ao centro, ou 75 °C.',12],
+ ['Servir','Em pão pita quente, com o resto do limão espremido por cima.']]);
+P('taginenborrego',[['Sem tagine também dá','Um tagine é um tacho de barro com chaminé cónica que devolve o vapor ao prato — por isso se cozinha com quase nada de líquido. Sem ele: tacho de fundo grosso, tampa pesada, lume muito brando.',2],
+ ['Alourar','Borrego aos cubos, alourado em azeite aos poucos. Retira e reserva.',12],
+ ['Especiarias','Cebola no mesmo azeite até amolecer, depois o alho, a canela, o gengibre e a curcuma — trinta segundos no lume, que é o que basta para largarem o perfume sem queimar.',8],
+ ['Apurar','Devolve a carne, junta água só até meia altura (não a cobrir), tapa e deixa em lume brandíssimo até a carne ceder ao garfo.',105],
+ ['Fruta e mel','Os damascos e o mel na última meia hora — antes disso desfazem-se e adoçam o molho todo.',30],
+ ['Amêndoa','Amêndoa tostada numa frigideira seca e espalhada por cima na hora de servir, com os coentros. Com couscous ao lado.',5]]);
+P('taginegrao',[['Base','Cebola e alho em azeite, os cominhos, a curcuma e o gengibre a largar perfume, e o tomate a apurar.',12],
+ ['Frango','Coxas por cima da base, viradas uma vez para pegarem tempero de ambos os lados. Água só até meia altura.',10],
+ ['Brando','Tapado, lume muito brando, até a carne soltar do osso.',45],
+ ['Abóbora e grão','A abóbora aos cubos e o grão na última meia hora: mais tempo do que isso e a abóbora desfaz-se no molho.',30],
+ ['Servir','Coentros picados e umas gotas de limão fora do lume. O frango tem de estar bem passado — sem rosado junto ao osso.']]);
+P('taginelegumes',[['Legumes','Cenoura, courgette e abóbora em pedaços grandes e iguais — cortados pequenos desfazem-se antes de os outros estarem prontos.',10],
+ ['Base','Cebola em azeite, os cominhos, a curcuma e a canela a largar perfume, e o tomate.',10],
+ ['Cozer','Os legumes mais rijos primeiro (cenoura), os mais tenros vinte minutos depois (courgette, abóbora), com o grão e as passas. Água pouca: os legumes largam a deles.',40],
+ ['Couscous','Couscous numa taça, água a ferver por cima até cobrir um dedo acima, tapa com um pano cinco minutos e solta com um garfo. Um fio de azeite.',8],
+ ['Servir','O couscous na base, os legumes e o molho por cima, coentros a acabar.']]);
 P('gemista',[['Escavar sem furar','Corta uma tampa aos tomates e aos pimentos e escava o miolo do tomate com uma colher, sem rasgar a parede. Guarda esse miolo: é ele que dá o sabor ao recheio.',15],
  ['Refogado do recheio','Aloura a cebola e o alho no azeite, junta o miolo de tomate esmagado e deixa apurar até engrossar. Fora do lume entram a salsa e a hortelã.',12],
  ['Arroz cru, meio cheio','Envolve o arroz CRU no refogado e enche cada legume até dois terços. O arroz incha ao assar — cheio até cima, rebenta a casca.'],
@@ -5458,7 +5538,7 @@ P('briam',[['Fatias da mesma espessura','Corta a courgette, a beringela e a bata
  ['Envolver, não dispor','Mistura tudo numa taça com o alho laminado, o tomate aos pedaços, os orégãos e o azeite, com as mãos. O briam não se arruma em camadas bonitas — é um assado rústico.'],
  ['Forno sem pressa','Tabuleiro largo, camada não muito alta, 180 °C durante uma hora e meia, mexendo duas vezes. É o tempo longo que faz os legumes ficarem doces em vez de cozidos.',90],
  ['Salsa no fim','Salsa picada só à saída. Como o gemista, sabe melhor morno do que a escaldar.']]);
-P('fasolada',[['Demolhar de véspera','Feijão de molho em água fria doze horas. Sem isso, coze mal e fica a pele rija por muito que ferva.',60],
+P('fasolada',[['Demolhar de véspera','Feijão de molho em água fria doze horas. Sem isso, coze mal e fica a pele rija por muito que ferva.',720],
  ['Primeira fervura fora','Coze o feijão em água nova vinte minutos e deita essa água fora. Tira o que faz mal ao estômago e a sopa fica limpa.',20],
  ['Legumes aos cubos','Cebola, cenoura e aipo em cubos pequenos, tudo do mesmo tamanho. É o trio que sustenta a sopa e não deve dar-se por nenhum deles em particular.'],
  ['Cozer devagar','Junta os legumes, a polpa de tomate, o louro e água a cobrir. Lume brando até o feijão desfazer entre os dedos, uma hora ou mais conforme o grão.',70],
@@ -5531,7 +5611,7 @@ P('acmtoum',[['Alho e sal primeiro','Pisa o alho descascado com a flor de sal at
  ['Óleo gota a gota','Com a varinha ou no almofariz, junta o óleo GOTA A GOTA no início. É como se faz uma maionese sem ovo, e é a única maneira de o toum pegar.',10],
  ['Limão a alternar','Quando começar a embranquecer e a engrossar, alterna fio de óleo com umas gotas de limão. O limão relaxa a emulsão e deixa entrar mais óleo.'],
  ['Descansar um dia','Fica muito picante acabado de fazer. Um dia no frigorífico e o ardor do alho assenta.']]);
-P('labneh',[['Coar de véspera','Iogurte grego num pano fino sobre um passador, no frigorífico, doze horas. Perde o soro e fica com consistência de queijo para barrar.',60],
+P('labneh',[['Coar de véspera','Iogurte grego num pano fino sobre um passador, no frigorífico, doze horas. Perde o soro e fica com consistência de queijo para barrar.',720],
  ['Salgar antes de coar','O sal entra no iogurte ANTES de coar — puxa mais soro e tempera por dentro, não só à superfície.'],
  ['Espalhar e regar','Espalha numa taça funda com o dorso da colher, faz sulcos e enche-os de azeite.'],
  ['Za\'atar por cima','Za\'atar generoso à hora de servir, com pão pita quente. Posto cedo, humedece e perde o perfume.']]);
@@ -5856,7 +5936,8 @@ P('tiramisu',[['Gemas','Gemas batidas com o açúcar até esbranquiçarem e trip
  ['Claras','Claras em castelo firme, envolvidas com movimentos largos de baixo para cima.',5],
  ['Molhar','Bolachas passadas rapidamente pelo café frio, um segundo de cada lado. Encharcadas, desfazem-se.',5],
  ['Camadas','Bolacha, creme, bolacha, creme. Alisa por cima.',5],
- ['Frio','Frigorífico no mínimo seis horas, melhor de um dia para o outro. Cacau peneirado só na hora de servir.',360]]);
+ ['Frio','Frigorífico no mínimo seis horas, melhor de um dia para o outro. Cacau peneirado só na hora de servir.',360],
+ ['Ovo cru, quem não deve','O creme leva ovo que nunca vai ao lume. Usa ovos muito frescos, ou gema e clara pasteurizadas, que o catálogo tem. Na gravidez, nas crianças pequenas e em quem tenha as defesas em baixo, o ovo cru evita-se: aí, a versão com o creme cozido em banho-maria é a que serve.']]);
 P('cabidela',[['Sangue','O sangue apara-se com um golpe de vinagre e mexe-se logo — sem vinagre coalha, e coalhado já não há molho que se faça.'],
  ['Refogado','Cebola e alho em azeite, devagar. Colorau fora do lume, que a esta temperatura queima e amarga.',10],
  ['Guisar','Frango aos pedaços a alourar no refogado, depois água a cobrir e o louro. Coze até a carne largar do osso.',35],
@@ -5919,7 +6000,8 @@ P('moussechoc',[['Derreter','Chocolate em banho-maria com a manteiga, sem uma go
  ['Gemas','Gemas ao chocolate morno, uma a uma. Se o chocolate estiver quente de mais, as gemas cozem.',4],
  ['Claras','Claras em castelo firme com o açúcar, aos poucos.',6],
  ['Envolver','Um terço das claras a soltar a massa, o resto com movimentos largos de baixo para cima. Perder ar aqui é perder a mousse.',5],
- ['Frio','Taças, frigorífico, no mínimo três horas. Do dia para o outro fica melhor.',180]]);
+ ['Frio','Taças, frigorífico, no mínimo três horas. Do dia para o outro fica melhor.',180],
+ ['Ovo cru, quem não deve','O ovo não vai ao lume nesta receita. Ovos muito frescos, ou pasteurizados. Na gravidez, nas crianças pequenas e em quem tenha as defesas em baixo, o ovo cru evita-se.']]);
 P('bolochoc',[['Bater','Manteiga amolecida com o açúcar até esbranquiçar. Os ovos um a um, cada um bem incorporado antes do seguinte.',8],
  ['Secos','Farinha, cacau e fermento peneirados juntos, alternados com o leite, envolvidos sem bater.',5],
  ['Forno','Forma untada e polvilhada com cacau (não com farinha, que deixa marca branca). 180 °C.',35],
@@ -6084,8 +6166,8 @@ P('iogurtemorango',[['Cortar','Morangos aos quartos, ao comprido.',3],
  ['Juntar','Morangos por cima do iogurte, e esmaga dois ou três para soltarem o sumo e corarem a taça.',1]]);
 P('iogurtevermelhos',[['Juntar','Frutos vermelhos por cima do iogurte, inteiros. Se forem de congelador, deixa-os cinco minutos fora — gelados, ficam ácidos.',5]]);
 P('paosemgluten',[['Antes de começar','Bancada, taça, colher e formas lavadas de fresco, e farinhas de embalagem fechada. Numa cozinha onde também se amassa pão de trigo, a contaminação não vem do forno: vem do pano, da tábua e da farinha que ficou no ar. Torradeira à parte, ou sacos próprios — as migalhas da grelha chegam.',5],
- ['Gel de psyllium','Mistura o psílio (nos pacotes vem «psyllium husk») com 240 ml de água morna e deixa cinco minutos até formar um gel espesso. É este gel que faz o que a rede de glúten faria: sem ele a massa cresce e desaba no forno.',5],
- ['Fermento','Fermento seco e açúcar noutros 60 ml de água morna — morna e não quente: acima dos 45 °C mata-se o fermento antes de ele trabalhar. Espera que ganhe espuma.',10],
+ ['Gel de psyllium','Mistura o psílio (nos pacotes vem «psyllium husk») com 45 ml de água morna e deixa cinco minutos até formar um gel espesso — a proporção é cerca de doze partes de água para uma de psílio; com mais água nunca chega a gel. É este gel que faz o que a rede de glúten faria: sem ele a massa cresce e desaba no forno.',5],
+ ['Fermento','Fermento seco e açúcar noutros 15 ml de água morna — morna e não quente: acima dos 45 °C mata-se o fermento antes de ele trabalhar. Espera que ganhe espuma.',10],
  ['Secos','Peneira as farinhas com a fécula, o polvilho e o sal. Peneirar não é preciosismo: a farinha de arroz apelmaça e fica em pelotas que não desaparecem depois.',3],
  ['Amassar','Junta o gel, o fermento e o azeite aos secos e bate dois minutos. Esta massa não se amassa com as mãos nem se sova — é mais mole do que a de trigo, quase uma pasta grossa, e é assim que deve ficar. Não juntes farinha para a endurecer.',4],
  ['Levedar','Forma untada, massa alisada com a colher molhada, tapada, num sítio morno até crescer para metade a mais. Uma vez só: sem glúten não há segunda levedação que se aguente.',60],
@@ -6131,11 +6213,11 @@ P('cheesecakeny',[['Base','Tritura a bolacha, mistura com a manteiga derretida e
 P('cheesecakemorango',[['Cheesecake','Faz o cheesecake como o de Nova Iorque: base de bolacha calcada e cozida, creme de queijo batido só até ficar liso, banho-maria a 160 °C e arrefecimento lento.',75],
  ['Coulis','Leva os morangos ao lume com o açúcar e umas gotas de limão até desfazerem e engrossar em calda. Passa pelo passador se quiseres liso.',10],
  ['Servir','Deixa o coulis arrefecer e deita-o sobre o cheesecake já frio, no momento de servir — deitado antes, encharca a superfície.',3]]);
-P('pampilhos',[['Doce de ovos','Calda de açúcar em ponto de pérola, arrefecida até morna, e as gemas passadas pelo passador juntas em fio. Ao lume brandíssimo, a mexer, até engrossar. Deixa arrefecer.',20],
- ['Massa','Trabalha a manteiga com o açúcar, junta o ovo e por fim a farinha, até a massa ficar lisa e sem pegar. Deixa-a repousar no frio meia hora.',15],
+P('pampilhos',[['Doce de ovos','Metade do açúcar em calda, em ponto de pérola, arrefecida até morna, e as gemas passadas pelo passador juntas em fio. Ao lume brandíssimo, a mexer, até engrossar. Deixa arrefecer. Guarda uma colher de gema para pincelar.',20],
+ ['Massa','Trabalha a manteiga com o resto do açúcar, junta o ovo e por fim a farinha, até a massa ficar lisa e sem pegar. Deixa-a repousar no frio meia hora.',15],
  ['Estender','Estende fina e corta retângulos de cerca de dezasseis por doze centímetros — é a medida que dá a vara comprida do campino.',10],
  ['Rechear','Uma tira de doce de ovos ao comprido, canela por cima, e enrola apertado. Sela a junta com os dedos húmidos.',8],
- ['Cozer','Pincela com gema e leva a forno bem quente até corarem. Saem da forma direitos e finos, como a vara que lhes deu o nome.',18]]);
+ ['Cozer','Pincela com a gema que guardaste e leva a 200 °C até corarem. Saem da forma direitos e finos, como a vara que lhes deu o nome.',18]]);
 P('vasquinhos',[['Doce de ovos','Faz o doce de ovos: calda em ponto de pérola, morna, com as gemas em fio e ao lume brando até engrossar. Arrefece bem.',20],
  ['Recheio','Mistura a amêndoa moída com parte do doce de ovos até obter uma pasta que se molda. Quem tiver doce de gila junta uma colher aqui — é o que a receita de Sines leva e o catálogo da app não tem.',10],
  ['Massa tenra','Farinha, manteiga e um pouco de água morna, trabalhadas até a massa ficar macia e elástica. Repousa meia hora tapada.',15],
@@ -6193,10 +6275,10 @@ P('bolocenoura',[['Cenoura','Rala a cenoura fina. Vai crua para a massa: coze de
  ['Nozes','Envolve as nozes picadas.',2],
  ['Forno','180 °C até o palito sair limpo.',40]]);
 P('bolorei',[['Demolhar','Põe a fruta cristalizada e as passas de molho no vinho do Porto, pelo menos meia hora. É o que as amacia e dá o perfume da casa no Natal.',30],
- ['Massa','Dissolve o fermento no leite morno, junta à farinha com o açúcar, o ovo, a manteiga amolecida e a raspa. Amassa até a massa descolar das mãos.',20],
+ ['Massa','Dissolve o fermento no leite morno, junta à farinha com o açúcar, a manteiga amolecida, a raspa e quase todo o ovo — guarda uma colher para pincelar no fim. Amassa até a massa descolar das mãos.',20],
  ['Levedar','Tapa e deixa levedar em sítio abrigado até dobrar de tamanho.',90],
  ['Frutos','Envolve a fruta escorrida e os frutos secos, molda em coroa com o buraco ao meio, e deixa levedar outra vez.',60],
- ['Cozer','Pincela com ovo, decora com fruta e frutos por cima, e coze a 180 °C até estar dourado e soar oco.',40]]);
+ ['Cozer','Pincela com o ovo que guardaste, decora com fruta e frutos por cima, e coze a 180 °C até estar dourado e soar oco.',40]]);
 P('paodelo',[['Bater','Ovos, gemas e açúcar batidos muito tempo — dez minutos —, até triplicar e ficar quase branco. Todo o fofo vem daqui, não há fermento.',10],
  ['Farinha','Farinha peneirada envolvida à mão, com movimentos de baixo para cima e o mínimo possível. Bater agora desfaz o ar todo.',4],
  ['Forma','Forma forrada com papel, sem untar as paredes: a massa precisa de se agarrar para subir.'],
@@ -6225,7 +6307,7 @@ P('roloport',[['Pão em leite','Pão ralado embebido no leite morno até ficar u
  ['Cortar','Fatias de dois dedos, com faca de serra e sem premir.']]);
 P('cabritoassado',[['Tempero de véspera','Esfrega a carne com o alho esmagado, a massa de pimentão, o colorau, o sal e a pimenta. Junta o louro e o vinho branco, tapa e frigorífico de um dia para o outro. É a véspera que faz o cabrito: um tempero de uma hora não chega ao osso.',20],
  ['Tirar o frio','Tira a carne do frigorífico meia hora antes de a levar ao forno. Fria por dentro, assa por fora antes de estar feita por dentro.',30],
- ['Ao forno','Tabuleiro com a carne, a marinada toda e a banha às pedaços por cima. Forno bem quente, 220 °C, os primeiros vinte minutos para corar.',20],
+ ['Ao forno','Tabuleiro com a carne, a marinada toda, o azeite regado por cima e a banha aos pedaços. Forno bem quente, 220 °C, os primeiros vinte minutos para corar.',20],
  ['Batatas','Batatas em quartos à volta da carne, envolvidas no molho do tabuleiro. Baixa para 180 °C.',10],
  ['Assar devagar','Uma hora e meia a 180 °C, a regar com o próprio suco de vinte em vinte minutos. Se o tabuleiro secar, um pouco de água quente — nunca fria, que agarra a carne.',90],
  ['Descanso','Dez minutos fora do forno, tapado com folha de alumínio, antes de trinchar. É o descanso que redistribui o suco todo.',10]]);
@@ -6234,7 +6316,7 @@ P('vitelaassada',[['Tempero','Alho esmagado, sal, pimenta e louro esfregados na 
  ['Cama de legumes','Cebola às rodelas grossas e cenoura em pedaços no fundo do tabuleiro: fazem cama à carne e dão corpo ao molho. A vitela vai por cima, com a banha e o resto do vinho.',8],
  ['Ao forno','200 °C durante vinte minutos e depois 170 °C até estar tenra — cerca de hora e meia numa pá. Rega de meia em meia hora.',95],
  ['Batatas','A meio do tempo, junta as batatas em quartos à volta, a rolar no molho.',5],
- ['Molho e descanso','Tira a carne e deixa-a descansar quinze minutos. Passa o molho do tabuleiro pelo passador, esmagando os legumes, e leva ao lume a apurar. Trincha contra o veio.',15]]);
+ ['Molho e descanso','Tira a carne e deixa-a descansar quinze minutos. Passa o molho do tabuleiro pelo passador, esmagando os legumes, e leva ao lume a apurar. Trincha contra o veio e salpica com a salsa picada.',15]]);
 P('borregoassado',[['Picar de alho','Faz cortes fundos na perna com a ponta da faca e enfia em cada um um pedaço de alho e uma agulha de alecrim. É assim que o tempero entra na carne em vez de ficar à superfície.',15],
  ['Tempero','Esfrega com azeite, sal grosso, pimenta e o sumo do limão. Junta o louro e o vinho branco. Frigorífico pelo menos quatro horas, melhor de véspera.',12],
  ['Forno forte','Meia hora a 220 °C para criar a crosta.',30],
@@ -6243,8 +6325,8 @@ P('borregoassado',[['Picar de alho','Faz cortes fundos na perna com a ponta da f
  ['Descanso','Quinze minutos tapado antes de trinchar, com o alecrim fresco por cima.',15]]);
 P('arrozforno',[['Refogado','Cebola e alho picados em azeite, em lume brando, até amolecerem. Junta o chouriço às rodelas e deixa largar a gordura corada.',10],
  ['Frango','Junta o frango em pedaços, tempera com sal, pimenta e o louro, e deixa alourar de todos os lados.',10],
- ['Cozer','Cobre com água a ferver — o dobro do volume do arroz — e deixa cozinhar até o frango estar tenro. Retira o frango, desfia-o e volta a pôr o caldo ao lume.',25],
- ['Arroz','Junta o arroz ao caldo a ferver e coze quinze minutos, malandro: vai acabar de cozer no forno, e um arroz já seco antes de lá entrar sai empedrado.',15],
+ ['Cozer','Cobre o frango com água a ferver e deixa cozinhar até estar tenro. Retira-o, desfia-o, e mede o caldo que ficou.',25],
+ ['Arroz','Junta o arroz ao caldo a ferver na proporção do carolino — três medidas de caldo para uma de arroz — e coze oito a dez minutos, malandro: vai acabar de cozer no forno, e um arroz já seco antes de lá entrar sai empedrado.',10],
  ['Ao forno','Envolve o frango desfiado e a salsa, passa para um pirex e leva a 200 °C até a superfície ficar tostada às manchas.',20],
  ['Servir','Vai à mesa no próprio pirex. É o par clássico do cabrito assado, mas come-se muito bem sozinho.']]);
 P('wellington',[['Selar','Lombo temperado com sal e pimenta, selado em azeite muito quente trinta segundos de cada lado, incluindo os topos. Só a crosta interessa — o interior fica cru.',4],
@@ -6338,7 +6420,7 @@ P('queijadaleite',[['Bater','Derrete a manteiga e bate-a com o açúcar, os ovos
  ['Formas','Unta bem as forminhas com manteiga — esta queijada não tem massa a forrar, é o recheio que faz a própria crosta ao cozer.',5],
  ['Cozer','Enche até dois terços e leva a 180 °C até corar por cima e um palito sair quase limpo. O meio deve tremer só um nada.',25],
  ['Arrefecer','Deixa arrefecer nas formas antes de desenformar: quente, desfaz-se; morna, sai inteira. Canela por cima a gosto.',20]]);
-P('pudimtapioca',[['Hidratar','Aquece o leite sem ferver e verte-o sobre a tapioca. Deixa repousar meia hora, a mexer de vez em quando, até as bolinhas ficarem transparentes e macias.',30],
+P('pudimtapioca',[['Hidratar','Aquece o leite sem ferver e verte-o sobre a tapioca. Deixa repousar meia hora, a mexer de vez em quando, até as bolinhas incharem e ficarem macias — transparentes só ficam ao lume, no passo a seguir.',30],
  ['Engrossar','Junta o leite de coco e o leite condensado e leva a lume brando, a mexer, até engrossar como um pudim de colher. Não pares de mexer: a tapioca agarra ao fundo num instante.',10],
  ['Taças','Divide por taças pequenas e espalha o coco ralado por cima.',3],
  ['Frio','Frigorífico pelo menos duas horas: o pudim de tapioca come-se bem frio, e é o frio que o faz firmar.',120]]);
@@ -6591,10 +6673,10 @@ P('tortaazeitao',[['Bater as gemas','Separa os ovos. Bate as gemas com a maior p
  ['Doce de ovos','Ferve a água com o restante açúcar até ponto de fio, retira do lume e deita sobre as gemas restantes, mexendo sem parar.',12],
  ['Barrar e enrolar','Desenforma ainda quente, tira o papel, barra logo com o doce de ovos e polvilha com canela. Corta em tiras e enrola com o pano.',10]]);
 P('paodedeus',[['Ativar o fermento','Desfaz o fermento no leite morno com uma pitada de açúcar e espera que ganhe espuma à superfície.',10],
- ['Amassar','Junta a farinha, o açúcar, o ovo e o leite com fermento e amassa. Só depois incorpora a manteiga aos poucos, até a massa ficar sedosa.',15],
+ ['Amassar','Junta a farinha, o açúcar, o leite com fermento e a maior parte do ovo — guarda uma colher para a cobertura — e amassa. Só depois incorpora a manteiga aos poucos, até a massa ficar sedosa.',15],
  ['Levedar','Tapa e deixa crescer até dobrar de volume, em sítio abrigado de correntes de ar.',60],
  ['Tender','Divide a massa em bolas iguais, achata-as ligeiramente e dispõe-as no tabuleiro com espaço entre elas.',10],
- ['Cobertura de coco','Mistura o coco ralado com açúcar, ovo batido e manteiga derretida até formar uma pasta e cobre generosamente cada pão.',8],
+ ['Cobertura de coco','Mistura o coco ralado com açúcar, o ovo que guardaste e manteiga derretida até formar uma pasta, e cobre generosamente cada pão.',8],
  ['Cozer','Deixa crescer mais meia hora e leva a 180 °C cerca de vinte minutos, até a cobertura estar tostada e o pão oco ao toque.',50]]);
 P('espetosardinhas',[['Sardinha inteira e fria','Não se amanham nem se tiram as tripas: é a gordura e o interior que mantêm o peixe suculento no espeto. Vão do frigorífico diretas para a cana.'],
  ['Espetar pelo ventre','A cana entra pelo ventre e sai por trás da espinha, cinco ou seis sardinhas por cana, todas no mesmo sentido e à mesma altura, com o dorso para o mesmo lado.'],
@@ -6978,7 +7060,7 @@ P('sopatomategratinada',[['Refogado','Cebola e alho em manteiga e azeite, em lum
  ['Natas','Junta as natas fora do lume, prova o sal, e volta a aquecer sem deixar ferver.',4],
  ['Gratinar','Divide por taças que possam ir ao forno, cobre com o gruyère e o pão em cubos, e leva ao grelhador até o queijo borbulhar e alourar.',8],
  ['Servir','Manjericão por cima. Com uma grilled cheese cortada em tiras ao lado, para molhar — é assim que ela se come na terra de onde veio.']]);
-P('sopatomategrilled',[['Sopa','Faz a sopa de tomate gratinada: refogado de cebola e alho em manteiga sem tostar, tomate pelado esmagado com a pitada de açúcar a apurar destapado, triturar até ficar liso, natas fora do lume.',35],
+P('sopatomategrilled',[['Sopa','Faz a sopa de tomate gratinada: refogado de cebola e alho em manteiga e azeite sem tostar, tomate pelado esmagado com a pitada de açúcar a apurar destapado, triturar até ficar liso, natas fora do lume.',35],
  ['Gratinar','Taças ao forno com o gruyère por cima, debaixo do grelhador até borbulhar.',8],
  ['A sandes','Enquanto a sopa gratina: cheddar ralado entre as duas fatias, manteiga e maionese por FORA, e chapa em lume brando até dourar dos dois lados.',10],
  ['Cortar','Corta a sandes em tiras — servem para molhar na sopa, e é essa a razão de ela estar aqui.',2],
@@ -7550,6 +7632,12 @@ NI('Ricotta',246,3.8,11,20.6,0,0,3);
 NI('Mozzarella',256,1.3,18.7,19.5,0,0,3);
 NI('Mozzarella fresca',256,1.3,18.7,19.5,0,0,3);
 NI('Parmesão',406,0.1,37.7,27.8,0,0,3);
+/* Pecorino romano: queijo de ovelha, mais salgado e mais picante do que o
+   parmesão, e não é substituível por ele em dois pratos onde ele É o prato —
+   no «cacio e pepe» o «cacio» é este queijo, e a carbonara romana leva-o
+   também. Os passos das duas receitas já o nomeavam há muito; o que faltava
+   era ele existir no catálogo. USDA (cheese, romano). */
+NI('Pecorino romano',388,3.6,31.8,26.9,0,0,3);
 NI('Queijo ralado',406,0.1,37.7,27.8,0,0,3);
 NI('Queijo feta',264,4,14,21,0,0,-1);  // USDA, hidratos convertidos para disponiveis
 NI('Queijo gruyère',415,1.4,27.2,33.3,0,0,3);
@@ -9670,14 +9758,31 @@ function dietasDaReceita(r){
    natas não são 510 kcal, são perto do dobro. Ficam como recurso: se algum
    ingrediente perder a composição, é melhor um valor aproximado do que um
    total incompleto que parece exato. */
+const _semComposicao=[];
 RECIPES.forEach(r=>{
   const m=macrosDeIngredientes(r.i,1);
   if(!m.semDados.length){
     r.k=m.k; r.c=Math.round(m.c); r.p=Math.round(m.p); r.f=Math.round(m.f); r.fib=Math.round(m.fib);
   }
+  else if(!r.u) _semComposicao.push(r.id+' ('+m.semDados.join(', ')+')');
   const s=[]; r.i.forEach(x=>atributosIng(x[0]).forEach(t=>{ if(s.indexOf(t)<0) s.push(t); }));
   r.at=s;
 });
+/* Um ingrediente escrito com um nome que o catálogo não tem faz o recálculo
+   desistir, e a receita fica com os números escritos à mão no R(). Como a
+   convenção da casa é escrever zeros ali para o cálculo os substituir, o
+   resultado é uma receita a valer ZERO calorias — e a app dizia-o sem se
+   queixar: o pastitsio ficou a zero por causa de «Massa» (o catálogo tem
+   «Massa cotovelo crua») e o baba ganoush por «Tahine» (o catálogo tem
+   «Tahini»). Uma receita da biblioteca a zero é sempre erro de escrita, e
+   passa a dizer-se em voz alta a quem estiver a editar. */
+(function(){
+  const zero=RECIPES.filter(r=>!r.u&&!(r.k>0)).map(r=>r.id);
+  if(_semComposicao.length) console.warn('Família Fit — receitas cujos macros não puderam ser calculados ('
+    +_semComposicao.length+'), por ingrediente fora do catálogo: '+_semComposicao.join(' · '));
+  if(zero.length) console.warn('Família Fit — receitas da biblioteca a ZERO calorias ('+zero.length+'): '
+    +zero.join(' · ')+'. É sempre um nome de ingrediente que o catálogo não tem.');
+})();
 RECIPES.forEach(r=>{ r.dc=dietasDaReceita(r); });
 
 /* ================= O QUE UM MEMBRO NÃO COME =================
