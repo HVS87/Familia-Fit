@@ -2416,7 +2416,7 @@ function migraRegistos(s){
   s.brigada = limparBrigada(s.brigada, ids);
   s.desperdicio = limparDesperdicio(s.desperdicio);
   s.gostos = limparGostos(s.gostos, ids);
-  s.jejum = limparJejum(s.jejum, ids);
+  s.jejum = limpaJejunsInalcancaveis(limparJejum(s.jejum, ids), s.members);
   /* Os cheat days vivem num objeto por membro. Se um ficheiro trouxer aqui
      outra coisa — uma string, uma lista —, isCheat() sobrevive (lê undefined
      e devolve falso) mas toggleCheat() deixa de conseguir escrever, e os dias
@@ -10007,7 +10007,7 @@ function aplicaInstantaneo(js){
   S.rituais=limparRituais(d.rituais); S.extras=limparExtras(d.extras); S.aindaHa=limparAindaHa(d.aindaHa);
   S.visitas=limparVisitas(d.visitas); S.ementas=limparEmentas(d.ementas); S.anos=limparAnos(d.anos); S.provas=limparProvas(d.provas); S.bebidas=limparBebidas(d.bebidas); S.notasCozinha=limparNotasCozinha(d.notasCozinha);
   S.corredores=limparCorredores(d.corredores); S.trilhos=limparTrilhos(d.trilhos); S.talhoes=limparTalhoes(d.talhoes, S.members.map(m=>m.id));
-  S.jejum=limparJejum(d.jejum, S.members.map(m=>m.id));
+  S.jejum=limpaJejunsInalcancaveis(limparJejum(d.jejum, S.members.map(m=>m.id)), S.members);
   sincronizaReceitas(); sincronizaCombos();
   S.members.forEach(normalizaMembro);
   if(!S.members.some(m=>m.id===S.ui.mid)) S.ui.mid=S.members[0]? S.members[0].id : null;
@@ -11581,6 +11581,29 @@ function limparJejum(o,ids){
   Object.keys(o.renutRecusada||{}).slice(0,32).forEach(mid=>{
     if((!ids||ids.indexOf(mid)>=0) && dataValida(o.renutRecusada[mid])) d.renutRecusada[mid]=o.renutRecusada[mid]; });
   return d;
+}
+/* Jejuns que não podem existir para o perfil a que pertencem — e que, ao
+   contrário dos outros, não têm superfície onde ser desfeitos.
+
+   O bloqueio da app fecha a CRIAÇÃO e deixa sempre o desmarcar: quem marcou
+   um jejum e depois engravidou continua a vê-lo no cartão bloqueado e pode
+   tirá-lo. Mas há perfis onde o cartão do jejum nem chega a ser desenhado —
+   um bebé sai de renderNutricao muito antes disso —, e aí um jejum que entre
+   por uma cópia de segurança fica invisível: conta horas, corta o alvo do dia
+   (medi 174 kcal para um bebé de seis meses) e não há um botão em lado nenhum
+   que o remova. Por isso este caso, e só este, apaga-se em silêncio: não é
+   mexer numa escolha de alguém, é remover o que a app nunca deixaria criar e
+   que ninguém consegue alcançar.
+
+   Os outros perfis desaconselhados — grávida, diabetes, IMC baixo — mantêm o
+   que lá está, porque têm cartão e podem desfazer. */
+function limpaJejunsInalcancaveis(jejum,membros){
+  if(!jejum) return jejum;
+  const semCartao=new Set((membros||[]).filter(m=>faseDe(m)==='bebe').map(m=>m.id));
+  if(!semCartao.size) return jejum;
+  jejum.pontuais=(jejum.pontuais||[]).filter(j=>!semCartao.has(j.mid));
+  semCartao.forEach(id=>{ delete jejum.im[id]; delete jejum.renutricao[id]; delete jejum.renutRecusada[id]; });
+  return jejum;
 }
 /* As horas de jejum que caem num dia concreto, entre 0 e 24. */
 function horasDeJejumNoDia(mid,d){
@@ -27403,7 +27426,7 @@ function lerPacote(txt){
     Object.keys(d.jejum.renutricao||{}).forEach(mid0=>{ jejumBruto.renutricao[mapa[mid0]||mid0]=d.jejum.renutricao[mid0]; });
     Object.keys(d.jejum.renutRecusada||{}).forEach(mid0=>{ jejumBruto.renutRecusada[mapa[mid0]||mid0]=d.jejum.renutRecusada[mid0]; });
   }
-  const jejum=limparJejum(jejumBruto, idsOk);
+  const jejum=limpaJejunsInalcancaveis(limparJejum(jejumBruto, idsOk), members);
   /* combos: além de sanear a forma, exige-se que o prato e pelo menos um dos
      acompanhamentos existam deste lado — uma variante de uma receita que não
      veio na cópia não é uma variante, é um id órfão */
