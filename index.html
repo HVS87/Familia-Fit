@@ -3577,8 +3577,40 @@ R('tiramisu','Tiramisu','italiana',[],0,0,0,0,[['Queijo Mascarpone',55,'g'],['Ge
 R('bavaroise','Bavaroise de morango','francesa',[],0,0,0,0,[['Morango',80,'g'],['Nata para bater 35% gordura',60,'ml'],['Leite',50,'ml'],['Gema de ovo de galinha, crua',18,'g'],['Açúcar branco',25,'g'],['Gelatina em folhas',2,'g']],['l'],0,['sob']),
 R('moussechoc','Mousse de chocolate','portuguesa',[],0,0,0,0,[['Chocolate de culinária',35,'g'],['Ovo',1,'un'],['Açúcar branco',12,'g'],['Manteiga',8,'g']],['l'],0,['sob']),
 R('bolochoc','Bolo de chocolate','portuguesa',[],0,0,0,0,[['Farinha',35,'g'],['Açúcar branco',40,'g'],['Cacau em pó',12,'g'],['Ovo',0.75,'un'],['Manteiga',25,'g'],['Leite',35,'ml'],['Fermento em pó',2,'g']],['l'],0,['sob']),
+/* ---- Bolos de fatia, a mesma fornada com massas diferentes ----
+   A dose é uma fatia, como em toda a doçaria da biblioteca. O bolo de
+   amêndoa não leva farinha nenhuma — é dos poucos doces da casa que serve a
+   quem não pode glúten, e é por isso que aqui não se lhe junta «uma colher
+   de farinha para ajudar». */
+R('boloamendoa','Bolo de amêndoa','portuguesa',['vegetariana'],0,0,0,0,[['Amêndoa',30,'g'],['Açúcar branco',26,'g'],['Ovo',0.7,'un'],['Manteiga',8,'g'],['Raspa de limão',1,'g'],['Fermento em pó',1,'g']],['l'],0,['sob']),
+R('bolonoz','Bolo de noz','portuguesa',['vegetariana'],0,0,0,0,[['Nozes',20,'g'],['Farinha',22,'g'],['Açúcar branco',24,'g'],['Ovo',0.6,'un'],['Manteiga',10,'g'],['Canela',0.5,'g'],['Fermento em pó',1.5,'g']],['l'],0,['sob']),
+R('bolocenoura','Bolo de cenoura','portuguesa',['vegetariana'],0,0,0,0,[['Cenoura',65,'g'],['Farinha',28,'g'],['Açúcar branco',24,'g'],['Ovo',0.6,'un'],['Óleo alimentar',11,'ml'],['Nozes',7,'g'],['Canela',1,'g'],['Fermento em pó',2,'g']],['l'],0,['sob']),
+/* O bolo-rei é de época e leva-a no nome: a fruta cristalizada e os frutos de
+   casca rija são o que o define, e são também os dois avisos que ele traz — a
+   fruta pelo açúcar, os frutos secos pelo alergénio. */
+R('bolorei','Bolo-rei','portuguesa',['vegetariana'],0,0,0,0,[['Farinha',38,'g'],['Fruta cristalizada',18,'g'],['Passas',8,'g'],['Nozes',6,'g'],['Amêndoa',5,'g'],['Pinhões',3,'g'],['Manteiga',10,'g'],['Açúcar branco',12,'g'],['Ovo',0.3,'un'],['Leite',15,'ml'],['Fermento seco de padeiro',2,'g'],['Vinho do Porto',8,'ml'],['Raspa de limão',1,'g']],['l','p'],0,['sob','sn']),
 R('moussemanga','Mousse de manga','brasileira',[],0,0,0,0,[['Manga',110,'g'],['Nata para bater 35% gordura',50,'ml'],['Leite condensado açucarado',35,'g'],['Gelatina em folhas',2,'g'],['Lima',0.25,'un']],['l'],0,['sob']),
 R('mousselima','Mousse de lima','portuguesa',[],0,0,0,0,[['Lima',0.75,'un'],['Leite condensado açucarado',45,'g'],['Nata para bater 35% gordura',50,'ml'],['Clara de ovo de galinha, crua',25,'g'],['Açúcar branco',10,'g']],['l'],0,['sob']),
+/* ---- Cheesecake: duas bases, e os coulis como variantes ----
+   O de Nova Iorque é queijo creme cozido no forno sobre base de bolacha, denso
+   e alto. O japonês é outra coisa: leva claras batidas, um terço do queijo, e
+   coze em banho-maria até ficar leve como um soufflé. Estão em famílias
+   separadas de propósito — quem quer um não está a hesitar sobre o outro, tal
+   como no gelado e no sorvete. O coulis é sempre fruta e açúcar reduzidos, e é
+   por isso que ele muda a receita sem mudar a técnica. */
+R('cheesecakeny','Cheesecake de Nova Iorque','americana',['vegetariana'],0,0,0,0,[['Queijo creme',60,'g'],['Açúcar branco',16,'g'],['Ovo',0.35,'un'],['Nata para bater 35% gordura',12,'ml'],['Bolacha Maria',18,'g'],['Manteiga',8,'g'],['Milho, amido (pó)',3,'g'],['Baunilha',0.5,'g'],['Raspa de limão',0.5,'g']],['l'],0,['sob']),
+R('cheesecakemorango','Cheesecake com coulis de morango','americana',['vegetariana'],0,0,0,0,[['Queijo creme',60,'g'],['Açúcar branco',16,'g'],['Ovo',0.35,'un'],['Nata para bater 35% gordura',12,'ml'],['Bolacha Maria',18,'g'],['Manteiga',8,'g'],['Milho, amido (pó)',3,'g'],['Baunilha',0.5,'g'],['Morango',60,'g'],['Açúcar branco',8,'g'],['Limão',0.1,'un']],['l'],0,['sob']),
+R('cheesecakeframboesa','Cheesecake com coulis de framboesa','americana',['vegetariana'],0,0,0,0,[['Queijo creme',60,'g'],['Açúcar branco',16,'g'],['Ovo',0.35,'un'],['Nata para bater 35% gordura',12,'ml'],['Bolacha Maria',18,'g'],['Manteiga',8,'g'],['Milho, amido (pó)',3,'g'],['Baunilha',0.5,'g'],['Framboesa',55,'g'],['Açúcar branco',10,'g'],['Limão',0.1,'un']],['l'],0,['sob']),
+R('cheesecakevermelhos','Cheesecake com coulis de frutos vermelhos','americana',['vegetariana'],0,0,0,0,[['Queijo creme',60,'g'],['Açúcar branco',16,'g'],['Ovo',0.35,'un'],['Nata para bater 35% gordura',12,'ml'],['Bolacha Maria',18,'g'],['Manteiga',8,'g'],['Milho, amido (pó)',3,'g'],['Baunilha',0.5,'g'],['Frutos vermelhos',60,'g'],['Açúcar branco',9,'g'],['Limão',0.1,'un']],['l'],0,['sob']),
+R('cheesecakemanga','Cheesecake com coulis de manga','americana',['vegetariana'],0,0,0,0,[['Queijo creme',60,'g'],['Açúcar branco',16,'g'],['Ovo',0.35,'un'],['Nata para bater 35% gordura',12,'ml'],['Bolacha Maria',18,'g'],['Manteiga',8,'g'],['Milho, amido (pó)',3,'g'],['Baunilha',0.5,'g'],['Manga',70,'g'],['Açúcar branco',6,'g'],['Lima',0.15,'un']],['l'],0,['sob']),
+R('cheesecakemaracuja','Cheesecake com coulis de maracujá','americana',['vegetariana'],0,0,0,0,[['Queijo creme',60,'g'],['Açúcar branco',16,'g'],['Ovo',0.35,'un'],['Nata para bater 35% gordura',12,'ml'],['Bolacha Maria',18,'g'],['Manteiga',8,'g'],['Milho, amido (pó)',3,'g'],['Baunilha',0.5,'g'],['Maracujá',55,'g'],['Açúcar branco',12,'g']],['l'],0,['sob']),
+R('cheesecakelimao','Cheesecake com coulis de limão','americana',['vegetariana'],0,0,0,0,[['Queijo creme',60,'g'],['Açúcar branco',16,'g'],['Ovo',0.35,'un'],['Nata para bater 35% gordura',12,'ml'],['Bolacha Maria',18,'g'],['Manteiga',8,'g'],['Milho, amido (pó)',3,'g'],['Baunilha',0.5,'g'],['Limão',0.6,'un'],['Açúcar branco',14,'g'],['Gema de ovo de galinha, crua',8,'g']],['l'],0,['sob']),
+R('cheesecakejapones','Cheesecake japonês','japonesa',['vegetariana'],0,0,0,0,[['Queijo creme',30,'g'],['Ovo',0.8,'un'],['Açúcar branco',17,'g'],['Leite',25,'ml'],['Manteiga',8,'g'],['Farinha',10,'g'],['Milho, amido (pó)',5,'g'],['Limão',0.1,'un']],['l'],0,['sob']),
+R('cheesecakejpmorango','Cheesecake japonês com coulis de morango','japonesa',['vegetariana'],0,0,0,0,[['Queijo creme',30,'g'],['Ovo',0.8,'un'],['Açúcar branco',17,'g'],['Leite',25,'ml'],['Manteiga',8,'g'],['Farinha',10,'g'],['Milho, amido (pó)',5,'g'],['Morango',60,'g'],['Açúcar branco',8,'g'],['Limão',0.1,'un']],['l'],0,['sob']),
+R('cheesecakejpvermelhos','Cheesecake japonês com coulis de frutos vermelhos','japonesa',['vegetariana'],0,0,0,0,[['Queijo creme',30,'g'],['Ovo',0.8,'un'],['Açúcar branco',17,'g'],['Leite',25,'ml'],['Manteiga',8,'g'],['Farinha',10,'g'],['Milho, amido (pó)',5,'g'],['Frutos vermelhos',60,'g'],['Açúcar branco',9,'g'],['Limão',0.1,'un']],['l'],0,['sob']),
+R('cheesecakejpmanga','Cheesecake japonês com coulis de manga','japonesa',['vegetariana'],0,0,0,0,[['Queijo creme',30,'g'],['Ovo',0.8,'un'],['Açúcar branco',17,'g'],['Leite',25,'ml'],['Manteiga',8,'g'],['Farinha',10,'g'],['Milho, amido (pó)',5,'g'],['Manga',70,'g'],['Açúcar branco',6,'g'],['Lima',0.15,'un']],['l'],0,['sob']),
+R('crumblemaca','Crumble de maçã','britanica',['vegetariana'],0,0,0,0,[['Maçã',150,'g'],['Farinha',24,'g'],['Manteiga',14,'g'],['Açúcar amarelo',14,'g'],['Aveia em flocos',12,'g'],['Canela',1,'g'],['Limão',0.15,'un']],['l'],0,['sob']),
+R('castela','Castela','japonesa',['vegetariana'],0,0,0,0,[['Ovo',0.9,'un'],['Açúcar branco',28,'g'],['Farinha',26,'g'],['Mel',10,'g'],['Leite',8,'ml']],['l','p'],0,['sob','sn']),
 /* ---- Peixe e arroz da casa ---- */
 R('peixeaosal','Peixe ao sal no forno','portuguesa',['mediterranica'],0,0,0,0,[['Dourada',350,'g'],['Sal grosso',600,'g'],['Clara de ovo de galinha, crua',30,'g'],['Limão',0.5,'un'],['Louro',2,'g'],['Azeite',10,'ml'],['Salsa',5,'g']],['a','j'],0,['pp']),
 R('arroztamboril','Arroz de tamboril','portuguesa',['mediterranica'],0,0,0,0,[['Tamboril cru',200,'g'],['Camarão',60,'g'],['Arroz carolino',80,'g'],['Cebola',0.5,'un'],['Alho',2,'dente'],['Tomate',1,'un'],['Pimento',0.25,'un'],['Coentros',10,'g'],['Azeite',15,'ml'],['Vinho branco',40,'ml'],['Colorau',2,'g'],['Louro',1,'g']],['a','j'],0,['pp']),
@@ -3589,6 +3621,26 @@ R('arrozdoce','Arroz doce','portuguesa',[],0,0,0,0,[['Arroz carolino',25,'g'],['
 R('toucinhoceu','Toucinho do céu','portuguesa',[],0,0,0,0,[['Açúcar branco',22,'g'],['Amêndoa',17,'g'],['Gema de ovo de galinha, crua',15,'g'],['Ovo',0.25,'un'],['Manteiga',6,'g'],['Farinha',4,'g'],['Raspa de limão',0.5,'g']],['l'],0,['sob']),
 R('farofias','Farófias','portuguesa',[],0,0,0,0,[['Clara de ovo de galinha, crua',45,'g'],['Leite',125,'ml'],['Açúcar branco',26,'g'],['Gema de ovo de galinha, crua',17,'g'],['Canela',0.5,'g'],['Raspa de limão',1,'g']],['l'],0,['sob']),
 R('paodelo','Pão de ló','portuguesa',[],0,0,0,0,[['Ovo',0.4,'un'],['Gema de ovo de galinha, crua',5,'g'],['Açúcar branco',11,'g'],['Farinha',7,'g'],['Raspa de limão',0.3,'g']],['p','l'],0,['sob']),
+/* ---- Mais doçaria portuguesa ----
+   As rabanadas são de pão e não de fatias compradas: o catálogo tem
+   «Rabanada» como alimento pronto (INSA), e a receita é outra coisa — o que
+   se faz em casa com o pão da véspera. */
+R('rabanadas','Rabanadas','portuguesa',[],0,0,0,0,[['Pão de forma',55,'g'],['Leite',60,'ml'],['Ovo',0.5,'un'],['Açúcar branco',14,'g'],['Canela',1,'g'],['Óleo alimentar',10,'ml'],['Raspa de limão',0.5,'g']],['l'],0,['sob','sn']),
+/* Ovos moles: gemas e calda de açúcar, e mais nada. A hóstia das barriquinhas
+   não está no catálogo e por isso também não está aqui — quem a usar sabe que
+   pesa pouco e não muda a conta. */
+R('ovosmoles','Ovos moles de Aveiro','portuguesa',[],0,0,0,0,[['Gema de ovo de galinha, crua',30,'g'],['Açúcar branco',35,'g']],['l'],0,['sob']),
+R('natasceu','Natas do céu','portuguesa',[],0,0,0,0,[['Nata para bater 35% gordura',45,'ml'],['Leite condensado açucarado',25,'g'],['Bolacha Maria',18,'g'],['Gema de ovo de galinha, crua',10,'g'],['Açúcar branco',8,'g']],['l'],0,['sob']),
+R('travesseiros','Travesseiros de Sintra','portuguesa',[],0,0,0,0,[['Massa folhada, congelada',32,'g'],['Amêndoa',15,'g'],['Açúcar branco',16,'g'],['Gema de ovo de galinha, crua',10,'g'],['Ovo',0.15,'un'],['Açúcar em pó',3,'g']],['l'],0,['sob','sn']),
+/* Pampilho: doce de Santarém com a forma da vara comprida com que o campino
+   toca o gado — é essa vara que se chama pampilho, e daí o nome. Massa
+   enrolada sobre doce de ovos e canela. */
+R('pampilhos','Pampilhos de Santarém','portuguesa',[],0,0,0,0,[['Farinha',35,'g'],['Manteiga',15,'g'],['Açúcar branco',15,'g'],['Ovo',0.25,'un'],['Gema de ovo de galinha, crua',12,'g'],['Canela',0.8,'g']],['l'],0,['sob','sn']),
+/* Vasquinhos: doce de Sines criado nos anos 60 pelos irmãos Figueiredo, em
+   homenagem ao filho mais conhecido da terra. Massa tenra com recheio de
+   amêndoa e doce de ovos — o doce de gila leva-o a receita original, e o
+   catálogo não tem gila: fica só nos passos, para quem a quiser juntar. */
+R('vasquinhos','Vasquinhos de Sines','portuguesa',[],0,0,0,0,[['Farinha',28,'g'],['Manteiga',12,'g'],['Amêndoa',16,'g'],['Açúcar branco',18,'g'],['Gema de ovo de galinha, crua',12,'g'],['Ovo',0.15,'un'],['Açúcar em pó',2,'g']],['l'],0,['sob','sn']),
 /* ---- Gelados e sorvetes ----
    Duas bases e não uma: o gelado é creme — natas, leite, gema — e o sorvete é
    fruta e calda, sem lacticínio nenhum. É por isso que os sabores são
@@ -6005,6 +6057,99 @@ P('farofias',[['Merengue','Claras em castelo firme com metade do açúcar, aos p
  ['Creme','No leite que sobrou, gemas e o resto do açúcar em lume brandíssimo, mexendo sempre em oito. Nunca deixar ferver.',12],
  ['Montar','Creme frio na travessa, farófias por cima a boiar.'],
  ['Canela','Canela por cima, à última hora. Se puseres antes, humedece e desaparece.']]);
+P('rabanadas',[['Leite','Aquece o leite com a raspa de limão e um pouco do açúcar, e deixa arrefecer. Morno embebe melhor; a ferver desfaz o pão.',6],
+ ['Embeber','Passa cada fatia pelo leite sem a deixar encharcar — conta até três de cada lado. Pão da véspera aguenta bem melhor do que pão fresco.',5],
+ ['Ovo','Escorre e passa por ovo batido, dos dois lados.',3],
+ ['Fritar','Frita em óleo quente até dourar, vira uma vez só e escorre em papel.',8],
+ ['Açúcar e canela','Ainda mornas, passa-as por açúcar misturado com canela. Frias já não pegam bem.',2]]);
+P('ovosmoles',[['Calda','Leva o açúcar ao lume com pouca água até fazer ponto de pérola — quando a calda escorre da colher em fio e a última gota fica pendurada. Deixa arrefecer até estar morna.',12],
+ ['Juntar','Passa as gemas por um passador fino e junta-as à calda morna em fio, sempre a mexer. Calda a ferver coze a gema e faz grumos: é o erro clássico.',5],
+ ['Cozer','Lume brandíssimo, a mexer sem parar, até engrossar e descolar do fundo. Sai do lume ainda a parecer mole — firma a arrefecer.',10],
+ ['Arrefecer','Espalha num prato, tapa à superfície com película para não criar crosta, e deixa arrefecer por completo antes de servir.',60]]);
+P('natasceu',[['Doce de ovos','Gemas e açúcar em lume brando com um pouco de água, a mexer, até engrossar. Deixa arrefecer bem.',12],
+ ['Natas','Bate as natas bem frias com o leite condensado até ficarem firmes. Frias é meio caminho andado; mornas nunca sobem.',6],
+ ['Bolacha','Tritura a bolacha grosseiramente — quer-se areia com pedaços, não pó.',3],
+ ['Camadas','Numa taça, alterna natas, bolacha e doce de ovos, acabando com o doce por cima.',5],
+ ['Frio','Frigorífico pelo menos três horas antes de servir: é o frio que dá corpo às camadas.',180]]);
+P('travesseiros',[['Recheio','Bate as gemas com o açúcar e a amêndoa moída até ficar um creme espesso. Leva ao lume brando um minuto se estiver muito líquido, e deixa arrefecer.',12],
+ ['Cortar','Estende a massa folhada e corta rectângulos. Põe uma colher de recheio a um terço da massa.',8],
+ ['Dobrar','Dobra a massa sobre o recheio e sela as bordas com um garfo, apertando bem — o creme foge por qualquer abertura.',6],
+ ['Cozer','Pincela com ovo batido e leva a 200 °C até estarem inchados e dourados.',20],
+ ['Açúcar','Polvilha com açúcar em pó ainda mornos.',2]]);
+P('cheesecakeny',[['Base','Tritura a bolacha, mistura com a manteiga derretida e calca no fundo da forma com as costas de uma colher. Leva 10 minutos a 180 °C e deixa arrefecer.',15],
+ ['Creme','Bate o queijo creme com o açúcar só até ficar liso — bater a mais mete ar, e o ar racha o cheesecake no forno. Junta o amido, a baunilha e a raspa.',8],
+ ['Ovos','Junta os ovos um a um, em velocidade baixa, e por fim as natas. A massa fica a escorrer da colher em fita larga.',5],
+ ['Cozer','Verte sobre a base e coze a 160 °C em banho-maria até o centro ainda abanar como gelatina — está pronto assim, não seco.',55],
+ ['Arrefecer','Desliga o forno e deixa-o lá dentro com a porta entreaberta uma hora. O choque de temperatura é o que abre a fenda no meio. Depois, frigorífico de um dia para o outro.',60]]);
+P('cheesecakemorango',[['Cheesecake','Faz o cheesecake como o de Nova Iorque: base de bolacha calcada e cozida, creme de queijo batido só até ficar liso, banho-maria a 160 °C e arrefecimento lento.',75],
+ ['Coulis','Leva os morangos ao lume com o açúcar e umas gotas de limão até desfazerem e engrossar em calda. Passa pelo passador se quiseres liso.',10],
+ ['Servir','Deixa o coulis arrefecer e deita-o sobre o cheesecake já frio, no momento de servir — deitado antes, encharca a superfície.',3]]);
+P('pampilhos',[['Doce de ovos','Calda de açúcar em ponto de pérola, arrefecida até morna, e as gemas passadas pelo passador juntas em fio. Ao lume brandíssimo, a mexer, até engrossar. Deixa arrefecer.',20],
+ ['Massa','Trabalha a manteiga com o açúcar, junta o ovo e por fim a farinha, até a massa ficar lisa e sem pegar. Deixa-a repousar no frio meia hora.',15],
+ ['Estender','Estende fina e corta rectângulos de cerca de dezasseis por doze centímetros — é a medida que dá a vara comprida do campino.',10],
+ ['Rechear','Uma tira de doce de ovos ao comprido, canela por cima, e enrola apertado. Sela a junta com os dedos húmidos.',8],
+ ['Cozer','Pincela com gema e leva a forno bem quente até corarem. Saem da forma direitos e finos, como a vara que lhes deu o nome.',18]]);
+P('vasquinhos',[['Doce de ovos','Faz o doce de ovos: calda em ponto de pérola, morna, com as gemas em fio e ao lume brando até engrossar. Arrefece bem.',20],
+ ['Recheio','Mistura a amêndoa moída com parte do doce de ovos até obter uma pasta que se molda. Quem tiver doce de gila junta uma colher aqui — é o que a receita de Sines leva e o catálogo da app não tem.',10],
+ ['Massa tenra','Farinha, manteiga e um pouco de água morna, trabalhadas até a massa ficar macia e elástica. Repousa meia hora tapada.',15],
+ ['Moldar','Estende fina, corta discos, põe uma noz de recheio ao centro e fecha em bolinhas ou trouxinhas, com a junta bem selada.',15],
+ ['Cozer','Pincela com ovo batido e coze a 190 °C até estarem louros. Açúcar em pó por cima depois de mornos.',20]]);
+P('cheesecakeframboesa',[['Cheesecake','Faz o cheesecake como o de Nova Iorque: base de bolacha calcada e cozida, creme batido só até ficar liso, banho-maria a 160 °C e arrefecimento lento.',75],
+ ['Coulis','Framboesas ao lume com o açúcar e umas gotas de limão, até desfazerem. Passa por passador fino para tirar as grainhas — na framboesa vale mesmo a pena.',10],
+ ['Servir','Frio sobre o cheesecake frio, na altura de servir.',3]]);
+P('cheesecakevermelhos',[['Cheesecake','Faz o cheesecake como o de Nova Iorque: base cozida, creme liso, banho-maria a 160 °C e arrefecimento lento.',75],
+ ['Coulis','Frutos vermelhos ao lume com o açúcar e o limão até romperem e engrossarem. Deixa alguns inteiros: dá textura por cima da fatia.',10],
+ ['Servir','Deita frio sobre o cheesecake já frio.',3]]);
+P('cheesecakemanga',[['Cheesecake','Faz o cheesecake como o de Nova Iorque: base cozida, creme liso, banho-maria a 160 °C e arrefecimento lento.',75],
+ ['Coulis','Tritura a manga madura com a lima e leva ao lume com o açúcar só até apurar. Manga madura precisa de pouco açúcar — prova antes de juntar tudo.',8],
+ ['Servir','Frio sobre o cheesecake frio.',3]]);
+P('cheesecakemaracuja',[['Cheesecake','Faz o cheesecake como o de Nova Iorque: base cozida, creme liso, banho-maria a 160 °C e arrefecimento lento.',75],
+ ['Coulis','Polpa de maracujá ao lume com o açúcar, só até engrossar. Guarda algumas grainhas para juntar no fim: são elas que dão o ar do maracujá.',8],
+ ['Servir','Frio sobre o cheesecake frio.',3]]);
+P('cheesecakelimao',[['Cheesecake','Faz o cheesecake como o de Nova Iorque: base cozida, creme liso, banho-maria a 160 °C e arrefecimento lento.',75],
+ ['Creme de limão','Sumo e raspa de limão ao lume brando com o açúcar e a gema, a mexer sem parar, até engrossar como um creme. Nunca deixes ferver: a gema talha.',12],
+ ['Servir','Deixa arrefecer e espalha sobre o cheesecake frio.',3]]);
+P('cheesecakejpmorango',[['Cheesecake','Faz o cheesecake japonês: queijo derretido em banho-maria, claras em picos moles envolvidas com cuidado, e forno a 150 °C com tabuleiro de água.',85],
+ ['Coulis','Morangos ao lume com o açúcar e umas gotas de limão até desfazerem em calda.',10],
+ ['Servir','Este come-se morno ou frio; o coulis vai sempre frio e só no prato, para o bolo não perder a leveza.',3]]);
+P('cheesecakejpvermelhos',[['Cheesecake','Faz o cheesecake japonês: banho-maria para o creme, claras em picos moles, forno a 150 °C com tabuleiro de água.',85],
+ ['Coulis','Frutos vermelhos ao lume com o açúcar e o limão até romperem e engrossarem.',10],
+ ['Servir','Coulis frio, deitado no prato à hora de servir.',3]]);
+P('cheesecakejpmanga',[['Cheesecake','Faz o cheesecake japonês: banho-maria para o creme, claras em picos moles, forno a 150 °C com tabuleiro de água.',85],
+ ['Coulis','Manga triturada com a lima, ao lume com o açúcar só até apurar.',8],
+ ['Servir','Coulis frio sobre a fatia, à hora de servir.',3]]);
+P('cheesecakejapones',[['Derreter','Derrete em banho-maria o queijo creme com a manteiga e o leite, a mexer, até ficar um creme liso. Deixa amornar e junta as gemas, a farinha, o amido e o limão.',12],
+ ['Claras','Bate as claras com o açúcar até picos MOLES — a ponta dobra quando levantas a vara. Em picos duros, o bolo sobe e colapsa.',8],
+ ['Envolver','Junta um terço das claras ao creme para o aligeirar, e envolve o resto com movimentos de baixo para cima. Sem pressa e sem bater.',5],
+ ['Banho-maria','Forma forrada, tabuleiro com água quente, 150 °C. É o vapor que faz a textura: sem água, sai um bolo seco.',65],
+ ['Arrefecer','Deixa arrefecer dentro do forno desligado com a porta entreaberta. Come-se morno ou frio, e encolhe sempre um pouco — é assim mesmo.',30]]);
+P('crumblemaca',[['Maçã','Descasca e corta as maçãs em gomos grossos, salpica com o sumo de limão e uma pitada de canela, e espalha no fundo do pirex.',10],
+ ['Crumble','Esfrega a farinha com a manteiga fria entre os dedos até ficar areia grossa. Junta o açúcar amarelo e a aveia, e mexe com um garfo — quanto menos se trabalhar, mais estaladiço fica.',8],
+ ['Montar','Espalha a areia por cima da fruta sem calcar: é a camada solta que dá o nome ao prato.',3],
+ ['Forno','200 °C até o crumble estar dourado e a fruta a borbulhar pelas beiras.',35],
+ ['Servir','Come-se morno. Com uma colher de natas ou uma bola de gelado ao lado, se houver.']]);
+P('castela',[['Bater','Bate os ovos com o açúcar em banho-maria morno até triplicarem de volume e ficarem quase brancos — dez bons minutos. É daqui que vem tudo: a castela não leva fermento.',12],
+ ['Mel','Dissolve o mel no leite morno e junta-o à massa em fio, a bater devagar.',3],
+ ['Farinha','Peneira a farinha por cima em três vezes e envolve com a espátula, de baixo para cima, até desaparecer. Bater agora deita o ar fora.',5],
+ ['Assar','Verte na forma forrada, bate-a duas vezes na bancada para soltar as bolhas grandes, e assa a 170 °C até um palito sair limpo.',45],
+ ['Repousar','Desenforma ainda morna, embrulha em película e deixa repousar até ao dia seguinte: é o repouso que lhe dá a humidade e o brilho da côdea.',720]]);
+P('boloamendoa',[['Amêndoa','Mói a amêndoa fina. Sem farinha nenhuma, é ela que faz o corpo do bolo — e é por isso que este serve a quem não pode glúten.',6],
+ ['Bater','Bate a manteiga com o açúcar até ficar um creme claro, e junta os ovos um a um, com a raspa de limão.',8],
+ ['Envolver','Envolve a amêndoa e o fermento sem bater.',3],
+ ['Forno','180 °C até o palito sair com migalhas húmidas agarradas — seco de mais, perde a graça.',35]]);
+P('bolonoz',[['Nozes','Pica as nozes grosseiramente, guardando algumas metades para o topo.',5],
+ ['Massa','Bate a manteiga com o açúcar, junta os ovos um a um, e envolve a farinha peneirada com o fermento e a canela.',8],
+ ['Juntar','Envolve as nozes picadas com a espátula, sem bater.',2],
+ ['Forno','180 °C até o palito sair limpo. As metades guardadas põem-se por cima a meio da cozedura, senão afundam.',40]]);
+P('bolocenoura',[['Cenoura','Rala a cenoura fina. Vai crua para a massa: coze dentro do bolo e é dela que vem a humidade.',6],
+ ['Massa','Bate os ovos com o açúcar e o óleo até ficar homogéneo, junta a cenoura, e por fim a farinha com o fermento e a canela.',8],
+ ['Nozes','Envolve as nozes picadas.',2],
+ ['Forno','180 °C até o palito sair limpo.',40]]);
+P('bolorei',[['Demolhar','Põe a fruta cristalizada e as passas de molho no vinho do Porto, pelo menos meia hora. É o que as amacia e dá o perfume da casa no Natal.',30],
+ ['Massa','Dissolve o fermento no leite morno, junta à farinha com o açúcar, o ovo, a manteiga amolecida e a raspa. Amassa até a massa descolar das mãos.',20],
+ ['Levedar','Tapa e deixa levedar em sítio abrigado até dobrar de tamanho.',90],
+ ['Frutos','Envolve a fruta escorrida e os frutos secos, molda em coroa com o buraco ao meio, e deixa levedar outra vez.',60],
+ ['Cozer','Pincela com ovo, decora com fruta e frutos por cima, e coze a 180 °C até estar dourado e soar oco.',40]]);
 P('paodelo',[['Bater','Ovos, gemas e açúcar batidos muito tempo — dez minutos —, até triplicar e ficar quase branco. Todo o fofo vem daqui, não há fermento.',10],
  ['Farinha','Farinha peneirada envolvida à mão, com movimentos de baixo para cima e o mínimo possível. Bater agora desfaz o ar todo.',4],
  ['Forma','Forma forrada com papel, sem untar as paredes: a massa precisa de se agarrar para subir.'],
@@ -7427,6 +7572,11 @@ NI('Pesto',460,4,5,46,2,0,-1);  // USDA, hidratos convertidos para disponiveis
 NI('Tomate pelado',24,4,1.2,0.2,1.3,0,-1);  // USDA, hidratos convertidos para disponiveis
 NI('Tomate seco',258,44,14,3,12,0,-1);  // USDA, hidratos convertidos para disponiveis
 NI('Passas',300,68.2,3,0.8,4.2,0,4);   /* prateleira, e é o que SEC_FIXA já dizia */
+/* Fruta cristalizada: para o bolo-rei. USDA (candied fruit), com os hidratos
+   convertidos para disponíveis — 83 declarados por diferença menos 1,6 de
+   fibra. Sódio de 98 mg/100 g é do próprio registo, e é mais do que se
+   esperaria de fruta: entra na conta do dia como qualquer outro. */
+NI('Fruta cristalizada',322,81.4,0.3,0.1,1.6,0,4,'g');
 NI('Leite de coco',185,2.8,2,18.4,0,0,4);
 NI('Cacau em pó',358,11.1,19.6,23.4,12.1,0,4);
 NI('Caldo de galinha',5,0.2,0.3,0.3,0,0,4);
@@ -9013,6 +9163,7 @@ const NA_ESTIMADO={
   'Feijão cozido em molho de tomate':261,   /* Public Health England, 2013 */
   'Manteiga magra':520,   /* rotulo */
   'Psílio em pó':111,   /* USDA 2280974 PSYLLIUM HUSK SOLUBLE FIBER POWDER */
+  'Fruta cristalizada':98,   /* USDA candied fruit */
   /* Farinhas sem sal: o valor é quase nada, mas tem de estar escrito. Sem ele,
      uma receita de arepas ou de msemen fica sem total de sal e a app diz «sem
      valor» — o que é honesto mas inútil quando o número existe e é zero. */
@@ -9222,6 +9373,9 @@ const ACUCAR_LIVRE={
   'Chocolate de leite, tablete':52, 'Chocolate de culinária':45, 'Chocolate, pó':60,
   'Ketchup':22, 'Molho barbecue':35, 'Molho teriyaki':16, 'Molho de vinagrete':8,
   'Bolacha Maria':22, 'Granola':20, 'Cacau em pó':2,
+  /* A fruta cristalizada é fruta cozida em calda: o açúcar que traz é
+     adicionado, e a OMS conta-o como livre. */
+  'Fruta cristalizada':81,
   'Leite achocolatado, UHT':9, 'Pastilha elástica':60,
   /* Sumos: a OMS conta-os como açúcares livres, mesmo os de 100 % fruta e sem
      nada adicionado — é a fruta espremida que liberta o açúcar da matriz.
@@ -9563,7 +9717,7 @@ function catalogoCompleto(){
   }
   return _catCompleto;
 }
-function invalidaCatalogos(){ _catalogo=null; _catCompleto=null; _unidIng=null; }
+function invalidaCatalogos(){ _catalogo=null; _catCompleto=null; _unidIng=null; esqueceTextoBusca(); }
 function temNaDespensa(nome){ return !!S.despensa[nome]; }
 function disponibilidadeReceita(r){
   const total=r.i.length, tem=r.i.filter(x=>temNaDespensa(x[0])).length;
@@ -16845,6 +16999,15 @@ const VARIANTES=[
   {k:'rojoes',   n:'Rojões',       ids:['rojoes','rojoesminho']},
   {k:'caldeirada',n:'Caldeirada',  ids:['caldeirada','caldeiradarica','caldeiradaenguias']},
   {k:'mousse',   n:'Mousse',       ids:['moussechoc','moussemanga','mousselima']},
+  /* Bolos de fatia. O pão de ló e o bolo-rei entram na família com todo o
+     direito — quem pergunta «que bolo se faz hoje?» está a escolher entre
+     eles —, e mantêm o nome próprio no cartão que abre. */
+  {k:'bolo',     n:'Bolo',         ids:['bolochoc','bololaranja','boloamendoa','bolonoz','bolocenoura','bolobolacha','paodelo','bolorei']},
+  /* Os dois cheesecakes são famílias separadas, como o gelado e o sorvete: o
+     de Nova Iorque é denso e cozido sobre bolacha, o japonês é soufflé em
+     banho-maria. Dentro de cada uma, o que muda é o coulis. */
+  {k:'cheesecake', n:'Cheesecake', ids:['cheesecakeny','cheesecakemorango','cheesecakeframboesa','cheesecakevermelhos','cheesecakemanga','cheesecakemaracuja','cheesecakelimao']},
+  {k:'cheesecakejp', n:'Cheesecake japonês', ids:['cheesecakejapones','cheesecakejpmorango','cheesecakejpvermelhos','cheesecakejpmanga']},
   /* Gelado e sorvete são duas famílias e não uma. O gelado é creme e leva
      leite, natas e gema; o sorvete é fruta e calda e não leva lacticínio
      nenhum. Juntá-los num cartão só obrigava quem não pode leite a abrir dez
@@ -20468,10 +20631,36 @@ function semAcentos(s){
   return String(s||'').normalize? String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase()
     : String(s||'').toLowerCase();
 }
+/* A pesquisa é por PALAVRAS, todas elas, e não por uma cadeia inteira. É como
+   se procura uma variante: quem escreve «taco camarão» quer aquele taco, e
+   com a comparação por substring recebia zero resultados — o nome é «Tacos de
+   camarão picante» e não contém «taco camarão» seguido. A mesma coisa com
+   «bacalhau natas», «croissant queijo» ou «gelado pistácio»: as três formas
+   naturais de pedir uma variante concreta davam nada.
+
+   O nome da família também conta como texto: quem procura «bife molho» chega
+   ao «Bife à Marrare», que é da família «Bife com molho» sem o dizer no nome.
+   Os ingredientes continuam lá — «couve» encontra tudo o que leva couve. */
+/* `var` e não `let`: invalidaCatalogos() é chamada durante o arranque, muito
+   acima desta linha, e um `let` daqui ainda estaria na zona morta temporal —
+   a mesma armadilha que o guarda dos açúcares livres já documenta. */
+var _txBusca=Object.create(null);
+function esqueceTextoBusca(){ _txBusca=Object.create(null); }
+function textoBusca(r){
+  /* o texto guarda-se por id e não no objeto da receita: editar uma receita
+     da casa muda o nome e os ingredientes, e um cache preso ao objeto ficava
+     a responder pelo nome antigo */
+  if(temChave(_txBusca,r.id)) return _txBusca[r.id];
+  const k=familiaDe(r.id);
+  const fam=k&&temChave(VAR_NOME,k)? VAR_NOME[k] : '';
+  return (_txBusca[r.id]=semAcentos(r.n+' '+fam+' '+r.i.map(x=>x[0]).join(' ')));
+}
 function correspondeBusca(r,q){
   if(!q) return true;
-  if(semAcentos(r.n).indexOf(q)>=0) return true;
-  return r.i.some(x=>semAcentos(x[0]).indexOf(q)>=0);
+  const termos=q.split(/\s+/).filter(Boolean);
+  if(!termos.length) return true;
+  const alvo=textoBusca(r);
+  return termos.every(t=>alvo.indexOf(t)>=0);
 }
 /* Trezentas e tal receitas de uma vez são um quarto de segundo de trabalho
    para mostrar cartões que ninguém percorre até ao fim. Mostram-se aos lotes,
@@ -20649,7 +20838,7 @@ function limparReceita(x){
    que todo o resto lê. Sincronizar é tirar as antigas e voltar a pô-las com
    os macros e os atributos recalculados — nunca há duas versões da mesma. */
 function sincronizaReceitas(){
-  _ixFam=null; _unidIng=null;   /* a lista vai mudar: os indices que dependem dela deixam de valer */
+  _ixFam=null; _unidIng=null; esqueceTextoBusca();   /* a lista vai mudar: os indices que dependem dela deixam de valer */
   for(let i=RECIPES.length-1;i>=0;i--) if(RECIPES[i].u) RECIPES.splice(i,1);
   if(!Array.isArray(S.receitas)) S.receitas=[];
   S.receitas.forEach(x=>{
