@@ -3725,7 +3725,7 @@ R('tigelacereais','Tigela de granola com leite','portuguesa',['vegetariana'],0,0
    estava — é o mesmo gesto com outra despensa. */
 R('bifespanados','Bifes panados','portuguesa',[],0,0,0,0,[['Bife de vaca',130,'g'],['Ovo',1,'un'],['Pão ralado',40,'g'],['Farinha',15,'g'],['Óleo alimentar',15,'ml'],['Limão',0.25,'un'],['Alho',1,'dente'],['Flor de sal',1,'g'],['Pimenta preta',0.5,'g']],['a','j'],0,['pp']),
 R('roloport','Rolo de carne à portuguesa','portuguesa',[],0,0,0,0,[['Carne picada de vaca',110,'g'],['Carne de porco',60,'g'],['Pão ralado',25,'g'],['Ovo',0.75,'un'],['Leite',35,'ml'],['Cebola',0.5,'un'],['Alho',2,'dente'],['Bacon',15,'g'],['Salsa',6,'g'],['Azeite',8,'ml'],['Noz-moscada',0.3,'g'],['Pimenta preta',0.5,'g'],['Vinho branco',30,'ml']],['a','j'],0,['pp']),
-R('wellington','Beef Wellington','outras',[],0,0,0,0,[['Bife do lombo de vaca',160,'g'],['Massa folhada, congelada',70,'g'],['Cogumelos portobello',90,'g'],['Presunto',25,'g'],['Mostarda de Dijon',6,'g'],['Gema de ovo de galinha, crua',10,'g'],['Chalota',0.5,'un'],['Tomilho fresco',2,'g'],['Manteiga',8,'g'],['Azeite',6,'ml'],['Pimenta preta',0.5,'g']],['a','j'],0,['pp']),
+R('wellington','Beef Wellington','britanica',[],0,0,0,0,[['Bife do lombo de vaca',160,'g'],['Massa folhada, congelada',70,'g'],['Cogumelos portobello',90,'g'],['Presunto',25,'g'],['Mostarda de Dijon',6,'g'],['Gema de ovo de galinha, crua',10,'g'],['Chalota',0.5,'un'],['Tomilho fresco',2,'g'],['Manteiga',8,'g'],['Azeite',6,'ml'],['Pimenta preta',0.5,'g']],['a','j'],0,['pp']),
 /* ---- Assados de forno, os de domingo e de festa ----
    Os três assados de carne partilham o método — véspera de tempero, forno
    forte a selar e depois brando, regar com o próprio suco — e distinguem-se
@@ -14485,12 +14485,30 @@ function pctDespensa(r){
   const d=disponibilidadeReceita(r);
   return d.total? d.tem/d.total : 0;
 }
+/* Quão bem uma receita responde ao que foi escrito. Sem isto, procurar «arroz
+   de tomate» dava a lista por ordem alfabética: o arroz de marisco, a paella e
+   o arroz de polvo — que só correspondem porque levam tomate — vinham antes do
+   prato que tem exactamente aquele nome, e ele ficava em sexto lugar. Quem
+   escreve um nome inteiro está a pedir aquilo: o nome ganha aos ingredientes,
+   e começar pelo que se escreveu ganha a conter algures no meio. */
+function pesoBusca(r,q){
+  if(!q) return 0;
+  const n=semAcentos(r.n), termos=q.split(/\s+/).filter(Boolean);
+  if(n===q) return 100;
+  if(n.indexOf(q)===0) return 80;
+  if(n.indexOf(q)>=0) return 60;
+  const noNome=termos.filter(t=>n.indexOf(t)>=0).length;
+  if(noNome===termos.length) return 40;
+  return noNome*5;   /* os que só correspondem pelos ingredientes ficam no fim */
+}
 function ordenaReceitas(list){
   const o=ordemReceitas();
+  const q=semAcentos(S.ui.busca||'').trim();
   const l=list.slice();
-  if(o==='despensa') l.sort((a,b)=>pctDespensa(b)-pctDespensa(a) || a.n.localeCompare(b.n,'pt'));
-  else if(o==='kcal') l.sort((a,b)=>a.k-b.k || a.n.localeCompare(b.n,'pt'));
-  else if(o==='gosto') l.sort((a,b)=>saldoGostos(b.id,S.members)-saldoGostos(a.id,S.members) || a.n.localeCompare(b.n,'pt'));
+  if(o==='despensa') l.sort((a,b)=>pesoBusca(b,q)-pesoBusca(a,q) || pctDespensa(b)-pctDespensa(a) || a.n.localeCompare(b.n,'pt'));
+  else if(o==='kcal') l.sort((a,b)=>pesoBusca(b,q)-pesoBusca(a,q) || a.k-b.k || a.n.localeCompare(b.n,'pt'));
+  else if(o==='gosto') l.sort((a,b)=>pesoBusca(b,q)-pesoBusca(a,q) || saldoGostos(b.id,S.members)-saldoGostos(a.id,S.members) || a.n.localeCompare(b.n,'pt'));
+  else if(q) l.sort((a,b)=>pesoBusca(b,q)-pesoBusca(a,q) || a.n.localeCompare(b.n,'pt'));
   return l;
 }
 /* «Sugere-me algo para hoje»: das receitas que servem toda a gente à mesa,
@@ -24379,11 +24397,19 @@ function renderReceitas(){
   /* «Todas as refeições» mostra os pratos; os acompanhamentos e os molhos têm
      filtro próprio, para não se misturarem com o que é uma refeição a sério —
      ninguém janta um chimichurri, e ele estava a aparecer entre os jantares
-     porque o corte só conhecia os acompanhamentos. */
+     porque o corte só conhecia os acompanhamentos.
+
+     A pesquisa é a exceção, pela mesma razão por que já é exceção ao
+     agrupamento das variantes: quem escreve «arroz de tomate» está a pedir
+     aquele acompanhamento pelo nome, e recebia uma lista de arrozes de
+     marisco e de polvo sem ele — a receita existe, a busca encontrava-a, e
+     era este corte que a deitava fora à saída. Arrumar por omissão é bom;
+     esconder o que foi pedido pelo nome, não. */
   /* o filtro de cozinha usa TODAS as cozinhas da receita: um melão com
      presunto é português e espanhol, e tem de aparecer nas duas listas */
+  const _q0=semAcentos(S.ui.busca||'').trim();
   let list=RECIPES.filter(r=> (S.ui.cuis==='todas'||ehDaCozinha(r,S.ui.cuis))
-    && (S.ui.mealF==='todas'? !(ehAcompanhamento(r)||ehMolho(r)) : r.mt.indexOf(S.ui.mealF)>=0));
+    && (S.ui.mealF==='todas'? (!!_q0 || !(ehAcompanhamento(r)||ehMolho(r))) : r.mt.indexOf(S.ui.mealF)>=0));
   /* cumulativos: a receita tem de cumprir todas as dietas marcadas e estar
      livre de todos os alergénios marcados ao mesmo tempo */
   const dF=dietasFiltro().filter(k=>temChave(DIETAS_FILTRAVEIS,k));
