@@ -3938,6 +3938,33 @@ R('blintzes','Blintzes de queijo','americana',[],0,0,0,0,[['Farinha de trigo tip
 R('deviledeggs','Ovos recheados à americana','americana',[],0,0,0,0,[['Ovo',2,'un'],['Maionese',15,'g'],['Mostarda',3,'g'],['Vinagre de vinho',3,'ml'],['Pimentão-doce',0.5,'g'],['Cebolinho',3,'g'],['Flor de sal',0.5,'g'],['Pimenta preta',0.2,'g']],['l'],0,['sn']),
 R('pimentocheese','Pimento cheese com bolachas','americana',[],0,0,0,0,[['Queijo cheddar',30,'g'],['Pimento assado em conserva',15,'g'],['Maionese',12,'g'],['Chili em pó',0.3,'g'],['Pimenta preta',0.3,'g'],['Bolacha de água e sal',18,'g']],['l'],0,['sn']),
 R('grilledcheese','Grilled cheese','americana',[],0,0,0,0,[['Pão de forma',70,'g'],['Queijo cheddar',60,'g'],['Manteiga',12,'g'],['Maionese',8,'g']],['p','l'],0,['sn']),
+/* ---- Balcão americano: as sandes e a sopa que anda com elas ----
+   A sandes de pastrami come-se em pão de centeio, com mostarda e picles, e
+   não leva mais nada — é a carne que manda. A french toast é prima das
+   rabanadas, mas não é a mesma coisa: a portuguesa embebe-se em leite com
+   limão e canela e serve-se como doce de Natal; esta leva ovo e baunilha e
+   vai à mesa de manhã com xarope de ácer. Estão as duas na biblioteca, cada
+   uma com o seu nome e a sua cozinha. */
+R('pastramisandwich','Sandes de pastrami','americana',[],0,0,0,0,[['Pão de centeio',90,'g'],['Pastrami',110,'g'],['Mostarda',10,'g'],['Picles de pepino',30,'g']],['p','a','j','l'],0,['sn']),
+R('frenchtoast','French toast','americana',[],0,0,0,0,[['Pão de forma',80,'g'],['Ovo',1,'un'],['Leite',60,'ml'],['Manteiga',10,'g'],['Xarope de ácer',20,'g'],['Baunilha',0.5,'g'],['Canela',0.5,'g']],['p','l'],0,['sn']),
+/* A sopa de tomate gratinada é outra coisa da sopa de tomate portuguesa, que
+   leva pão e ovo escalfado e já cá está: esta é o creme aveludado que se come
+   com a grilled cheese ao lado — e é por isso que a receita diz onde mergulhar
+   a sandes. As duas ficam com o nome de cada uma. */
+R('sopatomategratinada','Sopa de tomate gratinada','americana',['vegetariana'],0,0,0,0,[['Tomate pelado',320,'g'],['Cebola',70,'g'],['Alho',2,'dente'],['Nata para bater 35% gordura',25,'ml'],['Manteiga',8,'g'],['Queijo gruyère',25,'g'],['Pão rústico',20,'g'],['Manjericão',5,'g'],['Azeite',6,'ml'],['Açúcar branco',3,'g']],['a','j'],0,['sop']),
+/* A mesma sopa com a sandes ao lado deixa de ser entrada e passa a ser o
+   jantar — e é assim que se come lá. Fica como receita própria, categorizada
+   como prato principal, em vez de a grilled cheese virar acompanhamento de
+   tudo: ninguém a quer ao lado de um bife. */
+R('sopatomategrilled','Sopa de tomate gratinada com grilled cheese','americana',['vegetariana'],0,0,0,0,[['Tomate pelado',320,'g'],['Cebola',70,'g'],['Alho',2,'dente'],['Nata para bater 35% gordura',25,'ml'],['Manteiga',20,'g'],['Queijo gruyère',25,'g'],['Manjericão',5,'g'],['Azeite',6,'ml'],['Açúcar branco',3,'g'],['Pão de forma',55,'g'],['Queijo cheddar',45,'g'],['Maionese',6,'g']],['a','j'],0,['pp']),
+/* ---- Folhado de camembert: a mesma roda de queijo, o que muda é por cima ----
+   O queijo vai inteiro dentro da massa e sai a escorrer. As três variantes são
+   o que se lhe põe em cima antes de fechar: nada, doce, ou mel com nozes. */
+/* A dose é a fatia de uma pessoa, não a roda inteira: um camembert de 250 g
+   embrulhado serve três a quatro à mesa, e é assim que ele vai ao forno. */
+R('folhadocamembert','Folhado de camembert','francesa',['vegetariana'],0,0,0,0,[['Queijo Camembert',65,'g'],['Massa folhada, congelada',45,'g'],['Gema de ovo de galinha, crua',5,'g'],['Alecrim',1,'g'],['Pimenta preta',0.3,'g']],['a','j','l'],0,['ent']),
+R('folhadocamembertdoce','Folhado de camembert com doce','francesa',['vegetariana'],0,0,0,0,[['Queijo Camembert',65,'g'],['Massa folhada, congelada',45,'g'],['Compota de fruta',18,'g'],['Gema de ovo de galinha, crua',5,'g'],['Alecrim',1,'g'],['Pimenta preta',0.3,'g']],['a','j','l'],0,['ent']),
+R('folhadocamembertmel','Folhado de camembert com mel e nozes','francesa',['vegetariana'],0,0,0,0,[['Queijo Camembert',65,'g'],['Massa folhada, congelada',45,'g'],['Mel',12,'g'],['Nozes',10,'g'],['Gema de ovo de galinha, crua',5,'g'],['Alecrim',1,'g'],['Pimenta preta',0.3,'g']],['a','j','l'],0,['ent']),
 R('omeletedenver','Denver omelette','americana',[],0,0,0,0,[['Ovo',3,'un'],['Fiambre',50,'g'],['Pimento',40,'g'],['Cebola',30,'g'],['Queijo cheddar',30,'g'],['Manteiga',10,'g'],['Leite meio gordo, UHT',15,'ml'],['Pimenta preta',1,'g'],['Flor de sal',1,'g']],['p'],0,['br']),
 
 /* ---------- Índia, Ásia e Américas ---------- */
@@ -6936,6 +6963,43 @@ P('tigelle',[['Massa com banha','Amassa a farinha com o leite morno, um pouco de
  ['Chapa em lume brando','Aquece a tigelleira ou uma frigideira de fundo pesado em lume brando, seca, sem gordura nenhuma. Uma gota de água deve evaporar devagar, sem saltar: as tigelas cozem, não fritam.',6],
  ['Virar aos 4 minutos','Põe os discos, tapa e deixa cerca de 4 minutos. Vira-se quando a base tiver manchas douradas e a tigela tiver inchado e ficado leve na mão. Mais 4 minutos do outro lado.',9],
  ['Cunza e recheio','Pisa o alho com o alecrim e um pouco de banha e barra por dentro, ainda a escaldar, com o parmesão ralado por cima. Fecha com o presunto.',5]]);
+P('pastramisandwich',[['Aquecer a carne','Aquece o pastrami em vapor durante alguns minutos, não na frigideira: é o vapor que o volta a amaciar e lhe solta a gordura sem o secar.',6],
+ ['Pão','Pão de centeio, fatia grossa, ligeiramente tostado só de um lado — o lado que fica virado para dentro segura a carne sem encharcar.',3],
+ ['Montar','Mostarda num dos lados, a carne empilhada alta e às dobras (nunca deitada em camadas planas), e os picles em cima.',3],
+ ['Servir','Corta ao meio e come com a mão. Não leva queijo nem maionese: quem a fez assim tinha razão.']]);
+P('frenchtoast',[['Massa','Bate o ovo com o leite, a baunilha e a canela até ficar homogéneo. Um prato fundo e largo é melhor do que uma taça: as fatias têm de assentar.',4],
+ ['Embeber','Mergulha cada fatia poucos segundos de cada lado — quer-se embebida, não encharcada. Pão de véspera aguenta melhor; pão fresco desfaz-se.',4],
+ ['Frigideira','Manteiga em lume médio, sem deixar queimar. As fatias vão para a frigideira quando a manteiga já espuma mas ainda está clara.',3],
+ ['Dourar','Três a quatro minutos de cada lado, até estarem douradas e firmes ao toque. Lume alto tosta por fora e deixa o ovo cru no meio.',8],
+ ['Servir','Xarope de ácer por cima, ainda quente. Fruta ou uma noz de manteiga, se apetecer.']]);
+P('sopatomategratinada',[['Refogado','Cebola e alho em manteiga e azeite, em lume brando, até ficarem translúcidos sem tostar. Tostar aqui traz amargo à sopa toda.',8],
+ ['Tomate','Junta o tomate pelado esmagado com a mão e o açúcar — a pitada de açúcar não adoça, corrige a acidez do tomate de lata. Deixa apurar destapado.',20],
+ ['Triturar','Varinha até ficar completamente liso. Se quiseres aveludado a sério, passa depois por um passador fino.',5],
+ ['Natas','Junta as natas fora do lume, prova o sal, e volta a aquecer sem deixar ferver.',4],
+ ['Gratinar','Divide por taças que possam ir ao forno, cobre com o gruyère e o pão em cubos, e leva ao grelhador até o queijo borbulhar e alourar.',8],
+ ['Servir','Manjericão por cima. Com uma grilled cheese cortada em tiras ao lado, para molhar — é assim que ela se come na terra de onde veio.']]);
+P('sopatomategrilled',[['Sopa','Faz a sopa de tomate gratinada: refogado de cebola e alho em manteiga sem tostar, tomate pelado esmagado com a pitada de açúcar a apurar destapado, triturar até ficar liso, natas fora do lume.',35],
+ ['Gratinar','Taças ao forno com o gruyère por cima, debaixo do grelhador até borbulhar.',8],
+ ['A sandes','Enquanto a sopa gratina: cheddar ralado entre as duas fatias, manteiga e maionese por FORA, e chapa em lume brando até dourar dos dois lados.',10],
+ ['Cortar','Corta a sandes em tiras — servem para molhar na sopa, e é essa a razão de ela estar aqui.',2],
+ ['À mesa','Manjericão na sopa, as tiras ao lado. Come-se com as mãos e com colher ao mesmo tempo, sem cerimónia.']]);
+P('folhadocamembert',[['Frio','Massa folhada e queijo bem frios até ao momento de trabalhar: massa morna não cresce em camadas, e queijo mole não se deixa embrulhar.',5],
+ ['Marcar o queijo','Faz cortes rasos em cruz na crosta de cima do camembert. É por aí que ele derrete para fora quando abrir.',3],
+ ['Embrulhar','Põe o queijo ao centro da massa, junta as pontas por cima e sela bem, sem deixar aberturas — o queijo derretido encontra qualquer fresta.',6],
+ ['Pintar','Vira a junta para baixo, pincela com gema, e espeta o alecrim por cima com um pouco de pimenta moída.',3],
+ ['Forno','200 °C até estar dourado e inchado. Cinco minutos de espera antes de abrir: quente demais, escorre todo de uma vez.',25],
+ ['Servir','Abre à mesa, com pão para molhar. Come-se a escorrer, e é essa a graça.']]);
+P('folhadocamembertdoce',[['Frio','Massa e queijo bem frios até ao momento de trabalhar.',5],
+ ['Doce por cima','Corta a crosta de cima do camembert em cruz e espalha lá a compota. O doce fica entre a massa e o queijo, e é aí que caramelize.',5],
+ ['Embrulhar e pintar','Fecha a massa por cima, sela bem, vira a junta para baixo e pincela com gema.',6],
+ ['Forno','200 °C até dourar, e cinco minutos de espera antes de abrir.',25],
+ ['Servir','O contraste é o ponto todo: queijo salgado a escorrer e o doce por cima. Pão rústico ao lado.']]);
+P('folhadocamembertmel',[['Frio','Massa e queijo bem frios até ao momento de trabalhar.',5],
+ ['Tostar as nozes','Passa as nozes picadas por uma frigideira seca até cheirarem. Cruas ficam moles dentro do folhado; tostadas mantêm-se a estalar.',4],
+ ['Mel e nozes','Corta a crosta em cruz, rega com o mel e espalha as nozes por cima.',4],
+ ['Embrulhar e pintar','Fecha, sela sem deixar frestas, vira a junta para baixo e pincela com gema.',6],
+ ['Forno','200 °C até dourar, e cinco minutos de espera antes de abrir.',25],
+ ['Servir','Mel, noz tostada e queijo quente — é a entrada mais fácil que há e ninguém acredita.']]);
 P('grilledcheese',[['Ralar o queijo','Rala o cheddar em vez de o fatiar: derrete por igual e não deixa cantos por derreter. Fatia grossa escorre pelas bordas antes de o meio ceder.',3],
  ['Barrar por fora','Barra manteiga na face interior de cada fatia e maionese na face que vai à chapa. A maionese aguenta mais calor do que a manteiga e é ela que dá o dourado uniforme.',3],
  ['Chapa em lume brando','Aquece a chapa em lume médio-baixo, cerca de 160 °C, e não ponhas gordura nenhuma na chapa: vai toda no pão. Em lume forte o pão queima com o queijo ainda frio.',4],
@@ -7143,7 +7207,7 @@ const FONTE_ING={
   /* A fruta cristalizada foi escrita no meio do bloco do INSA, e por isso
      saía com o selo do INSA por cima de números da USDA. O selo diz ao
      utilizador de onde vem cada número: pô-lo errado é pior do que não o ter. */
-  'Fruta cristalizada':'fda',
+  'Fruta cristalizada':'fda', 'Pastrami':'fda',
   'Alecrim':'fda', 'Cebolinho':'fda', 'Chalota':'fda', 'Cogumelos shiitake':'fda',
   'Endro':'fda', 'Louro':'fda', 'Repolho':'fda', 'Salva':'fda', 
   'Bresaola':'fda', 'Salmão fumado':'fda', 'Colorau':'fda', 'Queijo feta':'fda',
@@ -7620,6 +7684,13 @@ NI('Pesto',460,4,5,46,2,0,-1);  // USDA, hidratos convertidos para disponiveis
 NI('Tomate pelado',24,4,1.2,0.2,1.3,0,-1);  // USDA, hidratos convertidos para disponiveis
 NI('Tomate seco',258,44,14,3,12,0,-1);  // USDA, hidratos convertidos para disponiveis
 NI('Passas',300,68.2,3,0.8,4.2,0,4);   /* prateleira, e é o que SEC_FIXA já dizia */
+/* Pastrami: peito de vaca curado, esfregado com especiarias e fumado. O
+   catálogo já tinha o corned beef, que é o mesmo peito curado mas cozido em
+   vez de fumado — são carnes diferentes à mesa e no sal. USDA (beef,
+   pastrami, cured), declarado em FONTE_ING para não herdar o selo do INSA
+   deste bloco. Os 1078 mg de sódio por 100 g são do próprio registo: é uma
+   carne de salmoura, e a sandes leva-a a sério. */
+NI('Pastrami',146,0.4,21.8,5.8,0,0,1);
 /* Fruta cristalizada: para o bolo-rei. USDA (candied fruit) — está declarada
    em FONTE_ING para não herdar o selo do INSA deste bloco —, com os hidratos
    convertidos para disponíveis: 83 por diferença menos 1,6 de fibra. Sódio de
@@ -8586,6 +8657,13 @@ const ING_EXCECAO={
      o mesmo precedente do Pão de leite. A composição usada (USDA 174987, 67 mg
      de colesterol) também é a de um croissant com ovo. */
   'Croissant':['gluten','cereal','lacticinio','ovo'],
+  /* «Pastrami» não tem no nome nenhuma das palavras que a expressão da carne
+     conhece — nem vaca, nem peito, nem fumado —, e por isso a sandes saiu
+     marcada como VEGETARIANA E VEGAN: um vegetariano que filtrasse pela
+     dieta recebia uma sandes de carne de vaca curada. É a armadilha que este
+     ficheiro já documenta para os nomes que as regras não adivinham, e a cura
+     é a mesma: dizê-lo à mão. */
+  'Pastrami':['carne'],
   'Fette biscottate':['gluten','cereal'], 'Matzá':['gluten','cereal'],
   'Vinagre de sidra':['sulfitos'],
   'Flocos de pimento vermelho seco':['picante'],
@@ -9213,6 +9291,7 @@ const NA_ESTIMADO={
   'Manteiga magra':520,   /* rotulo */
   'Psílio em pó':111,   /* USDA 2280974 PSYLLIUM HUSK SOLUBLE FIBER POWDER */
   'Fruta cristalizada':98,   /* USDA candied fruit */
+  'Pastrami':1078,   /* USDA beef, pastrami, cured */
   /* Farinhas sem sal: o valor é quase nada, mas tem de estar escrito. Sem ele,
      uma receita de arepas ou de msemen fica sem total de sal e a app diz «sem
      valor» — o que é honesto mas inútil quando o número existe e é zero. */
@@ -17196,6 +17275,9 @@ const VARIANTES=[
   {k:'rojoes',   n:'Rojões',       ids:['rojoes','rojoesminho']},
   {k:'caldeirada',n:'Caldeirada',  ids:['caldeirada','caldeiradarica','caldeiradaenguias']},
   {k:'mousse',   n:'Mousse',       ids:['moussechoc','moussemanga','mousselima']},
+  /* O folhado de camembert é a mesma roda de queijo dentro da mesma massa: o
+     que muda é o que se lhe põe em cima antes de fechar. */
+  {k:'folhadocamembert', n:'Folhado de camembert', ids:['folhadocamembert','folhadocamembertdoce','folhadocamembertmel']},
   /* Bolos de fatia. O pão de ló e o bolo-rei entram na família com todo o
      direito — quem pergunta «que bolo se faz hoje?» está a escolher entre
      eles —, e mantêm o nome próprio no cartão que abre. */
