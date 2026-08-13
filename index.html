@@ -3726,6 +3726,20 @@ R('tigelacereais','Tigela de granola com leite','portuguesa',['vegetariana'],0,0
 R('bifespanados','Bifes panados','portuguesa',[],0,0,0,0,[['Bife de vaca',130,'g'],['Ovo',1,'un'],['Pão ralado',40,'g'],['Farinha',15,'g'],['Óleo alimentar',15,'ml'],['Limão',0.25,'un'],['Alho',1,'dente'],['Flor de sal',1,'g'],['Pimenta preta',0.5,'g']],['a','j'],0,['pp']),
 R('roloport','Rolo de carne à portuguesa','portuguesa',[],0,0,0,0,[['Carne picada de vaca',110,'g'],['Carne de porco',60,'g'],['Pão ralado',25,'g'],['Ovo',0.75,'un'],['Leite',35,'ml'],['Cebola',0.5,'un'],['Alho',2,'dente'],['Bacon',15,'g'],['Salsa',6,'g'],['Azeite',8,'ml'],['Noz-moscada',0.3,'g'],['Pimenta preta',0.5,'g'],['Vinho branco',30,'ml']],['a','j'],0,['pp']),
 R('wellington','Beef Wellington','outras',[],0,0,0,0,[['Bife do lombo de vaca',160,'g'],['Massa folhada, congelada',70,'g'],['Cogumelos portobello',90,'g'],['Presunto',25,'g'],['Mostarda de Dijon',6,'g'],['Gema de ovo de galinha, crua',10,'g'],['Chalota',0.5,'un'],['Tomilho fresco',2,'g'],['Manteiga',8,'g'],['Azeite',6,'ml'],['Pimenta preta',0.5,'g']],['a','j'],0,['pp']),
+/* ---- Assados de forno, os de domingo e de festa ----
+   Os três assados de carne partilham o método — véspera de tempero, forno
+   forte a selar e depois brando, regar com o próprio suco — e distinguem-se
+   no tempero: o cabrito leva massa de pimentão e banha, a vitela leva vinho
+   branco e cebola, o borrego leva alho e alecrim. As batatas assam no mesmo
+   tabuleiro, que é onde ganham o sabor.
+
+   O arroz de forno é o par natural do cabrito no Norte e nas Beiras: faz-se
+   com as miudezas e o caldo do assado, e vai gratinar enquanto a carne
+   descansa. Aqui é receita própria porque também se come sozinho. */
+R('cabritoassado','Cabrito assado no forno','portuguesa',[],0,0,0,0,[['Cabrito, perna crua',230,'g'],['Batata',180,'g'],['Alho',4,'dente'],['Massa de pimentão',18,'g'],['Banha de porco',12,'g'],['Azeite',12,'ml'],['Vinho branco',50,'ml'],['Louro',1,'g'],['Sal grosso',5,'g'],['Pimenta preta',0.5,'g'],['Colorau',2,'g']],['a','j'],0,['pp']),
+R('vitelaassada','Vitela assada no forno','portuguesa',[],0,0,0,0,[['Vitela, pá crua',220,'g'],['Batata',180,'g'],['Cebola',1,'un'],['Cenoura',60,'g'],['Alho',3,'dente'],['Vinho branco',60,'ml'],['Azeite',15,'ml'],['Banha de porco',8,'g'],['Louro',1,'g'],['Salsa',5,'g'],['Sal grosso',4,'g'],['Pimenta preta',0.5,'g']],['a','j'],0,['pp']),
+R('borregoassado','Borrego assado no forno','portuguesa',[],0,0,0,0,[['Borrego, perna crua',230,'g'],['Batata',180,'g'],['Alho',5,'dente'],['Alecrim',3,'g'],['Vinho branco',50,'ml'],['Azeite',18,'ml'],['Limão',0.25,'un'],['Louro',1,'g'],['Sal grosso',5,'g'],['Pimenta preta',0.5,'g']],['a','j'],0,['pp']),
+R('arrozforno','Arroz de forno','portuguesa',[],0,0,0,0,[['Arroz carolino',80,'g'],['Frango (1/4), perna com costa e pele, crua',90,'g'],['Chouriço',30,'g'],['Cebola',0.5,'un'],['Alho',2,'dente'],['Azeite',12,'ml'],['Salsa',6,'g'],['Louro',1,'g'],['Sal grosso',3,'g'],['Pimenta preta',0.4,'g']],['a','j'],0,['pp']),
 /* ---- Bacalhau, cinco maneiras ----
    Fiel ao princípio da casa: as quantidades são por dose servida. O bacalhau
    entra já demolhado — o sal de conserva não é o sal que se come, e contá-lo
@@ -6182,6 +6196,30 @@ P('roloport',[['Pão em leite','Pão ralado embebido no leite morno até ficar u
  ['Forno','Tabuleiro com o vinho branco no fundo, forno a 180 °C. Rega com o próprio molho de vinte em vinte minutos.',50],
  ['Descansar','Quinze minutos fora do forno antes de cortar. Cortar a quente é vê-lo desfazer-se.',15],
  ['Cortar','Fatias de dois dedos, com faca de serra e sem premir.']]);
+P('cabritoassado',[['Tempero de véspera','Esfrega a carne com o alho esmagado, a massa de pimentão, o colorau, o sal e a pimenta. Junta o louro e o vinho branco, tapa e frigorífico de um dia para o outro. É a véspera que faz o cabrito: um tempero de uma hora não chega ao osso.',20],
+ ['Tirar o frio','Tira a carne do frigorífico meia hora antes de a levar ao forno. Fria por dentro, assa por fora antes de estar feita por dentro.',30],
+ ['Ao forno','Tabuleiro com a carne, a marinada toda e a banha às pedaços por cima. Forno bem quente, 220 °C, os primeiros vinte minutos para corar.',20],
+ ['Batatas','Batatas em quartos à volta da carne, envolvidas no molho do tabuleiro. Baixa para 180 °C.',10],
+ ['Assar devagar','Uma hora e meia a 180 °C, a regar com o próprio suco de vinte em vinte minutos. Se o tabuleiro secar, um pouco de água quente — nunca fria, que agarra a carne.',90],
+ ['Descanso','Dez minutos fora do forno, tapado com folha de alumínio, antes de trinchar. É o descanso que redistribui o suco todo.',10]]);
+P('vitelaassada',[['Tempero','Alho esmagado, sal, pimenta e louro esfregados na carne, com metade do vinho branco. Duas horas de frigorífico, ou de véspera se houver tempo.',15],
+ ['Alourar','Aloura a peça em azeite bem quente, de todos os lados, numa frigideira ou no próprio tabuleiro ao lume. É esta crosta que segura o suco lá dentro.',10],
+ ['Cama de legumes','Cebola às rodelas grossas e cenoura em pedaços no fundo do tabuleiro: fazem cama à carne e dão corpo ao molho. A vitela vai por cima, com a banha e o resto do vinho.',8],
+ ['Ao forno','200 °C durante vinte minutos e depois 170 °C até estar tenra — cerca de hora e meia numa pá. Rega de meia em meia hora.',95],
+ ['Batatas','A meio do tempo, junta as batatas em quartos à volta, a rolar no molho.',5],
+ ['Molho e descanso','Tira a carne e deixa-a descansar quinze minutos. Passa o molho do tabuleiro pelo passador, esmagando os legumes, e leva ao lume a apurar. Trincha contra o veio.',15]]);
+P('borregoassado',[['Picar de alho','Faz cortes fundos na perna com a ponta da faca e enfia em cada um um pedaço de alho e uma agulha de alecrim. É assim que o tempero entra na carne em vez de ficar à superfície.',15],
+ ['Tempero','Esfrega com azeite, sal grosso, pimenta e o sumo do limão. Junta o louro e o vinho branco. Frigorífico pelo menos quatro horas, melhor de véspera.',12],
+ ['Forno forte','Meia hora a 220 °C para criar a crosta.',30],
+ ['Forno brando','Baixa para 170 °C e deixa mais uma hora e meia, a regar. Junta as batatas em quartos a meio.',95],
+ ['Ponto','O borrego come-se rosado ou bem passado, conforme a casa. Rosado é 60 °C no centro; bem passado, 75 °C. A perna inteira ao osso pede sempre mais tempo do que se pensa.',5],
+ ['Descanso','Quinze minutos tapado antes de trinchar, com o alecrim fresco por cima.',15]]);
+P('arrozforno',[['Refogado','Cebola e alho picados em azeite, em lume brando, até amolecerem. Junta o chouriço às rodelas e deixa largar a gordura corada.',10],
+ ['Frango','Junta o frango em pedaços, tempera com sal, pimenta e o louro, e deixa alourar de todos os lados.',10],
+ ['Cozer','Cobre com água a ferver — o dobro do volume do arroz — e deixa cozinhar até o frango estar tenro. Retira o frango, desfia-o e volta a pôr o caldo ao lume.',25],
+ ['Arroz','Junta o arroz ao caldo a ferver e coze quinze minutos, malandro: vai acabar de cozer no forno, e um arroz já seco antes de lá entrar sai empedrado.',15],
+ ['Ao forno','Envolve o frango desfiado e a salsa, passa para um pirex e leva a 200 °C até a superfície ficar tostada às manchas.',20],
+ ['Servir','Vai à mesa no próprio pirex. É o par clássico do cabrito assado, mas come-se muito bem sozinho.']]);
 P('wellington',[['Selar','Lombo temperado com sal e pimenta, selado em azeite muito quente trinta segundos de cada lado, incluindo os topos. Só a crosta interessa — o interior fica cru.',4],
  ['Mostarda','Ainda quente, pincela o lombo todo com a mostarda. Deixa arrefecer por completo.',20],
  ['Duxelles','Cogumelos e chalota picados quase a pó, na manteiga, com o tomilho. Deixa em lume médio até toda a água sair e evaporar — pode levar vinte minutos, e não há atalho: um duxelles húmido encharca a massa por dentro.',20],
