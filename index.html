@@ -10682,6 +10682,13 @@ function amdrDe(m){
 /* Proteína de referência em g por kg de peso e por dia. */
 function proteinaKg(m){
   if(gravida(m)) return 1.1;
+  /* A lactação faltava aqui, e o buraco era o mesmo que já tinha sido tapado
+     nos micronutrientes: a app calcula o custo energético de amamentar três
+     funções acima, mostra-o no perfil, e depois dizia a uma mãe de 65 kg que
+     a referência dela eram 52 g de proteína — quando o IOM lhe dá 1,3 g/kg,
+     que são 85. Trinta e nove por cento abaixo, num cartão que se chama «o
+     que muda nesta fase». */
+  if(amamenta(m)) return 1.3;
   const meses=idadeMeses(m), a=meses/12;
   if(meses<7) return 1.52;
   if(meses<13) return 1.2;
@@ -10691,7 +10698,9 @@ function proteinaKg(m){
   return 0.8;
 }
 /* Piso absoluto de hidratos (RDA), que manda acima da percentagem. */
-function hidratosMin(m){ if(idadeAnos(m)<1) return 0; return gravida(m)? 175 : 130; }
+/* 130 g no adulto, 175 na gravidez, 210 na lactação — os três RDA do IOM. O
+   da lactação faltava, e era o mais alto dos três. */
+function hidratosMin(m){ if(idadeAnos(m)<1) return 0; return gravida(m)? 175 : amamenta(m)? 210 : 130; }
 /* Um défice calórico não é para crianças, adolescentes em crescimento nem
    grávidas — o slider de objetivo fica limitado a manutenção ou acima. */
 /* Quem amamenta pode perder peso — a orientação é que perca devagar, e não que
@@ -10726,6 +10735,13 @@ const MICROS=[['vitD','Vitamina D','µg'],['ferro','Ferro','mg'],['calcio','Cál
    dele deixa de ser inócuo, sobretudo em crianças e na gravidez. */
 function ddrMicro(m){
   const a=idadeAnos(m), meses=idadeMeses(m), f=m.sexo==='f';
+  /* A grávida adolescente tem linha própria no IOM, e a app tinha-a só para a
+     lactação — o comentário lá abaixo explica porquê («uma linha só fá-la-ia
+     descer de 1300 para 1000 mg de cálcio»), e o mesmo raciocínio nunca tinha
+     chegado aqui. Uma grávida de 16 anos via 1000 mg de cálcio quando a
+     referência dela são 1300: o osso dela ainda está a fechar e está a
+     construir outro. */
+  if(gravida(m) && idadeAnos(m)<19) return {vitD:15,ferro:27,calcio:1300,magnesio:400,b12:2.6,folato:600,vitC:80,zinco:12,omega3:null};
   if(gravida(m)) return {vitD:15,ferro:27,calcio:1000,magnesio:350,b12:2.6,folato:600,vitC:85,zinco:11,omega3:null};
   /* A lactação tinha função desde sempre e já pesava nas calorias, mas aqui não
      existia: quem amamenta em exclusivo caía na linha da mulher adulta e via
@@ -10751,10 +10767,22 @@ function ddrMicro(m){
   if(a<9)  return {vitD:15,ferro:10,calcio:1000,magnesio:130,b12:1.2,folato:200,vitC:25,zinco:5,omega3:null};
   if(a<14) return {vitD:15,ferro:8,calcio:1300,magnesio:240,b12:1.8,folato:300,vitC:45,zinco:8,omega3:null};
   if(a<19) return {vitD:15,ferro:f?15:11,calcio:1300,magnesio:f?360:410,b12:2.4,folato:400,vitC:f?65:75,zinco:f?9:11,omega3:null};
-  return {vitD:15,ferro:(f&&a<51)?18:8,calcio:1000,magnesio:f?(a<31?310:320):(a<31?400:420),b12:2.4,folato:400,vitC:f?75:90,zinco:f?8:11,omega3:null};
+  /* O cálcio e a vitamina D também sobem com a idade, e estavam congelados
+     nos valores dos 19-50: o IOM dá 1200 mg de cálcio à mulher a partir dos
+     51 e a ambos os sexos a partir dos 71, e 20 µg de vitamina D a partir dos
+     71. Uma mulher de 62 anos via «100% da referência» quando estava a 83% da
+     dela. É o mesmo degrau que o magnésio aqui ao lado já tratava. */
+  const calcio=(f&&a>=51)||a>=71? 1200 : 1000;
+  return {vitD:a>=71?20:15,ferro:(f&&a<51)?18:8,calcio,magnesio:f?(a<31?310:320):(a<31?400:420),b12:2.4,folato:400,vitC:f?75:90,zinco:f?8:11,omega3:null};
 }
 function ulMicro(m){
   const a=idadeAnos(m), meses=idadeMeses(m);
+  /* Este é o lado perigoso do mesmo esquecimento: os limites SUPERIORES da
+     grávida adolescente são MAIS BAIXOS do que os da adulta, e a app estava a
+     aplicar-lhe os da adulta. Ela podia tomar 950 µg de folato ou 38 mg de
+     zinco sem que a app dissesse nada, quando os limites dela são 800 e 34.
+     Um teto largo de mais é o único destes erros que não é só cosmético. */
+  if(gravida(m) && idadeAnos(m)<19) return {vitD:100,ferro:45,calcio:3000,magnesio:350,folato:800,vitC:1800,zinco:34,b12:null,omega3:null};
   if(gravida(m)) return {vitD:100,ferro:45,calcio:2500,magnesio:350,folato:1000,vitC:2000,zinco:40,b12:null,omega3:null};
   if(meses<7)  return {vitD:25,ferro:40,calcio:1000,magnesio:null,folato:null,vitC:null,zinco:4,b12:null,omega3:null};
   if(meses<13) return {vitD:38,ferro:40,calcio:1500,magnesio:null,folato:null,vitC:null,zinco:5,b12:null,omega3:null};
@@ -11185,10 +11213,15 @@ function limitesEsforco(m){
   return out;
 }
 function minutosSemana(m){ return (m.desportos||[]).reduce((t,s)=>t+sportWeeklyH(s)*60,0); }
+/* «extra» junta o que o corpo gasta por estar a crescer, a fazer um bebé ou a
+   alimentá-lo. Faltava-lhe a lactação, que o tdee já contava — e por isso a
+   soma das parcelas nunca fechava com o total: uma mãe a amamentar em
+   exclusivo via as barras somarem 1592 e o total dizer 2093, com quinhentas
+   calorias sem explicação nenhuma no mesmo cartão. */
 function gastoPartes(m){ const b=bmr(m);
   return {basal:b, dia:b*((temChave(BASE_ACT,m.atividade)?BASE_ACT[m.atividade][1]:1.2)-1),
     desloc:commuteKcalDay(m), desp:sportsKcalDay(m),
-    extra:crescimentoKcal(m)+gravidezKcal(m), total:tdee(m)}; }
+    extra:crescimentoKcal(m)+gravidezKcal(m)+lactacaoKcal(m), total:tdee(m)}; }
 /* kg por semana implicados pelo objetivo (positivo = a perder), a 7700 kcal/kg. */
 function ritmoSemanal(m){ return (tdee(m)-targetKcal(m))*7/7700; }
 /* Projeção iterativa: o gasto recalcula-se com o peso de cada semana, pelo que
@@ -11224,7 +11257,17 @@ function normaliza100(o){
 }
 
 /* ================= DATAS ================= */
-function mondayISO(d){ d=new Date(d); const day=(d.getDay()+6)%7; d.setDate(d.getDate()-day); return iso(d); }
+/* Uma string de data pura («2026-01-05») é lida pelo JavaScript como meia-noite
+   UTC, mas getDay() e iso() respondem em hora local — e a oeste de Greenwich
+   isso põe a data no dia anterior. Nos Açores, no inverno (UTC−1), uma
+   segunda-feira era lida como o domingo anterior e devolvia a semana ERRADA,
+   uma semana inteira atrás. Todo o resto do ficheiro âncora ao meio-dia por
+   esta razão; esta função era a única que faltava, e tem cerca de 25
+   chamadas. */
+function mondayISO(d){
+  d = typeof d==='string' && /^\d{4}-\d{2}-\d{2}$/.test(d) ? new Date(d+'T12:00:00') : new Date(d);
+  const day=(d.getDay()+6)%7; d.setDate(d.getDate()-day); return iso(d);
+}
 function iso(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function weekDates(wk){ const out=[]; const d=new Date(wk+'T12:00:00'); for(let i=0;i<7;i++){ out.push(iso(d)); d.setDate(d.getDate()+1);} return out; }
 const DAYN=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
@@ -20950,13 +20993,15 @@ function renderAtividade(){
           <div id="ga-dia" style="background:var(--accent);width:${w(gp.dia)}%"></div>
           <div id="ga-desloc" style="background:var(--ok);width:${w(gp.desloc)}%"></div>
           <div id="ga-desp" style="background:var(--energy);width:${w(gp.desp)}%"></div>
+          <div id="ga-extra" style="background:var(--party);width:${w(gp.extra)}%"></div>
         </div>
         <div id="ga-alvo" style="position:absolute;top:-6px;bottom:-6px;width:0;border-left:2px dashed var(--ink);left:${X}%"></div>
       </div>
       <div class="mleg"><span><i class="dot" style="background:var(--mut);opacity:.5"></i>Basal</span>
         <span><i class="dot" style="background:var(--accent)"></i>Dia-a-dia</span>
         <span><i class="dot" style="background:var(--ok)"></i>Deslocações</span>
-        <span><i class="dot" style="background:var(--energy)"></i>Desporto</span></div>
+        <span><i class="dot" style="background:var(--energy)"></i>Desporto</span>
+        ${gp.extra>0? `<span><i class="dot" style="background:var(--party)"></i>${gravida(m)?'Gravidez':amamenta(m)?'Amamentar':'Crescimento'}</span>`:''}</div>
       <div class="row" style="margin-top:12px">
         <div class="stat"><b>${Math.round(gp.basal)}</b><span>Basal</span></div>
         <div class="stat"><b>+${Math.round(gp.dia)}</b><span>Dia-a-dia</span></div>
