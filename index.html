@@ -1851,7 +1851,10 @@ const ICO_REF={p:'🌅',a:'🍽️',l:'🍎',j:'🌙',ac:'🍚',mo:'🥄'};
    que não têm separador próprio. */
 const ICO_COZ={portuguesa:'🇵🇹',italiana:'🍝',francesa:'🥐',mediterranica:'🫒',asiatica:'🍜',
   japonesa:'🍣',espanhola:'🥘',britanica:'🫖',grega:'🏛️',libanesa:'🧆',marroquina:'🕌',
-  mexicana:'🌮',americana:'🍔',indiana:'🍛',brasileira:'🫘',africana:'🌍',outras:'🌭'};
+  /* O globo era um não-ícone: dizia «algures no mundo», que é o contrário do
+     que um separador de cozinha existe para dizer. A panela é o que a cachupa
+     e a moamba são — um tacho fundo que coze devagar e serve muita gente. */
+  mexicana:'🌮',americana:'🍔',indiana:'🍛',brasileira:'🫘',africana:'🍲',outras:'🌭'};
 const ICO_SUPL={proteico:'🥤',vitaminico:'💊',mineral:'🧂',composto:'🐟'};
 const ICO_FASE={bebe:'🍼',crianca:'🧒',adolescente:'🧑',adulto:'🧑‍🦱'};
 function SP(id,nome,cat,mets,dicas,dist){ return {id,nome,cat,mets,dicas:dicas||null,dist:dist||null}; }
@@ -2903,6 +2906,23 @@ const COZ_EXTRA={
      churrasco brasileiro e são de lá tanto como de cá */
   cgpicanha:['brasileira'],
   cgfraldinha:['brasileira'],
+  /* A frittata é italiana antes de ser mediterrânica: a mediterrânica é o
+     padrão alimentar, e a frittata tem morada. */
+  frittata:['italiana'],
+  /* O iogurte grego é grego — quem filtra por essa cozinha espera encontrá-lo,
+     e encontrava a moussaka mas não o pequeno-almoço que lhe deu o nome. */
+  iogurtegranola:['grega'],
+  iogurtefigos:['grega'],
+  ketoiogurtesementes:['grega'],
+  /* A shakshuka nasceu no Magrebe e atravessou o Levante: é de casa em
+     Marrocos, na Tunísia, no Líbano e em Israel. Nenhuma dessas casas a
+     empresta às outras — todas a têm por sua. */
+  shakshuka:['marroquina','libanesa'],
+  shakshukaverde:['libanesa'],
+  /* O halloumi é queijo cipriota de origem, mas a mesa que o grelha e o serve
+     com hortelã todos os dias é a libanesa — é lá que quem procura o vai
+     procurar. */
+  halloumi:['libanesa'],
 };
 function cozinhasDe(r){
   if(!r) return [];
@@ -2949,7 +2969,7 @@ R('caprese','Salada caprese com rúcula','italiana',['keto','lowcarb','vegetaria
 R('risotto','Risotto de cogumelos','italiana',['vegetariana'],480,62,12,20,[['Arroz para risotto',80,'g'],['Cogumelos',120,'g'],['Cebola',0.5,'un'],['Vinho branco',40,'ml'],['Parmesão',15,'g'],['Manteiga',10,'g']]),
 R('courgetti','Esparguete de courgette, pesto e frango','italiana',['keto','lowcarb'],390,10,35,24,[['Courgette',200,'g'],['Peito de frango',140,'g'],['Pesto',25,'g'],['Tomate cereja',80,'g'],['Parmesão',10,'g']],null,3),
 R('piccata','Escalopes de frango dourados na manteiga','italiana',['keto','lowcarb'],0,0,0,0,[['Peito de frango',170,'g'],['Farinha',10,'g'],['Limão',0.5,'un'],['Manteiga',7,'g'],['Azeite',5,'ml']],null,2),
-R('pizza','Pizza margherita caseira','italiana',['vegetariana'],620,78,24,22,[['Farinha',100,'g'],['Fermento de padeiro',3,'g'],['Tomate pelado',80,'g'],['Mozzarella',80,'g'],['Manjericão',5,'g'],['Azeite',8,'ml']]),
+R('pizza','Pizza margherita','italiana',['vegetariana'],0,0,0,0,[['Farinha',90,'g'],['Fermento de padeiro',3,'g'],['Tomate pelado',80,'g'],['Mozzarella',70,'g'],['Manjericão',5,'g'],['Azeite',8,'ml'],['Flor de sal',2,'g']],['a','j'],0,['pp']),
 R('minestrone','Sopa minestrone','italiana',['lowfat','vegetariana','mediterranica'],260,40,10,6,[['Feijão branco',60,'g'],['Massa pequena',30,'g'],['Cenoura',50,'g'],['Aipo',30,'g'],['Tomate',1,'un'],['Courgette',60,'g'],['Azeite',5,'ml']],null,0,['sop']),
 R('ratatouille','Ratatouille','francesa',['keto','lowcarb','paleo','lowfat','vegetariana','mediterranica'],220,18,4,14,[['Beringela',100,'g'],['Courgette',100,'g'],['Pimento',0.5,'un'],['Tomate',2,'un'],['Cebola',0.5,'un'],['Alho',2,'dente'],['Ervas de Provença',2,'g'],['Azeite',12,'ml']],null,8),
 R('salmaomanteiga','Salmão salteado com espargos','francesa',['keto','lowcarb'],0,0,0,0,[['Salmão',170,'g'],['Espargos',120,'g']],null,2),
@@ -3255,7 +3275,7 @@ R('camaraotigre','Camarão-tigre grelhado','portuguesa',['keto','lowcarb','paleo
 R('camaraocozido','Camarão cozido','portuguesa',['keto','lowcarb','paleo','mediterranica'],0,0,0,0,[['Camarão',200,'g'],['Sal grosso',8,'g'],['Louro',1,'g'],['Limão',10,'ml']],['a','j'],0,['ent']),
 R('chouricoassado','Chouriço assado','portuguesa',['keto','lowcarb'],0,0,0,0,[['Chouriço',90,'g'],['Pão rústico',40,'g']],['a','j'],0,['ent']),
 R('saladapolvoent','Salada de polvo','portuguesa',['lowcarb','paleo','mediterranica'],0,0,0,0,[['Polvo',180,'g'],['Cebola roxa',60,'g'],['Pimento',60,'g'],['Salsa',6,'g'],['Azeite',15,'ml'],['Vinagre de vinho',8,'ml'],['Louro',1,'g']],['a','j'],0,['ent']),
-R('burratalimao','Burrata com raspas de limão','italiana',['keto','lowcarb','mediterranica'],0,0,0,0,[['Burrata',60,'g'],['Raspa de limão',2,'g'],['Azeite',8,'ml'],['Pimenta preta',0.5,'g'],['Manjericão',3,'g'],['Pão rústico',25,'g']],['a','j'],0,['ent']),
+R('burratalimao','Burrata com raspas de limão','italiana',['keto','lowcarb','mediterranica'],0,0,0,0,[['Burrata',60,'g'],['Raspa de limão',2,'g'],['Azeite',8,'ml'],['Pimenta preta',0.5,'g'],['Manjericão',3,'g'],['Pão rústico',25,'g'],['Flor de sal',1,'g']],['a','j'],0,['ent','br']),
 R('presuntoent','Presunto','espanhola',['keto','lowcarb','paleo'],0,0,0,0,[['Presunto',70,'g'],['Pão rústico',30,'g'],['Azeite',6,'ml']],['a','j','l'],0,['ent','sn']),
 
 /* ---------- Cozinha portuguesa ---------- */
@@ -4033,6 +4053,80 @@ R('ciambellone','Ciambellone de iogurte','italiana',[],0,0,0,0,[['Ovo',22,'g'],[
 R('pizzette','Pizzette rosse de forno','italiana',[],0,0,0,0,[['Farinha de trigo tipo 65',60,'g'],['Fermento seco de padeiro',1,'g'],['Açúcar branco',1,'g'],['Azeite',8,'ml'],['Flor de sal',1,'g'],['Polpa de tomate',45,'g'],['Orégãos',1,'g']],['l','p'],0,['sn']),
 R('tigelle','Tigelle modenesi','italiana',[],0,0,0,0,[['Farinha de trigo tipo 55',70,'g'],['Leite',28,'ml'],['Banha de porco',6,'g'],['Fermento seco de padeiro',1,'g'],['Flor de sal',1,'g'],['Açúcar branco',1.5,'g'],['Presunto',30,'g'],['Queijo parmesão ralado',10,'g'],['Alecrim',1,'g'],['Alho',1,'dente']],['p','l'],0,['sn']),
 
+/* ================= BURRATA, PIZZA E O QUE SE COME COM ELAS =================
+   ---- Três burratas ----
+   É sempre a mesma bola de queijo: o que muda é o que a acompanha e se o
+   tomate vai cru, assado depressa ou em confit. Por isso são variantes umas
+   das outras e não três entradas soltas na grelha. A burrata serve-se à
+   temperatura da cozinha — fria do frigorífico, a stracciatella lá dentro
+   fica dura e não escorre, que é a única coisa que ela tem de fazer. */
+R('burrataforno','Burrata com tomate cereja no forno','italiana',['vegetariana','mediterranica'],0,0,0,0,[['Burrata',80,'g'],['Tomate cereja',150,'g'],['Azeite',8,'ml'],['Alho',1,'dente'],['Manjericão',4,'g'],['Orégãos',0.5,'g'],['Pão rústico',30,'g'],['Flor de sal',1,'g']],['a','j'],0,['ent','br']),
+R('burratapesto','Burrata com confit de tomate cereja e pesto','italiana',['vegetariana','mediterranica'],0,0,0,0,[['Burrata',70,'g'],['Tomate cereja',140,'g'],['Azeite',10,'ml'],['Pesto',10,'g'],['Alho',1,'dente'],['Tomilho fresco',1,'g'],['Pão rústico',30,'g'],['Flor de sal',1,'g']],['a','j'],0,['ent','br']),
+
+/* ---- Pizza, a família ----
+   A base é sempre a mesma — massa, molho de tomate e mozzarella —, e o que a
+   torna esta ou aquela é o que se lhe põe por cima. Estava aqui uma margherita
+   sozinha, como se a pizza fosse um prato só; passa a ser o cartão de uma
+   família, com as coberturas que se pedem por nome.
+
+   Duas notas de composição que se repetem em todas: a mozzarella é a de
+   bola e não a fresca em água — a fresca larga soro e encharca a massa —, e
+   os 90 g de farinha são uma pizza individual de trinta centímetros, que é a
+   dose que uma pessoa come. */
+R('pizzaprosciutto','Pizza de presunto e rúcula','italiana',[],0,0,0,0,[['Farinha',90,'g'],['Fermento de padeiro',3,'g'],['Tomate pelado',80,'g'],['Mozzarella',70,'g'],['Presunto',30,'g'],['Rúcula',20,'g'],['Azeite',8,'ml'],['Flor de sal',2,'g']],['a','j'],0,['pp']),
+R('pizzafunghi','Pizza de cogumelos','italiana',['vegetariana'],0,0,0,0,[['Farinha',90,'g'],['Fermento de padeiro',3,'g'],['Tomate pelado',80,'g'],['Mozzarella',70,'g'],['Cogumelos',90,'g'],['Alho',1,'dente'],['Salsa',4,'g'],['Azeite',8,'ml'],['Flor de sal',2,'g']],['a','j'],0,['pp']),
+R('pizzadiavola','Pizza diavola de salame picante','italiana',[],0,0,0,0,[['Farinha',90,'g'],['Fermento de padeiro',3,'g'],['Tomate pelado',80,'g'],['Mozzarella',70,'g'],['Salame',30,'g'],['Malagueta',2,'g'],['Orégãos',1,'g'],['Azeite',6,'ml'],['Flor de sal',2,'g']],['a','j'],0,['pp']),
+R('pizzaqueijos','Pizza de quatro queijos','italiana',['vegetariana'],0,0,0,0,[['Farinha',90,'g'],['Fermento de padeiro',3,'g'],['Mozzarella',45,'g'],['Queijo azul',20,'g'],['Parmesão',12,'g'],['Queijo de cabra',15,'g'],['Azeite',8,'ml'],['Pimenta preta',0.5,'g'],['Flor de sal',2,'g']],['a','j'],0,['pp']),
+R('pizzanapoli','Pizza napolitana de anchovas e alcaparras','italiana',[],0,0,0,0,[['Farinha',90,'g'],['Fermento de padeiro',3,'g'],['Tomate pelado',80,'g'],['Mozzarella',60,'g'],['Anchovas',12,'g'],['Alcaparras',8,'g'],['Azeitonas',15,'g'],['Orégãos',1,'g'],['Azeite',8,'ml'],['Flor de sal',1,'g']],['a','j'],0,['pp']),
+R('pizzavegetariana','Pizza de legumes assados','italiana',['vegetariana','mediterranica'],0,0,0,0,[['Farinha',90,'g'],['Fermento de padeiro',3,'g'],['Tomate pelado',80,'g'],['Mozzarella',65,'g'],['Pimento',50,'g'],['Courgette',60,'g'],['Cogumelos',50,'g'],['Azeitonas',15,'g'],['Manjericão',4,'g'],['Azeite',8,'ml'],['Flor de sal',2,'g']],['a','j'],0,['pp']),
+R('pizzatonno','Pizza de atum e cebola','italiana',[],0,0,0,0,[['Farinha',90,'g'],['Fermento de padeiro',3,'g'],['Tomate pelado',80,'g'],['Mozzarella',60,'g'],['Atum em conserva ao natural',55,'g'],['Cebola roxa',30,'g'],['Orégãos',1,'g'],['Azeite',8,'ml'],['Flor de sal',2,'g']],['a','j'],0,['pp']),
+R('pizzahavaiana','Pizza havaiana de fiambre e ananás','italiana',[],0,0,0,0,[['Farinha',90,'g'],['Fermento de padeiro',3,'g'],['Tomate pelado',80,'g'],['Mozzarella',70,'g'],['Fiambre',40,'g'],['Ananás',60,'g'],['Orégãos',1,'g'],['Azeite',6,'ml'],['Flor de sal',2,'g']],['a','j'],0,['pp']),
+
+/* ---- Panquecas, uma para cada casa ----
+   Havia três — as de banana e aveia, as americanas com frutos vermelhos e as
+   de farinha de amêndoa — e a pergunta que a casa faz é «hoje há panquecas?»,
+   não «qual das três?». Entram as que faltavam para a mesa ter uma para cada
+   dieta que a app conhece: sem glúten, sem nada de origem animal, integral e
+   uma de proteína.
+
+   O XAROPE DE ÁCER decide-se por dieta e não por gosto: são 67 g de açúcar
+   por 100, todos eles açúcares livres na definição da OMS. Está nas que o
+   podem levar e fora das keto, low carb e de proteína — onde seria uma
+   colher que desfaz a razão de ser do prato. */
+R('panquecasclassicas','Panquecas americanas com xarope de ácer','americana',['vegetariana'],0,0,0,0,[['Farinha',70,'g'],['Ovo',1,'un'],['Leite',120,'ml'],['Fermento em pó',4,'g'],['Manteiga',10,'g'],['Xarope de ácer',25,'g'],['Açúcar branco',5,'g'],['Flor de sal',1,'g']],['p'],0,['br']),
+R('panquecasvegan','Panquecas vegan de bebida de aveia','americana',['vegetariana','vegan'],0,0,0,0,[['Farinha',70,'g'],['Bebida de aveia',130,'ml'],['Fermento em pó',4,'g'],['Óleo de girassol',8,'ml'],['Banana',60,'g'],['Xarope de ácer',20,'g'],['Flor de sal',1,'g']],['p'],0,['br']),
+R('panquecassemgluten','Panquecas sem glúten de arroz e trigo sarraceno','americana',['vegetariana'],0,0,0,0,[['Farinha de arroz',45,'g'],['Farinha de trigo sarraceno',25,'g'],['Ovo',1,'un'],['Leite',110,'ml'],['Fermento em pó',4,'g'],['Manteiga',8,'g'],['Xarope de ácer',20,'g'],['Flor de sal',1,'g']],['p'],0,['br']),
+R('panquecasintegrais','Panquecas integrais com frutos vermelhos','americana',['vegetariana'],0,0,0,0,[['Farinha de trigo integral',65,'g'],['Ovo',1,'un'],['Leite',120,'ml'],['Fermento em pó',4,'g'],['Azeite',7,'ml'],['Frutos vermelhos',70,'g'],['Canela',1,'g'],['Flor de sal',1,'g']],['p'],0,['br']),
+R('panquecasproteina','Panquecas de proteína e aveia','americana',['vegetariana'],0,0,0,0,[['Aveia em flocos',35,'g'],['Proteína de ervilha em pó',25,'g'],['Ovo',1,'un'],['Leite',100,'ml'],['Fermento em pó',3,'g'],['Frutos vermelhos',60,'g'],['Canela',1,'g'],['Flor de sal',1,'g']],['p'],0,['br']),
+
+/* ---- Gumbo ----
+   O prato da Luisiana, e o único desta app que começa por uma hora de atenção
+   a um tacho onde não se pode ir fazer outra coisa: o roux escuro é farinha e
+   gordura mexidas até à cor de chocolate, e queima-se em dez segundos de
+   distração. O que vai lá dentro varia de casa para casa; o que não varia é o
+   roux, a trindade (cebola, aipo e pimento) e o arroz por baixo. */
+R('gumbo','Gumbo da Luisiana com camarão e frango','americana',[],0,0,0,0,[['Farinha',18,'g'],['Óleo de girassol',14,'ml'],['Cebola',60,'g'],['Aipo',40,'g'],['Pimento',50,'g'],['Alho',2,'dente'],['Coxas de frango',70,'g'],['Camarão',80,'g'],['Chouriço',25,'g'],['Quiabo cru',80,'g'],['Tomate pelado',60,'g'],['Arroz agulha',45,'g'],['Colorau',2,'g'],['Louro',0.5,'g'],['Tomilho fresco',1,'g'],['Malagueta',1,'g'],['Flor de sal',1.5,'g'],['Cebola verde',10,'g']],['a','j'],0,['pp']),
+
+/* ---- Quindim ----
+   Gema, açúcar e coco, e mais nada. Coze em banho-maria e desenforma-se ao
+   contrário: o coco sobe durante a cozedura e fica na base da forma, que passa
+   a ser o topo do doce. É por isso que um quindim tem sempre duas camadas sem
+   ninguém as ter montado. */
+/* ---- Salada de feta ----
+   Não é a salada grega, que já cá está: a horiatiki é tomate, pepino, cebola e
+   um bloco de feta por cima. Esta é a do verão grego — melancia e feta, o doce
+   contra o salgado, com hortelã. A feta vai em cubos e não em bloco, porque
+   aqui ela é o prato e não a cobertura. */
+R('saladafeta','Salada de feta com melancia e hortelã','grega',['vegetariana','mediterranica'],0,0,0,0,[['Queijo feta',80,'g'],['Melancia sem casca',250,'g'],['Pepino',80,'g'],['Cebola roxa',25,'g'],['Hortelã',6,'g'],['Azeitonas',20,'g'],['Azeite',12,'ml'],['Limão',0.5,'un'],['Pimenta preta',0.5,'g']],['a','j','l'],0,['ent','pp']),
+/* ---- Shakshuka marroquina ----
+   A shakshuka do Magrebe é a mesma frigideira com outro tempero: onde a
+   levantina põe cominhos, esta põe a mistura doce-e-quente do ras el hanout —
+   colorau, curcuma, canela e malagueta — e leva grão-de-bico. Sem ras el
+   hanout de compra, os passos dizem como se faz com o que há na despensa. */
+R('shakshukamarroquina','Shakshuka marroquina com grão-de-bico','marroquina',['vegetariana','mediterranica'],0,0,0,0,[['Ovo',3,'un'],['Tomate pelado',200,'g'],['Grão-de-bico cozido',80,'g'],['Pimento',60,'g'],['Cebola',60,'g'],['Alho',2,'dente'],['Azeite',12,'ml'],['Colorau',2,'g'],['Cominhos',2,'g'],['Curcuma em pó',1,'g'],['Canela',0.5,'g'],['Malagueta',1.5,'g'],['Coentros',8,'g'],['Flor de sal',1.5,'g']],['p','a','j'],0,['br','pp']),
+R('quindim','Quindim de coco','brasileira',[],0,0,0,0,[['Gema de ovo de galinha, crua',30,'g'],['Açúcar branco',35,'g'],['Coco ralado',15,'g'],['Manteiga',5,'g'],['Leite',15,'ml']],['l'],0,['sob']),
+R('bavaroisemanga','Bavaroise de manga','francesa',[],0,0,0,0,[['Manga',90,'g'],['Nata para bater 35% gordura',60,'ml'],['Leite',50,'ml'],['Gema de ovo de galinha, crua',18,'g'],['Açúcar branco',22,'g'],['Gelatina em folhas',2,'g'],['Limão',0.25,'un']],['l'],0,['sob']),
+
 /* ================= CHURRASCO =================
    O que faltava era o essencial: o frango de churrasqueira, o entrecosto, as
    febras, a sardinha nas brasas. E faltavam os molhos — a app não tinha um
@@ -4080,7 +4174,7 @@ R('acchimichurri','Chimichurri argentino','outras',['mediterranica'],0,0,0,0,[['
 R('accriolla','Salsa criolla','outras',['mediterranica'],0,0,0,0,[['Cebola',40,'g'],['Pimento',30,'g'],['Tomate',40,'g'],['Azeite',10,'ml'],['Vinagre de vinho',5,'ml'],['Sal grosso',1,'g'],['Orégãos',0.5,'g']],['mo']),
 R('acvinagretebr','Vinagrete brasileiro de churrasco','brasileira',['mediterranica'],0,0,0,0,[['Tomate',40,'g'],['Cebola',15,'g'],['Pimento',12,'g'],['Azeite',8,'ml'],['Vinagre de vinho',4,'ml'],['Salsa',3,'g'],['Sal grosso',0.5,'g'],['Pimenta preta',0.2,'g']],['mo']),
 R('acsalsasm','Salsa fresca de Santa Maria','americana',[],0,0,0,0,[['Tomate',70,'g'],['Aipo',15,'g'],['Cebola',12,'g'],['Cebolinho',3,'g'],['Malagueta',3,'g'],['Coentros',3,'g'],['Alho',0.3,'dente'],['Vinagre de vinho',5,'ml'],['Molho inglês',2,'ml'],['Orégãos',0.3,'g'],['Lima',5,'ml'],['Sal grosso',0.5,'g']],['mo']),
-R('acchermoula','Chermoula marroquina','africana',['mediterranica'],0,0,0,0,[['Coentros',8,'g'],['Salsa',5,'g'],['Alho',1,'dente'],['Cominhos',0.8,'g'],['Colorau',1,'g'],['Cúrcuma',0.3,'g'],['Limão',5,'ml'],['Azeite',13,'ml'],['Sal grosso',0.5,'g']],['mo']),
+R('acchermoula','Chermoula marroquina','marroquina',['mediterranica'],0,0,0,0,[['Coentros',8,'g'],['Salsa',5,'g'],['Alho',1,'dente'],['Cominhos',0.8,'g'],['Colorau',1,'g'],['Cúrcuma',0.3,'g'],['Limão',5,'ml'],['Azeite',13,'ml'],['Sal grosso',0.5,'g']],['mo']),
 R('acsalmoriglio','Salmoriglio siciliano','italiana',['mediterranica'],0,0,0,0,[['Azeite',18,'ml'],['Limão',7,'ml'],['Orégãos',0.8,'g'],['Alho',1,'dente'],['Salsa',2,'g'],['Sal grosso',0.4,'g'],['Pimenta preta',0.2,'g']],['mo']),
 R('acmantemaitre','Manteiga maître d\'hôtel','francesa',[],0,0,0,0,[['Manteiga sem sal',20,'g'],['Salsa',2,'g'],['Limão',2,'ml'],['Raspa de limão',0.3,'g'],['Flor de sal',0.4,'g'],['Pimenta preta',0.3,'g']],['mo']),
 
@@ -4140,9 +4234,6 @@ P('saladapolvoent',[['Cozer o polvo','Panela com o polvo, o louro e meia cebola,
  ['Arrefecer','Deixa arrefecer dentro do próprio caldo: é isso que o mantém tenro.'],
  ['Cortar','Corta em pedaços de bocado, junta a cebola roxa e o pimento em cubinhos.'],
  ['Temperar','Azeite, vinagre, salsa picada e sal. Repousa uma hora no frigorífico antes de servir.',60]]);
-P('burratalimao',[['Temperar','Tira a burrata do frigorífico vinte minutos antes: fria não sabe a nada.',20],
- ['Montar','Abre a burrata no prato, rega com azeite e salpica com a raspa de limão.'],
- ['Fechar','Pimenta moída na hora, folhas de manjericão e pão torrado ao lado.']]);
 P('presuntoent',[['Temperar','Tira o presunto do frio meia hora antes — a gordura tem de amolecer para libertar o aroma.',30],
  ['Servir','Dispõe as fatias abertas no prato, sem sobrepor. Pão e um fio de azeite ao lado.']]);
 
@@ -4915,10 +5006,128 @@ P('courgetti',[['Courgette','Esparguete de courgette salgado cinco minutos e bem
 P('piccata',[['Achatar','Abre o peito ao meio e bate-o fino entre duas folhas de película. Fino cozinha depressa e por igual; grosso seca por fora antes de estar feito por dentro.'],
  ['Passar por farinha','Passa cada escalope por farinha temperada com sal e pimenta e sacode bem o excesso. Farinha a mais queima na frigideira e sabe a queimado no fim.'],
  ['Selar','Manteiga e azeite bem quentes, dois minutos de cada lado, até ficarem dourados e firmes ao toque. Não os empilhes na frigideira, senão cozem em vez de dourar.',4]]);
-P('pizza',[['Massa','Amassa farinha, água, fermento e sal até ficar lisa e elástica.',10],
- ['Levedar','Deixa levedar até dobrar de volume — quanto mais devagar, melhor.',120],
- ['Esticar','Estica com as mãos, sem rolo, deixando a borda mais grossa.'],
- ['Cozer','Forno o mais quente que tiver, com a pedra ou o tabuleiro já quentes.',10]]);
+/* ---- A massa e o molho, uma vez ----
+   Os quatro primeiros passos são iguais em todas as pizzas da família e
+   repetem-se em cada uma de propósito: quem abre a diavola não tem de ir ler a
+   margherita para saber amassar. O que muda vem sempre no fim. */
+P('pizza',[['Massa, e sal longe do fermento','Amassa a farinha com 55 ml de água morna, o fermento e o sal — o sal por cima da farinha e não em cima do fermento, que o mata ao toque. Trabalha oito a dez minutos até a massa deixar de colar às mãos.',10],
+ ['Levedar devagar','Tapada, até dobrar: duas horas à temperatura da cozinha, ou de um dia para o outro no frigorífico. A lenta é sempre melhor — é o tempo que faz o sabor, não o fermento a mais.',120],
+ ['Esticar com as mãos','Do centro para fora, com as pontas dos dedos, deixando a borda mais grossa por tocar. O rolo esmaga o gás todo que a levedação criou e a borda nunca mais sobe.'],
+ ['Molho cru','Esmaga o tomate pelado com as mãos ou o garfo, com uma pitada de sal e um fio de azeite. Não se cozinha: coze em cima da pizza, e cozido antes fica doce e escuro.',3],
+ ['Molho, queijo, manjericão','Molho em espiral até dois dedos da borda, a mozzarella escorrida em pedaços e o manjericão. Molho a mais alaga a massa e ela nunca coze por baixo.'],
+ ['Forno no máximo','O forno o mais quente que tiver, com o tabuleiro ou a pedra já a aquecer lá dentro há meia hora. Oito a dez minutos, até a borda ganhar manchas escuras. Azeite cru à saída.',10]]);
+P('pizzaprosciutto',[['Massa','Farinha, 55 ml de água morna, fermento e sal, amassados até a massa deixar de colar. O sal por cima da farinha, nunca sobre o fermento.',10],
+ ['Levedar','Tapada, até dobrar — duas horas na cozinha ou uma noite no frigorífico.',120],
+ ['Esticar e cobrir','Estica com as mãos, deixando a borda grossa. Molho de tomate cru esmagado, mozzarella escorrida, e mais nada por agora.'],
+ ['Forno no máximo','Oito a dez minutos no forno mais quente que tiver, com o tabuleiro já quente.',10],
+ ['Presunto e rúcula CRUS, à saída','As duas coisas põem-se com a pizza já fora do forno. O presunto cozido perde a gordura e fica a couro; a rúcula murcha e amarga. Fio de azeite e serve.']]);
+P('pizzafunghi',[['Massa','Farinha, 55 ml de água morna, fermento e sal, amassados dez minutos.',10],
+ ['Levedar','Até dobrar, tapada.',120],
+ ['Cogumelos na frigideira primeiro','Lâminas de cogumelo em frigideira bem quente, sem gordura e sem sal, até largarem a água e ela evaporar. Crus em cima da pizza, largam essa água toda na massa.',8],
+ ['Esticar e cobrir','Molho de tomate, mozzarella, os cogumelos já secos e o alho laminado fino.'],
+ ['Forno no máximo','Oito a dez minutos. Salsa picada à saída.',10]]);
+P('pizzadiavola',[['Massa','Farinha, 55 ml de água morna, fermento e sal, amassados dez minutos.',10],
+ ['Levedar','Até dobrar, tapada.',120],
+ ['Esticar e cobrir','Molho de tomate, mozzarella, o salame em rodelas finas e a malagueta. As rodelas finas encaracolam e ficam crocantes; grossas, ficam moles e gordurosas.'],
+ ['Forno no máximo','Oito a dez minutos, até a borda manchar.',10],
+ ['Orégãos no fim','Orégãos e um fio de azeite fora do forno — dentro, queimam e amargam.']]);
+P('pizzaqueijos',[['Massa','Farinha, 55 ml de água morna, fermento e sal, amassados dez minutos.',10],
+ ['Levedar','Até dobrar, tapada.',120],
+ ['Sem tomate','Esta não leva molho. O tomate abafa os queijos e junta água a uma cobertura que já é gorda — é por isso que a quatro queijos é branca.'],
+ ['Repartir os queijos','Mozzarella por toda a base, e os outros três em manchas separadas: azul, parmesão e cabra. Misturados, sabe tudo ao azul.'],
+ ['Forno no máximo','Sete a nove minutos — menos do que as outras, porque o queijo a mais queima antes de a massa acabar. Pimenta moída à saída.',9]]);
+P('pizzanapoli',[['Massa','Farinha, 55 ml de água morna, fermento e sal, amassados dez minutos.',10],
+ ['Levedar','Até dobrar, tapada.',120],
+ ['Sal com conta','As anchovas, as alcaparras e as azeitonas já trazem sal. Prova o molho antes: esta é a pizza onde é fácil salgar duas vezes.'],
+ ['Esticar e cobrir','Molho de tomate, mozzarella, as anchovas em filetes, as alcaparras escorridas e as azeitonas.'],
+ ['Forno no máximo','Oito a dez minutos. Orégãos e azeite à saída.',10]]);
+P('pizzavegetariana',[['Massa','Farinha, 55 ml de água morna, fermento e sal, amassados dez minutos.',10],
+ ['Levedar','Até dobrar, tapada.',120],
+ ['Assar os legumes primeiro','Pimento, courgette e cogumelos em tiras, num tabuleiro com azeite e sal, a 220 °C até ganharem cor. Crus, largam água e a pizza sai cozida a vapor por cima.',20],
+ ['Esticar e cobrir','Molho de tomate, mozzarella, os legumes já assados e as azeitonas.'],
+ ['Forno no máximo','Oito a dez minutos. Manjericão à saída.',10]]);
+P('pizzatonno',[['Massa','Farinha, 55 ml de água morna, fermento e sal, amassados dez minutos.',10],
+ ['Levedar','Até dobrar, tapada.',120],
+ ['Atum bem escorrido','Escorre o atum e esmaga-o com o garfo. A água ou o óleo da lata escorre para a massa e deixa-a mole no meio.'],
+ ['Esticar e cobrir','Molho de tomate, mozzarella, o atum em pedaços e a cebola roxa em meias-luas finas.'],
+ ['Forno no máximo','Oito a dez minutos. Orégãos à saída.',10]]);
+P('pizzahavaiana',[['Massa','Farinha, 55 ml de água morna, fermento e sal, amassados dez minutos.',10],
+ ['Levedar','Até dobrar, tapada.',120],
+ ['Secar o ananás','Ananás em pedaços, escorrido e passado por papel. É a água dele que dá má fama a esta pizza — seco, assa e ganha caramelo em vez de cozer a massa a vapor.'],
+ ['Esticar e cobrir','Molho de tomate, mozzarella, o fiambre em tiras e o ananás espalhado sem amontoar.'],
+ ['Forno no máximo','Oito a dez minutos, até o ananás começar a tostar nas pontas.',10]]);
+P('burratalimao',[['Fora do frigorífico','Tira a burrata do frio meia hora antes. Fria, a stracciatella de dentro fica firme e não escorre quando se abre — que é a única coisa que ela tem de fazer.',30],
+ ['Raspar só o amarelo','Raspa o limão com um ralador fino, e para antes do branco: a parte branca da casca é amarga e não sai depois.'],
+ ['Abrir à mesa','Põe a bola inteira no prato e abre-a com a faca só à frente de quem come. Aberta na cozinha, chega à mesa espalhada e morna.'],
+ ['Azeite, sal, manjericão','Azeite generoso por cima, flor de sal, pimenta moída na hora e as folhas de manjericão rasgadas à mão — cortadas à faca, oxidam e escurecem nas bordas.'],
+ ['Pão ao lado','Pão rústico torrado, para levar o que fica no prato.',4]]);
+P('burrataforno',[['Forno bem quente','Forno a 220 °C. O tomate cereja quer calor forte e pouco tempo: brando, coze e desfaz-se em água.',10],
+ ['Tomate inteiro, com pele','Tomate cereja inteiro num tabuleiro pequeno, com o alho esmagado com casca, azeite, sal e orégãos. Cortados ao meio largam o sumo todo antes de assar.'],
+ ['Assar até rebentarem','Quinze a vinte minutos, até a pele estalar e alguns rebentarem. É aí que o açúcar do tomate concentra.',18],
+ ['A burrata NÃO vai ao forno','Põe o tomate quente à volta da burrata à temperatura da cozinha, e nunca a burrata dentro do forno: ao calor, ela derrete e vira uma poça de soro.'],
+ ['Servir logo','Com o azeite do tabuleiro por cima, manjericão e pão torrado. Come-se enquanto o tomate ainda está quente e o queijo ainda está frio.']]);
+P('burratapesto',[['Confit é lume brando e tempo','Confit não é assar: é cozinhar submerso em gordura a temperatura baixa. Forno a 120 °C, e o tomate cereja num tabuleiro pequeno coberto de azeite até meia altura, com o alho e o tomilho.',5],
+ ['Uma hora e meia sem pressa','Noventa minutos a 120 °C. Os tomates enrugam e ficam doces sem se desfazerem. A 200 °C fazia-se em vinte, mas saía tomate assado — que é outra coisa e está na receita ao lado.',90],
+ ['Deixar arrefecer no azeite','Fora do forno, deixa-os arrefecer dentro do próprio azeite. É aí que acabam de absorver o alho e o tomilho. Guardados assim, duram uma semana no frigorífico.',20],
+ ['Montar frio com quente','Burrata inteira no prato, os tomates em confit à volta, colheradas de pesto entre eles e um pouco do azeite do confit.'],
+ ['Pão e nada mais','Pão rústico torrado. Sal só depois de provar — o pesto já traz o dele.',4]]);
+P('panquecasclassicas',[['Secos de um lado, líquidos do outro','Farinha, fermento em pó, açúcar e sal numa taça; ovo, leite e manteiga derretida noutra. Misturados todos de uma vez, ficam grumos que não se desfazem.'],
+ ['Mexer POUCO','Junta os líquidos aos secos e mexe só até desaparecer a farinha seca. A massa deve ficar com grumos — mexida até lisa, desenvolve glúten e as panquecas saem elásticas em vez de fofas.'],
+ ['Descansar dez minutos','A massa em repouso hidrata a farinha e o fermento começa a trabalhar. É o passo que quase toda a gente salta e o que mais se nota.',10],
+ ['Frigideira média, sem gordura a mais','Antiaderente em lume médio, com a manteiga só a untar e limpa com papel. Gordura a mais frita as bordas e deixa-as manchadas.'],
+ ['Virar às bolhas','Uma concha por panqueca. Vira quando as bolhas da superfície rebentarem e não voltarem a fechar — cerca de dois minutos. Do outro lado, um minuto.',3],
+ ['Xarope de ácer à mesa','Empilhadas e regadas na hora de comer. Regadas cedo, encharcam.']]);
+P('panquecasvegan',[['Sem ovo, mas com banana','Esmaga a banana até puré. É ela que liga e que dá o doce — sem ovo, é o que segura a panqueca inteira ao virar.'],
+ ['Misturar pouco','Farinha e fermento em pó de um lado, bebida de aveia, banana, óleo e xarope do outro. Junta e mexe só até ligar.'],
+ ['Descansar','Dez minutos parada. Sem ovo, a massa precisa deste tempo para ganhar corpo.',10],
+ ['Lume mais brando','Estas queimam mais depressa do que as com ovo, por causa do açúcar da banana. Lume médio-baixo, e um pouco mais de tempo de cada lado.',4],
+ ['Virar com cuidado','Vira só quando a base estiver bem firme — sem ovo, não perdoa uma espátula apressada.']]);
+P('panquecassemgluten',[['Duas farinhas e não uma','Farinha de arroz sozinha dá uma panqueca arenosa; o trigo sarraceno traz sabor e liga. É a mistura que faz o trabalho que o glúten fazia.'],
+ ['Bater e deixar hidratar','Junta tudo e bate até ficar liso — aqui pode-se, porque não há glúten para desenvolver. Deixa repousar vinte minutos: as farinhas sem glúten absorvem líquido devagar e a massa ainda engrossa.',20],
+ ['Mais finas','Espalha a massa um pouco mais fina do que as de trigo. Grossas, ficam pesadas no meio.'],
+ ['Virar mais tarde','Estas demoram mais a firmar. Espera até as bordas estarem secas e a base soltar-se sozinha da frigideira.',4],
+ ['Servir','Com xarope de ácer, ou com fruta se preferires deixá-lo de fora.']]);
+P('panquecasintegrais',[['Farinha integral quer mais tempo','Mistura a farinha integral com o fermento, a canela e o sal, e junta o ovo com o leite. Deixa hidratar quinze minutos — o farelo absorve água devagar e sem isso a panqueca fica seca.',15],
+ ['Mexer só até ligar','Grumos são bem-vindos. A massa integral é mais pesada e mexê-la de mais torna-a de borracha.'],
+ ['Azeite em vez de manteiga','Aqui vai azeite: mantém a receita sem gordura de leite a mais e aguenta melhor o lume médio.'],
+ ['Virar às bolhas','Dois minutos de um lado, até as bolhas abrirem; um do outro.',3],
+ ['Frutos vermelhos no fim','Por cima e não dentro da massa — dentro, largam água e a panqueca fica roxa e mole.']]);
+P('panquecasproteina',[['Aveia moída','Mói os flocos de aveia no copo da varinha até ficarem farinha. É o que dá estrutura a uma massa que leva proteína em pó, que por si só não a tem.',3],
+ ['Sem xarope, de propósito','Esta é a panqueca de quem está a contar os hidratos: o xarope de ácer são 67 g de açúcar por 100 e desfazia a razão de ser do prato. O doce vem dos frutos vermelhos.'],
+ ['Massa mais grossa','Junta o ovo, o leite e o fermento. A proteína em pó absorve muito líquido — se a massa ficar dura, mais uma colher de leite, mas nunca líquida.'],
+ ['Lume brando e paciência','Proteína queima antes de a panqueca cozer por dentro. Lume médio-baixo, três minutos de um lado.',4],
+ ['Servir','Com os frutos vermelhos e a canela por cima.']]);
+P('gumbo',[['O roux é o prato','Farinha e óleo em partes iguais, em tacho de fundo grosso, lume médio-baixo, a mexer SEM PARAR. Vai de louro a caramelo a chocolate escuro. Vinte a trinta minutos em que não se faz mais nada — em dez segundos de distração queima, e queimado deita-se fora e começa-se de novo, porque amarga o tacho todo.',25],
+ ['A trindade no roux a ferver','Cebola, aipo e pimento picados, atirados de uma vez para o roux quente. Baixam-lhe a temperatura de repente e param a cozedura da farinha, que é exatamente o que se quer.',8],
+ ['Chouriço e frango','Junta o chouriço em rodelas e as coxas em pedaços, e deixa-os pegar cor no roux com o alho, o colorau, o tomilho e o louro.',10],
+ ['Caldo aos poucos','Água ou caldo, meia concha de cada vez, a desfazer o roux antes de juntar mais. De uma vez, o roux empelota e nunca mais liga.',5],
+ ['Apurar','Junta o tomate e deixa em lume brando quarenta e cinco minutos, destapado, até engrossar e a gordura subir à superfície — tira-a com a concha.',45],
+ ['Quiabo nos últimos vinte','O quiabo em rodelas nos últimos vinte minutos: é ele que acaba de engrossar. Posto ao princípio, desfaz-se e fica só a viscosidade.',20],
+ ['Camarão no fim','O camarão nos últimos cinco minutos, e desliga. Mais do que isso e fica borracha.',5],
+ ['Arroz por baixo','Serve-se o arroz cozido no prato e o gumbo por cima — nunca cozido dentro, senão bebe o caldo todo. Cebola verde picada em cima.']]);
+P('saladafeta',[['Melancia bem fria, feta à temperatura da cozinha','A melancia sai do frigorífico na hora; a feta, meia hora antes. É o contraste de temperaturas que faz esta salada, tanto como o de sabores.',30],
+ ['Cubos do mesmo tamanho','Melancia e feta em cubos de dois centímetros, iguais, para cada garfada apanhar os dois. Feta esfarelada perde-se no fundo da taça.'],
+ ['Cebola roxa a perder o ardor','Cebola em meias-luas muito finas, dez minutos no sumo de limão antes de entrar. Crua e grossa, é a única coisa que se prova.',10],
+ ['Temperar só à mesa','Azeite, o limão da cebola, pimenta moída e a hortelã rasgada, envolvidos na hora de servir. Temperada antes, a melancia larga água e fica tudo num caldo cor-de-rosa.'],
+ ['Sal, provavelmente não','Prova antes de salgar: a feta e as azeitonas costumam bastar.']]);
+P('shakshukamarroquina',[['Ras el hanout de despensa','Sem a mistura de compra: colorau, cominhos, curcuma, canela e malagueta, medidos juntos. É a base doce-e-quente que distingue a shakshuka do Magrebe da levantina, que leva só cominhos.',3],
+ ['Especiarias no azeite, não no tomate','Cebola e pimento a amolecer no azeite; depois o alho e as especiarias, trinta segundos, até largarem o cheiro. Atiradas para o tomate já a ferver, ficam com gosto a pó.',10],
+ ['Tomate a apurar a sério','Junta o tomate pelado esmagado e o grão-de-bico, e deixa em lume médio até o molho engrossar e o azeite subir à superfície. Quinze minutos, e não cinco: molho aguado não segura os ovos.',15],
+ ['Covas para os ovos','Faz covas no molho com as costas da colher e parte um ovo em cada uma. Partidos por cima do molho liso, espalham-se todos para o mesmo lado.'],
+ ['Tapado, até a clara prender','Tapa e deixa em lume brando seis a oito minutos: a clara opaca, a gema ainda mole. É o ponto, e passa depressa.',8],
+ ['Coentros e pão','Coentros picados por cima, fora do lume, e pão para limpar a frigideira. Come-se da frigideira, à mesa.']]);
+P('quindim',[['Gemas sem a película','Separa as gemas e passa-as por um passador, para tirar a película que as envolve. É ela que dá o cheiro a ovo e as pintas brancas no doce acabado.',8],
+ ['Mexer, não bater','Junta o açúcar, o coco, a manteiga derretida e o leite, e MEXE com a colher — bater incorpora ar, e o quindim tem de ser denso e translúcido, não fofo.'],
+ ['Descansar meia hora','A massa em repouso deixa o coco hidratar e o ar que entrou sair sozinho. É o que faz a separação limpa entre as duas camadas.',30],
+ ['Forma untada e açucarada','Unta a forma com manteiga e polvilha com açúcar — não com farinha. O açúcar faz a crosta fina que permite desenformar inteiro.'],
+ ['Banho-maria, tapado','Forno a 180 °C, a forma dentro de um tabuleiro com água a ferver até meia altura, tapado com alumínio. Sem banho-maria, a gema coalha e o quindim fica com textura de omelete.',40],
+ ['Frio antes de desenformar','Deixa arrefecer por completo, de preferência no frigorífico, e só depois desenforma — ao contrário. O coco, que subiu durante a cozedura, fica por cima.',120]]);
+P('bavaroisemanga',[['Demolhar a gelatina','Folhas de gelatina em água muito fria. Água morna dissolve-as e perdem a força.',10],
+ ['Puré de manga com limão','Manga madura triturada com umas gotas de limão. O limão não é para dar acidez: é para a manga não escurecer enquanto o creme arrefece.',5],
+ ['Creme inglês a 82 °C','Leite ao lume, gemas com açúcar à parte, e o leite quente sobre elas a fio, sem parar de mexer. Volta ao lume brando até napar a colher — passa dos 85 °C e talha.',10],
+ ['Gelatina no creme quente','Escorre as folhas e dissolve-as no creme fora do lume. Junta o puré de manga.'],
+ ['Esperar pelo ponto','Deixa arrefecer até ficar à temperatura da mão e começar a espessar. Natas batidas envolvidas num creme quente derretem, e num creme já preso fazem grumos.',25],
+ ['Envolver e frio','Natas batidas em picos moles, envolvidas de baixo para cima em três vezes. Formas ligeiramente untadas, quatro horas no frigorífico.',240]]);
 P('minestrone',[['Soffritto','Cebola, cenoura e aipo no azeite.',10],
  ['Legumes','Junta os legumes por ordem de dureza, e o tomate.',10],
  ['Cozer','Caldo a cobrir e feijão, a apurar.',25],
@@ -17518,7 +17727,21 @@ const VARIANTES=[
   {k:'burritos', n:'Burritos',     ids:['burritocarne','burritofrango','burritovegan','burritocamarao','burritopequeno']},
   {k:'quesadilhas',n:'Quesadilhas',ids:['quesadilla','quesadillafrango']},
   {k:'omelete',  n:'Omelete',      ids:['omelete','omeletequeijo']},
-  {k:'panquecas',n:'Panquecas',    ids:['panquecas','panquecasus','ketopanquecas']},
+  /* Panquecas: a pergunta é «hoje há panquecas?», e a resposta muda com quem
+     está à mesa — sem glúten, sem nada de origem animal, integral, de proteína
+     ou keto. Todas na mesma família, para a escolha ser entre elas e não entre
+     oito cartões iguais espalhados pela grelha. */
+  {k:'panquecas',n:'Panquecas',    ids:['panquecas','panquecasus','panquecasclassicas','panquecasintegrais','panquecassemgluten','panquecasvegan','panquecasproteina','ketopanquecas']},
+  /* A mesma massa, o mesmo molho, o mesmo queijo: o que muda é o que vai por
+     cima, e é isso que se escolhe. */
+  {k:'pizza',    n:'Pizza',        ids:['pizza','pizzaprosciutto','pizzafunghi','pizzadiavola','pizzaqueijos','pizzanapoli','pizzavegetariana','pizzatonno','pizzahavaiana']},
+  /* A mesma bola de queijo, com o tomate cru, assado depressa ou em confit. */
+  {k:'burrata',  n:'Burrata',      ids:['burratalimao','burrataforno','burratapesto']},
+  {k:'bavaroise',n:'Bavaroise',    ids:['bavaroise','bavaroisemanga']},
+  /* A mesma frigideira de ovos escalfados no molho, com o tempero de cada casa
+     que a tem por sua: cominhos no Levante, ras el hanout no Magrebe, verde
+     com espinafres e feta. */
+  {k:'shakshuka',n:'Shakshuka',    ids:['shakshuka','shakshukaverde','shakshukamarroquina']},
   {k:'risotto',  n:'Risotto',      ids:['risotto','risottoacafrao']},
   {k:'feijoada', n:'Feijoada',     ids:['feijoada','feijoadatransmontana','feijoadabr','vgfeijoada']},
   {k:'ovosmex',  n:'Ovos mexidos', ids:['ovosmex','ovoscebolinho','ovosmexidosbacon']},
@@ -17574,6 +17797,21 @@ const VARIANTES=[
 const VAR_INDICE={};
 VARIANTES.forEach(f=>f.ids.forEach(id=>{ VAR_INDICE[id]=f.k; }));
 const VAR_NOME={}; VARIANTES.forEach(f=>{ VAR_NOME[f.k]=f.n; });
+/* Um id numa família que não corresponde a receita nenhuma não dá erro: a
+   família fica com um membro a menos e ninguém dá por isso — o cartão diz «3
+   variantes» e abrem-se duas. Acontece a escrever a tabela de cabeça, e
+   aconteceu ao escrever esta linha. Também se avisa das chaves repetidas, que
+   fariam a segunda apagar a primeira em VAR_NOME. */
+(function(){
+  const semReceita=[], chaves=Object.create(null), repetidas=[];
+  VARIANTES.forEach(f=>{
+    if(chaves[f.k]) repetidas.push(f.k); else chaves[f.k]=1;
+    f.ids.forEach(id=>{ if(!RECIPES.some(r=>r.id===id)) semReceita.push(f.k+':'+id); });
+  });
+  if(semReceita.length) console.warn('Família Fit — variantes que apontam a receitas inexistentes ('
+    +semReceita.length+'): '+semReceita.join(' · ')+'. A família fica com menos membros do que anuncia.');
+  if(repetidas.length) console.warn('Família Fit — chaves de família repetidas em VARIANTES: '+repetidas.join(' · '));
+})();
 /* A família de uma receita. Uma receita da casa criada como variante aponta
    para a sua base; se a base já pertencer a uma família da biblioteca, entra
    nessa, senão funda uma família própria à volta dela. */
