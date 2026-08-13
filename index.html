@@ -2144,7 +2144,7 @@ const MOVS=[
    f:{cb:[22,73],om:[31,76],an:[58,76],b1:[[40,66],[48,62]],b2:[[42,68],[50,64]],p1:[[70,60],[76,80]],p2:[[72,62],[78,80]],seta:[36,58,46,62]}}]),
  /* ---- ioga (repertório clássico do hatha; as páginas de ioga do NHS são
     vídeos, por isso o rótulo não lhes pendura números que elas não dão.
-    Respirações e tempos são os habituais de principiante. ---- */
+    Respirações e tempos são os habituais de principiante.) ---- */
  MV('montanha','A montanha','5 respirações lentas','clássico do ioga',[
   {t:'De pé, pés à largura das ancas, peso repartido pelos dois. Ombros longe das orelhas, braços soltos: parece estar parado, é estar presente.',f:POSE_PE},
   {t:'Inspira e deixa os braços subir até acima da cabeça, a crescer pela coroa. Expira a descer, sem a lombar arquear.',
@@ -3458,22 +3458,22 @@ R('karaage','Karaage, frango frito à japonesa','japonesa',[],0,0,0,0,[['Coxas d
 R('tonkatsu','Tonkatsu, costeleta de porco panada','japonesa',[],0,0,0,0,[['Porco, lombo cru',150,'g'],['Ovo',0.5,'un'],['Farinha',15,'g'],['Pão ralado',35,'g'],['Óleo alimentar',12,'ml'],['Repolho',100,'g'],['Sal grosso',1,'g'],['Pimenta preta',0.5,'g']],['a','j'],0,['pp']),
 R('gomaae','Espinafres com molho de sésamo','japonesa',['vegan','mediterranica'],0,0,0,0,[['Espinafres',150,'g'],['Sementes de sésamo',12,'g'],['Molho de soja',8,'ml'],['Açúcar branco',3,'g']],['ac'],0),
 /* ---- Grécia e Líbano ----
-   As duas ficam na «mediterrânica», que é onde a app já tinha o souvlaki, o
-   tabule e a moussaka. São cozinhas com identidade de sobra para separador
-   próprio — e a «mediterrânica» está a ficar do tamanho a que a «asiática»
-   estava antes de o Japão sair de lá. Fica a nota; a separação é decisão de
-   quem manda, não minha.
+   Esta nota pedia separador próprio para as duas, e ele foi feito: `grega`,
+   `libanesa` e `marroquina` são cozinhas com chave própria em CUIS, e o que
+   estava arrumado na «mediterrânica» só por não haver onde o pôr passou para
+   elas. A «mediterrânica» fica com o que é mesmo transversal — o padrão
+   alimentar, e não o país.
 
-   Falta o SUMAGRE, e é ele que trava o fattoush: o lote de ingredientes não
-   lhe encontrou fonte — os rótulos comerciais discordam por mais do dobro na
-   gordura e o triplo na proteína, e nenhum declara a fibra, que num fruto seco
-   moído é o componente maior. Sem ele o fattoush é uma salada de pão, e por
-   isso não está aqui.
+   O SUMAGRE continua a faltar: o lote de ingredientes não lhe encontrou fonte
+   — os rótulos comerciais discordam por mais do dobro na gordura e o triplo na
+   proteína, e nenhum declara a fibra, que num fruto seco moído é o componente
+   maior. O fattoush está aqui à mesma, com o limão a fazer o ácido; quando
+   houver fonte, o sumagre entra na lista e nos passos.
 
    Fonte de cada receita na nota. */
 /* ---- Mais três libanesas ----
    O fattoush é a salada do pão que sobrou, torrado e partido à mão, com
-   sumagre; o baba ganoush é a beringela queimada na chama com tahine; o
+   sumagre; o baba ganoush é a beringela queimada na chama com tahini; o
    shish taouk é o espeto de frango marinado em iogurte e alho. */
 R('fattoush','Fattoush, a salada do pão torrado','libanesa',['vegetariana','vegan'],0,0,0,0,[['Pão pita',45,'g'],['Alface romana',80,'g'],['Tomate',1,'un'],['Pepino',80,'g'],['Cebola roxa',30,'g'],['Salsa',10,'g'],['Hortelã',6,'g'],['Azeite',18,'ml'],['Limão',0.5,'un'],['Flor de sal',1,'g']],['a','j'],0,['ent','pp']),
 R('babaganoush','Baba ganoush de beringela queimada','libanesa',['vegetariana','vegan','lowcarb'],0,0,0,0,[['Beringela',250,'g'],['Tahini',25,'g'],['Alho',2,'dente'],['Limão',0.5,'un'],['Azeite',12,'ml'],['Coentros',6,'g'],['Cominhos',1,'g'],['Flor de sal',1,'g']],['a','j','l'],0,['ent']),
@@ -3489,7 +3489,7 @@ R('taginegrao','Tagine de frango com grão-de-bico e abóbora','marroquina',[],0
 R('taginelegumes','Tagine de legumes com couscous','marroquina',['vegetariana','vegan'],0,0,0,0,[['Courgette',120,'g'],['Cenoura',100,'g'],['Abóbora',100,'g'],['Grão-de-bico cozido',80,'g'],['Cebola',0.5,'un'],['Tomate pelado',100,'g'],['Couscous',60,'g'],['Azeite',12,'ml'],['Cominhos',2,'g'],['Curcuma em pó',1.5,'g'],['Canela',1,'g'],['Passas',15,'g'],['Coentros',8,'g']],['a','j'],0,['pp']),
 R('gemista','Gemista, tomates e pimentos recheados','grega',['vegetariana','vegan','mediterranica'],0,0,0,0,[['Tomate',2,'un'],['Pimento',1,'un'],['Arroz agulha',60,'g'],['Cebola',0.5,'un'],['Alho',2,'dente'],['Salsa',8,'g'],['Hortelã',4,'g'],['Azeite',15,'ml'],['Batata',80,'g'],['Flor de sal',2,'g']],['a','j'],0,['pp']),
 /* ---- Mais três gregas ----
-   O pastitsio é o primo grego da lasanha, com canela na carne e béchamel por
+   O pastitsio é o primo grego da lasanha, com canela na carne e bechamel por
    cima; o stifado é o guisado de cebolinhas com vinagre e canela; e o
    galaktoboureko é a sobremesa de sêmola em massa filo com calda. */
 R('pastitsio','Pastitsio, o gratinado grego de massa e carne','grega',[],0,0,0,0,[['Massa cotovelo crua',60,'g'],['Carne picada de borrego',75,'g'],['Tomate pelado',120,'g'],['Cebola',0.5,'un'],['Alho',2,'dente'],['Leite',100,'ml'],['Manteiga',12,'g'],['Farinha',12,'g'],['Parmesão',15,'g'],['Ovo',0.5,'un'],['Canela',1,'g'],['Noz-moscada',0.3,'g'],['Azeite',8,'ml']],['a','j'],0,['pp']),
@@ -3501,20 +3501,30 @@ R('avgolemono','Sopa avgolemono de frango e limão','grega',['mediterranica'],0,
 R('keftedes','Keftedes, almôndegas gregas de hortelã','grega',[],0,0,0,0,[['Carne picada de vaca',160,'g'],['Pão ralado',25,'g'],['Cebola',0.5,'un'],['Alho',2,'dente'],['Hortelã',6,'g'],['Ovo',0.5,'un'],['Farinha',15,'g'],['Azeite',15,'ml'],['Limão',0.25,'un']],['a','j'],0,['pp']),
 R('gigantes','Gigantes plaki, feijão no forno com tomate','grega',['vegetariana','vegan','mediterranica'],0,0,0,0,[['Feijão manteiga, seco, cru',80,'g'],['Polpa de tomate',120,'g'],['Cebola',0.5,'un'],['Alho',3,'dente'],['Salsa',8,'g'],['Azeite',18,'ml'],['Canela',0.5,'g']],['a','j'],0,['pp','ent']),
 R('spanakopita','Spanakopita de espinafres e feta','grega',['vegetariana'],0,0,0,0,[['Massa filo',4,'un'],['Espinafres',200,'g'],['Queijo feta',80,'g'],['Cebolinho',15,'g'],['Ovo',1,'un'],['Azeite',15,'ml'],['Noz-moscada',0.2,'g']],['a','j','l'],0,['pp','sn']),
-R('soutzoukakia','Soutzoukakia de Esmirna','mediterranica',[],0,0,0,0,[['Carne picada de vaca',160,'g'],['Pão ralado',25,'g'],['Alho',3,'dente'],['Cominhos',3,'g'],['Polpa de tomate',120,'g'],['Vinho tinto',30,'ml'],['Azeite',12,'ml'],['Salsa',5,'g']],['a','j'],0,['pp']),
+R('soutzoukakia','Soutzoukakia de Esmirna','grega',[],0,0,0,0,[['Carne picada de vaca',160,'g'],['Pão ralado',25,'g'],['Alho',3,'dente'],['Cominhos',3,'g'],['Polpa de tomate',120,'g'],['Vinho tinto',30,'ml'],['Azeite',12,'ml'],['Salsa',5,'g']],['a','j'],0,['pp']),
 R('acmelitzano','Melitzanosalata, pasta de beringela assada','grega',['vegetariana','vegan','mediterranica'],0,0,0,0,[['Beringela assada',80,'g'],['Alho',1,'dente'],['Azeite',10,'ml'],['Limão',0.25,'un'],['Salsa',4,'g']],['mo']),
 R('actirokafteri','Tirokafteri, pasta picante de feta','grega',['vegetariana'],0,0,0,0,[['Queijo feta',50,'g'],['Iogurte grego',30,'g'],['Malagueta',3,'g'],['Azeite',8,'ml'],['Limão',0.25,'un']],['mo']),
-R('aclhorta','Horta, verduras cozidas com azeite e limão','mediterranica',['vegetariana','vegan','mediterranica','lowfat'],0,0,0,0,[['Grelos',180,'g'],['Azeite',12,'ml'],['Limão',0.5,'un'],['Flor de sal',1,'g']],['ac']),
-R('hummus','Hummus de grão-de-bico e tahini','mediterranica',['vegetariana','vegan','mediterranica'],0,0,0,0,[['Grão-de-bico cozido',120,'g'],['Tahini',25,'g'],['Limão',0.5,'un'],['Alho',1,'dente'],['Azeite',12,'ml'],['Cominhos',1,'g']],['l','a'],0,['ent','sn']),
-R('acmoutabal','Moutabal de beringela e tahini','mediterranica',['vegetariana','vegan','mediterranica'],0,0,0,0,[['Beringela assada',80,'g'],['Tahini',15,'g'],['Iogurte grego',20,'g'],['Alho',1,'dente'],['Limão',0.25,'un']],['mo']),
+R('aclhorta','Horta, verduras cozidas com azeite e limão','grega',['vegetariana','vegan','mediterranica','lowfat'],0,0,0,0,[['Grelos',180,'g'],['Azeite',12,'ml'],['Limão',0.5,'un'],['Flor de sal',1,'g']],['ac']),
+R('hummus','Hummus de grão-de-bico e tahini','libanesa',['vegetariana','vegan','mediterranica'],0,0,0,0,[['Grão-de-bico cozido',120,'g'],['Tahini',25,'g'],['Limão',0.5,'un'],['Alho',1,'dente'],['Azeite',12,'ml'],['Cominhos',1,'g']],['l','a'],0,['ent','sn']),
+R('acmoutabal','Moutabal de beringela e tahini','libanesa',['vegetariana','vegan','mediterranica'],0,0,0,0,[['Beringela assada',80,'g'],['Tahini',15,'g'],['Iogurte grego',20,'g'],['Alho',1,'dente'],['Limão',0.25,'un']],['mo']),
 R('mujadara','Mujadara de lentilhas, arroz e cebola','libanesa',['vegetariana','vegan','mediterranica'],0,0,0,0,[['Lentilhas',70,'g'],['Arroz agulha',45,'g'],['Cebola',1.5,'un'],['Azeite',20,'ml'],['Cominhos',3,'g'],['Flor de sal',2,'g']],['a','j'],0,['pp']),
-R('shishtaouk','Shish taouk, espetadas de frango do Líbano','mediterranica',['mediterranica'],0,0,0,0,[['Peito de frango',180,'g'],['Iogurte natural',60,'g'],['Limão',0.5,'un'],['Alho',3,'dente'],['Colorau',3,'g'],['Azeite',10,'ml'],['Pimenta preta',1,'g']],['a','j'],0,['pp']),
 R('acbatataharra','Batata harra, batata picante com coentros','libanesa',['vegetariana','vegan','mediterranica'],0,0,0,0,[['Batata',200,'g'],['Coentros',10,'g'],['Alho',4,'dente'],['Malagueta',2,'g'],['Limão',0.25,'un'],['Azeite',18,'ml'],['Flor de sal',1,'g']],['ac']),
 R('kibbehforno','Kibbeh no forno','libanesa',[],0,0,0,0,[['Bulgur',60,'g'],['Carne picada de borrego',150,'g'],['Cebola',1,'un'],['Canela',1,'g'],['Pimenta preta',1,'g'],['Azeite',15,'ml'],['Flor de sal',2,'g']],['a','j'],0,['pp']),
 R('acmtoum','Toum, molho de alho libanês','libanesa',['vegetariana','vegan'],0,0,0,0,[['Alho',5,'dente'],['Óleo alimentar',30,'ml'],['Limão',0.25,'un'],['Flor de sal',1,'g']],['mo']),
-R('labneh','Labneh com za\'atar e azeite','mediterranica',['vegetariana','mediterranica'],0,0,0,0,[['Iogurte grego',180,'g'],['Za\'atar',5,'g'],['Azeite',12,'ml'],['Flor de sal',2,'g'],['Pão pita',60,'g']],['p','l'],0,['br','sn']),
+R('labneh','Labneh com za\'atar e azeite','libanesa',['vegetariana','mediterranica'],0,0,0,0,[['Iogurte grego',180,'g'],['Za\'atar',5,'g'],['Azeite',12,'ml'],['Flor de sal',2,'g'],['Pão pita',60,'g']],['p','l'],0,['br','sn']),
 R('sfiha','Sfiha, empadas abertas de carne','libanesa',[],0,0,0,0,[['Farinha',70,'g'],['Carne picada de borrego',90,'g'],['Tomate',1,'un'],['Cebola',0.5,'un'],['Iogurte natural',20,'g'],['Azeite',12,'ml'],['Canela',0.5,'g'],['Fermento de padeiro',3,'g']],['a','l','j'],0,['pp','sn']),
 R('kousamahshi','Kousa mahshi, courgettes recheadas','libanesa',['mediterranica'],0,0,0,0,[['Courgette',300,'g'],['Arroz agulha',50,'g'],['Carne picada de borrego',90,'g'],['Polpa de tomate',80,'g'],['Hortelã',5,'g'],['Canela',0.5,'g'],['Azeite',12,'ml']],['a','j'],0,['pp']),
+/* ---- Kebab, kafta e kibbeh ----
+   Três famílias que na mesa libanesa são a mesma conversa em três formas: a
+   carne aos cubos no espeto, a carne picada temperada, e a carne com bulgur.
+   O kibbeh no forno já cá estava; entram as outras formas que se fazem com a
+   mesma massa — frita, de abóbora para os dias sem carne, e crua. */
+R('lahmmashwi','Lahm mashwi, kebab de borrego no espeto','libanesa',['mediterranica'],0,0,0,0,[['Borrego, perna crua',160,'g'],['Cebola',60,'g'],['Alho',2,'dente'],['Azeite',10,'ml'],['Limão',0.5,'un'],['Pimenta preta',1,'g'],['Canela',0.5,'g'],['Noz-moscada',0.3,'g'],['Flor de sal',1,'g'],['Pão pita',60,'g'],['Tomate',1,'un'],['Cebola roxa',30,'g']],['a','j'],0,['pp']),
+R('kafta','Kafta mashwiya, espetadas de carne picada','libanesa',[],0,0,0,0,[['Carne picada de borrego',90,'g'],['Carne picada de vaca',70,'g'],['Cebola',50,'g'],['Salsa',15,'g'],['Pimenta preta',1,'g'],['Canela',0.5,'g'],['Noz-moscada',0.3,'g'],['Cravinho',0.2,'g'],['Flor de sal',1.2,'g'],['Pão pita',60,'g'],['Tomate',1,'un']],['a','j'],0,['pp']),
+R('kaftasanieh','Kafta bil sanieh, kafta no forno com batata','libanesa',[],0,0,0,0,[['Carne picada de borrego',100,'g'],['Cebola',60,'g'],['Salsa',12,'g'],['Batata',200,'g'],['Tomate',120,'g'],['Polpa de tomate',40,'g'],['Azeite',10,'ml'],['Canela',0.5,'g'],['Pimenta preta',1,'g'],['Flor de sal',1.2,'g']],['a','j'],0,['pp']),
+R('kibbehfrito','Kibbeh rasas, croquetes de bulgur e carne','libanesa',[],0,0,0,0,[['Bulgur',45,'g'],['Carne picada de borrego',100,'g'],['Cebola',60,'g'],['Pinhões',8,'g'],['Canela',0.7,'g'],['Pimenta preta',0.5,'g'],['Flor de sal',1.2,'g'],['Óleo alimentar',10,'ml']],['a','j'],0,['pp','ent','sn']),
+R('kibbehabobora','Kibbeh bil laqtin, de abóbora e espinafres','libanesa',['vegetariana','vegan','mediterranica'],0,0,0,0,[['Abóbora',200,'g'],['Bulgur',60,'g'],['Farinha',15,'g'],['Grão-de-bico cozido',80,'g'],['Espinafres',80,'g'],['Cebola',50,'g'],['Azeite',15,'ml'],['Cominhos',1.5,'g'],['Canela',0.5,'g'],['Limão',0.25,'un'],['Flor de sal',1,'g']],['a','j'],0,['pp','ent']),
+R('kibbehnayyeh','Kibbeh nayyeh, o kibbeh cru','libanesa',[],0,0,0,0,[['Borrego, perna crua',120,'g'],['Bulgur',35,'g'],['Cebola',40,'g'],['Hortelã',5,'g'],['Azeite',15,'ml'],['Pimenta preta',1,'g'],['Canela',0.3,'g'],['Flor de sal',1.2,'g'],['Pão pita',50,'g']],['a','j'],0,['ent']),
 R('gohan','Arroz branco japonês','japonesa',['vegan'],0,0,0,0,[['Arroz para sushi',75,'g']],['ac'],0),
 R('karejapones','Caril japonês de frango','japonesa',[],0,0,0,0,[['Coxas de frango',150,'g'],['Cebola',120,'g'],['Cenoura',80,'g'],['Batata',110,'g'],['Caril em pó',8,'g'],['Farinha',10,'g'],['Manteiga',10,'g'],['Óleo alimentar',8,'ml'],['Molho de soja',8,'ml'],['Arroz para sushi',70,'g']],['a','j'],0,['pp']),
 R('acmtonkatsu','Molho tonkatsu','japonesa',[],0,0,0,0,[['Molho inglês',15,'ml'],['Ketchup',10,'g'],['Molho de soja',5,'ml'],['Açúcar amarelo',3,'g'],['Sementes de sésamo',2,'g']],['mo']),
@@ -3579,8 +3589,8 @@ R('acmlaranjamel','Molho de laranja e mel','francesa',[],0,0,0,0,[['Mel',10,'g']
 R('acmbeurreblanc','Beurre blanc','francesa',[],0,0,0,0,[['Chalota',30,'g'],['Vinho branco',60,'ml'],['Vinagre de vinho',15,'ml'],['Nata para bater 35% gordura',20,'ml'],['Manteiga',45,'g'],['Cebolinho',4,'g']],['mo']),
 R('acmbeurreblancalcaparras','Beurre blanc com alcaparras','francesa',[],0,0,0,0,[['Chalota',30,'g'],['Vinho branco',60,'ml'],['Vinagre de vinho',15,'ml'],['Manteiga',40,'g'],['Alcaparras',12,'g']],['mo']),
 R('acmbeurreblancendro','Beurre blanc de endro','francesa',[],0,0,0,0,[['Chalota',30,'g'],['Vinho branco',60,'ml'],['Vinagre de vinho',15,'ml'],['Nata para bater 35% gordura',20,'ml'],['Manteiga',42,'g'],['Endro',5,'g']],['mo']),
-R('acmtzatziki','Tzatziki','mediterranica',[],0,0,0,0,[['Iogurte grego',80,'g'],['Pepino',0.5,'un'],['Alho',1,'dente'],['Endro',3,'g']],['mo']),
-R('acmtahini','Molho de tahini','mediterranica',[],0,0,0,0,[['Tahini',15,'g'],['Limão',0.25,'un'],['Alho',0.5,'dente']],['mo']),
+R('acmtzatziki','Tzatziki','grega',[],0,0,0,0,[['Iogurte grego',80,'g'],['Pepino',0.5,'un'],['Alho',1,'dente'],['Endro',3,'g']],['mo']),
+R('acmtahini','Molho de tahini','libanesa',[],0,0,0,0,[['Tahini',15,'g'],['Limão',0.25,'un'],['Alho',0.5,'dente']],['mo']),
 R('acmendropepino','Molho de endro e pepino','mediterranica',[],0,0,0,0,[['Nata',50,'ml'],['Pepino',0.5,'un'],['Endro',4,'g'],['Limão',0.5,'un']],['mo']),
 R('acmmanteigapimentao','Manteiga de pimentão','mediterranica',[],0,0,0,0,[['Manteiga',12,'g'],['Pimentão-doce',2,'g'],['Malagueta',0.5,'g']],['mo']),
 R('acmpiccata','Molho de limão e alcaparras','italiana',[],0,0,0,0,[['Limão',0.5,'un'],['Alcaparras',10,'g'],['Manteiga',8,'g'],['Salsa',5,'g']],['mo']),
@@ -3830,11 +3840,11 @@ R('pudimtapioca','Pudim de tapioca','brasileira',['vegetariana'],0,0,0,0,[['Tapi
 R('menemen','Menemen','mediterranica',['lowcarb','vegetariana','mediterranica'],0,0,0,0,[['Ovo',2,'un'],['Tomate',2,'un'],['Pimento',0.5,'un'],['Cebola',0.3,'un'],['Azeite',12,'ml'],['Pimentão-doce',1,'g'],['Pão rústico',40,'g']],['p','l'],0,['br']),
 /* Strapatsada, também dita kayanas: ovos mexidos em tomate ralado com feta.
    O tomate rala-se em vez de se cortar — dá molho em vez de pedaços. */
-R('strapatsada','Strapatsada de tomate e feta','mediterranica',['lowcarb','vegetariana','mediterranica'],0,0,0,0,[['Ovo',2,'un'],['Tomate',2,'un'],['Queijo feta',40,'g'],['Azeite',15,'ml'],['Orégãos',1,'g'],['Pão rústico',40,'g']],['p','l'],0,['br']),
+R('strapatsada','Strapatsada de tomate e feta','grega',['lowcarb','vegetariana','mediterranica'],0,0,0,0,[['Ovo',2,'un'],['Tomate',2,'un'],['Queijo feta',40,'g'],['Azeite',15,'ml'],['Orégãos',1,'g'],['Pão rústico',40,'g']],['p','l'],0,['br']),
 /* Ful medames: favas cozidas com azeite, alho e limão. É o pequeno-almoço do
    Egito e de todo o Levante, e uma das coisas mais antigas que ainda se comem
    ao pequeno-almoço em qualquer parte do mundo. */
-R('fulmedames','Ful medames','mediterranica',['vegetariana','vegan','mediterranica'],0,0,0,0,[['Favas cozidas',180,'g'],['Azeite',15,'ml'],['Alho',2,'dente'],['Limão',20,'ml'],['Cominhos',2,'g'],['Salsa',8,'g'],['Tomate',1,'un'],['Pão pita',50,'g']],['p','a'],0,['br']),
+R('fulmedames','Ful medames','libanesa',['vegetariana','vegan','mediterranica'],0,0,0,0,[['Favas cozidas',180,'g'],['Azeite',15,'ml'],['Alho',2,'dente'],['Limão',20,'ml'],['Cominhos',2,'g'],['Salsa',8,'g'],['Tomate',1,'un'],['Pão pita',50,'g']],['p','a'],0,['br']),
 /* Manakish de za'atar: o pão plano do pequeno-almoço libanês. O za'atar é uma
    mistura de tomilho, sumagre e sésamo — aqui está pelas partes que o
    catálogo conhece, e quem tiver a mistura pronta usa-a em vez destas. */
@@ -3935,12 +3945,12 @@ R('cogumelostosta','Cogumelos na torrada','britanica',[],0,0,0,0,[['Pão rústic
 /* ---------- Mediterrâneo ---------- */
 R('simit','Simit com queijo branco','mediterranica',['mediterranica'],0,0,0,0,[['Farinha de trigo tipo 65',65,'g'],['Fermento seco de padeiro',2,'g'],['Flor de sal',1.5,'g'],['Melaço',15,'ml'],['Sementes de sésamo',15,'g'],['Azeite',3,'ml'],['Queijo feta',40,'g'],['Tomate',60,'g'],['Pepino',50,'g'],['Azeitonas pretas',15,'g']],['p','l'],0,['br']),
 R('cilbir','Ovos escalfados em iogurte de alho','mediterranica',['mediterranica'],0,0,0,0,[['Iogurte grego natural',150,'g'],['Alho',1,'dente'],['Ovo',2,'un'],['Vinagre de vinho',15,'ml'],['Flor de sal',1,'g'],['Pão pita',50,'g'],['Endro',2,'g']],['p'],0,['br']),
-R('balila','Balila de grão-de-bico','mediterranica',['mediterranica'],0,0,0,0,[['Grão-de-bico cozido',150,'g'],['Alho',1,'dente'],['Limão',0.5,'un'],['Azeite',10,'ml'],['Cominhos',2,'g'],['Flor de sal',1,'g'],['Salsa',5,'g'],['Hortelã',2,'g'],['Pão pita',40,'g'],['Cebola roxa',20,'g'],['Rabanete cru',30,'g']],['p','l'],0,['br']),
+R('balila','Balila de grão-de-bico','libanesa',['mediterranica'],0,0,0,0,[['Grão-de-bico cozido',150,'g'],['Alho',1,'dente'],['Limão',0.5,'un'],['Azeite',10,'ml'],['Cominhos',2,'g'],['Flor de sal',1,'g'],['Salsa',5,'g'],['Hortelã',2,'g'],['Pão pita',40,'g'],['Cebola roxa',20,'g'],['Rabanete cru',30,'g']],['p','l'],0,['br']),
 R('fatteh','Fatteh de grão-de-bico com iogurte','libanesa',['mediterranica'],0,0,0,0,[['Grão-de-bico cozido',120,'g'],['Iogurte natural',150,'g'],['Tahini',5,'g'],['Pinhões',6,'g'],['Pão pita',20,'g'],['Ghee',5,'g'],['Alho',1,'dente'],['Cominhos',1.5,'g'],['Azeite',5,'ml'],['Salsa',2,'g'],['Flor de sal',1,'g']],['p','l'],0,['br']),
 R('shakshukaverde','Shakshuka verde','mediterranica',['mediterranica'],0,0,0,0,[['Azeite',15,'ml'],['Couve-de-Bruxelas crua',55,'g'],['Cebola roxa',30,'g'],['Alho',1,'dente'],['Couve galega',55,'g'],['Espinafres',40,'g'],['Malagueta',0.5,'g'],['Sementes de coentro',1,'g'],['Cominhos',1,'g'],['Limão',0.25,'un'],['Ovo',2,'un'],['Salsa',4,'g'],['Queijo feta',30,'g'],['Flor de sal',1,'g']],['p','l'],0,['br']),
-R('baghrir','Baghrir, crepes dos mil buracos','mediterranica',[],0,0,0,0,[['Sêmola de trigo',60,'g'],['Farinha de trigo tipo 55',30,'g'],['Fermento seco de padeiro',2,'g'],['Fermento em pó',3,'g'],['Açúcar branco',2,'g'],['Flor de sal',1,'g'],['Mel',15,'g'],['Manteiga',8,'g']],['p','l'],0,['br']),
-R('harcha','Harcha de sêmola','mediterranica',[],0,0,0,0,[['Sêmola de trigo',70,'g'],['Manteiga',18,'g'],['Leite meio gordo, UHT',35,'ml'],['Açúcar branco',4,'g'],['Fermento em pó',2.5,'g'],['Flor de sal',1,'g'],['Mel',12,'g']],['p','l'],0,['br']),
-R('bissara','Bissara de favas','mediterranica',['mediterranica'],0,0,0,0,[['Favas secas cruas',60,'g'],['Alho',2,'dente'],['Azeite',12,'ml'],['Cominhos',2,'g'],['Colorau',1.5,'g'],['Flor de sal',1,'g'],['Limão',0.25,'un'],['Pão de mistura',40,'g']],['p','l'],0,['br']),
+R('baghrir','Baghrir, crepes dos mil buracos','marroquina',[],0,0,0,0,[['Sêmola de trigo',60,'g'],['Farinha de trigo tipo 55',30,'g'],['Fermento seco de padeiro',2,'g'],['Fermento em pó',3,'g'],['Açúcar branco',2,'g'],['Flor de sal',1,'g'],['Mel',15,'g'],['Manteiga',8,'g']],['p','l'],0,['br']),
+R('harcha','Harcha de sêmola','marroquina',[],0,0,0,0,[['Sêmola de trigo',70,'g'],['Manteiga',18,'g'],['Leite meio gordo, UHT',35,'ml'],['Açúcar branco',4,'g'],['Fermento em pó',2.5,'g'],['Flor de sal',1,'g'],['Mel',12,'g']],['p','l'],0,['br']),
+R('bissara','Bissara de favas','marroquina',['mediterranica'],0,0,0,0,[['Favas secas cruas',60,'g'],['Alho',2,'dente'],['Azeite',12,'ml'],['Cominhos',2,'g'],['Colorau',1.5,'g'],['Flor de sal',1,'g'],['Limão',0.25,'un'],['Pão de mistura',40,'g']],['p','l'],0,['br']),
 R('panecunzato','Pane cunzato','mediterranica',['mediterranica'],0,0,0,0,[['Pão rústico',100,'g'],['Tomate',100,'g'],['Anchovas',12,'g'],['Queijo fresco de ovelha',50,'g'],['Cebola roxa',20,'g'],['Tomate seco',15,'g'],['Azeite',12,'ml'],['Orégãos',1,'g'],['Manjericão',2,'g'],['Pimenta preta',0.3,'g'],['Flor de sal',0.5,'g']],['l','a'],0,['br']),
 R('pastizzi','Pastizzi de ricotta','mediterranica',[],0,0,0,0,[['Massa folhada, congelada',90,'g'],['Ricotta',80,'g'],['Ovo',0.3,'un'],['Queijo parmesão ralado',8,'g'],['Salsa',3,'g'],['Pimenta preta',0.3,'g'],['Flor de sal',0.5,'g']],['p','l'],0,['br']),
 
@@ -4952,7 +4962,7 @@ P('risottoacafrao',[['Açafrão','Açafrão em infusão num pouco de caldo quent
 P('vitelotonato',[['Cozer devagar','Vitela num caldo aromático em lume brando, a tremer e nunca a ferver a borbulhar. Uma hora, e fica rosada por dentro.',60],
  ['Arrefecer no caldo','Deixa arrefecer dentro do próprio líquido. Tirada quente, a vitela seca e depois não se corta fina.',120],
  ['Fatiar quase transparente','Faca bem afiada e a carne bem fria, cortada contra a fibra. Fatias grossas não deixam pegar o que se serve por cima.']]);
-P('cacioepepe',[['Pimenta','Toca a pimenta em grão, moída grossa, numa frigideira seca — é aqui que nasce o prato.',1],
+P('cacioepepe',[['Pimenta','Tosta a pimenta em grão, moída grossa, numa frigideira seca — é aqui que nasce o prato.',1],
  ['Massa','Coze a massa em pouca água, para a água ficar bem amilácea.',9],
  ['Creme','Pecorino ralado com água da massa MORNA, batido até virar creme. Água a ferver talha o queijo.'],
  ['Ligar','Massa e creme fora do lume, mexendo com energia.']]);
@@ -5483,7 +5493,7 @@ P('tonkatsu',[['Preparar a carne','Dá uns golpes no nervo que rodeia o lombo pa
  ['Cortar em tiras','Corta a costeleta em tiras de dois dedos antes de levar à mesa, para se comer com pauzinhos.']]);
 P('pastitsio',[['Carne','Refoga cebola e alho em azeite, junta a carne de borrego e deixa-a soltar-se. Tomate, canela e noz-moscada, e apura em lume brando até quase seco. A canela na carne é o que faz este prato grego e não uma lasanha.',30],
  ['Massa','Coze a massa em água com sal até ficar bem al dente — vai acabar de cozer no forno, e a que sai mole do tacho sai papa do tabuleiro.',8],
- ['Béchamel','Manteiga e farinha em roux claro, leite morno aos poucos sem parar de mexer, até napar a colher. Fora do lume, o parmesão e o ovo batido — o ovo é o que a faz firmar em fatia.',12],
+ ['Bechamel','Manteiga e farinha em roux claro, leite morno aos poucos sem parar de mexer, até napar a colher. Fora do lume, o parmesão e o ovo batido — o ovo é o que o faz firmar em fatia.',12],
  ['Montar','Metade da massa no fundo, a carne toda, o resto da massa, e o béchamel por cima a cobrir os cantos todos.',6],
  ['Forno','180 °C até a superfície estar dourada e firme ao toque.',40],
  ['Descanso','Vinte minutos fora do forno antes de cortar. Cortado a sair, escorre e desfaz-se.',20]]);
@@ -5504,7 +5514,7 @@ P('fattoush',[['Pão torrado','Abre o pão pita, corta em pedaços e leva ao for
  ['Juntar','As ervas picadas grosseiramente, o molho, e o pão só no fim. Pão junto cedo de mais amolece, e o pão estaladiço é o prato.',3]]);
 P('babaganoush',[['Queimar a beringela','Beringela inteira sobre a chama do fogão ou debaixo do grelhador, a virar, até a pele estar preta e ela colapsar. É o fumo desta queimadura que faz o baba ganoush — no forno sai bom, mas sai outra coisa.',25],
  ['Escorrer','Abre a beringela, tira a polpa com uma colher e deixa-a escorrer num passador uns dez minutos. Beringela aguada dá pasta aguada.',10],
- ['Bater','Esmaga a polpa com o garfo — não é puré de varinha, quer-se textura. Junta o tahine, o alho esmagado, o limão, o sal e os cominhos.',6],
+ ['Bater','Esmaga a polpa com o garfo — não é puré de varinha, quer-se textura. Junta o tahini, o alho esmagado, o limão, o sal e os cominhos.',6],
  ['Servir','Azeite generoso por cima e coentros picados. Com pão pita quente.']]);
 P('shishtaouk',[['Marinada','Iogurte, alho esmagado, sumo de limão, azeite, pimentão-doce, cominhos e canela. O iogurte não é só sabor: o ácido e o cálcio amaciam o frango sem o desfazer, ao contrário de uma marinada só de limão.',10],
  ['Frio','Frango aos cubos na marinada, tapado, no frigorífico. Quatro horas chegam, de véspera é melhor.',240],
@@ -5591,11 +5601,6 @@ P('mujadara',[['Cebola até escura','Cebola em meias-luas finas no azeite, lume 
  ['Lentilhas primeiro','Coze as lentilhas em água com sal quinze minutos, até estarem quase feitas mas ainda inteiras.',15],
  ['Arroz por cima','Junta o arroz escorrido às lentilhas, mexe uma vez só, tapa e deixa quinze minutos em lume mínimo, sem destapar.',15],
  ['Cominhos e cebola','Fora do lume, cominhos, o azeite guardado e metade da cebola envolvidos com um garfo. A outra metade vai por cima, à mesa.']]);
-P('shishtaouk',[['Marinada de iogurte','Frango em cubos no iogurte com o alho pisado, o limão, o colorau e a pimenta. O iogurte é que amacia — sem ele o peito fica seco na grelha.'],
- ['Quatro horas, não mais','Frigorífico quatro horas, ou de véspera. Muito mais e o ácido do limão começa a cozer a carne e ela fica farinhenta.',240],
- ['Escorrer antes da grelha','Tira o excesso de marinada com os dedos. Iogurte a mais queima antes de a carne estar feita.'],
- ['Grelha forte e curta','Espetos em grelha bem quente, dez a doze minutos, virando de quarto em quarto. O frango come-se sempre bem passado: o suco tem de sair claro.',12],
- ['Toum ao lado','Serve com toum e pão pita quente. É a companhia de sempre, e o alho do molho é que fecha o prato.']]);
 P('acbatataharra',[['Cubos e água fria','Batata em cubos de dois centímetros, lavados em água fria para tirar o amido. Amido à superfície cola-os uns aos outros na frigideira.'],
  ['Secar mesmo bem','Seca os cubos com um pano. Molhados, cozem no próprio vapor e nunca ganham crosta.'],
  ['Fritar até crosta','Azeite bem quente e os cubos em camada única, sem mexer nos primeiros minutos. Vira quando descolarem sozinhos, até ficarem dourados de todos os lados.',15],
@@ -5625,6 +5630,45 @@ P('kousamahshi',[['Escavar sem furar','Corta o pé às courgettes e escava o mio
  ['Encher a dois terços','Enche cada courgette até dois terços e aperta de leve. O arroz incha, e cheia até cima racha ao cozer.'],
  ['Deitadas no tacho','Arruma-as deitadas e apertadas num tacho, cobre com a polpa de tomate diluída em água e um fio de azeite. Um prato por cima impede-as de flutuar.'],
  ['Lume brando, tapado','Quarenta minutos em lume brando, tapado, até a courgette ceder à faca e o arroz estar cozido. Serve com o próprio molho e iogurte ao lado.',40]]);
+P('lahmmashwi',[['Cubos do tamanho certo','Corta a perna de borrego em cubos de três centímetros, com a gordura entremeada. Cubos pequenos secam antes de ganhar cor; grandes ficam crus por dentro.',10],
+ ['Marinada seca de cebola','Rala a cebola e esprime-lhe o sumo por cima da carne, com o alho pisado, o azeite, a pimenta, a canela e a noz-moscada. É o sumo da cebola que amacia — a cebola aos pedaços queima no espeto e não serve para isto.',10],
+ ['Frio, e sem sal','Tapado no frigorífico, quatro horas ou de véspera. O sal só entra na hora de espetar: posto antes, puxa a água da carne para fora e ela assa em vez de grelhar.',240],
+ ['Espetar folgado','Cubos nos espetos com um dedo de folga entre eles, para o calor circular. Espetos de madeira ficam meia hora de molho em água antes, ou ardem.',8],
+ ['Brasa alta e curta','Grelha muito quente, oito a dez minutos, a virar de quarto em quarto. O borrego é bom rosado no centro — passado demais fica seco e forte.',10],
+ ['Descansar e servir','Cinco minutos fora do lume antes de servir, com o pão pita quente, o tomate e a cebola roxa às rodelas e o limão espremido à mesa.',5]]);
+P('kafta',[['Duas carnes, uma gordura','Borrego e vaca em partes desiguais: o borrego dá o sabor, a vaca segura a forma. Uma carne inteiramente magra desfaz-se no espeto.'],
+ ['Cebola espremida','Rala a cebola e esprime-a bem num pano. Cebola aguada é o que faz a kafta escorregar do espeto — é o erro mais comum e não tem outra volta.',8],
+ ['Sete especiarias','Pimenta preta, canela, noz-moscada e cravinho, com a salsa picada fina e o sal. É a versão de casa do baharat libanês; quem tiver a mistura pronta usa duas colheres de chá.'],
+ ['Amassar até colar','Amassa com as mãos cinco minutos, até a massa colar à palma e não se soltar. É esta ligação que dispensa ovo e pão ralado.',5],
+ ['Descanso frio','Meia hora no frigorífico. A gordura volta a firmar e a kafta agarra-se ao espeto em vez de cair na brasa.',30],
+ ['Moldar molhado','Molha as mãos e aperta a carne à volta de espetos largos, num rolo de dois dedos. Espetos redondos e finos deixam-na rodar toda.'],
+ ['Grelhar sem mexer','Grelha bem quente, dez minutos, a virar uma vez só quando descolar sozinha. Mexer cedo parte a kafta ao meio.',10],
+ ['À mesa','Em pão pita com tomate e um fio de toum ou de iogurte.']]);
+P('kaftasanieh',[['A mesma massa','Faz a massa da kafta: carne, cebola ralada e espremida, salsa, canela, pimenta e sal, amassada até ligar.',10],
+ ['Camada num tabuleiro','Espalha a carne no fundo de um tabuleiro, num dedo de espessura e por igual. «Sanieh» é o tabuleiro, e é dele que o prato tira o nome.'],
+ ['Batata em rodelas','Batata em rodelas de meio centímetro, temperadas com azeite e sal, arrumadas por cima em telha. Mais grossas e a carne fica pronta antes delas.'],
+ ['Tomate e polpa','Rodelas de tomate entre as de batata, e a polpa diluída em meia chávena de água por cima de tudo. É o líquido que impede o forno de secar a carne.'],
+ ['Forno tapado, depois destapado','200 °C, meia hora com folha de alumínio e mais vinte minutos sem ela, até a batata dourar e o molho ter apurado.',50],
+ ['Repousar antes de cortar','Dez minutos fora do forno antes de cortar aos quadrados. Cortada a ferver, desfaz-se.',10]]);
+P('kibbehfrito',[['Bulgur fino, só demolhado','Cobre o bulgur fino com água fria vinte minutos e esprime-o com as mãos. Bulgur cozido não liga, e bulgur grosso não fecha a casca.',20],
+ ['Massa batida, não misturada','Passa metade da carne com metade da cebola e o bulgur na picadora, até ficar uma pasta lisa e um pouco pegajosa. Só misturada à mão fica granulosa e abre na fritura.',8],
+ ['Recheio à parte','Aloura o resto da cebola, junta a restante carne, a canela e a pimenta, e no fim os pinhões tostados. Deixa arrefecer: recheio quente amolece a casca por dentro.',12],
+ ['Tender com o dedo molhado','Uma bola de massa na mão molhada, o indicador a abrir um cone fino, o recheio lá dentro e as pontas fechadas em bico. Água na mão é o que impede a massa de colar e rachar.',20],
+ ['Frigorífico antes da fritura','Meia hora no frio. Kibbeh à temperatura da cozinha abre no óleo e larga o recheio todo.',30],
+ ['Óleo a 175 °C','Frita aos poucos em óleo a 175 °C, cinco a seis minutos, até ficarem castanhos-escuros. Óleo morno encharca; óleo a fumegar queima a casca com a carne ainda crua.',6],
+ ['Escorrer de pé','Sobre grelha e não sobre papel — em cima do papel, o fundo cozinha no próprio vapor e perde a crosta.']]);
+P('kibbehabobora',[['Abóbora assada e escorrida','Assa a abóbora aos cubos até ceder, esmaga-a e deixa-a escorrer num passador. Cozida em água fica aguada, e massa aguada não se tende.',35],
+ ['Bulgur na abóbora quente','Junta o bulgur fino à abóbora ainda morna e deixa-o inchar vinte minutos. Não leva água nenhuma: a humidade da abóbora chega.',20],
+ ['Farinha só no fim','Amassa com os cominhos, a canela e o sal, e junta a farinha uma colher de cada vez, até a massa deixar de colar. Farinha a mais dá uma massa dura em vez de macia.',8],
+ ['Recheio de espinafres','Cebola em azeite, os espinafres a murchar, o grão-de-bico ligeiramente esmagado e sumo de limão. Esprime bem os espinafres — é o mesmo erro da abóbora, na mesma massa.',12],
+ ['Duas camadas no tabuleiro','Metade da massa espalhada no fundo, o recheio por cima, a outra metade a fechar. Risca losangos à faca e rega com o resto do azeite.',10],
+ ['Forno','200 °C durante trinta e cinco minutos, até a superfície ficar tostada. É o kibbeh dos dias sem carne, e come-se morno ou frio.',35]]);
+P('kibbehnayyeh',[['Isto é carne crua','O kibbeh nayyeh come-se cru e não há passo nenhum que o torne seguro depois. Pede ao talho carne de perna de borrego magra, do dia, e que a pique à tua frente — carne picada de balcão não serve. Faz-se e come-se dentro de duas horas, sempre em cima de gelo.'],
+ ['Quem não o deve comer','Carne crua não se serve a grávidas, a crianças, a quem tenha mais de 65 anos nem a quem esteja imunodeprimido. A app assinala-o sozinha quando algum deles está à mesa.'],
+ ['Bulgur muito fino','Cobre o bulgur fino com água gelada dez minutos e esprime até ficar seco ao toque. Água gelada, não fria de torneira: a carne nunca deve subir de temperatura.',10],
+ ['Cebola em pasta','Reduz a cebola a pasta no almofariz com o sal, a pimenta e a canela. Aos pedaços, sente-se a cebola crua e mais nada.',8],
+ ['Pisar, não amassar','Junta a carne e trabalha com água gelada à mão até ficar uma pasta sedosa. No Líbano faz-se no almofariz de pedra, e é isso que dá a textura — a picadora aquece a massa.',15],
+ ['Servir logo','Espalha num prato, faz sulcos com o polegar, enche-os de azeite e põe as folhas de hortelã por cima. Com pão pita e cebola. O que sobrar não se guarda para amanhã.']]);
 P('gomaae',[['Escaldar de pé','Água a ferver com sal, os talos primeiro vinte segundos e só depois as folhas mais trinta. Assim tudo fica no ponto ao mesmo tempo.',1],
  ['Água gelada','Passa logo por água com gelo. Pára a cozedura e é o que mantém o verde vivo em vez do verde tristonho.'],
  ['Espremer a sério','Aperta os espinafres com as duas mãos até deixarem de largar água, e corta em troços de dois dedos. Espinafre mal espremido dilui o molho todo.'],
@@ -6623,7 +6667,7 @@ P('baghrir',[['Bater a massa','Junta a sêmola, a farinha, o fermento de padeiro
  ['Empilhar','Vai pousando os baghrir num pano, lado a lado e nunca sobrepostos enquanto estão quentes, senão colam uns aos outros.'],
  ['Servir','Serve quentes com a manteiga derretida e o mel misturados num prato fundo, para molhar cada crepe antes de comer.']]);
 P('harcha',[['Areia de sêmola','Mistura a sêmola com o açúcar, o fermento em pó e o sal. Junta a manteiga derretida morna e esfrega com as pontas dos dedos até cada grão ficar envolvido em gordura.'],
- ['Ligar com leite','Acrescenta o leite pouco a pouco, só até a massa se juntar. Não amasses: quanto menos trabalhada, mais areada fica a galete.'],
+ ['Ligar com leite','Acrescenta o leite pouco a pouco, só até a massa se juntar. Não amasses: quanto menos trabalhada, mais areada fica a harcha.'],
  ['Repousar','Deixa descansar vinte minutos para a sêmola beber o líquido. Sem esta espera, a harcha desfaz-se ao virar na frigideira.',20],
  ['Moldar','Espalha a massa num disco de cerca de um centímetro e meio sobre sêmola e corta com um copo, sem torcer o corte.'],
  ['Chapa seca','Coze em chapa ou frigideira sem gordura, em lume brando, quatro minutos de cada lado, até formar crosta loura. Serve com mel e manteiga.',8]]);
@@ -7042,8 +7086,8 @@ P('cachapa',[['Triturar o milho','Tritura o grão de milho com o leite, o amido,
  ['Dobrar com o queijo','Passa para o prato, põe o resto da manteiga e a mozzarella fresca numa metade e dobra em meia-lua. É o calor da cachapa que derrete o queijo: não volta ao lume.',2]]);
 P('tigelle',[['Massa com banha','Amassa a farinha com o leite morno, um pouco de água, o fermento, o açúcar e o sal, e só no fim a banha, até ficar lisa e elástica. Deixa levedar 1 hora, até dobrar.',90],
  ['Discos e segunda leveda','Divide em bolas de 40 g, achata com a mão até discos de 8 cm por 1 cm de altura e deixa levedar mais 30 minutos sobre um pano polvilhado com farinha.',40],
- ['Chapa em lume brando','Aquece a tigelleira ou uma frigideira de fundo pesado em lume brando, seca, sem gordura nenhuma. Uma gota de água deve evaporar devagar, sem saltar: as tigelas cozem, não fritam.',6],
- ['Virar aos 4 minutos','Põe os discos, tapa e deixa cerca de 4 minutos. Vira-se quando a base tiver manchas douradas e a tigela tiver inchado e ficado leve na mão. Mais 4 minutos do outro lado.',9],
+ ['Chapa em lume brando','Aquece a tigelleira ou uma frigideira de fundo pesado em lume brando, seca, sem gordura nenhuma. Uma gota de água deve evaporar devagar, sem saltar: as tigelle cozem, não fritam.',6],
+ ['Virar aos 4 minutos','Põe os discos, tapa e deixa cerca de 4 minutos. Vira-se quando a base tiver manchas douradas e a tigella tiver inchado e ficado leve na mão. Mais 4 minutos do outro lado.',9],
  ['Cunza e recheio','Pisa o alho com o alecrim e um pouco de banha e barra por dentro, ainda a escaldar, com o parmesão ralado por cima. Fecha com o presunto.',5]]);
 P('pastramisandwich',[['Aquecer a carne','Aquece o pastrami em vapor durante alguns minutos, não na frigideira: é o vapor que o volta a amaciar e lhe solta a gordura sem o secar.',6],
  ['Pão','Pão de centeio, fatia grossa, ligeiramente tostado só de um lado — o lado que fica virado para dentro segura a carne sem encharcar.',3],
@@ -7072,7 +7116,7 @@ P('folhadocamembert',[['Frio','Massa folhada e queijo bem frios até ao momento 
  ['Forno','200 °C até estar dourado e inchado. Cinco minutos de espera antes de abrir: quente demais, escorre todo de uma vez.',25],
  ['Servir','Abre à mesa, com pão para molhar. Come-se a escorrer, e é essa a graça.']]);
 P('folhadocamembertdoce',[['Frio','Massa e queijo bem frios até ao momento de trabalhar.',5],
- ['Doce por cima','Corta a crosta de cima do camembert em cruz e espalha lá a compota. O doce fica entre a massa e o queijo, e é aí que caramelize.',5],
+ ['Doce por cima','Corta a crosta de cima do camembert em cruz e espalha lá a compota. O doce fica entre a massa e o queijo, e é aí que carameliza.',5],
  ['Embrulhar e pintar','Fecha a massa por cima, sela bem, vira a junta para baixo e pincela com gema.',6],
  ['Forno','200 °C até dourar, e cinco minutos de espera antes de abrir.',25],
  ['Servir','O contraste é o ponto todo: queijo salgado a escorrer e o doce por cima. Pão rústico ao lado.']]);
@@ -9691,6 +9735,15 @@ const RE_CARNE_NAO_HALAL=/javali|cavalo/i;
 /* Ultraprocessados e açúcar de adição: fora do paleo, que é uma dieta de
    alimentos inteiros e não apenas de ausência de cereais. */
 const RE_NAO_PALEO=/ketchup|maionese|molho barbecue|molho ingl|molho teriyaki|molho de soja|refrigerante|salsicha|chouri|farinheira|alheira|fiambre|mortadela|salame|bacon|nuggets|panados|margarina|shortening|xarope|açúcar|acucar|bolacha|chocolate|gelatina|caldo de|cubo de|creme vegetal/i;
+/* A batata branca fica fora do paleo — em todas as formulações, a começar
+   pela de Cordain, que é a referência. Sem esta linha, 34 receitas traziam a
+   etiqueta com batata dentro, e quem se guia por ela comia batata a pensar
+   que não estava: o bacalhau à Brás com batata palha e os pastéis de bacalhau
+   apareciam como paleo. A batata-DOCE é permitida e tem de escapar — daí a
+   âncora e a alternativa explícita, e não um simples /batata/. A fécula
+   entra na exclusão por ser amido de batata isolado, que é o oposto de um
+   alimento inteiro. */
+const RE_BATATA_NAO_PALEO=/\bbatata(?!-?\s?doce)|\bgnocchi|\bpurê de batata|\bfécula de batata/i;
 /* O que os passos dizem sobre a confeção. Fritar por imersão muda o prato de
    forma que nenhum ingrediente denuncia: o óleo que entra não está na lista. */
 const RE_FRITURA=/fritadeira|fritar em óleo|óleo abundante|por imersão|em imersão|airfryer não|banho de óleo|fritura profunda/i;
@@ -9735,7 +9788,7 @@ function dietasDaReceita(r){
   if(semVeto('vegetariana')) d.push('vegetariana');
   if(semVeto('vegan')) d.push('vegan');
   /* paleo: sem os vetos de sempre, e também sem ultraprocessados nem açúcar */
-  if(semVeto('paleo') && !RE_NAO_PALEO.test(nomes)) d.push('paleo');
+  if(semVeto('paleo') && !RE_NAO_PALEO.test(nomes) && !RE_BATATA_NAO_PALEO.test(nomes)) d.push('paleo');
   /* kosher: sem porco nem marisco, sem peixe sem escamas, sem carne de animal
      não kosher, e sem carne e leite no mesmo prato */
   if(semVeto('kosher') && !RE_PEIXE_SEM_ESCAMA.test(nomes)
@@ -9782,6 +9835,52 @@ RECIPES.forEach(r=>{
     +_semComposicao.length+'), por ingrediente fora do catálogo: '+_semComposicao.join(' · '));
   if(zero.length) console.warn('Família Fit — receitas da biblioteca a ZERO calorias ('+zero.length+'): '
     +zero.join(' · ')+'. É sempre um nome de ingrediente que o catálogo não tem.');
+})();
+/* Pratos que se escrevem de uma maneira e se procuram de outra. Um nome
+   transliterado do árabe ou do grego chega a Portugal por mais do que um
+   caminho, e quem procura escreve o que ouviu: «kefta» e «kibe» são as formas
+   correntes de dizer o que aqui está escrito «kafta» e «kibbeh». Sem isto a
+   app respondia zero a um prato que tem — o pior resultado possível de uma
+   pesquisa, porque não diz a quem procura que escreveu de outra maneira. Só
+   entra aqui o que é a MESMA coisa com outro nome; parecenças não, senão a
+   pesquisa deixa de ser previsível.
+
+   Vive aqui, e não junto de textoBusca() que a usa, por causa do guarda logo
+   abaixo: um `const` declarado adiante ainda está na zona morta temporal
+   quando o arranque chega a esta linha. */
+const ALIAS_BUSCA={
+  kafta:'kefta kufta kofta',
+  kaftasanieh:'kefta kufta kofta',
+  kibbehforno:'kibe quibe kibbe kubbeh',
+  kibbehfrito:'kibe quibe kibbe kubbeh croquete',
+  kibbehabobora:'kibe quibe kibbe kubbeh laqtin lakteen',
+  kibbehnayyeh:'kibe quibe kibbe kubbeh cru',
+  lahmmashwi:'kebab espetada espetadas',
+  shishtaouk:'kebab espetada espetadas chiche taouk',
+  humus:'hummus homus',
+  hummus:'humus homus',
+  babaganoush:'baba ganoush mutabal',
+  acmoutabal:'mutabal baba ganoush',
+  tabule:'tabbouleh taboule',
+  fattoush:'fatush',
+  souvlaki:'gyros giros espetada'
+};
+/* Um id de receita declarado duas vezes não dá erro nenhum: ficam dois cartões
+   na grelha, `find()` devolve sempre o primeiro, e o P() do segundo apaga em
+   silêncio os passos do primeiro — a receita que se abre mostra a preparação
+   de outra. Aconteceu com o shish taouk, e só se viu porque alguém foi
+   procurar. Havia guardas para títulos de passo repetidos, para NI duplicado,
+   para chaves de sódio órfãs e para receitas a zero calorias; faltava a deste,
+   que é o que estraga mais coisas de uma vez (favoritos, plano e passaporte
+   ficam todos a apontar ao mesmo id para dois pratos diferentes). */
+(function(){
+  const vistos=Object.create(null), rep=[];
+  RECIPES.forEach(r=>{ if(vistos[r.id]) rep.push(r.id); else vistos[r.id]=1; });
+  if(rep.length) console.warn('Família Fit — ids de receita repetidos ('+rep.length+'): '
+    +[...new Set(rep)].join(' · ')+'. Dois cartões, um só id: os passos do segundo apagam os do primeiro.');
+  const orfas=Object.keys(ALIAS_BUSCA).filter(id=>!vistos[id]);
+  if(orfas.length) console.warn('Família Fit — sinónimos de pesquisa sem receita ('+orfas.length+'): '
+    +orfas.join(' · ')+'. O id mudou de nome ou a receita saiu.');
 })();
 RECIPES.forEach(r=>{ r.dc=dietasDaReceita(r); });
 
@@ -11261,7 +11360,7 @@ function normaliza100(o){
    UTC, mas getDay() e iso() respondem em hora local — e a oeste de Greenwich
    isso põe a data no dia anterior. Nos Açores, no inverno (UTC−1), uma
    segunda-feira era lida como o domingo anterior e devolvia a semana ERRADA,
-   uma semana inteira atrás. Todo o resto do ficheiro âncora ao meio-dia por
+   uma semana inteira atrás. Todo o resto do ficheiro ancora ao meio-dia por
    esta razão; esta função era a única que faltava, e tem cerca de 25
    chamadas. */
 function mondayISO(d){
@@ -11445,7 +11544,13 @@ function macrosRegRef(r){
    corpo faz de qualquer maneira), o desporto é o que ficou registado — não o
    que estava planeado. É esta a diferença entre plano e realidade. */
 function gastoRealDia(m,d){
-  const base=bmr(m)*(temChave(BASE_ACT,m.atividade)?BASE_ACT[m.atividade][1]:1.2)+commuteKcalDay(m);
+  /* A energia de crescer, de estar grávida ou de amamentar entra no `base`
+     porque é como o basal: gasta-se quer se registe alguma coisa quer não.
+     Faltava, e o «Gasto real hoje» ficava sempre abaixo do «Total kcal/dia»
+     por uma diferença que ninguém explicava — logo por baixo de uma barra que
+     desenha essas calorias com nome e cor próprios. */
+  const fase=crescimentoKcal(m)+gravidezKcal(m)+lactacaoKcal(m);
+  const base=bmr(m)*(temChave(BASE_ACT,m.atividade)?BASE_ACT[m.atividade][1]:1.2)+commuteKcalDay(m)+fase;
   const desp=regAtivDe(m.id).filter(r=>r.d===d&&r.estado==='feita').reduce((t,r)=>t+kcalRegAtiv(r),0);
   return {base, desp, total:base+desp};
 }
@@ -12157,7 +12262,7 @@ const DICAS={
           +METODOS_BMR[METODO_BMR_PADRAO].n+' — e diz que usou, em vez de aplicar uma equação fora do seu domínio.' : '')
       +' O método muda-se na ficha de cada pessoa e vale para a casa toda.';
   },
-  gasto:'O gasto total do dia: o metabolismo basal multiplicado pelo nível de atividade, mais as deslocações, mais o desporto e, em quem está a crescer ou grávida, a energia dessa fase.',
+  gasto:'O gasto total do dia: o metabolismo basal multiplicado pelo nível de atividade, mais as deslocações, mais o desporto e, em quem está a crescer, grávida ou a amamentar, a energia dessa fase.',
   alvo:'O gasto ajustado pelo objetivo. É deste número que saem as gramas de cada macronutriente e as calorias sugeridas por refeição — é ele que liga este separador à Nutrição e ao Plano.',
   fase:'Bebé, criança, adolescente, adulto ou gravidez. A fase escolhe a equação de metabolismo, a faixa de macronutrientes aceitável e os limites de esforço recomendados.',
   bandaImc:'A escala de índice de massa corporal com o valor atual assinalado. As zonas seguem os limites da Organização Mundial da Saúde para adultos.',
@@ -12171,7 +12276,7 @@ const DICAS={
   ritmo:'A perda ou ganho de peso que o objetivo implica, a 7 700 kcal por quilo. Acima de 0,75 kg por semana passa a amarelo, acima de 1 kg a vermelho.',
   macros:'Quanto do total calórico vem de cada macronutriente, e a tradução em gramas. Um grama de hidratos ou de proteína dá 4 kcal, um de gordura dá 9.',
   amdr:'A faixa de distribuição de macronutrientes considerada aceitável nesta fase da vida. Em crianças e na gravidez, uma dieta que saia da faixa é encostada aos limites; num adulto é apenas referência.',
-  proteinaKg:'A proteína recomendada por quilo de peso muda com a idade: um bebé precisa de quase o dobro de um adulto, e na gravidez sobe para 1,1 g por quilo.',
+  proteinaKg:'A proteína recomendada por quilo de peso muda com a idade e com a fase: um bebé precisa de quase o dobro de um adulto, na gravidez sobe para 1,1 g por quilo e a amamentar para 1,3 g.',
   projecao:'Para onde o peso caminha se mantiveres este alvo, com o gasto recalculado a cada semana — por isso a curva vai achatando. É uma estimativa, não uma promessa.',
   refeicoes:'Como repartir o alvo do dia pelas quatro refeições: um quarto ao pequeno-almoço, um terço ao almoço, um décimo ao lanche e o resto ao jantar.',
   cheat:'Um dia livre para aniversários e festas. Quem estiver marcado sai das contas desse dia e dos ingredientes da lista de compras.',
@@ -13275,8 +13380,8 @@ const CONSERVA=[
      primeiro da lista — e o poke é peixe cru antes de ser arroz. A nota fala de
      peixe E de carne porque o tártaro e o carpaccio já estão na expressão, à
      espera das receitas que hão de vir. */
-  {k:'cru',      re:/ceviche|poke|chirashi|sashimi|tártaro|tartare|carpaccio/i, soNome:true,
-   frigo:1, cong:0, nota:'Peixe e carne crus comem-se no próprio dia: a lima e o vinagre mudam a textura, não esterilizam nada.',
+  {k:'cru',      re:/ceviche|poke|chirashi|sashimi|tártaro|tartare|carpaccio|nayyeh/i, soNome:true,
+   frigo:1, cong:0, nota:'Peixe e carne crus comem-se no próprio dia: a lima, o vinagre e o sal mudam a textura, não esterilizam nada.',
    reaq:'Não se reaquece — e o que sobrou de ontem não se guarda para amanhã.'},
   {k:'arroz',    re:/arroz|risoto|risott/i,
    frigo:1, cong:30, nota:'Arroz cozinhado arrefece-se depressa e come-se no dia seguinte — é o alimento com menos folga.',
@@ -14781,7 +14886,7 @@ function pctDespensa(r){
 /* Quão bem uma receita responde ao que foi escrito. Sem isto, procurar «arroz
    de tomate» dava a lista por ordem alfabética: o arroz de marisco, a paella e
    o arroz de polvo — que só correspondem porque levam tomate — vinham antes do
-   prato que tem exactamente aquele nome, e ele ficava em sexto lugar. Quem
+   prato que tem exatamente aquele nome, e ele ficava em sexto lugar. Quem
    escreve um nome inteiro está a pedir aquilo: o nome ganha aos ingredientes,
    e começar pelo que se escreveu ganha a conter algures no meio. */
 function pesoBusca(r,q){
@@ -19958,6 +20063,14 @@ function atualizarAtividade(){
     document.getElementById('ga-dia').style.width=w(gp.dia)+'%';
     document.getElementById('ga-desloc').style.width=w(gp.desloc)+'%';
     document.getElementById('ga-desp').style.width=w(gp.desp)+'%';
+    /* o quinto segmento — crescimento, gravidez ou amamentação — entrou no
+       template e ficou de fora desta repintura ao vivo. Como a escala K é
+       recalculada a cada fotograma, os outros quatro encolhiam e este ficava
+       com a percentagem velha: a barra deixava de fechar enquanto se arrasta
+       um cursor, para toda a gente com menos de 19 anos, grávida ou a
+       amamentar */
+    const ex=document.getElementById('ga-extra');
+    if(ex) ex.style.width=w(gp.extra)+'%';
     const X=w(alvo), linha=document.getElementById('ga-alvo'), txt=document.getElementById('ga-alvo-txt');
     if(linha) linha.style.left=X+'%';
     if(txt){ txt.style.left=X+'%'; txt.style.transform=X>78?'translateX(-100%)':'none';
@@ -21007,6 +21120,7 @@ function renderAtividade(){
         <div class="stat"><b>+${Math.round(gp.dia)}</b><span>Dia-a-dia</span></div>
         <div class="stat"><b>+${cK}</b><span>Deslocações</span></div>
         <div class="stat"><b id="tot-desporto">+${sK}</b><span>Desporto</span></div>
+        ${gp.extra>0? `<div class="stat"><b>+${Math.round(gp.extra)}</b><span>${gravida(m)?'Gravidez':amamenta(m)?'Amamentar':'Crescimento'}</span></div>`:''}
         <div class="stat" style="background:var(--energy-soft)"><b id="tot-total" style="color:var(--energy)">${Math.round(gp.total)}</b><span>Total kcal/dia</span></div>
         <div class="stat" style="background:var(--accent-soft)"><b id="ga-alvostat" style="color:var(--accent)">${Math.round(alvo)}</b><span>Alvo kcal/dia</span></div>
       </div>
@@ -21086,7 +21200,12 @@ function textoBusca(r){
   if(temChave(_txBusca,r.id)) return _txBusca[r.id];
   const k=familiaDe(r.id);
   const fam=k&&temChave(VAR_NOME,k)? VAR_NOME[k] : '';
-  return (_txBusca[r.id]=semAcentos(r.n+' '+fam+' '+r.i.map(x=>x[0]).join(' ')));
+  /* a variante herda os sinónimos da receita de que nasceu: quem procura
+     «kefta» quer também a kafta com o acompanhamento agarrado */
+  const base=r.base||r.id;
+  const al=(temChave(ALIAS_BUSCA,r.id)? ALIAS_BUSCA[r.id]+' ':'')
+          +(base!==r.id && temChave(ALIAS_BUSCA,base)? ALIAS_BUSCA[base]+' ':'');
+  return (_txBusca[r.id]=semAcentos(r.n+' '+fam+' '+al+r.i.map(x=>x[0]).join(' ')));
 }
 function correspondeBusca(r,q){
   if(!q) return true;
@@ -21127,18 +21246,42 @@ function setBusca(v,el){
   const grelha=document.getElementById('rec-grelha');
   if(!grelha){ render(); return; }
   let visiveis=0;
+  /* A via ao vivo escondia e mostrava, e mais nada — a ORDEM continuava a ser
+     a que o último render deixou. Escrever «arroz de tomate» letra a letra
+     redesenhava uma vez, no «a», e a partir daí todas as teclas eram
+     refinamento: a grelha ficava ordenada pelo peso de «a», onde todos os
+     nomes começados por essa letra empatam a 80. O prato com o nome exato
+     nunca subia, e a queixa que deu origem ao pesoBusca reproduzia-se na
+     única forma de escrever que as pessoas usam. Reordena-se aqui também. */
+  const mostrar=[];
   grelha.querySelectorAll('.rc[data-rid]').forEach(c=>{
     const r=RECIPES.find(x=>x.id===c.getAttribute('data-rid'));
     const mostra=!!r && correspondeBusca(r,q);
     c.style.display=mostra? '':'none';
-    if(mostra) visiveis++;
+    if(mostra){ visiveis++; mostrar.push({c,r}); }
   });
-  põe('rec-conta', visiveis+' de '+RECIPES.length+' receitas');
+  /* só quando a ordem escolhida é a do nome: nas outras (despensa, calorias,
+     gostos) o critério de desempate precisa de contas que não valem uma tecla,
+     e o render completo ao largar a caixa repõe-nas na mesma */
+  if(ordemReceitas()==='nome' && mostrar.length>1){
+    mostrar.sort((a,b)=>pesoBusca(b.r,q)-pesoBusca(a.r,q) || a.r.n.localeCompare(b.r.n,'pt'));
+    mostrar.forEach(x=>grelha.appendChild(x.c));
+  }
+  /* o mesmo sufixo que o render completo escreve. «N da casa» conta o catálogo
+     inteiro e não a lista filtrada, por isso não muda com a tecla; as
+     «variantes agrupadas» não entram porque com pesquisa ativa nunca colapsam.
+     Sem isto, escrever uma letra fazia desaparecer o «· 3 da casa» e apagá-la
+     fazia-o voltar */
+  const minhas=RECIPES.filter(r=>r.u).length;
+  põe('rec-conta', visiveis+' de '+RECIPES.length+' receitas'+(minhas? ' · '+minhas+' da casa':''));
   const vazio=document.getElementById('rec-vazio');
   if(vazio) vazio.style.display=visiveis? 'none':'';
 }
 function setMealF(v){ S.ui.mealF=(v==='todas'||v==='ac'||v==='mo'||MEALK.indexOf(v)>=0)? v:'todas'; S.ui.recLimite=LOTE_RECEITAS; saveMeta(); render(); }
-function toggleComp(){ S.ui.soComp=!S.ui.soComp; saveMeta(); render(); }
+/* repõe o lote como os outros oito filtros da grelha: sem isto, um lote
+   crescido a pedido sobrevivia a mudar de filtro, de separador e a recarregar,
+   porque recLimite é persistido em S.ui */
+function toggleComp(){ S.ui.soComp=!S.ui.soComp; S.ui.recLimite=LOTE_RECEITAS; saveMeta(); render(); }
 function toggleEpoca(){ S.ui.soEpoca=!S.ui.soEpoca; S.ui.recLimite=LOTE_RECEITAS; saveMeta(); render(); }
 function setCatF(k){ S.ui.catF=temChave(CATEG,k)? k:''; S.ui.recLimite=LOTE_RECEITAS; saveMeta(); render(); }
 
@@ -22563,7 +22706,11 @@ const EVITAR_SINAL={
      «Maionese» também não: essa é a de compra e vem pasteurizada. */
   'Ovos, carne, peixe e marisco crus ou mal cozinhados':
     {ids:['ceviche','poke','chirashi','vitelotonato','ovosbenedict',
-          'eggsflorentine','cilbir','tiramisu','moussechoc','mousselima']},
+          'eggsflorentine','cilbir','tiramisu','moussechoc','mousselima',
+          /* o kibbeh nayyeh é borrego cru pisado, e os próprios passos o dizem
+             na primeira linha — mas quem lê a lista da criança à mesa não
+             chega a abrir a receita */
+          'kibbehnayyeh']},
   'Leite e queijos não pasteurizados; queijos de pasta mole com bolor':
     /* A frase que a app mostra ao lado nomeia «queijo de cabra curado com
        casca» e a expressão não o conhecia — nem conhecia um único queijo de
@@ -25761,7 +25908,7 @@ function cartaoSugestao(r,membros,mk){
   const n=membros.length||1, disp=disponibilidadeReceita(r), falta=disp.total-disp.tem;
   return `<div class="rc">
     <div class="row" style="justify-content:space-between"><h3>${favoritaDaCasa(r.id)? '<span class="estrela-casa" title="Favorita de toda a gente que a pode comer">⭐</span> ':''}${esc(r.n)}</h3><span class="kcal">${r.k} kcal</span></div>
-    <div><span class="tag">${ICO_COZ[r.coz]||''} ${CUIS[r.coz]}</span>${r.dc.filter(d=>d!==r.coz).map(d=>`<span class="tag">${esc(nomeDieta(d))}</span>`).join('')}</div>
+    <div><span class="tag">${ICO_COZ[r.coz]||''} ${esc(CUIS[r.coz]||'Outras')}</span>${r.dc.filter(d=>d!==r.coz).map(d=>`<span class="tag">${esc(nomeDieta(d))}</span>`).join('')}</div>
     <div class="sub" style="font-variant-numeric:tabular-nums">H ${r.c} g · P ${r.p} g · G ${r.f} g por dose</div>
     ${notaDoses(r,membros,mk)}
     <span class="pill ${disp.pronta?'ok':disp.tem?'warn':''}" style="align-self:flex-start">${disp.pronta?'Pronta a cozinhar':falta+' ingrediente'+(falta===1?'':'s')+' em falta'}</span>
@@ -26222,7 +26369,7 @@ function cartaoEquilibrio(dates){
   </div>`;
 }
 /* O orçamento era o único sítio da app com prompt(): uma caixa do browser, que
-   não se temifica, não fala a língua do resto e é bloqueada em iframes com
+   não aceita o tema da casa, não fala a língua do resto e é bloqueada em iframes com
    sandbox. Passa a campo em linha, com o contrato do costume — oninput mexe no
    estado e reescreve só o que muda, onchange é que grava. */
 function casaCfg(){ if(!S.casa||typeof S.casa!=='object') S.casa={nome:'',lema:'',orcamento:0,vezPtr:0}; return S.casa; }
@@ -26560,7 +26707,7 @@ function cartaoEpocaSugestao(){
       <div style="min-width:0">
         <b style="font-family:var(--fonte-display);font-size:18px">${esc(r.n)}</b>
         ${seloGenero(r)} <span class="tag epoca">🌱 ${esc(daEp.slice(0,3).join(', '))}</span>
-        <span class="sub" style="display:block">${nomeRefeicao(mk)} · ${r.k} kcal por dose · ${CUIS[r.coz]}
+        <span class="sub" style="display:block">${nomeRefeicao(mk)} · ${r.k} kcal por dose · ${esc(CUIS[r.coz]||'Outras')}
           ${disponibilidadeReceita(r).pronta? ' · <b style="color:var(--ok)">pronta a cozinhar</b>':''}</span>
         <span class="sub" style="display:block">${esc(textoConservacao(r))}</span>
       </div>
@@ -26874,7 +27021,8 @@ function renderCompras(){
     ${estadoVazio('saco','O cesto está vazio',
       'A lista de compras monta-se sozinha a partir das receitas marcadas no plano da semana, somando as quantidades por número de comensais. Marca algumas refeições e ela aparece aqui.',
       `<button class="btn" onclick="go('plano')">Ir para o plano semanal</button>
-       <button class="btn ghost" onclick="go('receitas')">Ver receitas</button>`)}`;
+       <button class="btn ghost" onclick="go('receitas')">Ver receitas</button>`)}
+    ${cartaoCorredores()}`;
   const bought=S.bought[S.week]||{};
   const grupos=gruposCompras();
   const grouped=grupos.map(cat=>[cat,[]]);
@@ -28567,7 +28715,7 @@ const TOUR=[
    d:'Quando duas pessoas cá de casa já têm a mesma modalidade no plano e o objetivo a apontar para o mesmo lado, a app junta-as. Saem à mesma hora e cada uma faz o seu tempo e o seu ritmo: correr juntos não é correr ao mesmo ritmo. Confirmar a atividade confirma-a para todos os que a partilharam.'},
   {tab:'atividade', sel:'#ga-basal',
    t:'De onde vem o gasto do dia',
-   d:'A barra reparte o gasto entre metabolismo basal, dia-a-dia, deslocações e desporto. A linha tracejada marca o alvo alimentar: a distância entre o fim da barra e a linha é o défice ou o excedente do plano.'},
+   d:'A barra reparte o gasto entre metabolismo basal, dia-a-dia, deslocações e desporto — e ganha um quinto segmento a quem está a crescer, grávida ou a amamentar, porque essa energia existe e não é treino. A linha tracejada marca o alvo alimentar: a distância entre o fim da barra e a linha é o défice ou o excedente do plano.'},
   {tab:'nutricao', sel:'#nu-r-obj',
    t:'Nutrição — objetivo e macros',
    d:'O objetivo é um slider contínuo de −25 % a +20 % do gasto, com o ritmo em quilos por semana e um aviso a vermelho quando o alvo desce abaixo do metabolismo basal — a app avisa com mais força, não trava: quem decide é quem come. A dieta escolhida — incluindo vegetariana e vegan, que a app distingue — vira gramas de hidratos, proteína e gordura.'},
@@ -28724,7 +28872,7 @@ const TOUR=[
   {tab:'nutricao', sel:'#calc-bebe', quando:()=>haPequenos()||!!S.ui.calcBebe,
    t:'Bebés e crianças pequenas',
    d:'Três cursores — idade, peso e percentil, ligados nos dois sentidos: puxar o percentil move o peso. As curvas são os <b>Padrões de Crescimento Infantil da OMS</b>, calculados a partir dos parâmetros oficiais e não de uma tabela aproximada. Os valores de energia e nutrientes são os <b>Dietary Reference Values da EFSA</b>, por escalão etário, aos 6, 12, 24, 36 e 48 meses. Abaixo dos 6 meses a EFSA não fixa valores e a app diz isso em vez de inventar: aí o que se calcula é o leite, a 150 ml por quilo e por dia, a referência da própria OMS. Ao lado, o que se pode dar em cada idade e a lista do que não se dá — com a fonte colada a cada linha. Nada disto substitui o pediatra, e a app repete-o em todos os cartões.'},
-  {tab:'compras', sel:'[data-col="co-corredores"]',
+  {tab:'mercearia', sel:'[data-col="co-corredores"]', antes:()=>{S.ui.mercVista='compras';},
    t:'A ordem do meu supermercado',
    d:'A lista vinha agrupada pelas secções da tabela de composição, que é a ordem certa para classificar comida e a errada para andar num supermercado. Agora a ordem é da casa: arruma-se com as setas e a lista sai assim, no ecrã e no papel. Depois de três idas com o modo supermercado aberto, a app repara na ordem por que riscas as secções e propõe-te essa — propõe, não impõe. No corredor, uma <b>pílula ao alcance do polegar</b> diz em que secção vais e salta para a seguinte, e a lista pode dividir-se por duas pessoas, por corredor, para não irem as duas ao mesmo sítio.'},
   {tab:'plano', sel:'.gdias',
@@ -28827,7 +28975,14 @@ function tourSeguinte(){
 }
 function irParaPassoTour(){
   const p=passosTour()[S.ui.tourPasso]; if(!p) return fecharTour();
-  S.ui.tab=p.tab;
+  /* pela mesma tradução que o go() faz, e não por atribuição direta: «despensa»
+     e «compras» deixaram de ser separadores e passaram a vistas da Mercearia, e
+     um passo que escrevesse S.ui.tab='compras' caía no ramo por omissão do
+     render — a visita mostrava o separador da família com uma bolha a falar da
+     ordem do supermercado. Aqui, qualquer destino que o go() saiba redirecionar
+     fica redirecionado também. */
+  if(p.tab==='despensa'||p.tab==='compras'){ S.ui.mercVista=p.tab; S.ui.tab='mercearia'; }
+  else S.ui.tab=p.tab;
   /* alguns passos precisam de pôr o separador no estado certo antes de
      apontar — a vista da Mercearia, por exemplo */
   if(p.antes) try{ p.antes(); }catch(e){}
@@ -29158,7 +29313,7 @@ function pintaModal(){
   /* Qualquer camada que se abra leva o foco consigo — não só os modais e as
      folhas. A ficha da receita, o modo cozinha e o supermercado são também
      role="dialog" e ficavam de fora: como trancarFundo() põe inert no #main,
-     o elemento que tinha o foco desactiva-se e o foco cai no <body>. Quem usa
+     o elemento que tinha o foco desativa-se e o foco cai no <body>. Quem usa
      leitor de ecrã abria uma ficha e não ouvia nada, ficando no princípio do
      documento. A folha da mesa continua de fora de propósito: abre debaixo do
      dedo com a lista já visível, e roubar-lhe o foco fazia o ecrã saltar. */
