@@ -743,10 +743,13 @@ html[data-dispositivo="telefone"][data-orient="retrato"] .timers{bottom:calc(70p
 .mov[open] summary::before{transform:rotate(90deg)}
 @media (prefers-reduced-motion: reduce){ .mov summary::before{transition:none} }
 .mov-passos{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px}
-.mov-passo{flex:1 1 220px;max-width:340px;display:flex;gap:10px;align-items:flex-start;margin:0}
-.mov-fig{width:104px;height:78px;flex:none;stroke:currentColor;stroke-width:3;
+.mov-passo{flex:1 1 250px;max-width:380px;display:flex;gap:12px;align-items:flex-start;margin:0}
+.mov-fig{width:148px;height:111px;flex:none;stroke:currentColor;stroke-width:4;
   stroke-linecap:round;stroke-linejoin:round;fill:none;background:var(--bg);border-radius:8px}
-.mov-fig .mov-seta{stroke:var(--accent);stroke-width:2.5}
+.mov-fig .mov-cenario{stroke-width:2;opacity:.35}
+.mov-fig .mov-cabeca{fill:currentColor;stroke:none}
+.mov-fig .mov-casing{stroke:var(--bg);stroke-width:7.5}
+.mov-fig .mov-seta{stroke:var(--accent);stroke-width:3.2}
 .mov-passo figcaption{font-size:13px;line-height:1.45;color:var(--mut)}
 .mov-passo figcaption b{color:var(--ink)}
 
@@ -1902,8 +1905,8 @@ const SPORTS=[
 const SPORT={}; SPORTS.forEach(s=>{ SPORT[s.id]=s; });
 
 /* ================= MOVIMENTO: EXERCÍCIOS ILUSTRADOS =================
-   Calistenia da manhã, alívio da ciática, aquecimento e alongamentos por
-   desporto. Nem um exercício foi inventado pela app: cada um traz a fonte ao
+   Calistenia da manhã, reforço muscular, pilates, ioga, alívio da ciática,
+   aquecimento e alongamentos por desporto. Nem um exercício foi inventado pela app: cada um traz a fonte ao
    lado — NHS (as páginas de exercício para a ciática, os alongamentos de
    flexibilidade e o wake-up workout), o hospital South Tees do NHS (o
    deslizamento do nervo ciático), o serviço MSK de Dorset do NHS (báscula
@@ -1916,19 +1919,28 @@ const SPORT={}; SPORTS.forEach(s=>{ SPORT[s.id]=s; });
    om=ombros, an=anca, b1/b2=braços [cotovelo,mão], p1/p2=pernas [joelho,pé].
    parede desenha uma linha vertical, banco um assento, seta o movimento. */
 function figSvg(P,rotulo){
-  const li=pts=>`<polyline points="${pts.map(p=>p.join(',')).join(' ')}"/>`;
+  /* Versão legível: figura maior no ecrã, traço mais grosso, cabeça cheia, e
+     cada membro «da frente» leva por baixo um traço da cor do fundo (casing,
+     como as estradas nos mapas) — onde dois membros se cruzam, o de cima
+     separa-se do de baixo em vez de se fundirem num nó. A ordem de desenho é
+     de trás para a frente: cenário, membros 2, tronco e cabeça, membros 1. */
+  const li=(pts,cls)=>`<polyline${cls?' class="'+cls+'"':''} points="${pts.map(p=>p.join(',')).join(' ')}"/>`;
+  const frente=pts=>li(pts,'mov-casing')+li(pts);
   let s='';
-  if(P.chao!==false) s+=`<line x1="6" y1="82" x2="114" y2="82" opacity=".3"/>`;
-  if(P.parede!=null) s+=`<line x1="${P.parede}" y1="8" x2="${P.parede}" y2="82" opacity=".3"/>`;
-  if(P.banco) s+=`<polyline points="${P.banco[0]-14},82 ${P.banco[0]-14},${P.banco[1]} ${P.banco[0]+10},${P.banco[1]} ${P.banco[0]+10},82" opacity=".3"/>`;
-  s+=`<circle cx="${P.cb[0]}" cy="${P.cb[1]}" r="5.5"/>`;
-  s+=li([P.om,P.an]);
-  if(P.b1) s+=li([P.om].concat(P.b1));
-  if(P.b2) s+=li([P.om].concat(P.b2));
-  if(P.p1) s+=li([P.an].concat(P.p1));
+  if(P.chao!==false) s+=`<line class="mov-cenario" x1="6" y1="82" x2="114" y2="82"/>`;
+  if(P.parede!=null) s+=`<line class="mov-cenario" x1="${P.parede}" y1="8" x2="${P.parede}" y2="82"/>`;
+  if(P.banco) s+=`<polyline class="mov-cenario" points="${P.banco[0]-14},82 ${P.banco[0]-14},${P.banco[1]} ${P.banco[0]+10},${P.banco[1]} ${P.banco[0]+10},82"/>`;
   if(P.p2) s+=li([P.an].concat(P.p2));
+  if(P.b2) s+=li([P.om].concat(P.b2));
+  /* O pescoço faz parte do tronco: sem ele, numa pose horizontal a cabeça
+     ficava a flutuar ao lado dos ombros e não se percebia para onde olhava.
+     O círculo é preenchido e vem depois, por isso tapa a ponta do traço. */
+  s+=frente([P.cb,P.om,P.an]);
+  s+=`<circle class="mov-cabeca" cx="${P.cb[0]}" cy="${P.cb[1]}" r="6"/>`;
+  if(P.p1) s+=frente([P.an].concat(P.p1));
+  if(P.b1) s+=frente([P.om].concat(P.b1));
   if(P.seta){ const [x1,y1,x2,y2]=P.seta;
-    const a=Math.atan2(y2-y1,x2-x1), L=7;
+    const a=Math.atan2(y2-y1,x2-x1), L=8;
     s+=`<g class="mov-seta"><path d="M${x1} ${y1} Q ${(x1+x2)/2+(y1-y2)*0.3} ${(y1+y2)/2+(x2-x1)*0.3} ${x2} ${y2}"/>`
       +`<path d="M${x2-L*Math.cos(a-0.5)} ${y2-L*Math.sin(a-0.5)} L${x2} ${y2} L${x2-L*Math.cos(a+0.5)} ${y2-L*Math.sin(a+0.5)}"/></g>`; }
   return `<svg class="mov-fig" viewBox="0 0 120 90" role="img" aria-label="${esc(rotulo||'')}">${s}</svg>`;
@@ -2046,7 +2058,7 @@ const MOVS=[
   {t:'Sentado num banco, costas direitas. Estica um joelho com a ponta do pé em riste e, ao mesmo tempo, olha para cima.',
    f:{cb:[48,24],om:[48,33],an:[48,58],b1:[[46,44],[45,54]],b2:[[50,44],[49,54]],p1:[[70,56],[84,50]],p2:[[54,68],[52,80]],banco:[48,58],seta:[52,14,58,10]}},
   {t:'Volta com o pé ao chão enquanto baixas o queixo ao peito. Devagar, num movimento só. Nunca deve doer — se doer, para.',
-   f:{cb:[50,28],om:[48,33],an:[48,58],b1:[[46,44],[45,54]],b2:[[50,44],[49,54]],p1:[[62,70],[62,80]],p2:[[54,68],[52,80]],banco:[48,58],seta:[58,22,54,30]}}]),
+   f:{cb:[52,26],om:[48,33],an:[48,58],b1:[[46,44],[45,54]],b2:[[50,44],[49,54]],p1:[[62,70],[62,80]],p2:[[54,68],[52,80]],banco:[48,58],seta:[58,20,55,28]}}]),
  MV('piriforme','Alongamento do piriforme','30 segundos, 3 vezes cada lado','NHS',[
   {t:'Deitado de costas, cruza um tornozelo sobre o joelho contrário.',
    f:{cb:[22,73],om:[31,76],an:[58,76],b1:[[40,78],[48,78]],b2:[[42,76],[50,76]],p1:[[70,60],[76,78]],p2:[[64,64],[72,58]]}},
@@ -2090,7 +2102,7 @@ const MOVS=[
  MV('overheadreach','Alcance por cima','8 a 10','NHS (Cambridgeshire)',[
   {t:'De pé, braços ao lado. Inspira a preparar.',f:POSE_PE},
   {t:'Expira e deixa os braços flutuar até acima da cabeça, sem as costelas abrirem nem as costas arquearem. Inspira a descer, com o mesmo controlo.',
-   f:Object.assign({},POSE_PE,{b1:[[53,11],[50,3]],b2:[[67,11],[70,3]],seta:[44,16,48,6]})}]),
+   f:Object.assign({},POSE_PE,{b1:[[53,13],[50,6]],b2:[[67,13],[70,6]],seta:[44,18,48,9]})}]),
  MV('deslizarcalcanhar','Deslizar o calcanhar','8 a 10 com cada perna','NHS (Cambridgeshire)',[
   {t:'Deitado de costas, joelhos dobrados, costas em posição neutra — nem coladas nem arqueadas.',f:POSE_DEITADO},
   {t:'Expira e desliza um calcanhar pelo chão até a perna esticar, sem a bacia se mexer — é ela que estás a treinar a segurar. Inspira a voltar. Troca.',
@@ -2123,6 +2135,38 @@ const MOVS=[
    f:{cb:[22,73],om:[31,76],an:[58,76],b1:[[22,66],[12,62]],b2:[[24,68],[14,64]],p1:[[76,77],[92,79]],p2:[[72,62],[78,80]],seta:[18,58,10,56]}},
   {t:'Inspira a fazer o caminho de volta em círculo com os braços, a trazer o calcanhar. É coordenação: se as costas arquearem, encurta o alcance.',
    f:{cb:[22,73],om:[31,76],an:[58,76],b1:[[40,66],[48,62]],b2:[[42,68],[50,64]],p1:[[70,60],[76,80]],p2:[[72,62],[78,80]],seta:[36,58,46,62]}}]),
+ /* ---- ioga (repertório clássico do hatha; as páginas de ioga do NHS são
+    vídeos, por isso o rótulo não lhes pendura números que elas não dão.
+    Respirações e tempos são os habituais de principiante. ---- */
+ MV('montanha','A montanha','5 respirações lentas','clássico do ioga',[
+  {t:'De pé, pés à largura das ancas, peso repartido pelos dois. Ombros longe das orelhas, braços soltos: parece estar parado, é estar presente.',f:POSE_PE},
+  {t:'Inspira e deixa os braços subir até acima da cabeça, a crescer pela coroa. Expira a descer, sem a lombar arquear.',
+   f:Object.assign({},POSE_PE,{b1:[[53,13],[50,6]],b2:[[67,13],[70,6]],seta:[44,18,48,9]})}]),
+ MV('caodescendente','O cão descendente','5 respirações, 3 vezes','clássico do ioga',[
+  {t:'De gatas, mãos por baixo dos ombros e um palmo à frente, dedos bem abertos.',
+   f:{cb:[86,38],om:[76,42],an:[48,46],b1:[[80,56],[85,68]],b2:[[82,58],[87,70]],p1:[[48,62],[38,68]],p2:[[50,64],[40,70]]}},
+  {t:'Empurra o chão e leva as ancas para trás e para cima, até o corpo fazer um V invertido. Joelhos podem ficar dobrados; os calcanhares procuram o chão sem obrigação de lá chegar. A cabeça fica solta entre os braços.',
+   f:{cb:[80,62],om:[74,54],an:[50,34],b1:[[81,67],[88,80]],b2:[[83,69],[90,82]],p1:[[40,58],[32,80]],p2:[[42,60],[34,82]],seta:[58,30,52,24]}}]),
+ MV('esfinge','A esfinge','5 respirações lentas','clássico do ioga',[
+  {t:'Deitado de barriga para baixo, cotovelos no chão por baixo dos ombros, antebraços em frente. O peito abre e a cabeça alonga para cima sem a lombar apertar — é a versão suave da cobra.',
+   f:{cb:[26,48],om:[32,60],an:[58,72],b1:[[30,74],[42,76]],b2:[[32,76],[44,78]],p1:[[72,74],[86,76]],p2:[[74,76],[88,78]],chao:true,seta:[14,62,14,44]}}]),
+ MV('guerreiro2','O guerreiro II','3 respirações cada lado','clássico do ioga',[
+  {t:'Pernas bem afastadas, pé da frente a apontar em frente, o de trás atravessado.',
+   f:{cb:[60,13],om:[60,22],an:[60,47],b1:[[55,33],[54,43]],b2:[[65,33],[66,43]],p1:[[48,64],[42,81]],p2:[[72,64],[78,81]]}},
+  {t:'Abre os braços à altura dos ombros e dobra o joelho da frente até ficar por cima do tornozelo. O tronco fica ao centro, o olhar segue a mão da frente. Três respirações, e troca.',
+   f:{cb:[60,13],om:[60,22],an:[60,47],b1:[[46,22],[34,22]],b2:[[74,22],[86,22]],p1:[[42,62],[40,81]],p2:[[74,64],[82,81]],seta:[40,50,40,60]}}]),
+ MV('arvore','A árvore','5 respirações cada perna','clássico do ioga',[
+  {t:'De pé numa perna, o outro pé apoiado na parte de dentro da coxa ou da canela — nunca no joelho. Mãos juntas ao peito, olhar num ponto fixo. Se vacilares, o pé desce e volta: equilibrar é isso mesmo.',
+   f:{cb:[60,12],om:[60,21],an:[60,47],b1:[[50,31],[59,28]],b2:[[70,31],[61,28]],p1:[[58,64],[57,81]],p2:[[76,54],[62,60]]}}]),
+ MV('triangulo','O triângulo','3 respirações cada lado','clássico do ioga',[
+  {t:'Pernas afastadas e esticadas. Inclina o tronco sobre a perna da frente a dobrar pela anca, não pela cintura: uma mão desce pela canela até onde chegar sem forçar, a outra sobe, e o peito roda para cima.',
+   f:{cb:[36,26],om:[44,34],an:[60,46],b1:[[42,47],[41,60]],b2:[[50,23],[56,13]],p1:[[48,64],[42,81]],p2:[[72,64],[80,81]]}}]),
+ MV('torcaodeitada','Torção deitada','5 respirações cada lado','clássico do ioga',[
+  {t:'Deitado de costas, braços abertos, deixa os dois joelhos cair juntos para um lado e fica lá, a respirar, com os dois ombros no chão. A cabeça pode olhar para o lado contrário. É parente do rolar de joelhos — aqui fica-se, em vez de rolar.',
+   f:{cb:[18,74],om:[28,77],an:[56,77],b1:[[38,80],[48,81]],b2:[[22,80],[12,81]],p1:[[64,60],[54,56]],p2:[[66,62],[56,58]],chao:true,seta:[74,58,80,70]}}]),
+ MV('pernasparede','Pernas na parede','1 a 3 minutos','clássico do ioga',[
+  {t:'Deitado de costas com a anca perto da parede e as pernas apoiadas nela, braços soltos ao lado. Não é preciso fazer nada — é a posição de descanso das pernas, e serve tal e qual no fim de um dia em pé.',
+   f:{cb:[24,73],om:[33,76],an:[60,76],b1:[[42,79],[50,79]],b2:[[43,77],[51,77]],p1:[[72,58],[76,38]],p2:[[74,60],[78,40]],chao:true,parede:80}}]),
 ];
 const MOV={}; MOVS.forEach(x=>{ MOV[x.id]=x; });
 /* Os três conjuntos da manhã. A rotação é pelo dia do ano — pequenas variações
@@ -2161,6 +2205,17 @@ const PILATES=[
   aq:['respiracao','overheadreach','bascula'], ex:['centena','toquesdedos','aberturajoelho','pontegluteos'], al:['alonglateral','rolarjoelhos','crianca']},
  {k:'P-C', n:'Controlo',
   aq:['respiracao','gatovaca','overheadreach'], ex:['alcanceduplo','centena','concha','birddog'], al:['isquios','rolarjoelhos','crianca']},
+];
+/* Os três conjuntos de ioga, nos mesmos moldes: chegar ao tapete, posições,
+   descansar, com rotação pelo dia do ano. Partilha exercícios com os outros
+   conjuntos de propósito — o gato-vaca é o mesmo em qualquer tapete. */
+const IOGA=[
+ {k:'I-A', n:'Despertar',
+  aq:['respiracao','gatovaca','montanha'], ex:['caodescendente','esfinge','guerreiro2'], al:['crianca','torcaodeitada','pernasparede']},
+ {k:'I-B', n:'Equilíbrio',
+  aq:['respiracao','montanha','rotacaotronco'], ex:['arvore','guerreiro2','triangulo'], al:['joelhopeito','torcaodeitada','crianca']},
+ {k:'I-C', n:'Acalmar',
+  aq:['respiracao','gatovaca','montanha'], ex:['caodescendente','triangulo','esfinge'], al:['torcaodeitada','pernasparede','crianca']},
 ];
 /* Aquecimento e alongamentos por categoria de desporto. O aquecimento é
    dinâmico e vem antes (Mayo Clinic: 5 a 10 minutos); os alongamentos são
@@ -3205,6 +3260,10 @@ R('bifemostarda','Bife de vaca salteado em manteiga','francesa',['keto','lowcarb
 R('bifecafe','Bife de vaca selado com alho','portuguesa',['keto','lowcarb'],0,0,0,0,[['Bife de vaca',180,'g'],['Manteiga',12,'g'],['Alho',2,'dente'],['Pimenta preta',0.5,'g']],['a','j'],0,['pp']),
 R('bitoque','Bitoque','portuguesa',[],0,0,0,0,[['Bife de vaca',150,'g'],['Ovo',1,'un'],['Batata',180,'g'],['Arroz carolino branqueado cru',60,'g'],['Alho',2,'dente'],['Manteiga',10,'g'],['Azeite',12,'ml'],['Vinho branco',30,'ml'],['Louro',1,'g']],['a','j'],0,['pp']),
 R('alheiraovo','Alheira com ovo','portuguesa',[],0,0,0,0,[['Alheira',150,'g'],['Ovo',1,'un'],['Batata',180,'g'],['Grelos',100,'g'],['Azeite',15,'ml'],['Alho',2,'dente']],['a','j'],0,['pp']),
+/* Croquetes: a dose é UM croquete, de propósito — um é petisco, cinco fazem
+   prato principal, e é a dose que faz essa conta, não uma receita duplicada. */
+R('croquetescarne','Croquetes de carne','portuguesa',[],0,0,0,0,[['Carne picada de vaca',30,'g'],['Cebola',0.1,'un'],['Alho',0.5,'dente'],['Manteiga',3,'g'],['Farinha',6,'g'],['Leite',20,'ml'],['Noz-moscada',0.2,'g'],['Salsa',2,'g'],['Ovo',0.1,'un'],['Pão ralado',6,'g'],['Óleo alimentar',4,'ml']],['a','j','l'],0,['ent','sn','pp']),
+R('croquetesalheira','Croquetes de alheira','portuguesa',[],0,0,0,0,[['Alheira',35,'g'],['Ovo',0.1,'un'],['Pão ralado',6,'g'],['Óleo alimentar',4,'ml'],['Salsa',1,'g']],['a','j','l'],0,['ent','sn']),
 R('saladarussa','Salada russa','portuguesa',[],0,0,0,0,[['Batata',140,'g'],['Cenoura',70,'g'],['Ervilhas',55,'g'],['Atum em conserva',55,'g'],['Maionese',22,'g'],['Ovo',0.5,'un'],['Picles de pepino',20,'g'],['Salsa',4,'g']],['a','j','l'],0,['pp','ent']),
 
 /* ---------- Sopas ---------- */
@@ -3621,7 +3680,7 @@ R('meiadesfeita','Meia-desfeita de bacalhau','portuguesa',['mediterranica'],0,0,
 /* ---- Pastel de nata ----
    Uma dose é um pastel. Quem come dois marca duas doses, e a app faz a conta
    — inventar aqui uma «dose de dois» tirava-lhe essa liberdade. */
-R('pastelnata','Pastel de nata','portuguesa',[],0,0,0,0,[['Massa folhada, congelada',25,'g'],['Leite',45,'ml'],['Nata',15,'ml'],['Açúcar branco',22,'g'],['Gema de ovo de galinha, crua',14,'g'],['Farinha',4,'g'],['Canela',0.3,'g'],['Raspa de limão',0.5,'g']],['l'],0,['sob']),
+R('pastelnata','Pastel de nata','portuguesa',[],0,0,0,0,[['Massa folhada, congelada',25,'g'],['Leite',45,'ml'],['Nata',15,'ml'],['Açúcar branco',22,'g'],['Gema de ovo de galinha, crua',14,'g'],['Farinha',4,'g'],['Canela',0.3,'g'],['Raspa de limão',0.5,'g']],['l'],0,['sob','sn']),
 
 /* ================= A MANHÃ E O LANCHE =================
    O catálogo tinha 45 pequenos-almoços para 411 pratos de almoço e jantar, e
@@ -3656,7 +3715,11 @@ R('paochourico','Pão com chouriço','portuguesa',[],0,0,0,0,[['Farinha de trigo
 R('tigelada','Tigelada da Beira Baixa','portuguesa',['vegetariana'],0,0,0,0,[['Ovo',1.5,'un'],['Leite',150,'ml'],['Mel',20,'g'],['Açúcar branco',15,'g'],['Farinha',8,'g'],['Canela',1,'g'],['Raspa de limão',1,'g']],['l'],0,['sob']),
 /* Queijada de Sintra: massa fina e recheio de queijo fresco com gema, açúcar
    e canela. Uma dose é uma queijada. */
-R('queijadasintra','Queijada de Sintra','portuguesa',['vegetariana'],0,0,0,0,[['Queijo fresco',35,'g'],['Açúcar branco',18,'g'],['Gema de ovo de galinha, crua',10,'g'],['Farinha',12,'g'],['Manteiga',3,'g'],['Canela',0.4,'g'],['Raspa de limão',0.5,'g']],['l'],0,['sob']),
+R('queijadasintra','Queijada de Sintra','portuguesa',['vegetariana'],0,0,0,0,[['Queijo fresco',35,'g'],['Açúcar branco',18,'g'],['Gema de ovo de galinha, crua',10,'g'],['Farinha',12,'g'],['Manteiga',3,'g'],['Canela',0.4,'g'],['Raspa de limão',0.5,'g']],['l'],0,['sob','sn']),
+/* Queijada de leite: não leva queijo nenhum — o nome vem da família das
+   queijadas, mas o recheio é leite, ovos e farinha, a cozer até corar. */
+R('queijadaleite','Queijada de Leite','portuguesa',['vegetariana'],0,0,0,0,[['Leite',50,'ml'],['Açúcar branco',20,'g'],['Ovo',0.4,'un'],['Farinha',10,'g'],['Manteiga',5,'g'],['Raspa de limão',0.5,'g'],['Canela',0.3,'g']],['l'],0,['sob','sn']),
+R('pudimtapioca','Pudim de Tapioca','brasileira',['vegetariana'],0,0,0,0,[['Tapioca',25,'g'],['Leite',80,'ml'],['Leite de coco',35,'ml'],['Leite condensado açucarado',25,'g'],['Coco ralado',5,'g']],['l'],0,['sob']),
 
 /* ---------- Mediterrâneo: Turquia, Grécia, Levante, Magrebe ---------- */
 /* Menemen: o pequeno-almoço turco. O truque está em não cozer os ovos demais —
@@ -3989,6 +4052,14 @@ P('bitoque',[['Batatas','Corta as batatas em palitos e frita em óleo bem quente
  ['Bife','Bife temperado, frigideira bem quente com manteiga, selado dos dois lados. Retira.',4],
  ['Molho','Vinho branco e louro na frigideira, a raspar o fundo, até reduzir.',3],
  ['Ovo','Estrela o ovo à parte e monta: bife, molho, ovo por cima, batatas e arroz ao lado.',3]]);
+P('croquetescarne',[['Carne','Refoga a cebola e o alho na manteiga, junta a carne picada e deixa-a cozinhar e soltar-se, temperada com sal, pimenta e noz-moscada.',10],
+ ['Massa','Polvilha a farinha sobre a carne, envolve, e junta o leite aos poucos, a mexer, até fazer uma massa espessa que descola do tacho. Salsa picada no fim. Arrefece completamente — massa morna não se molda.',15],
+ ['Moldar','Com as mãos untadas, molda cilindros do tamanho de um dedo gordo. Passa por ovo batido e depois por pão ralado, a apertar bem.',15],
+ ['Fritar','Frita em óleo quente até dourar por todos os lados, poucos de cada vez, e escorre em papel. No forno também vai: 200 °C com um fio de óleo, a virar a meio.',8],
+ ['Servir','Um croquete é petisco; cinco com arroz e salada são um prato — ajusta a dose na ficha e a conta faz-se sozinha.']]);
+P('croquetesalheira',[['Recheio','Tira a pele à alheira e desfaz o recheio com um garfo. Já vem temperado e cozinhado: não precisa de lume, só de forma.',5],
+ ['Moldar','Molda cilindros pequenos, passa por ovo batido e pão ralado, a apertar para não abrirem.',12],
+ ['Fritar','Óleo quente, poucos de cada vez, até dourarem — a alheira já está feita, é só criar a crosta. Escorre em papel e serve com salsa.',6]]);
 P('alheiraovo',[['Batatas','Batatas às rodelas grossas, fritas ou assadas no forno com azeite.',25],
  ['Grelos','Coze os grelos em água a ferver com sal, escorre e salteia com alho laminado no azeite.',8],
  ['Alheira','Pica a pele com um palito e leva ao forno a 200 °C até estar tostada e a estalar. Nunca a fures demais: perde o recheio.',20],
@@ -6047,6 +6118,14 @@ P('queijadasintra',[['Massa','Farinha, manteiga derretida, sal e água morna. Am
  ['Forrar','Forra as forminhas com a massa, subindo pelas paredes e deixando sobrar um pouco no bordo.',10],
  ['Recheio','Queijo fresco bem esmagado com um garfo até ficar cremoso. Junta o açúcar, a farinha, a gema, a raspa e a canela.',8],
  ['Cozer','Enche as formas e leva a 200 °C até o recheio estar tostado às manchas e a massa seca.',22]]);
+P('queijadaleite',[['Bater','Derrete a manteiga e bate-a com o açúcar, os ovos e a raspa. Junta a farinha a peneirar e o leite aos poucos: fica um creme líquido, e é assim mesmo.',8],
+ ['Formas','Unta bem as forminhas com manteiga — esta queijada não tem massa a forrar, é o recheio que faz a própria crosta ao cozer.',5],
+ ['Cozer','Enche até dois terços e leva a 180 °C até corar por cima e um palito sair quase limpo. O meio deve tremer só um nada.',25],
+ ['Arrefecer','Deixa arrefecer nas formas antes de desenformar: quente, desfaz-se; morna, sai inteira. Canela por cima a gosto.',20]]);
+P('pudimtapioca',[['Hidratar','Aquece o leite sem ferver e verte-o sobre a tapioca. Deixa repousar meia hora, a mexer de vez em quando, até as bolinhas ficarem transparentes e macias.',30],
+ ['Engrossar','Junta o leite de coco e o leite condensado e leva a lume brando, a mexer, até engrossar como um pudim de colher. Não pares de mexer: a tapioca agarra ao fundo num instante.',10],
+ ['Taças','Divide por taças pequenas e espalha o coco ralado por cima.',3],
+ ['Frio','Frigorífico pelo menos duas horas: o pudim de tapioca come-se bem frio, e é o frio que o faz firmar.',120]]);
 P('menemen',[['Refogar','Cebola e pimento em azeite, em lume médio, até amolecerem sem tostar.',8],
  ['Tomate','Tomate pelado e aos cubos, com o pimentão-doce. Deixa apurar até perder a água e ficar em molho.',10],
  ['Ovos','Ovos partidos por cima, mexidos devagar com uma colher de pau. Fora do lume ainda moles: o calor do tacho acaba de os fazer.',3],
@@ -11654,6 +11733,7 @@ const DICAS={
   diabetes:'O campo diz à app o que ela deve DEIXAR de fazer, e é essa a sua função. O que o cartão afirma tem dono: «não há dieta especial para a diabetes» é do NHS e da Diabetes UK; a regra do jejum — plano acordado com a equipa, medicação ajustada, glicemia a mandar — é da Diabetes UK, e é por a app não saber nada disso que ela deixa de propor jejuns a este perfil; os 14 g de fibra por 1000 kcal são dos Standards of Care da ADA; a equipa alargada da diabetes gestacional é da norma da DGS. «Pessoa com diabetes» é a linguagem que a DGS usa e que o NHS recomenda. O que o cartão NÃO diz também é decisão: a app não classifica o tipo, não sugere alvos de glicemia nem de HbA1c, não mexe em medicação e não pontua alimentos por índice glicémico — nada disso tem lugar fora da consulta. E uma honestidade a mais: não há norma portuguesa que fixe valores alimentares para a diabetes — a DGS remete o plano para a equipa de saúde, e é isso mesmo que a app repete.',
   forca:'Os exercícios de força vêm da página de strength exercises do NHS (a flexão na parede, a elevação de gémeos, a elevação lateral da perna, a extensão atrás e o levantar-sentar, com as séries da própria página) e do plano strength and flex (as flexões com joelhos e completas, a prancha, a prancha lateral). A frequência — força pelo menos duas vezes por semana — é a recomendação do NHS, que é a mesma da OMS. Sem equipamento de propósito: a parede, uma cadeira firme e o peso do corpo chegam para todos os grupos, e é exatamente assim que o NHS os ensina a quem treina em casa. Uma honestidade sobre as séries: onde a página do NHS dá números — as flexões na parede em 3 séries de 5 a 10, as elevações e extensões em 5, o levantar-sentar em 5 lentas —, são esses. Onde o plano do NHS é em vídeo e não os publica por escrito, as séries são as habituais de principiante e a fonte cobre a técnica, não a conta. Em qualquer dos casos, a regra do próprio NHS manda: começa por baixo e sobe devagar, semana a semana.',
   pilates:'Os exercícios vêm de fontes do NHS e do repertório clássico do solo, e o rótulo de cada ficha diz qual é qual: a página de pilates para principiantes descreve o método e a concha; a fisioterapia de Cambridgeshire dá o alcance por cima, o deslizar do calcanhar, a abertura do joelho e o alcance duplo, com o padrão de respiração — inspirar a preparar, expirar a mover; e o programa de core do Royal Berkshire dá a ponte articulada vértebra a vértebra (o folheto deixa as repetições em branco de propósito, para o fisioterapeuta — os números da ficha são os habituais de principiante). A centena e os toques na água são clássicos do pilates de solo que nenhuma destas páginas prescreve por escrito: a técnica segue os mesmos princípios, e a ficha não lhes pendura nenhuma fonte que não os tenha. Todas dizem o mesmo no essencial: coluna neutra, expiração no esforço, e qualidade antes de quantidade. O NHS descreve o pilates como adequado a todas as idades e níveis — e mesmo assim, com um problema de saúde ou dúvida, primeiro o médico de família.',
+  ioga:'As posições são as clássicas do hatha ioga de principiante — a montanha, o cão descendente, a esfinge, o guerreiro II, a árvore, o triângulo, a torção deitada e as pernas na parede — e o rótulo de cada ficha di-lo. Honestidade sobre a fonte: as páginas de ioga do NHS são hoje vídeos e não publicam posições nem tempos por escrito, por isso a app não lhes pendura números; as respirações e os tempos das fichas são os habituais de principiante, e a técnica é a do repertório clássico, descrita passo a passo com o desenho ao lado. As regras de segurança são as da casa e valem a dobrar no ioga: nada deve doer, o fôlego nunca se prende, e sai-se de qualquer posição devagar. O equilíbrio treina-se falhando — a árvore com o pé a descer vinte vezes é o exercício a funcionar. Na gravidez e no pós-parto, o acompanhamento vem primeiro e o cartão da gravidez tem as regras do ACOG: o tempo deitada de costas e as torções profundas são os pontos a levar à consulta.',
   movimento:'Nem um exercício foi inventado pela app. A calistenia e os alongamentos vêm das páginas de exercício do NHS (flexibilidade, strength and flex, wake-up workout), a estrutura de aquecimento e retorno à calma vem da Mayo Clinic (5 a 10 minutos de movimento antes; abrandar e alongar no fim), e a regra de alongar no fim com o músculo quente é a da ACSM e da American Heart Association. Sobre as séries e os tempos, a honestidade completa: onde a fonte publica números — as séries do NHS para a força, os tempos do músculo-esquelético de Dorset para a ciática — são esses; onde a fonte é um vídeo, um folheto sem números ou só a estrutura, as séries são as habituais de principiante e a fonte cobre a técnica, não a conta. O rótulo de cada ficha diz de onde ela vem. Os desenhos são da app, porque a app não faz rede — e um desenho que se percebe vale por uma fotografia que não se pode ter.',
   ciatica:'Estes exercícios vêm das páginas do NHS para a ciática: o joelho ao peito e o alongamento do piriforme do NHS, o deslizamento do nervo do hospital South Tees, e a báscula pélvica, o rolar de joelhos e o afundo profundo do serviço músculo-esquelético de Dorset. São exercícios gerais para a maioria das pessoas — não tratam a causa, e quem tem uma condição diagnosticada segue o fisioterapeuta, não a app. Os sinais de alarme no topo são citados do NHS e passam à frente de tudo: com qualquer um deles, é urgência, não é exercício.',
   comecarTreinar:'Um plano de treino começa por haver onde treinar. A app abre uma pesquisa de ginásios, piscinas, clubes, treinadores e estúdios perto de ti — mas convém saber como: a app não faz chamadas de rede nenhumas. Pede a posição ao browser, que é uma API local com permissão explícita, e usa-a para montar uma ligação para um mapa. A ligação só abre quando lhe tocas, e até lá as coordenadas não saem do dispositivo. Não são gravadas, não entram na cópia de segurança e desaparecem ao fechar a app. O OpenStreetMap vem primeiro porque não exige conta nem rastreia quem pesquisa.',
@@ -20208,6 +20288,28 @@ function cartaoPilates(){
     </details>
   </div>`;
 }
+function cartaoIoga(){
+  const c=rodaConjunto(IOGA);
+  return `<div class="card" data-col="atv-ioga">
+    <details>
+      <summary style="cursor:pointer"><h2 style="display:inline">Ioga em casa ${dica('ioga')}</h2>
+        <span class="sub" style="display:block;margin-top:4px">Conjunto ${c.k} · ${esc(c.n)} — posições clássicas, ao ritmo da respiração. Roda todos os dias.</span></summary>
+      <p class="sub" style="margin-top:10px">Ioga de principiante, no tapete, sem equipamento. A medida aqui não são
+        repetições, são <b>respirações lentas pelo nariz</b> — a posição dura enquanto a respiração for confortável, e
+        sai-se devagar. Nenhuma posição deve doer nem prender o fôlego: chegar «até onde dá hoje» é a técnica, não a
+        falta dela. Na gravidez e no pós-parto, primeiro quem te acompanha — o cartão da gravidez tem as regras do
+        ACOG, e o tempo deitada de costas e as torções são exactamente os pontos a falar lá.</p>
+      <div class="splabel" style="margin-top:12px"><span>1 · Chegar ao tapete</span><output>${c.aq.length} movimentos</output></div>
+      ${listaMovs(c.aq)}
+      <div class="splabel" style="margin-top:12px"><span>2 · Posições</span><output>${c.ex.length} posições</output></div>
+      ${listaMovs(c.ex)}
+      <div class="splabel" style="margin-top:12px"><span>3 · Descansar</span><output>${c.al.length} posições</output></div>
+      ${listaMovs(c.al)}
+      <p class="sub" style="margin-top:10px">Como em tudo o resto: dor aguda, tontura ou má disposição é sinal para
+        sair da posição já — devagar, mas já.</p>
+    </details>
+  </div>`;
+}
 function cartaoCiatica(){
   return `<div class="card" data-col="atv-ciatica">
     <details>
@@ -20256,6 +20358,7 @@ function renderAtividade(){
     ${cartaoMovimentoManha()}
     ${cartaoForca()}
     ${cartaoPilates()}
+    ${cartaoIoga()}
     ${cartaoCiatica()}
     ${cartaoPartilhaAtiv()}
     <div class="card ${temPlano?'':'card--capa'}" data-col="atv-diaadia">
