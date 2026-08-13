@@ -10184,7 +10184,11 @@ function anuncia(txt){
 function toast(txt,accao,kind){
   let el=document.getElementById('toast');
   if(!el){ el=document.createElement('div'); el.id='toast'; document.body.appendChild(el); }
-  el.className = kind? 'toast-'+kind : '';
+  /* a classe «toast» tem de ficar sempre: é por ela que a regra de impressão
+     esconde o aviso. Sem ela, quem mandava imprimir com um aviso no ecrã
+     levava-o impresso no papel — a regra existia e nunca apanhava nada,
+     porque isto era só um id. */
+  el.className = 'toast' + (kind? ' toast-'+kind : '');
   el.textContent='';
   const t=document.createElement('span'); t.textContent=txt; el.appendChild(t);
   if(accao && accao.rot && accao.fn){
