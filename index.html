@@ -10084,6 +10084,24 @@ let _toastT=null;
    depois de o aviso já ter desaparecido. Com o botão aqui, a correção fica
    debaixo do polegar no momento exato em que se percebe o engano; e um aviso
    com ação fica visível mais tempo, porque há uma decisão a tomar. */
+/* O anúncio vive num elemento PERMANENTE e à parte, criado uma vez só. O
+   toast nasce e morre a cada mensagem, e uma live region inserida no DOM e
+   preenchida no mesmo instante não é anunciada de forma fiável — o leitor de
+   ecrã tem de já a estar a observar. Sem isto, quem não vê registava uma
+   refeição, apagava uma pesagem ou importava uma cópia e não ouvia nada: nem
+   a confirmação nem o erro. O toast era o único canal, e era mudo. */
+function anuncia(txt){
+  let a=document.getElementById('anuncio');
+  if(!a){
+    a=document.createElement('div'); a.id='anuncio'; a.className='so-leitor';
+    a.setAttribute('role','status'); a.setAttribute('aria-live','polite'); a.setAttribute('aria-atomic','true');
+    document.body.appendChild(a);
+  }
+  /* limpar antes obriga o leitor a repetir quando a mensagem é igual à
+     anterior — gravar duas vezes seguidas tem de se ouvir duas vezes */
+  a.textContent='';
+  setTimeout(()=>{ a.textContent=String(txt||''); },50);
+}
 function toast(txt,accao,kind){
   let el=document.getElementById('toast');
   if(!el){ el=document.createElement('div'); el.id='toast'; document.body.appendChild(el); }
@@ -10096,6 +10114,9 @@ function toast(txt,accao,kind){
     b.setAttribute('onclick', accao.fn+';escondeToast()');
     el.appendChild(b);
   }
+  /* o botão de anular também se diz: sem isto, a promessa de «desfaz-se num
+     passo» não existia para quem não vê o aviso */
+  anuncia(txt+(accao&&accao.rot? '. '+accao.rot+' disponível no aviso.' : ''));
   el.style.opacity='1';
   clearTimeout(_toastT);
   _toastT=setTimeout(()=>{ el.style.opacity='0';
@@ -11395,7 +11416,15 @@ function podeBeber(m){
   const fase=faseDe(m);
   if(fase!=='adulto'&&fase!=='idoso') return false;
   if(gravida(m)) return false;
-  if(posparto(m)&&semanasPosParto(m)<26) return false;   /* amamentação provável */
+  /* Quem amamenta diz-o no perfil, e é isso que manda. O teste era um proxy
+     — «pós-parto com menos de 26 semanas, amamentação provável» —, e a partir
+     das 26 semanas a ferramenta do álcool aparecia a quem estava a amamentar
+     em exclusivo, contra o que a dica promete em voz alta («em gravidez,
+     amamentação e menores de idade a ferramenta nem aparece»). O jejum já
+     tinha sido corrigido para ler o campo explícito; isto ficou para trás.
+     O proxy fica, para o pós-parto recente de quem não declarou nada. */
+  if(amamenta(m)) return false;
+  if(posparto(m)&&semanasPosParto(m)<26) return false;
   return true;
 }
 function bebidasCfg(){ if(!Array.isArray(S.bebidas)) S.bebidas=[]; return S.bebidas; }
@@ -11948,7 +11977,7 @@ const DICAS={
      a segunda cala a primeira. O cartão «Datas da casa» mostrava a explicação
      do calendário gastronómico, e este texto não era alcançável de lado
      nenhum. */
-  datasDaCasa:'Os aniversários saem das datas de nascimento dos perfis. Aqui juntam-se as outras datas da casa — Santo António, o aniversário de casamento, o dia da mudança. Nesses dias o cartão «Hoje» amanhece com enfeites, mostra os pratos que a pessoa mais comeu no ano e propõe marcar dia livre: uma festa deixa de ser uma falha ao plano e passa a fazer parte dele.',
+  datasDaCasa:'Os aniversários saem das datas de nascimento dos perfis — e neles o cartão «Hoje» mostra os pratos que a pessoa mais comeu no ano. Aqui juntam-se as outras datas da casa — Santo António, o aniversário de casamento, o dia da mudança. Nesses dias o cartão «Hoje» amanhece com enfeites, mostra os pratos que a pessoa mais comeu no ano e propõe marcar dia livre: uma festa deixa de ser uma falha ao plano e passa a fazer parte dele.',
   passosDerivados:'Os passos escritos à mão ganham sempre. Quando uma receita ainda não os tem, a app deriva-os dos ingredientes e do género do prato — e diz que os derivou, em vez de os fazer passar por receita de livro. Servem de guia, não de autoridade.',
   categorias:'O lugar de uma receita na mesa, que é uma pergunta diferente de «em que refeição encaixa»: uma entrada e um prato principal cabem os dois ao jantar, e uma sobremesa também. Quando a receita não declara a categoria, ela deriva-se do que já se sabe — pequeno-almoço é brunch, lanche é snack, almoço ou jantar é prato principal.',
   cozPref:'Cinco escolhas que mudam o que a app sugere e o que a lista de compras conta. «Repetir receitas» faz o preenchimento automático repetir pratos em vez de os evitar; «cozinhar em dobro» faz a primeira vez render duas refeições, e a segunda passa a «aquecer» sem voltar à lista de compras; «só ingredientes de época» prefere o que está na época em Portugal; «preparar de véspera» dá vantagem às receitas que aproveitam uma preparação já planeada; e o cartão de receita da época pode desligar-se.',
@@ -12021,7 +12050,7 @@ const DICAS={
   alcool:'O vinho do jantar e a imperial do fim de semana não estão em receita nenhuma — logo a app não os via, e o défice do objetivo saía furado sem se perceber porquê. Uma unidade-padrão portuguesa são cerca de 10 g de etanol (SICAD); o etanol calcula-se por volume × graduação × 0,789, que é a densidade do etanol, e rende 7 kcal por grama. Essas calorias somam-se ao total do dia mas ficam fora das três barras de macros, porque o álcool não é um macronutriente. A app escreve por extenso a posição da OMS de 2023 — não há nível de consumo isento de risco — e por isso não define nenhum limite «seguro». Em gravidez, amamentação e menores de idade a ferramenta nem aparece.',
   visitas:'Os convidados de uma refeição criam-se e deitam-se fora — servem para quem vem uma vez só. O livro de visitas é para quem volta sempre: a avó do almoço de domingo, o padrinho, o melhor amigo do filho. A alergia dela fica escrita uma vez, em vez de se reescrever todas as semanas com o risco de um dia ficar por marcar. Uma visita não é um membro: não tem alvos, nem pesagens, nem nutrição — tem nome, cara, o que não pode comer e um hábito de aparecer. Marcada numa refeição, conta nas doses, nas compras e sobretudo nos alertas de alergénio, como qualquer pessoa da casa.',
   festas:'O calendário gastronómico português — Reis, Carnaval, Páscoa, os Santos Populares, S. Martinho, a Consoada, o Ano Novo — e, por cima dele, a ementa que ESTA casa repete em cada um. Há casas de bacalhau cozido e casas de polvo, e essa memória perde-se quando quem a guardava já cá não está. As datas móveis saem do mesmo cálculo astronómico que já serve a Quaresma: o Carnaval são 47 dias antes da Páscoa. No ano seguinte a app pergunta se se repete.',
-  pratoAnos:'Em Portugal quem faz anos escolhe o jantar, e a app passa a honrar essa lei não escrita. A data de nascimento já cá estava a envelhecer o perfil sozinha; agora avisa uma semana antes. A lista filtra só pelas alergias da mesa — o teto de calorias fica de fora, que é festa — e a escolha fica no plano, intocável pelo preenchimento automático. Ano após ano, o perfil ganha a linha dos anos: uma infância contada em jantares.',
+  pratoAnos:'Em Portugal quem faz anos escolhe o jantar, e a app passa a honrar essa lei não escrita. A data de nascimento já cá estava a envelhecer o perfil sozinha; agora avisa uma semana antes. A lista respeita as alergias e as dietas de quem se senta à mesa — o teto de calorias é que fica de fora, que é festa — e a escolha entra no jantar desse dia no plano, onde o preenchimento automático não lhe toca, porque ele nunca escreve por cima de uma refeição já escolhida. Ano após ano, o perfil ganha a linha dos anos: uma infância contada em jantares.',
   provas:'O conflito alimentar mais desgastante de uma casa com crianças é o prato recusado, e a resposta instintiva — desistir ou forçar — falha das duas maneiras. A abordagem é a do manual da DGS «Alimentação Saudável dos 0 aos 6 anos»: oferecer outra vez, em pequena quantidade, sem pressão, ao lado de um prato seguro. A app faz o que os pais exaustos não conseguem — lembrar-se e contar. Mas não fixa um número de tentativas, porque a fonte também não o fixa, e uma meta inventada transformava paciência em pressão. Alergias nunca entram aqui: isso é assunto do médico.',
   discordia:'Hoje o conflito de gostos é resolvido em silêncio pelo algoritmo: o prato que uns adoram e outros recusam simplesmente deixa de aparecer, e o pai fica sem a sua feijoada sem saber a quem reclamar. Este cartão torna o desacordo visível e negociável — com as caras dos dois lados e saídas concretas. Quando há rejeições que cheguem, a app tenta dizer qual é o ingrediente em causa cruzando o que essa pessoa rejeita noutros pratos; quando não há amostra, di-lo em vez de acusar o ingrediente errado.',
   rituais:'As casas portuguesas têm ritmos que ninguém escreveu em lado nenhum — o peixe à sexta, a sopa todos os dias, o assado ao domingo. A app repara neles nas refeições que já confirmaste e propõe-nos; um ritmo só passa a valer quando a família diz que sim, e descarta-se com um toque. Confirmado, o preenchimento automático dá vantagem aos pratos que o cumprem — mas sempre depois de as alergias, as dietas e o teto de calorias já terem decidido. Um ritual nunca põe na mesa um prato que alguém não pode comer.',
@@ -12126,7 +12155,11 @@ function pintaNav(){
   /* o crachá conta o que está por despachar naquele separador; o acento, que
      nesta app significa sempre «agora», diz onde é preciso ir sem abrir nada */
   const pend=pendentesPorSeparador();
-  const btn=k=>`<button class="${S.ui.tab===k?'on':''}" onclick="go('${k}')">${icoNav(k)}<span>${rotuloCurto(k)}</span>${
+  /* aria-current="page" diz qual dos oito separadores está aberto. A classe
+     «on» mostra-o a quem vê; quem ouve percorria os oito sem saber onde
+     estava, porque estes botões não são chips e o varrimento que marca os
+     chips premidos nunca lhes tocava. */
+  const btn=k=>`<button class="${S.ui.tab===k?'on':''}"${S.ui.tab===k?' aria-current="page"':''} onclick="go('${k}')">${icoNav(k)}<span>${rotuloCurto(k)}</span>${
     pend[k]? `<span class="cracha" aria-label="${pend[k]} por despachar">${pend[k]>99?'99+':pend[k]}</span>`:''}</button>`;
   let folha=document.getElementById('nav-mais');
   if(modoBarraInferior()){
@@ -12428,15 +12461,23 @@ function pintaAura(){
    algum está «on», todos são escolhas do mesmo conjunto. */
 function marcaChipsPremidos(){
   const feitos=new Set();
-  document.querySelectorAll('button.chip.on').forEach(ativo=>{
+  const marca=b=>{
+    if(b.hasAttribute('aria-pressed')||b.hasAttribute('aria-current')
+      ||b.hasAttribute('aria-selected')||b.getAttribute('role')==='tab') return;
+    b.setAttribute('aria-pressed', String(b.classList.contains('on')));
+  };
+  document.querySelectorAll('button.chip.on, button.emoji-op.on, button.cor-op.on').forEach(ativo=>{
     const pai=ativo.parentElement; if(!pai||feitos.has(pai)) return;
     feitos.add(pai);
-    pai.querySelectorAll(':scope > button.chip').forEach(b=>{
-      if(b.hasAttribute('aria-pressed')||b.hasAttribute('aria-current')
-        ||b.hasAttribute('aria-selected')||b.getAttribute('role')==='tab') return;
-      b.setAttribute('aria-pressed', String(b.classList.contains('on')));
-    });
+    pai.querySelectorAll(':scope > button.chip, :scope > button.emoji-op, :scope > button.cor-op').forEach(marca);
   });
+  /* Um alternador sozinho — «só compatíveis», «respeitar o teto» — não tem
+     irmão nenhum «on» quando está desligado, e por isso o varrimento por grupo
+     nunca lhe chegava: o estado LIGADO ouvia-se, o DESLIGADO nunca. Pior ainda
+     quando o vizinho é de outro assunto, porque então o que se anunciava
+     dependia de um controlo sem relação nenhuma. Marcam-se um a um, e a marca
+     no próprio botão diz que ele é alternador e não ação. */
+  document.querySelectorAll('#main button[data-alterna]').forEach(marca);
 }
 function montaColapsaveis(){
   document.querySelectorAll('#main .card[data-col]').forEach(card=>{
@@ -13633,7 +13674,28 @@ function setPratoDeAnos(mid,ano,rid){
   const i=c[mid].findIndex(x=>x.ano===ano);
   if(i>=0) c[mid][i].r=rid; else c[mid].push({ano, r:rid});
   c[mid].sort((a,b)=>a.ano-b.ano);
+  /* O cartão diz — e a dica repete — que a escolha «fica no plano e o
+     preenchimento automático não lhe toca». Ficava só numa lista à parte:
+     S.anos era lido pelo próprio cartão e por mais nada, o plano nunca soube
+     dele, e o autoFill escrevia outro prato naquele jantar sem hesitar. A
+     promessa era das duas: não estava no plano, e não era intocável porque
+     não havia nada para tocar. Agora escreve-se mesmo no jantar do dia, e o
+     autoFill respeita-o porque nunca mexe numa refeição que já tem prato. */
+  const m=S.members.find(x=>x.id===mid), a=m? diasAteAnos(m) : null;
+  if(a && a.data){
+    const sem=mondayISO(new Date(a.data+'T12:00:00'));
+    const di=weekDates(sem).indexOf(a.data);
+    if(di>=0){
+      if(!S.plans[sem]) S.plans[sem]={};
+      if(!S.plans[sem][di]) S.plans[sem][di]={};
+      const antes=S.plans[sem][di].j;
+      S.plans[sem][di].j={r:rid, ac:(antes&&antes.ac)||[], m:S.members.map(x=>x.id)};
+      registaCombo(rid, []);
+    }
+  }
   save('prato de anos'); render();
+  const r=RECIPES.find(x=>x.id===rid);
+  if(r&&a) flash('ok','«'+r.n+'» ficou no jantar de '+fmtLongo(a.data)+'.');
 }
 function limparAnos(o,ids,acha){
   const out={};
@@ -13664,7 +13726,7 @@ function cartaoAniversario(){
   return `<div class="card secgap" id="anos" data-col="pla-anos">
     <h2>🎂 ${esc(nomeCurto(x.m))} faz ${x.a.faz} ${x.a.dias===0?'hoje':x.a.dias===1?'amanhã':'em '+x.a.dias+' dias'} ${dica('pratoAnos')}</h2>
     ${ja? `<p class="sub">O jantar escolhido é <b>${esc((RECIPES.find(r=>r.id===ja.r)||{n:'—'}).n)}</b>. Está no plano e o preenchimento automático não lhe toca.</p>`
-    : `<p class="sub">Quem faz anos escolhe o jantar. Só as alergias da mesa filtram a lista — o teto de calorias fica de fora, que é festa.</p>
+    : `<p class="sub">Quem faz anos escolhe o jantar. A lista respeita as alergias e as dietas de quem se senta à mesa — o teto de calorias é que fica de fora, que é festa.</p>
       <div class="row" style="margin-top:8px">${cand.map(r=>
         `<button class="chip" onclick="setPratoDeAnos('${x.m.id}',${x.a.faz},'${r.id}')">${esc(r.n)}</button>`).join('')}</div>`}
     ${(pratoDeAnosCfg()[x.m.id]||[]).length>1? `<p class="sub" style="margin-top:10px"><b>A linha dos anos:</b> ${
@@ -14545,7 +14607,7 @@ function cartaoSugDespensa(){
     <div class="row" style="justify-content:space-between">
       <div><span class="lbl">${nomeRefeicao(mk)} · com o que há em casa</span>
         <h2 style="margin-top:2px">Isto dá para fazer hoje ${dica('sugDespensa')}</h2></div>
-      <button class="chip" onclick="fecharSugDespensa()">✕</button></div>
+      <button class="chip" onclick="fecharSugDespensa()" aria-label="Fechar a sugestão da despensa">✕</button></div>
     ${l.map(r=>{ const d=disponibilidadeReceita(r), pct=Math.round(pctDespensa(r)*100);
       const faltam=(r.i||[]).map(x=>x[0]).filter(n=>!temNaDespensa(n));
       return `<div class="val-item">
@@ -14792,7 +14854,7 @@ function fichaHtml(f){
           <div style="margin-top:6px"><span class="tag">${ICO_COZ[r.coz]||''} ${cozinhasDe(r).map(k=>CUIS[k]).join(' · ')}</span>${
             selosCategoria(r)}${seloGenero(r)}${daEp.length? '<span class="tag epoca">🌱 da época</span>':''}</div>
         </div>
-        <button class="btn ghost small" style="flex:none" onclick="fecharFicha()">✕</button>
+        <button class="btn ghost small" style="flex:none" onclick="fecharFicha()" aria-label="Fechar a receita">✕</button>
       </div>
       ${ehCombo(r)? `<p class="sub" style="margin-top:8px">Feito de
         <button class="linkish" onclick="abrirFicha('${r.base}',${f.n})">${esc((RECIPES.find(x=>x.id===r.base)||{}).n||'')}</button>
@@ -15695,8 +15757,23 @@ function blocoFestas(){
   if(!hoje.length && !proximos.length) return '';
   return `<div style="margin-top:10px;border-top:1px solid var(--line);padding-top:10px">
     ${hoje.map(f=>{
-      if(f.tipo==='festa') return `<p style="font-family:var(--fonte-display);font-size:17px;display:flex;align-items:center;gap:8px">
-        <span class="viana-cor">${coracaoViana(28)}</span> Hoje é ${esc(f.n)}.</p>`;
+      /* Uma data da casa — Santo António, o aniversário de casamento — é de
+         toda a gente, e por isso o dia livre marca-se de uma vez para quem
+         está à mesa. Sem este ramo, o cartão limitava-se a dizer «Hoje é X» e
+         os três textos que prometiam a proposta de dia livre falavam de uma
+         coisa que só o aniversário tinha. Os bebés ficam de fora: um dia
+         livre num bebé não quer dizer nada. */
+      if(f.tipo==='festa'){
+        const gente=S.members.filter(m=>faseDe(m)!=='bebe');
+        const jaTodos=gente.length && gente.every(m=>isCheat(m.id,hojeISO()));
+        return `<div class="row" style="gap:10px;align-items:center">
+          <p style="font-family:var(--fonte-display);font-size:17px;margin:0;flex:1;min-width:0;display:flex;align-items:center;gap:8px">
+            <span class="viana-cor">${coracaoViana(28)}</span> Hoje é ${esc(f.n)}.</p>
+          ${!gente.length? '' : jaTodos
+            ? '<span class="pill" style="background:var(--party-soft);color:var(--party)">dia livre ✓</span>'
+            : `<button class="chip" onclick="diaLivreDaCasa()">🎉 Dia livre para a casa</button>`}
+        </div>`;
+      }
       const favs=pratosFavoritos(f.m.id,2);
       return `<div class="row" style="gap:10px;align-items:center">
         ${avatar(f.m,34)}
@@ -17799,7 +17876,7 @@ function folhaPessoaHtml(fo){
           <div style="min-width:0"><h2 id="fp-t" style="margin:0">${esc(m.nome)} ${dica('pessoa')}</h2>
             <span class="sub">${textoIdade(m)} · ${esc(DIETS[chaveDieta(m)].n)}</span></div>
         </div>
-        <button class="btn ghost small" style="flex:none" onclick="fecharFolha()">✕</button>
+        <button class="btn ghost small" style="flex:none" onclick="fecharFolha()" aria-label="Fechar">✕</button>
       </div>
       ${al.length? `<p class="sub" style="margin-top:8px">🚨 ${al.map(k=>esc(RESTR[k].n)).join(', ')}</p>`:''}
       <div class="row" style="margin-top:12px">
@@ -20486,7 +20563,7 @@ function cartaoComecarTreinar(m){
     <div class="row" style="justify-content:space-between">
       <div><span class="lbl">${temPlano? 'Fora de casa' : 'Primeiro passo'}</span>
         <h2 style="margin-top:2px">${temPlano? 'Na minha área' : 'Queres começar a treinar?'}</h2></div>
-      ${temPlano? `<button class="chip" onclick="fecharProcura()">✕</button>`:''}
+      ${temPlano? `<button class="chip" onclick="fecharProcura()" aria-label="Fechar a pesquisa de sítios para treinar">✕</button>`:''}
     </div>
     ${!temPlano? `<p class="sub" style="margin-top:6px">Um plano de treino começa por haver onde treinar. A app pode
       abrir uma pesquisa de ginásios, piscinas, clubes e treinadores perto de ti — e depois é só marcar aqui as
@@ -24461,7 +24538,7 @@ function renderReceitas(){
       ${minhas? `<button class="chip" onclick="imprimirLivro()">📖 Livro da casa ${dica('livro')}</button>`:''}
       ${colapsadas||S.ui.verVariantes? `<button class="chip ${S.ui.verVariantes?'on':''}" onclick="toggleVerVariantes()"
         aria-pressed="${!!S.ui.verVariantes}">🍽️ Ver todas as variantes ${dica('variantes')}</button>`:''}
-      ${m? `<button class="chip ${S.ui.soComp?'on':''}" onclick="toggleComp()">Só compatíveis com ${esc(m.nome)}</button>`:''}
+      ${m? `<button class="chip ${S.ui.soComp?'on':''}" data-alterna onclick="toggleComp()">Só compatíveis com ${esc(m.nome)}</button>`:''}
       <button class="btn small" onclick="sugerirComDespensa()">🥫 Sugere-me algo para hoje ${dica('sugDespensa')}</button>
       <button class="chip" onclick="go('despensa')">Ver despensa</button>
     </div>
@@ -25062,6 +25139,17 @@ function toggleEater(di,mk,mid){ const meal=planMeal(di,mk);
 function toggleCheat(mid,date){ if(!S.cheats[mid]) S.cheats[mid]=[];
   const i=S.cheats[mid].indexOf(date); i>=0? S.cheats[mid].splice(i,1) : S.cheats[mid].push(date);
   save('cheat day'); render(); }
+/* Numa data da casa o dia livre é de todos ao mesmo tempo — marcar um a um
+   seria pedir quatro cliques para uma coisa que é uma só decisão. */
+function diaLivreDaCasa(){
+  const hoje=hojeISO();
+  const gente=S.members.filter(m=>faseDe(m)!=='bebe');
+  if(!gente.length) return;
+  gente.forEach(m=>{ if(!S.cheats[m.id]) S.cheats[m.id]=[];
+    if(S.cheats[m.id].indexOf(hoje)<0) S.cheats[m.id].push(hoje); });
+  save('dia livre da casa'); render();
+  flash('ok','Hoje é dia livre para '+plural(gente.length,'pessoa','pessoas')+'.',{rot:'Anular',fn:'desfazer()'});
+}
 function clearWeek(){ if(confirm('Limpar todas as refeições desta semana?')){ delete S.plans[S.week]; delete S.bought[S.week]; save('limpeza da semana'); render(); } }
 /* Os acompanhamentos vivem à parte: não aparecem nas listas de pratos nem nas
    sugestões de refeição, porque ninguém janta um arroz de coentros sozinho.
@@ -25476,7 +25564,7 @@ function cartaoSugestoes(){
     <div class="row" style="margin-top:8px">
       <select style="width:auto" aria-label="Cozinha das sugestões" onchange="setSugCuis(this.value)"><option value="todas">Todas as cozinhas</option>
         ${Object.entries(CUIS).map(([kk,v])=>`<option value="${kk}" ${s.cuis===kk?'selected':''}>${(ICO_COZ[kk]||'')+' '+v}</option>`).join('')}</select>
-      <button class="chip ${s.teto?'on':''}" onclick="toggleSugTeto()">🎯 Respeitar o teto de calorias</button>
+      <button class="chip ${s.teto?'on':''}" data-alterna onclick="toggleSugTeto()">🎯 Respeitar o teto de calorias</button>
       <button class="chip ${s.epoca?'on':''}" onclick="toggleSugEpoca()" aria-pressed="${!!s.epoca}">🌱 Só ingredientes de época</button>
     </div>
     ${!membros.length? `<p class="sub" style="margin-top:14px">Nenhum membro selecionado — liga pelo menos um para haver mesa.</p>`
@@ -28831,7 +28919,17 @@ function pintaModal(){
     try{ saveMeta(); }catch(e){}
   }
   if(S.ui.pesqAberta) pintaPesquisa();
-  if(mo || (fo&&fo.tipo!=='mesa')){ const f=cx.querySelector('input,button'); if(f) setTimeout(()=>f.focus(),0); }
+  /* Qualquer camada que se abra leva o foco consigo — não só os modais e as
+     folhas. A ficha da receita, o modo cozinha e o supermercado são também
+     role="dialog" e ficavam de fora: como trancarFundo() põe inert no #main,
+     o elemento que tinha o foco desactiva-se e o foco cai no <body>. Quem usa
+     leitor de ecrã abria uma ficha e não ouvia nada, ficando no princípio do
+     documento. A folha da mesa continua de fora de propósito: abre debaixo do
+     dedo com a lista já visível, e roubar-lhe o foco fazia o ecrã saltar. */
+  if(cx.innerHTML && !(fo&&fo.tipo==='mesa')){
+    const f=cx.querySelector('[autofocus],input:not([type=hidden]),select,textarea,button');
+    if(f) setTimeout(()=>{ try{ f.focus(); }catch(e){} },0);
+  }
   /* fechou-se: devolve o foco a quem a abriu, se ele ainda existir. O #main
      redesenha-se por baixo e o botão pode ter deixado de existir — nesse caso
      não se força nada, que é melhor do que atirar o foco para um sítio ao
