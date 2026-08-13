@@ -11905,7 +11905,12 @@ const DICAS={
   porcoes:'As receitas estão escritas para uma pessoa. Este número multiplica as quantidades de todos os ingredientes — é o que se leva para a cozinha.',
   editorReceitas:'Escreve os ingredientes e o número de doses que a receita rende: os macros por dose são calculados a partir da composição de cada ingrediente, e as etiquetas de dieta saem dos números e do que a receita leva dentro. Só entram ingredientes do catálogo — é isso que faz a receita falar com a despensa e com a lista de compras.',
   fecho:'Um ritual curto de domingo, em cinco passos: resolver o que ficou por confirmar, olhar a semana em números, escolher o jantar especial da próxima, preencher o plano com sugestões que servem a casa, e escrever uma frase no caderno. Fica assinado com o avatar de quem fechou — o hábito passa a ser da casa, não só de quem trata da app.',
-  festas:'Os aniversários saem das datas de nascimento dos perfis. Aqui juntam-se as outras datas da casa — Santo António, o aniversário de casamento, o dia da mudança. Nesses dias o cartão «Hoje» amanhece com enfeites, mostra os pratos que a pessoa mais comeu no ano e propõe marcar dia livre: uma festa deixa de ser uma falha ao plano e passa a fazer parte dele.',
+  /* Esta chave chamava-se «festas», como a do calendário gastronómico mil
+     linhas abaixo — e uma chave repetida num literal de objeto não dá erro:
+     a segunda cala a primeira. O cartão «Datas da casa» mostrava a explicação
+     do calendário gastronómico, e este texto não era alcançável de lado
+     nenhum. */
+  datasDaCasa:'Os aniversários saem das datas de nascimento dos perfis. Aqui juntam-se as outras datas da casa — Santo António, o aniversário de casamento, o dia da mudança. Nesses dias o cartão «Hoje» amanhece com enfeites, mostra os pratos que a pessoa mais comeu no ano e propõe marcar dia livre: uma festa deixa de ser uma falha ao plano e passa a fazer parte dele.',
   passosDerivados:'Os passos escritos à mão ganham sempre. Quando uma receita ainda não os tem, a app deriva-os dos ingredientes e do género do prato — e diz que os derivou, em vez de os fazer passar por receita de livro. Servem de guia, não de autoridade.',
   categorias:'O lugar de uma receita na mesa, que é uma pergunta diferente de «em que refeição encaixa»: uma entrada e um prato principal cabem os dois ao jantar, e uma sobremesa também. Quando a receita não declara a categoria, ela deriva-se do que já se sabe — pequeno-almoço é brunch, lanche é snack, almoço ou jantar é prato principal.',
   cozPref:'Cinco escolhas que mudam o que a app sugere e o que a lista de compras conta. «Repetir receitas» faz o preenchimento automático repetir pratos em vez de os evitar; «cozinhar em dobro» faz a primeira vez render duas refeições, e a segunda passa a «aquecer» sem voltar à lista de compras; «só ingredientes de época» prefere o que está na época em Portugal; «preparar de véspera» dá vantagem às receitas que aproveitam uma preparação já planeada; e o cartão de receita da época pode desligar-se.',
@@ -12018,7 +12023,17 @@ function selo(visto,texto,classe){
 /* Quase todas as dicas são texto fixo, mas algumas falam de uma escolha que a
    casa fez — e um texto fixo sobre uma escolha mutável envelhece calado. Uma
    entrada pode ser uma função, avaliada no momento de desenhar. */
-function dica(k,extra){ let t=DICAS[k]; if(typeof t==='function') t=t(); if(!t) return '';
+const _dicasEmFalta=new Set();
+function dica(k,extra){ let t=DICAS[k]; if(typeof t==='function') t=t();
+  /* Uma chave que a tabela não tem devolvia string vazia em silêncio: o botão
+     do «i» simplesmente não aparecia, e ninguém dava por isso. É o mesmo
+     silêncio que deixou o cartão «Datas da casa» a explicar o calendário
+     gastronómico — lá a causa foi uma chave repetida no literal, que também
+     não dá erro. Aqui não se corrige nada: diz-se em voz alta a quem estiver
+     a editar, uma vez por chave. */
+  if(!t){ if(k && !_dicasEmFalta.has(k)){ _dicasEmFalta.add(k);
+      console.warn('Família Fit — pediu-se a dica «'+k+'», que não existe na tabela DICAS. O botão de explicação não vai aparecer.'); }
+    return ''; }
   /* O texto vai duas vezes: em data-dica, que desenha a bolha, e num elemento
      de verdade que só o leitor de ecrã encontra. O aria-label continua a dar
      o nome curto ao botão («Explicação»), e o aria-describedby entrega o texto
@@ -27855,7 +27870,7 @@ function cartaoAspeto(){
    interessa a uma data que se repete. */
 function cartaoFestaGastronomica(){
   return `<div class="card" data-col="dados-festas">
-    <h3>Datas da casa ${dica('festas')}</h3>
+    <h3>Datas da casa ${dica('datasDaCasa')}</h3>
     <p class="sub" style="margin-top:4px">Os aniversários já saem das datas de nascimento dos perfis. Aqui juntam-se as outras: nesses dias o cartão «Hoje» amanhece com enfeites e propõe marcar dia livre.</p>
     <div class="frow" style="margin-top:10px">
       <div><label class="lbl">Dia</label><input type="date" id="festa-data" aria-label="Data da ocasião"></div>
