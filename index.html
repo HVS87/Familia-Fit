@@ -1052,7 +1052,13 @@ main{max-width:1100px;margin:0 auto;padding:24px 20px}
    a «capa» de cada separador flutua com sombra e um gradiente suave do
    acento, e o auxiliar recua para o fundo. É a diferença entre resumo e
    detalhe, dita pela superfície e não por mais uma moldura. */
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px}
+/* `min-width:0` porque um cartão dentro de uma grelha é um item de grid, e o
+   valor inicial de min-width para itens de grid é `auto` — ou seja, «nunca
+   mais estreito do que o meu conteúdo». Basta um botão comprido lá dentro
+   para o cartão inteiro se recusar a encolher e sair para fora do ecrã. Foi
+   isso que fez o cartão «Registar atividade física» medir 334 px numa coluna
+   de 306, num telemóvel de 345. */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;min-width:0}
 .card--capa{border-color:var(--line);box-shadow:var(--shadow)}
 .card--capa{border-color:color-mix(in srgb,var(--accent) 22%,var(--line));
   background:linear-gradient(180deg,var(--accent-soft),var(--card) 46%)}
@@ -1098,8 +1104,13 @@ main{max-width:1100px;margin:0 auto;padding:24px 20px}
 .membros-fixos .chip.on{box-shadow:inset 0 0 0 1px var(--accent)}
 @media (max-width:640px){ .membros-fixos{margin-left:-12px;margin-right:-12px;padding-left:12px;padding-right:12px} }
 .grid{display:grid;gap:16px}
-.g2{grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}
-.g3{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+/* min(320px,100%) e não 320px seco: com `minmax(320px,1fr)`, um contentor mais
+   estreito do que o mínimo não encolhe a coluna — fixa-a nos 320 e deixa-a
+   transbordar. Num ecrã de 345 px, o main tem 306 de espaço útil e todos os
+   cartões dos Dados saíam 2 px para fora da direita. O `min()` diz à coluna
+   para nunca pedir mais do que a largura que tem. */
+.g2{grid-template-columns:repeat(auto-fill,minmax(min(320px,100%),1fr))}
+.g3{grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr))}
 .sub{color:var(--mut);font-size:13.5px}
 .lbl{display:block;font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--mut);font-weight:600;margin-bottom:3px}
 input[type=text],input[type=number],input[type=date],input[type=search],select{
@@ -1719,7 +1730,7 @@ body{padding-bottom:max(60px,calc(env(safe-area-inset-bottom) + 44px))}
 
 /* ============ ORIENTAÇÃO ============ */
 /* Grelha dos dias do plano, para poder mudar com a orientação. */
-.gdias{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+.gdias{grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr))}
 
 /* Reserva sem JavaScript: qualquer ecrã muito baixo é um telemóvel deitado. */
 @media (orientation:landscape) and (max-height:460px){
@@ -1746,7 +1757,7 @@ html[data-orient="paisagem"][data-dispositivo="telefone"] .secgap{margin-top:18p
 /* Ao deitar, a largura dá para duas colunas de cartões. */
 html[data-orient="paisagem"][data-dispositivo="telefone"] .g2,
 html[data-orient="paisagem"][data-dispositivo="telefone"] .g3,
-html[data-orient="paisagem"][data-dispositivo="telefone"] .gdias{grid-template-columns:repeat(auto-fill,minmax(272px,1fr))}
+html[data-orient="paisagem"][data-dispositivo="telefone"] .gdias{grid-template-columns:repeat(auto-fill,minmax(min(272px,100%),1fr))}
 
 /* Telemóvel de pé: uma coluna, sem cartões a partir em duas metades estreitas. */
 html[data-orient="retrato"][data-dispositivo="telefone"] .g2,
@@ -1756,12 +1767,12 @@ html[data-orient="retrato"][data-dispositivo="telefone"] .gdias{grid-template-co
 /* Tablet de pé: duas colunas largas e mais respiro nas margens. */
 html[data-orient="retrato"][data-dispositivo="tablet"] main{padding-left:24px;padding-right:24px}
 html[data-orient="retrato"][data-dispositivo="tablet"] .g3,
-html[data-orient="retrato"][data-dispositivo="tablet"] .gdias{grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}
+html[data-orient="retrato"][data-dispositivo="tablet"] .gdias{grid-template-columns:repeat(auto-fill,minmax(min(320px,100%),1fr))}
 
 /* Tablet deitado: aproveita a largura toda, mais dias e receitas por linha. */
 html[data-orient="paisagem"][data-dispositivo="tablet"] main{max-width:1280px}
 html[data-orient="paisagem"][data-dispositivo="tablet"] .g3{grid-template-columns:repeat(auto-fill,minmax(268px,1fr))}
-html[data-orient="paisagem"][data-dispositivo="tablet"] .gdias{grid-template-columns:repeat(auto-fill,minmax(252px,1fr))}
+html[data-orient="paisagem"][data-dispositivo="tablet"] .gdias{grid-template-columns:repeat(auto-fill,minmax(min(252px,100%),1fr))}
 </style>
 </head>
 <body>
@@ -3992,6 +4003,20 @@ R('harcha','Harcha de sêmola','marroquina',[],0,0,0,0,[['Sêmola de trigo',70,'
 R('bissara','Bissara de favas','marroquina',['mediterranica'],0,0,0,0,[['Favas secas cruas',60,'g'],['Alho',2,'dente'],['Azeite',12,'ml'],['Cominhos',2,'g'],['Colorau',1.5,'g'],['Flor de sal',1,'g'],['Limão',0.25,'un'],['Pão de mistura',40,'g']],['p','l'],0,['br']),
 R('panecunzato','Pane cunzato','mediterranica',['mediterranica'],0,0,0,0,[['Pão rústico',100,'g'],['Tomate',100,'g'],['Anchovas',12,'g'],['Queijo fresco de ovelha',50,'g'],['Cebola roxa',20,'g'],['Tomate seco',15,'g'],['Azeite',12,'ml'],['Orégãos',1,'g'],['Manjericão',2,'g'],['Pimenta preta',0.3,'g'],['Flor de sal',0.5,'g']],['l','a'],0,['br']),
 R('pastizzi','Pastizzi de ricotta','mediterranica',[],0,0,0,0,[['Massa folhada, congelada',90,'g'],['Ricotta',80,'g'],['Ovo',0.3,'un'],['Queijo parmesão ralado',8,'g'],['Salsa',3,'g'],['Pimenta preta',0.3,'g'],['Flor de sal',0.5,'g']],['p','l'],0,['br']),
+
+/* ---------- Sete pratos de tacho que faltavam ----------
+   O que estas têm em comum é o tempo: nenhuma se faz com pressa, e cinco delas
+   são cortes que a cozinha portuguesa aprendeu a tratar por serem os baratos —
+   as tripas, a cabra velha, as línguas do bacalhau que sobravam da salga. O
+   pica-pau e a cataplana são as duas exceções, e mesmo essas são de partilha.
+   O bacalhau com natas não entra: já cá estava, e a versão keto também. */
+R('xerem','Xerém de conquilhas','portuguesa',['mediterranica'],0,0,0,0,[['Farinha de milho tipo 70',60,'g'],['Amêijoas',300,'g'],['Linguiça',30,'g'],['Toucinho fumado',20,'g'],['Cebola',70,'g'],['Alho',3,'dente'],['Coentros',10,'g'],['Azeite',15,'ml'],['Colorau',1.5,'g'],['Louro',0.5,'g']],['a','j'],0,['pp']),
+R('picapau','Pica-pau de vaca','portuguesa',[],0,0,0,0,[['Vaca, alcatra crua',160,'g'],['Pepino de conserva',35,'g'],['Azeitonas',25,'g'],['Alho',3,'dente'],['Manteiga',12,'g'],['Vinho branco',50,'ml'],['Molho piri-piri',4,'ml'],['Mostarda de Dijon',5,'g'],['Salsa',6,'g'],['Pimenta preta',1,'g'],['Flor de sal',1,'g']],['a','j','l'],0,['ent','pp']),
+R('cataplana','Cataplana de marisco','portuguesa',['mediterranica'],0,0,0,0,[['Amêijoas',300,'g'],['Camarão',180,'g'],['Lulas',80,'g'],['Chouriço',25,'g'],['Presunto',20,'g'],['Cebola',80,'g'],['Pimento',70,'g'],['Tomate',150,'g'],['Alho',3,'dente'],['Vinho branco',60,'ml'],['Azeite',15,'ml'],['Coentros',10,'g'],['Louro',0.5,'g'],['Malagueta',1,'g']],['a','j'],0,['pp']),
+R('picanochao','Pica no chão, frango do campo estufado','portuguesa',['mediterranica'],0,0,0,0,[['Frango inteiro com pele, cru',190,'g'],['Cebola',90,'g'],['Alho',3,'dente'],['Tomate',120,'g'],['Vinho branco',60,'ml'],['Azeite',15,'ml'],['Batata',150,'g'],['Louro',0.5,'g'],['Salsa',6,'g'],['Colorau',2,'g'],['Malagueta seca',0.5,'g'],['Flor de sal',2,'g']],['a','j'],0,['pp']),
+R('tripasporto','Tripas à moda do Porto','portuguesa',[],0,0,0,0,[['Tripas de vaca cruas',150,'g'],['Feijão branco',80,'g'],['Coxas de frango',70,'g'],['Chouriço',25,'g'],['Presunto',18,'g'],['Cenoura',60,'g'],['Cebola',80,'g'],['Alho',2,'dente'],['Cominhos',1.5,'g'],['Louro',0.5,'g'],['Salsa',6,'g'],['Azeite',12,'ml'],['Arroz agulha',40,'g']],['a','j'],0,['pp']),
+R('chanfana','Chanfana de cabra em vinho tinto','portuguesa',[],0,0,0,0,[['Carne de cabra crua',200,'g'],['Vinho tinto',180,'ml'],['Banha de porco',15,'g'],['Alho',4,'dente'],['Cebola',60,'g'],['Louro',1,'g'],['Colorau',2,'g'],['Malagueta seca',0.5,'g'],['Pimenta preta',1,'g'],['Flor de sal',2,'g']],['a','j'],0,['pp']),
+R('linguasbacalhau','Línguas de bacalhau fritas','portuguesa',[],0,0,0,0,[['Línguas de bacalhau demolhadas',130,'g'],['Farinha',30,'g'],['Ovo',1,'un'],['Alho',3,'dente'],['Coentros',8,'g'],['Limão',0.5,'un'],['Óleo alimentar',15,'ml'],['Pimenta preta',0.5,'g']],['a','j'],0,['pp','ent']),
 
 /* ---------- Portugal, região a região ---------- */
 R('bolacarne','Bola de carne transmontana','portuguesa',[],0,0,0,0,[['Farinha de trigo tipo 65',65,'g'],['Manteiga com sal',25,'g'],['Ovo',0.5,'un'],['Leite meio gordo, UHT',30,'ml'],['Fermento de padeiro',5,'g'],['Presunto',15,'g'],['Chouriço',15,'g'],['Linguiça',10,'g']],['p','l'],0,['br']),
@@ -7054,6 +7079,47 @@ P('pastizzi',[['Escorrer a ricotta','Deixa a ricotta a escorrer num passador pel
  ['Estender','Estende a massa folhada bem fina, quase transparente, e corta quadrados de cerca de dez centímetros de lado.'],
  ['Moldar em losango','Põe uma colher de recheio no centro e dobra dois lados opostos até se encontrarem a meio, apertando bem para selar. Fica com o feitio de barquinho.',10],
  ['Forno','Pincela com ovo e assa a 220 graus vinte a vinte e cinco minutos, até ficarem muito dourados e a folhear. Comem-se quentes, à mão.',25]]);
+P('xerem',[['Amêijoas a purgar','Amêijoas em água com sal grosso duas horas, no escuro, para largarem a areia. Trocar a água duas vezes. Xerém com areia é xerém deitado fora.',120],
+ ['Refogado de gordura','Toucinho e linguiça em cubinhos, no azeite, em lume brando, até largarem a gordura. Depois a cebola e o alho, o colorau e o louro.',12],
+ ['Abrir as amêijoas à parte','Amêijoas na panela tapada, lume alto, só até abrirem. Retira-as e GUARDA a água que largaram, coada por um pano — é ela que tempera o xerém todo e é o que faz o prato.',6],
+ ['A farinha em chuva, e a mexer','Junta a água das amêijoas ao refogado com mais água a ferver, e deita a farinha de milho em chuva com a outra mão a mexer sem parar. De uma vez só, empelota e não há como desfazer.',5],
+ ['Vinte minutos de colher','Lume brando, a mexer quase sempre, até engrossar e a farinha perder o sabor a cru. É por isto que o xerém não se faz com pressa.',20],
+ ['Amêijoas e coentros no fim','Devolve as amêijoas com as conchas, junta os coentros picados e desliga. Servido logo é papa mole; parado cinco minutos, ganha corpo.',5]]);
+P('picapau',[['Cubos, não tiras','Carne em cubos de dois centímetros, do tamanho de uma dentada com o palito. Tiras não se espetam, e este prato come-se com palitos.'],
+ ['Frigideira a fumegar','Manteiga e um fio de azeite numa frigideira muito quente, e a carne em duas fornadas. Toda de uma vez, larga água e coze em vez de tostar.',6],
+ ['Alho depois da carne','Alho laminado só quando a carne já está selada. Posto ao princípio, queima nos minutos em que ela precisa de lume alto.'],
+ ['Vinho a soltar o fundo','Vinho branco na frigideira a ferver, a raspar o fundo com a colher. O que está agarrado é o sabor todo; o vinho existe para o levantar.',3],
+ ['Pickles e azeitonas no fim','Fora do lume, o pepino de conserva às rodelas, as azeitonas, a mostarda, o piri-piri e a salsa. Os pickles não cozinham: entram para dar o ácido e o estaladiço.'],
+ ['Pão e palitos','Serve na própria frigideira, com palitos e pão para o molho. É comida de conversa, e é assim que se põe na mesa.']]);
+P('cataplana',[['Sem cataplana, um tacho com tampa pesada','A cataplana é uma concha de cobre que fecha com dois ganchos e cozinha a vapor sob pressão. Sem ela: tacho largo, tampa que assente bem, e não se levanta a tampa a meio.',2],
+ ['Amêijoas a purgar','Duas horas em água com sal grosso, no escuro, a trocar a água. É o passo que separa uma cataplana de uma decepção.',120],
+ ['Camada por camada, e frio','Este prato monta-se cru e por camadas, sem refogar antes: azeite no fundo, depois a cebola, o pimento e o alho, o chouriço e o presunto, o tomate, e o marisco por cima.'],
+ ['Vinho e fechar','Vinho branco, louro, malagueta e sal. Fecha e leva a lume médio. A partir daqui não se abre — cada abertura perde o vapor que faz a cozedura.'],
+ ['Ouvir em vez de ver','Vinte minutos. Sabe-se que está feito quando o cheiro sai pelos bordos e as amêijoas param de estalar lá dentro.',20],
+ ['Coentros ao abrir','Abre à mesa, coentros por cima e pão para o caldo. O caldo é metade do prato.']]);
+P('picanochao',[['Frango do campo, em pedaços grandes','Frango cortado em oito, com pele e osso. Sem osso este prato não existe: é dele que vem o corpo do molho, e é por isso que se faz com galinha do campo e não com peito.'],
+ ['Alourar bem, aos poucos','Pedaços a alourar no azeite, em duas fornadas, até a pele ficar dourada de todos os lados. Amontoados, cozem no próprio vapor e ficam pálidos.',12],
+ ['Cebolada por baixo','Cebola e alho no mesmo azeite até amolecerem, depois o tomate ralado, o colorau, o louro e o piri-piri, a apurar até o azeite subir.',12],
+ ['Vinho e lume brando','Devolve o frango, junta o vinho branco e água só até meia altura. Tapado, lume muito brando, até a carne soltar do osso.',45],
+ ['Batatas nos últimos vinte','Batatas em pedaços grandes no molho, nos últimos vinte minutos. Postas ao princípio, desfazem-se e engrossam o molho a mais.',20],
+ ['Salsa e descanso','Salsa picada e cinco minutos de tacho tapado fora do lume, para o molho assentar.',5]]);
+P('tripasporto',[['Tripas bem lavadas e escaldadas','Mesmo compradas já limpas: lava em água corrente, escalda cinco minutos em água a ferver com limão e deita essa água fora. É o que tira o cheiro que dá má fama ao prato.',15],
+ ['Feijão de véspera','Feijão branco de molho na noite anterior, cozido depois em água nova. Cozido de lata também serve, escorrido e lavado.',480],
+ ['Cozer as tripas devagar','Tripas em água nova com cebola, louro e cenoura, em lume brando, até se cortarem com a colher. Uma hora e meia, e não há atalho.',90],
+ ['Refogado à parte','Cebola, alho, chouriço e presunto no azeite, com os cominhos. É aqui que o prato ganha o cheiro que se reconhece à porta.',12],
+ ['Juntar tudo e apurar','Tripas escorridas e cortadas em tiras, o frango cozido desfiado e o feijão, tudo no refogado com um pouco da água da cozedura. Meia hora a apurar.',30],
+ ['Arroz branco ao lado','Arroz branco solto, servido à parte e nunca cozido dentro — dentro, bebe o molho todo. Salsa por cima.',18]]);
+P('chanfana',[['Barro, e forno de lenha se houver','A chanfana faz-se em caçoila de barro preto e forno de lenha. Em casa: caçarola de barro ou de ferro com tampa, e forno normal. O barro é que dá o cozimento lento e igual.',2],
+ ['Carne em pedaços grandes','Cabra em pedaços de bom tamanho, com osso. É carne de animal velho e é por isso que precisa de horas — cortada pequena, desfaz-se em fiapos antes de amaciar.'],
+ ['Vinho a cobrir, e mais nada','Carne, alho, cebola, louro, colorau, piri-piri, pimenta, sal e a banha. Vinho tinto encorpado a cobrir. Não leva água nenhuma: é o vinho que coze e é ele que fica no molho.'],
+ ['Três horas a 160 °C','Tapado, no forno, sem mexer. A cozedura longa e branda é a receita inteira — a 200 °C a carne aperta e nunca mais cede.',180],
+ ['Destapar no fim','Últimos vinte minutos destapado, para o molho reduzir e escurecer.',20],
+ ['Melhor no dia seguinte','Como quase todos os estufados de vinho, sabe melhor reaquecida no dia seguinte. Batata a murro ou pão ao lado.']]);
+P('linguasbacalhau',[['Demolha longa, e água a trocar','As línguas são finas mas salgadas na mesma: 24 horas de demolha no frigorífico, a trocar a água três ou quatro vezes.',1440],
+ ['Secar mesmo bem','Escorre e seca com pano. Húmidas, não pegam a farinha e saltam no óleo.'],
+ ['Farinha, depois ovo','Passa pela farinha temperada com pimenta e só depois pelo ovo batido — nesta ordem. Ao contrário, o ovo escorrega e a farinha não agarra.'],
+ ['Óleo médio, não a ferver','Óleo a 170 °C, em pequenas fornadas. Muito quente, doura por fora antes de o interior gelatinoso amolecer, que é justamente o que se procura nesta peça.',8],
+ ['Alho e coentros no fim','Fora do lume, alho laminado passado meio minuto no mesmo óleo e coentros picados por cima. Limão à mesa.',2]]);
 P('bolacarne',[['Amassar','Dissolve o fermento no leite morno. Junta à farinha os ovos, a manteiga amolecida e o leite com o fermento. Amassa até a massa largar as mãos e a bancada.',20],
  ['Levedar','Tapa com um pano e deixa num sítio abrigado até dobrar de volume. Se a cozinha estiver fria, demora mais; não forces com calor direto.',60],
  ['Cortar as carnes','Corta o presunto, o chouriço e a linguiça em fatias finas. Fatia grossa liberta gordura a mais e faz a massa afundar por dentro.',10],
@@ -8909,7 +8975,27 @@ NI('Pasta doce de feijão azuki (anko)',193,39.2,6,0.4,4.6,0,4);
 NI('Paximadi (tosta de cevada)',411,75.2,13.1,3.4,13.8,0,4);
 NI('Pimento choricero seco',282,48,12,3.3,15,0,4);
 NI('Za\'atar',522,35,13,32,21,0,4);
+fonte('fda');
+/* Três que os pratos de tacho da cozinha portuguesa pedem e que o catálogo não
+   tinha. Vêm do USDA porque o INSA não os publica: a dobrada das tripas à moda
+   do Porto, a carne de cabra da chanfana e o pepino de conserva do pica-pau. */
+NI('Tripas de vaca cruas',85,0,12.1,3.7,0,0,1);
+NI('Carne de cabra crua',109,0,20.6,2.3,0,0,1);
+NI('Pepino de conserva',12,1.2,0.6,0.2,1.2,0,2);
 fonte('insa');
+/* A língua de bacalhau é a peça carnuda da garganta do peixe, e nenhuma tabela
+   a separa do lombo — nem o INSA nem o USDA. Leva os valores do INSA para o
+   bacalhau demolhado, que é o mesmo peixe com a mesma salga e a mesma demolha:
+   o número é publicado, a decisão de o aplicar a esta peça é que é da casa. A
+   textura é que é outra — mais gelatinosa, por ser sobretudo colagénio —, e
+   isso muda a cozinha mas não muda as calorias de forma que se meça.
+
+   NÃO se declara com fonte('casa'): essa fonte é dos ingredientes que quem usa
+   a app escreve à mão, e o arranque apaga do catálogo estático tudo o que a
+   traga (a limpeza que corre sobre NUTRI ao carregar o estado). Um NI() com
+   fonte «casa» desaparece sem erro nenhum — a receita fica de pé porque os
+   macros já foram calculados antes, e só o sódio é que dá pela falta. */
+NI('Línguas de bacalhau demolhadas',102,0,23.1,0.7,0,0,0);
 fonte('insa');
 
 /* Parte edível. Compram-se 350 g de mexilhões e comem-se cerca de 100: o
@@ -9406,6 +9492,10 @@ const ING_EXCECAO={
   'Bacalhau (posta)':1480,   /* Bacalhau seco e salgado, demolhado cru */
   'Bacalhau demolhado cru':1480,   /* INSA 804 Bacalhau seco e salgado, demolhado cru */
   'Bacalhau desfiado':1480,   /* Bacalhau seco e salgado, demolhado cru */
+  'Línguas de bacalhau demolhadas':1480,   /* mesma salga e mesma demolha do lombo */
+  'Tripas de vaca cruas':97,   /* USDA 13327 Beef, variety meats, tripe, raw */
+  'Carne de cabra crua':82,   /* USDA 17164 Game meat, goat, raw */
+  'Pepino de conserva':1208,   /* USDA 11937 Pickles, cucumber, dill — é onde mora o sal do pica-pau */
   'Bacalhau, ovas cruas':120,
   'Bacon':1200,
   'Bagas goji secas':420,   /* INSA Bagas goji secas */
@@ -10616,6 +10706,7 @@ function limparIngredientes(x){
    app que entretanto publicou esse alimento, não podem fazer com que um
    número escrito à mão passe a valer por cima do INSA sem ninguém dar por
    isso. Em caso de choque, ganha a tabela. */
+var _avisouCasaEstatica=false;
 function aplicaIngredientesDaCasa(lista){
   /* Esta função é a fonte única de verdade do que é «da casa» em NUTRI: antes
      de aplicar a lista, apaga do catálogo os da casa que já não estão nela.
@@ -10625,7 +10716,19 @@ function aplicaIngredientesDaCasa(lista){
      receita feita com o fantasma perdia a linha em silêncio no F5 seguinte. */
   const querem=Object.create(null);
   (lista||[]).forEach(g=>{ querem[g.n]=1; });
-  Object.keys(NUTRI).forEach(n=>{ if(NUTRI[n].fonte==='casa' && !temChave(querem,n)) delete NUTRI[n]; });
+  /* Um NI() escrito no catálogo ESTÁTICO com fonte «casa» é apagado por esta
+     purga logo no arranque, e desaparece sem erro nenhum: a receita que o usa
+     continua com os macros que já tinha calculado e só o sódio é que dá pela
+     falta. Aconteceu com as línguas de bacalhau. Como a purga não distingue o
+     que o utilizador escreveu do que veio no ficheiro, o que se pode fazer é
+     dizê-lo em voz alta na primeira vez. */
+  const apagados=[];
+  Object.keys(NUTRI).forEach(n=>{ if(NUTRI[n].fonte==='casa' && !temChave(querem,n)){ apagados.push(n); delete NUTRI[n]; } });
+  if(apagados.length && !(lista||[]).length && !_avisouCasaEstatica){
+    _avisouCasaEstatica=true;
+    console.warn('Família Fit — ingredientes com fonte «casa» apagados do catálogo ('+apagados.length+'): '
+      +apagados.join(' · ')+'. Se algum destes foi escrito no ficheiro, declara-o com a fonte da tabela de onde veio: «casa» é só para o que se escreve na app.');
+  }
   (lista||[]).forEach(g=>{
     if(temChave(NUTRI,g.n)) return;
     /* o catálogo oculto também é tabela: um nome que lá exista não entra como
@@ -20338,11 +20441,11 @@ function blocoIdade(m){
   if(aberto || m.nasc) return `<div><label class="lbl">Data de nascimento</label>
     <input type="date" id="in-${mid}-nasc" max="${hojeISO()}" min="1900-01-01" value="${m.nasc||''}"
       aria-label="Data de nascimento de ${esc(m.nome)}" onchange="setNascimento('${mid}',this.value)"></div>`;
-  return `<div><label class="lbl">${bebe?'Idade (meses)':'Idade (anos)'}</label>
+  return `<div style="min-width:0"><label class="lbl">${bebe?'Idade (meses)':'Idade (anos)'}</label>
     <div class="row" style="flex-wrap:nowrap;gap:6px">
-      ${bebe? `<input type="number" style="min-width:64px" id="in-${mid}-idade" min="0" max="24" step="1" value="${Math.round(idadeMeses(m))}"
+      ${bebe? `<input type="number" style="min-width:0;flex:1 1 64px;width:100%" id="in-${mid}-idade" min="0" max="24" step="1" value="${Math.round(idadeMeses(m))}"
           aria-label="Idade em meses" onchange="upd('${mid}','meses',this.value,1)">`
-        : `<input type="number" style="min-width:64px" id="in-${mid}-idade" min="2" max="120" value="${Math.round(m.idade)}"
+        : `<input type="number" style="min-width:0;flex:1 1 64px;width:100%" id="in-${mid}-idade" min="2" max="120" value="${Math.round(m.idade)}"
           aria-label="Idade em anos" onchange="upd('${mid}','idade',this.value,1)">`}
       <button class="btn ghost small" style="flex:none" title="Usar a data de nascimento"
         aria-label="Definir a data de nascimento de ${esc(m.nome)}" onclick="abrirNasc('${mid}')">📅</button>
@@ -26917,6 +27020,20 @@ function cartaoSemana(dates){
 /* As mesas da semana: uma por dia, com um lugar por pessoa prevista e os
    lugares ocupados por quem confirmou. Só aparece quando já há registos —
    sete mesas vazias não contam história nenhuma. */
+/* A condição de este cartão existir, numa função só. A visita guiada tinha uma
+   condição PARECIDA mas não igual — pedia registos feitos em qualquer semana,
+   quando o que o cartão precisa é de lugares ocupados na semana que está à
+   vista. Com a família de exemplo as duas divergiam, e o passo 54 apontava a
+   um cartão que não estava lá. Agora quem decide é a mesma linha. */
+function haMesasDaSemana(dates){
+  if(!dates) dates=weekDates(S.week);
+  if(S.members.length<2) return false;
+  return dates.some((date,di)=>MEALK.some(mk=>{
+    const meal=(planWeek()[di]||{})[mk]; if(!meal||!meal.r) return false;
+    const comem=S.members.filter(m=>meal.m.includes(m.id)&&!isCheat(m.id,date));
+    return comem.length>0 && estadoValidacaoRef(comem,date,mk).n>0;
+  }));
+}
 function mesasDaSemana(dates){
   if(S.members.length<2) return '';
   const dias=dates.map((date,di)=>{
@@ -29283,7 +29400,7 @@ const TOUR=[
      for(let d=0;d<7;d++) for(const k of MEALK) if((w[d]||{})[k] && (w[d][k]||{}).r) return true; return false; },
    t:'Convidados, porções e marmitas',
    d:'Em cada refeição: «＋ adulto» e «＋ criança» põem mais gente à mesa sem criar perfis — doses, acompanhamentos e compras escalam já, e as alergias do convidado entram nos alertas só nesse dia. «Porções» cozinha a dobrar: o prato passa a render dois dias, e o dia que só aquece deixa de o comprar (o acompanhamento faz-se fresco). E a marmita marca-se pessoa a pessoa, com a dose já escalada.'},
-  {tab:'plano', sel:'.mesas-semana', quando:()=>S.members.length>1 && (S.regRef||[]).some(r=>r.estado==='feita'),
+  {tab:'plano', sel:'.mesas-semana', quando:()=>haMesasDaSemana(),
    t:'Mesas cheias e lápis e tinta',
    d:'O que está só planeado desenha-se a lápis, sobre papel quadriculado; o que foi confirmado passa a tinta e leva um carimbo. E quando toda a gente prevista para uma refeição confirma, a mesa dessa refeição enche-se — um lugar por pessoa, sem números. É o hábito que os macros escondem: comer juntos.'},
   /* A visita põe a semana em hoje antes de apontar para o dia de hoje: quem
