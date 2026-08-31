@@ -3519,7 +3519,13 @@ R('aclfpreto','Feijão preto temperado','brasileira',['vegan','mediterranica'],0
 R('aclfarofa','Farofa de mandioca','brasileira',[],0,0,0,0,[['Farinha de pau (mandioca)',40,'g'],['Manteiga',12,'g'],['Cebola',0.5,'un'],['Bacon',20,'g'],['Salsa',4,'g']],['ac']),
 R('aclsalverde','Salada verde com vinagrete','portuguesa',['vegan','mediterranica'],0,0,0,0,[['Alface',80,'g'],['Rúcula',30,'g'],['Pepino',0.5,'un'],['Azeite',10,'ml'],['Vinagre de vinho',5,'ml'],['Mostarda',3,'g']],['ac']),
 /* ---- Outras cozinhas ---- */
-R('currywurst','Salsicha grelhada às rodelas','outras',[],0,0,0,0,[['Salsicha fresca crua',150,'g'],['Caril em pó',2,'g'],['Óleo alimentar',4,'ml']],['a','j'],2,['pp']),
+/* O currywurst de Berlim é salsicha alemã e um molho de tomate acastanhado
+   pelo caril — nunca ketchup, que é o atalho que lhe tira o agridoce e lhe
+   deixa só o doce. O corpo vem da polpa de tomate e da maçã cozida dentro do
+   molho (é ela o «puré de maçã»: rala-se e desfaz-se, e assim vem do
+   ingrediente que a app tem em tabela, sem inventar um produto novo), a
+   acidez do balsâmico, o fundo do molho inglês e o doce medido do mel. */
+R('currywurst','Salsicha alemã grelhada às rodelas','outras',[],0,0,0,0,[['Salsicha alemã',150,'g'],['Caril em pó',2,'g'],['Óleo alimentar',4,'ml']],['a','j'],2,['pp']),
 /* ---- Snacks keto ----
    Todos abaixo do teto de hidrato líquido, mas isso é verificado pela
    derivação automática e não por esta lista: se algum passar do teto, perde a
@@ -3759,15 +3765,26 @@ R('acmbaja','Molho branco à Baja','mexicana',[],0,0,0,0,[['Maionese',20,'g'],['
 R('acmmaionesepicante','Molho picante de maionese e lima','mexicana',[],0,0,0,0,[['Maionese',15,'g'],['Molho piri-piri',10,'ml'],['Lima',5,'ml'],['Flor de sal',0.3,'g']],['mo']),
 R('acmcaesar','Molho Caesar','americana',[],0,0,0,0,[['Anchovas',8,'g'],['Maionese',20,'g'],['Mostarda',5,'g'],['Limão',0.5,'un']],['mo']),
 R('acmtomatemanjericao','Molho de tomate e manjericão','italiana',[],0,0,0,0,[['Polpa de tomate',150,'g'],['Alho',2,'dente'],['Manjericão',5,'g'],['Azeite',5,'ml']],['mo']),
-R('acmcurrywurst','Molho de currywurst','outras',[],0,0,0,0,[['Cebola',0.25,'un'],['Óleo alimentar',4,'ml'],['Ketchup',45,'g'],['Polpa de tomate',20,'g'],['Açúcar amarelo',4,'g'],['Vinagre de vinho',5,'ml'],['Caril em pó',2,'g'],['Pimentão-doce',2,'g']],['mo']),
+R('acmcurrywurst','Molho de currywurst','outras',[],0,0,0,0,[['Cebola',0.4,'un'],['Óleo alimentar',5,'ml'],['Polpa de tomate',60,'g'],['Maçã',60,'g'],['Molho inglês',5,'ml'],['Vinagre balsâmico',8,'ml'],['Mel',6,'g'],['Caril em pó',4,'g'],['Pimentão-doce',2,'g'],['Pimenta de caiena',0.5,'g']],['mo']),
 /* A alternativa keto às Pommes que acompanham o currywurst: o aipo-rábano
    assado em palitos tosta por fora e fica cremoso por dentro, que é o que se
    pede a uma batata frita, com uma fração dos hidratos. */
-R('aclaipofritas','Palitos de aipo-rábano assados','outras',[],0,0,0,0,[['Aipo-rábano cru',140,'g'],['Azeite',15,'ml'],['Pimentão-doce',2,'g'],['Alho em pó',1,'g'],['Flor de sal',2,'g']],['ac']),
+/* Palitos de aipo-rábano e rabanete: a alternativa keto às Pommes. Assados,
+   os dois tostam por fora e ficam cremosos por dentro, que é o que se pede a
+   uma batata frita. A mistura não é decorativa — o rabanete tem quase metade
+   dos hidratos do aipo-rábano (1,9 contra 3,5 g/100 g), e é ele que permite
+   um acompanhamento de 180 g num prato que tem de caber nos 10 g de hidratos
+   líquidos da etiqueta keto. */
+R('aclaipofritas','Palitos de aipo-rábano e rabanete assados','outras',[],0,0,0,0,[['Aipo-rábano cru',60,'g'],['Rabanete cru',90,'g'],['Azeite',15,'ml'],['Pimentão-doce',2,'g'],['Flor de sal',2,'g']],['ac']),
 /* O molho do currywurst sem o açúcar: o ketchup é quase todo açúcar, e é ele
    e não o caril que põe o prato fora da conta keto. Trocado por polpa de
    tomate, vinagre e eritritol, o molho fica com o mesmo agridoce. */
-R('acmcurryketo','Molho de currywurst sem açúcar','outras',[],0,0,0,0,[['Óleo alimentar',5,'ml'],['Polpa de tomate',45,'g'],['Eritritol',6,'g'],['Vinagre de vinho',8,'ml'],['Caril em pó',3,'g'],['Pimentão-doce',2,'g']],['mo']),
+/* A versão keto do mesmo molho. Sai o mel e sai a maçã — são os dois doces, e
+   juntos valiam mais de metade dos hidratos do molho. O agridoce reconstrói-se
+   com eritritol e com um vinagre de vinho em vez do balsâmico, que também é
+   açúcar concentrado. O molho inglês fica, em pouco: é o fundo salgado que
+   distingue este molho de tomate temperado com caril. */
+R('acmcurryketo','Molho de currywurst keto','outras',[],0,0,0,0,[['Óleo alimentar',5,'ml'],['Polpa de tomate',30,'g'],['Vinagre de vinho',8,'ml'],['Molho inglês',2,'ml'],['Eritritol',6,'g'],['Caril em pó',3.5,'g'],['Pimentão-doce',2,'g'],['Pimenta de caiena',0.5,'g']],['mo']),
 R('salmaoforno','Salmão no forno com espargos e tomate cereja','mediterranica',['mediterranica'],0,0,0,0,[['Salmão',180,'g'],['Espargos',120,'g'],['Tomate cereja',100,'g'],['Azeite',12,'ml'],['Alho',2,'dente'],['Limão',0.5,'un'],['Orégãos',2,'g']],['a','j'],0,['pp']),
 R('salmaocrostaervas','Salmão em crosta de ervas e mostarda','francesa',[],0,0,0,0,[['Salmão',180,'g'],['Pão ralado',25,'g'],['Mostarda de Dijon',12,'g'],['Salsa',8,'g'],['Endro',4,'g'],['Manteiga',12,'g'],['Limão',0.25,'un']],['a','j'],0,['pp']),
 R('saladasalmaofumado','Salada de salmão fumado com abacate e endro','mediterranica',['mediterranica'],0,0,0,0,[['Salmão fumado',80,'g'],['Abacate',0.5,'un'],['Rúcula',50,'g'],['Pepino',60,'g'],['Endro',4,'g'],['Alcaparras',8,'g'],['Azeite',10,'ml'],['Limão',0.5,'un']],['a','l','j'],0,['ent','pp']),
@@ -6549,17 +6566,19 @@ P('acmcaesar',[['Desfazer as anchovas','Esmaga os filetes de anchova com o garfo
 P('acmtomatemanjericao',[['Perfumar o alho','Alho laminado no azeite em lume brando, só até perfumar e mal ganhar cor. Queimado, amarga o molho todo e já não há volta.',2],
  ['Apurar a polpa','Junta a polpa de tomate e deixa apurar em lume brando, até perder o sabor a cru e a colher deixar rasto no fundo do tacho.',12],
  ['Manjericão fora do lume','Folhas rasgadas à mão já fora do lume. Cozidas ficam pretas e sabem a erva seca.']]);
-P('acmcurrywurst',[['Suar a cebola','Cebola picada muito fina a suar no óleo, em lume brando, sem ganhar cor. Se alourar, o molho fica escuro e adocicado de mais.',6],
- ['Juntar os tomates','Ketchup, polpa de tomate, açúcar amarelo e vinagre, mexidos até ficar uniforme e sem grumos de polpa.',2],
- ['Apurar com o caril','Metade do caril e o pimentão-doce, em lume brando, até engrossar e desaparecer o sabor a tomate cru. Sabes que está quando a colher deixa rasto no fundo.',10],
- ['Servir quente','Vai quente por cima da salsicha já cortada, e o resto do caril polvilha-se à última hora, para se sentir o pó.']]);
-P('aclaipofritas',[['Cortar','Descasca o aipo-rábano com faca — a casca é grossa de mais para o descascador — e corta em palitos da grossura de um dedo mindinho, todos iguais.',10],
- ['Temperar','Envolve os palitos no azeite com o pimentão-doce, o alho em pó e o sal, até ficarem todos brilhantes.',3],
+P('acmcurrywurst',[['Suar a cebola','Cebola picada muito fina a suar no óleo, em lume brando, sem ganhar cor. Se alourar, o molho fica escuro e adocicado de mais.',7],
+ ['Especiarias no óleo','Junta o caril, o pimentão-doce e a caiena e deixa-os fritar meio minuto no óleo da cebola, até cheirarem. É este passo que lhes tira o gosto a pó cru.',1],
+ ['Tomate e maçã','Polpa de tomate e a maçã ralada com casca — é ela o puré, e desfaz-se sozinha no lume. Mexe e deixa apurar em lume brando.',12],
+ ['Acertar o agridoce','Molho inglês, vinagre balsâmico e mel, por esta ordem, com um pouco de água a soltar. Prova entre cada um: o molho tem de picar e adoçar ao mesmo tempo, e o balsâmico faz as duas coisas.',5],
+ ['Passar ou não','Deixa-o rústico, ou passa-o com a varinha para ficar liso como o das bancas. Sobre a salsicha às rodelas, com mais caril por cima e as batatas fritas ao lado.',2]]);
+P('aclaipofritas',[['Cortar','Descasca o aipo-rábano com faca — a casca é grossa de mais para o descascador — e corta em palitos da grossura de um dedo mindinho. Os rabanetes vão só ao meio ou aos quartos, conforme o tamanho, e não se descascam.',12],
+ ['Temperar','Envolve tudo no azeite com o pimentão-doce e o sal, até ficarem brilhantes.',3],
  ['Assar','Forno a 220 °C, num tabuleiro em camada única e sem se tocarem, 25 a 30 minutos, a virar a meio. Amontoados cozem em vez de tostar.',28],
- ['Servir','Saem tostados por fora e cremosos por dentro. Comem-se logo: mornos, murcham.']]);
-P('acmcurryketo',[['Especiarias no óleo','Óleo numa frigideira pequena em lume brando, e o caril com o pimentão-doce lá dentro, meio minuto, até cheirarem. É este passo que tira o gosto a pó cru — no molho clássico a cebola dava-lhe corpo, e aqui é o tomate que o dá, sem os hidratos dela.',1],
- ['Molho','Junta a polpa de tomate, o vinagre e o eritritol, com um pouco de água a soltar. Cinco minutos em lume brando, a mexer.',5],
- ['Provar','O eritritol adoça menos do que o açúcar e não carameliza — prova e acerta o vinagre antes de acertar o doce. Sobre a salsicha às rodelas, com mais caril por cima.']]);
+ ['Servir','O rabanete perde no forno o picante que tem em cru e fica adocicado — quem o provar às cegas não lhe acerta o nome. Comem-se logo: mornos, murcham.']]);
+P('acmcurryketo',[['Especiarias no óleo','Óleo numa frigideira pequena em lume brando, e o caril com o pimentão-doce e a caiena lá dentro, meio minuto, até cheirarem. Sem cebola nem maçã, é daqui que vem quase todo o sabor — não saltes este passo.',1],
+ ['Tomate','Junta a polpa de tomate e um pouco de água a soltar. Sete minutos em lume brando, a mexer, até o tomate perder o gosto a cru.',7],
+ ['Acertar o agridoce','Vinagre de vinho, molho inglês e o eritritol. O eritritol adoça menos do que o mel e não carameliza, por isso acerta primeiro o vinagre e só depois o doce — ao contrário do molho normal.',3],
+ ['Servir','Sobre a salsicha às rodelas, com mais caril por cima e os palitos de aipo-rábano ao lado. Sem o mel e sem a maçã fica mais picante do que o original: é a caiena que passa à frente.']]);
 P('salmaoteriyaki',[['Marinar','Salmão no teriyaki com gengibre e alho ralados, quinze minutos. Mais tempo e o açúcar queima ao grelhar.',15],
  ['Selar','Frigideira quente com óleo de sésamo, salmão a corar de ambos os lados.',6],
  ['Glacear','A marinada ao lume a reduzir até brilhar, e o salmão a rolar lá dentro.',4],
@@ -6948,9 +6967,9 @@ P('paodelo',[['Bater','Ovos, gemas e açúcar batidos muito tempo — dez minuto
  ['Forma','Forma forrada com papel, sem untar as paredes: a massa precisa de se agarrar para subir.'],
  ['Forno','Forno bem quente, 190 °C, e a porta fechada. O pão de ló português quer-se húmido no meio — o palito sai molhado de propósito.',22],
  ['Arrefecer','Arrefece dentro da forma, no papel. Desenformar quente faz abater.']]);
-P('currywurst',[['Dourar inteira','Salsicha inteira na frigideira ou na grelha, com um fio de óleo, a dourar de todos os lados.',10],
- ['Cortar fora do lume','Corta em rodelas de dedo já fora do lume. Cortada antes, sai-lhe a gordura toda e fica seca.'],
- ['Caril a fechar','Polvilha com o caril em pó à última hora. Pão ou batata frita ao lado.']]);
+P('currywurst',[['Dourar inteira','Salsicha alemã inteira na frigideira ou na grelha, com um fio de óleo, a dourar de todos os lados. Não a fures: é o que a deixa seca.',12],
+ ['Cortar fora do lume','Corta em rodelas da grossura de um dedo já fora do lume. Cortada antes, perde a gordura toda para a frigideira.'],
+ ['Caril a fechar','Molho por cima e o caril em pó polvilhado à última hora, por cima do molho — é assim que se come em Berlim, e o caril cru por cima é metade do cheiro.']]);
 
 /* ---- Carne ---- */
 P('bifespanados',[['Achatar','Abre os bifes entre duas folhas de película e bate-os até ficarem com meio centímetro por igual. Um bife grosso pana bem por fora e fica cru no meio.',5],
@@ -8533,6 +8552,7 @@ NI('Orégãos',265,26.4,9,4.3,42.5,0,4);
 NI('Ervas de Provença',265,24,9,7,40,0,-1);  // USDA, hidratos convertidos para disponiveis
 NI('Pimenta preta',250,39,10,3.3,25,0,-1);  // USDA, hidratos convertidos para disponiveis
 NI('Pimentão-doce',282,19.1,14.1,12.9,34.9,0,4);  // USDA 171329 (paprika); mesmo alimento que 'Colorau'
+NI('Pimenta de caiena',318,29.4,12,17.3,27.2,0,4);  // USDA (pimenta vermelha/caiena), hidratos convertidos para disponiveis
 NI('Flor de sal',0,0,0,0,0,0,-1);  // USDA, hidratos convertidos para disponiveis
 
 /* ---- O resto da tabela portuguesa ----
@@ -9205,6 +9225,7 @@ NI('Vinagre de sidra',21,0.93,0,0,0,0,4,'ml');
 NI('Whisky',219,0,0,0,0,0,4,'ml');
 fonte('rotulo');
 NI('Bagas de berberis',313,65.2,3.4,2.9,8,0,4);
+NI('Salsicha alemã',290,1,13,26,0,75,1);
 NI('Linguiça toscana',268,1,12,24,0,0,1);
 NI('Lorne sausage',213,13.3,17.5,9.6,0,67.5,1);
 NI('Pasta doce de feijão azuki (anko)',193,39.2,6,0.4,4.6,0,4);
@@ -11307,7 +11328,6 @@ function faseDetalhada(m){
   const f=faseDe(m);
   return f==='adulto'? faixaAdulta(m) : f;
 }
-function ehIdoso(m){ return faseDe(m)==='adulto' && idadeAnos(m)>=IDADE_IDOSO; }
 /* ================= EXERCÍCIO NA GRAVIDEZ E NO PÓS-PARTO =================
    Tudo o que se segue vem do «Physical Activity and Exercise During Pregnancy
    and the Postpartum Period» — ACOG Committee Opinion n.º 804 (2020, reafirmado
@@ -12966,13 +12986,35 @@ function fatorRenutricao(mid){
   if(!r) return 1;
   return r.rampa[r.diaDe] || 1;
 }
+/* O que se gastou hoje ao PONTO de mudar o alvo — que não é a mesma conta que
+   a de cima, e era esse o erro.
+   `extraAtivDia` compara o que se fez com a sessão inteira marcada para hoje,
+   e é essa a pergunta certa para o mostrador «vs. plano do dia»: cumpriste o
+   treino ou não. Mas o alvo calórico já traz dentro de si a MÉDIA diária do
+   desporto — `sportsKcalDay` divide a semana por sete e entra no `tdee` —, e
+   somar-lhe a diferença contra a carga do dia mistura duas escalas.
+   O preço era grande e caía exatamente nos dias errados. Medido na família de
+   exemplo: a Ana tem os três desportos marcados à segunda e à sexta, ~1082
+   kcal por dia de treino. Enquanto a sessão não estivesse registada — ou seja,
+   todo o dia até ela treinar, e todos os dias de treino futuros da semana —
+   o extra dava −1082, o alvo caía de 1958 para 1085 kcal e ficava preso no
+   piso do `bmr*0,8`. A app mandava comer 45 % menos justamente nos dias em que
+   ela ia gastar mais.
+   Aqui a conta é «o que fiz a mais do que o alvo já conta», e nunca desce: um
+   dia sem treino fica com o alvo normal, e a correção para quem treina menos
+   do que planeou já existe noutro sítio — é a validação contra a balança, que
+   ajusta o gasto estimado com dados de semanas e não com um dia. */
+function extraParaOAlvo(m,d){
+  const feito=regAtivDe(m.id).filter(r=>r.d===d&&r.estado==='feita').reduce((t,r)=>t+kcalRegAtiv(r),0);
+  return Math.max(0, feito-sportsKcalDay(m));
+}
 function alvoDoDia(m,d){
   if(semEstimativa(m)) return 0;
   /* Um dia coberto por um jejum pontual não tem alvo calórico: tem zero. E um
      dia parcialmente coberto tem a fração que sobra — não faz sentido propor
      2000 kcal a quem só tem seis horas para as comer. */
   const hj=horasDeJejumNoDia(m.id,d);
-  const base=Math.max(bmr(m)*0.8, targetKcal(m)+extraAtivDia(m,d));
+  const base=Math.max(bmr(m)*0.8, targetKcal(m)+extraParaOAlvo(m,d));
   if(hj>=24) return 0;
   if(hj>0) return Math.round(base*(24-hj)/24);
   /* Depois de um jejum longo, o alvo sobe por degraus em vez de saltar de zero
@@ -18474,9 +18516,10 @@ const VARIANTES=[
   {k:'bacalhau', n:'Bacalhau no forno', ids:['bacalhaunatas','gomesdesa','zedopipo','bacespiritual','bacbroa','ketobacalhaunatas']},
   {k:'bras',     n:'Bacalhau à Brás',  ids:['bras','ketobras']},
   {k:'caldoverde',n:'Caldo verde',     ids:['caldoverde','ketocaldoverde']},
-  {k:'esparguete',n:'Massa'      ,      ids:['bolonhesa','ragubolognese','carbonara','cacioepepe','puttanesca','espguetepesto','ketobolonhesa','ketocarbonara','konjacbolonhesa','konjaccarbonara','konjacputtanesca','konjacpesto']},
+  {k:'esparguete',n:'Massa',            ids:['bolonhesa','ragubolognese','carbonara','cacioepepe','puttanesca','espguetepesto','ketobolonhesa','ketocarbonara','konjacbolonhesa','konjaccarbonara','konjacputtanesca','konjacpesto']},
   {k:'hamburguer',n:'Hambúrguer',      ids:['hamburguer','ketohamburguer']},
   {k:'bitoque', n:'Bitoque',           ids:['bitoque','ketobitoque']},
+  {k:'currywurst',n:'Currywurst',        ids:['c:currywurst+acbfritas~acmcurrywurst','c:currywurst+aclaipofritas~acmcurryketo']},
   {k:'paoketo', n:'Pão sem farinha',   ids:['ketopaonuvem','ketopaoamendoa']},
   /* ---- O mesmo prato, molho diferente ----
      Estas são o caso mais puro de variante: a mesma peça de carne ou de peixe
@@ -22573,7 +22616,7 @@ const AC_CURTO={
   aclesparregado:'esparregado', aclespargossalt:'espargos salteados',
   acllegsalt:'legumes salteados', acllegratin:'legumes gratinados',
   aclcouveflor:'couve-flor gratinada', aclcenoura:'cenouras salteadas',
-  aclaipofritas:'palitos de aipo-rábano',
+  aclaipofritas:'palitos de aipo-rábano e rabanete',
   aclmigas:'migas', aclfpreto:'feijão preto', aclfarofa:'farofa',
   aclsalmista:'salada mista', aclsaltomate:'salada de tomate',
   aclcouveroxa:'salada de couve-roxa', aclsalverde:'salada verde',
@@ -22678,8 +22721,8 @@ const NOME_COMBO={
   'c:caesar+~acmcaesar':'Salada Caesar com frango',
   'c:ovosbenedict+~acmholandes':'Ovos Benedict',
   'c:chickenparm+~acmtomatemanjericao':'Chicken Parmesan',
-  'c:currywurst+~acmcurrywurst':'Currywurst',
-  'c:currywurst+aclaipofritas~acmcurryketo':'Currywurst keto com palitos de aipo-rábano',
+  'c:currywurst+acbfritas~acmcurrywurst':'Currywurst com batatas fritas',
+  'c:currywurst+aclaipofritas~acmcurryketo':'Currywurst keto com palitos de aipo-rábano e rabanete',
 };
 /* Os pares que a app traz de casa. Ver a nota em sincronizaCombos(): estes não
    são dados de ninguém, são biblioteca — e é por isso que não vivem em S. */
@@ -22766,7 +22809,7 @@ const COMBOS_BASE=[
   {base:'caesar', ac:[], mo:'acmcaesar'},
   {base:'ovosbenedict', ac:[], mo:'acmholandes'},
   {base:'chickenparm', ac:[], mo:'acmtomatemanjericao'},
-  {base:'currywurst', ac:[], mo:'acmcurrywurst'},
+  {base:'currywurst', ac:['acbfritas'], mo:'acmcurrywurst'},
   {base:'currywurst', ac:['aclaipofritas'], mo:'acmcurryketo'},
 ];
 function nomeCombo(baseId,acs,mo){
@@ -26524,11 +26567,29 @@ function validacaoObjetivo(o){
   }
   /* o que se previa para os mesmos dias */
   const deficeDiarioPlano=Math.abs(tdee(m)-targetKcal(m));
-  const deficeDiarioReal = (ingeridoMedio!=null && gastoMedido!=null)
-    ? (gastoMedido-ingeridoMedio)*(o.tipo==='perder'?1:-1) : null;
-  const usouRegistos = deficeDiarioReal!=null && Math.abs(deficeDiarioReal)>1;
-  const deficeUsado = usouRegistos? Math.abs(deficeDiarioReal) : deficeDiarioPlano;
-  const kcalPrevisto=deficeUsado*dias*(o.tipo==='perder'?1:-1);
+  /* ---- O sinal do balanço medido é do balanço, não do objetivo ----
+     `kcalReal` e `kcalPrevisto` têm de estar os dois na mesma convenção
+     («positivo = défice = peso a descer») para a razão entre eles significar
+     alguma coisa. O balanço medido já vem nessa convenção sozinho — é
+     `gasto − ingestão` — e o que aqui estava fazia-lhe duas coisas seguidas
+     que se anulavam no caso bom e mentiam no caso mau: tirava-lhe o sinal com
+     `Math.abs` e voltava a impor o sinal do TIPO de objetivo.
+     Enquanto a pessoa se porta como o objetivo pede, os dois sinais coincidem
+     e ninguém dá por nada. Quando não se porta, invertem-se. Medido: objetivo
+     de perder, registos com 250 kcal/dia de EXCEDENTE em 30 dias e a balança
+     a subir 1,0 kg — ou seja, previsão e balança de acordo. A app respondia
+     «prevíamos −0,97 kg» (o contrário do que os próprios registos dizem),
+     marcava desvio de −2,03 e corrigia o gasto de 2092 para 1585 kcal, meio
+     milhar de calorias a menos por dia, para explicar uma divergência que não
+     existia. O passo seguinte da app é propor baixar o alvo com esse número.
+     O plano continua a precisar do sinal do tipo, e por outra razão: um plano
+     de ganhar tem alvo ACIMA do gasto, e `deficeDiarioPlano` é um módulo. */
+  const balancoDiarioReal = (ingeridoMedio!=null && gastoMedido!=null)
+    ? gastoMedido-ingeridoMedio : null;          /* positivo = défice */
+  const usouRegistos = balancoDiarioReal!=null && Math.abs(balancoDiarioReal)>1;
+  const kcalPrevisto = usouRegistos
+    ? balancoDiarioReal*dias
+    : deficeDiarioPlano*dias*(o.tipo==='perder'?1:-1);
   if(Math.abs(kcalPrevisto)<1) return {estado:'sem-plano'};
   const razao=kcalReal/kcalPrevisto;          /* 1 = a previsão acertou */
   const desvio=razao-1;
@@ -26628,12 +26689,6 @@ function metParaSugestao(m,sportId,nivel){
    Não há aqui nenhuma dose «para toda a gente» — há uma faixa e um critério.
    A app diz o critério e não vende suplemento nenhum. */
 const MIN_SUOR_ELETROLITOS=60;   /* minutos de sessão a partir dos quais a reposição interessa */
-function cargaSemanal(m,ids,nivel,sessoes){
-  const lista=(ids||[]).filter(id=>temChave(SPORT,id));
-  if(!lista.length) return null;
-  const met=lista.reduce((t,id)=>t+metParaSugestao(m,id,nivel),0)/lista.length;
-  return {met, intenso: nivel==='intenso', sessoes:sessoes||lista.length};
-}
 function avisoDescanso(sessoes,nivel){
   const n=Math.round(sessoes)||0;
   if(!n) return null;
@@ -26806,6 +26861,25 @@ function aplicarExercicio(m,sportId,horasExtraSemana,nivel){
     m.desportos.push(normalizaDesporto({s:sportId, h:Math.round(horasExtraSemana*10)/10, i:(nivel||'moderado'), per:'semana'}));
   }
 }
+/* ---- Devolver ao plano o que este objetivo lhe somou ----
+   Percorre o que FOI aplicado, e não a lista de desportos que o objetivo tem
+   agora — a diferença entre as duas é o bug. O ciclo antigo iterava a lista
+   nova, e por isso um desporto tirado do objetivo nunca devolvia as horas; a
+   linha seguinte limpava `horasAplicadas`, e a partir daí já ninguém sabia
+   que elas lá estavam. Medido: objetivo com corrida e natação a 5 sessões
+   intensas, mudado para 2 sessões leves só de corrida — a natação ficava no
+   plano com 1,26 h órfãs, o total semanal subia de 2,54 para 4,72 h, e com
+   ele o gasto estimado de 2539 para 2820 kcal. A app passava a mandar comer
+   mais por causa de um treino que a pessoa acabara de retirar.
+   Chamar isto duas vezes é inócuo: à segunda, `horasAplicadas` está vazio. */
+function retirarAplicado(m,o){
+  const ja=(o.horasAplicadas&&typeof o.horasAplicadas==='object')? o.horasAplicadas : {};
+  Object.keys(ja).forEach(id=>{
+    const antes=parseFloat(ja[id])||0;
+    if(antes>0.01) retirarExercicio(m,id,antes);
+  });
+  o.horasAplicadas={};
+}
 function aplicarEstrategia(mid,calc,o){
   const m=S.members.find(x=>x.id===mid); if(!m) return;
   if(o.tipo==='manter'){ m.objetivoPct=0; sincronizaObjetivo(m); return; }
@@ -26822,12 +26896,7 @@ function aplicarEstrategia(mid,calc,o){
        também passava a mandar comer mais.
        Guarda-se o que este objetivo acrescentou; ao reaplicar, desconta-se o
        que da última vez foi somado antes de somar o novo. */
-    const jaSomado=(o.horasAplicadas&&typeof o.horasAplicadas==='object')? o.horasAplicadas : {};
-    ids.forEach(id=>{
-      const s=(m.desportos||[]).find(x=>x.s===id);
-      const antes=parseFloat(jaSomado[id])||0;
-      if(s && antes>0.01) retirarExercicio(m,id,antes);
-    });
+    retirarAplicado(m,o);
     aplicarExercicios(m,ids,calc.horasExtraSemana,o.nivel);
     o.horasAplicadas={};
     const porCada=ids.length? calc.horasExtraSemana/ids.length : 0;
@@ -27218,6 +27287,13 @@ function reajustarObjetivo(oid){
     Math.min(14, Math.max(1,o.desportosEscolhidos.length)*7));
   o.agendar=!!adj.agendar;
   o.nivel=NIVEIS.some(n=>n[0]===adj.nivel)? adj.nivel : (o.nivel||'moderado');
+  /* Devolver ANTES de recalcular, e não só antes de reaplicar. `calcEstrategia`
+     lê o gasto atual de quem está à frente — e esse já incluía as horas que
+     este mesmo objetivo tinha somado. Resultado: abrir «Ajustar» e gravar sem
+     mexer em nada movia o alvo de 2195 para 2247 kcal, porque a segunda conta
+     partia de um TDEE inflacionado pela primeira. Devolvendo primeiro, o
+     reajuste parte da mesma linha de base que a criação. */
+  retirarAplicado(m,o);
   const calc=calcEstrategia(m,o.pesoAlvo,semanasRestantesDe(o),o.tipo,o.splitDieta,o.desportosEscolhidos,o.nivel);
   aplicarEstrategia(o.membroId,calc,o);
   S.ui.objExpandido=null;
@@ -27346,6 +27422,13 @@ function painelAjuste(o,m){
   if(o.tipo!=='perder') return `<div class="msg" style="margin-top:10px;background:var(--bg);color:var(--mut)">
     Este tipo de objetivo não tem estratégia mista para ajustar. Para mudar o alvo ou o prazo, remove e cria um objetivo novo.</div>`;
   const adj=S.ui.objAdj||{split:o.splitDieta, desportos:desportosDoObjetivo(o), sessoes:o.sessoes||3, agendar:o.agendar!==false};
+  /* Devolver ANTES de recalcular, e não só antes de reaplicar. `calcEstrategia`
+     lê o gasto atual de quem está à frente — e esse já incluía as horas que
+     este mesmo objetivo tinha somado. Resultado: abrir «Ajustar» e gravar sem
+     mexer em nada movia o alvo de 2195 para 2247 kcal, porque a segunda conta
+     partia de um TDEE inflacionado pela primeira. Devolvendo primeiro, o
+     reajuste parte da mesma linha de base que a criação. */
+  retirarAplicado(m,o);
   const calc=calcEstrategia(m,o.pesoAlvo,semanasRestantesDe(o),o.tipo,adj.split,adj.desportos,adj.nivel);
   /* todos, com os que esta pessoa já pratica à frente */
   const pratica=new Set((m.desportos||[]).map(s=>s.s));
@@ -27734,8 +27817,6 @@ function acClones(){
 }
 function esqueceAcClones(){ _acClones=null; }
 function acompanhamentos(){ const c=acClones(); return RECIPES.filter(r=>r.mt.indexOf('ac')>=0 && !c.has(r.id)); }
-/* a lista completa, clones incluídos — para quem precisa de resolver um id */
-function acompanhamentosTodos(){ return RECIPES.filter(r=>r.mt.indexOf('ac')>=0); }
 /* ---- O molho é outra coisa ----
    Um molho estava a ocupar um dos três lugares do acompanhamento, e não é
    isso que ele faz na mesa: quem põe chimichurri no bife continua a querer as
