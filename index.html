@@ -2665,6 +2665,18 @@ function limparConvidadosEm(s){
           }).filter(Boolean).slice(0,8);
         }
         if(Array.isArray(meal.marmita)) meal.marmita=meal.marmita.filter(id=>(meal.m||[]).indexOf(id)>=0);
+        /* Acompanhamento próprio de quem não podia comer o da travessa. Vale só
+           para quem continua a sentar-se a esta mesa: tirar alguém da refeição
+           tem de tirar também o prato especial que lhe tinha sido dado, senão
+           fica a somar à lista de compras uma pessoa que já lá não está. A
+           validação de que os ids são mesmo acompanhamentos fica para
+           limparAcPor(), que corre com as receitas todas carregadas. */
+        if(meal.acPor && typeof meal.acPor==='object'){
+          Object.keys(meal.acPor).forEach(mid=>{
+            if((meal.m||[]).indexOf(mid)<0 || !Array.isArray(meal.acPor[mid])) delete meal.acPor[mid];
+          });
+          if(!Object.keys(meal.acPor).length) delete meal.acPor;
+        } else if(meal.acPor!==undefined) delete meal.acPor;
         /* o molho é um id só, e uma cópia estragada podia trazer aqui uma
            lista ou um número. Validar que é mesmo um molho fica para moId(),
            que corre já com as receitas todas carregadas — aqui, no arranque,
@@ -3639,6 +3651,10 @@ R('aclpurecouveflor','Puré de couve-flor','portuguesa',[],0,0,0,0,[['Couve-flor
 R('aclpimentoassadodpxsa','Pimentos assados com azeite e alho','portuguesa',[],0,0,0,0,[['Pimento',0.5,'un'],['Azeite',5,'ml'],['Alho',1,'dente']],['ac']),
 R('acbmurrodpxsa','Batata a murro com alho e azeite','portuguesa',[],0,0,0,0,[['Batata nova',180,'g'],['Azeite',15,'ml'],['Alho',2,'dente'],['Flor de sal',2,'g']],['ac']),
 R('aclmigasfrade','Migas de feijão-frade, couve e broa','portuguesa',[],0,0,0,0,[['Feijão-frade cozido',90,'g'],['Couve-portuguesa crua',100,'g'],['Broa de milho',50,'g'],['Alho',2,'dente'],['Azeite',14,'ml'],['Coentros',8,'g'],['Vinagre de vinho',5,'ml']],['ac']),
+/* Os grelos do polvo à lagareiro. Dose própria, como os outros: ao lado de um
+   prato que já traz 150 g de batata e 200 g de polvo, o que falta é o verde
+   amargo a cortar o azeite — não uma segunda travessa. */
+R('aclgrelosdpolvo','Grelos salteados com alho e azeite','portuguesa',['mediterranica'],0,0,0,0,[['Grelos',120,'g'],['Alho',2,'dente'],['Azeite',10,'ml'],['Limão',0.25,'un']],['ac']),
 R('aclgrelosdbacb','Grelos salteados com alho e azeite','portuguesa',[],0,0,0,0,[['Grelos',80,'g'],['Alho',3,'dente'],['Azeite',12,'ml'],['Limão',0.25,'un']],['ac']),
 R('aclalface','Salada de alface com azeite','francesa',[],0,0,0,0,[['Alface',50,'g'],['Azeite',5,'ml']],['ac']),
 R('acllentilhas','Lentilhas estufadas com cenoura','mediterranica',[],0,0,0,0,[['Lentilhas',90,'g'],['Cenoura',60,'g'],['Louro',0.5,'g']],['ac']),
@@ -6204,6 +6220,11 @@ P('aclpimentoassado',[['Assar inteiros','Pimentos inteiros na brasa ou no forno 
  ['Suar tapados','Fecha-os numa taça tapada ou num saco de papel enquanto arrefecem: é o próprio vapor que descola a pele sem levar a polpa atrás.',15],
  ['Pelar e cortar','Pela com os dedos, tira as sementes e corta em tiras largas. Não os passes por água — leva-lhes o assado todo.'],
  ['Temperar','Azeite, alho laminado, cebola em meias-luas finas e sal. Sabem melhor mornos, e ainda melhor no dia seguinte.']]);
+P('aclgrelosdpolvo',[['Escaldar e passar por água fria','Grelos em água a ferver com sal, três a quatro minutos, e logo a seguir para água gelada. É o choque que lhes fixa o verde — sem ele, ao lado do polvo assado ficam com uma cor tristonha.',5],
+ ['Espremer','Aperta-os bem com as mãos até deixarem de pingar. Grelos molhados no azeite do lagareiro fazem-no espirrar e diluem-no.'],
+ ['Alho no azeite frio','Alho laminado a alourar em azeite ainda morno, devagar. Este prato já leva o azeite todo do polvo — aqui é pouco, e serve só para levar o alho.',3],
+ ['Lume forte e curto','Grelos por cima, dois minutos em lume alto, mexendo. Mais tempo e ficam moles e amargam a sério.',2],
+ ['Limão só à mesa','Umas gotas na hora de servir. Postas antes, o ácido acinzenta o verde que se acabou de fixar.']]);
 P('aclgrelosdrojo',[['Cozer','Grelos em água a ferver com sal, poucos minutos. Escorre bem.',5],
  ['Saltear','Alho laminado a alourar no azeite e os grelos por cima, em lume forte.',4],
  ['Servir','Prova antes de salgar — os grelos já vêm com o sal da cozedura.']]);
@@ -22264,6 +22285,7 @@ function nomeCurtoMolho(r){
 const NOME_COMBO={
   'c:sardinhas+aclpimentoassado':'Sardinhas assadas com pimentos',
   'c:rojoes+aclgrelosdrojo':'Rojões com grelos',
+  'c:polvo+aclgrelosdpolvo':'Polvo à lagareiro com grelos salteados',
   'c:carapaus+acbmurrodcara':'Carapaus grelhados com batata a murro',
   'c:pataniscas+acrfeijaodpata':'Pataniscas de bacalhau com arroz de feijão',
   'c:ketopurecouveflor+aclpurecouveflor':'Bife com puré de couve-flor',
@@ -22308,6 +22330,7 @@ const NOME_COMBO={
 const COMBOS_BASE=[
   {base:'sardinhas', ac:['aclpimentoassado'], mo:''},
   {base:'rojoes', ac:['aclgrelosdrojo'], mo:''},
+  {base:'polvo', ac:['aclgrelosdpolvo'], mo:''},
   {base:'carapaus', ac:['acbmurrodcara'], mo:''},
   {base:'pataniscas', ac:['acrfeijaodpata'], mo:''},
   {base:'ketopurecouveflor', ac:['aclpurecouveflor'], mo:''},
@@ -26806,6 +26829,115 @@ function acompsDe(meal){ return acIds(meal).map(id=>RECIPES.find(x=>x.id===id)).
 function ladosDe(meal){ return ladoIds(meal).map(id=>RECIPES.find(x=>x.id===id)).filter(Boolean); }
 /* A fatia que cabe a cada acompanhamento. Zero sem nenhum, para as somas
    ficarem naturalmente a zero em vez de precisarem de um caso especial. */
+/* ================= ONDE ESTÁ A INCOMPATIBILIDADE =================
+   A app dizia «esta receita não serve a Rita» e ficava-se por aí. Mas uma
+   refeição são três coisas — o prato, o que vai ao lado e o molho — e a
+   diferença entre elas é toda: se o problema é o bife, não há nada a fazer
+   senão mudar de jantar; se o problema é o arroz de manteiga que alguém pôs ao
+   lado, a Rita come o mesmo bife com outra coisa e ninguém muda de plano.
+
+   Esta função separa os dois casos, por pessoa. É a partir dela que a app
+   passa a propor a troca em vez de só apontar o dedo. */
+function diagnosticoMesa(prato,acs,mo,comem,mk,meal){
+  const out={pratoFalha:[], porAc:{}, moFalha:[], resolvivel:false};
+  comem.forEach(m=>{
+    if(prato && !avaliaReceita(prato,[m],mk,false).ok) out.pratoFalha.push(m.id);
+    /* O que ESTA pessoa vai comer, que não é forçosamente o que está na
+       travessa: quem já tem acompanhamento próprio é avaliado por esse. Sem
+       isto, o aviso continuava a apontar um problema que a troca já resolveu —
+       e a oferecer um botão que não tinha nada para fazer. */
+    const meus = meal? acsPara(meal,m.id).map(id=>RECIPES.find(x=>x.id===id)).filter(Boolean) : (acs||[]);
+    meus.forEach(a=>{
+      if(!avaliaReceita(a,[m],mk,false).ok){
+        (out.porAc[a.id]=out.porAc[a.id]||[]).push(m.id);
+      }
+    });
+    if(mo && !avaliaReceita(mo,[m],mk,false).ok) out.moFalha.push(m.id);
+  });
+  /* Resolvível quer dizer: o prato serve toda a gente, e o que falha é só o
+     que está ao lado — que é o que se pode trocar pessoa a pessoa. */
+  out.resolvivel = !out.pratoFalha.length && (Object.keys(out.porAc).length>0 || out.moFalha.length>0);
+  return out;
+}
+/* Um substituto para um acompanhamento que não serve alguém: o mais parecido
+   em calorias, de entre os que servem essa pessoa. Parecido em calorias porque
+   é isso que mantém a refeição equilibrada — trocar 280 kcal de batatas fritas
+   por 40 de alface muda o jantar, não o conserta. */
+function acSubstituto(acOriginal,m,mk,jaUsados){
+  const cands=acompanhamentos().filter(x=>
+    x.id!==acOriginal.id && (jaUsados||[]).indexOf(x.id)<0 && avaliaReceita(x,[m],mk,false).ok);
+  if(!cands.length) return null;
+  return cands.slice().sort((a,b)=>
+    Math.abs(a.k-acOriginal.k)-Math.abs(b.k-acOriginal.k)
+    || pctDespensa(b)-pctDespensa(a)
+    || a.n.localeCompare(b.n,'pt'))[0];
+}
+/* ---- Acompanhamento diferente para uma pessoa ----
+   O plano guarda UM conjunto de acompanhamentos para a refeição toda, e isso
+   está certo: é uma travessa no meio da mesa. `acPor` é a exceção — o prato de
+   quem não pode comer aquilo. Fica no mesmo objeto da refeição, indexado por
+   pessoa, e quem não estiver lá continua a comer o que está na travessa. */
+function acsPara(meal,mid){
+  if(meal && meal.acPor && Array.isArray(meal.acPor[mid])) return meal.acPor[mid].slice();
+  return acIds(meal);
+}
+function temAcProprio(meal,mid){ return !!(meal && meal.acPor && Array.isArray(meal.acPor[mid])); }
+function limparAcPor(o,ids){
+  if(!o || typeof o!=='object') return undefined;
+  const out={};
+  Object.keys(o).slice(0,32).forEach(mid=>{
+    if(ids && ids.indexOf(mid)<0) return;
+    if(!Array.isArray(o[mid])) return;
+    const lista=[];
+    o[mid].forEach(id=>{ const r=RECIPES.find(x=>x.id===id);
+      if(r && ehAcompanhamento(r) && lista.indexOf(id)<0 && lista.length<MAX_AC) lista.push(id); });
+    out[mid]=lista;
+  });
+  return Object.keys(out).length? out : undefined;
+}
+/* Resolve de uma vez: a cada pessoa a quem o acompanhamento não serve, dá-lhe
+   o substituto mais próximo em calorias que lhe sirva. Escreve em `acPor`, que
+   é lido pelas quantidades, pelos macros do dia e pela lista de compras. */
+function trocarAcIncompativel(di,mk){
+  const meal=planMeal(di,mk);
+  const prato=RECIPES.find(x=>x.id===meal.r); if(!prato) return;
+  const date=weekDates(S.week)[di];
+  const comem=S.members.filter(m=>meal.m.includes(m.id) && !isCheat(m.id,date));
+  const acs=acIds(meal).map(id=>RECIPES.find(x=>x.id===id)).filter(Boolean);
+  const mo=molhoDe(meal);
+  const d=diagnosticoMesa(prato,acs,mo,comem,mk,meal);
+  if(!d.resolvivel) return flash('warn','Aqui o problema não está no que vai ao lado — está no próprio prato. Troca a receita.');
+  const feitos=[], semSaida=[];
+  comem.forEach(m=>{
+    const meus=acIds(meal).slice();
+    let mudou=false;
+    acs.forEach((a,i)=>{
+      if((d.porAc[a.id]||[]).indexOf(m.id)<0) return;
+      const sub=acSubstituto(a,m,mk,meus);
+      if(!sub){ semSaida.push(nomeCurto(m)); return; }
+      meus[i]=sub.id; mudou=true;
+      feitos.push(nomeCurto(m)+': '+nomeCurtoAc(a)+' → '+nomeCurtoAc(sub));
+    });
+    if(mudou){
+      if(!meal.acPor || typeof meal.acPor!=='object') meal.acPor={};
+      meal.acPor[m.id]=meus;
+    }
+  });
+  if(!feitos.length) return flash('warn','Não encontrei acompanhamento que sirva '
+    +enumera([...new Set(semSaida)])+' sem sair da dieta. Tira o acompanhamento ou muda o prato.');
+  save('acompanhamento trocado por pessoa');
+  flash('ok', enumera(feitos)+'. As quantidades e a lista de compras já contam com isso.',
+    {rot:'Anular', fn:'desfazer()'});
+  render();
+}
+function limparAcProprio(di,mk,mid){
+  const meal=planMeal(di,mk);
+  if(!meal.acPor || !meal.acPor[mid]) return;
+  delete meal.acPor[mid];
+  if(!Object.keys(meal.acPor).length) delete meal.acPor;
+  save('acompanhamento próprio removido');
+  render();
+}
 function fatiaAc(acs){ return acs&&acs.length? 1/acs.length : 0; }
 function somaAc(acs,campo){ return Math.round((acs||[]).reduce((t,x)=>t+(x[campo]||0),0)*fatiaAc(acs)); }
 function notaDivisao(n){
@@ -27183,7 +27315,40 @@ const MOTIVO_CURTO={dieta:'dieta',ingredientes:'ingrediente',calorias:'calorias'
 /* O que se mostra depois de a receita estar escolhida: o que falta na
    despensa, quem é que ela não serve e — o número que ninguém quer fazer de
    cabeça — as quantidades já multiplicadas por quem se senta à mesa. */
-function blocoReceitaPlaneada(r,comem,mk,acs,extra,mo){
+/* O aviso que vale a pena dar: não «isto não serve a Rita», mas «o prato serve
+   toda a gente, o que não serve é o arroz — e há três que servem». Só aparece
+   quando o problema é mesmo só do lado, porque é o único caso em que há uma
+   saída que não obriga a mudar o jantar de todos. */
+function blocoAcIncompativel(r,comem,mk,acs,mo,di){
+  if(!r || !comem.length || !(acs||[]).length) return '';
+  const meal=di!==undefined? (planWeek()[di]||{})[mk] : null;
+  const d=diagnosticoMesa(r,acs,mo,comem,mk,meal);
+  if(!d.resolvivel) return '';
+  const linhas=[];
+  Object.keys(d.porAc).forEach(acId=>{
+    const a=RECIPES.find(x=>x.id===acId); if(!a) return;
+    const quem=d.porAc[acId].map(id=>{ const m=comem.find(x=>x.id===id); return m? nomeCurto(m):''; }).filter(Boolean);
+    const um=comem.find(x=>x.id===d.porAc[acId][0]);
+    const sub=um? acSubstituto(a,um,mk,acs.map(x=>x.id)) : null;
+    linhas.push('<b>'+esc(a.n)+'</b> não serve '+esc(enumera(quem))
+      +(sub? ' — mas <b>'+esc(nomeCurtoAc(sub))+'</b> serve.' : ' e não encontrei alternativa dentro da dieta.'));
+  });
+  if(d.moFalha.length){
+    const quem=d.moFalha.map(id=>{ const m=comem.find(x=>x.id===id); return m? nomeCurto(m):''; }).filter(Boolean);
+    linhas.push('O molho não serve '+esc(enumera(quem))+' — tira-o do prato dessa pessoa.');
+  }
+  if(!linhas.length) return '';
+  const temTroca=Object.keys(d.porAc).length>0;
+  return `<div class="aviso warn" style="margin-top:8px">
+    <b>O prato serve toda a gente; o que vai ao lado é que não.</b>
+    <div class="sub" style="margin-top:4px">${linhas.join('<br>')}</div>
+    ${temTroca? `<div class="row" style="margin-top:8px">
+      <button class="btn small" onclick="trocarAcIncompativel(${di},'${mk}')">Dar outro acompanhamento a quem precisa</button>
+    </div>
+    <p class="sub" style="margin-top:6px">Cada um continua com o mesmo prato. Só muda o que vai ao lado, e só a quem precisa — as quantidades e a lista de compras acompanham.</p>`:''}
+  </div>`;
+}
+function blocoReceitaPlaneada(r,comem,mk,acs,extra,mo,di){
   const n=comem.length+(extra||0), disp=disponibilidadeReceita(r), falta=disp.total-disp.tem;
   const a=avaliaReceita(r,comem,mk,true);
   acs=acs||[];
@@ -27204,10 +27369,27 @@ function blocoReceitaPlaneada(r,comem,mk,acs,extra,mo){
   return `<div class="sub" style="margin-top:4px">${comQue? `<b>${kt} kcal</b> ${comQue} · `:''}H ${ct} · P ${pt} · G ${ft} g/dose
     ${total>0?' · <span style="color:var(--warn)">'+total+' ingrediente'+(total===1?'':'s')+' em falta</span>':' · <span style="color:var(--ok)">✓ tens tudo</span>'}</div>
     ${a.ok?'':`<div class="sub" style="color:var(--warn)">⚠ ${motivoTexto({r,a})}</div>`}
+    ${blocoAcIncompativel(r,comem,mk,acs,mo,di)}
     ${notaDoses(r,comem,mk)}
-    ${n? `<details class="quant"><summary>Quantidades para ${n} pessoa${n===1?'':'s'}</summary>
-      <div class="sub">${textoEscala(r,n)}${acs.map(x=>'<br><b>'+esc(x.n)+(acs.length>1? ' ('+(acs.length===2?'meia dose':'1/'+acs.length)+')':'')
-        +':</b> '+textoEscala(x,n,q)).join('')}</div></details>`:''}`;
+    ${n? (function(){
+      /* Com acompanhamento próprio, a travessa deixa de ser para todos: as
+         quantidades têm de dizer para quantos é, e o que leva quem come outra
+         coisa. Sem isto, a lista de compras e o que está escrito no ecrã
+         diziam números diferentes para a mesma refeição. */
+      const meal=di!==undefined? (planWeek()[di]||{})[mk] : null;
+      const proprios=meal? comem.filter(m=>temAcProprio(meal,m.id)) : [];
+      const nTrav=n-proprios.length;
+      return `<details class="quant"><summary>Quantidades para ${n} pessoa${n===1?'':'s'}</summary>
+      <div class="sub">${textoEscala(r,n)}${
+        nTrav>0? acs.map(x=>'<br><b>'+esc(x.n)+(acs.length>1? ' ('+(acs.length===2?'meia dose':'1/'+acs.length)+')':'')
+          +(proprios.length? ' — para '+plural(nTrav,'pessoa','pessoas') : '')
+          +':</b> '+textoEscala(x,nTrav,q)).join('') : ''}${
+        proprios.map(m=>{
+          const meus=acsPara(meal,m.id).map(id=>RECIPES.find(x=>x.id===id)).filter(Boolean);
+          const qm=fatiaAc(meus);
+          return meus.map(x=>'<br><b>'+esc(x.n)+' — só para '+esc(nomeCurto(m))+':</b> '+textoEscala(x,1,qm)).join('');
+        }).join('')}</div></details>`;
+    })():''}`;
 }
 /* A lista não esconde nada: separa o que serve esta mesa do que não serve, e
    diz porquê em cada linha. Esconder seria decidir pela pessoa.
@@ -27357,7 +27539,7 @@ function mealBlock(di,mk,label,date){
     </select>
     ${r&&(mk==='a'||mk==='j')? blocoAcomp(di,mk,acs,label) : ''}
     ${r&&(mk==='a'||mk==='j')? blocoMolho(di,mk,molhoDe(meal),label) : ''}
-    ${r? blocoReceitaPlaneada(r,comem,mk,acs,nExtraMesa(meal),molhoDe(meal)) : ''}
+    ${r? blocoReceitaPlaneada(r,comem,mk,acs,nExtraMesa(meal),molhoDe(meal),di) : ''}
     <div class="row" style="margin-top:7px">${members.map(m=>{
       const on=meal? meal.m.includes(m.id) : true, cheat=isCheat(m.id,date);
       return `<button class="chip ${on&&!cheat?'on':''}" ${cheat?'style="opacity:.45" title="Cheat day"':''}
@@ -28151,7 +28333,20 @@ function shoppingItems(){
       agg[key].q+=quantConv*n*fator;
       if(di<agg[key].di){ agg[key].di=di; agg[key].mk=mk; } });
     junta(r.i,fPrato);
-    acs.forEach(x=>junta(x.i,q));
+    /* Quem tem acompanhamento próprio — porque o da travessa não lhe servia a
+       dieta — compra o dele e não o dos outros. Sem isto, a lista pedia o arroz
+       de manteiga para cinco quando só quatro o vão comer, e não pedia nada da
+       salada que a quinta pessoa leva. As quantidades da travessa descontam
+       essas pessoas; as de cada prato próprio entram por uma pessoa. */
+    const comQueSeSenta=S.members.filter(m=>meal.m.includes(m.id)&&!isCheat(m.id,dates[di]));
+    const proprios=comQueSeSenta.filter(m=>temAcProprio(meal,m.id));
+    const nTravessa = n - proprios.length;
+    if(nTravessa>0) acs.forEach(x=>junta(x.i, q*nTravessa/n));
+    proprios.forEach(m=>{
+      const meus=acsPara(meal,m.id).map(id=>RECIPES.find(x=>x.id===id)).filter(Boolean);
+      const qm=fatiaAc(meus);
+      meus.forEach(x=>junta(x.i, qm/n));
+    });
     /* O molho entra por inteiro, e não à fatia: não reparte lugar com ninguém.
        Sem esta linha, quem escolhia chimichurri chegava ao supermercado sem a
        salsa na lista e descobria-o em casa, com a picanha já na brasa. */
