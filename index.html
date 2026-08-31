@@ -2447,12 +2447,13 @@ function migraRegistos(s){
     dieta: (typeof fo.dieta==='string' && (fo.dieta==='' || temChave(DIETS,fo.dieta)))? fo.dieta : '',
     sessoes: clampNum(Math.round(parseFloat(fo.sessoes)||3), 1, 14),
     agendar: fo.agendar!==false,
+    nivel: NIVEIS.some(n=>n[0]===fo.nivel)? fo.nivel : 'moderado',
     jejum: !!fo.jejum,
     jejumH: clampNum(Math.round(parseFloat(fo.jejumH)||16), 12, 23),
     jejumIni: clampNum(Math.round(parseFloat(fo.jejumIni)||12), 0, 23),
     jejumDias: clampNum(Math.round(parseFloat(fo.jejumDias)||0), 0, 3),
     banda: clampNum(parseFloat(fo.banda)||2, 0, 20)
-  } : {membros:[],tipo:'perder',delta:5,semanas:12,split:50,desportos:[],dieta:'',sessoes:3,agendar:true,jejum:false,jejumH:16,jejumIni:12,jejumDias:0,banda:2};
+  } : {membros:[],tipo:'perder',delta:5,semanas:12,split:50,desportos:[],dieta:'',sessoes:3,agendar:true,nivel:'moderado',jejum:false,jejumH:16,jejumIni:12,jejumDias:0,banda:2};
   s.validades = limparValidades(s.validades);
   s.veredictos = limparVeredictos(s.veredictos, ids);
   s.brigada = limparBrigada(s.brigada, ids);
@@ -4084,6 +4085,12 @@ R('harcha','Harcha de sêmola','marroquina',[],0,0,0,0,[['Sêmola de trigo',70,'
 R('bissara','Bissara de favas','marroquina',['mediterranica'],0,0,0,0,[['Favas secas cruas',60,'g'],['Alho',2,'dente'],['Azeite',12,'ml'],['Cominhos',2,'g'],['Colorau',1.5,'g'],['Flor de sal',1,'g'],['Limão',0.25,'un'],['Pão de mistura',40,'g']],['p','l'],0,['br']),
 R('panecunzato','Pane cunzato','mediterranica',['mediterranica'],0,0,0,0,[['Pão rústico',100,'g'],['Tomate',100,'g'],['Anchovas',12,'g'],['Queijo fresco de ovelha',50,'g'],['Cebola roxa',20,'g'],['Tomate seco',15,'g'],['Azeite',12,'ml'],['Orégãos',1,'g'],['Manjericão',2,'g'],['Pimenta preta',0.3,'g'],['Flor de sal',0.5,'g']],['l','a'],0,['br']),
 R('pastizzi','Pastizzi de ricotta','mediterranica',[],0,0,0,0,[['Massa folhada, congelada',90,'g'],['Ricotta',80,'g'],['Ovo',0.3,'un'],['Queijo parmesão ralado',8,'g'],['Salsa',3,'g'],['Pimenta preta',0.3,'g'],['Flor de sal',0.5,'g']],['p','l'],0,['br']),
+
+/* A massa de pimentão é o tempero alentejano por excelência e faz aqui o
+   trabalho todo: dá cor, sal e doçura de pimento seco de uma vez. Vai na
+   marinada e não na frigideira — em contacto direto com o lume queima e
+   amarga, que é o erro que estraga metade dos pratos que a levam. */
+R('vitelatiras','Tiras de vitela com cenoura e tomilho','portuguesa',['mediterranica'],0,0,0,0,[['Vitela, lombo cru',170,'g'],['Cenoura',120,'g'],['Massa de pimentão',15,'g'],['Vinho branco',60,'ml'],['Cebola',70,'g'],['Alho',2,'dente'],['Tomilho fresco',3,'g'],['Azeite',12,'ml'],['Louro',0.5,'g'],['Pimenta preta',1,'g'],['Flor de sal',1,'g']],['a','j'],0,['pp']),
 
 /* ---------- Sete pratos de tacho que faltavam ----------
    O que estas têm em comum é o tempo: nenhuma se faz com pressa, e cinco delas
@@ -7227,6 +7234,12 @@ P('pastizzi',[['Escorrer a ricotta','Deixa a ricotta a escorrer num passador pel
  ['Estender','Estende a massa folhada bem fina, quase transparente, e corta quadrados de cerca de dez centímetros de lado.'],
  ['Moldar em losango','Põe uma colher de recheio no centro e dobra dois lados opostos até se encontrarem a meio, apertando bem para selar. Fica com o feitio de barquinho.',10],
  ['Forno','Pincela com ovo e assa a 220 graus vinte a vinte e cinco minutos, até ficarem muito dourados e a folhear. Comem-se quentes, à mão.',25]]);
+P('vitelatiras',[['Tiras contra a fibra','Lombo de vitela em tiras de um dedo, cortadas CONTRA a fibra. A favor dela, a mesma carne fica rija por muito que se cozinhe — é o corte que decide, não o tempo.',8],
+ ['Marinada de massa de pimentão','Massa de pimentão, alho pisado, metade do vinho, o louro e a pimenta, esfregados na carne. Meia hora chega; de véspera é melhor. A massa de pimentão nunca vai direta à frigideira: em contacto com o lume forte queima e amarga.',30],
+ ['Cenoura primeiro, e devagar','Cenoura em rodelas finas a amolecer no azeite com a cebola, em lume brando, doze minutos. Posta ao mesmo tempo que a carne, fica crua no meio de um prato que já está pronto.',12],
+ ['Carne em lume alto e aos poucos','Escorre as tiras da marinada (guarda-a) e sela-as em duas fornadas, frigideira bem quente. Todas de uma vez largam água e cozem em vez de tostar.',6],
+ ['Vinho a soltar o fundo','O resto do vinho e a marinada guardada, a ferver, a raspar o que ficou agarrado. Deixa evaporar o álcool e reduzir até o molho napar as tiras.',8],
+ ['Tomilho no fim','Tomilho fresco desfolhado fora do lume — as folhas pequenas queimam depressa e o que fica é o amargo. Prova antes de salgar: a massa de pimentão já traz sal.']]);
 P('xerem',[['Conquilhas a purgar','Conquilhas em água com sal grosso duas horas, no escuro, para largarem a areia. Troca a água duas vezes. Xerém com areia é xerém deitado fora.',120],
  ['Refogado de gordura','Toucinho e linguiça em cubinhos, no azeite, em lume brando, até largarem a gordura. Depois a cebola e o alho, o colorau e o louro.',12],
  ['Abrir as conquilhas à parte','Conquilhas na panela tapada, lume alto, só até abrirem. Retira-as e GUARDA a água que largaram, coada por um pano — é ela que tempera o xerém todo e é o que faz o prato.',6],
@@ -10773,7 +10786,7 @@ function blank(){ return {members:[],cheats:{},plans:{},bought:{},prefCuisine:'t
      S.ui porque muda NUMEROS, nao aparencia: entra no desfazer e na copia. */
   metodoBMR:'henry',
   ui:{tab:'familia',mid:null,cuis:'todas',soComp:false,mealF:'todas',dietaF:[],busca:'',editor:null,
-      objForm:{membros:[],tipo:'perder',delta:5,semanas:12,split:50,desportos:[],dieta:'',sessoes:3,agendar:true,jejum:false,jejumH:16,jejumIni:12,jejumDias:0,banda:2},
+      objForm:{membros:[],tipo:'perder',delta:5,semanas:12,split:50,desportos:[],dieta:'',sessoes:3,agendar:true,nivel:'moderado',jejum:false,jejumH:16,jejumIni:12,jejumDias:0,banda:2},
       objExpandido:null, objAdj:null, celebrando:null, tourPasso:null, tourVisto:false,
       tema:'auto', paleta:'azulejo', colapsados:{}, alergF:[], alergDesp:'',
       recLimite:48, recQ:'',
@@ -11164,6 +11177,28 @@ function trimestre(m){ return clampNum(Math.round(parseFloat(m.trimestre)||1),1,
 function posparto(m){ return m.sexo==='f' && !!m.posparto && !gravida(m) && idadeAnos(m)>=12; }
 function semanasPosParto(m){ return clampNum(Math.round(parseFloat(m.semanasPos)||0),0,104); }
 function tipoParto(m){ return m.parto==='cesariana'? 'cesariana' : 'vaginal'; }
+/* ================= AS FASES DA VIDA ADULTA =================
+   «Adulto» ia dos 19 aos 100 e tratava-os a todos por igual, quando as
+   recomendações não os tratam: aos 25 o corpo ainda está a fixar massa óssea,
+   aos 45 começou a perder músculo, e aos 70 a conta da proteína muda de sítio.
+   A app já tinha três `if(fase==='idoso')` escritos — em fibra, em sódio e no
+   álcool — que NUNCA disparavam, porque nada devolvia essa fase. Era intenção
+   sem implementação.
+
+   Os cortes, e de onde vêm:
+   · 19-30 «jovem adulto» — o pico de massa óssea fecha por volta dos 30
+     (NIH ORBD). É a janela em que o cálcio e a vitamina D mais rendem.
+   · 31-64 «adulto» — a partir dos 30-40 perdem-se 3 a 8 % de massa muscular
+     por década se nada se fizer contra isso.
+   · 65+ «idoso» — é a idade em que a OMS separa as recomendações de atividade
+     física (acrescenta equilíbrio e força multicomponente ≥3 dias/semana) e em
+     que o PROT-AGE Study Group e a ESPEN sobem a proteína de 0,8 para 1,0-1,2
+     g/kg/dia, por causa da sarcopenia e da resistência anabólica.
+
+   `faseDe()` continua a devolver 'adulto' para os três, porque é isso que dez
+   sítios desta app testam para dizer «não é criança nem adolescente» — mudar
+   o valor de retorno faria um jovem de 25 anos deixar de poder ter défice
+   calórico. Quem quiser a distinção usa `faixaAdulta()`. */
 function faseDe(m){
   const a=idadeAnos(m);
   if(a<2) return 'bebe';
@@ -11171,6 +11206,20 @@ function faseDe(m){
   if(a<19) return 'adolescente';
   return 'adulto';
 }
+const IDADE_MEIA=31, IDADE_IDOSO=65;
+function faixaAdulta(m){
+  const a=idadeAnos(m);
+  if(a<IDADE_MEIA) return 'jovem';
+  if(a<IDADE_IDOSO) return 'meia';
+  return 'idoso';
+}
+/* A fase com a vida adulta desdobrada: é esta que a interface mostra e a que
+   as recomendações usam. */
+function faseDetalhada(m){
+  const f=faseDe(m);
+  return f==='adulto'? faixaAdulta(m) : f;
+}
+function ehIdoso(m){ return faseDe(m)==='adulto' && idadeAnos(m)>=IDADE_IDOSO; }
 /* ================= EXERCÍCIO NA GRAVIDEZ E NO PÓS-PARTO =================
    Tudo o que se segue vem do «Physical Activity and Exercise During Pregnancy
    and the Postpartum Period» — ACOG Committee Opinion n.º 804 (2020, reafirmado
@@ -11244,8 +11293,13 @@ function notaPosParto(m){
   return 'A partir daqui a orientação é a mesma dos adultos em geral — pelo menos '+ACOG_MIN_SEMANA
     +' minutos por semana de intensidade moderada —, retomada de forma gradual. O treino do pavimento pélvico mantém-se recomendado, e qualquer perda de urina, peso ou dor pélvica deve ser falada na consulta em vez de tolerada.';
 }
-const FASES={bebe:'Bebé',crianca:'Criança',adolescente:'Adolescente',adulto:'Adulto'};
-function nomeFase(m){ return gravida(m)? (FASES[faseDe(m)]+' · grávida') : FASES[faseDe(m)]; }
+const FASES={bebe:'Bebé',crianca:'Criança',adolescente:'Adolescente',adulto:'Adulto',
+  jovem:'Jovem adulto', meia:'Adulto', idoso:'Idoso'};
+/* O nome que se mostra usa a fase DETALHADA: «Jovem adulto», «Adulto»,
+   «Idoso». O «Adulto» seco ficava a dizer a mesma coisa a alguém de 22 e a
+   alguém de 78, quando as recomendações que a app calcula para os dois já não
+   são as mesmas. */
+function nomeFase(m){ return gravida(m)? (FASES[faseDetalhada(m)]+' · grávida') : FASES[faseDetalhada(m)]; }
 /* O peso de referência da grávida é o pré-gestacional: é sobre ele que as
    recomendações são construídas. O peso atual serve para acompanhar o ganho. */
 function pesoRef(m){ const p=parseFloat(m.pesoPre);
@@ -11457,6 +11511,16 @@ function proteinaKg(m){
   if(a<4) return 1.05;
   if(a<14) return 0.95;
   if(a<19) return 0.85;
+  /* A partir dos 65 a referência sobe. Não é opinião: o PROT-AGE Study Group
+     (Bauer et al., JAMDA 2013) e a orientação da ESPEN para a nutrição
+     geriátrica recomendam 1,0 a 1,2 g/kg/dia no idoso saudável, contra os 0,8
+     do adulto. A razão é a resistência anabólica — a partir desta idade é
+     preciso mais proteína por refeição para desencadear a mesma síntese
+     muscular — e o que está em jogo é a sarcopenia, que é o que separa quem se
+     levanta de uma cadeira sem mãos aos 80 de quem não se levanta.
+     A app fica no limite inferior da banda, 1,0, que é o que se recomenda a
+     quem não tem doença aguda nem treino de força a sério. */
+  if(a>=IDADE_IDOSO) return 1.0;
   return 0.8;
 }
 /* Piso absoluto de hidratos (RDA), que manda acima da percentagem. */
@@ -11968,6 +12032,20 @@ function limitesEsforco(m){
     out.evitar=['boxe'];
     out.notas.push('Levantamentos máximos só depois de completado o crescimento; até lá, técnica antes de carga.');
     return out; }
+  /* A OMS separa os 65+ das restantes idades adultas, e não é por prudência
+     genérica: acrescenta uma recomendação que os outros escalões não têm —
+     atividade multicomponente que inclua EQUILÍBRIO e força, em três ou mais
+     dias por semana, para prevenir quedas. É a única faixa etária em que a
+     recomendação de atividade física tem um objetivo funcional explícito além
+     da saúde cardiovascular. Os minutos de base são os mesmos. */
+  if(a>=IDADE_IDOSO){
+    out.recomendacao='150 a 300 minutos por semana de atividade moderada, mais reforço muscular em 2 ou mais dias — e, em 3 ou mais dias, atividade que trabalhe o EQUILÍBRIO e a força.';
+    out.notas.push('A parte do equilíbrio é o que distingue esta recomendação das outras idades: é o que previne quedas, e as quedas são o que muda uma vida a partir daqui.');
+    out.notas.push('Tai chi, dança, subir escadas e levantar-se de uma cadeira sem usar as mãos contam — não é preciso ginásio para treinar equilíbrio.');
+    out.notas.push('Quem não conseguir os 150 minutos deve fazer o que a condição permitir: a diferença maior de todas é entre não fazer nada e fazer alguma coisa.');
+    return out;
+  }
+  if(a>=IDADE_MEIA) out.notas.push('A partir dos 30-40 anos perdem-se 3 a 8 % de massa muscular por década sem treino de força — os dois dias de reforço muscular são a parte que menos se cumpre e a que mais rende a longo prazo.');
   out.recomendacao='150 a 300 minutos por semana de atividade moderada, ou 75 a 150 de atividade vigorosa, mais reforço muscular em 2 ou mais dias.';
   return out;
 }
@@ -12985,6 +13063,7 @@ const DICAS={
   bebeRef:'A partir dos 6 meses a energia divide-se entre o leite e os sólidos. A repartição sugerida segue o padrão habitual da diversificação em Portugal: papa ou fruta a meio da manhã, sopa e prato ao almoço, e por aí em diante.',
   objCriar:'A partir de quantos quilos e de quanto tempo, a app calcula o défice ou o excedente diário necessário e reparte-o entre a dieta e o exercício. Ao criar, isso é logo aplicado ao objetivo da Nutrição e ao desporto escolhido — não fica só no papel.',
   objDieta:'A dieta escolhida aqui passa a ser a de quem entra neste objetivo, e com ela mudam os alvos de hidratos, proteína e gordura do dia, o que o plano da semana sugere e aceita, e a lista de compras que sai desse plano. Em crianças, adolescentes e grávidas a app encosta os macros à faixa recomendada para a idade e diz que o fez — uma dieta cetogénica não se aplica tal e qual a quem está a crescer. «Não mudar» deixa cada um com a dieta que já tinha.',
+  objIntensidade:'A que ritmo tencionas treinar. Mais intenso gasta mais por hora — correr a doze quilómetros por hora gasta quase o dobro de correr a sete —, o que significa menos horas por semana para o mesmo efeito. Em troca, pede mais recuperação: o músculo não se reconstrói durante o treino, reconstrói-se entre treinos, e é por isso que a app conta os dias livres a seguir. Se a intensidade escolhida for maior do que a que praticas hoje, sobe por degraus ao longo de algumas semanas em vez de saltar lá para cima de uma vez.',
   objDesportos:'Escolhe os que quiseres: o tempo extra que o objetivo pede reparte-se por igual entre eles, e o gasto por hora é a média dos gastos de cada um — correr e fazer ioga meia hora de cada dá o mesmo que uma hora a meio caminho dos dois. Os que já praticas aparecem primeiro, marcados com uma estrela; os outros entram no teu plano quando os escolheres aqui.',
   objEstrategia:'Quanto do ajuste diário vem de comer menos (ou mais) e quanto vem de gastar mais a fazer desporto. Mais dieta pede menos esforço físico extra; mais exercício permite comer com menos restrição para o mesmo ritmo.',
   receitasDisp:'Cada receita mostra os ingredientes com o estado da tua despensa: um visto verde para o que já tens, uma cruz vermelha para o que falta. A etiqueta no topo resume tudo — «Pronta a cozinhar» quando não falta nada.',
@@ -25958,9 +26037,47 @@ function validacaoObjetivo(o){
   /* o que a balança diz */
   const kgReal=a.p-b.p;                       /* positivo = perdeu */
   const kcalReal=kgReal*7700;
-  /* o que o plano previa para os mesmos dias: o défice diário do alvo */
+  /* ---- O que se comeu MESMO, e não o que estava planeado ----
+     A conta anterior comparava a balança com o alvo do plano, e por isso não
+     conseguia distinguir as duas explicações que ela própria enumerava: «gasta
+     menos do que a app estima» e «comeu mais do que registou» davam o mesmo
+     resultado. Com os registos das refeições no período, a distinção passa a
+     ser possível — se o que ficou registado bate certo com o alvo e o peso não
+     desceu, o erro está no GASTO; se o registado ficou acima do alvo, parte da
+     explicação é essa e a app di-lo em vez de a atribuir toda ao metabolismo.
+     Só se usa quando há registos que cheguem: menos de metade dos dias com
+     refeições registadas é uma amostra que engana mais do que ajuda, e aí
+     volta-se ao alvo planeado, dizendo-o. */
+  const regs=regRefDe(m.id).filter(r=>r.estado==='feita' && r.d>=a.d && r.d<=b.d);
+  const diasComRegisto=new Set(regs.map(r=>r.d)).size;
+  /* `dias` é a distância entre as duas pesagens; os dias COM registo incluem
+     as duas pontas, e por isso podem ser dias+1 — sem o teto, a app anunciava
+     «103 % do período», que não quer dizer nada. */
+  const cobertura=dias>0? Math.min(1, diasComRegisto/(dias+1)) : 0;
+  let ingeridoMedio=null;
+  if(cobertura>=0.5){
+    let soma=0;
+    const porDia={};
+    regs.forEach(r=>{ porDia[r.d]=(porDia[r.d]||0)+macrosRegRef(r).k; });
+    Object.keys(porDia).forEach(d=>{ soma+=porDia[d]+kcalAlcoolDia(m.id,d); });
+    ingeridoMedio=soma/diasComRegisto;
+  }
+  /* O gasto medido é o mesmo que o cartão «Gasto real hoje» usa, mas em média
+     do período: basal + dia-a-dia + deslocações + fase, mais o desporto que
+     ficou REGISTADO (e não o que estava planeado). */
+  let gastoMedido=null;
+  if(ingeridoMedio!=null){
+    let g=0;
+    for(let d=a.d; d<=b.d; d=addDias(d,1)) g+=gastoRealDia(m,d).total;
+    gastoMedido=g/Math.max(1,dias+1);
+  }
+  /* o que se previa para os mesmos dias */
   const deficeDiarioPlano=Math.abs(tdee(m)-targetKcal(m));
-  const kcalPrevisto=deficeDiarioPlano*dias*(o.tipo==='perder'?1:-1);
+  const deficeDiarioReal = (ingeridoMedio!=null && gastoMedido!=null)
+    ? (gastoMedido-ingeridoMedio)*(o.tipo==='perder'?1:-1) : null;
+  const usouRegistos = deficeDiarioReal!=null && Math.abs(deficeDiarioReal)>1;
+  const deficeUsado = usouRegistos? Math.abs(deficeDiarioReal) : deficeDiarioPlano;
+  const kcalPrevisto=deficeUsado*dias*(o.tipo==='perder'?1:-1);
   if(Math.abs(kcalPrevisto)<1) return {estado:'sem-plano'};
   const razao=kcalReal/kcalPrevisto;          /* 1 = a previsão acertou */
   const desvio=razao-1;
@@ -25968,9 +26085,18 @@ function validacaoObjetivo(o){
   /* Onde é que o erro está? Se o peso mudou MENOS do que o previsto, ou o gasto
      real é menor do que a app estima, ou entrou mais comida do que a registada.
      A app não pode distinguir as duas — e diz isso em vez de escolher uma. */
+  /* Com registos, a app consegue dizer QUAL das duas explicações é: se o que
+     se comeu ficou acima do alvo, parte do desvio é isso e não o metabolismo. */
+  const acimaDoAlvo = (ingeridoMedio!=null)? ingeridoMedio-targetKcal(m) : null;
   return {estado: Math.abs(desvio)<DESVIO_QUE_INTERESSA? 'confirma' : (desvio<0? 'aquem':'alem'),
     dias, kgReal:Math.round(kgReal*100)/100, kgPrevisto:Math.round(kgPrevisto*100)/100,
     razao, desvio, deficeDiarioPlano:Math.round(deficeDiarioPlano),
+    /* o que sustenta a conta: registos ou plano */
+    usouRegistos, cobertura:Math.round(cobertura*100), diasComRegisto,
+    ingeridoMedio: ingeridoMedio!=null? Math.round(ingeridoMedio):null,
+    gastoMedido: gastoMedido!=null? Math.round(gastoMedido):null,
+    acimaDoAlvo: acimaDoAlvo!=null? Math.round(acimaDoAlvo):null,
+    alvo:Math.round(targetKcal(m)),
     /* O gasto que explicaria o que a balança mostra. O sinal importa e é fácil
        de trocar: quem perdeu MENOS do que o previsto teve um défice real menor,
        e — assumindo que comeu o que estava planeado — isso quer dizer que gasta
@@ -26015,11 +26141,67 @@ function progressoObjetivo(o){
 /* MET de referência para um desporto ainda não registado: a velocidade por
    omissão do catálogo, ou intensidade moderada. Se o membro já o pratica,
    usa-se o MET real dele em vez de um valor genérico. */
-function metParaSugestao(m,sportId){
+function metParaSugestao(m,sportId,nivel){
   const sp=SPORT[sportId]; if(!sp) return 0;
+  /* Com nível pedido, é ele que manda — é isto que permite escolher no
+     objetivo a intensidade com que se tenciona praticar, em vez de herdar a
+     que está no perfil ou uma média. Correr a 12 km/h gasta quase o dobro de
+     correr a 7, e o plano tem de saber com qual das duas está a contar. */
+  if(nivel && NIVEIS.some(n=>n[0]===nivel)){
+    if(sp.dist){
+      /* nos desportos de distância o nível traduz-se em velocidade, que é o
+         que a curva do Compendium sabe ler */
+      const met=sp.mets[nivelIndice(nivel)];
+      return met||metPorVelocidade(sp.dist.curva,sp.dist.vdef);
+    }
+    return sp.mets[nivelIndice(nivel)];
+  }
   const existente=(m.desportos||[]).find(s=>s.s===sportId);
   if(existente) return metDe(existente);
   return sp.dist? metPorVelocidade(sp.dist.curva,sp.dist.vdef) : sp.mets[1];
+}
+/* ================= INTENSIDADE, DESCANSO E ELETRÓLITOS =================
+   Treinar mais forte rende mais por hora e custa mais ao corpo — e a segunda
+   metade dessa frase é a que as apps calam. Estas funções dizem as duas.
+
+   DESCANSO. A regra que a fisiologia do treino sustenta não é «X dias de
+   descanso»: é que o mesmo grupo muscular não deve ser trabalhado com carga
+   intensa em dias seguidos, e que uma semana de treino intenso sem qualquer
+   dia leve acumula fadiga mais depressa do que a recupera. A app conta os dias
+   com treino intenso marcado e avisa quando não sobra um único dia livre.
+
+   ELETRÓLITOS. Aqui a app tem de ser cuidadosa: a orientação corrente (ACSM,
+   e a posição conjunta com a Academy of Nutrition and Dietetics) é que abaixo
+   de uma hora de exercício a água chega, e que a reposição de sódio interessa
+   sobretudo acima disso, em calor, ou em quem sua muito e tem suor salgado.
+   Não há aqui nenhuma dose «para toda a gente» — há uma faixa e um critério.
+   A app diz o critério e não vende suplemento nenhum. */
+const MIN_SUOR_ELETROLITOS=60;   /* minutos de sessão a partir dos quais a reposição interessa */
+function cargaSemanal(m,ids,nivel,sessoes){
+  const lista=(ids||[]).filter(id=>temChave(SPORT,id));
+  if(!lista.length) return null;
+  const met=lista.reduce((t,id)=>t+metParaSugestao(m,id,nivel),0)/lista.length;
+  return {met, intenso: nivel==='intenso', sessoes:sessoes||lista.length};
+}
+function avisoDescanso(sessoes,nivel){
+  const n=Math.round(sessoes)||0;
+  if(!n) return null;
+  const livres=7-Math.min(7,n);
+  if(nivel==='intenso'){
+    if(livres===0) return {tom:'bad', txt:'Sete dias de treino intenso por semana não deixam nenhum dia para o corpo reconstruir o que o treino desfez — e é na reconstrução que se fica mais forte, não no treino. Deixa pelo menos um dia livre, ou faz metade das sessões em intensidade leve.'};
+    if(livres===1) return {tom:'warn', txt:'Com seis sessões intensas e um dia livre, a margem é curta. Alterna intensidades: dois ou três dias intensos por semana é o que a maioria dos planos de treino usa, com os restantes em leve ou moderado.'};
+    if(n>=4) return {tom:'warn', txt:'Quatro ou mais sessões intensas por semana pedem que não sejam em dias seguidos para o mesmo tipo de esforço — a app espaça-as, mas quem decide o que faz em cada uma és tu.'};
+    return {tom:'ok', txt:'Com '+plural(n,'sessão intensa','sessões intensas')+' e '+plural(livres,'dia livre','dias livres')+', há espaço para recuperar entre elas.'};
+  }
+  if(n===7) return {tom:'warn', txt:'Todos os dias com treino marcado. Em intensidade leve ou moderada isso é sustentável para muita gente, mas convém que um dos dias seja mesmo leve — uma caminhada, alongamentos.'};
+  return {tom:'ok', txt:'Com '+plural(livres,'dia livre','dias livres')+' na semana, a recuperação tem onde acontecer.'};
+}
+function avisoEletrolitos(minutosSessao,nivel){
+  const min=Math.round(minutosSessao)||0;
+  if(min<MIN_SUOR_ELETROLITOS && nivel!=='intenso') return null;
+  if(min<MIN_SUOR_ELETROLITOS) return {tom:'ok', txt:'Sessões abaixo de uma hora, mesmo intensas: a água chega. A reposição de sais só começa a fazer diferença acima disso.'};
+  return {tom:'warn', txt:'Sessões de '+min+' minutos'+(nivel==='intenso'?' em intensidade alta':'')
+    +' — acima de uma hora a suar, a água sozinha pode não chegar. A orientação do ACSM é repor sódio (300 a 600 mg por litro de bebida) e hidratos durante o esforço, sobretudo em calor ou em quem sua muito. Uma bebida desportiva, água com uma pitada de sal e sumo, ou comida salgada a seguir fazem o mesmo trabalho — não é preciso suplemento nenhum.'};
 }
 /* O cálculo puro da estratégia: quanto do ajuste diário vem da dieta e
    quanto do exercício, e o que isso implica em objetivoPct e em minutos de
@@ -26044,13 +26226,13 @@ function desportosDoObjetivo(o){
    (3 MET) meia hora de cada dá 6,5 MET na hora — e é essa a conta que diz
    quantos minutos por semana são precisos. Repartir por igual é a única regra
    que não obriga a inventar uma preferência que ninguém declarou. */
-function metCombinado(m,ids){
+function metCombinado(m,ids,nivel){
   const lista=(ids||[]).filter(id=>temChave(SPORT,id));
   if(!lista.length) return 0;
-  const soma=lista.reduce((t,id)=>t+(metParaSugestao(m,id)||0),0);
+  const soma=lista.reduce((t,id)=>t+(metParaSugestao(m,id,nivel)||0),0);
   return soma/lista.length;
 }
-function calcEstrategia(m,pesoAlvo,semanasRestantes,tipo,splitDieta,desportoId){
+function calcEstrategia(m,pesoAlvo,semanasRestantes,tipo,splitDieta,desportoId,nivel){
   const kgRestante=pesoAlvo-m.peso;
   const kcalTotal=Math.abs(kgRestante)*7700;
   const dias=Math.max(1,semanasRestantes*7);
@@ -26063,7 +26245,7 @@ function calcEstrategia(m,pesoAlvo,semanasRestantes,tipo,splitDieta,desportoId){
     viaExercicio=deficitDiario*(100-splitDieta)/100;
     /* aceita um id só (chamadas antigas) ou uma lista */
     const ids=Array.isArray(desportoId)? desportoId : (desportoId? [desportoId] : []);
-    const met=metCombinado(m,ids);
+    const met=metCombinado(m,ids,nivel);
     horasExtraSemana = met>0? (viaExercicio*7)/(met*m.peso) : 0;
   }
   let objetivoPctSugerido = tipo==='manter'? 0 : Math.round(sinal*viaDieta/tdeeAtual*100);
@@ -26082,11 +26264,11 @@ function calcEstrategia(m,pesoAlvo,semanasRestantes,tipo,splitDieta,desportoId){
    acrescenta cada parte ao respetivo desporto. É o par da média de METs que o
    cálculo usou: se a conta foi feita com a média, o tempo tem de ser repartido
    da mesma maneira, senão a app promete um gasto que o plano não cumpre. */
-function aplicarExercicios(m,ids,horasExtraSemana){
+function aplicarExercicios(m,ids,horasExtraSemana,nivel){
   const lista=(ids||[]).filter(id=>temChave(SPORT,id));
   if(!lista.length || horasExtraSemana<=0.01) return;
   const porCada=horasExtraSemana/lista.length;
-  lista.forEach(id=>aplicarExercicio(m,id,porCada));
+  lista.forEach(id=>aplicarExercicio(m,id,porCada,nivel));
 }
 /* ---- Agendar os treinos da semana ----
    O objetivo sabe quantas horas por semana são precisas; o que faltava era
@@ -26157,7 +26339,7 @@ function agendarTreinos(m,ids,sessoesSemana){
   });
   return marcadas;
 }
-function aplicarExercicio(m,sportId,horasExtraSemana){
+function aplicarExercicio(m,sportId,horasExtraSemana,nivel){
   if(!sportId || horasExtraSemana<=0.01) return;
   const sp=SPORT[sportId]; if(!sp) return;
   if(!Array.isArray(m.desportos)) m.desportos=[];
@@ -26170,7 +26352,7 @@ function aplicarExercicio(m,sportId,horasExtraSemana){
   } else if(sp.dist){
     m.desportos.push(normalizaDesporto({s:sportId, km:Math.round(horasExtraSemana*sp.dist.vdef*10)/10, v:sp.dist.vdef, per:'semana'}));
   } else {
-    m.desportos.push(normalizaDesporto({s:sportId, h:Math.round(horasExtraSemana*10)/10, i:'moderado', per:'semana'}));
+    m.desportos.push(normalizaDesporto({s:sportId, h:Math.round(horasExtraSemana*10)/10, i:(nivel||'moderado'), per:'semana'}));
   }
 }
 function aplicarEstrategia(mid,calc,o){
@@ -26195,7 +26377,7 @@ function aplicarEstrategia(mid,calc,o){
       const antes=parseFloat(jaSomado[id])||0;
       if(s && antes>0.01) retirarExercicio(m,id,antes);
     });
-    aplicarExercicios(m,ids,calc.horasExtraSemana);
+    aplicarExercicios(m,ids,calc.horasExtraSemana,o.nivel);
     o.horasAplicadas={};
     const porCada=ids.length? calc.horasExtraSemana/ids.length : 0;
     ids.forEach(id=>{ o.horasAplicadas[id]=porCada; });
@@ -26315,6 +26497,27 @@ function diasDeJejumPontual(nPorSemana,semanas){
   });
   return out.slice(0,120);
 }
+/* O que o corpo precisa por causa do que se lhe vai pedir: descanso e, quando
+   as sessões passam de uma hora a suar, reposição de sais. Aparece com os
+   números do próprio objetivo — minutos por sessão calculados a partir das
+   horas que a estratégia pede — e não como conselho genérico. */
+function blocoRecuperacao(f){
+  const escolhidos=f.membros.map(mid=>S.members.find(x=>x.id===mid)).filter(Boolean);
+  if(!escolhidos.length || !f.desportos.length) return '';
+  const m=escolhidos[0];
+  const pesoAlvo = f.tipo==='ganhar'? m.peso+f.delta : f.tipo==='perder'? Math.max(1,m.peso-f.delta) : m.peso;
+  const calc=calcEstrategia(m,pesoAlvo,f.semanas,f.tipo,f.split,f.desportos,f.nivel);
+  const minSessao=f.sessoes? calc.minutosExtraSemana/f.sessoes : 0;
+  const desc=avisoDescanso(f.sessoes,f.nivel);
+  const ele=avisoEletrolitos(minSessao,f.nivel);
+  if(!desc && !ele) return '';
+  const cor=t=>t==='bad'?'bad':t==='warn'?'warn':'ok';
+  return `<div style="margin-top:10px">
+    ${calc.minutosExtraSemana>1? `<p class="sub"><b>${Math.round(calc.minutosExtraSemana)} min por semana</b> em ${plural(f.sessoes,'sessão','sessões')} dá cerca de <b>${Math.round(minSessao)} min por treino</b>.</p>`:''}
+    ${desc? `<div class="aviso ${cor(desc.tom)}" style="margin-top:6px"><b>Descanso.</b> ${esc(desc.txt)}</div>`:''}
+    ${ele? `<div class="aviso ${cor(ele.tom)}" style="margin-top:6px"><b>Água e sais.</b> ${esc(ele.txt)}</div>`:''}
+  </div>`;
+}
 function blocoJejumObjetivo(f){
   const escolhidos=f.membros.map(mid=>S.members.find(x=>x.id===mid)).filter(Boolean);
   const impedidos=escolhidos.map(m=>({m, porque:jejumDesaconselhado(m)})).filter(x=>x.porque);
@@ -26347,8 +26550,21 @@ function blocoJejumObjetivo(f){
       <input type="range" min="0" max="3" step="1" value="${f.jejumDias}" style="--pct:${Math.round(f.jejumDias/3*100)}%"
         aria-label="Dias de jejum completo por semana" oninput="slideObjForm('jejumDias',this)" onchange="saveMeta()">
       <p class="sub" style="margin-top:4px">${f.jejumDias
-        ? 'Ficam marcados '+plural(f.jejumDias*f.semanas,'dia','dias')+' de 24 horas ao longo das '+f.semanas+' semanas, espaçados. Um jejum de 24 horas é um dia sem comida — a app conta-o como tal no gasto e nos macros.'
-        : 'Só a janela diária. Um jejum completo de 24 horas é outra coisa e a app trata-o à parte.'}</p>`}`:''}`;
+        ? 'Ficam marcados '+plural(Math.min(120,f.jejumDias*f.semanas),'dia','dias')+' de 24 horas ao longo das '+f.semanas+' semanas, espaçados. Um jejum de 24 horas é um dia sem comida — a app conta-o como tal no gasto e nos macros.'
+        : 'Só a janela diária. Um jejum completo de 24 horas é outra coisa e a app trata-o à parte.'}</p>
+      ${f.jejumDias? `<div class="aviso warn" style="margin-top:8px">
+        <b>Num jejum só de água, os sais saem na mesma.</b>
+        <p class="sub" style="margin-top:4px">Um dia sem comer não é só um dia sem calorias: é um dia sem sódio, sem potássio e sem magnésio a entrar,
+        enquanto o rim continua a deitá-los fora — e nas primeiras 24 a 48 horas deita mais, porque a queda da insulina faz o corpo largar sódio e água.
+        É daí que vem a maior parte do mal-estar de quem jejua: dor de cabeça, tonturas ao levantar, cãibras e fadiga são quase sempre
+        sal a menos, e não fome.</p>
+        <p class="sub" style="margin-top:6px">O que a prática corrente recomenda em jejuns de 24 horas ou mais: <b>água com sal</b> (uma pitada de sal por litro,
+        ou caldo de legumes sem gordura), e não beber litros de água pura sem repor nada — beber muito e não repor dilui o sódio que resta,
+        que é o mecanismo da hiponatrémia. Quem tomar diuréticos, tiver doença renal ou cardíaca, ou fizer jejuns seguidos,
+        precisa de o falar com quem o segue: aí a reposição deixa de ser uma pitada de sal e passa a ser assunto clínico.</p>
+        <p class="sub" style="margin-top:6px"><b>E não se treina em jejum de 24 horas.</b> Se marcaste treinos, a app espaça-os — mas os dias de jejum completo
+        são para descansar, não para somar esforço a um corpo sem substrato nem eletrólitos para o sustentar.</p>
+      </div>`:''}`}`:''}`;
 }
 /* ---- formulário de criação (estado transitório em S.ui.objForm) ---- */
 /* Todos os desportos que a app conhece, e não só quatro fixos mais os que a
@@ -26413,7 +26629,7 @@ function gerarPreviewHtml(){
     if(f.tipo==='manter')
       return `<div class="kv"><span>${esc(m.nome)}</span><b>manter ${nPT(m.peso,1)} kg ± ${nPT(m.peso*f.banda/100,1)} kg</b></div>`;
     const pesoAlvo = f.tipo==='ganhar'? Math.round((m.peso+f.delta)*10)/10 : Math.max(1,Math.round((m.peso-f.delta)*10)/10);
-    const calc=calcEstrategia(m,pesoAlvo,f.semanas,f.tipo,f.split,f.desportos);
+    const calc=calcEstrategia(m,pesoAlvo,f.semanas,f.tipo,f.split,f.desportos,f.nivel);
     return `<div class="kv"><span>${esc(m.nome)} · alvo ${nPT(pesoAlvo,1)} kg</span>
       <b><span class="pill ${calc.toneRitmo}" style="margin-right:6px">${nPT(calc.ritmoKgSemana,2)} kg/sem</span>
       ${calc.objetivoPctSugerido>0?'+':''}${calc.objetivoPctSugerido}%${f.tipo==='perder'&&calc.minutosExtraSemana>1?' · +'+Math.round(calc.minutosExtraSemana)+' min/sem':''}</b></div>
@@ -26451,9 +26667,10 @@ function criarObjetivo(){
          um objetivo que diz «14 treinos» com um só desporto é uma promessa que
          a semana não tem dias para cumprir */
       sessoes:clampNum(f.sessoes, Math.max(1,f.desportos.length), Math.min(14, Math.max(1,f.desportos.length)*7)),
+      nivel:f.nivel,
       agendar:!!f.agendar,
       bandaManter:f.banda||2, concluido:false, celebrado:false, dataConclusao:null};
-    const calc=calcEstrategia(m,pesoAlvo,f.semanas,f.tipo,f.split,o.desportosEscolhidos);
+    const calc=calcEstrategia(m,pesoAlvo,f.semanas,f.tipo,f.split,o.desportosEscolhidos,f.nivel);
     aplicarEstrategia(mid,calc,o);
     S.objetivos.push(o); criados++;
   });
@@ -26475,7 +26692,7 @@ function criarObjetivo(){
      mesma estratégia. Faltavam aqui os campos novos, e o formulário reaparecia
      com «undefined treinos» — um objeto reposto tem de o ser por inteiro. */
   S.ui.objForm={membros:[], tipo:'perder', delta:5, semanas:12, split:50,
-    desportos:f.desportos.slice(), dieta:f.dieta, sessoes:f.sessoes, agendar:f.agendar,
+    desportos:f.desportos.slice(), dieta:f.dieta, sessoes:f.sessoes, agendar:f.agendar, nivel:f.nivel,
     jejum:f.jejum, jejumH:f.jejumH, jejumIni:f.jejumIni, jejumDias:f.jejumDias, banda:2};
   save(plural(criados,'novo objetivo','novos objetivos'));
   flash('ok', plural(criados,'Objetivo criado','Objetivos criados')
@@ -26520,7 +26737,7 @@ function slideObjAdj(oid,campo,el){
   aoVivo('objadj', ()=>{
     const o=S.objetivos.find(x=>x.id===oid), m=o&&S.members.find(x=>x.id===o.membroId);
     if(!o||!m) return;
-    const calc=calcEstrategia(m,o.pesoAlvo,semanasRestantesDe(o),o.tipo,S.ui.objAdj.split,S.ui.objAdj.desportos);
+    const calc=calcEstrategia(m,o.pesoAlvo,semanasRestantesDe(o),o.tipo,S.ui.objAdj.split,S.ui.objAdj.desportos,S.ui.objAdj.nivel);
     const el2=document.getElementById('obj-adj-preview-'+oid); if(el2) el2.innerHTML=previewAjusteHtml(calc);
     põe('obj-adj-split-o-'+oid, S.ui.objAdj.split+'% dieta · '+(100-S.ui.objAdj.split)+'% exercício');
     põe('obj-adj-sessoes-o-'+oid, plural(S.ui.objAdj.sessoes,'treino','treinos'));
@@ -26549,7 +26766,8 @@ function reajustarObjetivo(oid){
   o.sessoes=clampNum(Math.round(adj.sessoes)||3, Math.max(1,o.desportosEscolhidos.length),
     Math.min(14, Math.max(1,o.desportosEscolhidos.length)*7));
   o.agendar=!!adj.agendar;
-  const calc=calcEstrategia(m,o.pesoAlvo,semanasRestantesDe(o),o.tipo,o.splitDieta,o.desportosEscolhidos);
+  o.nivel=NIVEIS.some(n=>n[0]===adj.nivel)? adj.nivel : (o.nivel||'moderado');
+  const calc=calcEstrategia(m,o.pesoAlvo,semanasRestantesDe(o),o.tipo,o.splitDieta,o.desportosEscolhidos,o.nivel);
   aplicarEstrategia(o.membroId,calc,o);
   S.ui.objExpandido=null;
   save('ajuste de estratégia de '+m.nome);
@@ -26587,9 +26805,19 @@ function blocoValidacao(o,m){
     Em ${v.dias} dias a balança ${verbo} <b>${nPT(Math.abs(v.kgReal),2)} kg</b> e o plano previa
     <b>${nPT(Math.abs(v.kgPrevisto),2)} kg</b> — ${aquem?'menos':'mais'} ${Math.abs(pctDesvio)} % do que o esperado.
     <p class="sub" style="margin-top:8px">${aquem
-      ? (aGanhar
-        ? 'Há duas explicações e a app não consegue distingui-las: ou o teu gasto real é maior do que a estimativa (as equações erram 10 a 15 % em muita gente), ou entrou menos do que ficou registado. Nenhuma das duas é falta de esforço.'
-        : 'Há duas explicações e a app não consegue distingui-las: ou o teu gasto real é menor do que a estimativa (as equações erram 10 a 15 % em muita gente), ou entrou mais do que ficou registado. Nenhuma das duas é falta de esforço.')
+      ? (v.usouRegistos
+        /* Com registos que cheguem, a app já não tem de encolher os ombros
+           entre as duas explicações: sabe o que entrou e sabe o que a balança
+           fez, e a diferença é do gasto. */
+        ? 'Com '+v.diasComRegisto+' dias de refeições registadas ('+v.cobertura+' % do período), a conta já não é sobre o plano — é sobre o que comeste mesmo: uma média de <b>'+v.ingeridoMedio+' kcal por dia</b>'
+          +(Math.abs(v.acimaDoAlvo)>60
+            ? (v.acimaDoAlvo>0
+              ? ', que são <b>'+v.acimaDoAlvo+' acima</b> do alvo. Parte da diferença explica-se aí, e não pelo metabolismo.'
+              : ', que são <b>'+Math.abs(v.acimaDoAlvo)+' abaixo</b> do alvo — comeste menos do que o plano pedia e mesmo assim o peso não acompanhou, o que aponta o dedo à estimativa de gasto.')
+            : ', em linha com o alvo. Como o que entrou bate certo com o planeado e o peso não acompanhou, o que está errado é a estimativa do gasto.')
+        : (aGanhar
+          ? 'Há duas explicações e sem refeições registadas a app não as distingue: ou o teu gasto real é maior do que a estimativa (as equações erram 10 a 15 % em muita gente), ou entrou menos do que ficou registado. Regista as refeições durante três semanas e a app passa a saber qual é.'
+          : 'Há duas explicações e sem refeições registadas a app não as distingue: ou o teu gasto real é menor do que a estimativa (as equações erram 10 a 15 % em muita gente), ou entrou mais do que ficou registado. Regista as refeições durante três semanas e a app passa a saber qual é.'))
       : (aGanhar
         ? 'Estás a ganhar mais depressa do que o plano pedia. Isso pode ser bom, mas um excedente maior do que o combinado ganha-se sobretudo em gordura — e o que se procura num objetivo de ganho é massa.'
         : 'Estás a perder mais depressa do que o plano pedia. Isso pode ser bom, mas também pode significar um défice maior do que o combinado — e défices grandes custam massa muscular além de gordura.')}</p>
@@ -26667,7 +26895,7 @@ function painelAjuste(o,m){
   if(o.tipo!=='perder') return `<div class="msg" style="margin-top:10px;background:var(--bg);color:var(--mut)">
     Este tipo de objetivo não tem estratégia mista para ajustar. Para mudar o alvo ou o prazo, remove e cria um objetivo novo.</div>`;
   const adj=S.ui.objAdj||{split:o.splitDieta, desportos:desportosDoObjetivo(o), sessoes:o.sessoes||3, agendar:o.agendar!==false};
-  const calc=calcEstrategia(m,o.pesoAlvo,semanasRestantesDe(o),o.tipo,adj.split,adj.desportos);
+  const calc=calcEstrategia(m,o.pesoAlvo,semanasRestantesDe(o),o.tipo,adj.split,adj.desportos,adj.nivel);
   /* todos, com os que esta pessoa já pratica à frente */
   const pratica=new Set((m.desportos||[]).map(s=>s.s));
   const todos=SPORTS.map(s=>s.id).filter(id=>temChave(SPORT,id));
@@ -26894,6 +27122,15 @@ function formCriacaoHtml(){
       `<button class="chip ${f.desportos.indexOf(id)>=0?'on':''}" onclick="toggleObjDesporto('${id}')"
         aria-pressed="${f.desportos.indexOf(id)>=0}">${jaPraticaNoForm(id)?'★ ':''}${SPORT[id].nome}</button>`).join('')}</div>
     ${f.desportos.length? `
+    <div class="splabel" style="margin-top:12px"><span>Com que intensidade ${dica('objIntensidade')}</span>
+      <output style="text-align:right">${(NIVEIS.find(n=>n[0]===f.nivel)||NIVEIS[1])[1]}</output></div>
+    <div class="row" style="margin:6px 0">${NIVEIS.map(([k,rot])=>
+      `<button class="chip ${f.nivel===k?'on':''}" onclick="setObjForm('nivel','${k}')" aria-pressed="${f.nivel===k}">${rot}</button>`).join('')}</div>
+    <p class="sub">${f.nivel==='intenso'
+      ? 'Mais gasto por hora — e menos horas para o mesmo efeito. O corpo também precisa de mais tempo para recuperar, e é isso que a app conta a seguir.'
+      : f.nivel==='leve'
+      ? 'Menos gasto por hora, mais horas para o mesmo efeito — e muito mais fácil de manter durante meses, que é o que decide um objetivo de dezasseis semanas.'
+      : 'O ponto em que se consegue falar mas não cantar. É a intensidade que a maioria das recomendações usa como referência.'}</p>
     <div class="splabel" style="margin-top:12px"><span>Treinos por semana</span>
       <output id="obj-o-sessoes" style="min-width:12ch;text-align:right">${plural(f.sessoes,'treino','treinos')}</output></div>
     ${/* O teto não são 14 fixos: são sete dias por cada desporto escolhido, que
@@ -26908,7 +27145,8 @@ function formCriacaoHtml(){
       <span>Marcar já os dias no plano de treinos</span></label>
     <p class="sub" style="margin-top:4px">${f.agendar
       ? 'Os treinos ficam espaçados na semana e aparecem no separador Atividade, prontos a confirmar. Podes mudar os dias lá.'
-      : 'Só se acerta o volume semanal; os dias ficam como estão.'}</p>`:''}`
+      : 'Só se acerta o volume semanal; os dias ficam como estão.'}</p>
+    ${blocoRecuperacao(f)}`:''}`
     : f.tipo==='ganhar'? `<p class="sub" style="margin-top:10px">Para orientar o ganho para massa muscular, considera reforçar treino de força — ${['musculacao','calistenia','funcional'].map(id=>SPORT[id].nome).join(', ')}.</p>` : ''}
 
     <div id="obj-preview" style="margin-top:14px">${gerarPreviewHtml()}</div>
