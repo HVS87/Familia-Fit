@@ -22247,6 +22247,97 @@ const COMBO_PREFIXO='c:';
    o mais antigo, que é o que há mais tempo ninguém escolhe. */
 const MAX_COMBOS=120;
 function ehCombo(r){ return !!r && r.co===true; }
+/* ================= O FILTRO QUE DEITAVA FORA O PRATO INTEIRO =================
+   Um prato composto — «Polvo à lagareiro com grelos», «Rojões com grelos» — é
+   uma receita só para o filtro, e os atributos dele são a soma dos das partes.
+   Bastava o acompanhamento trazer glúten para o par inteiro desaparecer de uma
+   pesquisa com «sem glúten» marcado: o polvo, que não tem glúten nenhum,
+   sumia-se por causa do pão que ia ao lado.
+
+   Estas três funções separam o que é do prato do que é do que o acompanha, e é
+   isso que permite mostrar a receita com um aviso em vez de a esconder. */
+function partesDoCombo(r){
+  if(!ehCombo(r)) return null;
+  const base=RECIPES.find(x=>x.id===r.base && !ehCombo(x));
+  if(!base) return null;
+  return {base,
+    acs:(r.acIds||[]).map(id=>RECIPES.find(x=>x.id===id)).filter(Boolean),
+    mo: r.moId? RECIPES.find(x=>x.id===r.moId) : null};
+}
+/* Passa o teste (dietas marcadas + alergénios marcados) só olhando ao prato? */
+function pratoBaseCumpre(r,dietas,alergs){
+  const p=partesDoCombo(r); if(!p) return false;
+  const b=p.base;
+  if((dietas||[]).some(k=>(b.dc||[]).indexOf(k)<0)) return false;
+  if((alergs||[]).some(k=>(b.at||[]).indexOf(k)>=0)) return false;
+  return true;
+}
+/* O que exatamente falha, e em qual das partes. Devolve null se o par cumpre
+   tudo, e null também se o problema é do prato — nesse caso não há troca que
+   resolva e a receita continua fora, como estava. */
+function falhaSoNoLado(r,dietas,alergs){
+  const p=partesDoCombo(r); if(!p) return null;
+  if(!pratoBaseCumpre(r,dietas,alergs)) return null;
+  const maus=[];
+  p.acs.concat(p.mo?[p.mo]:[]).forEach(a=>{
+    const porDieta=(dietas||[]).filter(k=>(a.dc||[]).indexOf(k)<0);
+    const porAlerg=(alergs||[]).filter(k=>(a.at||[]).indexOf(k)>=0);
+    if(porDieta.length||porAlerg.length) maus.push({a, dietas:porDieta, alergs:porAlerg, molho:a===p.mo});
+  });
+  return maus.length? {base:p.base, maus} : null;
+}
+/* Um substituto para o acompanhamento que falha, entre os que cumprem os
+   filtros marcados — o mais próximo em calorias, que é o que mantém o prato
+   equilibrado. É a mesma regra do plano, aplicada aqui aos filtros em vez de
+   à dieta de uma pessoa. */
+/* O aviso no cartão: só aparece quando há filtros marcados E o par só falha
+   por causa do que vai ao lado. Diz qual é a parte que falha, porquê, e qual
+   seria a troca — e o botão faz a troca, gerando o par novo. */
+function avisoLadoNosFiltros(r){
+  const dF=dietasFiltro().filter(k=>temChave(DIETAS_FILTRAVEIS,k));
+  const aF=alergsFiltro().filter(ehAlergenio);
+  if(!dF.length && !aF.length) return '';
+  const f=falhaSoNoLado(r,dF,aF);
+  if(!f) return '';
+  const linhas=f.maus.map(x=>{
+    const porque=x.dietas.map(k=>'não é '+nomeDieta(k).toLowerCase())
+      .concat(x.alergs.map(k=>'traz '+RESTR[k].n.toLowerCase())).join(' e ');
+    const sub=x.molho? null : acSubstitutoFiltros(x.a,dF,aF,(r.acIds||[]));
+    return '<b>'+esc(x.a.n)+'</b> '+esc(porque)
+      +(sub? ' — troca por <b>'+esc(sub.n)+'</b>'
+        +' <button class="btn small" style="margin-left:6px" onclick="trocarLadoDoCombo(&quot;'+r.id+'&quot;,&quot;'+x.a.id+'&quot;,&quot;'+sub.id+'&quot;)">Trocar</button>'
+        : (x.molho? ' — tira o molho' : ' — e não há alternativa que cumpra os filtros'));
+  });
+  return `<div class="aviso warn" style="margin-top:6px">
+    <b>O prato cumpre; o que vai ao lado é que não.</b>
+    <div class="sub" style="margin-top:4px">${linhas.join('<br>')}</div>
+  </div>`;
+}
+/* Troca a parte que falha e abre a ficha do par novo. Não mexe em nada
+   guardado: os pares nascem da mesma tabela de sempre, e este só passa a
+   existir como qualquer outro que alguém componha no plano. */
+function trocarLadoDoCombo(comboId,acId,novoId){
+  const r=RECIPES.find(x=>x.id===comboId); if(!r || !ehCombo(r)) return;
+  const acs=(r.acIds||[]).map(id=>id===acId? novoId : id);
+  const novo=idCombo(r.base, acs, r.moId||'');
+  registaCombo(r.base, acs, r.moId||'');
+  const feito=RECIPES.find(x=>x.id===novo);
+  if(!feito) return flash('warn','Não consegui compor esse par.');
+  const a=RECIPES.find(x=>x.id===acId), b=RECIPES.find(x=>x.id===novoId);
+  flash('ok',(a&&b? esc(a.n)+' → '+esc(b.n)+'. ' : '')+'O prato é o mesmo.',{rot:'Anular', fn:'desfazer()'});
+  abrirFicha(novo, porcoesAtuais());
+}
+function acSubstitutoFiltros(ac,dietas,alergs,excluir){
+  const cands=acompanhamentos().filter(x=>
+    x.id!==ac.id && (excluir||[]).indexOf(x.id)<0
+    && (dietas||[]).every(k=>(x.dc||[]).indexOf(k)>=0)
+    && (alergs||[]).every(k=>(x.at||[]).indexOf(k)<0));
+  if(!cands.length) return null;
+  return cands.slice().sort((a,b)=>
+    Math.abs(a.k-ac.k)-Math.abs(b.k-ac.k)
+    || pctDespensa(b)-pctDespensa(a)
+    || a.n.localeCompare(b.n,'pt'))[0];
+}
 /* O molho entra na chave depois de um til, e não de um mais, para os pares
    guardados antes de os molhos existirem continuarem a dar exatamente a
    mesma chave — sem isso, uma atualização apagava as variantes todas. */
@@ -22996,6 +23087,7 @@ function recipeCard(r,n){
     ${S.members.length? `<div class="row" style="margin-top:2px"><span class="sub">Compatível:</span>
       ${comp.length? comp.map(m=>avatar(m,22)).join('') : '<span class="sub">— só como refeição livre</span>'}</div>`:''}
     ${avisoAlergia(r,S.members)}${avisoIdade(r,S.members)}
+    ${avisoLadoNosFiltros(r)}
     ${vetados.length? `<div class="sub" style="color:var(--warn)">⚠ ${vetados.map(x=>nomeCurto(x.m)+' não come '+x.itens.map(esc).join(', ')).join(' · ')}</div>`:''}
     <div class="row" style="margin-top:2px">
       <button class="chip" onclick="abrirCozinha('${r.id}',${n||1})">👨‍🍳 Cozinhar</button>
@@ -25666,9 +25758,19 @@ function renderReceitas(){
   /* cumulativos: a receita tem de cumprir todas as dietas marcadas e estar
      livre de todos os alergénios marcados ao mesmo tempo */
   const dF=dietasFiltro().filter(k=>temChave(DIETAS_FILTRAVEIS,k));
-  if(dF.length) list=list.filter(r=>dF.every(k=>(r.dc||[]).indexOf(k)>=0));
   const aF=alergsFiltro().filter(ehAlergenio);
-  if(aF.length) list=list.filter(r=>aF.every(k=>r.at.indexOf(k)<0));
+  /* Um prato composto que só falha por causa do que vai ao lado fica na lista,
+     com um aviso e uma sugestão de troca — em vez de desaparecer inteiro. O
+     polvo à lagareiro não tem glúten nenhum; era o pão do lado que o deitava
+     fora de uma pesquisa «sem glúten», e quem procurava ficava sem saber que a
+     receita existia e que bastava mudar o acompanhamento. */
+  if(dF.length||aF.length){
+    list=list.filter(r=>{
+      const cumpre=dF.every(k=>(r.dc||[]).indexOf(k)>=0) && aF.every(k=>r.at.indexOf(k)<0);
+      if(cumpre) return true;
+      return !!falhaSoNoLado(r,dF,aF);
+    });
+  }
   if(S.ui.soComp && m) list=list.filter(r=>compat(r,chaveDieta(m))&&!ingredientesVetados(r,m).length);
   if(S.ui.soEpoca) list=list.filter(receitaDaEpoca);
   if(S.ui.catF && temChave(CATEG,S.ui.catF)) list=list.filter(r=>temCategoria(r,S.ui.catF));
