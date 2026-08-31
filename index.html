@@ -2429,9 +2429,22 @@ function migraRegistos(s){
     delta: clampNum(parseFloat(fo.delta)||5, 0, 100),
     semanas: clampNum(Math.round(parseFloat(fo.semanas)||12), 1, 104),
     split: clampNum(Math.round(parseFloat(fo.split)||50), 0, 100),
-    desporto: typeof fo.desporto==='string'? fo.desporto : null,
+    /* O desporto do objetivo passou de um para vários: quem quer perder peso a
+       correr e a levantar pesos não escolhe entre os dois. Um estado guardado
+       com o campo antigo (uma string) entra como lista de um. */
+    desportos: Array.isArray(fo.desportos)
+      ? fo.desportos.filter(x=>typeof x==='string' && temChave(SPORT,x)).slice(0,8)
+      : (typeof fo.desporto==='string' && temChave(SPORT,fo.desporto)? [fo.desporto] : []),
+    /* '' quer dizer «cada um fica com a dieta que tem» */
+    dieta: (typeof fo.dieta==='string' && (fo.dieta==='' || temChave(DIETS,fo.dieta)))? fo.dieta : '',
+    sessoes: clampNum(Math.round(parseFloat(fo.sessoes)||3), 1, 14),
+    agendar: fo.agendar!==false,
+    jejum: !!fo.jejum,
+    jejumH: clampNum(Math.round(parseFloat(fo.jejumH)||16), 12, 23),
+    jejumIni: clampNum(Math.round(parseFloat(fo.jejumIni)||12), 0, 23),
+    jejumDias: clampNum(Math.round(parseFloat(fo.jejumDias)||0), 0, 3),
     banda: clampNum(parseFloat(fo.banda)||2, 0, 20)
-  } : {membros:[],tipo:'perder',delta:5,semanas:12,split:50,desporto:null,banda:2};
+  } : {membros:[],tipo:'perder',delta:5,semanas:12,split:50,desportos:[],dieta:'',sessoes:3,agendar:true,jejum:false,jejumH:16,jejumIni:12,jejumDias:0,banda:2};
   s.validades = limparValidades(s.validades);
   s.veredictos = limparVeredictos(s.veredictos, ids);
   s.brigada = limparBrigada(s.brigada, ids);
@@ -2860,6 +2873,13 @@ const BEBIDAS=[
   {k:'porto',    n:'Cálice de Porto', ml:75,  abv:19.0, i:'🥃'},
   {k:'shot',     n:'Shot de destilado', ml:40, abv:40.0, i:'🥃'},
   {k:'gt',       n:'Gin tónico',      ml:50,  abv:40.0, i:'🍸'},
+  /* A bagaceira ao balcão e o cálice de conhaque ao fim do jantar são as duas
+     bebidas que faltavam a uma lista portuguesa, e nenhuma cabia no «shot»: o
+     shot bebe-se de uma vez, estas bebem-se devagar e num cálice maior. A
+     aguardente vinícola e a bagaceira andam nos 40 %, e o conhaque e o brandy
+     nos 40 % também — o que muda é a dose habitual, e é isso que a app conta. */
+  {k:'aguardente', n:'Cálice de aguardente / bagaço', ml:30, abv:40.0, i:'🥃'},
+  {k:'conhaque',   n:'Conhaque / brandy',             ml:50, abv:40.0, i:'🥃'},
 ];
 function nomeRefeicao(k){ if(k==='ac') return 'Acompanhamento';
   const m=MEALS.find(x=>x[0]===k); return m? m[1] : k; }
@@ -10612,7 +10632,7 @@ function blank(){ return {members:[],cheats:{},plans:{},bought:{},prefCuisine:'t
      S.ui porque muda NUMEROS, nao aparencia: entra no desfazer e na copia. */
   metodoBMR:'henry',
   ui:{tab:'familia',mid:null,cuis:'todas',soComp:false,mealF:'todas',dietaF:[],busca:'',editor:null,
-      objForm:{membros:[],tipo:'perder',delta:5,semanas:12,split:50,desporto:null,banda:2},
+      objForm:{membros:[],tipo:'perder',delta:5,semanas:12,split:50,desportos:[],dieta:'',sessoes:3,agendar:true,jejum:false,jejumH:16,jejumIni:12,jejumDias:0,banda:2},
       objExpandido:null, objAdj:null, celebrando:null, tourPasso:null, tourVisto:false,
       tema:'auto', paleta:'azulejo', colapsados:{}, alergF:[], alergDesp:'',
       recLimite:48, recQ:'',
@@ -12277,6 +12297,26 @@ function registarBebida(mid,k,n){
 function apagarBebida(id){
   S.bebidas=bebidasCfg().filter(x=>x.id!==id);
   save('bebida apagada'); render();
+}
+/* Anular o dia inteiro, e não só o último registo. O desfazer da app anda um
+   passo de cada vez, e quem registou cinco copos ao longo de um jantar tinha
+   de carregar cinco vezes — ou pior, tinha de se lembrar de quantos foram. É
+   uma correção que se faz no dia seguinte, quando a conta já não bate certo
+   com o que se lembra, e a essa altura o desfazer já anda longe. Fica um só
+   passo de desfazer, para o próprio apagar se poder anular de uma vez. */
+function limparBebidasDoDia(mid,d){
+  const dia=d||hojeISO();
+  const alvo=bebidasDoDia(mid,dia);
+  if(!alvo.length) return;
+  const m=S.members.find(x=>x.id===mid);
+  const u=alvo.reduce((t,x)=>{ const b=BEBIDAS.find(y=>y.k===x.k); return t+(b? unidadesDe(b.ml,b.abv)*x.n : 0); },0);
+  const quantos=alvo.reduce((t,x)=>t+x.n,0);
+  if(!confirm('Apagar '+plural(quantos,'bebida registada','bebidas registadas')
+    +(m? ' de '+nomeCurto(m):'')+' em '+rotuloData(dia)+'?\n\nSão '+nPT(u,1)+' unidades. O botão de anular repõe tudo.')) return;
+  S.bebidas=bebidasCfg().filter(x=>!(x.mid===mid&&x.d===dia));
+  save('bebidas de '+rotuloData(dia)+' apagadas');
+  flash('ok', plural(quantos,'bebida apagada','bebidas apagadas')+'.', {rot:'Anular', fn:'desfazer()'});
+  render();
 }
 function limparBebidas(a,ids){
   if(!Array.isArray(a)) return [];
@@ -24484,7 +24524,13 @@ function cartaoAlcool(m){
         title="${b.ml} ml a ${nPT(b.abv,1)}% — ${nPT(unidadesDe(b.ml,b.abv),1)} unidades, ${kcalAlcool(b.ml,b.abv)} kcal">${b.i} ${esc(b.n)}</button>`).join('')}
     </div>
     ${hoje.length? `<p class="sub" style="margin-top:10px"><b>Hoje:</b> ${
-      hoje.map(chipBebida).join(' · ')} — ${kcalHoje} kcal somadas ao dia.</p>`:''}
+      hoje.map(chipBebida).join(' · ')} — ${kcalHoje} kcal somadas ao dia.</p>
+      <div class="row" style="margin-top:6px">
+        <button class="btn ghost small" onclick="limparBebidasDoDia('${m.id}')">Apagar tudo o de hoje</button>
+      </div>`:''}
+    ${(function(){ const ont=bebidasDoDia(m.id,addDias(hojeISO(),-1));
+      return ont.length? `<p class="sub" style="margin-top:8px"><b>Ontem:</b> ${ont.map(chipBebida).join(' · ')}
+        <button class="btn ghost small" style="margin-left:6px" onclick="limparBebidasDoDia('${m.id}','${addDias(hojeISO(),-1)}')">Apagar tudo o de ontem</button></p>`:''; })()}
     <div class="splabel" style="margin-top:12px"><span>Unidades nos últimos 7 dias</span><output>${nPT(u,1)}</output></div>
     <div class="mbar" style="height:12px"><div style="width:${Math.min(100,u/20*100).toFixed(1)}%;background:var(--mut)"></div></div>
     <p class="sub" style="margin-top:8px">Uma unidade são cerca de 10 g de etanol (SICAD). As calorias entram no dia a 7 kcal por grama — o fator que quase ninguém aplica.</p>
@@ -25598,6 +25644,68 @@ function semanasRestantesDe(o){
   const decorridas=Math.max(0,(Date.now()-new Date(o.dataInicio).getTime())/(7*24*3600*1000));
   return Math.max(0.5, o.semanas-decorridas);
 }
+/* ================= A BALANÇA CORRIGE A CONTA =================
+   Todas as contas desta app assentam numa estimativa: o metabolismo basal sai
+   de uma equação de população, o fator de atividade é uma escolha de cinco
+   opções, e o gasto do desporto vem de uma tabela de METs. Nenhuma delas é a
+   pessoa que está à frente do ecrã — em estudos de água duplamente marcada, a
+   estimativa do gasto erra tipicamente 10 a 15 % para cada lado, e há quem
+   fique bem fora disso.
+
+   A balança é a única medida real que a app tem. Se ao fim de três semanas o
+   peso não fez o que a previsão dizia, quem está errado é a previsão, e é ela
+   que se corrige — não a pessoa.
+
+   A conta: peso perdido a sério × 7700 kcal = défice real acumulado. Comparado
+   com o défice que o plano previa para os mesmos dias, dá o fator pelo qual a
+   estimativa de gasto está a errar. Três semanas é o mínimo, porque abaixo
+   disso o ruído da água corporal (glicogénio, sal, ciclo menstrual, intestino)
+   é maior do que o sinal — um quilo de água disfarça-se de um quilo de gordura
+   durante uma semana inteira. */
+const DIAS_MIN_CALIBRACAO=21;
+const DESVIO_QUE_INTERESSA=0.18;   /* 18 %: abaixo disto é ruído de medição e de registo */
+function validacaoObjetivo(o){
+  const m=o && S.members.find(x=>x.id===o.membroId);
+  if(!m || o.tipo==='manter') return null;
+  const med=medicoesDe(m.id);
+  if(med.length<2) return {estado:'sem-dados', porque:'poucas pesagens'};
+  const ini=(o.dataInicio||'').slice(0,10);
+  if(!dataValida(ini)) return null;
+  /* a primeira pesagem a partir do arranque do objetivo, e a última de todas */
+  const dentro=med.filter(x=>x.d>=ini);
+  if(dentro.length<2) return {estado:'sem-dados', porque:'só uma pesagem desde o início'};
+  const a=dentro[0], b=dentro[dentro.length-1];
+  const dias=diasEntre(a.d,b.d);
+  if(dias<DIAS_MIN_CALIBRACAO) return {estado:'cedo', dias, faltam:DIAS_MIN_CALIBRACAO-dias};
+  /* o que a balança diz */
+  const kgReal=a.p-b.p;                       /* positivo = perdeu */
+  const kcalReal=kgReal*7700;
+  /* o que o plano previa para os mesmos dias: o défice diário do alvo */
+  const deficeDiarioPlano=Math.abs(tdee(m)-targetKcal(m));
+  const kcalPrevisto=deficeDiarioPlano*dias*(o.tipo==='perder'?1:-1);
+  if(Math.abs(kcalPrevisto)<1) return {estado:'sem-plano'};
+  const razao=kcalReal/kcalPrevisto;          /* 1 = a previsão acertou */
+  const desvio=razao-1;
+  const kgPrevisto=kcalPrevisto/7700;
+  /* Onde é que o erro está? Se o peso mudou MENOS do que o previsto, ou o gasto
+     real é menor do que a app estima, ou entrou mais comida do que a registada.
+     A app não pode distinguir as duas — e diz isso em vez de escolher uma. */
+  return {estado: Math.abs(desvio)<DESVIO_QUE_INTERESSA? 'confirma' : (desvio<0? 'aquem':'alem'),
+    dias, kgReal:Math.round(kgReal*100)/100, kgPrevisto:Math.round(kgPrevisto*100)/100,
+    razao, desvio, deficeDiarioPlano:Math.round(deficeDiarioPlano),
+    /* O gasto que explicaria o que a balança mostra. O sinal importa e é fácil
+       de trocar: quem perdeu MENOS do que o previsto teve um défice real menor,
+       e — assumindo que comeu o que estava planeado — isso quer dizer que gasta
+       MENOS do que a app estima. Logo o gasto corrigido desce, não sobe.
+         gasto_real = ingestão + défice_real
+         gasto_estimado = ingestão + défice_previsto
+         gasto_real = gasto_estimado + (défice_real − défice_previsto)
+       e o défice real é negativo quando se ganhou peso, o que faz a fórmula
+       valer para os dois tipos de objetivo sem sinal à parte. */
+    tdeeCorrigido: Math.round(tdee(m) + (kcalReal-kcalPrevisto)/dias*(o.tipo==='perder'?1:-1)),
+    tdeeAtual: Math.round(tdee(m)),
+    pesagens:dentro.length, de:a.d, ate:b.d};
+}
 function progressoObjetivo(o){
   const m=S.members.find(x=>x.id===o.membroId);
   if(!m) return {pct:0, atingido:false, semMembro:true, tone:'warn'};
@@ -25633,6 +25741,31 @@ function metParaSugestao(m,sportId){
    quanto do exercício, e o que isso implica em objetivoPct e em minutos de
    desporto extra. Usado tanto na criação como no reajuste de um objetivo
    já existente — nunca diverge entre os dois. */
+/* A lista de desportos de um objetivo, seja ele novo ou guardado antes de a
+   escolha passar a ser múltipla. Devolve sempre um array. */
+/* «a Ana», «a Ana e o Bruno», «a Ana, o Bruno e a Rita» — a enumeração como se
+   diz em voz alta, com «e» antes do último. Estava escrita à mão dentro de uma
+   função e era precisa aqui. */
+function enumera(a){
+  const x=(a||[]).filter(Boolean);
+  return x.length<=1? (x[0]||'') : x.slice(0,-1).join(', ')+' e '+x[x.length-1];
+}
+function desportosDoObjetivo(o){
+  if(!o) return [];
+  if(Array.isArray(o.desportosEscolhidos)) return o.desportosEscolhidos.filter(id=>temChave(SPORT,id));
+  return o.desportoEscolhido && temChave(SPORT,o.desportoEscolhido)? [o.desportoEscolhido] : [];
+}
+/* O MET de uma combinação é a MÉDIA dos METs dos desportos escolhidos, porque
+   o tempo extra se reparte por igual entre eles. Correr (10 MET) e fazer ioga
+   (3 MET) meia hora de cada dá 6,5 MET na hora — e é essa a conta que diz
+   quantos minutos por semana são precisos. Repartir por igual é a única regra
+   que não obriga a inventar uma preferência que ninguém declarou. */
+function metCombinado(m,ids){
+  const lista=(ids||[]).filter(id=>temChave(SPORT,id));
+  if(!lista.length) return 0;
+  const soma=lista.reduce((t,id)=>t+(metParaSugestao(m,id)||0),0);
+  return soma/lista.length;
+}
 function calcEstrategia(m,pesoAlvo,semanasRestantes,tipo,splitDieta,desportoId){
   const kgRestante=pesoAlvo-m.peso;
   const kcalTotal=Math.abs(kgRestante)*7700;
@@ -25644,7 +25777,9 @@ function calcEstrategia(m,pesoAlvo,semanasRestantes,tipo,splitDieta,desportoId){
   if(tipo==='perder'){
     viaDieta=deficitDiario*splitDieta/100;
     viaExercicio=deficitDiario*(100-splitDieta)/100;
-    const met=desportoId? metParaSugestao(m,desportoId) : 0;
+    /* aceita um id só (chamadas antigas) ou uma lista */
+    const ids=Array.isArray(desportoId)? desportoId : (desportoId? [desportoId] : []);
+    const met=metCombinado(m,ids);
     horasExtraSemana = met>0? (viaExercicio*7)/(met*m.peso) : 0;
   }
   let objetivoPctSugerido = tipo==='manter'? 0 : Math.round(sinal*viaDieta/tdeeAtual*100);
@@ -25659,6 +25794,65 @@ function calcEstrategia(m,pesoAlvo,semanasRestantes,tipo,splitDieta,desportoId){
    (soma às horas semanais existentes) ou, se não tiver nenhum, cria um
    registo novo. Sempre em base semanal, para o cálculo não se perder entre
    unidades diferentes. */
+/* Reparte o tempo extra pelos desportos escolhidos, em partes iguais, e
+   acrescenta cada parte ao respetivo desporto. É o par da média de METs que o
+   cálculo usou: se a conta foi feita com a média, o tempo tem de ser repartido
+   da mesma maneira, senão a app promete um gasto que o plano não cumpre. */
+function aplicarExercicios(m,ids,horasExtraSemana){
+  const lista=(ids||[]).filter(id=>temChave(SPORT,id));
+  if(!lista.length || horasExtraSemana<=0.01) return;
+  const porCada=horasExtraSemana/lista.length;
+  lista.forEach(id=>aplicarExercicio(m,id,porCada));
+}
+/* ---- Agendar os treinos da semana ----
+   O objetivo sabe quantas horas por semana são precisas; o que faltava era
+   dizer em QUE DIAS, que é a diferença entre um número e um plano. Reparte-se
+   o total de sessões pelos desportos escolhidos e espaçam-se os dias de cada
+   um: dois treinos ficam a três dias de distância e não em dias seguidos, e
+   dois desportos diferentes desencontram-se em vez de calhar ambos à terça.
+
+   Escreve em `s.dias`, que é o mesmo campo que a pessoa mexe à mão no separador
+   da Atividade — não há um segundo plano paralelo a competir com aquele. */
+function diasEspacados(n, desvio){
+  const k=clampNum(Math.round(n)||1,1,7);
+  const out=[];
+  for(let i=0;i<k;i++) out.push((Math.round(i*7/k)+(desvio||0))%7);
+  return [...new Set(out)].sort((a,b)=>a-b);
+}
+function agendarTreinos(m,ids,sessoesSemana){
+  const lista=(ids||[]).filter(id=>temChave(SPORT,id));
+  if(!lista.length || !Array.isArray(m.desportos)) return 0;
+  const total=clampNum(Math.round(sessoesSemana)||lista.length, lista.length, 14);
+  /* Quantas coisas já estão marcadas em cada dia da semana, contando os
+     desportos que NÃO fazem parte deste objetivo. Sem isto, a caminhada nova
+     calhava nos mesmos dias da corrida que já lá estava, e a semana ficava com
+     dois treinos à segunda e nada à quarta. */
+  const carga=[0,0,0,0,0,0,0];
+  m.desportos.forEach(s=>{ if(lista.indexOf(s.s)<0) diasPlano(s).forEach(d=>{ carga[d]++; }); });
+  let marcadas=0;
+  lista.forEach((id,i)=>{
+    const s=m.desportos.find(x=>x.s===id); if(!s) return;
+    /* as sessões repartem-se pelos desportos; o resto vai para os primeiros */
+    const quantas=Math.floor(total/lista.length) + (i < total%lista.length ? 1 : 0);
+    /* Parte-se de dias espaçados e empurra-se cada um para o dia livre mais
+       próximo, se o que calhou já estiver ocupado. Espaçar continua a mandar —
+       o que muda é o desempate. */
+    const base=diasEspacados(quantas, i), escolhidos=[];
+    base.forEach(d0=>{
+      let melhor=d0, custo=Infinity;
+      for(let salto=0; salto<7; salto++) for(const sinal of [1,-1]){
+        const d=((d0+salto*sinal)%7+7)%7;
+        if(escolhidos.indexOf(d)>=0) continue;
+        const c=carga[d]*10+salto;   /* dia ocupado custa muito, andar um dia custa pouco */
+        if(c<custo){ custo=c; melhor=d; }
+      }
+      escolhidos.push(melhor); carga[melhor]++;
+    });
+    s.dias=[...new Set(escolhidos)].sort((a,b)=>a-b);
+    marcadas+=s.dias.length;
+  });
+  return marcadas;
+}
 function aplicarExercicio(m,sportId,horasExtraSemana){
   if(!sportId || horasExtraSemana<=0.01) return;
   const sp=SPORT[sportId]; if(!sp) return;
@@ -25679,26 +25873,179 @@ function aplicarEstrategia(mid,calc,o){
   const m=S.members.find(x=>x.id===mid); if(!m) return;
   if(o.tipo==='manter'){ m.objetivoPct=0; sincronizaObjetivo(m); return; }
   m.objetivoPct=calc.objetivoPctSugerido; sincronizaObjetivo(m);
-  if(o.tipo==='perder') aplicarExercicio(m,o.desportoEscolhido,calc.horasExtraSemana);
+  if(o.tipo==='perder'){
+    const ids=desportosDoObjetivo(o);
+    aplicarExercicios(m,ids,calc.horasExtraSemana);
+    /* e marca os dias, se foi isso que se pediu: sem esta linha o objetivo
+       dizia «mais 90 minutos por semana» e o plano da Atividade continuava a
+       mostrar a semana antiga */
+    if(o.agendar) agendarTreinos(m,ids,o.sessoes);
+  }
 }
 
+/* ---- A dieta faz parte do objetivo ----
+   Escolher a dieta estava só na ficha de cada pessoa, um separador à distância
+   de onde se decide perder cinco quilos — e são a mesma decisão. Aqui escolhe-
+   -se para toda a gente que entra no objetivo de uma vez, com os gramas à
+   frente para a escolha não ser um nome abstrato.
+
+   O que muda a jusante muda sozinho, porque tudo bebe de `m.dieta`: os alvos de
+   macros da Nutrição (macrosAjustados), o que o plano semanal sugere e aceita
+   (compatibilidade das receitas), a lista de compras que sai desse plano, e as
+   sugestões da despensa. Não há nada a sincronizar à mão. */
+/* O que aquela dieta daria a esta pessoa, sem lhe mexer no perfil: põe-se a
+   dieta, faz-se a conta, repõe-se o que lá estava. É a mesma conta que a
+   Nutrição faz — macrosAjustados() e targetKcal() —, para o número que se vê
+   aqui ser o número que se vai ver lá. */
+function macrosPrevia(m,chave){
+  const antes=m.dieta;
+  m.dieta=chave;
+  const d=macrosAjustados(m), alvo=targetKcal(m);
+  const gc=Math.round(alvo*d.c/100/4), gp=Math.round(alvo*d.p/100/4), gf=Math.round(alvo*d.f/100/9);
+  m.dieta=antes;
+  return {c:d.c,p:d.p,f:d.f,gc,gp,gf,ajustado:d.ajustado,alvo:Math.round(alvo)};
+}
+function blocoDietaObjetivo(f){
+  const escolhidos=f.membros.map(mid=>S.members.find(x=>x.id===mid)).filter(Boolean);
+  const atuais=[...new Set(escolhidos.map(m=>dietaDe(m).n))];
+  return `
+    <div class="splabel" style="margin-top:16px"><span>Dieta a seguir ${dica('objDieta')}</span>
+      <output style="text-align:right">${f.dieta? DIETS[f.dieta].n : (atuais.length===1? 'mantém: '+atuais[0] : 'mantém a de cada um')}</output></div>
+    <p class="sub" style="margin:2px 0 6px">Muda os macros de quem entra neste objetivo — e com eles a Nutrição, o que o plano da semana sugere e a lista de compras.</p>
+    <div class="row" style="margin:6px 0">
+      <button class="chip ${!f.dieta?'on':''}" onclick="setObjForm('dieta','')" aria-pressed="${!f.dieta}">Não mudar</button>
+      ${Object.entries(DIETS).map(([k,v])=>
+        `<button class="chip ${f.dieta===k?'on':''}" onclick="setObjForm('dieta','${k}')" aria-pressed="${f.dieta===k}">${v.n}</button>`).join('')}
+    </div>
+    ${f.dieta? `<div class="row" style="margin-top:6px">
+      <div class="stat"><b>${DIETS[f.dieta].c}%</b><span>Hidratos</span></div>
+      <div class="stat"><b>${DIETS[f.dieta].p}%</b><span>Proteína</span></div>
+      <div class="stat"><b>${DIETS[f.dieta].f}%</b><span>Gordura</span></div>
+    </div>
+    ${escolhidos.length? `<div style="margin-top:8px">${escolhidos.map(m=>{
+      const pv=macrosPrevia(m,f.dieta);
+      return `<div class="sub" style="margin-top:4px"><b>${esc(nomeCurto(m))}</b>: ${pv.alvo} kcal/dia →
+        ${pv.gc} g de hidratos, ${pv.gp} g de proteína, ${pv.gf} g de gordura${
+        pv.ajustado? ' <span class="pill warn">encostado à faixa da idade</span>':''}</div>`;
+    }).join('')}</div>`:''}`:''}`;
+}
+/* ---- Jejum como parte do objetivo ----
+   O jejum intermitente já vivia na Nutrição, membro a membro. Faltava poder
+   decidi-lo no mesmo sítio onde se decide o resto da estratégia — e para várias
+   pessoas de uma vez, que é como uma casa costuma começar estas coisas.
+
+   As contraindicações continuam a mandar: `jejumDesaconselhado()` é consultado
+   por pessoa, e quem estiver na lista fica de fora com o motivo escrito. A app
+   não abre exceção por o pedido vir de outro ecrã.
+
+   O que muda a jusante muda sozinho: a janela de alimentação assinala no plano
+   as refeições que ficam fora dela, o cartão do dia mostra o cronómetro, e o
+   impacto nas contas já está escrito em blocoImpactoJejum(). */
+function aplicarJejumObjetivo(mids,horas,inicio,pontuais){
+  const c=jejumCfg(), ids=S.members.map(x=>x.id);
+  const feitos=[], bloqueados=[];
+  mids.forEach(mid=>{
+    const m=S.members.find(x=>x.id===mid); if(!m) return;
+    const bloqueio=jejumDesaconselhado(m);
+    if(bloqueio){ bloqueados.push({nome:nomeCurto(m), porque:bloqueio}); return; }
+    if(horas){
+      c.im[mid]={ativo:true, h:clampNum(Math.round(horas),12,23),
+        inicio:clampNum(Math.round(inicio),0,23), obj:'peso'};
+    }
+    (pontuais||[]).forEach(d=>{
+      if(!dataValida(d)) return;
+      if(c.pontuais.some(x=>x.mid===mid && x.d===d)) return;
+      const j=limparJejumPontual({id:uid(), mid, d, horas:24, inicio:0, agua:true}, ids);
+      if(j) c.pontuais.push(j);
+    });
+    feitos.push(nomeCurto(m));
+  });
+  return {feitos, bloqueados};
+}
+/* Os dias de jejum pontual que o objetivo vai marcar: n por semana, espaçados,
+   a partir da próxima segunda-feira e durante as semanas do objetivo. */
+function diasDeJejumPontual(nPorSemana,semanas){
+  const n=clampNum(Math.round(nPorSemana)||0,0,3);
+  if(!n) return [];
+  const out=[], ini=addDias(mondayISO(hojeISO()),7), sem=clampNum(Math.round(semanas)||4,1,52);
+  const dias=diasEspacados(n,1);   /* começa à terça, para não calhar sempre à segunda */
+  for(let w=0; w<sem; w++) dias.forEach(wd=>{
+    /* diasEspacados devolve 0=segunda; addDias anda a partir da segunda */
+    out.push(addDias(ini, w*7 + wd));
+  });
+  return out.slice(0,120);
+}
+function blocoJejumObjetivo(f){
+  const escolhidos=f.membros.map(mid=>S.members.find(x=>x.id===mid)).filter(Boolean);
+  const impedidos=escolhidos.map(m=>({m, porque:jejumDesaconselhado(m)})).filter(x=>x.porque);
+  const podem=escolhidos.length-impedidos.length;
+  const p=protocoloIM(f.jejumH);
+  return `
+    <div class="splabel" style="margin-top:16px"><span>Jejum ${dica('jejumIM')}</span>
+      <output style="text-align:right">${f.jejum? p.n : 'sem jejum'}</output></div>
+    <p class="sub" style="margin:2px 0 6px">As calorias do dia não mudam — muda o número de horas em que cabem. O plano da semana assinala as refeições que ficarem fora da janela.</p>
+    <div class="row" style="margin:6px 0">
+      <button class="chip ${!f.jejum?'on':''}" onclick="setObjForm('jejum',false)" aria-pressed="${!f.jejum}">Sem jejum</button>
+      <button class="chip ${f.jejum?'on':''}" onclick="setObjForm('jejum',true)" aria-pressed="${!!f.jejum}">Jejum intermitente</button>
+    </div>
+    ${f.jejum? `
+      ${impedidos.length? `<div class="aviso warn" style="margin-top:8px"><b>Fica de fora:</b> ${impedidos.map(x=>esc(nomeCurto(x.m))).join(', ')}.
+        ${esc(impedidos[0].porque.split('.')[0])}.</div>`:''}
+      ${podem<=0? `<p class="sub" style="margin-top:8px">Nenhuma das pessoas escolhidas pode fazer jejum. O objetivo cria-se na mesma, sem esta parte.</p>` : `
+      <div class="splabel" style="margin-top:10px"><span>Protocolo</span>
+        <output id="obj-o-jejum" style="min-width:8ch;text-align:right">${p.n}</output></div>
+      <input type="range" min="12" max="23" step="1" value="${f.jejumH}" style="--pct:${Math.round((f.jejumH-12)/11*100)}%"
+        aria-label="Horas de jejum por dia" oninput="slideObjForm('jejumH',this)" onchange="saveMeta()">
+      <p class="sub" style="margin-top:4px">${esc(p.d)}</p>
+      <div class="splabel" style="margin-top:10px"><span>A janela de comer abre às</span>
+        <output id="obj-o-jejumini" style="min-width:7ch;text-align:right">${String(f.jejumIni).padStart(2,'0')}:00</output></div>
+      <input type="range" min="0" max="23" step="1" value="${f.jejumIni}" style="--pct:${Math.round(f.jejumIni/23*100)}%"
+        aria-label="Hora a que abre a janela de alimentação" oninput="slideObjForm('jejumIni',this)" onchange="saveMeta()">
+      <p class="sub" style="margin-top:4px">Come-se entre as ${String(f.jejumIni).padStart(2,'0')}:00 e as ${String((f.jejumIni+(24-p.h))%24).padStart(2,'0')}:00.</p>
+      <div class="splabel" style="margin-top:12px"><span>Dias de jejum completo por semana</span>
+        <output id="obj-o-jejumdias" style="min-width:8ch;text-align:right">${f.jejumDias? plural(f.jejumDias,'dia','dias') : 'nenhum'}</output></div>
+      <input type="range" min="0" max="3" step="1" value="${f.jejumDias}" style="--pct:${Math.round(f.jejumDias/3*100)}%"
+        aria-label="Dias de jejum completo por semana" oninput="slideObjForm('jejumDias',this)" onchange="saveMeta()">
+      <p class="sub" style="margin-top:4px">${f.jejumDias
+        ? 'Ficam marcados '+plural(f.jejumDias*f.semanas,'dia','dias')+' de 24 horas ao longo das '+f.semanas+' semanas, espaçados. Um jejum de 24 horas é um dia sem comida — a app conta-o como tal no gasto e nos macros.'
+        : 'Só a janela diária. Um jejum completo de 24 horas é outra coisa e a app trata-o à parte.'}</p>`}`:''}`;
+}
 /* ---- formulário de criação (estado transitório em S.ui.objForm) ---- */
+/* Todos os desportos que a app conhece, e não só quatro fixos mais os que a
+   pessoa já pratica. Quem quer começar a nadar para perder peso não tem a
+   natação no perfil ainda — era justamente por isso que ia ao objetivo.
+   A ordem é que muda: primeiro os que quem foi escolhido já pratica (é neles
+   que se vai acrescentar tempo, e são os mais prováveis), depois os restantes
+   pela ordem em que a app os lista, que já está agrupada por família. */
 function opcoesDesportoForm(){
-  const f=S.ui.objForm, uniao=new Set();
-  f.membros.forEach(mid=>{ const m=S.members.find(x=>x.id===mid); if(m) (m.desportos||[]).forEach(s=>uniao.add(s.s)); });
-  ['caminhada','corrida','ciclismo','natacao'].forEach(id=>uniao.add(id));
-  return [...uniao].filter(id=>SPORT[id]);
+  const f=S.ui.objForm, jaPratica=new Set();
+  f.membros.forEach(mid=>{ const m=S.members.find(x=>x.id===mid); if(m) (m.desportos||[]).forEach(s=>jaPratica.add(s.s)); });
+  const todos=SPORTS.map(s=>s.id).filter(id=>temChave(SPORT,id));
+  return todos.filter(id=>jaPratica.has(id)).concat(todos.filter(id=>!jaPratica.has(id)));
+}
+function jaPraticaNoForm(id){
+  return S.ui.objForm.membros.some(mid=>{
+    const m=S.members.find(x=>x.id===mid);
+    return !!(m && (m.desportos||[]).some(s=>s.s===id));
+  });
 }
 function toggleObjMembro(mid){
   const arr=S.ui.objForm.membros, i=arr.indexOf(mid);
   i>=0? arr.splice(i,1) : arr.push(mid);
-  if(!f_desportoValido()) S.ui.objForm.desporto=opcoesDesportoForm()[0]||null;
   saveMeta(); render();
 }
-function f_desportoValido(){ return opcoesDesportoForm().indexOf(S.ui.objForm.desporto)>=0; }
+/* Liga e desliga um desporto da combinação. Sem limite artificial: o tempo
+   extra reparte-se por todos os que estiverem ligados, e escolher seis é uma
+   decisão legítima de quem treina variado — a app só tem de dizer o que isso
+   dá em minutos de cada um. */
+function toggleObjDesporto(id){
+  if(!temChave(SPORT,id)) return;
+  const arr=S.ui.objForm.desportos, i=arr.indexOf(id);
+  i>=0? arr.splice(i,1) : arr.push(id);
+  saveMeta(); render();
+}
 function setObjForm(campo,val){
   S.ui.objForm[campo]= campo==='delta'||campo==='semanas'||campo==='split'||campo==='banda'? parseFloat(val)||0 : val;
-  if(campo==='membros'||campo==='tipo') { /* nada extra */ }
   saveMeta(); render();
 }
 function slideObjForm(campo,el){
@@ -25708,6 +26055,10 @@ function slideObjForm(campo,el){
     põe('obj-o-delta', nPT(f.delta,1)+' kg');
     põe('obj-o-semanas', f.semanas+(f.semanas===1?' semana':' semanas'));
     põe('obj-o-banda', '±'+nPT(f.banda,1)+'%');
+    põe('obj-o-sessoes', plural(f.sessoes,'treino','treinos'));
+    põe('obj-o-jejum', protocoloIM(f.jejumH).n);
+    põe('obj-o-jejumini', String(f.jejumIni).padStart(2,'0')+':00');
+    põe('obj-o-jejumdias', f.jejumDias? plural(f.jejumDias,'dia','dias') : 'nenhum');
     põe('obj-o-split', f.split+'% dieta · '+(100-f.split)+'% exercício');
     const pv=document.getElementById('obj-preview'); if(pv) pv.innerHTML=gerarPreviewHtml();
   });
@@ -25732,26 +26083,64 @@ function gerarPreviewHtml(){
 function criarObjetivo(){
   const f=S.ui.objForm;
   if(!f.membros.length) return flash('bad','Escolhe pelo menos um membro da família.');
-  let criados=0; const ignorados=[];
+  let criados=0; const ignorados=[], dietaMudou=[], dietaEncostada=[];
   f.membros.forEach(mid=>{
     const m=S.members.find(x=>x.id===mid); if(!m) return;
     if(f.tipo==='perder' && !permiteDefice(m)){ ignorados.push(m.nome); return; }
     const pesoAlvo = f.tipo==='ganhar'? Math.round((m.peso+f.delta)*10)/10
       : f.tipo==='perder'? Math.max(1,Math.round((m.peso-f.delta)*10)/10) : m.peso;
+    /* A dieta faz parte da estratégia e não é um campo à parte do perfil: quem
+       decide perder cinco quilos em doze semanas decide ao mesmo tempo COMO, e
+       a repartição de macros é metade dessa decisão. Guarda-se a anterior no
+       objetivo, para o cartão poder dizer o que mudou e para quem remover o
+       objetivo saber ao que voltar. */
+    const dietaAntes=m.dieta;
+    if(f.dieta && temChave(DIETS,f.dieta) && m.dieta!==f.dieta){
+      m.dieta=f.dieta;
+      dietaMudou.push(nomeCurto(m));
+      /* Numa criança, num adolescente ou numa grávida a app encosta os macros
+         à faixa aceitável e diz que o fez — a dieta escolhida não se aplica
+         tal e qual, e é melhor sabê-lo aqui do que descobri-lo no cartão. */
+      if(macrosAjustados(m).ajustado) dietaEncostada.push(nomeCurto(m));
+    }
     const o={id:uid(), membroId:mid, tipo:f.tipo, pesoInicial:m.peso, pesoAlvo,
       semanas:f.semanas, dataInicio:new Date().toISOString(),
-      splitDieta:f.split, desportoEscolhido:f.tipo==='perder'?f.desporto:null,
+      splitDieta:f.split, desportosEscolhidos:f.tipo==='perder'?f.desportos.slice():[],
+      dieta:f.dieta||null, dietaAnterior:dietaAntes,
+      sessoes:f.sessoes, agendar:!!f.agendar,
       bandaManter:f.banda||2, concluido:false, celebrado:false, dataConclusao:null};
-    const calc=calcEstrategia(m,pesoAlvo,f.semanas,f.tipo,f.split,o.desportoEscolhido);
+    const calc=calcEstrategia(m,pesoAlvo,f.semanas,f.tipo,f.split,o.desportosEscolhidos);
     aplicarEstrategia(mid,calc,o);
     S.objetivos.push(o); criados++;
   });
   if(!criados) return flash('bad','Não foi possível criar objetivo'+(ignorados.length>1?'s':'')+' para '
     +ignorados.join(', ')+': em crescimento ou gravidez não se recomenda défice calórico.');
-  S.ui.objForm={membros:[],tipo:'perder',delta:5,semanas:12,split:50,desporto:f.desporto,banda:2};
+  /* O jejum aplica-se depois de os objetivos estarem criados, e só a quem
+     entrou mesmo — quem foi recusado por estar em crescimento não leva jejum
+     por arrasto. As contraindicações do jejum são verificadas outra vez lá
+     dentro, porque são diferentes das do défice. */
+  let jj={feitos:[],bloqueados:[]};
+  if(f.jejum){
+    const entraram=f.membros.filter(mid=>{ const m=S.members.find(x=>x.id===mid);
+      return m && !(f.tipo==='perder' && !permiteDefice(m)); });
+    jj=aplicarJejumObjetivo(entraram, f.jejumH, f.jejumIni, diasDeJejumPontual(f.jejumDias,f.semanas));
+  }
+  /* Repõe o formulário guardando o que é PREFERÊNCIA (desportos, dieta, ritmo
+     de treino, jejum) e limpando o que é daquele objetivo (quem, quanto). Quem
+     cria um objetivo para o Bruno costuma criar logo outro para a Ana com a
+     mesma estratégia. Faltavam aqui os campos novos, e o formulário reaparecia
+     com «undefined treinos» — um objeto reposto tem de o ser por inteiro. */
+  S.ui.objForm={membros:[], tipo:'perder', delta:5, semanas:12, split:50,
+    desportos:f.desportos.slice(), dieta:f.dieta, sessoes:f.sessoes, agendar:f.agendar,
+    jejum:f.jejum, jejumH:f.jejumH, jejumIni:f.jejumIni, jejumDias:f.jejumDias, banda:2};
   save(plural(criados,'novo objetivo','novos objetivos'));
   flash('ok', plural(criados,'Objetivo criado','Objetivos criados')
-    +(ignorados.length? '. Sem défice para '+ignorados.join(', ')+', por estarem em crescimento ou gravidez.':'.'));
+    +(dietaMudou.length? '. Dieta de '+enumera(dietaMudou)+' passou a '+DIETS[f.dieta].n+', e os macros do dia já mudaram.':'')
+    +(dietaEncostada.length? ' Em '+enumera(dietaEncostada)+' os macros foram encostados à faixa recomendada para a idade.':'')
+    +(jj.feitos.length? ' Jejum '+protocoloIM(f.jejumH).n+' ligado para '+enumera(jj.feitos)+'.':'')
+    +(jj.bloqueados.length? ' Sem jejum para '+enumera(jj.bloqueados.map(x=>x.nome))+': não tem indicação nesta fase.':'')
+    +(ignorados.length? ' Sem défice para '+enumera(ignorados)+', por estarem em crescimento ou gravidez.':''),
+    {rot:'Anular', fn:'desfazer()'});
 }
 function removerObjetivo(oid){
   const o=S.objetivos.find(x=>x.id===oid); if(!o) return;
@@ -25765,7 +26154,8 @@ function removerObjetivo(oid){
 function toggleObjExpandido(oid){
   if(S.ui.objExpandido===oid) S.ui.objExpandido=null;
   else { const o=S.objetivos.find(x=>x.id===oid); S.ui.objExpandido=oid;
-    S.ui.objAdj = o? {split:o.splitDieta, desporto:o.desportoEscolhido} : {split:50,desporto:null}; }
+    S.ui.objAdj = o? {split:o.splitDieta, desportos:desportosDoObjetivo(o), sessoes:o.sessoes||3, agendar:o.agendar!==false}
+                   : {split:50, desportos:[], sessoes:3, agendar:true}; }
   saveMeta(); render();
 }
 function previewAjusteHtml(calc){
@@ -25778,40 +26168,156 @@ function previewAjusteHtml(calc){
   <div class="row" style="margin-top:8px"><span class="pill ${calc.toneRitmo}">${nPT(calc.ritmoKgSemana,2)} kg/semana</span>
     ${calc.abaixoBasal?'<span class="pill bad">alvo abaixo do basal</span>':''}</div>`;
 }
+function adjPadrao(){ return {split:50, desportos:[], sessoes:3, agendar:true}; }
 function slideObjAdj(oid,campo,el){
-  if(!S.ui.objAdj) S.ui.objAdj={split:50,desporto:null};
+  if(!S.ui.objAdj) S.ui.objAdj=adjPadrao();
   S.ui.objAdj[campo]=parseFloat(el.value)||0; pintaRange(el);
   aoVivo('objadj', ()=>{
     const o=S.objetivos.find(x=>x.id===oid), m=o&&S.members.find(x=>x.id===o.membroId);
     if(!o||!m) return;
-    const calc=calcEstrategia(m,o.pesoAlvo,semanasRestantesDe(o),o.tipo,S.ui.objAdj.split,S.ui.objAdj.desporto);
+    const calc=calcEstrategia(m,o.pesoAlvo,semanasRestantesDe(o),o.tipo,S.ui.objAdj.split,S.ui.objAdj.desportos);
     const el2=document.getElementById('obj-adj-preview-'+oid); if(el2) el2.innerHTML=previewAjusteHtml(calc);
     põe('obj-adj-split-o-'+oid, S.ui.objAdj.split+'% dieta · '+(100-S.ui.objAdj.split)+'% exercício');
+    põe('obj-adj-sessoes-o-'+oid, plural(S.ui.objAdj.sessoes,'treino','treinos'));
   });
 }
 function setObjAdj(oid,campo,val){
-  if(!S.ui.objAdj) S.ui.objAdj={split:50,desporto:null};
-  S.ui.objAdj[campo]=campo==='split'? parseFloat(val)||0 : val;
+  if(!S.ui.objAdj) S.ui.objAdj=adjPadrao();
+  S.ui.objAdj[campo]= (campo==='split'||campo==='sessoes')? parseFloat(val)||0 : val;
+  saveMeta(); render();
+}
+/* liga/desliga um desporto no painel de ajuste de um objetivo já a decorrer */
+function toggleObjAdjDesporto(oid,id){
+  if(!temChave(SPORT,id)) return;
+  if(!S.ui.objAdj) S.ui.objAdj=adjPadrao();
+  const arr=S.ui.objAdj.desportos||(S.ui.objAdj.desportos=[]);
+  const i=arr.indexOf(id); i>=0? arr.splice(i,1) : arr.push(id);
   saveMeta(); render();
 }
 function reajustarObjetivo(oid){
   const o=S.objetivos.find(x=>x.id===oid); if(!o) return;
   const m=S.members.find(x=>x.id===o.membroId); if(!m) return;
-  const adj=S.ui.objAdj||{split:o.splitDieta,desporto:o.desportoEscolhido};
-  o.splitDieta=clampNum(Math.round(adj.split),0,100); o.desportoEscolhido=adj.desporto;
-  const calc=calcEstrategia(m,o.pesoAlvo,semanasRestantesDe(o),o.tipo,o.splitDieta,o.desportoEscolhido);
+  const adj=S.ui.objAdj||{split:o.splitDieta, desportos:desportosDoObjetivo(o), sessoes:o.sessoes||3, agendar:o.agendar!==false};
+  o.splitDieta=clampNum(Math.round(adj.split),0,100);
+  o.desportosEscolhidos=(adj.desportos||[]).filter(id=>temChave(SPORT,id));
+  delete o.desportoEscolhido;   /* o campo antigo já não decide nada */
+  o.sessoes=clampNum(Math.round(adj.sessoes)||3,1,14);
+  o.agendar=!!adj.agendar;
+  const calc=calcEstrategia(m,o.pesoAlvo,semanasRestantesDe(o),o.tipo,o.splitDieta,o.desportosEscolhidos);
   aplicarEstrategia(o.membroId,calc,o);
   S.ui.objExpandido=null;
   save('ajuste de estratégia de '+m.nome);
-  flash('ok','Estratégia atualizada — a dieta e o exercício de '+m.nome+' foram ajustados.');
+  flash('ok','Estratégia atualizada — a dieta e o exercício de '+m.nome+' foram ajustados.'
+    +(o.agendar&&o.desportosEscolhidos.length? ' Os dias ficaram marcados no plano de treinos.':''),
+    {rot:'Anular', fn:'desfazer()'});
+}
+/* ---- O que a balança diz sobre a previsão ----
+   Este bloco só aparece quando há medições que cheguem. Não julga a pessoa:
+   julga a estimativa, que é o que de facto pode estar errado — e oferece as
+   três saídas honestas, por ordem de quanto custam a quem as escolhe. */
+function blocoValidacao(o,m){
+  const v=validacaoObjetivo(o);
+  if(!v) return '';
+  if(v.estado==='cedo') return `<div class="msg" style="margin-top:12px;background:var(--bg);color:var(--mut)">
+    <b>Ainda cedo para comparar.</b> Faltam ${plural(v.faltam,'dia','dias')} de pesagens para a app poder dizer
+    se a previsão está a acertar. Abaixo de três semanas, a água que o corpo retém pesa mais do que a gordura que se perdeu.</div>`;
+  if(v.estado==='sem-dados') return `<div class="msg" style="margin-top:12px;background:var(--bg);color:var(--mut)">
+    <b>Sem pesagens que cheguem</b> (${esc(v.porque)}). A app só consegue verificar a previsão contra a balança —
+    duas pesagens a três semanas de distância bastam para começar.</div>`;
+  if(v.estado==='sem-plano') return '';
+  const sinal=v.desvio>0?'+':'';
+  const pctDesvio=Math.round(v.desvio*100);
+  if(v.estado==='confirma') return `<div class="aviso ok" style="margin-top:12px">
+    <b>A previsão está a acertar.</b> Em ${v.dias} dias a balança marcou ${nPT(Math.abs(v.kgReal),2)} kg
+    e o plano previa ${nPT(Math.abs(v.kgPrevisto),2)} — uma diferença de ${sinal}${pctDesvio} %, dentro do que a medição explica.
+    Não há nada a rever.</div>`;
+  const aquem=v.estado==='aquem';
+  return `<div class="aviso warn" style="margin-top:12px">
+    <b>A realidade não está a bater certo com a previsão.</b>
+    Em ${v.dias} dias a balança marcou <b>${nPT(Math.abs(v.kgReal),2)} kg</b> e o plano previa
+    <b>${nPT(Math.abs(v.kgPrevisto),2)} kg</b> — ${aquem?'menos':'mais'} ${Math.abs(pctDesvio)} % do que o esperado.
+    <p class="sub" style="margin-top:8px">${aquem
+      ? 'Há duas explicações e a app não consegue distingui-las: ou o teu gasto real é menor do que a estimativa (as equações erram 10 a 15 % em muita gente), ou entrou mais do que ficou registado. Nenhuma das duas é falta de esforço.'
+      : 'Estás a perder mais depressa do que o plano pedia. Isso pode ser bom, mas também pode significar um défice maior do que o combinado — e défices grandes custam massa muscular além de gordura.'}</p>
+    <div class="sub" style="margin-top:8px">Pelo que a balança mostra, o teu gasto diário estará mais perto de
+      <b>${v.tdeeCorrigido} kcal</b> do que das <b>${v.tdeeAtual} kcal</b> que a app estima.</div>
+    <div class="row" style="margin-top:10px;flex-wrap:wrap">
+      <button class="btn small" onclick="calibrarGasto('${o.id}')">Corrigir o gasto pela balança</button>
+      <button class="btn ghost small" onclick="esticarPrazo('${o.id}')">Dar mais tempo ao objetivo</button>
+      <button class="btn ghost small" onclick="toggleObjExpandido('${o.id}')">Rever a estratégia</button>
+    </div>
+    <p class="sub" style="margin-top:8px"><i>Corrigir o gasto muda o nível de atividade do perfil para o que a balança mostra,
+      e com ele o alvo de calorias e os macros do dia. É a opção que mantém o prazo.</i></p>
+  </div>`;
+}
+/* Corrige a estimativa de gasto pelo que a balança mediu. Não inventa um campo
+   novo: mexe no fator de atividade do perfil, que é o parâmetro que a app já
+   usa e que a pessoa pode ver e voltar a mudar à mão. */
+function calibrarGasto(oid){
+  const o=S.objetivos.find(x=>x.id===oid); if(!o) return;
+  const m=S.members.find(x=>x.id===o.membroId); if(!m) return;
+  const v=validacaoObjetivo(o);
+  if(!v || (v.estado!=='aquem' && v.estado!=='alem')) return flash('warn','Não há divergência que justifique corrigir.');
+  const base=bmr(m), desejado=v.tdeeCorrigido;
+  /* o fator que faria a conta bater certo, descontando o que já vem do
+     desporto registado e das deslocações */
+  const extra=sportsKcalDay(m)+commuteKcalDay(m)+crescimentoKcal(m)+gravidezKcal(m)+lactacaoKcal(m);
+  const fatorIdeal=(desejado-extra)/Math.max(base,1);
+  /* encosta ao nível de atividade mais próximo, porque é isso que o perfil
+     guarda — e assim continua legível e editável na ficha */
+  let melhor=m.atividade, dist=Infinity;
+  Object.keys(BASE_ACT).forEach(k=>{
+    const d=Math.abs(BASE_ACT[k][1]-fatorIdeal);
+    if(d<dist){ dist=d; melhor=k; }
+  });
+  if(melhor===m.atividade) return flash('warn','O nível de atividade já é o que melhor explica a balança. '
+    +'Se a diferença se mantiver, o caminho é rever o prazo ou o que está a ser registado.');
+  const antes=BASE_ACT[m.atividade][0], depois=BASE_ACT[melhor][0];
+  m.atividade=melhor;
+  sincronizaObjetivo(m);
+  save('gasto corrigido pela balança');
+  flash('ok','Nível de atividade de '+nomeCurto(m)+': «'+antes+'» → «'+depois+'». '
+    +'O alvo do dia passou a '+Math.round(targetKcal(m))+' kcal, e os macros acompanharam.',
+    {rot:'Anular', fn:'desfazer()'});
+  render();
+}
+function esticarPrazo(oid){
+  const o=S.objetivos.find(x=>x.id===oid); if(!o) return;
+  const m=S.members.find(x=>x.id===o.membroId); if(!m) return;
+  const v=validacaoObjetivo(o);
+  if(!v || !v.razao || v.razao<=0.05) return flash('warn','Sem ritmo medido que permita estimar um prazo novo.');
+  /* o prazo que o ritmo REAL pediria para chegar ao mesmo alvo */
+  const kgFalta=Math.abs(m.peso-o.pesoAlvo);
+  const kgPorDia=Math.abs(v.kgReal)/Math.max(v.dias,1);
+  if(kgPorDia<0.001) return flash('warn','O peso não se mexeu o suficiente para estimar um prazo novo.');
+  const decorridas=Math.max(0,(Date.now()-new Date(o.dataInicio).getTime())/(7*24*3600*1000));
+  const semanasNovas=Math.ceil(decorridas + kgFalta/(kgPorDia*7));
+  if(semanasNovas<=o.semanas) return flash('warn','Ao ritmo medido, o prazo atual chega. Não há nada a esticar.');
+  /* Esticar tem um limite a partir do qual deixa de ser uma resposta. Se o
+     ritmo medido pede o dobro do prazo combinado, o problema não é a data — é
+     o plano ou o que está a ser registado, e propor «mais dezoito meses» seria
+     a app a fingir que a aritmética resolve tudo. */
+  const exagero = semanasNovas > o.semanas*2 || semanasNovas > 78;
+  if(exagero) return flash('warn','Ao ritmo medido, chegar aos '+nPT(o.pesoAlvo,1)+' kg levaria cerca de '
+    +Math.round(semanasNovas/4.345)+' meses — muito mais do que as '+o.semanas+' semanas combinadas. '
+    +'Esticar o prazo até aí não é resposta: vale mais corrigir o gasto pela balança, rever o que está a ser registado, '
+    +'ou baixar o alvo para uma meta que este ritmo alcance.', {rot:'Rever a estratégia', fn:"toggleObjExpandido('"+o.id+"')"});
+  const antes=o.semanas;
+  o.semanas=clampNum(semanasNovas,1,104);
+  save('prazo do objetivo esticado');
+  flash('ok','Prazo de '+antes+' para '+o.semanas+' semanas, que é o que o ritmo medido pede para chegar aos '
+    +nPT(o.pesoAlvo,1)+' kg sem apertar o défice.', {rot:'Anular', fn:'desfazer()'});
+  render();
 }
 function painelAjuste(o,m){
   if(o.tipo!=='perder') return `<div class="msg" style="margin-top:10px;background:var(--bg);color:var(--mut)">
     Este tipo de objetivo não tem estratégia mista para ajustar. Para mudar o alvo ou o prazo, remove e cria um objetivo novo.</div>`;
-  const adj=S.ui.objAdj||{split:o.splitDieta,desporto:o.desportoEscolhido};
-  const calc=calcEstrategia(m,o.pesoAlvo,semanasRestantesDe(o),o.tipo,adj.split,adj.desporto);
-  const desportosMembro=(m.desportos||[]).map(s=>s.s);
-  const opcoes=[...new Set(desportosMembro.concat(['caminhada','corrida','ciclismo','natacao','musculacao','calistenia']))].filter(id=>SPORT[id]);
+  const adj=S.ui.objAdj||{split:o.splitDieta, desportos:desportosDoObjetivo(o), sessoes:o.sessoes||3, agendar:o.agendar!==false};
+  const calc=calcEstrategia(m,o.pesoAlvo,semanasRestantesDe(o),o.tipo,adj.split,adj.desportos);
+  /* todos, com os que esta pessoa já pratica à frente */
+  const pratica=new Set((m.desportos||[]).map(s=>s.s));
+  const todos=SPORTS.map(s=>s.id).filter(id=>temChave(SPORT,id));
+  const opcoes=todos.filter(id=>pratica.has(id)).concat(todos.filter(id=>!pratica.has(id)));
   return `<div style="margin-top:14px;border-top:1px solid var(--line);padding-top:14px">
     <div class="splabel"><span>Dieta ⟷ Exercício ${dica('objEstrategia')}</span>
       <output id="obj-adj-split-o-${o.id}" style="min-width:16ch;text-align:right">${adj.split}% dieta · ${100-adj.split}% exercício</output></div>
@@ -25822,9 +26328,20 @@ function painelAjuste(o,m){
       <button class="chip ${adj.split===50?'on':''}" onclick="setObjAdj('${o.id}','split',50)">Equilibrado</button>
       <button class="chip ${adj.split===20?'on':''}" onclick="setObjAdj('${o.id}','split',20)">Mais exercício</button>
     </div>
-    <div class="splabel"><span>Desporto para o exercício extra</span></div>
-    <div class="row" style="margin:6px 0 10px">${opcoes.map(id=>
-      `<button class="chip ${adj.desporto===id?'on':''}" onclick="setObjAdj('${o.id}','desporto','${id}')">${SPORT[id].nome}</button>`).join('')}</div>
+    <div class="splabel"><span>Desporto para o exercício extra</span>
+      <output style="text-align:right">${(adj.desportos||[]).length? plural(adj.desportos.length,'escolhido','escolhidos'):'nenhum'}</output></div>
+    <div class="row" style="margin:6px 0 10px;max-height:150px;overflow-y:auto">${opcoes.map(id=>
+      `<button class="chip ${(adj.desportos||[]).indexOf(id)>=0?'on':''}" onclick="toggleObjAdjDesporto('${o.id}','${id}')"
+        aria-pressed="${(adj.desportos||[]).indexOf(id)>=0}">${pratica.has(id)?'★ ':''}${SPORT[id].nome}</button>`).join('')}</div>
+    ${(adj.desportos||[]).length? `
+    <div class="splabel"><span>Treinos por semana</span>
+      <output id="obj-adj-sessoes-o-${o.id}" style="min-width:12ch;text-align:right">${plural(adj.sessoes,'treino','treinos')}</output></div>
+    <input type="range" min="${adj.desportos.length}" max="14" step="1" value="${Math.max(adj.sessoes,adj.desportos.length)}"
+      style="--pct:${Math.round((Math.max(adj.sessoes,adj.desportos.length)-adj.desportos.length)/Math.max(1,14-adj.desportos.length)*100)}%"
+      aria-label="Treinos por semana" oninput="slideObjAdj('${o.id}','sessoes',this)" onchange="saveMeta()">
+    <label class="row" style="gap:8px;margin:8px 0;cursor:pointer">
+      <input type="checkbox" ${adj.agendar?'checked':''} onchange="setObjAdj('${o.id}','agendar',this.checked)">
+      <span>Remarcar os dias no plano de treinos</span></label>`:''}
     <div id="obj-adj-preview-${o.id}">${previewAjusteHtml(calc)}</div>
     <button class="btn small" style="margin-top:10px" onclick="reajustarObjetivo('${o.id}')">Guardar novo equilíbrio</button>
   </div>`;
@@ -25888,6 +26405,7 @@ function cartaoObjetivo(o){
         📈 <b>${esc(t.txt)}</b> ${dica('leque')}
         ${t.fraco?'':'<span class="sub" style="display:block">Um intervalo, não uma data: é o que as pesagens sustentam.</span>'}</div>`;})()}
     ${balancaObjetivo(o,m)}
+    ${o.concluido? '' : blocoValidacao(o,m)}
     ${expandido? painelAjuste(o,m) : ''}
     <div class="row" style="justify-content:flex-end;margin-top:10px">
       <button class="btn danger small" onclick="removerObjetivo('${o.id}')">Remover objetivo</button>
@@ -26001,7 +26519,10 @@ function formCriacaoHtml(){
           aria-label="Margem de tolerância em percentagem" oninput="slideObjForm('banda',this)" onchange="saveMeta()"></div>
     </div>`}
 
+    ${blocoDietaObjetivo(f)}
+    ${blocoJejumObjetivo(f)}
     ${f.tipo==='perder'? `
+
     <div class="splabel" style="margin-top:14px"><span>Estratégia mista ${dica('objEstrategia')}</span>
       <output id="obj-o-split" style="min-width:16ch;text-align:right">${f.split}% dieta · ${100-f.split}% exercício</output></div>
     <input type="range" min="0" max="100" step="5" value="${f.split}" style="--pct:${f.split}%"
@@ -26011,9 +26532,24 @@ function formCriacaoHtml(){
       <button class="chip ${f.split===50?'on':''}" onclick="setObjForm('split',50)">Equilibrado</button>
       <button class="chip ${f.split===20?'on':''}" onclick="setObjForm('split',20)">Mais exercício</button>
     </div>
-    <div class="splabel"><span>Desporto para o exercício extra</span></div>
-    <div class="row" style="margin:6px 0">${opcoesDesportoForm().map(id=>
-      `<button class="chip ${f.desporto===id?'on':''}" onclick="setObjForm('desporto','${id}')">${SPORT[id].nome}</button>`).join('')}</div>`
+    <div class="splabel" style="margin-top:14px"><span>Desporto para o exercício extra ${dica('objDesportos')}</span>
+      <output style="text-align:right">${f.desportos.length? plural(f.desportos.length,'escolhido','escolhidos') : 'nenhum'}</output></div>
+    <p class="sub" style="margin:2px 0 6px">Podes escolher mais do que um: o tempo extra reparte-se por igual entre eles.</p>
+    <div class="row" style="margin:6px 0;max-height:184px;overflow-y:auto">${opcoesDesportoForm().map(id=>
+      `<button class="chip ${f.desportos.indexOf(id)>=0?'on':''}" onclick="toggleObjDesporto('${id}')"
+        aria-pressed="${f.desportos.indexOf(id)>=0}">${jaPraticaNoForm(id)?'★ ':''}${SPORT[id].nome}</button>`).join('')}</div>
+    ${f.desportos.length? `
+    <div class="splabel" style="margin-top:12px"><span>Treinos por semana</span>
+      <output id="obj-o-sessoes" style="min-width:12ch;text-align:right">${plural(f.sessoes,'treino','treinos')}</output></div>
+    <input type="range" min="${f.desportos.length}" max="14" step="1" value="${Math.max(f.sessoes,f.desportos.length)}"
+      style="--pct:${Math.round((Math.max(f.sessoes,f.desportos.length)-f.desportos.length)/Math.max(1,14-f.desportos.length)*100)}%"
+      aria-label="Treinos por semana" oninput="slideObjForm('sessoes',this)" onchange="saveMeta()">
+    <label class="row" style="gap:8px;margin-top:8px;cursor:pointer">
+      <input type="checkbox" ${f.agendar?'checked':''} onchange="setObjForm('agendar',this.checked)">
+      <span>Marcar já os dias no plano de treinos</span></label>
+    <p class="sub" style="margin-top:4px">${f.agendar
+      ? 'Os treinos ficam espaçados na semana e aparecem no separador Atividade, prontos a confirmar. Podes mudar os dias lá.'
+      : 'Só se acerta o volume semanal; os dias ficam como estão.'}</p>`:''}`
     : f.tipo==='ganhar'? `<p class="sub" style="margin-top:10px">Para orientar o ganho para massa muscular, considera reforçar treino de força — ${['musculacao','calistenia','funcional'].map(id=>SPORT[id].nome).join(', ')}.</p>` : ''}
 
     <div id="obj-preview" style="margin-top:14px">${gerarPreviewHtml()}</div>
