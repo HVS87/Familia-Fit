@@ -3373,7 +3373,7 @@ R('camaraotigre','Camarão-tigre grelhado','portuguesa',['keto','lowcarb','paleo
 R('camaraocozido','Camarão cozido','portuguesa',['keto','lowcarb','paleo','mediterranica'],0,0,0,0,[['Camarão',200,'g'],['Sal grosso',8,'g'],['Louro',1,'g'],['Limão',10,'ml']],['a','j'],0,['ent']),
 R('chouricoassado','Chouriço assado','portuguesa',['keto','lowcarb'],0,0,0,0,[['Chouriço',90,'g'],['Pão rústico',40,'g']],['a','j'],0,['ent']),
 R('saladapolvoent','Salada de polvo','portuguesa',['lowcarb','paleo','mediterranica'],0,0,0,0,[['Polvo',180,'g'],['Cebola roxa',60,'g'],['Pimento',60,'g'],['Tomate',120,'g'],['Pepino',80,'g'],['Coentros',8,'g'],['Azeite',15,'ml'],['Vinagre de vinho',8,'ml'],['Louro',1,'g']],['a','j'],0,['ent']),
-R('burratalimao','Burrata com raspas de limão','italiana',['keto','lowcarb','mediterranica'],0,0,0,0,[['Burrata',60,'g'],['Raspa de limão',2,'g'],['Azeite',8,'ml'],['Pimenta preta',0.5,'g'],['Manjericão',3,'g'],['Pão rústico',25,'g'],['Flor de sal',1,'g']],['p','a','j'],0,['ent','br']),
+R('burratalimao','Burrata com raspas de limão','italiana',['keto','lowcarb','mediterranica'],0,0,0,0,[['Burrata',60,'g'],['Raspa de limão',2,'g'],['Azeite',8,'ml'],['Pimenta preta',0.5,'g'],['Manjericão',3,'g'],['Flor de sal',1,'g']],['p','a','j'],0,['ent','br']),
 R('presuntoent','Presunto','espanhola',['keto','lowcarb','paleo'],0,0,0,0,[['Presunto',70,'g'],['Pão rústico',30,'g'],['Azeite',6,'ml']],['a','j','l'],0,['ent','sn']),
 
 /* ---------- Cozinha portuguesa ---------- */
@@ -3664,6 +3664,22 @@ R('aclmigasfrade','Migas de feijão-frade, couve e broa','portuguesa',[],0,0,0,0
    prato que já traz 150 g de batata e 200 g de polvo, o que falta é o verde
    amargo a cortar o azeite — não uma segunda travessa. */
 R('aclgrelosdpolvo','Grelos salteados com alho e azeite','portuguesa',['mediterranica'],0,0,0,0,[['Grelos',120,'g'],['Alho',2,'dente'],['Azeite',10,'ml'],['Limão',0.25,'un']],['ac']),
+/* ---- A fornada da análise dos compostos ----
+   Três acompanhamentos novos e dois clones de dose, nascidos de uma varredura
+   às receitas que tinham o lado embutido ou que pediam par e não o tinham.
+   O pão torrado é o que as três burratas traziam dentro — e era a ÚNICA razão
+   pela qual falhavam o filtro «sem glúten»: o queijo não tem glúten nenhum.
+   O couscous é o que os passos do tagine já mandavam pôr ao lado. O bacon
+   estaladiço é o «acompanha com bacon» dos ovos mexidos, como acompanhamento
+   a sério em vez de mais uma receita de ovos. Os dois arrozes brancos são as
+   doses exatas que as tripas e o gumbo traziam dentro — os passos de ambos
+   sempre disseram «cozido à parte, nunca lá dentro», e agora o arroz está
+   mesmo à parte. */
+R('acpaotorrado','Pão rústico torrado','portuguesa',['vegetariana','vegan'],0,0,0,0,[['Pão rústico',30,'g']],['ac']),
+R('accouscoussimples','Couscous simples','marroquina',['vegetariana','vegan','mediterranica'],0,0,0,0,[['Couscous',60,'g'],['Azeite',6,'ml'],['Flor de sal',1,'g']],['ac']),
+R('acbaconest','Bacon estaladiço','americana',[],0,0,0,0,[['Bacon',30,'g']],['ac']),
+R('acrbrancodtrip','Arroz branco solto','portuguesa',['vegetariana','vegan','mediterranica'],0,0,0,0,[['Arroz agulha',40,'g'],['Azeite',3,'ml'],['Alho',1,'dente'],['Louro',0.5,'g']],['ac']),
+R('acrbrancodgumbo','Arroz branco solto','portuguesa',['vegetariana','vegan','mediterranica'],0,0,0,0,[['Arroz agulha',45,'g'],['Azeite',3,'ml'],['Alho',1,'dente'],['Louro',0.5,'g']],['ac']),
 R('aclgrelosdbacb','Grelos salteados com alho e azeite','portuguesa',[],0,0,0,0,[['Grelos',80,'g'],['Alho',3,'dente'],['Azeite',12,'ml'],['Limão',0.25,'un']],['ac']),
 R('aclalface','Salada de alface com azeite','francesa',[],0,0,0,0,[['Alface',50,'g'],['Azeite',5,'ml']],['ac']),
 R('acllentilhas','Lentilhas estufadas com cenoura','mediterranica',[],0,0,0,0,[['Lentilhas',90,'g'],['Cenoura',60,'g'],['Louro',0.5,'g']],['ac']),
@@ -4086,6 +4102,9 @@ R('bissara','Bissara de favas','marroquina',['mediterranica'],0,0,0,0,[['Favas s
 R('panecunzato','Pane cunzato','mediterranica',['mediterranica'],0,0,0,0,[['Pão rústico',100,'g'],['Tomate',100,'g'],['Anchovas',12,'g'],['Queijo fresco de ovelha',50,'g'],['Cebola roxa',20,'g'],['Tomate seco',15,'g'],['Azeite',12,'ml'],['Orégãos',1,'g'],['Manjericão',2,'g'],['Pimenta preta',0.3,'g'],['Flor de sal',0.5,'g']],['l','a'],0,['br']),
 R('pastizzi','Pastizzi de ricotta','mediterranica',[],0,0,0,0,[['Massa folhada, congelada',90,'g'],['Ricotta',80,'g'],['Ovo',0.3,'un'],['Queijo parmesão ralado',8,'g'],['Salsa',3,'g'],['Pimenta preta',0.3,'g'],['Flor de sal',0.5,'g']],['p','l'],0,['br']),
 
+/* O arroz frito de wok é prato-identidade: o arroz fica DENTRO, porque não é
+   um lado — é o prato inteiro, e tem de ser arroz de véspera para funcionar. */
+R('arrozwok','Arroz frito no wok com ovo e cebolinho','asiatica',[],0,0,0,0,[['Arroz agulha',70,'g'],['Ovo',1.5,'un'],['Cebolinho',10,'g'],['Molho de ostras',18,'ml'],['Molho de soja',6,'ml'],['Óleo alimentar',12,'ml'],['Alho',1,'dente'],['Cebola',40,'g']],['a','j'],0,['pp']),
 /* A massa de pimentão é o tempero alentejano por excelência e faz aqui o
    trabalho todo: dá cor, sal e doçura de pimento seco de uma vez. Vai na
    marinada e não na frigideira — em contacto direto com o lume queima e
@@ -4102,7 +4121,7 @@ R('xerem','Xerém de conquilhas','portuguesa',['mediterranica'],0,0,0,0,[['Farin
 R('picapau','Pica-pau de vaca','portuguesa',[],0,0,0,0,[['Vaca, alcatra crua',160,'g'],['Pepino de conserva',35,'g'],['Azeitonas',25,'g'],['Alho',3,'dente'],['Manteiga',12,'g'],['Vinho branco',50,'ml'],['Molho piri-piri',4,'ml'],['Mostarda de Dijon',5,'g'],['Salsa',6,'g'],['Pimenta preta',1,'g'],['Flor de sal',1,'g']],['a','j','l'],0,['ent','pp']),
 R('cataplana','Cataplana de marisco','portuguesa',['mediterranica'],0,0,0,0,[['Amêijoas',300,'g'],['Camarão',180,'g'],['Lulas',80,'g'],['Chouriço',25,'g'],['Presunto',20,'g'],['Cebola',80,'g'],['Pimento',70,'g'],['Tomate',150,'g'],['Alho',3,'dente'],['Vinho branco',60,'ml'],['Azeite',15,'ml'],['Coentros',10,'g'],['Louro',0.5,'g'],['Malagueta',1,'g']],['a','j'],0,['pp']),
 R('picanochao','Pica no chão, frango do campo estufado','portuguesa',['mediterranica'],0,0,0,0,[['Frango inteiro com pele, cru',190,'g'],['Cebola',90,'g'],['Alho',3,'dente'],['Tomate',120,'g'],['Vinho branco',60,'ml'],['Azeite',15,'ml'],['Batata',150,'g'],['Louro',0.5,'g'],['Salsa',6,'g'],['Colorau',2,'g'],['Malagueta seca',0.5,'g'],['Flor de sal',2,'g']],['a','j'],0,['pp']),
-R('tripasporto','Tripas à moda do Porto','portuguesa',[],0,0,0,0,[['Tripas de vaca cruas',150,'g'],['Feijão branco',80,'g'],['Coxas de frango',70,'g'],['Chouriço',25,'g'],['Presunto',18,'g'],['Cenoura',60,'g'],['Cebola',80,'g'],['Alho',2,'dente'],['Cominhos',1.5,'g'],['Louro',0.5,'g'],['Salsa',6,'g'],['Azeite',12,'ml'],['Arroz agulha',40,'g']],['a','j'],0,['pp']),
+R('tripasporto','Tripas à moda do Porto','portuguesa',[],0,0,0,0,[['Tripas de vaca cruas',150,'g'],['Feijão branco',80,'g'],['Coxas de frango',70,'g'],['Chouriço',25,'g'],['Presunto',18,'g'],['Cenoura',60,'g'],['Cebola',80,'g'],['Alho',2,'dente'],['Cominhos',1.5,'g'],['Louro',0.5,'g'],['Salsa',6,'g'],['Azeite',12,'ml']],['a','j'],0,['pp']),
 R('chanfana','Chanfana de cabra em vinho tinto','portuguesa',[],0,0,0,0,[['Carne de cabra crua',200,'g'],['Vinho tinto',180,'ml'],['Banha de porco',15,'g'],['Alho',4,'dente'],['Cebola',60,'g'],['Louro',1,'g'],['Colorau',2,'g'],['Malagueta seca',0.5,'g'],['Pimenta preta',1,'g'],['Flor de sal',2,'g']],['a','j'],0,['pp']),
 R('linguasbacalhau','Línguas de bacalhau fritas','portuguesa',[],0,0,0,0,[['Línguas de bacalhau demolhadas',130,'g'],['Farinha',30,'g'],['Ovo',1,'un'],['Alho',3,'dente'],['Coentros',8,'g'],['Limão',0.5,'un'],['Óleo alimentar',15,'ml'],['Pimenta preta',0.5,'g']],['a','j'],0,['pp','ent']),
 
@@ -4192,8 +4211,8 @@ R('tigelle','Tigelle modenesi','italiana',[],0,0,0,0,[['Farinha de trigo tipo 55
    das outras e não três entradas soltas na grelha. A burrata serve-se à
    temperatura da cozinha — fria do frigorífico, a stracciatella lá dentro
    fica dura e não escorre, que é a única coisa que ela tem de fazer. */
-R('burrataforno','Burrata com tomate cereja no forno','italiana',['vegetariana','mediterranica'],0,0,0,0,[['Burrata',80,'g'],['Tomate cereja',150,'g'],['Azeite',8,'ml'],['Alho',1,'dente'],['Manjericão',4,'g'],['Orégãos',0.5,'g'],['Pão rústico',30,'g'],['Flor de sal',1,'g']],['p','a','j'],0,['ent','br']),
-R('burratapesto','Burrata com confit de tomate cereja e pesto','italiana',['vegetariana','mediterranica'],0,0,0,0,[['Burrata',70,'g'],['Tomate cereja',140,'g'],['Azeite',10,'ml'],['Pesto',10,'g'],['Alho',1,'dente'],['Tomilho fresco',1,'g'],['Pão rústico',30,'g'],['Flor de sal',1,'g']],['p','a','j'],0,['ent','br']),
+R('burrataforno','Burrata com tomate cereja no forno','italiana',['vegetariana','mediterranica'],0,0,0,0,[['Burrata',80,'g'],['Tomate cereja',150,'g'],['Azeite',8,'ml'],['Alho',1,'dente'],['Manjericão',4,'g'],['Orégãos',0.5,'g'],['Flor de sal',1,'g']],['p','a','j'],0,['ent','br']),
+R('burratapesto','Burrata com confit de tomate cereja e pesto','italiana',['vegetariana','mediterranica'],0,0,0,0,[['Burrata',70,'g'],['Tomate cereja',140,'g'],['Azeite',10,'ml'],['Pesto',10,'g'],['Alho',1,'dente'],['Tomilho fresco',1,'g'],['Flor de sal',1,'g']],['p','a','j'],0,['ent','br']),
 
 /* ---- Pizza, a família ----
    A base é sempre a mesma — massa, molho de tomate e mozzarella —, e o que a
@@ -4244,7 +4263,7 @@ R('panquecasproteina','Panquecas de proteína e aveia','americana',['vegetariana
    gordura mexidas até à cor de chocolate, e queima-se em dez segundos de
    distração. O que vai lá dentro varia de casa para casa; o que não varia é o
    roux, a trindade (cebola, aipo e pimento) e o arroz por baixo. */
-R('gumbo','Gumbo da Luisiana com camarão e frango','americana',[],0,0,0,0,[['Farinha',18,'g'],['Óleo de girassol',14,'ml'],['Cebola',60,'g'],['Aipo',40,'g'],['Pimento',50,'g'],['Alho',2,'dente'],['Coxas de frango',70,'g'],['Camarão',80,'g'],['Chouriço',25,'g'],['Quiabo cru',80,'g'],['Tomate pelado',60,'g'],['Arroz agulha',45,'g'],['Colorau',2,'g'],['Louro',0.5,'g'],['Tomilho fresco',1,'g'],['Malagueta',1,'g'],['Flor de sal',1.5,'g'],['Cebola verde',10,'g']],['a','j'],0,['pp']),
+R('gumbo','Gumbo da Luisiana com camarão e frango','americana',[],0,0,0,0,[['Farinha',18,'g'],['Óleo de girassol',14,'ml'],['Cebola',60,'g'],['Aipo',40,'g'],['Pimento',50,'g'],['Alho',2,'dente'],['Coxas de frango',70,'g'],['Camarão',80,'g'],['Chouriço',25,'g'],['Quiabo cru',80,'g'],['Tomate pelado',60,'g'],['Colorau',2,'g'],['Louro',0.5,'g'],['Tomilho fresco',1,'g'],['Malagueta',1,'g'],['Flor de sal',1.5,'g'],['Cebola verde',10,'g']],['a','j'],0,['pp']),
 
 /* ================= AS MESMAS RECEITAS, EM KETO =================
    A app tinha vinte e cinco pratos keto, e eram todos pratos keto de origem:
@@ -6235,6 +6254,22 @@ P('aclpimentoassado',[['Assar inteiros','Pimentos inteiros na brasa ou no forno 
  ['Suar tapados','Fecha-os numa taça tapada ou num saco de papel enquanto arrefecem: é o próprio vapor que descola a pele sem levar a polpa atrás.',15],
  ['Pelar e cortar','Pela com os dedos, tira as sementes e corta em tiras largas. Não os passes por água — leva-lhes o assado todo.'],
  ['Temperar','Azeite, alho laminado, cebola em meias-luas finas e sal. Sabem melhor mornos, e ainda melhor no dia seguinte.']]);
+P('arrozwok',[['Arroz de véspera, e não é manha','Coze o arroz de véspera e guarda-o destapado no frigorífico. Arroz acabado de cozer está cheio de vapor e no wok vira papa — o de véspera secou, e é o que salta solto. É o passo que decide o prato inteiro.',15],
+ ['Ovo primeiro, e sai','Wok muito quente, metade do óleo, os ovos batidos a coalhar em trinta segundos, partidos em pedaços grandes — e saem para um prato. Deixados lá dentro enquanto o resto se faz, viram borracha.',1],
+ ['Alho e cebola no resto do óleo','Trinta segundos em lume máximo, a mexer sempre. No wok nada espera: o que fica parado queima.',1],
+ ['O arroz aos murros','O arroz frio desfeito com as costas da colher, espalhado pelo wok e deixado QUIETO meio minuto antes de mexer — é aí que ganha o tostado. Repete: espalhar, esperar, mexer.',4],
+ ['Molho de ostras pelas bordas','O molho de ostras e a soja deitados pela PAREDE do wok, não por cima do arroz: caramelizam ao escorrer e chegam ao arroz já com o fumo. Sal nenhum — os dois molhos trazem-no todo.',1],
+ ['Ovo de volta e cebolinho','O ovo devolvido, o cebolinho em rodelinhas, duas voltas e para o prato. Do lume à mesa: o arroz frito não espera.']]);
+P('acpaotorrado',[['Fatias com um dedo','Pão rústico em fatias de um dedo de espessura — mais finas queimam antes de tostar, mais grossas ficam pão quente em vez de torrada.'],
+ ['Tostar a seco','Na torradeira, na chapa ou no forno já quente do prato que acompanham: dois a três minutos de cada lado, até estalar por fora e ceder por dentro.',5]]);
+P('accouscoussimples',[['Hidratar fora do lume','Couscous numa taça com o sal, água a ferver a cobrir um dedo acima, tapado cinco minutos. Não vai ao lume nenhum: coze no vapor que ficou preso.',5],
+ ['Soltar com o garfo','O azeite e um garfo a soltar os grãos, de baixo para cima. Mexido com colher, empapa — o garfo é que o deixa em grão solto.']]);
+P('acbaconest',[['Frigideira FRIA','As fatias lado a lado numa frigideira fria, e só depois o lume médio. É a gordura a derreter devagar que as deixa estaladiças de ponta a ponta — na frigideira já quente, as pontas queimam antes de o meio render.',8],
+ ['Escorrer sobre papel','Um minuto sobre papel absorvente. Ficam a estalar mais ao arrefecer — é a gordura a firmar, não o bacon a passar do ponto.']]);
+P('acrbrancodtrip',[['Refogado curto','Alho inteiro esmagado no azeite sem ganhar cor, e o arroz envolvido até os grãos ficarem translúcidos nas pontas.',3],
+ ['Cozer tapado','O dobro do volume em água a ferver, o louro, lume mínimo e tapado até secar. Cinco minutos de descanso e solta-se com o garfo.',14]]);
+P('acrbrancodgumbo',[['Refogado curto','Alho inteiro esmagado no azeite sem ganhar cor, e o arroz envolvido até os grãos ficarem translúcidos nas pontas.',3],
+ ['Cozer tapado','O dobro do volume em água a ferver, o louro, lume mínimo e tapado até secar. Serve-se por baixo do gumbo, nunca cozido dentro dele — o arroz beberia o caldo todo.',14]]);
 P('aclgrelosdpolvo',[['Escaldar e passar por água fria','Grelos em água a ferver com sal, três a quatro minutos, e logo a seguir para água gelada. É o choque que lhes fixa o verde — sem ele, ao lado do polvo assado ficam com uma cor tristonha.',5],
  ['Espremer','Aperta-os bem com as mãos até deixarem de pingar. Grelos molhados no azeite do lagareiro fazem-no espirrar e diluem-no.'],
  ['Alho no azeite frio','Alho laminado a alourar em azeite ainda morno, devagar. Este prato já leva o azeite todo do polvo — aqui é pouco, e serve só para levar o alho.',3],
@@ -9152,6 +9187,10 @@ fonte('fda');
    com líquido de conserva, e o cheiro que traz sai com um escaldão. */
 NI('Massa de konjac (shirataki)',9,0,0,0,3,0,4);
 NI('Tripas de vaca cruas',85,0,12.1,3.7,0,0,1);
+/* Molho de ostras: quase só água, açúcar e sal — 51 kcal por 100, e um sódio
+   de conserva (2733 mg/100 g) que é por isso que se usa às colheres e nunca
+   às chávenas. USDA FDC 174538. */
+NI('Molho de ostras',51,10.9,1.4,0.3,0.3,0,4,'ml');
 NI('Carne de cabra crua',109,0,20.6,2.3,0,0,1);
 NI('Pepino de conserva',12,1.2,0.6,0.2,1.2,0,2);
 fonte('insa');
@@ -9497,6 +9536,11 @@ const ING_EXCECAO={
      Quem usa gelatina de peixe ou ágar-ágar troca o ingrediente na receita. */
   'Gelatina em folhas':['carne','porco'],
   'Gelatina em pó':['carne','porco'],
+  /* O molho de ostras é feito de extrato de ostra — o nome di-lo e mesmo assim
+     é fácil passar, porque parece «só um molho». Sem esta linha, o arroz frito
+     saía vegetariano. É o terceiro ingrediente desta lista a ensinar a mesma
+     lição: o que não parece animal também conta. */
+  'Molho de ostras':['moluscos'],
   /* Onde o nome engana a expressão, ou onde o produto real leva coisas que o
      nome não diz. Os caldos e cubos são o caso clássico do aipo escondido,
      e as autoridades assinalam-no expressamente. */
@@ -9670,6 +9714,7 @@ const ING_EXCECAO={
   'Tripas de vaca cruas':97,   /* USDA 13327 Beef, variety meats, tripe, raw */
   'Carne de cabra crua':82,   /* USDA 17164 Game meat, goat, raw */
   'Pepino de conserva':1208,   /* USDA 11937 Pickles, cucumber, dill — é onde mora o sal do pica-pau */
+  'Molho de ostras':2733,   /* USDA 174538 — é o ingrediente mais salgado do wok, e é por isso que o arroz frito não leva sal nenhum */
   'Bacalhau, ovas cruas':120,
   'Bacon':1200,
   'Bagas goji secas':420,   /* INSA Bagas goji secas */
@@ -10526,7 +10571,8 @@ const ALIAS_BUSCA={
   /* «gyros» NÃO entra aqui: é carne de espeto vertical fatiada, e o souvlaki é
      espetada de cubos. São pratos diferentes, e a regra deste bloco é só o que
      é a mesma coisa com outro nome. */
-  souvlaki:'espetada espetadas'
+  souvlaki:'espetada espetadas',
+  arrozwok:'fried rice arroz chines chau chau min wok ceboleto'
 };
 /* Um id de receita declarado duas vezes não dá erro nenhum: ficam dois cartões
    na grelha, `find()` devolve sempre o primeiro, e o P() do segundo apaga em
@@ -22490,6 +22536,23 @@ const NOME_COMBO={
   'c:sardinhas+aclpimentoassado':'Sardinhas assadas com pimentos',
   'c:rojoes+aclgrelosdrojo':'Rojões com grelos',
   'c:polvo+aclgrelosdpolvo':'Polvo à lagareiro com grelos salteados',
+  'c:tripasporto+acrbrancodtrip':'Tripas à moda do Porto com arroz branco',
+  'c:gumbo+acrbrancodgumbo':'Gumbo com arroz branco',
+  'c:burratalimao+acpaotorrado':'Burrata com raspas de limão e pão torrado',
+  'c:burrataforno+acpaotorrado':'Burrata com tomate no forno e pão torrado',
+  'c:burratapesto+acpaotorrado':'Burrata com confit de tomate e pão torrado',
+  'c:chanfana+acbmurro':'Chanfana com batata a murro',
+  'c:maminha+aclfarofa':'Maminha com farofa',
+  'c:vindaloo+acrbasmati':'Vindaloo com arroz basmati',
+  'c:lambkorma+acrbasmati':'Lamb korma com arroz basmati',
+  'c:tonkatsu+gohan~acmtonkatsu':'Tonkatsu com arroz e molho tonkatsu',
+  'c:karaage+gohan':'Karaage com arroz',
+  'c:sabashioyaki+gohan':'Cavala grelhada com arroz à japonesa',
+  'c:oyakodon+gohan':'Oyakodon com arroz',
+  'c:taginenborrego+accouscoussimples':'Tagine de borrego com couscous',
+  'c:salmaogrelhado+acbcoz':'Salmão grelhado com batata cozida',
+  'c:keftedes+acbfritas':'Keftedes com batatas fritas',
+  'c:ovoscebolinho+acbaconest':'Ovos mexidos com cebolinho e bacon estaladiço',
   'c:carapaus+acbmurrodcara':'Carapaus grelhados com batata a murro',
   'c:pataniscas+acrfeijaodpata':'Pataniscas de bacalhau com arroz de feijão',
   'c:ketopurecouveflor+aclpurecouveflor':'Bife com puré de couve-flor',
@@ -22535,6 +22598,33 @@ const COMBOS_BASE=[
   {base:'sardinhas', ac:['aclpimentoassado'], mo:''},
   {base:'rojoes', ac:['aclgrelosdrojo'], mo:''},
   {base:'polvo', ac:['aclgrelosdpolvo'], mo:''},
+  /* ---- Os pares da análise dos compostos ----
+     Uma varredura às 431 receitas de almoço/jantar em busca de pratos que
+     pediam par e não o tinham. Três grupos:
+     · o lado que estava DENTRO e saiu (tripas, gumbo, burratas) — os passos
+       destes pratos sempre disseram «servido à parte»; agora é verdade;
+     · o par clássico que faltava declarar (a chanfana cujos passos já diziam
+       «batata a murro ou pão ao lado», o tonkatsu que no Japão é teishoku com
+       arroz e couve, o vindaloo com basmati, a maminha com farofa);
+     · o prato que estava incompleto sem o par (o oyakodon é uma taça de arroz
+       por definição — e não tinha arroz nenhum). */
+  {base:'tripasporto', ac:['acrbrancodtrip'], mo:''},
+  {base:'gumbo', ac:['acrbrancodgumbo'], mo:''},
+  {base:'burratalimao', ac:['acpaotorrado'], mo:''},
+  {base:'burrataforno', ac:['acpaotorrado'], mo:''},
+  {base:'burratapesto', ac:['acpaotorrado'], mo:''},
+  {base:'chanfana', ac:['acbmurro'], mo:''},
+  {base:'maminha', ac:['aclfarofa'], mo:''},
+  {base:'vindaloo', ac:['acrbasmati'], mo:''},
+  {base:'lambkorma', ac:['acrbasmati'], mo:''},
+  {base:'tonkatsu', ac:['gohan'], mo:'acmtonkatsu'},
+  {base:'karaage', ac:['gohan'], mo:''},
+  {base:'sabashioyaki', ac:['gohan'], mo:''},
+  {base:'oyakodon', ac:['gohan'], mo:''},
+  {base:'taginenborrego', ac:['accouscoussimples'], mo:''},
+  {base:'salmaogrelhado', ac:['acbcoz'], mo:''},
+  {base:'keftedes', ac:['acbfritas'], mo:''},
+  {base:'ovoscebolinho', ac:['acbaconest'], mo:''},
   {base:'carapaus', ac:['acbmurrodcara'], mo:''},
   {base:'pataniscas', ac:['acrfeijaodpata'], mo:''},
   {base:'ketopurecouveflor', ac:['aclpurecouveflor'], mo:''},
