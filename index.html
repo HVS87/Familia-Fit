@@ -766,6 +766,7 @@ html[data-dispositivo="telefone"][data-orient="retrato"] .timers{bottom:calc(70p
 .mov-fig .mov-cabeca{fill:currentColor;stroke:none}
 .mov-fig .mov-casing{stroke:var(--bg);stroke-width:7.5}
 .mov-fig .mov-seta{stroke:var(--accent);stroke-width:3.2}
+.mov-fig .mov-halter{stroke-width:5.5;stroke-linecap:round}
 .mov-passo figcaption{font-size:13px;line-height:1.45;color:var(--mut)}
 .mov-passo figcaption b{color:var(--ink)}
 
@@ -1299,7 +1300,7 @@ input[type=range].com-detentes::-moz-range-track{
 .hist button:disabled{opacity:.35;cursor:default}
 #toast{position:fixed;left:50%;transform:translateX(-50%);bottom:max(22px,env(safe-area-inset-bottom));
   background:var(--ink);color:var(--card);padding:10px 16px;border-radius:999px;font-size:13.5px;
-  font-weight:600;z-index:60;box-shadow:0 4px 18px rgba(0,0,0,.28);max-width:90vw;text-align:center;
+  font-weight:600;z-index:70;box-shadow:0 4px 18px rgba(0,0,0,.28);max-width:90vw;text-align:center;
   display:flex;align-items:center;gap:12px;justify-content:center}
 @media (prefers-reduced-motion: no-preference){ #toast{transition:opacity .18s} }
 /* O aviso de erro distingue-se por uma barra, não só pela palavra: quem só vê
@@ -1819,6 +1820,12 @@ html[data-orient="paisagem"][data-dispositivo="tablet"] .gdias{grid-template-col
    intenso. Onde a velocidade ou o terreno mandam mais do que o esforço sentido
    — ciclismo, corrida, caminhada — a dica indica o que cada nível representa. */
 const NIVEIS=[['leve','Leve'],['moderado','Moderado'],['intenso','Intenso']];
+/* Terreno do registo de atividade. Vive aqui em cima, longe do formulário,
+   pela mesma razão do JEJUM_MAX_H: limparRegAtiv corre no arranque, via
+   migraRegistos, e um const declarado lá em baixo ainda estaria na zona
+   morta temporal — ecrã em branco para quem tivesse registos guardados. */
+const TERRENOS=[['plano','Plano',1],['ondulado','Ondulado',1.15],['montanha','Subida a sério',1.35]];
+function fatorTerreno(t){ const x=TERRENOS.find(y=>y[0]===t); return x? x[2] : 1; }
 
 /* Nos desportos em que a velocidade é que manda no esforço, o MET não se
    escolhe por níveis: lê-se de uma curva velocidade → MET, interpolada entre
@@ -1978,6 +1985,10 @@ function figSvg(P,rotulo){
   s+=`<circle class="mov-cabeca" cx="${P.cb[0]}" cy="${P.cb[1]}" r="6"/>`;
   if(P.p1) s+=frente([P.an].concat(P.p1));
   if(P.b1) s+=frente([P.om].concat(P.b1));
+  /* halteres: um traço curto e grosso na mão — visto de lado, um haltere é
+     isto. O terceiro valor (graus) roda-o perpendicular ao antebraço. */
+  if(P.halt) P.halt.forEach(h=>{ const a=h[2]==null? 90 : h[2];
+    s+=`<line class="mov-halter" x1="${h[0]-4}" y1="${h[1]}" x2="${h[0]+4}" y2="${h[1]}" transform="rotate(${a} ${h[0]} ${h[1]})"/>`; });
   if(P.seta){ const [x1,y1,x2,y2]=P.seta;
     const a=Math.atan2(y2-y1,x2-x1), L=8;
     s+=`<g class="mov-seta"><path d="M${x1} ${y1} Q ${(x1+x2)/2+(y1-y2)*0.3} ${(y1+y2)/2+(x2-x1)*0.3} ${x2} ${y2}"/>`
@@ -2060,6 +2071,48 @@ const MOVS=[
  MV('cadeira','Cadeira na parede','20 a 30 segundos','NHS (strength and flex)',[
   {t:'Costas encostadas à parede, desliza até os joelhos fazerem um ângulo reto, como sentado numa cadeira invisível. Aguenta, a respirar, e sobe.',
    f:{cb:[47,26],om:[47,34],an:[47,56],b1:[[45,44],[44,52]],b2:[[49,44],[48,52]],p1:[[63,56],[63,80]],p2:[[65,58],[65,80]],parede:44}}]),
+ /* ---- reforço com pesos (halteres ou garrafas; NHS pede força 2×/semana,
+    e o ACSM 8-12 repetições por série para força geral) ---- */
+ MV('bicepshalter','Flexão de bíceps','3 séries de 8 a 12','NHS (força), com halteres',[
+  {t:'De pé, um peso em cada mão, braços ao lado do corpo e cotovelos colados às costelas.',
+   f:Object.assign({},POSE_PE,{b1:[[55,33],[54,44]],b2:[[65,33],[66,44]],halt:[[54,44],[66,44]]})},
+  {t:'Dobra os cotovelos e sobe os pesos até aos ombros, sem balançar o tronco — se balanças, o peso é de mais. Desce devagar: a descida é metade do exercício.',
+   f:Object.assign({},POSE_PE,{b1:[[55,33],[57,23]],b2:[[65,33],[63,23]],halt:[[57,23],[63,23]],seta:[74,40,76,26]})}]),
+ MV('desenvolvimento','Desenvolvimento de ombros','3 séries de 8 a 12','NHS (força), com halteres',[
+  {t:'De pé ou sentado, pesos à altura dos ombros, palmas em frente, cotovelos para baixo.',
+   f:Object.assign({},POSE_PE,{b1:[[52,28],[51,20]],b2:[[68,28],[69,20]],halt:[[51,20],[69,20]]})},
+  {t:'Empurra os pesos para cima até os braços esticarem, sem encolher os ombros nem arquear as costas. Desce controlado até à altura das orelhas.',
+   f:Object.assign({},POSE_PE,{b1:[[56,13],[55,5]],b2:[[64,13],[65,5]],halt:[[55,5],[65,5]],seta:[76,22,76,8]})}]),
+ MV('remadahalter','Remada curvada','3 séries de 8 a 12','NHS (força), com halteres',[
+  {t:'Joelhos ligeiramente dobrados, tronco inclinado à frente com as costas DIREITAS, pesos pendurados por baixo dos ombros.',
+   f:{cb:[41,33],om:[47,38],an:[62,57],b1:[[45,48],[44,58]],b2:[[50,48],[49,58]],halt:[[44,58],[49,58]],p1:[[57,68],[54,81]],p2:[[64,68],[62,81]]}},
+  {t:'Puxa os pesos até às costelas, com os cotovelos a roçar o corpo, e aperta as omoplatas no topo. Desce devagar. Se as costas arredondarem, para: é o aviso.',
+   f:{cb:[41,33],om:[47,38],an:[62,57],b1:[[48,44],[47,38]],b2:[[52,45],[51,40]],halt:[[47,38],[51,40]],p1:[[57,68],[54,81]],p2:[[64,68],[62,81]],seta:[36,55,36,42]}}]),
+ MV('elevlateralhalter','Elevações laterais','3 séries de 10 a 12','NHS (força), com halteres',[
+  {t:'De pé, pesos ao lado das coxas, cotovelos quase esticados.',
+   f:Object.assign({},POSE_PE,{b1:[[54,34],[53,45]],b2:[[66,34],[67,45]],halt:[[53,45],[67,45]]})},
+  {t:'Abre os braços para os lados até à horizontal — não acima — e desce devagar. Aqui o peso certo é LEVE: é o exercício em que mais se faz batota com balanço.',
+   f:Object.assign({},POSE_PE,{b1:[[49,23],[39,22]],b2:[[71,23],[81,22]],halt:[[39,22],[81,22]],seta:[84,38,84,26]})}]),
+ MV('gobletsquat','Agachamento com peso ao peito','3 séries de 8 a 12','NHS (força), com halteres',[
+  {t:'Um peso seguro ao peito com as duas mãos, pés à largura dos ombros.',
+   f:Object.assign({},POSE_PE,{b1:[[55,30],[58,27]],b2:[[65,30],[62,27]],halt:[[60,27]]})},
+  {t:'Desce como no agachamento sem peso — ancas atrás, costas direitas, calcanhares no chão. O peso ao peito até ajuda: faz de contrapeso e deixa o tronco mais direito.',
+   f:{cb:[51,26],om:[54,34],an:[64,57],b1:[[57,38],[59,35]],b2:[[60,40],[62,37]],halt:[[60,36]],p1:[[55,66],[53,81]],p2:[[58,67],[56,81]],seta:[74,50,74,62]}}]),
+ MV('pesomorto','Peso morto romeno','3 séries de 8 a 10','NHS (força), com halteres',[
+  {t:'De pé, pesos à frente das coxas, joelhos só ligeiramente dobrados.',
+   f:Object.assign({},POSE_PE,{b1:[[55,33],[55,44]],b2:[[64,33],[64,44]],halt:[[55,44],[64,44]]})},
+  {t:'Empurra as ancas para TRÁS e deixa os pesos deslizar rente às pernas até meio da canela, costas sempre direitas. É nos isquiotibiais que deve puxar — não na lombar. Sobe a apertar os glúteos.',
+   f:{cb:[40,36],om:[45,40],an:[61,50],b1:[[46,52],[47,63]],b2:[[50,53],[51,64]],halt:[[47,63],[51,64]],p1:[[59,65],[57,81]],p2:[[64,65],[63,81]],seta:[74,60,72,46]}}]),
+ MV('tricepshalter','Extensão de tríceps','3 séries de 8 a 12','NHS (força), com halteres',[
+  {t:'Um peso seguro com as duas mãos acima da cabeça, braços esticados e cotovelos junto às orelhas.',
+   f:Object.assign({},POSE_PE,{b1:[[56,13],[59,5]],b2:[[64,13],[61,5]],halt:[[60,5]]})},
+  {t:'Dobra só os cotovelos e desce o peso por trás da cabeça, devagar, e estica de volta. Os cotovelos ficam quietos a apontar para cima — se abrirem, o tríceps deixou de trabalhar.',
+   f:Object.assign({},POSE_PE,{b1:[[56,13],[66,10]],b2:[[64,13],[68,12]],halt:[[67,11]],seta:[80,8,72,4]})}]),
+ MV('marchalavrador','Marcha do lavrador','2 a 3 voltas de 30 a 60 segundos','NHS (força), com halteres',[
+  {t:'Um peso pesado em cada mão, ombros para trás, e anda. Só isto — e é dos exercícios mais completos que há: pega, tronco, pernas e postura ao mesmo tempo.',
+   f:Object.assign({},POSE_PE,{p1:[[52,60],[47,80]],p2:[[67,62],[71,80]],b1:[[55,33],[54,45]],b2:[[65,33],[66,45]],halt:[[54,45],[66,45]],seta:[30,70,16,70]})},
+  {t:'Passos curtos e tronco direito, sem inclinar para nenhum lado. Quando conseguires um minuto sem pousar, os pesos podem subir.',
+   f:Object.assign({},POSE_PE,{p1:[[54,62],[50,80]],p2:[[66,61],[70,80]],b1:[[55,33],[54,45]],b2:[[65,33],[66,45]],halt:[[54,45],[66,45]]})}]),
  /* ---- alongar (estático, no fim, com o músculo quente — ACSM/AHA) ---- */
  MV('alongpescoco','Rotação do pescoço','5 segundos, 3 vezes cada lado','NHS (flexibilidade)',[
   {t:'Sentado ou de pé, ombros em baixo, olhar em frente. Roda a cabeça para um ombro até onde for confortável, aguenta cinco segundos, volta ao centro, e troca.',
@@ -2237,6 +2290,15 @@ const FORCA=[
  {k:'F-C', n:'Tronco, braços e postura',
   aq:['marcha','circulos','rotacaotronco'], ex:['flexaoparede','flexaojoelhos','flexaocompleta','cadeira','levantarsentar'], al:['peito','alongpescoco','crianca']},
 ];
+/* Com pesos, em dois conjuntos que alternam — halteres ou garrafas de 1,5 L
+   servem igual, e é por isso que isto vive no mesmo cartão do peso do corpo:
+   é o mesmo reforço, com carga. */
+const PESOS=[
+ {k:'P-A', n:'Empurrar e braços',
+  aq:['marcha','circulos','rotacaotronco'], ex:['desenvolvimento','bicepshalter','tricepshalter','elevlateralhalter'], al:['peito','alongpescoco','alonglateral']},
+ {k:'P-B', n:'Puxar, pernas e costas',
+  aq:['marcha','balancoperna','gatovaca'], ex:['gobletsquat','pesomorto','remadahalter','marchalavrador'], al:['isquios','quadricipite','crianca']},
+];
 const PILATES=[
  {k:'P-A', n:'Fundações',
   aq:['respiracao','bascula','gatovaca'], ex:['deslizarcalcanhar','abdominalcurto','pontearticulada','concha'], al:['joelhopeito','rolarjoelhos','crianca']},
@@ -2411,6 +2473,15 @@ function migraRegistos(s){
   s.pausas = limparPausas(s.pausas, ids);
   s.diario = limparDiario(s.diario, ids);
   s.cozPref = limparCozPref(s.cozPref);
+  /* A promoção do catálogo alargado só mexia em NUTRI em memória: quem
+     promovia o kimchi pela pesquisa da despensa via-o evaporar no F5 — e o
+     básico marcado nele morria já a seguir, no limparBasicos, que valida
+     contra um catálogo onde ele ainda não estava. A própria despensa e a
+     lista de básicos são a persistência: o que lá estiver e viver no catálogo
+     alargado repromove-se aqui, antes de qualquer validação. */
+  Object.keys(s.despensa||{}).concat(Object.keys(s.basicos||{})).forEach(n=>{
+    if(!temChave(NUTRI,n) && temChave(NUTRI_EXTRA,n)) promoveIngrediente(n);
+  });
   s.rituais = limparRituais(s.rituais); s.extras = limparExtras(s.extras); s.aindaHa = limparAindaHa(s.aindaHa); s.basicos = limparBasicos(s.basicos);
   s.visitas = limparVisitas(s.visitas); s.ementas = limparEmentas(s.ementas);
   s.anos = limparAnos(s.anos, ids); s.provas = limparProvas(s.provas, ids); s.bebidas = limparBebidas(s.bebidas, ids);
@@ -2540,7 +2611,7 @@ function limparExtras(o){
     if(!dataValida(wk)) return;
     const l=(Array.isArray(o[wk])? o[wk] : [])
       .filter(n=>typeof n==='string' && n.trim().length>=1 && n.length<=60)
-      .map(n=>n.trim().replace(/\s+/g,' ')).slice(0,40);
+      .map(n=>n.trim().replace(/\s+/g,' ').replace(/\|/g,'/')).slice(0,40);
     if(l.length) out[wk]=l;
   });
   return out;
@@ -2730,7 +2801,12 @@ function limparRegAtiv(r,ids){
     plano: /^[A-Za-z0-9_-]{1,32}$/.test(String(r.plano||''))? r.plano : null,
     nota: String(r.nota||'').slice(0,120)};
   if(sp.dist){ out.v=clampNum(parseFloat(r.v)||sp.dist.vdef, sp.dist.vmin, sp.dist.vmax);
-    out.km=clampNum(parseFloat(r.km)||0, 0, sp.dist.maxSemana*2); }
+    out.km=clampNum(parseFloat(r.km)||0, 0, sp.dist.maxSemana*2);
+    /* terreno e MET final do registo (curva × fator): registos antigos não os
+       têm e continuam a valer pela curva simples — as calorias já mostradas
+       não mudam por baixo de ninguém */
+    if(TERRENOS.some(t=>t[0]===r.ter)) out.ter=r.ter;
+    const met=parseFloat(r.met); if(isFinite(met)&&met>0&&met<=30) out.met=Math.round(met*100)/100; }
   else out.i=NIVEIS.some(n=>n[0]===r.i)? r.i : 'moderado';
   return out;
 }
@@ -3354,6 +3430,10 @@ R('pxgoraz','Goraz assado no forno com batatas e limão','portuguesa',['mediterr
    as quantidades por tacho ou não as dá de todo — o que se transcreve é o
    método, que é o que ele tem de próprio, e as quantidades são as que fazem
    uma dose com o peso das outras receitas da app. */
+/* Também do Tuga na Cozinha. A couve lombarda escalda-se folha a folha e faz
+   de embrulho às salsichas, que estufam dentro de um molho de chouriço — o
+   chouriço é pouco e é tempero, não recheio. */
+R('salsichascouve','Salsichas enroladas em couve lombarda','portuguesa',[],0,0,0,0,[['Salsicha fresca crua',130,'g'],['Couve lombarda crua',100,'g'],['Chouriço',15,'g'],['Cebola',40,'g'],['Cenoura',50,'g'],['Tomate pelado',100,'g'],['Alho',1,'dente'],['Louro',1,'g'],['Vinho branco',25,'ml'],['Azeite',10,'ml']],['a','j'],0,['pp']),
 R('cavalacouve','Cavala em cama de couve salteada','portuguesa',['mediterranica'],0,0,0,0,[['Cavala',180,'g'],['Couve-branca crua',200,'g'],['Alho',3,'dente'],['Coentros',8,'g'],['Azeite',18,'ml'],['Flor de sal',2,'g']],['a','j'],0,['pp']),
 R('saladaburrata','Salada de burrata com pesto e croutons','italiana',['vegetariana','mediterranica'],0,0,0,0,[['Burrata',80,'g'],['Tomate',120,'g'],['Tomate cereja',80,'g'],['Pesto',25,'g'],['Pão rústico',30,'g'],['Orégãos',1,'g'],['Manjericão',5,'g'],['Azeite',10,'ml']],['a','j'],0,['ent']),
 R('courgettebaconovo','Courgette com bacon, ovo escalfado e nozes','portuguesa',[],0,0,0,0,[['Courgette',200,'g'],['Bacon',50,'g'],['Ovo',1,'un'],['Nozes',15,'g'],['Azeite',10,'ml']],['p'],0,['pa']),
@@ -5155,6 +5235,12 @@ P('cavalacouve',[['Couve fina e o sal a puxar a água','Couve em juliana o mais 
  ['Filetar a cavala','Filetes de cavala, e guarda as cabeças e as espinhas: dão um caldo de peixe que não se compra.',8],
  ['Pele para baixo, e só voltar no fim','Azeite bem quente na frigideira e os filetes com a PELE PARA BAIXO, sem lhes mexer, até a carne branquear a meio da altura. Só então os voltas, e do outro lado é só selar — a cavala cozinha num instante e passada fica seca.',5],
  ['Montar','Cama de couve no prato, os filetes por cima, folhas de coentros e um fio de azeite cru.']]);
+P('salsichascouve',[['Escaldar as folhas','Separa as folhas da couve lombarda, lava-as bem e corta a parte grossa do talo de cada uma. Mergulha-as uma a uma em água a ferver, cinco minutos, até amolecerem. Deixa arrefecer estendidas — quentes, rasgam-se ao dobrar.',12],
+ ['Embrulhar','Duas folhas por salsicha (três se forem pequenas): enrola e prende com um ou dois palitos. É o palito que aguenta o embrulho no tacho — sem ele abre ao primeiro toque da colher.',10],
+ ['O molho começa no chouriço','Azeite no tacho e o chouriço às rodelas a alourar — é ele o tempero do molho, e é por isso que é pouco. Junta a cebola picada, a cenoura em pedaços e o louro, e deixa refogar um pouco.',6],
+ ['Alho e tomate','Alho picado um minuto, e o tomate a seguir, uns cinco minutos a apurar.',6],
+ ['Estufar devagar','Pousa os embrulhos no molho, tempera de sal e pimenta, rega com o vinho branco e deixa estufar em lume brando, tapado, quarenta e cinco minutos. Vira-os a meio com cuidado, pelos palitos.',45],
+ ['Servir','Tira os palitos antes de servir — e avisa quem se esqueceu de os contar.']]);
 P('saladaburrata',[['Croutons','Pão rústico aos cubos, com azeite e uma pitada de orégãos, na frigideira ou no forno até ficarem tostados por fora e ainda macios no meio. Deixa-os arrefecer: quentes, amolecem com a humidade do tomate.',8],
  ['Tomate em dois tamanhos','Tomate grande às gomas e tomate cereja ao meio. Salga-os e deixa-os cinco minutos num passador — o que largam é água, e é ela que faria a salada nadar.',6],
  ['Montar como se quiser','Não há aqui grande ciência: dispõe o tomate no prato, a burrata inteira ao centro, os croutons à volta e o pesto às colheradas. A burrata abre-se à mesa, não na cozinha.',3],
@@ -13459,6 +13545,7 @@ const DICAS={
   objDesportos:'Escolhe os que quiseres: o tempo extra que o objetivo pede reparte-se por igual entre eles, e o gasto por hora é a média dos gastos de cada um — correr e fazer ioga meia hora de cada dá o mesmo que uma hora a meio caminho dos dois. Os que já praticas aparecem primeiro, marcados com uma estrela; os outros entram no teu plano quando os escolheres aqui.',
   objEstrategia:'Quanto do ajuste diário vem de comer menos (ou mais) e quanto vem de gastar mais a fazer desporto. Mais dieta pede menos esforço físico extra; mais exercício permite comer com menos restrição para o mesmo ritmo.',
   receitasDisp:'Cada receita mostra os ingredientes com o estado da tua despensa: um visto verde para o que já tens, uma cruz vermelha para o que falta. A etiqueta no topo resume tudo — «Pronta a cozinhar» quando não falta nada.',
+  terreno:'A curva que converte velocidade em calorias é de terreno plano. Subir muda a conta: as entradas do Compendium para caminhada em subida ficam 30 a 50 por cento acima da caminhada plana ao mesmo passo, e a corrida de trilho acima da de estrada. «Ondulado» soma 15 por cento e «Subida a sério» 35 — aproximações honestas, como toda a estimativa por METs.',
   basicos:'A base da casa é o que nunca pode faltar: azeite, vinagre, cebola, alho, louro — cada casa sabe os seus. São os únicos com reposição automática: quando um sai da despensa, entra sozinho na lista de compras da semana. Para tudo o resto, usar não é esgotar — nada entra na lista sem uma receita planeada o pedir ou sem seres tu a juntá-lo.',
   despensa:'Os ingredientes que marcares aqui como disponíveis passam a contar em todas as receitas e na lista de compras. A lista vem do catálogo, para nunca haver um nome que não bate certo — e quando procuras algo que lá não está, a própria pesquisa oferece o caminho: promover do catálogo alargado ou escrever do rótulo.',
   faltaComprar:'A lista completa acima tem tudo o que as receitas da semana precisam; esta mostra só o que ainda não está na despensa — é isto que vale a pena exportar ou levar ao supermercado.',
@@ -18090,6 +18177,11 @@ function reporSeBase(nome){
   if(!S.extras||typeof S.extras!=='object') S.extras={};
   if(!Array.isArray(S.extras[S.week])) S.extras[S.week]=[];
   if(S.extras[S.week].indexOf(nome)<0) S.extras[S.week].push(nome);
+  /* se o básico já tinha sido comprado esta semana, a marca de comprado tem
+     de cair: sem isto ele voltava à lista já riscado, a fingir que estava
+     feito — e uma lista onde o azeite «já está comprado» não compra azeite */
+  const b=S.bought[S.week]||{};
+  Object.keys(b).forEach(k=>{ if(k.split('|')[0]===nome) delete b[k]; });
   return true;
 }
 /* Juntar um nome aos extras da semana. O caminho do cartão «deve estar a
@@ -18102,25 +18194,30 @@ function juntarExtra(nome,tirarDaDespensa){
   if(S.extras[S.week].indexOf(nome)<0) S.extras[S.week].push(nome);
   if(tirarDaDespensa) S.despensa[nome]=false;
 }
-function removerExtra(nome){
+/* Por índice e não por nome, pela regra da casa (ver apagarIngredienteIdx):
+   o texto livre traz apóstrofos, e um nome dentro de um onclick rebenta a
+   string — esc() não escapa apóstrofos, e &#39; o parser devolve-o a '. */
+function removerExtraIdx(i){
   const l=(S.extras||{})[S.week]; if(!Array.isArray(l)) return;
-  const i=l.indexOf(nome); if(i<0) return;
+  const nome=l[i]; if(nome==null) return;
   l.splice(i,1);
   save('«'+nome.toLowerCase()+'» saiu da lista'); render();
-  flash('ok','«'+esc(nome)+'» saiu da lista.',{rot:'Anular',fn:'desfazer()'});
+  flash('ok','«'+nome+'» saiu da lista.',{rot:'Anular',fn:'desfazer()'});
 }
 function juntarExtraManual(el){
-  const nome=String(el.value||'').trim().replace(/\s+/g,' ').slice(0,60);
+  /* a barra vertical é o separador das chaves da lista (nome|unidade): num
+     nome escrito à mão, partia o split de quem risca — vira barra normal */
+  const nome=String(el.value||'').trim().replace(/\s+/g,' ').replace(/\|/g,'/').slice(0,60);
   if(!nome) return;
   /* Se o que a pessoa escreveu é um ingrediente do catálogo (com maiúsculas ou
      sem elas), entra como ele — com corredor certo e unidade certa. Só o que a
      app não conhece entra como texto livre. */
   const oficial=catalogoDespensa().find(n=>n.toLowerCase()===nome.toLowerCase());
   const jaLa=((S.extras||{})[S.week]||[]).some(n=>n.toLowerCase()===nome.toLowerCase());
-  if(jaLa){ flash('warn','«'+esc(nome)+'» já está na lista desta semana.'); el.value=''; return; }
+  if(jaLa){ flash('warn','«'+nome+'» já está na lista desta semana.'); el.value=''; return; }
   juntarExtra(oficial||nome,false);
   save('«'+(oficial||nome)+'» juntou-se à lista'); render();
-  flash('ok','«'+esc(oficial||nome)+'» juntou-se à lista desta semana.',{rot:'Anular',fn:'desfazer()'});
+  flash('ok','«'+(oficial||nome)+'» juntou-se à lista desta semana.',{rot:'Anular',fn:'desfazer()'});
 }
 /* O campo de juntar à mão, partilhado pela lista cheia e pela vazia. O
    datalist traz o catálogo inteiro, mas texto livre também serve: a lista de
@@ -18247,7 +18344,11 @@ function repetirSemana(wk){
     {rot:'Anular',fn:'desfazer()'});
 }
 function cartaoDoCesto(){
-  const cesto=Object.keys(S.bought[S.week]||{}).filter(k=>S.bought[S.week][k]).map(k=>k.split('|')[0]);
+  /* só comida entra no cesto de planear: os guardanapos riscados na lista não
+     são ingrediente de receita nenhuma, e listavam-se em «fica de fora» como
+     se fossem comida por aproveitar */
+  const cesto=Object.keys(S.bought[S.week]||{}).filter(k=>S.bought[S.week][k]).map(k=>k.split('|')[0])
+    .filter(podeIrADespensa);
   if(cesto.length<3) return '';
   const p=planoDoCesto(cesto);
   if(!p.props.length) return '';
@@ -21646,11 +21747,33 @@ function abrirFormAtiv(mid,pre){
   const f={mid:m.id, editar:pre.editar||null, d:pre.d||hojeISO(), s:sid,
     min:Math.round(pre.min|| (base? minutosSessao(base) : 45)) || 45,
     i:NIVEIS.some(n=>n[0]===pre.i)? pre.i : 'moderado',
+    ter:TERRENOS.some(t=>t[0]===pre.ter)? pre.ter : 'plano',
     plano:pre.plano||null, mids:Array.isArray(pre.mids)&&pre.mids.length? pre.mids.slice() : [m.id]};
-  if(sp.dist){ f.v=clampNum(parseFloat(pre.v)||sp.dist.vdef, sp.dist.vmin, sp.dist.vmax);
-    f.km=Math.round((parseFloat(pre.km)|| f.v*f.min/60)*10)/10; }
+  if(sp.dist){ const v0=clampNum(parseFloat(pre.v)||sp.dist.vdef, sp.dist.vmin, sp.dist.vmax);
+    f.km=Math.round((parseFloat(pre.km)|| v0*f.min/60)*10)/10;
+    derivaVForm(f,sp); }
   S.ui.formAtiv=f; saveMeta(); render();
   setTimeout(()=>{ const el=document.getElementById('fa-cartao'); if(el) scrollSuave(el); },0);
+}
+/* ---- No registo, quem manda é o que a pessoa SABE ----
+   Ninguém volta de uma corrida a saber a velocidade média; sabe onde foi e
+   quanto tempo levou. O formulário antigo pedia a velocidade num campo e
+   recalculava o resto a partir dela — ao contrário. Agora escreve-se a
+   distância e o tempo, e a velocidade deriva-se (km ÷ horas), mostrada só a
+   título de curiosidade, com o ritmo em min/km ao lado.
+   E o terreno conta: correr 8 km/h a subir não é correr 8 km/h no plano — a
+   curva velocidade→MET do Compendium é de terreno plano. Os fatores vêm da
+   comparação das entradas do próprio Compendium (hiking em subida está
+   30-50 % acima da caminhada plana ao mesmo passo; corrida cross-country
+   ~10-20 % acima da corrida de estrada): ondulado +15 %, montanha +35 %.
+   São aproximações e a app di-lo — o rodapé do registo já avisa que tudo
+   isto é estimativa por METs. */
+function derivaVForm(f,sp){
+  const vReal=f.min>0? f.km/(f.min/60) : sp.dist.vdef;
+  f.v=clampNum(Math.round(vReal/sp.dist.vStep)*sp.dist.vStep, sp.dist.vmin, sp.dist.vmax);
+  f.v=Math.round(f.v*100)/100;
+  /* fora da curva tabelada não se inventa MET: usa-se a ponta e diz-se */
+  f.vFora=(vReal>sp.dist.vmax*1.02||vReal<sp.dist.vmin*0.98)? Math.round(vReal*10)/10 : null;
 }
 function setFormAtiv(campo,val){
   const f=formAtiv(); if(!f) return;
@@ -21658,19 +21781,17 @@ function setFormAtiv(campo,val){
   if(campo==='s'){
     if(!temChave(SPORT,val)) return;
     f.s=val; const novo=SPORT[val];
-    if(novo.dist){ f.v=novo.dist.vdef; f.km=Math.round(f.v*f.min/60*10)/10; }
-    else { delete f.v; delete f.km; }
+    if(novo.dist){ f.km=Math.round(novo.dist.vdef*f.min/60*10)/10; derivaVForm(f,novo); }
+    else { delete f.v; delete f.km; delete f.vFora; }
     f.plano=null;   /* trocar de modalidade deixa de cumprir aquele treino do plano */
   }
   else if(campo==='d'){ if(dataValida(val) && val<=hojeISO()) f.d=val; }
   else if(campo==='min'){ f.min=clampNum(Math.round(parseFloat(val)||0),1,1440);
-    if(sp.dist) f.km=Math.round(f.v*f.min/60*10)/10; }
-  else if(campo==='v'){ if(!sp.dist) return;
-    f.v=clampNum(parseFloat(val)||sp.dist.vdef, sp.dist.vmin, sp.dist.vmax);
-    f.min=clampNum(Math.round(f.km/f.v*60)||1,1,1440); }
+    if(sp.dist) derivaVForm(f,sp); }
   else if(campo==='km'){ if(!sp.dist) return;
     f.km=clampNum(Math.round((parseFloat(val)||0)*10)/10, 0.1, sp.dist.maxSemana*2);
-    f.min=clampNum(Math.round(f.km/f.v*60)||1,1,1440); }
+    derivaVForm(f,sp); }
+  else if(campo==='ter'){ if(TERRENOS.some(t=>t[0]===val)) f.ter=val; }
   else if(campo==='i'){ if(NIVEIS.some(n=>n[0]===val)) f.i=val; }
   saveMeta(); render();
 }
@@ -21684,7 +21805,7 @@ function toggleFormAtivMembro(mid){
 }
 function guardarFormAtiv(){
   const f=formAtiv(); if(!f) return;
-  const base={d:f.d, s:f.s, min:f.min, i:f.i, v:f.v, km:f.km, plano:f.plano, estado:'feita'};
+  const base={d:f.d, s:f.s, min:f.min, i:f.i, v:f.v, km:f.km, ter:f.ter, met:Math.round(metDoForm(f)*100)/100, plano:f.plano, estado:'feita'};
   if(f.editar){
     const r=(S.regAtiv||[]).find(x=>x.id===f.editar);
     if(!r) return fecharFormAtiv();
@@ -21865,11 +21986,14 @@ function cartaoRegistarAtiv(m,destaque){
     ${sp.dist? `<div class="frow">
       <div><label class="lbl">Distância km</label><input type="number" min="0.1" step="0.1" value="${nPT(f.km,1).replace(',','.')}"
         aria-label="Distância em quilómetros" onchange="setFormAtiv('km',this.value)"></div>
-      <div><label class="lbl">Velocidade km/h</label><input type="number" min="${sp.dist.vmin}" max="${sp.dist.vmax}" step="${sp.dist.vStep}"
-        value="${f.v}" aria-label="Velocidade média" onchange="setFormAtiv('v',this.value)"></div>
       <div><label class="lbl">Tempo min</label><input type="number" min="1" step="1" value="${f.min}"
         aria-label="Duração em minutos" onchange="setFormAtiv('min',this.value)"></div>
-    </div>`
+      <div><label class="lbl">Terreno ${dica('terreno')}</label><select aria-label="Terreno do percurso" onchange="setFormAtiv('ter',this.value)">${TERRENOS.map(([k,rot])=>
+        `<option value="${k}" ${f.ter===k?'selected':''}>${rot}</option>`).join('')}</select></div>
+    </div>
+    <p class="sub" style="margin-top:6px">≈ <b>${nPT(f.v,1)} km/h</b> · ritmo ${(function(){ const mk=60/f.v;
+      return Math.floor(mk)+':'+String(Math.round((mk-Math.floor(mk))*60)).padStart(2,'0'); })()} min/km — a velocidade
+      sai sozinha da distância e do tempo.${f.vFora? ' <b>'+nPT(f.vFora,1)+' km/h está fora da gama desta modalidade</b> — a conta usa '+nPT(f.v,1)+' km/h; confirma a distância e o tempo.':''}</p>`
     : `<div class="frow">
       <div><label class="lbl">Tempo min</label><input type="number" min="1" step="1" value="${f.min}"
         aria-label="Duração em minutos" onchange="setFormAtiv('min',this.value)"></div>
@@ -21893,7 +22017,8 @@ function cartaoRegistarAtiv(m,destaque){
 }
 function metDoForm(f){
   const sp=SPORT[f.s]; if(!sp) return 0;
-  return sp.dist? metPorVelocidade(sp.dist.curva, clampNum(f.v,sp.dist.vmin,sp.dist.vmax))
+  /* o terreno multiplica no fim: a curva do Compendium é de terreno plano */
+  return sp.dist? metPorVelocidade(sp.dist.curva, clampNum(f.v,sp.dist.vmin,sp.dist.vmax))*fatorTerreno(f.ter)
     : sp.mets[nivelIndice(f.i)];
 }
 
@@ -22357,6 +22482,16 @@ function cartaoForca(){
       ${listaMovs(c.al)}
       <p class="sub" style="margin-top:10px">Sobe as repetições devagar, de semana a semana — é o conselho do NHS.
         E como sempre: dor aguda ou má disposição é sinal para parar já.</p>
+      ${(function(){ const p=rodaConjunto(PESOS);
+      return `<div class="splabel" style="margin-top:16px;border-top:1px solid var(--line);padding-top:12px">
+        <span>Com pesos · conjunto ${p.k} — ${esc(p.n)}</span><output>${p.ex.length} exercícios</output></div>
+      <p class="sub" style="margin-top:6px">O mesmo reforço, com carga: halteres, ou garrafas de 1,5 L cheias — o
+        músculo não sabe a diferença. Regra do peso certo: as <b>últimas duas repetições custam</b> e a forma não se
+        estraga; se a forma se estraga, o peso desce. 8 a 12 repetições por série, e o mesmo aquecimento e
+        alongamento de cima valem aqui.</p>
+      ${listaMovs(p.ex)}
+      <p class="sub" style="margin-top:8px">Alterna os dois conjuntos com um dia de descanso do grupo muscular pelo
+        meio. Nas garrafas, aperta bem a tampa — parece anedota até molhar o tapete.</p>`; })()}
     </details>
   </div>`;
 }
@@ -29894,11 +30029,13 @@ function shoppingItems(){
   ((S.extras||{})[S.week]||[]).forEach(nome=>{
     /* texto livre («guardanapos») não tem unidade na tabela — entra como uma
        unidade, e não como os 250 g que unidadeDe inventaria para um nome
-       desconhecido */
-    const u=podeIrADespensa(nome)? unidadeDe(nome) : 'un';
+       desconhecido. Um suplemento entra em doses, como a linha automática
+       dele: assim a chave coincide e não há duas linhas do mesmo frasco. */
+    const ehSup=SUPLEMENTOS.some(s=>s.nome===nome);
+    const u=ehSup? 'dose' : temChave(NUTRI,nome)? unidadeDe(nome) : 'un';
     const key=nome+'|'+u;
     if(agg[key]) return;                 /* já vem de uma receita: não se duplica */
-    agg[key]={n:nome, u, q:(u==='g'?250:u==='ml'?250:1), extra:true};
+    agg[key]={n:nome, u, q:(u==='g'?250:u==='ml'?250:u==='dose'?7:1), extra:true};
   });
   return {items:Object.values(agg),meals};
 }
@@ -30019,7 +30156,7 @@ function renderCompras(){
         const key=it.n+'|'+it.u, ok=bought[key];
         return `<li class="${ok?'done':''}" data-sec="${iSec}"><label><input type="checkbox" ${ok?'checked':''} onchange="toggleBought('${esc(key).replace(/'/g,"\\'")}',this)">
           <span>${esc(it.n)}${it.extra? ' <span class="tag" title="Juntaste este à mão — não vem de receita nenhuma">à mão</span>':''}${seloUrgencia(it)}</span>${botaoTalhao(key)}<span class="q">${fmtQ(it)}</span></label>${
-          it.extra? `<button class="btn ghost small" style="flex:none" onclick="removerExtra('${esc(it.n).replace(/'/g,'&#39;')}')"
+          it.extra? `<button class="btn ghost small" style="flex:none" onclick="removerExtraIdx(${((S.extras||{})[S.week]||[]).indexOf(it.n)})"
             title="Tirar da lista" aria-label="Tirar ${esc(it.n)} da lista">✕</button>`:''}</li>`;}).join('')}</ul>`;}).join('')}
     ${campoExtraHtml()}
   </div>
@@ -30116,7 +30253,14 @@ function blocoPrimeiroAAcabar(items,bought){
 }
 /* O que falta comprar de facto: a lista completa acima, menos o que já está
    na despensa — é isto que se exporta, não a lista inteira. */
-function itensEmFalta(items){ return items.filter(it=>!temNaDespensa(it.n)); }
+function itensEmFalta(items){
+  /* «em falta» = nem em casa nem riscado. O segundo teste só pesa no texto
+     livre: um ingrediente comprado entra na despensa e já saía pelo primeiro,
+     mas os guardanapos riscados não têm despensa onde entrar — e ficavam
+     eternamente por comprar. */
+  const b=S.bought[S.week]||{};
+  return items.filter(it=>!temNaDespensa(it.n) && !b[it.n+'|'+it.u]);
+}
 function textoListaFalta(items){
   const dates=weekDates(S.week), em=itensEmFalta(items);
   const linhas=em.map(it=>'☐ '+it.n+' — '+fmtQ(it));
@@ -30178,7 +30322,7 @@ function toggleDespensaIdx(i){
     /* desmarcar é dizer «acabou» — e se for base da casa, a reposição é já */
     if(reporSeBase(nome)){
       save('despensa: '+nome); render();
-      flash('ok','«'+esc(nome)+'» é base da casa: saiu da despensa e entrou na lista de compras.',{rot:'Anular',fn:'desfazer()'});
+      flash('ok','«'+nome+'» é base da casa: saiu da despensa e entrou na lista de compras.',{rot:'Anular',fn:'desfazer()'});
       return;
     }
   } else S.despensa[nome]=true;
@@ -30189,7 +30333,7 @@ function marcarTodaDespensa(){
   save('despensa toda marcada'); render();
 }
 function limparDespensa(){
-  if(!confirm('Esvaziar a despensa? Todas as receitas voltam a mostrar os ingredientes como em falta.')) return;
+  if(!confirm('Esvaziar a despensa? Todas as receitas voltam a mostrar os ingredientes como em falta.\n\nOs básicos marcados NÃO entram na lista de compras por esta via: esvaziar é recomeçar o inventário, não dizer que acabou tudo.')) return;
   S.despensa={}; save('despensa esvaziada'); render();
 }
 /* Filtro de texto sem re-render: mexer no #main destruiria a própria caixa
@@ -30263,7 +30407,7 @@ function promoverParaDespensa(nome){
   if(!promoveIngrediente(nome)) return flash('warn','Não encontrei esse ingrediente no catálogo alargado.');
   S.despensa[nome]=true;
   save('«'+nome+'» promovido do catálogo alargado'); render();
-  flash('ok','«'+esc(nome)+'» entrou no catálogo e já está marcado na despensa.');
+  flash('ok','«'+nome+'» entrou no catálogo e já está marcado na despensa.');
 }
 function novoIngredienteDaDespensa(el){
   const nome=(el.closest('#desp-add')||{dataset:{}}).dataset.q||'';
@@ -30340,7 +30484,7 @@ function guardarComprasConf(){
     if(!mo.marcados[chave]) return;
     S.bought[wk][chave]=true;
     const nome=chave.split('|')[0];
-    if(nome){ if(podeIrADespensa(nome)) S.despensa[nome]=true; n++; }
+    if(nome && podeIrADespensa(nome)){ S.despensa[nome]=true; n++; }
   });
   /* os preços escritos com o talão na mão entram agora no histórico, com a
      data de hoje — é este o momento em que eles existem */
@@ -30382,10 +30526,13 @@ function modalComprasHtml(mo){
         return `<li class="${on?'done':''}"><label><input type="checkbox" ${on?'checked':''}
           onchange="toggleCompraConf('${esc1}')">
           <span>${esc(it.n)} <span class="q">${fmtQ(it)}</span></span></label>
-          <span class="preco"><input type="number" min="0" step="0.01" inputmode="decimal"
+          ${temChave(NUTRI,it.n)? `<span class="preco"><input type="number" min="0" step="0.01" inputmode="decimal"
             value="${(mo.precos&&mo.precos[it.n]!==undefined)? mo.precos[it.n] : (p? p.v : '')}"
             placeholder="—" aria-label="Preço de ${esc(it.n)} em ${rot}"
-            oninput="precoTalao('${esc(it.n).replace(/'/g,'&#39;')}',this.value)"><span class="sub">${rot}</span></span>
+            oninput="precoTalao('${esc(it.n).replace(/'/g,'&#39;')}',this.value)"><span class="sub">${rot}</span></span>`
+          /* texto livre não tem preço onde viver: S.precos é validado contra o
+             catálogo no arranque, e o campo pedia «€/kg de guardanapos» */
+          :''}
         </li>`;}).join('')}</ul>
       ${(function(){
         /* ---- Passar o talão ----
@@ -30529,7 +30676,8 @@ function renderDespensa(){
     <h3>Base da casa ${dica('basicos')}</h3>
     <p class="sub" style="margin-top:4px">Marca com 🧂 o que nunca pode faltar — o azeite, o vinagre, a cebola, o alho,
       o louro desta casa. É a <b>única reposição automática</b> que a app faz: quando um destes sai da despensa,
-      entra sozinho na lista de compras da semana. Tudo o resto só entra na lista se uma receita planeada o pedir
+      entra sozinho na lista de compras da semana — fora o «Esvaziar», que é recomeçar o inventário, não dizer
+      que acabou tudo. Tudo o resto só entra na lista se uma receita planeada o pedir
       ou se o juntares à mão — usar uma coisa não quer dizer que ela tenha acabado.
       ${(function(){ const n=Object.keys(S.basicos||{}).length;
         return n? '<br>Já marcaste '+plural(n,'básico','básicos')+'.' : ''; })()}</p>
@@ -30988,7 +31136,7 @@ function lerPacote(txt){
   const pausas=limparPausas(d.pausas, idsOk.concat(['casa']));
   const diario=limparDiario(d.diario, idsOk);
   const cozPref=limparCozPref(d.cozPref);
-  const rituais=limparRituais(d.rituais), extras=limparExtras(d.extras), aindaHa=limparAindaHa(d.aindaHa);
+  const rituais=limparRituais(d.rituais), extras=limparExtras(d.extras), aindaHa=limparAindaHa(d.aindaHa), basicos=limparBasicos(d.basicos);
   const ementas=limparEmentas(d.ementas,acha);
   /* os anos e as provas são por pessoa: os ids remapeiam-se como tudo o resto */
   const remapMapa=o=>{ const out={};
@@ -31031,7 +31179,7 @@ function lerPacote(txt){
   const combos=limparCombos(d.combos).filter(c=>acha(c.base) && c.ac.some(acha));
   return {d:{ members, cheats, plans, bought, objetivos, despensa, receitas,
               medicoes, regAtiv, regRef, sobras, precos, festas, casa, pausas, diario, cozPref,
-              validades, veredictos, brigada, desperdicio, gostos, jejum, combos, rituais, extras, aindaHa, visitas, ementas, anos, provas, bebidas, notasCozinha,
+              validades, veredictos, brigada, desperdicio, gostos, jejum, combos, rituais, extras, aindaHa, basicos, visitas, ementas, anos, provas, bebidas, notasCozinha,
               prefCuisine:temChave(CUIS,d.prefCuisine)?d.prefCuisine:'todas',
               /* Cinco estruturas saíam na cópia e nunca voltavam da leitura, o
                  que quer dizer que «substituir» as apagava sem aviso:
