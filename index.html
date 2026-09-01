@@ -770,6 +770,8 @@ html[data-dispositivo="telefone"][data-orient="retrato"] .timers{bottom:calc(70p
 .mov-fig .mov-casing{stroke:var(--bg);stroke-width:7.5}
 .mov-fig .mov-seta{stroke:var(--accent);stroke-width:3.2}
 .mov-fig .mov-halter{stroke-width:5.5;stroke-linecap:round}
+.mov-fig .mov-bola{fill:var(--accent-soft);stroke:var(--accent);stroke-width:2.2}
+.mov-fig .mov-banda{stroke:var(--accent);stroke-width:2.4;stroke-dasharray:3.5 2.5;stroke-linecap:round}
 .mov-passo figcaption{font-size:13px;line-height:1.45;color:var(--mut)}
 .mov-passo figcaption b{color:var(--ink)}
 
@@ -1979,6 +1981,12 @@ function figSvg(P,rotulo){
   if(P.chao!==false) s+=`<line class="mov-cenario" x1="6" y1="82" x2="114" y2="82"/>`;
   if(P.parede!=null) s+=`<line class="mov-cenario" x1="${P.parede}" y1="8" x2="${P.parede}" y2="82"/>`;
   if(P.banco) s+=`<polyline class="mov-cenario" points="${P.banco[0]-14},82 ${P.banco[0]-14},${P.banco[1]} ${P.banco[0]+10},${P.banco[1]} ${P.banco[0]+10},82"/>`;
+  /* A bola é cenário: desenha-se antes do corpo, para os membros lhe passarem
+     por cima. Preenchida a claro, senão confunde-se com a cabeça. */
+  if(P.bola) s+=`<circle class="mov-bola" cx="${P.bola[0]}" cy="${P.bola[1]}" r="${P.bola[2]}"/>`;
+  /* A banda elástica é um traço tracejado entre dois pontos — mão e pé, mão e
+     mão, mão e âncora. Vem antes dos membros da frente, para a mão a tapar. */
+  if(P.banda) s+=`<polyline class="mov-banda" points="${P.banda.map(p=>p.join(',')).join(' ')}"/>`;
   if(P.p2) s+=li([P.an].concat(P.p2));
   if(P.b2) s+=li([P.om].concat(P.b2));
   /* O pescoço faz parte do tronco: sem ele, numa pose horizontal a cabeça
@@ -2262,6 +2270,97 @@ const MOVS=[
  MV('pernasparede','Pernas na parede','1 a 3 minutos','clássico do ioga',[
   {t:'Deitado de costas com a anca perto da parede e as pernas apoiadas nela, braços soltos ao lado. Não é preciso fazer nada — é a posição de descanso das pernas, e serve tal e qual no fim de um dia em pé.',
    f:{cb:[24,73],om:[33,76],an:[60,76],b1:[[42,79],[50,79]],b2:[[43,77],[51,77]],p1:[[72,58],[76,38]],p2:[[74,60],[78,40]],chao:true,parede:80}}]),
+ /* ---- pilates com bola (fitball, 55-65 cm; a bola é cenário no desenho) ---- */
+ MV('bolaponte','Ponte com os pés na bola','8 a 10, lentas','clássico do pilates, com bola',[
+  {t:'Deitado de costas, calcanhares em cima da bola, braços no chão ao lado do corpo, palmas para baixo — são eles que te dão o equilíbrio.',
+   f:{cb:[18,76],om:[27,76],an:[52,76],b1:[[36,80],[46,80]],b2:[[38,78],[48,78]],p1:[[68,62],[86,58]],p2:[[70,64],[88,60]],bola:[92,68,14],chao:true}},
+  {t:'Expira e sobe as ancas até o corpo fazer uma linha dos ombros aos joelhos. A bola quer fugir: são os pés a apertá-la e o centro a segurar. Desce vértebra a vértebra.',
+   f:{cb:[18,76],om:[27,76],an:[52,60],b1:[[36,80],[46,80]],b2:[[38,78],[48,78]],p1:[[68,54],[86,58]],p2:[[70,56],[88,60]],bola:[92,68,14],chao:true,seta:[52,74,52,62]}}]),
+ MV('bolaabdominal','Abdominal na bola','10 a 12','clássico do pilates, com bola',[
+  {t:'Senta-te na bola e caminha com os pés para a frente até as costas ficarem apoiadas nela, do meio das costas às ancas. Pés bem assentes, joelhos a noventa graus, mãos atrás da cabeça sem puxar o pescoço.',
+   f:{cb:[30,46],om:[40,52],an:[58,56],b1:[[32,50],[26,44]],b2:[[34,52],[28,46]],p1:[[74,66],[80,82]],p2:[[76,68],[84,82]],bola:[60,68,14],chao:true}},
+  {t:'Expira e enrola o tronco para cima, só até as omoplatas saírem da bola — mais do que isso já não é abdominal. A bola não pode rolar: se rola, os pés estão perto de mais.',
+   f:{cb:[40,34],om:[46,42],an:[58,56],b1:[[38,42],[32,36]],b2:[[40,44],[34,38]],p1:[[74,66],[80,82]],p2:[[76,68],[84,82]],bola:[60,68,14],chao:true,seta:[22,50,30,38]}}]),
+ MV('bolaparede','Agachamento com a bola na parede','10 a 12','clássico do pilates, com bola',[
+  {t:'A bola entre a zona lombar e a parede, pés à largura das ancas e um passo à frente do corpo. Braços à frente ou nas ancas.',
+   f:{cb:[66,15],om:[68,24],an:[68,50],b1:[[58,30],[48,30]],b2:[[60,32],[50,32]],p1:[[62,66],[56,81]],p2:[[64,66],[58,81]],bola:[81,40,10],parede:92}},
+  {t:'Desce a rolar a bola pela parede até as coxas ficarem paralelas ao chão, joelhos por cima dos tornozelos e não à frente deles. A bola guia as costas direitas — é essa a sua função. Sobe a empurrar os calcanhares.',
+   f:{cb:[66,27],om:[68,36],an:[70,60],b1:[[58,40],[48,40]],b2:[[60,42],[50,42]],p1:[[54,62],[56,81]],p2:[[56,64],[58,81]],bola:[81,50,10],parede:92,seta:[40,50,40,62]}}]),
+ MV('bolaprancha','Prancha com os antebraços na bola','20 a 30 segundos','clássico do pilates, com bola',[
+  {t:'Antebraços em cima da bola, cotovelos por baixo dos ombros, pés no chão à largura das ancas. O corpo é uma tábua inclinada.',
+   f:{cb:[30,42],om:[38,50],an:[66,62],b1:[[30,58],[24,60]],b2:[[32,60],[26,62]],p1:[[84,72],[100,82]],p2:[[86,74],[102,82]],bola:[28,68,14],chao:true}},
+  {t:'Aguenta, sem deixar as ancas descer nem subir. A bola oscila e é isso que trabalha: cada tremor é o centro a corrigir. Se as costas arquearem, para e recomeça mais curto.',
+   f:{cb:[30,42],om:[38,50],an:[66,62],b1:[[30,58],[24,60]],b2:[[32,60],[26,62]],p1:[[84,72],[100,82]],p2:[[86,74],[102,82]],bola:[28,68,14],chao:true,seta:[66,50,66,58]}}]),
+ MV('bolarolar','Puxar os joelhos com os pés na bola','8 a 10','clássico do pilates, com bola',[
+  {t:'Em prancha alta: mãos no chão por baixo dos ombros, canelas em cima da bola. Corpo em linha, sem deixar as ancas cair.',
+   f:{cb:[26,42],om:[32,50],an:[62,58],b1:[[28,66],[24,82]],b2:[[30,68],[26,82]],p1:[[80,60],[94,56]],p2:[[82,62],[96,58]],bola:[92,68,14],chao:true}},
+  {t:'Expira e puxa os joelhos ao peito, a rolar a bola para ti com as canelas; as ancas sobem um pouco. Volta devagar, com controlo — a ida é fácil, é a volta que custa.',
+   f:{cb:[26,42],om:[32,50],an:[52,50],b1:[[28,66],[24,82]],b2:[[30,68],[26,82]],p1:[[62,52],[72,56]],p2:[[64,54],[74,58]],bola:[70,68,14],chao:true,seta:[100,66,84,66]}}]),
+ MV('bolapassagem','Passar a bola das mãos aos pés','6 a 8 passagens','clássico do pilates, com bola',[
+  {t:'Deitado de costas, bola segura entre as mãos acima da cabeça, pernas esticadas no chão. Lombar encostada ao tapete durante o exercício inteiro.',
+   f:{cb:[22,76],om:[31,76],an:[58,76],b1:[[22,60],[18,46]],b2:[[24,62],[20,48]],p1:[[76,78],[96,80]],p2:[[78,80],[98,82]],bola:[20,36,11],chao:true}},
+  {t:'Sobe braços e pernas ao mesmo tempo, passa a bola das mãos para entre os tornozelos, e desce tudo. Na volta, o contrário. Se a lombar levanta, as pernas descem menos.',
+   f:{cb:[22,76],om:[31,76],an:[58,76],b1:[[36,60],[44,42]],b2:[[38,62],[46,44]],p1:[[62,54],[70,32]],p2:[[64,56],[72,34]],bola:[72,22,11],chao:true,seta:[48,40,66,28]}}]),
+ /* ---- pilates com banda elástica (resistência leve a média) ---- */
+ MV('bandapernapilates','Extensão de perna com a banda','8 a 10 com cada perna','clássico do pilates, com banda',[
+  {t:'Deitado de costas, a banda a passar pela planta de um pé, as pontas seguras nas mãos. Perna dobrada ao peito, a outra esticada no chão.',
+   f:{cb:[22,76],om:[31,76],an:[58,76],b1:[[40,64],[44,54]],b2:[[42,66],[46,56]],p1:[[62,60],[58,52]],p2:[[76,78],[96,80]],banda:[[44,54],[58,52]],chao:true}},
+  {t:'Expira e estica a perna para o teto contra a banda, até ao ponto em que a coxa de trás pede. Desce a dobrar, sem largar a tensão — é a banda a controlar-te, não tu a ela.',
+   f:{cb:[22,76],om:[31,76],an:[58,76],b1:[[40,64],[46,50]],b2:[[42,66],[48,52]],p1:[[64,52],[68,30]],p2:[[76,78],[96,80]],banda:[[46,50],[68,30]],chao:true,seta:[74,48,72,34]}}]),
+ MV('bandaremadasentado','Remada sentada com a banda','10 a 12','clássico do pilates, com banda',[
+  {t:'Sentado no tapete, pernas esticadas à frente, a banda a passar pelas plantas dos pés e uma ponta em cada mão. Costas altas, como se uma linha te puxasse pela cabeça.',
+   f:{cb:[40,34],om:[42,44],an:[42,72],b1:[[54,50],[66,56]],b2:[[56,52],[68,58]],p1:[[64,74],[86,78]],p2:[[66,76],[88,80]],banda:[[66,56],[86,78]],chao:true}},
+  {t:'Expira e puxa os cotovelos para trás, rente às costelas, a apertar as omoplatas. As costas não se inclinam para trás: é o braço que puxa, não o tronco. Volta devagar.',
+   f:{cb:[40,34],om:[42,44],an:[42,72],b1:[[36,52],[32,56]],b2:[[38,54],[34,58]],p1:[[64,74],[86,78]],p2:[[66,76],[88,80]],banda:[[34,58],[86,78]],chao:true,seta:[60,40,44,40]}}]),
+ MV('bandaconcha','A concha com a banda','10 a 12 com cada lado','clássico do pilates, com banda',[
+  {t:'Deitado de lado, joelhos dobrados e a banda em anel à volta das coxas, mesmo acima dos joelhos. Pés juntos, ancas empilhadas uma sobre a outra.',
+   f:{cb:[22,70],om:[32,72],an:[56,72],b1:[[38,80],[46,80]],b2:[[30,60],[24,66]],p1:[[66,62],[82,70]],p2:[[64,58],[80,66]],banda:[[66,62],[64,58]],chao:true}},
+  {t:'Expira e abre o joelho de cima contra a banda, sem os pés se separarem nem a anca rodar para trás. O que trabalha é o glúteo médio, o do lado da anca. Fecha devagar.',
+   f:{cb:[22,70],om:[32,72],an:[56,72],b1:[[38,80],[46,80]],b2:[[30,60],[24,66]],p1:[[66,62],[82,70]],p2:[[60,44],[76,52]],banda:[[66,62],[60,44]],chao:true,seta:[72,60,68,48]}}]),
+ MV('bandaaberturabracos','Abertura de braços com a banda','10 a 12','clássico do pilates, com banda',[
+  {t:'De pé ou sentado, braços esticados à frente à altura dos ombros e as mãos quase juntas, com a banda entre elas e já sem folga. Ombros longe das orelhas.',
+   f:Object.assign({},POSE_PE,{b1:[[55,29],[53,25]],b2:[[65,29],[67,25]],banda:[[53,25],[60,27],[67,25]]})},
+  {t:'Expira e abre os braços para os lados contra a banda, a levar o peito à frente e as omoplatas para dentro. Os braços ficam à altura dos ombros — se sobem, é o trapézio a fazer batota. Volta devagar.',
+   f:Object.assign({},POSE_PE,{b1:[[49,24],[36,23]],b2:[[71,24],[84,23]],banda:[[36,23],[60,26],[84,23]],seta:[88,36,92,26]})}]),
+ /* ---- reforço muscular com banda elástica (NHS: a resistência ajusta-se pela
+    folga — quanto mais curta a banda, mais força pede) ---- */
+ MV('bandaagachamento','Agachamento com a banda','3 séries de 10 a 12','NHS (força), com banda elástica',[
+  {t:'Pés em cima da banda, à largura dos ombros, e as pontas seguras à altura dos ombros. A banda passa pela frente do corpo.',
+   f:Object.assign({},POSE_PE,{b1:[[52,30],[52,24]],b2:[[68,30],[68,24]],banda:[[56,81],[52,24],[68,24],[64,81]]})},
+  {t:'Desce como no agachamento sem carga — ancas atrás, costas direitas. A banda solta na descida e puxa na subida: é exatamente ao contrário dos pesos, e é por isso que os dois se completam.',
+   f:{cb:[51,26],om:[54,34],an:[64,57],b1:[[48,40],[49,34]],b2:[[60,42],[61,36]],p1:[[55,66],[53,81]],p2:[[58,67],[56,81]],banda:[[53,81],[49,34],[61,36],[56,81]],seta:[74,50,74,62]}}]),
+ MV('bandaremadape','Remada com a banda presa','3 séries de 10 a 12','NHS (força), com banda elástica',[
+  {t:'Banda presa a uma porta ou a um pé de mesa, à altura da cintura. De pé, a um passo, braços esticados à frente e a banda já com tensão.',
+   f:Object.assign({},POSE_PE,{b1:[[48,30],[36,30]],b2:[[50,32],[38,32]],banda:[[10,40],[36,30]],parede:9})},
+  {t:'Puxa as mãos até às costelas, cotovelos rentes ao corpo, e aperta as omoplatas no fim. O tronco não se inclina para trás para ajudar — se inclina, a banda está curta de mais.',
+   f:Object.assign({},POSE_PE,{b1:[[54,34],[58,36]],b2:[[56,36],[60,38]],banda:[[10,40],[58,36]],parede:9,seta:[30,52,44,46]})}]),
+ MV('bandabiceps','Flexão de bíceps com a banda','3 séries de 10 a 12','NHS (força), com banda elástica',[
+  {t:'Pés em cima da banda, uma ponta em cada mão, braços ao lado do corpo com os cotovelos colados às costelas.',
+   f:Object.assign({},POSE_PE,{b1:[[55,33],[54,44]],b2:[[65,33],[66,44]],banda:[[56,81],[54,44]]})},
+  {t:'Dobra os cotovelos e sobe as mãos até aos ombros. A banda puxa mais no topo do movimento — é aí que se aguenta um segundo. Desce devagar, sem deixar a banda mandar.',
+   f:Object.assign({},POSE_PE,{b1:[[55,33],[57,23]],b2:[[65,33],[63,23]],banda:[[56,81],[57,23]],seta:[74,40,76,26]})}]),
+ MV('bandalateral','Elevação lateral com a banda','3 séries de 10 a 12','NHS (força), com banda elástica',[
+  {t:'Um pé em cima do meio da banda, as pontas nas mãos ao lado das coxas.',
+   f:Object.assign({},POSE_PE,{b1:[[54,34],[53,45]],b2:[[66,34],[67,45]],banda:[[60,81],[53,45]]})},
+  {t:'Abre os braços para os lados até à horizontal, cotovelos quase esticados, e desce devagar. Aqui a banda é generosa: escolhe a mais leve e faz o movimento inteiro.',
+   f:Object.assign({},POSE_PE,{b1:[[49,23],[39,22]],b2:[[71,23],[81,22]],banda:[[39,22],[60,81],[81,22]],seta:[84,38,84,26]})}]),
+ MV('bandagluteo','Extensão de glúteo com a banda','3 séries de 12 com cada perna','NHS (força), com banda elástica',[
+  {t:'Banda em anel à volta dos tornozelos. De pé, mãos apoiadas numa parede ou cadeira, peso numa perna.',
+   f:Object.assign({},POSE_PE,{b1:[[50,30],[42,30]],b2:[[52,32],[44,32]],banda:[[55,77],[65,77]],parede:36})},
+  {t:'Leva a outra perna para trás, esticada, contra a banda — pouco, e a apertar o glúteo, sem arquear a lombar. Volta devagar sem pousar o pé. É o glúteo que trabalha, não as costas.',
+   f:Object.assign({},POSE_PE,{b1:[[50,30],[42,30]],b2:[[52,32],[44,32]],p2:[[72,60],[88,68]],banda:[[55,77],[86,67]],parede:36,seta:[78,78,90,72]})}]),
+ MV('bandapasseio','Passos laterais com a banda','2 a 3 voltas de 10 passos para cada lado','NHS (força), com banda elástica',[
+  {t:'Banda em anel à volta das coxas, acima dos joelhos. Pés à largura das ancas, joelhos ligeiramente dobrados, tronco um pouco inclinado à frente.',
+   f:{cb:[58,16],om:[60,26],an:[62,50],b1:[[56,36],[54,46]],b2:[[66,36],[68,46]],p1:[[54,64],[50,81]],p2:[[68,64],[72,81]],banda:[[54,64],[68,64]]}},
+  {t:'Dá um passo largo para o lado contra a banda, e o outro pé segue — mas sem se juntarem: a banda fica sempre com tensão. Dez passos para um lado, dez para o outro. Os joelhos não caem para dentro.',
+   f:{cb:[58,16],om:[60,26],an:[62,50],b1:[[56,36],[54,46]],b2:[[66,36],[68,46]],p1:[[46,64],[38,81]],p2:[[76,64],[84,81]],banda:[[46,64],[76,64]],seta:[92,70,104,70]}}]),
+ MV('bandapeito','Empurrar com a banda atrás das costas','3 séries de 10 a 12','NHS (força), com banda elástica',[
+  /* de lado, ao contrário da maioria: de frente, «empurrar para a frente»
+     desenha-se igual a uma elevação lateral e o gesto perdia-se */
+  {t:'A banda passa pelas costas, à altura das omoplatas, e as pontas ficam nas mãos junto ao peito, cotovelos para trás.',
+   f:{cb:[42,15],om:[46,25],an:[48,50],b1:[[40,33],[54,31]],b2:[[41,35],[55,33]],p1:[[45,64],[42,81]],p2:[[49,64],[52,81]],banda:[[34,29],[44,23],[54,31]]}},
+  {t:'Empurra as mãos para a frente até os braços esticarem, como numa flexão em pé. Volta devagar — a banda quer voltar depressa, e travar é o exercício.',
+   f:{cb:[42,15],om:[46,25],an:[48,50],b1:[[54,28],[72,29]],b2:[[55,30],[73,31]],p1:[[45,64],[42,81]],p2:[[49,64],[52,81]],banda:[[34,29],[44,23],[72,29]],seta:[62,44,80,44]}}]),
 ];
 const MOV={}; MOVS.forEach(x=>{ MOV[x.id]=x; });
 /* Os três conjuntos da manhã. A rotação é pelo dia do ano — pequenas variações
@@ -2310,6 +2409,14 @@ const PILATES=[
  {k:'P-C', n:'Controlo',
   aq:['respiracao','gatovaca','overheadreach'], ex:['alcanceduplo','centena','concha','birddog'], al:['isquios','rolarjoelhos','crianca']},
 ];
+/* Os exercícios que pedem equipamento vivem à parte dos conjuntos do dia, de
+   propósito: a rotação diária não pode pressupor que há uma bola em casa. Quem
+   tem, abre a secção; quem não tem, nem dá pela falta. O aquecimento e os
+   alongamentos são os mesmos do conjunto de cima — não há aquecimento especial
+   por causa da bola. */
+const PILATES_BOLA=['bolaponte','bolaabdominal','bolarolar','bolaparede','bolaprancha','bolapassagem'];
+const PILATES_BANDA=['bandaremadasentado','bandaaberturabracos','bandapernapilates','bandaconcha'];
+const BANDAS=['bandaagachamento','bandaremadape','bandapeito','bandabiceps','bandalateral','bandagluteo','bandapasseio'];
 /* Os três conjuntos de ioga, nos mesmos moldes: chegar ao tapete, posições,
    descansar, com rotação pelo dia do ano. Partilha exercícios com os outros
    conjuntos de propósito — o gato-vaca é o mesmo em qualquer tapete. */
@@ -22514,7 +22621,7 @@ function cartaoForca(){
   return `<div class="card" data-col="atv-forca">
     <details>
       <summary style="cursor:pointer"><h2 style="display:inline">Reforço muscular ${dica('forca')}</h2>
-        <span class="sub" style="display:block;margin-top:4px">Conjunto ${c.k} · ${esc(c.n)} — abdominais e os grandes grupos, sem equipamento. Roda todos os dias.</span></summary>
+        <span class="sub" style="display:block;margin-top:4px">Conjunto ${c.k} · ${esc(c.n)} — abdominais e os grandes grupos, com o peso do corpo, com pesos ou com bandas. Roda todos os dias.</span></summary>
       <p class="sub" style="margin-top:10px">Força com o peso do próprio corpo: a parede, uma cadeira da cozinha e um
         tapete chegam. Os três conjuntos cobrem os grupos todos — hoje ${c.n.toLowerCase()}, amanhã segue a rotação — e
         o NHS pede força <b>pelo menos duas vezes por semana</b>. Nas flexões há escada: parede, joelhos, completas —
@@ -22537,6 +22644,18 @@ function cartaoForca(){
       ${listaMovs(p.ex)}
       <p class="sub" style="margin-top:8px">Alterna os dois conjuntos com um dia de descanso do grupo muscular pelo
         meio. Nas garrafas, aperta bem a tampa — parece anedota até molhar o tapete.</p>`; })()}
+      <div class="splabel" style="margin-top:16px;border-top:1px solid var(--line);padding-top:12px">
+        <span>Com bandas elásticas</span><output>${BANDAS.length} exercícios</output></div>
+      <p class="sub" style="margin-top:6px">A banda faz o contrário do haltere: com um peso, o esforço é maior em baixo
+        e alivia no topo; com a banda, quase não custa no início e <b>puxa mais no fim do movimento</b> — que é onde o
+        músculo costuma ser preguiçoso. Por isso os dois completam-se, e não competem. A carga regula-se sem comprar
+        nada: <b>quanto mais curta a banda</b> entre o pé e a mão, mais força pede; para aliviar, dá-lhe folga. As
+        últimas duas repetições devem custar sem a forma se estragar, tal e qual como nos pesos.</p>
+      ${listaMovs(BANDAS)}
+      <p class="sub" style="margin-top:8px">Duas cautelas próprias da borracha: nunca esticar uma banda apontada à cara,
+        e olhar o elástico antes de cada série — um rasgão ou uma zona gasta manda a banda para o lixo, porque parte
+        sempre com tensão máxima. E travar a volta é metade do exercício: se a banda te puxa o braço de volta, escolhe
+        uma mais leve.</p>
       ${linhaPlanear('musculacao','musculação')}
     </details>
   </div>`;
@@ -22547,7 +22666,8 @@ function cartaoPilates(){
     <details>
       <summary style="cursor:pointer"><h2 style="display:inline">Pilates em casa ${dica('pilates')}</h2>
         <span class="sub" style="display:block;margin-top:4px">Conjunto ${c.k} · ${esc(c.n)} — roda todos os dias, como o da manhã. Abrir para começar.</span></summary>
-      <p class="sub" style="margin-top:10px">Pilates de solo, no tapete, sem equipamento. Três regras antes da primeira
+      <p class="sub" style="margin-top:10px">Pilates de solo, no tapete. O essencial faz-se sem equipamento
+        nenhum; no fim do cartão há duas secções para quem tiver bola ou banda elástica em casa. Três regras antes da primeira
         repetição, e valem para todas: as costas em posição <b>neutra</b> — nem coladas ao chão nem arqueadas, salvo
         quando o exercício pede a báscula; a <b>expiração acompanha o esforço</b> e a inspiração prepara-o; e vale mais
         fazer <b>menos repetições bem feitas</b> do que a conta toda à pressa — aqui a qualidade é o exercício.
@@ -22558,6 +22678,22 @@ function cartaoPilates(){
       ${listaMovs(c.ex)}
       <div class="splabel" style="margin-top:12px"><span>3 · Alongar</span><output>${c.al.length} alongamentos</output></div>
       ${listaMovs(c.al)}
+      <div class="splabel" style="margin-top:16px;border-top:1px solid var(--line);padding-top:12px">
+        <span>Com bola de pilates</span><output>${PILATES_BOLA.length} exercícios</output></div>
+      <p class="sub" style="margin-top:6px">A bola grande (55 a 65 cm — sentado nela, as coxas ficam paralelas ao chão)
+        não é um acessório decorativo: ao tirar o chão firme de baixo do corpo, obriga o <b>centro a corrigir sem
+        parar</b>, e é esse tremor pequeno que trabalha. Enche-a bem, mas não a rebentes: uma bola muito dura rola de
+        mais e uma bola mole não devolve nada. Faz estes no tapete, com espaço à volta, e da primeira vez com uma
+        parede ou uma cadeira ao alcance da mão. O aquecimento e os alongamentos são os de cima.</p>
+      ${listaMovs(PILATES_BOLA)}
+      <div class="splabel" style="margin-top:16px;border-top:1px solid var(--line);padding-top:12px">
+        <span>Com banda elástica</span><output>${PILATES_BANDA.length} exercícios</output></div>
+      <p class="sub" style="margin-top:6px">A banda dá ao pilates o que o solo não tem: <b>resistência que aumenta com
+        o movimento</b>. Serve a de tira comprida (para segurar nas mãos) e a de anel (para pôr à volta das coxas) —
+        cada exercício diz qual usa. Escolhe a resistência mais leve que ainda se sinta: aqui o alvo é o controlo, não
+        a carga, e uma banda dura estraga a linha do movimento em duas repetições. A tensão nunca se larga de repente
+        — voltar devagar é parte do exercício.</p>
+      ${listaMovs(PILATES_BANDA)}
       <p class="sub" style="margin-top:10px">Como em tudo o resto: para imediatamente se houver dor aguda ou má
         disposição, e desconforto que aumenta é sinal para parar, não para insistir.</p>
       ${linhaPlanear('pilates','pilates')}
