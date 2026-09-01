@@ -1254,9 +1254,19 @@ input[type=range].com-detentes::-moz-range-track{
    um alvo que um dedo falha. A tentação era deixá-lo pequeno para não roubar
    atenção ao texto — mas um botão que não se acerta não tem atenção nenhuma
    para roubar. O peso visual controla-se com a cor, não com o tamanho. */
+/* ---- `font: ... inherit` é CSS inválido, e a declaração inteira caía ----
+   O atalho `font` exige uma família tipográfica, e a palavra `inherit` só é
+   válida como valor COMPLETO de uma propriedade — dentro do atalho não é.
+   O browser deitava fora a linha toda: o «i» e a bolha ficavam com os 14 px
+   do corpo da página em vez dos 12 e 12,5 px escritos aqui, e a bolha perdia
+   também a entrelinha de 1,45 que a torna legível. Num monitor, um texto de
+   mil caracteres a 14 px com entrelinha apertada é exatamente a queixa que
+   isto era. Em propriedades separadas não há atalho que se perca, e a família
+   herda-se sozinha, que era tudo o que aquele `inherit` queria dizer. */
 .dica{position:relative;display:inline-flex;align-items:center;justify-content:center;
   width:24px;height:24px;padding:0;margin-left:6px;border:1px solid var(--line);border-radius:50%;
-  background:var(--bg);color:var(--mut);font:700 12px/1 inherit;cursor:help;vertical-align:middle;flex:none}
+  background:var(--bg);color:var(--mut);font-weight:700;font-size:12px;line-height:1;
+  cursor:help;vertical-align:middle;flex:none}
 .dica:hover,.dica:focus-visible,.dica.on{border-color:var(--accent);color:var(--accent)}
 /* Texto que existe para ser ouvido e não para ser visto. A bolha das dicas é
    desenhada por content:attr(data-dica) num ::after — conteúdo gerado por CSS
@@ -1281,21 +1291,40 @@ input[type=range].com-detentes::-moz-range-track{
    não havia como o ler. O lado é decidido em posicionaDica(), que marca o
    botão com data-cima; o teto de altura é a rede para os casos em que nem
    para cima cabe. */
-.dica::after{content:attr(data-dica);position:absolute;left:calc(-4px + var(--dx,0px));top:calc(100% + 8px);
+/* A bolha fechada continua a ser um elemento a sério, mas invisível e fora do
+   alcance do rato — e com `clip`, para não contar para a largura da página nem
+   a pôr a deslizar na horizontal. Não se usa `display:none` de propósito: isso
+   tirava-a da árvore de acessibilidade, e ela é o alvo do aria-describedby. */
+/* Fechada, a bolha é o quadrado de 1 px do padrão «visually hidden»: continua
+   na árvore de acessibilidade (é o alvo do aria-describedby) mas não conta
+   para a largura do documento. Isto importa — a versão anterior escondia-a com
+   display:none exatamente por causa disso, e uma caixa de 360 px pendurada
+   fora do ecrã punha a página a deslizar na horizontal. */
+.dica-bolha{position:absolute;left:calc(-4px + var(--dx,0px));top:calc(100% + 8px);
+  width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%);
+  pointer-events:none;opacity:0;white-space:normal;
+  background:var(--ink);color:var(--card);border-radius:9px;
+  font-weight:400;font-size:12.5px;line-height:1.45;letter-spacing:0;text-transform:none;
+  text-align:left;cursor:auto;z-index:30;box-shadow:0 4px 16px rgba(0,0,0,.25)}
+/* Aberta: ganha o tamanho a sério, e é o `overflow-y` com `pointer-events` que
+   dá o que faltava — uma explicação de mil caracteres percorre-se com a roda
+   ou com o dedo, sem arrastar a página atrás dela. */
+.dica:hover>.dica-bolha,.dica:focus-visible>.dica-bolha,.dica.on>.dica-bolha{
   width:max-content;max-width:min(270px,calc(100vw - 24px));
-  max-height:min(320px,calc(100vh - 40px));overflow-y:auto;overscroll-behavior:contain;
-  background:var(--ink);color:var(--card);padding:9px 12px;border-radius:9px;
-  font:400 12.5px/1.45 inherit;letter-spacing:0;text-transform:none;text-align:left;white-space:normal;
-  z-index:30;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.25);display:none}
+  height:auto;max-height:min(340px,var(--maxh,340px),calc(100vh - 40px));padding:9px 12px;
+  clip-path:none;pointer-events:auto;opacity:1;overflow-y:auto;overscroll-behavior:contain}
+/* Num ecrã largo a coluna pode ser mais larga: as mesmas mil letras passam de
+   trinta e tal linhas para vinte e poucas, e a maioria das explicações deixa
+   de precisar de ser percorrida. */
+@media (min-width:760px){
+  .dica:hover>.dica-bolha,.dica:focus-visible>.dica-bolha,.dica.on>.dica-bolha{
+    max-width:min(360px,calc(100vw - 24px))} }
+.dica[data-cima]>.dica-bolha{top:auto;bottom:calc(100% + 8px)}
 .dica::before{content:'';position:absolute;left:5px;top:calc(100% + 2px);
   border:6px solid transparent;border-bottom-color:var(--ink);z-index:31;display:none}
-.dica[data-cima]::after{top:auto;bottom:calc(100% + 8px)}
 .dica[data-cima]::before{top:auto;bottom:calc(100% + 2px);
   border-bottom-color:transparent;border-top-color:var(--ink)}
-/* display em vez de visibility: uma bolha só escondida continuaria a contar
-   para a largura do documento e punha a página a deslizar na horizontal. */
-.dica:hover::after,.dica:hover::before,.dica:focus-visible::after,.dica:focus-visible::before,
-.dica.on::after,.dica.on::before{display:block}
+.dica:hover::before,.dica:focus-visible::before,.dica.on::before{display:block}
 @media (hover:none) and (pointer:coarse){ .dica{width:30px;height:30px;font-size:14px;margin-left:8px} }
 /* Barra de desfazer */
 .hist{display:flex;gap:4px}
@@ -8710,7 +8739,7 @@ NI('Porco, orelha cozida',234,0,19.4,17.4,0,0,1);
 NI('Toucinho fumado',541,0.6,9.1,55.6,0,0,1);
 NI('Nata para bater 35% gordura',337,2.9,2.1,35,0,0,3);
 NI('Leite condensado açucarado',331,55.4,8.2,8.7,0,0,3);
-NI('Bolacha Maria',419,76.4,7.5,9.5,2.3,0,4);
+NI('Bolacha Maria',436,72,8.4,12.2,2.1,0,4);
 NI('Café expresso',2,0.3,0.2,0,0,0,4);
 NI('Vinho do Porto',155,12,0.1,0,0,0,4);
 NI('Cerveja branca',42,3.6,0.4,0,0,0,4);
@@ -8718,7 +8747,7 @@ NI('Gelatina em folhas',338,0,84.4,0.1,0,0,4);
 NI('Burrata',330,1.8,15.4,29.4,0,0,3);
 NI('Muffin inglês',235,44.4,8,1.8,2.7,0,4);
 NI('Polpa de tomate',32,4.4,1.5,0.3,1.2,0,4);
-NI('Morango',33,5.4,0.8,0.4,2,0,2);
+NI('Morango',32,6,0.6,0.2,0.6,0,2);
 NI('Vinagre balsâmico',88,17,0.5,0,0,0,4);
 NI('Molho inglês',78,19.5,0,0,0,0,4);
 NI('Tinta de choco',52,0,10,1,0,0,4);
@@ -9414,7 +9443,7 @@ NI('Leite meio gordo, UHT',46,4.8,3.2,1.6,0,0,3);
 NI('Leite sem lactose meio gordo',47,4.8,3.3,1.6,0,0,3);
 NI('Queijo de barrar light',175,4.2,10.5,12.8,0,0,3);
 NI('Queijo parmesão ralado',402,0,35.8,28.6,0,0,3);
-NI('Manteiga com sal',737,0.6,0.7,81.6,0,0,4);
+NI('Manteiga com sal',739,0.7,0.1,81.8,0,0,4);
 NI('Manteiga magra',400,1.2,3.5,41.6,0,0,4);
 NI('Ovo de galinha cozido',150,0.4,13.1,10.7,0,55,1);
 NI('Ovo de pata cru',185,1,12.8,14.2,0,70,1);
@@ -13849,8 +13878,15 @@ function dica(k,extra){ let t=DICAS[k]; if(typeof t==='function') t=t();
      a seguir — que é a ordem por que se ouve: primeiro o que é, depois o que
      diz, e o leitor deixa saltar a segunda parte se não a quiser. */
   const id='dica-t'+(++_nDica);
-  return `<button type="button" class="dica ${extra||''}" data-dica="${esc(t)}"
-    aria-label="Explicação" aria-describedby="${id}">i<span id="${id}" class="so-leitor">${esc(t)}</span></button>`; }
+  /* A bolha era um ::after alimentado por data-dica. Um pseudo-elemento não
+     recebe rato nem toque, e por isso o `overflow-y:auto` que lá estava nunca
+     serviu para nada: as vinte e duas explicações com mais de 600 caracteres
+     cortavam aos 320 px de altura e não havia como chegar ao resto. Passa a
+     ser um elemento a sério, que se percorre — e que é o MESMO que o
+     `aria-describedby` já apontava, o que de caminho acaba com o texto
+     escrito duas vezes em cada botão. */
+  return `<button type="button" class="dica ${extra||''}"
+    aria-label="Explicação" aria-describedby="${id}">i<span id="${id}" class="dica-bolha">${esc(t)}</span></button>`; }
 /* Despensa e Compras partilhavam os mesmos dados e viviam separadas: o fluxo
    natural — ver o que falta, comprar, arrumar — obrigava a saltar de separador
    no momento mais apressado da semana. Passam a ser duas vistas da Mercearia,
@@ -33291,22 +33327,41 @@ function posicionaDica(d){
      e a bolha acabava 13 px fora do que a página realmente mostra. */
   const W=document.documentElement.clientWidth;
   const r=d.getBoundingClientRect();
-  const larg=Math.min(270, W-24);
+  /* Fechada, a bolha mede 1 px — medi-la aqui não serve de nada, porque isto
+     corre antes de ela abrir. A largura é a que o CSS lhe vai dar, e são só
+     dois valores: 360 num ecrã largo, 270 nos outros. Estava 270 à mão, e por
+     isso num monitor o desvio ficava curto e ela saía pela direita. */
+  const bolhaEl=d.querySelector('.dica-bolha');
+  /* `matchMedia` e não `W>=760`: a média conta a largura da janela COM a barra
+     de deslocação e o clientWidth conta-a sem ela. Num tablet de 768 px isso
+     dá 768 de um lado e 753 do outro — a CSS abria a bolha a 360 e o cálculo
+     media-a a 270, e cento e três bolhas saíam pela direita. Perguntando ao
+     mesmo sítio que a folha de estilos, não há faixa em que discordem. */
+  const largo=matchMedia('(min-width:760px)').matches;
+  const larg=Math.min(largo? 360 : 270, W-24);
   const esq=r.left-4;
   let dx=0;
   if(esq+larg > W-12) dx=(W-12)-(esq+larg);
   if(esq+dx < 12) dx=12-esq;
   d.style.setProperty('--dx', Math.round(dx)+'px');
-  /* E o lado. A altura da bolha não se sabe antes de ela existir, por isso
-     estima-se pelo comprimento do texto — 270 px de largura dão cerca de 42
-     caracteres por linha, a 18 px de altura de linha. Basta para decidir; o
-     max-height do CSS trata do resto. */
-  const n=(d.getAttribute('data-dica')||'').length;
-  const alt=Math.min(320, 34+Math.ceil(n/42)*18);
-  const cabeAbaixo=r.bottom+8+alt <= innerHeight-8;
-  const cabeAcima=r.top-8-alt >= 8;
-  if(!cabeAbaixo && cabeAcima) d.setAttribute('data-cima','');
-  else d.removeAttribute('data-cima');
+  /* E o lado, pela mesma razão estimado: a 12,5 px cabem cerca de 42 letras
+     por linha nos 270, e 58 nos 360, a 18,1 px de altura de linha. Basta para
+     escolher para que lado abrir; o max-height do CSS trata do resto. */
+  const texto=bolhaEl? (bolhaEl.textContent||'') : '';
+  const porLinha=larg>=340? 58 : 42;
+  const alt=Math.min(340, 34+Math.ceil(texto.length/porLinha)*18.1);
+  const espacoAbaixo=innerHeight-r.bottom-16, espacoAcima=r.top-16;
+  const cabeAbaixo=alt<=espacoAbaixo, cabeAcima=alt<=espacoAcima;
+  const paraCima = !cabeAbaixo && (cabeAcima || espacoAcima>espacoAbaixo);
+  if(paraCima) d.setAttribute('data-cima',''); else d.removeAttribute('data-cima');
+  /* ---- Quando não cabe de nenhum dos lados ----
+     Num ecrã baixo — um telemóvel pequeno, ou um portátil com a janela a
+     meio — há explicações que não cabem nem acima nem abaixo do marcador, e a
+     bolha ficava com 340 px a transbordar pelo fundo: o fim do texto fora da
+     janela, e agora que ela se percorre isso seria percorrer até um sítio
+     invisível. Passa a receber o espaço que existe daquele lado, e o resto
+     lê-se a rolar dentro dela. */
+  d.style.setProperty('--maxh', Math.max(120, Math.round(paraCima? espacoAcima : espacoAbaixo))+'px');
 }
 /* mouseenter e não mouseover: o segundo borbulha e volta a disparar sempre que
    o rato passa do «i» para o texto escondido que vive dentro do botão — e cada
@@ -33362,11 +33417,11 @@ sincronizaCombos();
    antes de DICAS existir — ler lá a constante deixava a app em branco. */
 (function(){ const d=document.getElementById('dica-desfazer'); if(!d) return;
   const t=DICAS.desfazer||'';
-  d.setAttribute('data-dica', t);
-  /* e o mesmo texto como elemento a sério, para o leitor de ecrã o alcançar —
-     como em todas as outras dicas, que o recebem já feito de dica() */
+  d.removeAttribute('data-dica');
+  /* a bolha é o elemento — o mesmo que o leitor de ecrã alcança e o mesmo que
+     se percorre com a roda, como em todas as outras dicas que dica() faz */
   const s=document.createElement('span');
-  s.id='dica-desfazer-t'; s.className='so-leitor'; s.textContent=t;
+  s.id='dica-desfazer-t'; s.className='dica-bolha'; s.textContent=t;
   d.appendChild(s); d.setAttribute('aria-describedby',s.id);
 })();
 aplicarTema();
