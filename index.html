@@ -10870,8 +10870,34 @@ function fmtQtd(quant,un){
   const u = un==='dente' && q!==1 ? 'dentes' : un;
   return nPT(q, Number.isInteger(q)?0:(Number.isInteger(q*10)?1:2))+' '+u;
 }
+/* ---- Gemas e claras dizem-se em ovos, não em gramas ----
+   Ninguém parte «15 g de gema»: parte um ovo e separa-o. Os DADOS ficam em
+   gramas — é deles que saem os macros, e converti-los a unidades arredondava
+   as contas de 38 receitas — e é só a EXIBIÇÃO que traduz: 36 g de gema
+   lê-se «2 ovos», 22,5 g lê-se «1¼ ovos». A gema de um ovo de galinha pesa
+   à volta de 18 g e a clara à volta de 33 (um ovo de 55 g tem ~6 g de casca);
+   o arredondamento ao quarto/terço de ovo mais próximo desvia no máximo um
+   grama e meio de gema, que nenhuma balança de cozinha distingue. */
+const PESO_GEMA=18, PESO_CLARA=33;
+function fmtOvos(n){
+  const inteiro=Math.floor(n+1e-9);
+  const resto=n-inteiro;
+  const fracoes=[[0,''],[0.25,'¼'],[1/3,'⅓'],[0.5,'½'],[2/3,'⅔'],[0.75,'¾'],[1,'']];
+  let melhor=fracoes[0], dif=Infinity;
+  fracoes.forEach(f=>{ const d=Math.abs(resto-f[0]); if(d<dif){ dif=d; melhor=f; } });
+  const cheio=inteiro+(melhor[0]===1?1:0), frac=melhor[0]===1?'':melhor[1];
+  if(!cheio && !frac) return '1 ovo';                 /* nunca «0 ovos»: menos de ⅛ arredonda para o mínimo dizível */
+  if(!cheio) return frac==='½'? 'meio ovo' : frac+' de ovo';
+  const plural=(cheio>1||frac)? ' ovos':' ovo';
+  return cheio+(frac? frac:'')+plural;
+}
+function fmtQtdIng(nome,quant,un){
+  if(un==='g' && nome==='Gema de ovo de galinha, crua') return fmtOvos(quant/PESO_GEMA);
+  if(un==='g' && nome==='Clara de ovo de galinha, crua') return fmtOvos(quant/PESO_CLARA);
+  return fmtQtd(quant,un);
+}
 function textoEscala(r,n,fator){
-  return escalaIngredientes(r,n,fator).map(x=>esc(x.n)+' '+fmtQtd(x.q,x.u)).join(' · ');
+  return escalaIngredientes(r,n,fator).map(x=>esc(x.n)+' '+fmtQtdIng(x.n,x.q,x.u)).join(' · ');
 }
 
 /* ================= TETO CALÓRICO POR REFEIÇÃO =================
@@ -10945,18 +10971,70 @@ function catalogoCompleto(){
 }
 function invalidaCatalogos(){ _catalogo=null; _catCompleto=null; _unidIng=null; esqueceAcClones(); esqueceTextoBusca(); }
 function temNaDespensa(nome){ return !!S.despensa[nome]; }
+/* ---- As alternativas que as próprias receitas declaram ----
+   Vários passos dizem «chalotas (ou cebola)», «ghee (manteiga em
+   alternativa)», «sem páprica fumada serve pimentão-doce». Até aqui isso era
+   só prosa: quem tinha cebola e não tinha chalota via a receita como
+   impossível de fazer, quando a própria receita dizia o contrário.
+   A tabela é a transcrição desses pares — não é uma lista de substituições
+   inventada — e vale APENAS para a despensa: diz se a receita se consegue
+   fazer com o que há, e nada mais. Não mexe nos macros (a ficha continua a
+   contar com o ingrediente escrito), não mexe nas dietas nem nos alergénios
+   (trocar por conta própria é decisão de quem cozinha, e a etiqueta é do que
+   está escrito), e não tira nada da lista de compras — comprar o ingrediente
+   verdadeiro continua a ser o plano; a alternativa é para o dia em que ele
+   falta. */
+const ALTERNATIVA_DE={
+  'Páprica fumada':['Pimentão-doce'],
+  'Pimentão-doce':['Páprica fumada'],
+  'Chalota':['Cebola'],
+  'Cebola':['Chalota'],
+  'Ghee':['Manteiga','Manteiga sem sal'],
+  'Manteiga':['Ghee'],
+  'Alecrim':['Tomilho fresco'],
+  'Tomilho fresco':['Alecrim'],
+  'Coentros':['Salsa'],
+  'Salsa':['Coentros'],
+  'Tomate concentrado':['Polpa de tomate'],
+  'Polpa de tomate':['Tomate concentrado'],
+};
+/* Guarda de arranque, pela armadilha do costume: a tabela é por nome exato e
+   um nome que derive do catálogo morre calado. */
+(function(){
+  const cat=new Set(Object.keys(NUTRI).concat(Object.keys(NUTRI_EXTRA)));
+  const orfaos=[];
+  Object.keys(ALTERNATIVA_DE).forEach(k=>{
+    if(!cat.has(k)) orfaos.push(k);
+    ALTERNATIVA_DE[k].forEach(v=>{ if(!cat.has(v)) orfaos.push(k+'→'+v); });
+  });
+  if(orfaos.length) console.warn('Família Fit — alternativas sem ingrediente no catálogo: '+orfaos.join(' · '));
+})();
+/* O que a despensa responde quando se pergunta por um ingrediente: tem-no,
+   tem uma alternativa que a receita aceita, ou não tem nada. */
+function temComAlternativa(nome){
+  if(temNaDespensa(nome)) return {tem:true, via:null};
+  const alts=ALTERNATIVA_DE[nome]||[];
+  for(let i=0;i<alts.length;i++) if(temNaDespensa(alts[i])) return {tem:true, via:alts[i]};
+  return {tem:false, via:null};
+}
 function disponibilidadeReceita(r){
-  const total=r.i.length, tem=r.i.filter(x=>temNaDespensa(x[0])).length;
-  return {tem, total, pronta: total>0 && tem===total};
+  const total=r.i.length; let tem=0; const subst=[];
+  r.i.forEach(x=>{
+    const t=temComAlternativa(x[0]);
+    if(t.tem){ tem++; if(t.via) subst.push({de:x[0], por:t.via}); }
+  });
+  return {tem, total, pronta: total>0 && tem===total, subst};
 }
 /* Lista de ingredientes com o estado da despensa — usada em qualquer sítio
-   que mostre uma receita, não só no separador Receitas. */
+   que mostre uma receita, não só no separador Receitas. Um ingrediente
+   coberto por alternativa aparece com ✓ mas diz com o quê: o visto sem a
+   nota faria crer que a chalota lá está. */
 function listaIngredientesComEstado(r,n){
   const q=Math.max(1,parseInt(n,10)||1);
   return r.i.map(([nome,quant,u])=>{
-    const tem=temNaDespensa(nome);
-    return `<span class="ingr ${tem?'tem':'falta'}"><i aria-hidden="true">${tem?'✓':'✗'}</i>${esc(nome)}
-      <b>${fmtQtd(quant*q,u)}</b></span>`;
+    const t=temComAlternativa(nome);
+    return `<span class="ingr ${t.tem?'tem':'falta'}"><i aria-hidden="true">${t.tem?'✓':'✗'}</i>${esc(nome)}
+      <b>${fmtQtdIng(nome,quant*q,u)}</b>${t.via? `<span class="sub"> · tens ${esc(t.via.toLowerCase())}, que serve</span>`:''}</span>`;
   }).join('');
 }
 
@@ -15330,7 +15408,7 @@ function livroHtml(){
           · ${r.k} kcal por dose · ${plural(r.doses||1,'dose','doses')}</p>
         ${r.de||r.hist? `<p class="livro-hist">${r.de? '<b>Veio de '+esc(r.de)+'.</b> ':''}${r.hist? '«'+esc(r.hist)+'»':''}</p>`:''}
         <h3>Ingredientes</h3>
-        <ul>${escalaIngredientes(r,1).map(x=>`<li>${esc(x.n)} — ${fmtQtd(x.q,x.u)}</li>`).join('')}</ul>
+        <ul>${escalaIngredientes(r,1).map(x=>`<li>${esc(x.n)} — ${fmtQtdIng(x.n,x.q,x.u)}</li>`).join('')}</ul>
         <h3>Preparação</h3>
         <ol>${passos.map(p=>`<li><b>${esc(p.t)}</b>${p.min? ' ('+p.min+' min)':''} — ${esc(p.d)}</li>`).join('')}</ol>
         <p class="livro-meta">${esc(textoConservacao(r))}</p>
@@ -16328,7 +16406,7 @@ function passosDerivados(r,n){
   /* sem passos escritos, derivam-se dos ingredientes e do género do prato */
   const ing=escalaIngredientes(r,n);
   const passos=[];
-  passos.push({t:'Reunir', d:'Põe tudo à mão antes de acender o lume: '+ing.map(x=>esc(x.n)+' '+fmtQtd(x.q,x.u)).join(', ')+'.'});
+  passos.push({t:'Reunir', d:'Põe tudo à mão antes de acender o lume: '+ing.map(x=>esc(x.n)+' '+fmtQtdIng(x.n,x.q,x.u)).join(', ')+'.'});
   const temAlho=ing.some(x=>/alho|cebola/i.test(x.n));
   const temForno=/assad|forno|gratin|tarte|bolo/i.test(r.n);
   const temGrelha=/grelhad|brasa|bife|posta|picanha|secretos|plumas|costelet/i.test(r.n);
@@ -16693,7 +16771,7 @@ function cozinhaHtml(){
        : c.vista==='maestro'? vistaMaestro(c,r)
        : c.passo===0? `${notaHistoria(r)}<ul class="coz-ing">${ing.map((x,i)=>`<li class="${c.feitos.indexOf(i)>=0?'done':''}">
           <label><input type="checkbox" ${c.feitos.indexOf(i)>=0?'checked':''} onchange="toggleIngredienteCozinha(${i})">
-          <span>${esc(x.n)} <b>${fmtQtd(x.q,x.u)}</b></span></label></li>`).join('')}</ul>`
+          <span>${esc(x.n)} <b>${fmtQtdIng(x.n,x.q,x.u)}</b></span></label></li>`).join('')}</ul>`
        : `<h2 class="coz-t">${esc(p.t)}</h2><p class="coz-d">${esc(p.d)}</p>
           ${nota&&nota.nota? `<p class="coz-nota">📌 ${esc(nota.nota)}</p>`:''}
           ${!min? '' : temTemporizador(min)
@@ -29672,7 +29750,7 @@ function atualizarCompras(){
     if(el.parentElement) el.parentElement.classList.toggle('feita',!!completo);
   });
 }
-function fmtQ(it){ return fmtQtd(it.q,it.u); }
+function fmtQ(it){ return fmtQtdIng(it.n,it.q,it.u); }
 /* Sem a guarda, em http simples (rede local) navigator.clipboard é undefined e
    o botão atirava um TypeError sem dizer nada a ninguém. */
 function copyList(){
