@@ -3249,7 +3249,12 @@ R('cacciatore','Frango à cacciatora','italiana',['lowcarb','mediterranica'],450
 R('bresaola','Bresaola com rúcula e parmesão','italiana',['keto','lowcarb'],280,4,32,15,[['Bresaola',90,'g'],['Rúcula',40,'g'],['Parmesão',20,'g'],['Limão',0.5,'un'],['Azeite',10,'ml']],['a','l'],1),
 
 /* ---------- Francesa ---------- */
-R('bourguignon','Boeuf bourguignon','francesa',['lowcarb'],560,22,44,32,[['Carne de vaca',180,'g'],['Vinho tinto',120,'ml'],['Cenoura',80,'g'],['Cogumelos',80,'g'],['Cebola',0.5,'un'],['Bacon',20,'g'],['Azeite',8,'ml']],null,4),
+/* Boeuf bourguignon pelo método da casa, que não é o de marinar de véspera: é
+   o de construir o sabor em camadas na frigideira, uma de cada vez, e apanhar
+   o que fica agarrado ao fundo em cada uma delas. A carne é acém em cubos —
+   é colagénio a mais para grelhar e a menos para desfazer em três horas, que
+   é exatamente o que se quer. */
+R('bourguignon','Boeuf bourguignon','francesa',[],0,0,0,0,[['Vaca, acém cru',180,'g'],['Bacon',25,'g'],['Ghee',15,'g'],['Vinho tinto',180,'ml'],['Chalota',50,'g'],['Cebola',60,'g'],['Cogumelos',80,'g'],['Cenoura',80,'g'],['Batata',120,'g'],['Alho',3,'dente'],['Tomilho fresco',3,'g'],['Salsa',8,'g']],['a','j'],0,['pp']),
 R('dauphinois','Gratin dauphinois','francesa',['vegetariana'],480,42,12,30,[['Batata',220,'g'],['Nata',100,'ml'],['Leite',60,'ml'],['Queijo gruyère',30,'g'],['Alho',1,'dente'],['Noz-moscada',0.5,'g']],null,4),
 R('papillote','Salmão en papillote com alho-francês','francesa',['keto','lowcarb'],460,10,36,30,[['Salmão',170,'g'],['Alho-francês',120,'g'],['Cenoura',60,'g'],['Limão',0.5,'un'],['Endro',3,'g'],['Azeite',10,'ml']],null,4),
 R('blanquette','Blanquette de vitela','francesa',[],520,24,42,28,[['Vitela',180,'g'],['Cenoura',80,'g'],['Cogumelos',80,'g'],['Alho-francês',60,'g'],['Nata',60,'ml'],['Ovo',0.5,'un'],['Farinha',12,'g'],['Manteiga',10,'g']],null,4),
@@ -3395,7 +3400,7 @@ R('iscascebolada','Iscas de fígado salteadas','portuguesa',['lowcarb'],0,0,0,0,
 R('feijoadatransmontana','Feijoada à transmontana','portuguesa',[],0,0,0,0,[['Feijão encarnado',90,'g'],['Porco, orelha cozida',25,'g'],['Porco, chispe',30,'g'],['Porco, entrecosto cru',40,'g'],['Chouriço',20,'g'],['Farinheira',15,'g'],['Couve galega',70,'g'],['Cenoura',50,'g'],['Cebola',50,'g'],['Alho',2,'dente'],['Azeite',8,'ml'],['Colorau',2,'g'],['Louro',1,'g']],['a','j'],0,['pp']),
 /* O Bacalhau à Brás já existe desde a primeira fornada com o id 'bras' — a
    segunda entrada duplicava-o na biblioteca e na pesquisa. */
-R('arrozpolvo','Arroz de polvo','portuguesa',['mediterranica'],0,0,0,0,[['Polvo',180,'g'],['Arroz carolino branqueado cru',90,'g'],['Cebola',80,'g'],['Alho',3,'dente'],['Tomate pelado',100,'g'],['Pimento',50,'g'],['Vinho branco',50,'ml'],['Azeite',15,'ml'],['Coentros',8,'g'],['Louro',1,'g']],['a','j'],0,['pp']),
+R('arrozpolvo','Arroz de polvo','portuguesa',['mediterranica'],0,0,0,0,[['Polvo',180,'g'],['Arroz carolino branqueado cru',90,'g'],['Cebola',80,'g'],['Alho',3,'dente'],['Tomate pelado',100,'g'],['Tomate concentrado',15,'g'],['Pimento',50,'g'],['Vinho branco',50,'ml'],['Azeite',15,'ml'],['Coentros',8,'g'],['Louro',1,'g']],['a','j'],0,['pp']),
 R('bifemarrare','Bife do lombo salteado em manteiga','portuguesa',['lowcarb'],0,0,0,0,[['Bife do lombo de vaca',180,'g'],['Manteiga',15,'g'],['Alho',2,'dente'],['Pimenta preta',1,'g']],['a','j'],0,['pp']),
 R('bifecervejeira','Bife de vaca selado em manteiga','portuguesa',['lowcarb'],0,0,0,0,[['Bife de vaca',180,'g'],['Manteiga',15,'g'],['Pimenta preta',1,'g']],['a','j'],0,['pp']),
 R('bifemostarda','Bife de vaca salteado em manteiga','francesa',['keto','lowcarb'],0,0,0,0,[['Bife de vaca',180,'g'],['Manteiga',12,'g'],['Pimenta preta',1,'g']],['a','j'],0,['pp']),
@@ -3497,7 +3502,7 @@ R('acbmurro','Batata a murro com alho e azeite','portuguesa',['mediterranica'],0
 R('acrbranco','Arroz branco solto','portuguesa',[],0,0,0,0,[['Arroz agulha',70,'g'],['Azeite',5,'ml'],['Alho',1,'dente'],['Louro',1,'g']],['ac']),
 R('acrbasmati','Arroz basmati','portuguesa',[],0,0,0,0,[['Arroz basmati',70,'g'],['Manteiga',10,'g'],['Cebola',0.25,'un'],['Louro',1,'g']],['ac']),
 R('acrcarolino','Arroz carolino malandrinho','portuguesa',['mediterranica'],0,0,0,0,[['Arroz carolino branqueado cru',70,'g'],['Azeite',10,'ml'],['Cebola',0.5,'un'],['Alho',1,'dente'],['Salsa',3,'g']],['ac']),
-R('acrtomate','Arroz de tomate','portuguesa',['mediterranica'],0,0,0,0,[['Arroz carolino branqueado cru',70,'g'],['Tomate pelado',100,'g'],['Pimento',60,'g'],['Cebola',0.5,'un'],['Alho',1,'dente'],['Vinho branco',30,'ml'],['Azeite',10,'ml'],['Louro',1,'g'],['Coentros',4,'g']],['ac']),
+R('acrtomate','Arroz de tomate','portuguesa',['mediterranica'],0,0,0,0,[['Arroz carolino branqueado cru',70,'g'],['Tomate pelado',100,'g'],['Tomate concentrado',15,'g'],['Pimento',60,'g'],['Cebola',0.5,'un'],['Alho',1,'dente'],['Vinho branco',30,'ml'],['Azeite',10,'ml'],['Louro',1,'g'],['Coentros',4,'g']],['ac']),
 R('acrcoentros','Arroz de coentros','portuguesa',['mediterranica'],0,0,0,0,[['Arroz agulha',70,'g'],['Coentros',8,'g'],['Alho',2,'dente'],['Azeite',10,'ml']],['ac']),
 R('acracafrao','Arroz de açafrão','portuguesa',['mediterranica'],0,0,0,0,[['Arroz agulha',70,'g'],['Açafrão',0.2,'g'],['Cebola',0.25,'un'],['Azeite',10,'ml'],['Louro',1,'g']],['ac']),
 /* ---------- Acompanhamentos: legumes e saladas ---------- */
@@ -3801,7 +3806,7 @@ R('acmbaja','Molho branco à Baja','mexicana',[],0,0,0,0,[['Maionese',20,'g'],['
 R('acmmaionesepicante','Molho picante de maionese e lima','mexicana',[],0,0,0,0,[['Maionese',15,'g'],['Molho piri-piri',10,'ml'],['Lima',5,'ml'],['Flor de sal',0.3,'g']],['mo']),
 R('acmcaesar','Molho Caesar','americana',[],0,0,0,0,[['Anchovas',8,'g'],['Maionese',20,'g'],['Mostarda',5,'g'],['Limão',0.5,'un']],['mo']),
 R('acmtomatemanjericao','Molho de tomate e manjericão','italiana',[],0,0,0,0,[['Polpa de tomate',150,'g'],['Alho',2,'dente'],['Manjericão',5,'g'],['Azeite',5,'ml']],['mo']),
-R('acmcurrywurst','Molho de currywurst','outras',[],0,0,0,0,[['Cebola',0.4,'un'],['Óleo alimentar',5,'ml'],['Polpa de tomate',60,'g'],['Maçã',60,'g'],['Molho inglês',5,'ml'],['Vinagre balsâmico',8,'ml'],['Mel',6,'g'],['Caril em pó',4,'g'],['Pimentão-doce',2,'g'],['Pimenta de caiena',0.5,'g']],['mo']),
+R('acmcurrywurst','Molho de currywurst','outras',[],0,0,0,0,[['Cebola',0.4,'un'],['Óleo alimentar',5,'ml'],['Polpa de tomate',60,'g'],['Tomate concentrado',10,'g'],['Maçã',60,'g'],['Molho inglês',5,'ml'],['Vinagre balsâmico',8,'ml'],['Mel',6,'g'],['Caril em pó',4,'g'],['Páprica fumada',2,'g'],['Pimenta de caiena',0.5,'g']],['mo']),
 /* A alternativa keto às Pommes que acompanham o currywurst: o aipo-rábano
    assado em palitos tosta por fora e fica cremoso por dentro, que é o que se
    pede a uma batata frita, com uma fração dos hidratos. */
@@ -3820,7 +3825,7 @@ R('aclaipofritas','Palitos de aipo-rábano e rabanete assados','outras',[],0,0,0
    com eritritol e com um vinagre de vinho em vez do balsâmico, que também é
    açúcar concentrado. O molho inglês fica, em pouco: é o fundo salgado que
    distingue este molho de tomate temperado com caril. */
-R('acmcurryketo','Molho de currywurst keto','outras',[],0,0,0,0,[['Óleo alimentar',5,'ml'],['Polpa de tomate',30,'g'],['Vinagre de vinho',8,'ml'],['Molho inglês',2,'ml'],['Eritritol',6,'g'],['Caril em pó',3.5,'g'],['Pimentão-doce',2,'g'],['Pimenta de caiena',0.5,'g']],['mo']),
+R('acmcurryketo','Molho de currywurst keto','outras',[],0,0,0,0,[['Óleo alimentar',5,'ml'],['Tomate concentrado',10,'g'],['Vinagre de vinho',8,'ml'],['Molho inglês',2,'ml'],['Eritritol',6,'g'],['Caril em pó',3.5,'g'],['Páprica fumada',2,'g'],['Pimenta de caiena',0.5,'g']],['mo']),
 R('salmaoforno','Salmão no forno com espargos e tomate cereja','mediterranica',['mediterranica'],0,0,0,0,[['Salmão',180,'g'],['Espargos',120,'g'],['Tomate cereja',100,'g'],['Azeite',12,'ml'],['Alho',2,'dente'],['Limão',0.5,'un'],['Orégãos',2,'g']],['a','j'],0,['pp']),
 R('salmaocrostaervas','Salmão em crosta de ervas e mostarda','francesa',[],0,0,0,0,[['Salmão',180,'g'],['Pão ralado',25,'g'],['Mostarda de Dijon',12,'g'],['Salsa',8,'g'],['Endro',4,'g'],['Manteiga',12,'g'],['Limão',0.25,'un']],['a','j'],0,['pp']),
 R('saladasalmaofumado','Salada de salmão fumado com abacate e endro','mediterranica',['mediterranica'],0,0,0,0,[['Salmão fumado',80,'g'],['Abacate',0.5,'un'],['Rúcula',50,'g'],['Pepino',60,'g'],['Endro',4,'g'],['Alcaparras',8,'g'],['Azeite',10,'ml'],['Limão',0.5,'un']],['a','l','j'],0,['ent','pp']),
@@ -4516,8 +4521,7 @@ P('camaraocozido',[['Água','Põe água a ferver com o sal grosso e o louro. A �
 P('chouricoassado',[['Preparar','Faz cortes na diagonal no chouriço, sem chegar ao fundo: é por eles que a gordura sai e o fumo entra.'],
  ['Assar','No assador de barro com aguardente, ou na grelha em lume médio, virando até estar tostado dos dois lados.',10],
  ['Servir','Serve a escorrer com pão para aproveitar a gordura.']]);
-P('saladapolvoent',[['Cozer o polvo','Panela com o polvo, o louro e meia cebola, sem água — o polvo larga a sua. Coze com a tampa até um garfo entrar sem resistência.',45],
- ['Arrefecer','Deixa arrefecer dentro do próprio caldo: é isso que o mantém tenro.'],
+P('saladapolvoent',[passoCozerPolvo(),
  ['Cortar','Corta o polvo em pedaços de bocado e junta a cebola roxa e o pimento em cubinhos.'],
  ['Tomate e pepino, escorridos','Tomate sem as sementes e pepino em cubos pequenos, salgados e escorridos num passador dez minutos. Os dois são quase só água — postos direitos na taça, ao fim de uma hora a salada está num caldo.',10],
  ['Temperar','Azeite, vinagre, coentros picados e sal. Repousa uma hora no frigorífico antes de servir.',60]]);
@@ -4548,8 +4552,9 @@ P('feijoadatransmontana',[['Demolhar','Feijão de molho de véspera, doze horas 
  ['Feijão','Coze o feijão no caldo das carnes.',40],
  ['Refogado','Aloura cebola e alho no azeite, junta o colorau fora do lume para não queimar, e depois o feijão com o caldo.',10],
  ['Juntar tudo','Carnes cortadas, enchidos em rodelas, cenoura e couve. Deixa apurar em lume brando até o caldo engrossar.',25]]);
-P('arrozpolvo',[['Cozer o polvo','Coze o polvo com louro e cebola, sem água, até um garfo entrar sem resistência. Guarda a água que ele largou.',45],
- ['Refogado','Aloura cebola, alho e pimento no azeite. Junta o tomate e deixa desfazer.',10],
+P('arrozpolvo',[passoCozerPolvo(),
+ ['Guardar o caldo','Seja qual for o método, guarda a água que o polvo largou: é ela o caldo deste arroz, e não há substituto à altura.'],
+ ['Refogado','Aloura cebola, alho e pimento no azeite. Junta o tomate pelado e o concentrado e deixa desfazer — o concentrado é o que dá cor e fundo sem aguar o refogado.',10],
  ['Arroz','Junta o arroz, envolve, refresca com o vinho branco e deixa evaporar. Acrescenta o dobro do volume em água do polvo, a ferver.',2],
  ['Cozinhar','Junta o polvo cortado e deixa cozinhar tapado. Quer-se malandrinho, não seco.',18],
  ['Servir','Coentros picados fora do lume e serve logo — arroz malandrinho não espera.']]);
@@ -4776,7 +4781,7 @@ P('acrcarolino',[['Refogado','Cebola picada fina e alho no azeite, em lume brand
  ['Malandrinho','Três vezes o volume em água a ferver, e vai mexendo — é a mexer que o carolino larga o amido que faz o caldo.',18],
  ['Servir','Serve logo: o arroz malandrinho seca à espera.']]);
 P('acrtomate',[['Refogado com pimento','Cebola, pimento aos cubos e alho no azeite, em lume brando, até a cebola ficar translúcida e o pimento amolecer. O pimento entra com a cebola e não depois: precisa do mesmo tempo para perder o travo a cru.',10],
- ['Tomate a desfazer','Junta o tomate sem pele em cubos e deixa desfazer por completo, até o azeite subir à superfície.',10],
+ ['Tomate a desfazer','Junta o tomate sem pele em cubos e deixa desfazer por completo, até o azeite subir à superfície. Com ele vai uma colher de concentrado de tomate: é o que dá cor e fundo a um arroz que, só com pelado, sai pálido e aguado.',10],
  ['Vinho branco a evaporar','Vinho branco em lume alto, a raspar o fundo, até o cheiro a álcool desaparecer — um minuto ou dois. Posto ao mesmo tempo que a água, fica um travo cru que não sai mais.',2],
  ['Arroz','Envolve o arroz no refogado e junta o dobro do volume em água a ferver. Louro e sal.',2],
  ['Cozer','Lume brando e tapado, até o arroz estar cozido e o caldo cremoso.',18],
@@ -4906,7 +4911,23 @@ P('sopalegumes',[['Cortar','Corta todos os legumes em tamanho parecido, para coz
  ['Cozer','Água a cobrir, sal e azeite, do lume até tudo estar macio.',25],
  ['Triturar','Tritura a base e deixa alguns legumes inteiros, se gostares de encontrar pedaços.'],
  ['Acabar','Fio de azeite em cru no prato.']]);
-P('polvo',[['Cozer','Polvo com louro e cebola, sem água, até um garfo entrar sem resistência.',45],
+/* ---- As três formas de cozer um polvo ----
+   Quatro receitas começam por cozer o polvo, e escrever o mesmo passo quatro
+   vezes é pedir que as quatro divirjam à primeira correção. Fica uma função
+   que devolve o passo, e cada receita chama-a: um sítio para mudar, quatro
+   sítios a acompanhar. Devolve um array novo de cada vez, para nenhuma
+   receita poder mexer no passo das outras.
+   Os tempos da panela de pressão são os do guia do Continente e do consenso
+   das receitas portuguesas: sem água nenhuma, oito a dez minutos por quilo a
+   contar de a válvula subir, e a pressão a sair sozinha. */
+function passoCozerPolvo(){
+  return ['Cozer o polvo — três formas',
+    'NA PANELA (o costume): polvo, louro e meia cebola, sem água — ele larga a sua —, tapado, até um garfo entrar sem resistência. Arrefece no próprio caldo, que é o que o mantém tenro. '+
+    'NO FORNO: num tabuleiro, chalotas picadas (ou cebola), alho laminado, alecrim (ou tomilho), coentros (ou salsa) e louro, o polvo por cima, regado a azeite e tapado com papel de alumínio. Forno a 190 °C, hora e meia a duas horas. É o que dá mais sabor, porque nada se dilui em água. '+
+    'NA PANELA DE PRESSÃO: sem água e sem sal, fechada, em lume forte até a válvula subir; a partir daí, oito a dez minutos por quilo. Tira do lume e deixa a pressão sair sozinha — abrir à força encolhe-o. É a mais rápida e a menos consensual: ganha-se tempo e perde-se caldo.',
+    45];
+}
+P('polvo',[passoCozerPolvo(),
  ['Assar','Tabuleiro com azeite generoso, alho às lascas e o polvo. Forno a 200 °C.',20],
  ['Batatas','Batatas a murro no mesmo tabuleiro, a beber o azeite do polvo.'],
  ['Servir','Rega com o azeite do tabuleiro e salsa por cima.']]);
@@ -5223,7 +5244,7 @@ P('tagine',[['Marinar','Frango com especiarias, alho e limão.',60],
 P('beringelarecheada',[['Beringela','Corta ao meio, risca a polpa em losangos, azeite e forno a 200 °C até amolecer.',25],
  ['Recheio','Refoga carne com cebola, alho e tomate; junta a polpa da beringela e os pinhões.',15],
  ['Gratinar','Enche as metades e volta ao forno.',15]]);
-P('saladapolvo',[['Cozer','Polvo com louro e cebola, sem água, até tenro. Arrefece no caldo.',45],
+P('saladapolvo',[passoCozerPolvo(),
  ['Juntar','Corta em pedaços, junta grão-de-bico cozido, cebola e coentros.'],
  ['Temperar','Azeite e vinagre; repousa uma hora no frio.',60]]);
 P('bulgur',[['Bulgur','Hidrata com água a ferver, tapado.',15],
@@ -5696,10 +5717,20 @@ P('crepesaveia',[['Massa','Tritura aveia, ovos, banana e leite até ficar liso.'
  ['Cozinhar','Frigideira antiaderente, uma concha de cada vez, virando quando as bordas soltarem.',3]]);
 P('frutossecos',[['Servir','Mistura frutos secos e sementes. Torrados numa frigideira seca ficam melhores.',4]]);
 P('iogurtecompota',[['Montar','Iogurte natural com os frutos vermelhos por cima, esmagando alguns para largarem sumo.']]);
-P('bourguignon',[['Marinar','Vaca em cubos em vinho tinto com legumes e ervas, de véspera.',720],
- ['Selar','Carne muito bem seca, selada em lume forte e em pequenas quantidades. Húmida ou amontoada, coze em vez de corar.',15],
- ['Estufar','Junta a marinada, o bacon e o caldo. Lume mínimo, tapado.',180],
- ['Guarnição','Cebolinhas e cogumelos salteados à parte, juntos no fim.',10]]);
+P('bourguignon',[['A carne','Acém em cubos de bocado, bem secos com papel. Molhados não seguram, cozem em vez de corar, e a crosta é metade do prato.',10],
+ ['Suar o bacon, devagar','Bacon fatiado numa frigideira em lume brando com o ghee — manteiga clarificada aguenta o calor da selagem que se segue, e a normal queimaria. Sem pressa: quer-se a gordura derretida e o bacon estaladiço, não tostado à força. Retira o bacon e guarda.',12],
+ ['Selar a carne nessa gordura','Carne na gordura do bacon, em lume forte e em duas ou três vezes. Amontoada, larga água e ferve. Corada de todos os lados, retira e guarda com o bacon.',12],
+ ['Primeiro deglaze','Um pouco de vinho tinto na frigideira ainda quente, a raspar o fundo com a colher de pau até tudo o que estava agarrado se soltar. Guarda esse líquido: é o primeiro dos dois caldos que vão dar corpo ao molho.',3],
+ ['Cebolinhas caramelizadas','Cebolinhas brancas inteiras, na mesma frigideira, a rolar em lume médio até ficarem douradas de todos os lados. Retira e guarda. Deglaze outra vez com vinho, e junta esse líquido ao primeiro.',12],
+ ['Chalotas no tacho','Num tacho que possa ir ao forno, mais ghee, e as chalotas às rodelas a caramelizar em lume médio — cebola serve, mas a chalota é mais doce e menos aguada, e nota-se num molho que vai reduzir três horas.',10],
+ ['Cogumelos até perderem a água','Cogumelos brancos em quartos por cima, em lume alto, até largarem a água toda e ela evaporar. Só depois é que douram — postos em lume brando, estufam e ficam borracha.',10],
+ ['Cenoura e alho','Cenoura às rodelas, e o alho picado só a seguir: o alho queima em muito menos tempo do que a cenoura precisa, e queimado amarga o tacho inteiro.',6],
+ ['Carne, vinho e bacon','Volta a carne ao tacho com o bacon, e o resto do vinho tinto até cobrir. Levanta fervura e deixa reduzir descoberto — é aqui que sai o álcool e fica o vinho.',12],
+ ['Cebolinhas, batatinhas e caldo','Junta as cebolinhas caramelizadas e as batatinhas, e cobre com o líquido dos dois deglaces. Se não chegar, completa com caldo de carne — a carne tem de ficar coberta, ou a parte de fora seca no forno.',4],
+ ['Espessar, se quiseres','Uma colher de farinha cozinhada em manteiga até ganhar cor de avelã, desfeita depois num pouco do molho quente e devolvida ao tacho. É opcional e leva glúten, e por isso não está na lista de ingredientes: três horas de forno já espessam o molho sozinhas.',6],
+ ['Tomilho e os caules da salsa','Tomilho e os CAULES da salsa picados — é neles que está o sabor, e aguentam as três horas que as folhas não aguentam. As folhas ficam para o fim.',3],
+ ['Forno a 150 °C, tapado','Tampa posta e ao forno, três horas. A esta temperatura o colagénio do acém desfaz-se sem a carne se desfiar, que é o que acontece se se apressar o lume.',180],
+ ['Servir','Folhas de salsa picadas por cima, à saída. Um cálice de cognac ou de vinho do Porto no molho, fora do lume, é opcional e tradicional — fica de fora da lista de ingredientes porque quem o dispensa não tem de levar o aviso de álcool por causa dele.']]);
 P('dauphinois',[['Cortar','Batatas em rodelas muito finas — mandolina, se tiveres. Não as laves depois de cortar: é o amido que liga o gratinado.'],
  ['Montar','Camadas na travessa esfregada com alho, com sal e noz-moscada entre elas.'],
  ['Natas','Natas a cobrir até quase ao topo.'],
@@ -6643,18 +6674,18 @@ P('acmtomatemanjericao',[['Perfumar o alho','Alho laminado no azeite em lume bra
  ['Apurar a polpa','Junta a polpa de tomate e deixa apurar em lume brando, até perder o sabor a cru e a colher deixar rasto no fundo do tacho.',12],
  ['Manjericão fora do lume','Folhas rasgadas à mão já fora do lume. Cozidas ficam pretas e sabem a erva seca.']]);
 P('acmcurrywurst',[['Suar a cebola','Cebola picada muito fina a suar no óleo, em lume brando, sem ganhar cor. Se alourar, o molho fica escuro e adocicado de mais.',7],
- ['Especiarias no óleo','Junta o caril, o pimentão-doce e a caiena e deixa-os fritar meio minuto no óleo da cebola, até cheirarem. É este passo que lhes tira o gosto a pó cru.',1],
- ['Tomate e maçã','Polpa de tomate e a maçã ralada com casca — é ela o puré, e desfaz-se sozinha no lume. Mexe e deixa apurar em lume brando.',12],
+ ['Especiarias no óleo','Junta o caril, a páprica fumada e a caiena e deixa-os fritar meio minuto no óleo da cebola, até cheirarem. É este passo que lhes tira o gosto a pó cru. A fumada é a que se quer aqui; havendo só pimentão-doce, serve — dá a cor, mas não dá o fumo.',1],
+ ['Tomate e maçã','Polpa de tomate, o concentrado e a maçã ralada com casca — é ela o puré, e desfaz-se sozinha no lume. O concentrado é o que dá fundo e cor sem aguar o molho; havendo só um dos dois, faz-se com o que houver, a acertar a água.',12],
  ['Acertar o agridoce','Molho inglês, vinagre balsâmico e mel, por esta ordem, com um pouco de água a soltar. Prova entre cada um: o molho tem de picar e adoçar ao mesmo tempo, e o balsâmico faz as duas coisas.',5],
  ['Passar ou não','Deixa-o rústico, ou passa-o com a varinha para ficar liso como o das bancas. Sobre a salsicha às rodelas, com mais caril por cima e as batatas fritas ao lado.',2]]);
 P('aclaipofritas',[['Cortar','Descasca o aipo-rábano com faca — a casca é grossa de mais para o descascador — e corta em palitos da grossura de um dedo mindinho. Os rabanetes vão só ao meio ou aos quartos, conforme o tamanho, e não se descascam.',12],
  ['Temperar','Envolve tudo no azeite com o pimentão-doce e o sal, até ficarem brilhantes.',3],
  ['Assar','Forno a 220 °C, num tabuleiro em camada única e sem se tocarem, 25 a 30 minutos, a virar a meio. Amontoados cozem em vez de tostar.',28],
  ['Servir','O rabanete perde no forno o picante que tem em cru e fica adocicado — quem o provar às cegas não lhe acerta o nome. Comem-se logo: mornos, murcham.']]);
-P('acmcurryketo',[['Especiarias no óleo','Óleo numa frigideira pequena em lume brando, e o caril com o pimentão-doce e a caiena lá dentro, meio minuto, até cheirarem. Sem cebola nem maçã, é daqui que vem quase todo o sabor — não saltes este passo.',1],
- ['Tomate','Junta a polpa de tomate e um pouco de água a soltar. Sete minutos em lume brando, a mexer, até o tomate perder o gosto a cru.',7],
+P('acmcurryketo',[['Especiarias no óleo','Óleo numa frigideira pequena em lume brando, e o caril com a páprica fumada e a caiena lá dentro, meio minuto, até cheirarem. Sem cebola nem maçã, é daqui que vem quase todo o sabor — não saltes este passo. Sem fumada, o pimentão-doce serve, mas nota-se a falta.',1],
+ ['Tomate','Aqui o tomate entra só como concentrado, desfeito num pouco de água a ferver — é a alternativa à polpa, e na versão keto é a escolha certa: dá o mesmo corpo com metade dos hidratos, que num prato que tem de caber em dez gramas é a diferença entre caber e não caber. Sete minutos em lume brando, a mexer.',7],
  ['Acertar o agridoce','Vinagre de vinho, molho inglês e o eritritol. O eritritol adoça menos do que o mel e não carameliza, por isso acerta primeiro o vinagre e só depois o doce — ao contrário do molho normal.',3],
- ['Servir','Sobre a salsicha às rodelas, com mais caril por cima e os palitos de aipo-rábano ao lado. Sem o mel e sem a maçã fica mais picante do que o original: é a caiena que passa à frente.']]);
+ ['Servir','Sobre a salsicha às rodelas, com mais caril por cima e os palitos de aipo-rábano e rabanete ao lado. Sem o mel e sem a maçã fica mais picante do que o original: é a caiena que passa à frente.']]);
 P('salmaoteriyaki',[['Marinar','Salmão no teriyaki com gengibre e alho ralados, quinze minutos. Mais tempo e o açúcar queima ao grelhar.',15],
  ['Selar','Frigideira quente com óleo de sésamo, salmão a corar de ambos os lados.',6],
  ['Glacear','A marinada ao lume a reduzir até brilhar, e o salmão a rolar lá dentro.',4],
