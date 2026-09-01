@@ -3343,7 +3343,7 @@ R('pxgoraz','Goraz assado no forno com batatas e limão','portuguesa',['mediterr
 R('pxcavala','Cavala no forno com cebolada','portuguesa',['mediterranica'],0,0,0,0,[['Cavala',300,'g'],['Cebola',0.5,'un'],['Tomate',1,'un'],['Pimento',0.25,'un'],['Azeite',10,'ml'],['Alho',1,'dente'],['Louro',1,'g']],['a','j']),
 R('pxsalmao','Salmão assado no forno','portuguesa',['mediterranica'],0,0,0,0,[['Salmão',200,'g'],['Batata nova',150,'g'],['Coentros',3,'g']],['a','j']),
 /* ---------- Marisco ---------- */
-R('mrbulhao','Amêijoas à Bulhão Pato','portuguesa',['mediterranica'],0,0,0,0,[['Amêijoas',350,'g'],['Azeite',10,'ml'],['Alho',2,'dente'],['Coentros',8,'g'],['Vinho branco',30,'ml'],['Limão',0.5,'un']],['a','j']),
+R('mrbulhao','Amêijoas à Bulhão Pato','portuguesa',['mediterranica'],0,0,0,0,[['Amêijoas',350,'g'],['Azeite',10,'ml'],['Manteiga sem sal',15,'g'],['Alho',2,'dente'],['Malagueta',1,'g'],['Coentros',8,'g'],['Vinho branco',30,'ml'],['Limão',0.5,'un']],['a','j']),
 R('mrgambas','Gambas grelhadas com alho e limão','portuguesa',['mediterranica'],0,0,0,0,[['Gamba crua',300,'g'],['Azeite',10,'ml'],['Alho',2,'dente'],['Limão',0.5,'un'],['Salsa',5,'g'],['Flor de sal',2,'g']],['a','j']),
 R('mrberbigao','Berbigão ao vapor com coentros','portuguesa',['mediterranica'],0,0,0,0,[['Berbigão cru',350,'g'],['Azeite',5,'ml'],['Alho',1,'dente'],['Coentros',5,'g'],['Limão',0.5,'un']],['a','j']),
 R('mrchoco','Choco grelhado com azeite e alho','portuguesa',['mediterranica'],0,0,0,0,[['Choco cru',250,'g'],['Azeite',10,'ml'],['Alho',2,'dente'],['Limão',0.5,'un'],['Salsa',5,'g']],['a','j']),
@@ -3440,7 +3440,16 @@ R('uvaslima','Uvas com raspas de lima','portuguesa',['lowfat','vegan','mediterra
    corpo — e a gelatina desce para 1 g por 100 ml, metade do que cá estava. É
    essa metade que separa uma panna cotta de um pudim: tem de tremer no prato e
    ceder à colher, não de se aguentar de pé. */
-R('pannacotta','Panna cotta','italiana',[],0,0,0,0,[['Nata para bater 35% gordura',100,'ml'],['Açúcar branco',23,'g'],['Gelatina em folhas',1,'g'],['Baunilha',1,'g'],['Framboesa',42,'g'],['Limão',0.15,'un'],['Hortelã',1,'g']],['l'],0,['sob']),
+/* Proporções do Vincenzo's Plate, por dose (a receita dele é para seis): 600 ml
+   de natas, 6 g de gelatina e 90 g de açúcar. Duas diferenças para o que a app
+   tinha: não leva leite nenhum — é nata pura, e era o leite que lhe tirava o
+   corpo — e a gelatina desce para 1 g por 100 ml, metade do que cá estava. É
+   essa metade que separa uma panna cotta de um pudim: tem de tremer no prato e
+   ceder à colher, não de se aguentar de pé.
+   O coulis saiu da lista e passou a complemento, no lugar do molho: é assim
+   que a mesma panna cotta serve framboesa, morango ou manga sem serem três
+   receitas. O par com framboesa é a receita do Vincenzo por inteiro. */
+R('pannacotta','Panna cotta','italiana',[],0,0,0,0,[['Nata para bater 35% gordura',100,'ml'],['Açúcar branco',15,'g'],['Gelatina em folhas',1,'g'],['Baunilha',1,'g']],['l'],0,['sob']),
 R('abadepriscos','Pudim Abade de Priscos','portuguesa',[],0,0,0,0,[['Açúcar branco',34,'g'],['Gema de ovo de galinha, crua',36,'g'],['Toucinho fumado',8,'g'],['Vinho do Porto',12,'ml'],['Limão',2,'g'],['Canela',0.4,'g']],['l'],0,['sob']),
 R('leitecreme','Leite creme','portuguesa',[],0,0,0,0,[['Leite',110,'ml'],['Gema de ovo de galinha, crua',26,'g'],['Açúcar branco',24,'g'],['Milho, amido (pó)',7,'g'],['Limão',3,'g'],['Canela',0.5,'g']],['l'],0,['sob']),
 R('babacamelo','Baba de camelo','portuguesa',[],0,0,0,0,[['Leite condensado açucarado',70,'g'],['Ovo',1,'un'],['Amêndoa',8,'g']],['l'],0,['sob']),
@@ -3755,6 +3764,22 @@ R('acmbeurreblanc','Beurre blanc','francesa',[],0,0,0,0,[['Chalota',30,'g'],['Vi
 R('acmbeurreblancalcaparras','Beurre blanc com alcaparras','francesa',[],0,0,0,0,[['Chalota',30,'g'],['Vinho branco',60,'ml'],['Vinagre de vinho',15,'ml'],['Manteiga',40,'g'],['Alcaparras',12,'g']],['mo']),
 R('acmbeurreblancendro','Beurre blanc de endro','francesa',[],0,0,0,0,[['Chalota',30,'g'],['Vinho branco',60,'ml'],['Vinagre de vinho',15,'ml'],['Nata para bater 35% gordura',20,'ml'],['Manteiga',42,'g'],['Endro',5,'g']],['mo']),
 R('acmtzatziki','Tzatziki','grega',[],0,0,0,0,[['Iogurte grego',80,'g'],['Pepino',0.5,'un'],['Alho',1,'dente'],['Endro',3,'g']],['mo']),
+/* ---- O coulis é um complemento, e o complemento é o lugar do molho ----
+   Um coulis não é um acompanhamento: não reparte lugar com ninguém, não se
+   come sozinho, e é um por sobremesa — que é, palavra por palavra, o que a
+   app já dizia do molho. Por isso vive no lugar do molho em vez de num
+   terceiro campo: reaproveita a troca, os macros, os alergénios e a
+   composição do nome, e o que muda é só como se chama na interface, que
+   passa a «cobertura» quando o prato é sobremesa.
+   As proporções são as do coulis de framboesa do Vincenzo's Plate, que é para
+   seis: 250 g de fruta, 50 g de açúcar e um limão — 42 g, 8 g e um sexto de
+   limão por dose. A mesma proporção serve as outras frutas, porque o que ela
+   equilibra é a acidez contra o açúcar, e não o sabor. */
+R('acmcoulisframboesa','Coulis de framboesa','francesa',[],0,0,0,0,[['Framboesa',42,'g'],['Açúcar branco',8,'g'],['Limão',0.17,'un']],['mo'],0,['sob']),
+R('acmcoulismorango','Coulis de morango','francesa',[],0,0,0,0,[['Morango',42,'g'],['Açúcar branco',8,'g'],['Limão',0.17,'un']],['mo'],0,['sob']),
+R('acmcoulisvermelhos','Coulis de frutos vermelhos','francesa',[],0,0,0,0,[['Frutos vermelhos',42,'g'],['Açúcar branco',8,'g'],['Limão',0.17,'un']],['mo'],0,['sob']),
+R('acmcoulismanga','Coulis de manga','francesa',[],0,0,0,0,[['Manga',42,'g'],['Açúcar branco',8,'g'],['Limão',0.17,'un']],['mo'],0,['sob']),
+R('acmcoulismaracuja','Coulis de maracujá','francesa',[],0,0,0,0,[['Maracujá',42,'g'],['Açúcar branco',8,'g'],['Limão',0.17,'un']],['mo'],0,['sob']),
 R('acmtahini','Molho de tahini','libanesa',[],0,0,0,0,[['Tahini',15,'g'],['Limão',0.25,'un'],['Alho',0.5,'dente']],['mo']),
 R('acmendropepino','Molho de endro e pepino','mediterranica',[],0,0,0,0,[['Nata',50,'ml'],['Pepino',0.5,'un'],['Endro',4,'g'],['Limão',0.5,'un']],['mo']),
 R('acmmanteigapimentao','Manteiga de pimentão','mediterranica',[],0,0,0,0,[['Manteiga',12,'g'],['Pimentão-doce',2,'g'],['Malagueta',0.5,'g']],['mo']),
@@ -4641,13 +4666,11 @@ P('uvaslima',[['Preparar','Lava as uvas, corta-as ao comprido em quatro e tira a
  ['Temperar','Sumo de lima por cima e envolve.'],
  ['Servir','Raspa de lima e hortelã picada à saída. Melhor bem fresco.']]);
 P('pannacotta',[['Gelatina em água muito fria','Folhas a demolhar em água bem fria alguns minutos, até amolecerem. Em água morna dissolvem-se e perdem a força — depois a panna cotta não pega.',5],
- ['Natas e açúcar','Natas em lume médio-brando, a bater devagar com as varas, e o açúcar (15 g dos 23; os outros 8 ficam para a coulis) a dissolver-se por completo antes de aquecer mais.',6],
+ ['Natas e açúcar','Natas em lume médio-brando, a bater devagar com as varas, e o açúcar a dissolver-se por completo antes de aquecer mais.',6],
  ['Baunilha, e fora do lume ao primeiro sinal','Junta a baunilha e não te afastes: assim que aparecerem bolhas pequenas na berma do tacho, desliga. Não pode ferver — a nata talha e o creme fica granuloso.',4],
  ['Dissolver a gelatina','Espreme a gelatina da água e junta-a às natas ainda quentes, fora do lume, mexendo até desaparecer por completo e o creme ficar liso. Um grão que fique nota-se todo depois de frio.',3],
  ['Ao frio, sem pressa','Deita em copos ou taças e leva ao frigorífico três horas no mínimo — de um dia para o outro é melhor, e aguenta três a quatro dias. Com 1 g de gelatina por 100 ml de nata, sai a tremer: é assim que é.',180],
- ['Coulis de framboesa','Framboesas num tacho, a raspa do limão por cima e o sumo coado. Os 8 g de açúcar que sobraram, lume médio, a mexer e a esmagar as framboesas até largarem o suco.',8],
- ['Coar e arrefecer','Passa por um passador fino, a apertar com as costas de uma colher para tirar tudo o que dá — o que fica no passador são as grainhas, e é por elas que se coa. Arrefece por completo antes de servir.',5],
- ['Servir','Coulis fria sobre a panna cotta fria e uma folha de hortelã. Quente sobre fria, derretia-lhe a superfície.']]);
+ ['Escolher a cobertura','Vai à mesa lisa ou com um coulis por cima — é a cobertura que se escolhe à parte, e o coulis frio sobre a panna cotta fria. Quente, derretia-lhe a superfície.']]);
 P('abadepriscos',[['Calda','Leva o açúcar ao lume com pouca água, o limão e a canela, até fio pérola. Junta o toucinho em cubinhos e deixa cozinhar na calda — é ele o segredo deste pudim.',12],
  ['Arrefecer','Deixa a calda amornar. Se estiver a ferver, coalha as gemas.'],
  ['Gemas','Junta as gemas mexidas (não batidas) e o vinho do Porto, sem fazer espuma.'],
@@ -5063,10 +5086,10 @@ P('pxcavala',[['Temperar','Cavala amanhada, sal e limão.'],
 P('pxsalmao',[['Temperar','Salmão com sal, pimenta e limão, meia hora antes de ir ao forno.',30],
  ['Forno curto','Forno a 190 °C só até o centro ficar rosado e as lascas começarem a separar-se. Passado disso seca e fica farinhento.',15],
  ['Acabar','Flor de sal, coentros picados e um fio de azeite em cru, já fora do forno.']]);
-P('mrbulhao',[['Purgar','Amêijoas em água com sal duas horas, para largarem a areia. Descarta as que não fecharem.',120],
- ['Refogar','Alho laminado no azeite, sem alourar.',2],
- ['Abrir','Amêijoas, vinho branco, tapa e sacode o tacho até abrirem.',5],
- ['Servir','Coentros picados e limão fora do lume. Deita fora as que ficaram fechadas.']]);
+P('mrbulhao',[['Purgar','Amêijoas em água com sal duas horas, para largarem a areia. Descarta as que não fecharem ao toque — essas já estavam mortas antes de chegarem ao tacho.',120],
+ ['Refogar','Alho laminado no azeite com a manteiga sem sal e a malagueta, em lume brando, sem alourar. A manteiga tem de ser sem sal: as amêijoas trazem o sal do mar e é o suficiente para o molho todo.',3],
+ ['Abrir','Amêijoas, vinho branco, tapa e sacode o tacho até abrirem. Assim que a última abrir, sai do lume — cozidas a mais ficam borracha.',5],
+ ['Servir','Coentros picados e limão fora do lume. Deita fora as que ficaram fechadas. Uma ponta de mostarda desfeita no molho, à saída, também lá vai muito bem — não está na lista porque a mostarda é alergénio de declaração obrigatória, e metê-la lá punha o aviso a quem a faz sem ela.']]);
 P('mrgambas',[['Preparar','Gambas abertas pelas costas, sem tripa, bem secas.'],
  ['Grelhar','Grelha bem quente, dois minutos de cada lado.',4],
  ['Servir','Alho, azeite e limão por cima, à saída.']]);
@@ -6524,6 +6547,25 @@ P('acmbeurreblancendro',[['Redução de chalota','Chalota, vinho branco e vinagr
 P('acmtzatziki',[['Espremer o pepino','Rala o pepino com casca e espreme-o num pano até deixar de pingar. É a água dele que estraga o tzatziki: mal escorrido, o molho fica aguado em meia hora.',5],
  ['Envolver','Junta o pepino ao iogurte grego com o alho ralado fino e o endro picado. Mexe sem bater, que o iogurte grego perde corpo se for trabalhado de mais.'],
  ['Repousar frio','Meia hora no frigorífico para o alho perfumar o iogurte. Está no ponto quando cheira a alho sem arder na língua; prova o sal só depois deste descanso.',30]]);
+P('acmcoulisframboesa',[['Fruta e limão','Framboesas num tacho, a raspa do limão por cima e o sumo coado — sem grainhas nem pevides.',3],
+ ['Ao lume','Junta o açúcar e leva a lume médio, a mexer e a esmagar a fruta com as costas da colher até largar o suco todo.',8],
+ ['Coar','Passa por um passador fino, a apertar para tirar tudo o que dá. O que fica no passador são as grainhas, e é por elas que se coa.',4],
+ ['Arrefecer','Fria por completo antes de ir para cima da sobremesa. Morna, derrete-lhe a superfície e escorre pelos lados.',20]]);
+P('acmcoulismorango',[['Fruta e limão','Morangos sem folhas, aos quartos, num tacho, com a raspa e o sumo coado do limão.',4],
+ ['Ao lume','Açúcar e lume médio, a mexer e a esmagar até desfazerem.',8],
+ ['Coar','Passador fino, a apertar. O morango dá um coulis mais espesso do que a framboesa — se ficar grosso de mais, solta-se com uma colher de água.',4],
+ ['Arrefecer','Fria por completo antes de servir.',20]]);
+P('acmcoulisvermelhos',[['Fruta e limão','Frutos vermelhos num tacho, com a raspa e o sumo coado do limão. Congelados servem, e não precisam de descongelar antes.',3],
+ ['Ao lume','Açúcar e lume médio, a mexer e a esmagar até largarem o suco.',8],
+ ['Coar','Passador fino, a apertar bem — a mistura traz grainhas de vários tamanhos e todas se notam depois.',4],
+ ['Arrefecer','Fria por completo antes de servir.',20]]);
+P('acmcoulismanga',[['Fruta e limão','Manga madura em cubos, com a raspa e o sumo coado do limão. O limão aqui não é opcional: sem ele a manga fica enjoativa.',5],
+ ['Ao lume','Açúcar e lume médio, poucos minutos — a manga desfaz-se depressa e não ganha nada em ferver.',5],
+ ['Triturar em vez de coar','Não tem grainhas: passa-se com a varinha até ficar liso, e só se coa se a manga tiver fibra.',3],
+ ['Arrefecer','Fria por completo antes de servir.',20]]);
+P('acmcoulismaracuja',[['Abrir e coar','Abre os maracujás e recolhe a polpa. Passa metade por um passador para tirar as sementes e guarda a outra metade com elas — são o que dá o aspeto ao coulis.',6],
+ ['Ao lume','Junta o açúcar, a raspa e o sumo do limão e leva a lume brando só até o açúcar desaparecer. O maracujá é ácido que chegue e não precisa de reduzir.',4],
+ ['Arrefecer','Fria por completo. Junta as sementes que guardaste no fim, para não cozerem.',20]]);
 P('acmtahini',[['Soltar com o limão','Junta o sumo de limão ao tahini e mexe. Ao princípio agarra e endurece de repente — é o que tem de acontecer, não deitaste nada a perder.'],
  ['Água a pouco e pouco','Vai juntando água muito fria, uma colher de cada vez, sempre a bater, até o molho voltar a ficar liso. Toda de uma vez, separa e nunca mais liga.',3],
  ['Temperar e provar','Alho ralado fino e sal. Está no ponto quando escorre da colher em fita e volta a nivelar na taça; amargo pede mais limão, espesso pede mais água.']]);
@@ -22753,6 +22795,11 @@ const NOME_COMBO={
   'c:caesar+~acmcaesar':'Salada Caesar com frango',
   'c:ovosbenedict+~acmholandes':'Ovos Benedict',
   'c:chickenparm+~acmtomatemanjericao':'Chicken Parmesan',
+  'c:pannacotta~acmcoulisframboesa':'Panna cotta com coulis de framboesa',
+  'c:pannacotta~acmcoulismorango':'Panna cotta com coulis de morango',
+  'c:pannacotta~acmcoulisvermelhos':'Panna cotta com coulis de frutos vermelhos',
+  'c:pannacotta~acmcoulismanga':'Panna cotta com coulis de manga',
+  'c:pannacotta~acmcoulismaracuja':'Panna cotta com coulis de maracujá',
   'c:currywurst+acbfritas~acmcurrywurst':'Currywurst com batatas fritas',
   'c:currywurst+aclaipofritas~acmcurryketo':'Currywurst keto com palitos de aipo-rábano e rabanete',
 };
@@ -22841,6 +22888,14 @@ const COMBOS_BASE=[
   {base:'caesar', ac:[], mo:'acmcaesar'},
   {base:'ovosbenedict', ac:[], mo:'acmholandes'},
   {base:'chickenparm', ac:[], mo:'acmtomatemanjericao'},
+  /* A panna cotta com cada coulis. O par com framboesa e a receita do
+     Vincenzo's Plate por inteiro; os outros sao a mesma panna cotta com outra
+     cobertura, que e exatamente o que o complemento serve para dizer. */
+  {base:'pannacotta', ac:[], mo:'acmcoulisframboesa'},
+  {base:'pannacotta', ac:[], mo:'acmcoulismorango'},
+  {base:'pannacotta', ac:[], mo:'acmcoulisvermelhos'},
+  {base:'pannacotta', ac:[], mo:'acmcoulismanga'},
+  {base:'pannacotta', ac:[], mo:'acmcoulismaracuja'},
   {base:'currywurst', ac:['acbfritas'], mo:'acmcurrywurst'},
   {base:'currywurst', ac:['aclaipofritas'], mo:'acmcurryketo'},
 ];
@@ -27856,6 +27911,20 @@ function acompanhamentos(){ const c=acClones(); return RECIPES.filter(r=>r.mt.in
    molhos no mesmo prato é indecisão, não é receita — e assim qualquer molho
    se troca por outro sem mexer no resto do prato. */
 function ehMolho(r){ return !!r && (r.mt||[]).indexOf('mo')>=0; }
+/* ---- Complementos doces: o mesmo lugar, outro nome ----
+   O coulis ocupa o lugar do molho porque é a mesma coisa em tudo o que
+   importa: um por prato, não reparte lugar com acompanhamento nenhum, e conta
+   por inteiro nos macros. O que não pode acontecer é a app oferecer «coulis de
+   manga» a quem está a escolher molho para um bife, nem chamar «molho» a uma
+   cobertura de sobremesa. Estas três funções são o que separa as duas
+   famílias, e separam-nas pela categoria do prato — não por uma lista de ids
+   à mão, que a próxima sobremesa esqueceria. */
+function ehSobremesa(r){ return !!r && (r.cg||[]).indexOf('sob')>=0; }
+function ehComplementoDoce(r){ return ehMolho(r) && ehSobremesa(r); }
+/* A palavra que a interface usa para o lugar do molho: numa sobremesa é uma
+   cobertura, e chamar-lhe molho fazia a app soar a quem nunca comeu o prato. */
+function palavraMolho(prato){ return ehSobremesa(prato)? 'cobertura' : 'molho'; }
+function iconeMolho(prato){ return ehSobremesa(prato)? '🍓' : '🥄'; }
 function molhos(){ return RECIPES.filter(ehMolho); }
 function moId(meal){
   if(!meal || !meal.mo) return '';
@@ -28060,10 +28129,18 @@ function trocarAcomp(di,mk,i){
 /* Os molhos que servem esta mesa. Sem teto de calorias, pela mesma razão do
    acompanhamento: são vinte a quarenta gramas por pessoa e quem foi medido
    foi o prato. */
+/* O que se pode pôr neste lugar depende do prato: numa sobremesa, coberturas
+   doces; no resto, molhos. Sem esta divisão, reaproveitar o lugar do molho
+   para o coulis punha «coulis de manga» na lista de quem escolhia molho para
+   um bife — e «molho de tahini» na lista de quem escolhia cobertura para uma
+   panna cotta. A divisão é pela categoria do prato e não por uma lista de ids
+   escrita à mão, que a próxima sobremesa esqueceria. */
 function poolMolho(di,mk){
   const meal=planWeek()[di]?.[mk], date=weekDates(S.week)[di];
+  const prato=meal&&meal.r? RECIPES.find(x=>x.id===meal.r) : null;
+  const doce=ehSobremesa(prato);
   const comem=S.members.filter(m=>(meal? meal.m.includes(m.id) : true) && !isCheat(m.id,date));
-  return molhos().filter(x=>avaliaReceita(x,comem,mk,false).ok)
+  return molhos().filter(x=>ehComplementoDoce(x)===doce && avaliaReceita(x,comem,mk,false).ok)
     .sort((a,b)=>{
       const da=disponibilidadeReceita(a).pronta, db=disponibilidadeReceita(b).pronta;
       if(da!==db) return da? -1 : 1;
@@ -28082,14 +28159,16 @@ function setMolho(di,mk,rid){
    para carregar duas vezes dar dois molhos diferentes. */
 function trocarMolho(di,mk){
   const meal=planMeal(di,mk), atual=moId(meal);
+  const prato=meal&&meal.r? RECIPES.find(x=>x.id===meal.r) : null;
+  const p=palavraMolho(prato);
   const pool=poolMolho(di,mk);
-  if(!pool.length) return flash('warn','Não há molhos que sirvam esta mesa.');
+  if(!pool.length) return flash('warn','Não há '+(p==='cobertura'?'coberturas':'molhos')+' que sirvam esta mesa.');
   const j=pool.findIndex(x=>x.id===atual);
   const nova=pool[(j+1)%pool.length];
-  if(nova.id===atual) return flash('warn','Não há outro molho que sirva esta mesa.');
+  if(nova.id===atual) return flash('warn','Não há outra '+p+' que sirva esta mesa.');
   meal.mo=nova.id;
   const combo=registaCombo(meal.r, acIds(meal), meal.mo);
-  save('molho trocado'); render();
+  save(p+' trocada'); render();
   if(combo) flash('ok','Agora é «'+combo.n+'» — variante guardada, com o passo-a-passo já refeito.',
     {rot:'Ver a receita', fn:"irReceita('"+combo.id+"')"});
   else flash('ok','Agora com '+nova.n.toLowerCase()+'.');
@@ -28555,19 +28634,24 @@ function blocoAcomp(di,mk,acs,label){
 }
 /* A linha do molho, irmã da do acompanhamento e com o mesmo feitio — mas uma
    só, porque dois molhos no mesmo prato não é uma receita, é indecisão. */
-function blocoMolho(di,mk,mo,label){
+/* O mesmo lugar, com o nome que o prato lhe dá: «molho» num salteado,
+   «cobertura» numa sobremesa. Recebe o prato de propósito — sem ele a linha
+   não tem como saber qual das duas palavras usar, e era por isso que a app
+   só sabia dizer uma. */
+function blocoMolho(di,mk,mo,label,prato){
   const ref=label.toLowerCase(), dia=DAYN[di].toLowerCase();
+  const p=palavraMolho(prato), ico=iconeMolho(prato);
   return `<div class="ac-linha">
     <select class="acomp ${mo?'cheio':''}" data-di="${di}" data-mk="${mk}" data-tipo="mo" data-i="0"
       onfocus="encheSelect(this)" onmousedown="encheSelect(this)" ontouchstart="encheSelect(this)"
       onchange="setMolho(${di},'${mk}',this.value)"
-      aria-label="Molho do ${ref} de ${dia}">
-      <option value="">🥄 ${mo?'— tirar o molho —':'— sem molho —'}</option>
-      ${mo? `<option value="${mo.id}" selected>🥄 ${esc(mo.n)} · ${mo.k} kcal</option>`:''}
+      aria-label="${p.charAt(0).toUpperCase()+p.slice(1)} do ${ref} de ${dia}">
+      <option value="">${ico} ${mo?'— tirar a '+p+' —':'— sem '+p+' —'}</option>
+      ${mo? `<option value="${mo.id}" selected>${ico} ${esc(mo.n)} · ${mo.k} kcal</option>`:''}
     </select>
     ${mo? `<button class="btn ghost ac-troca" onclick="trocarMolho(${di},'${mk}')"
-        title="Trocar por outro molho"
-        aria-label="Trocar ${esc(mo.n)} por outro molho do ${ref} de ${dia}">🔀</button>`:''}
+        title="Trocar por outra ${esc(p)}"
+        aria-label="Trocar ${esc(mo.n)} por outra ${esc(p)} do ${ref} de ${dia}">🔀</button>`:''}
   </div>`;
 }
 /* Quem, dos que estavam à mesa, já confirmou esta refeição. É daqui que sai o
@@ -28629,7 +28713,7 @@ function mealBlock(di,mk,label,date){
       ${r? `<option value="${r.id}" selected>${esc(r.n)} · ${r.k} kcal</option>`:''}
     </select>
     ${r&&(mk==='a'||mk==='j')? blocoAcomp(di,mk,acs,label) : ''}
-    ${r&&(mk==='a'||mk==='j')? blocoMolho(di,mk,molhoDe(meal),label) : ''}
+    ${r&&(mk==='a'||mk==='j'||ehSobremesa(r))? blocoMolho(di,mk,molhoDe(meal),label,r) : ''}
     ${r? blocoReceitaPlaneada(r,comem,mk,acs,nExtraMesa(meal),molhoDe(meal),di) : ''}
     <div class="row" style="margin-top:7px">${members.map(m=>{
       const on=meal? meal.m.includes(m.id) : true, cheat=isCheat(m.id,date);
