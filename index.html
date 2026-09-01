@@ -4203,7 +4203,18 @@ R('frenchtoast','French toast','americana',[],0,0,0,0,[['Pão de forma',80,'g'],
    leva pão e ovo escalfado e já cá está: esta é o creme aveludado que se come
    com a grilled cheese ao lado — e é por isso que a receita diz onde mergulhar
    a sandes. As duas ficam com o nome de cada uma. */
-R('sopatomategratinada','Sopa de tomate gratinada','americana',['vegetariana'],0,0,0,0,[['Tomate pelado',320,'g'],['Cebola',70,'g'],['Alho',2,'dente'],['Nata para bater 35% gordura',25,'ml'],['Manteiga',8,'g'],['Queijo gruyère',25,'g'],['Pão rústico',20,'g'],['Manjericão',5,'g'],['Azeite',6,'ml'],['Açúcar branco',3,'g']],['a','j'],0,['sop']),
+/* «Gratinada» quer dizer duas coisas diferentes em duas sopas de tomate, e a
+   app tinha só uma delas. Nesta, o gratinado é dos LEGUMES: tomate, cebola,
+   pimento e alho vão ao forno até as pontas ganharem cor, e é o açúcar do
+   tomate a caramelizar que faz a doçura — a mesma que a versão americana vai
+   buscar a uma pitada de açúcar e a um refogado. Sem lacticínios e sem pão,
+   fica vegan por construção; as natas ficam de fora da lista de propósito,
+   porque metê-las tirava a etiqueta a toda a gente que a faz sem elas. */
+R('sopatomategratinada','Sopa de tomate gratinado','mediterranica',['mediterranica'],0,0,0,0,[['Tomate pelado',350,'g'],['Pimento',1,'un'],['Cebola',100,'g'],['Alho',4,'dente'],['Azeite',25,'ml'],['Manjericão',8,'g']],['a','j'],0,['sop']),
+/* A outra «gratinada»: a de tacho americano, com o gratinado por cima, em
+   gruyère e pão. Tinha o id da principal e passou a ter o seu — a receita é a
+   mesma, o nome é que deixa de a confundir com a do forno. */
+R('sopatomategruyere','Sopa de tomate gratinada com gruyère','americana',['vegetariana'],0,0,0,0,[['Tomate pelado',320,'g'],['Cebola',70,'g'],['Alho',2,'dente'],['Nata para bater 35% gordura',25,'ml'],['Manteiga',8,'g'],['Queijo gruyère',25,'g'],['Pão rústico',20,'g'],['Manjericão',5,'g'],['Azeite',6,'ml'],['Açúcar branco',3,'g']],['a','j'],0,['sop']),
 /* A mesma sopa com a sandes ao lado deixa de ser entrada e passa a ser o
    jantar — e é assim que se come lá. Fica como receita própria, categorizada
    como prato principal, em vez de a grilled cheese virar acompanhamento de
@@ -7784,13 +7795,19 @@ P('frenchtoast',[['Massa','Bate o ovo com o leite, a baunilha e a canela até fi
  ['Frigideira','Manteiga em lume médio, sem deixar queimar. As fatias vão para a frigideira quando a manteiga já espuma mas ainda está clara.',3],
  ['Dourar','Três a quatro minutos de cada lado, até estarem douradas e firmes ao toque. Lume alto tosta por fora e deixa o ovo cru no meio.',8],
  ['Servir','Xarope de ácer por cima, ainda quente. Fruta ou uma noz de manteiga, se apetecer.']]);
-P('sopatomategratinada',[['Refogado','Cebola e alho em manteiga e azeite, em lume brando, até ficarem translúcidos sem tostar. Tostar aqui traz amargo à sopa toda.',8],
+P('sopatomategratinada',[['Cortar aos quartos','Tomate pelado escorrido e aberto aos quartos, cebola aos quartos, pimento aos quartos e sem sementes nem pele branca de dentro. Os dentes de alho ficam inteiros e com pele: descascados a esta temperatura queimam e amargam a sopa toda.',10],
+ ['Ao forno a 180 °C','Tudo num tabuleiro em camada única, sem se sobrepor, e regado com o azeite todo. Quarenta minutos, ou até as pontas do tomate e do pimento ganharem cor escura — é essa cor que faz a sopa. Amontoados cozem em vez de assar, e a sopa sai aguada.',40],
+ ['Espremer o alho','Aperta cada dente com os dedos para a polpa sair da pele, e deita fora as peles. Nada do que ficou no tabuleiro se perde: o azeite e o suco assado vão para a panela com o resto.',3],
+ ['Varinha','Passa tudo com a varinha até ficar liso. Se estiver espesso de mais, solta-se com água a ferver ou caldo, a pouco e pouco — o sabor está concentrado e é fácil aguá-lo de uma vez.',4],
+ ['Sal, pimenta e manjericão','Sal e pimenta moída na hora, a provar. As folhas de manjericão entram no fim, fora do lume: fervidas, perdem o perfume e escurecem.',2],
+ ['Natas, se quiseres','Um fio de natas fora do lume dá-lhe cremosidade e arredonda a acidez do tomate. Não estão na lista porque a sopa se faz sem elas — e sem elas serve também quem não come lacticínios.']]);
+P('sopatomategruyere',[['Refogado','Cebola e alho em manteiga e azeite, em lume brando, até ficarem translúcidos sem tostar. Tostar aqui traz amargo à sopa toda.',8],
  ['Tomate','Junta o tomate pelado esmagado com a mão e o açúcar — a pitada de açúcar não adoça, corrige a acidez do tomate de lata. Deixa apurar destapado.',20],
  ['Triturar','Varinha até ficar completamente liso. Se quiseres aveludado a sério, passa depois por um passador fino.',5],
  ['Natas','Junta as natas fora do lume, prova o sal, e volta a aquecer sem deixar ferver.',4],
  ['Gratinar','Divide por taças que possam ir ao forno, cobre com o gruyère e o pão em cubos, e leva ao grelhador até o queijo borbulhar e alourar.',8],
  ['Servir','Manjericão por cima. Com uma grilled cheese cortada em tiras ao lado, para molhar — é assim que ela se come na terra de onde veio.']]);
-P('sopatomategrilled',[['Sopa','Faz a sopa de tomate gratinada: refogado de cebola e alho em manteiga e azeite sem tostar, tomate pelado esmagado com a pitada de açúcar a apurar destapado, triturar até ficar liso, natas fora do lume.',35],
+P('sopatomategrilled',[['Sopa','Faz a sopa de tomate gratinada com gruyère: refogado de cebola e alho em manteiga e azeite sem tostar, tomate pelado esmagado com a pitada de açúcar a apurar destapado, triturar até ficar liso, natas fora do lume.',35],
  ['Gratinar','Taças ao forno com o gruyère por cima, debaixo do grelhador até borbulhar.',8],
  ['A sandes','Enquanto a sopa gratina: cheddar ralado entre as duas fatias, manteiga e maionese por FORA, e chapa em lume brando até dourar dos dois lados.',10],
  ['Cortar','Corta a sandes em tiras — servem para molhar na sopa, e é essa a razão de ela estar aqui.',2],
@@ -18525,6 +18542,7 @@ const VARIANTES=[
   {k:'hamburguer',n:'Hambúrguer',      ids:['hamburguer','ketohamburguer']},
   {k:'bitoque', n:'Bitoque',           ids:['bitoque','ketobitoque']},
   {k:'currywurst',n:'Currywurst',        ids:['c:currywurst+acbfritas~acmcurrywurst','c:currywurst+aclaipofritas~acmcurryketo']},
+  {k:'sopatomate',n:'Sopa de tomate',    ids:['sopatomate','sopatomategratinada','sopatomategruyere','sopatomategrilled']},
   {k:'paoketo', n:'Pão sem farinha',   ids:['ketopaonuvem','ketopaoamendoa']},
   /* ---- O mesmo prato, molho diferente ----
      Estas são o caso mais puro de variante: a mesma peça de carne ou de peixe
