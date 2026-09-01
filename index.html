@@ -14080,7 +14080,18 @@ function montaColapsaveis(){
        data-col prometia um cartão dobrável que nunca dobrava. */
     let tit=card.querySelector(':scope > h2, :scope > h3'), cabeca=tit;
     if(!tit){
-      const linha=[...card.children].slice(0,3).find(c=>c.nodeType===1 && c.querySelector('h2,h3'));
+      /* Um título dentro de um <summary> pertence ao <details>, não ao cartão.
+         Sem esta guarda, a busca apanhava o <details> INTEIRO como cabeçalho
+         do colapsável, e o `alterna` dele faz preventDefault() — que cancela
+         o toggle nativo. Resultado: os cartões do Reforço muscular, Pilates,
+         Ioga e Ciática não abriam de todo, e clicar neles dobrava o cartão em
+         vez de mostrar os exercícios. Nem havia razão para os dobrar duas
+         vezes: o <details> já É o mecanismo de dobrar. */
+      const linha=[...card.children].slice(0,3).find(c=>{
+        if(c.nodeType!==1 || c.tagName==='DETAILS') return false;
+        const h=c.querySelector('h2,h3');
+        return h && !h.closest('summary');
+      });
       if(linha){ tit=linha.querySelector('h2,h3'); cabeca=linha; }
     }
     if(!tit) return;
@@ -22467,6 +22478,37 @@ function cartaoMovimentoManha(){
       ou má disposição — é a regra do NHS, e é a desta casa.</p>
   </div>`;
 }
+/* ---- Do cartão de exercícios para o plano, num clique ----
+   Os cartões mostravam os exercícios e ficavam por aí: quem quisesse pôr
+   pilates no plano tinha de descer ao cartão do plano, carregar em «adicionar
+   desporto», e procurar a modalidade numa lista de sessenta. A ponte faltava
+   exatamente onde a decisão é tomada — a olhar para os exercícios.
+   Quando a modalidade já está no plano, o botão diz-lho e leva lá em vez de
+   duplicar a linha. */
+function planearAqui(sid){
+  const m=curM(); if(!m) return;
+  if(!temChave(SPORT,sid)) return;
+  if((m.desportos||[]).some(s=>s.s===sid)){
+    const el=document.getElementById('atv-plano');
+    if(el) scrollSuave(el);
+    return flash('warn', SPORT[sid].nome+' já está no plano — ajusta os dias e o tempo aqui em baixo.');
+  }
+  addDesportoSugerido(m.id, sid);
+  setTimeout(()=>{ const el=document.getElementById('atv-plano'); if(el) scrollSuave(el); },0);
+}
+/* A linha de ação que fecha cada cartão de exercícios. `sid` é a modalidade
+   equivalente no catálogo de desportos; `rot` é como se lhe chama no botão. */
+function linhaPlanear(sid,rot){
+  const m=curM(); if(!m || !temChave(SPORT,sid)) return '';
+  const ja=(m.desportos||[]).some(s=>s.s===sid);
+  return `<div class="row" style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px;align-items:center">
+    <span class="sub" style="flex:1;min-width:0">${ja
+      ? 'Já está no plano de '+esc(nomeCurto(m))+' — os dias e o tempo ajustam-se no plano de treino.'
+      : 'Para isto contar no gasto do dia e nos objetivos, tem de estar no plano.'}</span>
+    <button class="btn ${ja?'ghost ':''}small" style="flex:none" onclick="planearAqui('${sid}')">
+      ${ja? '✓ No plano — ver' : '+ Pôr '+esc(rot)+' no plano'}</button>
+  </div>`;
+}
 function cartaoForca(){
   const c=rodaConjunto(FORCA);
   return `<div class="card" data-col="atv-forca">
@@ -22495,6 +22537,7 @@ function cartaoForca(){
       ${listaMovs(p.ex)}
       <p class="sub" style="margin-top:8px">Alterna os dois conjuntos com um dia de descanso do grupo muscular pelo
         meio. Nas garrafas, aperta bem a tampa — parece anedota até molhar o tapete.</p>`; })()}
+      ${linhaPlanear('musculacao','musculação')}
     </details>
   </div>`;
 }
@@ -22517,6 +22560,7 @@ function cartaoPilates(){
       ${listaMovs(c.al)}
       <p class="sub" style="margin-top:10px">Como em tudo o resto: para imediatamente se houver dor aguda ou má
         disposição, e desconforto que aumenta é sinal para parar, não para insistir.</p>
+      ${linhaPlanear('pilates','pilates')}
     </details>
   </div>`;
 }
@@ -22539,6 +22583,7 @@ function cartaoIoga(){
       ${listaMovs(c.al)}
       <p class="sub" style="margin-top:10px">Como em tudo o resto: dor aguda, tontura ou má disposição é sinal para
         sair da posição já — devagar, mas já.</p>
+      ${linhaPlanear('yoga','ioga')}
     </details>
   </div>`;
 }
@@ -22558,6 +22603,7 @@ function cartaoCiatica(){
         desconforto suave é normal, dor a aumentar é sinal para parar. Se ao fim de umas semanas não melhorar,
         fala com o médico de família.</p>
       <div style="margin-top:10px">${listaMovs(CIATICA)}</div>
+      ${linhaPlanear('alongamentos','alongamentos')}
     </details>
   </div>`;
 }
@@ -27670,6 +27716,60 @@ function blocoJejumObjetivo(f){
    A ordem é que muda: primeiro os que quem foi escolhido já pratica (é neles
    que se vai acrescentar tempo, e são os mais prováveis), depois os restantes
    pela ordem em que a app os lista, que já está agrupada por família. */
+/* ---- Quarenta e três modalidades numa caixa de 184 px ----
+   A caixa mostrava TRÊS chips de quarenta e três, com 2733 px de conteúdo
+   por baixo e nada a dizê-lo: quem procurasse calistenia (posição 16) ou
+   musculação (15) concluía, com razão, que não estavam lá. Uma lista com
+   scroll invisível é uma lista que esconde o que tem.
+   Passa a ter procura e a vir agrupada por categoria — as mesmas de
+   CATS_SPORT que o seletor do plano de treino já usa —, com as praticadas
+   pela casa à frente. A caixa cresce, mas o que a torna navegável é a
+   procura: escrever «cal» chega a calistenia em duas teclas. */
+function setObjBuscaDesp(el){
+  const q=semAcentos(String(el.value||'').toLowerCase().trim());
+  document.querySelectorAll('#obj-desp [data-desp]').forEach(b=>{
+    b.style.display = !q || semAcentos(b.dataset.desp).indexOf(q)>=0 ? '' : 'none';
+  });
+  /* um grupo sem nenhuma modalidade à vista desaparece com o seu rótulo, para
+     a lista não ficar com cabeçalhos a apontar para o vazio */
+  document.querySelectorAll('#obj-desp [data-grupo]').forEach(g=>{
+    const algum=[...g.querySelectorAll('[data-desp]')].some(b=>b.style.display!=='none');
+    g.style.display=algum?'':'none';
+  });
+  const vazio=document.getElementById('obj-desp-vazio');
+  if(vazio){
+    const nada=q && ![...document.querySelectorAll('#obj-desp [data-desp]')].some(b=>b.style.display!=='none');
+    vazio.style.display=nada?'':'none';
+  }
+}
+function seletorDesportosObj(f){
+  const jaPratica=id=>jaPraticaNoForm(id);
+  /* as praticadas pela casa primeiro, num grupo próprio: são as que a maioria
+     das pessoas quer, e ter de as procurar entre as outras quarenta era o
+     caminho mais longo para a escolha mais provável */
+  const praticadas=SPORTS.map(s=>s.id).filter(id=>temChave(SPORT,id) && jaPratica(id));
+  const chip=id=>`<button class="chip ${f.desportos.indexOf(id)>=0?'on':''}" data-desp="${esc(SPORT[id].nome.toLowerCase())}"
+    onclick="toggleObjDesporto('${id}')" aria-pressed="${f.desportos.indexOf(id)>=0}">${jaPratica(id)?'★ ':''}${esc(SPORT[id].nome)}</button>`;
+  const grupos=CATS_SPORT.map(([c,rot])=>{
+    const lista=SPORTS.filter(s=>s.cat===c && temChave(SPORT,s.id) && !jaPratica(s.id));
+    if(!lista.length) return '';
+    return `<div data-grupo="${c}" style="width:100%">
+      <div class="splabel" style="margin:8px 0 4px"><span>${(ICO_SPORT[c]||'')} ${esc(rot)}</span></div>
+      <div class="row">${lista.map(s=>chip(s.id)).join('')}</div></div>`;
+  }).join('');
+  return `<div class="row" style="margin:6px 0">
+      <input type="text" class="busca" style="flex:1" maxlength="30"
+        placeholder="Procurar modalidade… (das ${SPORTS.length} que a app conhece)"
+        aria-label="Procurar modalidade" oninput="setObjBuscaDesp(this)">
+    </div>
+    <div id="obj-desp" style="width:100%;max-height:320px;overflow-y:auto">
+      ${praticadas.length? `<div data-grupo="casa" style="width:100%">
+        <div class="splabel" style="margin:2px 0 4px"><span>★ Já se praticam cá em casa</span></div>
+        <div class="row">${praticadas.map(chip).join('')}</div></div>`:''}
+      ${grupos}
+      <p class="sub" id="obj-desp-vazio" style="display:none;margin-top:8px">Nenhuma modalidade com esse nome.</p>
+    </div>`;
+}
 function opcoesDesportoForm(){
   const f=S.ui.objForm, jaPratica=new Set();
   f.membros.forEach(mid=>{ const m=S.members.find(x=>x.id===mid); if(m) (m.desportos||[]).forEach(s=>jaPratica.add(s.s)); });
@@ -27677,6 +27777,11 @@ function opcoesDesportoForm(){
   return todos.filter(id=>jaPratica.has(id)).concat(todos.filter(id=>!jaPratica.has(id)));
 }
 function jaPraticaNoForm(id){
+  /* O saneador do arranque garante o formulário, mas só no arranque: qualquer
+     caminho que o ponha a null a meio da sessão fazia rebentar o render dos
+     Objetivos inteiro, que é o que a nota do saneador diz que não pode
+     acontecer. A guarda custa uma linha e vale por todos esses caminhos. */
+  if(!S.ui.objForm || !Array.isArray(S.ui.objForm.membros)) return false;
   return S.ui.objForm.membros.some(mid=>{
     const m=S.members.find(x=>x.id===mid);
     return !!(m && (m.desportos||[]).some(s=>s.s===id));
@@ -28180,6 +28285,12 @@ function celebracaoHtml(o){
 }
 function fecharCelebracao(){ S.ui.celebrando=null; saveMeta(); render(); }
 function formCriacaoHtml(){
+  /* A mesma guarda de jaPraticaNoForm, na porta por onde tudo passa: o
+     formulário é reposto com os valores de raiz em vez de deitar o render
+     abaixo. É exatamente o cenário que a nota do saneador descreve. */
+  if(!S.ui.objForm || typeof S.ui.objForm!=='object' || !Array.isArray(S.ui.objForm.membros))
+    S.ui.objForm={membros:[],tipo:'perder',delta:5,semanas:12,split:50,desportos:[],dieta:'',
+      sessoes:3,agendar:true,nivel:'moderado',jejum:false,jejumH:16,jejumIni:12,jejumDias:0,banda:2};
   const f=S.ui.objForm, elegiveis=membrosElegiveisObjetivo();
   if(!elegiveis.length) return `<div class="card"><p class="sub">Ainda não há membros elegíveis para objetivos de peso —
     bebés acompanham-se pelo percentil, no separador Nutrição, e gestações de trigémeos não têm alvo calórico estimado.</p></div>`;
@@ -28228,10 +28339,10 @@ function formCriacaoHtml(){
     </div>
     <div class="splabel" style="margin-top:14px"><span>Desporto para o exercício extra ${dica('objDesportos')}</span>
       <output style="text-align:right">${f.desportos.length? plural(f.desportos.length,'escolhido','escolhidos') : 'nenhum'}</output></div>
-    <p class="sub" style="margin:2px 0 6px">Podes escolher mais do que um: o tempo extra reparte-se por igual entre eles.</p>
-    <div class="row" style="margin:6px 0;max-height:184px;overflow-y:auto">${opcoesDesportoForm().map(id=>
-      `<button class="chip ${f.desportos.indexOf(id)>=0?'on':''}" onclick="toggleObjDesporto('${id}')"
-        aria-pressed="${f.desportos.indexOf(id)>=0}">${jaPraticaNoForm(id)?'★ ':''}${SPORT[id].nome}</button>`).join('')}</div>
+    <p class="sub" style="margin:2px 0 6px">Podes escolher mais do que um: o tempo extra reparte-se por igual entre eles.
+      Estão cá as ${SPORTS.length} modalidades que a app conhece — <b>calistenia</b> e <b>musculação</b> incluídas —
+      agrupadas por família, com as da casa à frente.</p>
+    ${seletorDesportosObj(f)}
     ${f.desportos.length? `
     <div class="splabel" style="margin-top:12px"><span>Com que intensidade ${dica('objIntensidade')}</span>
       <output style="text-align:right">${(NIVEIS.find(n=>n[0]===f.nivel)||NIVEIS[1])[1]}</output></div>
