@@ -2411,7 +2411,7 @@ function migraRegistos(s){
   s.pausas = limparPausas(s.pausas, ids);
   s.diario = limparDiario(s.diario, ids);
   s.cozPref = limparCozPref(s.cozPref);
-  s.rituais = limparRituais(s.rituais); s.extras = limparExtras(s.extras); s.aindaHa = limparAindaHa(s.aindaHa);
+  s.rituais = limparRituais(s.rituais); s.extras = limparExtras(s.extras); s.aindaHa = limparAindaHa(s.aindaHa); s.basicos = limparBasicos(s.basicos);
   s.visitas = limparVisitas(s.visitas); s.ementas = limparEmentas(s.ementas);
   s.anos = limparAnos(s.anos, ids); s.provas = limparProvas(s.provas, ids); s.bebidas = limparBebidas(s.bebidas, ids);
   /* notasCozinha era o único campo com saneador que não passava por aqui: era
@@ -2518,9 +2518,6 @@ function limparPrecos(o){
   });
   return out;
 }
-/* A validade é a data impressa na embalagem, escrita à mão por quem arrumou a
-   compra. Aceita-se passado (é precisamente o que interessa assinalar) mas não
-   um futuro absurdo: mais de cinco anos é gralha de quem escreveu o ano. */
 /* Rituais: a resposta da casa a um ritmo que a app propôs. A chave é
    «dia|refeição|eixo» e o valor é sim, não ou sugerido — nada mais. */
 function limparRituais(o){
@@ -2532,17 +2529,25 @@ function limparRituais(o){
   });
   return out;
 }
-/* Extras: nomes do catálogo juntos à mão à lista de uma semana. */
+/* Extras: o que se junta à mão à lista de uma semana. Nomes do catálogo
+   entram como ingredientes; texto livre também vale — a lista de compras de
+   uma casa tem café e guardanapos, e recusá-los obrigava a uma segunda lista
+   num papel qualquer, que é o que esta existe para evitar. */
 function limparExtras(o){
   const out={};
   if(!o||typeof o!=='object') return out;
   Object.keys(o).slice(0,60).forEach(wk=>{
     if(!dataValida(wk)) return;
-    const l=(Array.isArray(o[wk])? o[wk] : []).filter(n=>typeof n==='string'&&temChave(NUTRI,n)).slice(0,40);
+    const l=(Array.isArray(o[wk])? o[wk] : [])
+      .filter(n=>typeof n==='string' && n.trim().length>=1 && n.length<=60)
+      .map(n=>n.trim().replace(/\s+/g,' ')).slice(0,40);
     if(l.length) out[wk]=l;
   });
   return out;
 }
+/* A validade é a data impressa na embalagem, escrita à mão por quem arrumou a
+   compra. Aceita-se passado (é precisamente o que interessa assinalar) mas não
+   um futuro absurdo: mais de cinco anos é gralha de quem escreveu o ano. */
 function limparValidades(o){
   const out={};
   if(!o||typeof o!=='object') return out;
@@ -11121,7 +11126,7 @@ function blank(){ return {members:[],cheats:{},plans:{},bought:{},prefCuisine:'t
   combos:[],
   /* rituais: o que a casa confirmou sobre os seus proprios ritmos. extras: o
      que se juntou a mao a lista de compras de uma semana. */
-  rituais:{}, extras:{}, aindaHa:{},
+  rituais:{}, extras:{}, aindaHa:{}, basicos:{},
   /* visitas: quem se senta a mesa com regularidade sem viver ca. ementas: a
      ementa da casa para cada festa, por ano. anos: o prato que cada um
      escolheu no dia dos anos. provas: a reintroducao de alimentos recusados. */
@@ -11351,7 +11356,7 @@ function instantaneo(){ return JSON.stringify({members:S.members, cheats:S.cheat
   receitas:S.receitas, ingredientes:S.ingredientes, medicoes:S.medicoes, regAtiv:S.regAtiv, regRef:S.regRef,
   sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa, pausas:S.pausas, diario:S.diario, cozPref:S.cozPref, metodoBMR:S.metodoBMR,
   validades:S.validades, veredictos:S.veredictos, brigada:S.brigada, desperdicio:S.desperdicio,
-  gostos:S.gostos, jejum:S.jejum, combos:S.combos, rituais:S.rituais, extras:S.extras, aindaHa:S.aindaHa,
+  gostos:S.gostos, jejum:S.jejum, combos:S.combos, rituais:S.rituais, extras:S.extras, aindaHa:S.aindaHa, basicos:S.basicos,
   visitas:S.visitas, ementas:S.ementas, anos:S.anos, provas:S.provas, bebidas:S.bebidas, notasCozinha:S.notasCozinha}); }
 function aplicaInstantaneo(js){
   const d=JSON.parse(js);
@@ -11378,7 +11383,7 @@ function aplicaInstantaneo(js){
   S.desperdicio=Array.isArray(d.desperdicio)? d.desperdicio : [];
   S.gostos=d.gostos&&typeof d.gostos==='object'? d.gostos : {};
   S.combos=limparCombos(d.combos);
-  S.rituais=limparRituais(d.rituais); S.extras=limparExtras(d.extras); S.aindaHa=limparAindaHa(d.aindaHa);
+  S.rituais=limparRituais(d.rituais); S.extras=limparExtras(d.extras); S.aindaHa=limparAindaHa(d.aindaHa); S.basicos=limparBasicos(d.basicos);
   S.visitas=limparVisitas(d.visitas); S.ementas=limparEmentas(d.ementas); S.anos=limparAnos(d.anos); S.provas=limparProvas(d.provas); S.bebidas=limparBebidas(d.bebidas); S.notasCozinha=limparNotasCozinha(d.notasCozinha);
   S.corredores=limparCorredores(d.corredores); S.trilhos=limparTrilhos(d.trilhos); S.talhoes=limparTalhoes(d.talhoes, S.members.map(m=>m.id));
   S.jejum=limpaJejunsInalcancaveis(limparJejum(d.jejum, S.members.map(m=>m.id)), S.members);
@@ -13454,7 +13459,8 @@ const DICAS={
   objDesportos:'Escolhe os que quiseres: o tempo extra que o objetivo pede reparte-se por igual entre eles, e o gasto por hora é a média dos gastos de cada um — correr e fazer ioga meia hora de cada dá o mesmo que uma hora a meio caminho dos dois. Os que já praticas aparecem primeiro, marcados com uma estrela; os outros entram no teu plano quando os escolheres aqui.',
   objEstrategia:'Quanto do ajuste diário vem de comer menos (ou mais) e quanto vem de gastar mais a fazer desporto. Mais dieta pede menos esforço físico extra; mais exercício permite comer com menos restrição para o mesmo ritmo.',
   receitasDisp:'Cada receita mostra os ingredientes com o estado da tua despensa: um visto verde para o que já tens, uma cruz vermelha para o que falta. A etiqueta no topo resume tudo — «Pronta a cozinhar» quando não falta nada.',
-  despensa:'Os ingredientes que marcares aqui como disponíveis passam a contar em todas as receitas e na lista de compras. Vem sempre da lista de ingredientes das próprias receitas — nunca texto livre — para nunca haver um nome que não bate certo.',
+  basicos:'A base da casa é o que nunca pode faltar: azeite, vinagre, cebola, alho, louro — cada casa sabe os seus. São os únicos com reposição automática: quando um sai da despensa, entra sozinho na lista de compras da semana. Para tudo o resto, usar não é esgotar — nada entra na lista sem uma receita planeada o pedir ou sem seres tu a juntá-lo.',
+  despensa:'Os ingredientes que marcares aqui como disponíveis passam a contar em todas as receitas e na lista de compras. A lista vem do catálogo, para nunca haver um nome que não bate certo — e quando procuras algo que lá não está, a própria pesquisa oferece o caminho: promover do catálogo alargado ou escrever do rótulo.',
   faltaComprar:'A lista completa acima tem tudo o que as receitas da semana precisam; esta mostra só o que ainda não está na despensa — é isto que vale a pena exportar ou levar ao supermercado.',
   suplementos:'Regista o que tomas e quantas doses por dia. Um batido de proteína é comida: as calorias e os macros entram no plano do dia. Os suplementos vão também para a despensa e para a lista de compras, com as doses de sete dias.',
   suplMacros:'Quanto dos macros do dia já vem dos suplementos, e quanto sobra para a comida. É este segundo número que interessa a quem vai cozinhar — se um batido dá 48 g de proteína, faltam menos 48 g no prato.',
@@ -16783,15 +16789,17 @@ function toggleIngredienteCozinha(i){
   const j=c.feitos.indexOf(i); j>=0? c.feitos.splice(j,1) : c.feitos.push(i);
   saveMeta(); render();
 }
+/* No fim de cozinhar, a app PERGUNTA o que acabou em vez de decidir. O
+   apagão antigo (delete de tudo o que a receita usou) partia do princípio de
+   que usar esgota, e não esgota: a garrafa de azeite sobrevive ao refogado.
+   Nada vem pré-marcado, e fechar sem responder não mexe em nada. */
 function descontarDespensa(){
   const c=S.ui.cozinha; if(!c) return;
   const r=RECIPES.find(x=>x.id===c.r); if(!r) return;
-  let n=0;
-  r.i.forEach(l=>{ if(S.despensa[l[0]]){ delete S.despensa[l[0]]; n++; } });
-  save('despensa depois de cozinhar');
-  flash('ok', n? plural(n,'ingrediente saiu da despensa','ingredientes saíram da despensa')+' — marca-os outra vez quando os repuseres.'
-    : 'Nenhum destes ingredientes estava marcado na despensa.');
-  render();
+  const usados=r.i.map(l=>l[0]).filter(n=>S.despensa[n]);
+  if(!usados.length) return;
+  const itens={}; usados.forEach(n=>{ itens[n]=false; });
+  abrirModal('acabou',{nome:r.n, itens});
 }
 function cozinhaHtml(){
   const c=S.ui.cozinha; const r=RECIPES.find(x=>x.id===c.r); if(!r) return '';
@@ -18036,12 +18044,140 @@ function cartaoAAcabar(){
   </div>`;
 }
 function juntarAListaExtra(nome){
+  juntarExtra(nome,true);
+  save('junta '+nome.toLowerCase()+' à lista'); render();
+  flash('ok',nome+' juntou-se à lista desta semana.',{rot:'Anular',fn:'desfazer()'});
+}
+/* ---- Os básicos da casa, e a diferença entre usar e esgotar ----
+   Havia aqui uma mentira pequena e constante: cozinhar apagava da despensa
+   TODOS os ingredientes usados, como se um refogado esgotasse a garrafa de
+   azeite. Como as vistas «em falta» filtram pela despensa, cada cozinhado
+   punha meia dúzia de coisas a parecer por comprar — usar tinha virado
+   sinónimo de repor, e não é.
+   O desenho novo tem duas peças:
+   — S.basicos: os ingredientes de base DESTA casa (azeite, vinagre, cebola,
+     alho, louro… cada casa sabe os seus), marcados pelo utilizador na
+     despensa e só por ele. Um básico que sai da despensa — por qualquer
+     porta — entra sozinho na lista de compras da semana: é o único
+     automatismo de reposição que existe, e é escolhido, não adivinhado.
+   — No fim de cozinhar, em vez do apagão cego, a app PERGUNTA o que acabou.
+     Por omissão nada está marcado: usar não é esgotar, e fechar a pergunta
+     sem responder não mexe em nada. */
+function limparBasicos(o){
+  const out={};
+  if(!o||typeof o!=='object') return out;
+  Object.keys(o).slice(0,200).forEach(n=>{ if(temChave(NUTRI,n)&&o[n]) out[n]=true; });
+  return out;
+}
+function ehBase(nome){ return !!(S.basicos&&S.basicos[nome]); }
+function toggleBaseIdx(i){
+  const nome=catalogoDespensa()[i]; if(!nome) return;
+  if(!S.basicos||typeof S.basicos!=='object') S.basicos={};
+  if(S.basicos[nome]) delete S.basicos[nome]; else S.basicos[nome]=true;
+  save((S.basicos[nome]?'base da casa: ':'já não é base: ')+nome); render();
+}
+function toggleVerBase(){ S.ui.verBase=!S.ui.verBase; saveMeta(); render(); }
+/* Um item pode ir à despensa se o nome existir em algum catálogo — os extras
+   de texto livre («guardanapos») riscam-se na lista sem efeitos laterais,
+   porque uma despensa de ingredientes não tem onde os pôr. */
+function podeIrADespensa(nome){
+  return temChave(NUTRI,nome) || SUPLEMENTOS.some(s=>s.nome===nome);
+}
+/* A única reposição automática da app: um básico que saiu da despensa entra
+   na lista desta semana. Devolve true se entrou (para o flash de quem chama). */
+function reporSeBase(nome){
+  if(!ehBase(nome)) return false;
   if(!S.extras||typeof S.extras!=='object') S.extras={};
   if(!Array.isArray(S.extras[S.week])) S.extras[S.week]=[];
   if(S.extras[S.week].indexOf(nome)<0) S.extras[S.week].push(nome);
-  S.despensa[nome]=false;
-  save('junta '+nome.toLowerCase()+' à lista'); render();
-  flash('ok',nome+' juntou-se à lista desta semana.',{rot:'Anular',fn:'desfazer()'});
+  return true;
+}
+/* Juntar um nome aos extras da semana. O caminho do cartão «deve estar a
+   acabar» também desmarca a despensa (o palpite é que ACABOU); o caminho
+   manual não lhe toca — apontar café na lista não quer dizer que o café de
+   casa se esgotou. */
+function juntarExtra(nome,tirarDaDespensa){
+  if(!S.extras||typeof S.extras!=='object') S.extras={};
+  if(!Array.isArray(S.extras[S.week])) S.extras[S.week]=[];
+  if(S.extras[S.week].indexOf(nome)<0) S.extras[S.week].push(nome);
+  if(tirarDaDespensa) S.despensa[nome]=false;
+}
+function removerExtra(nome){
+  const l=(S.extras||{})[S.week]; if(!Array.isArray(l)) return;
+  const i=l.indexOf(nome); if(i<0) return;
+  l.splice(i,1);
+  save('«'+nome.toLowerCase()+'» saiu da lista'); render();
+  flash('ok','«'+esc(nome)+'» saiu da lista.',{rot:'Anular',fn:'desfazer()'});
+}
+function juntarExtraManual(el){
+  const nome=String(el.value||'').trim().replace(/\s+/g,' ').slice(0,60);
+  if(!nome) return;
+  /* Se o que a pessoa escreveu é um ingrediente do catálogo (com maiúsculas ou
+     sem elas), entra como ele — com corredor certo e unidade certa. Só o que a
+     app não conhece entra como texto livre. */
+  const oficial=catalogoDespensa().find(n=>n.toLowerCase()===nome.toLowerCase());
+  const jaLa=((S.extras||{})[S.week]||[]).some(n=>n.toLowerCase()===nome.toLowerCase());
+  if(jaLa){ flash('warn','«'+esc(nome)+'» já está na lista desta semana.'); el.value=''; return; }
+  juntarExtra(oficial||nome,false);
+  save('«'+(oficial||nome)+'» juntou-se à lista'); render();
+  flash('ok','«'+esc(oficial||nome)+'» juntou-se à lista desta semana.',{rot:'Anular',fn:'desfazer()'});
+}
+/* O campo de juntar à mão, partilhado pela lista cheia e pela vazia. O
+   datalist traz o catálogo inteiro, mas texto livre também serve: a lista de
+   compras de uma casa tem café e guardanapos, não só ingredientes. */
+function campoExtraHtml(){
+  return `<div class="row" style="max-width:640px;margin-top:10px">
+    <input type="text" class="busca" list="extra-cat" style="flex:1" maxlength="60"
+      placeholder="+ Juntar outra coisa à lista…" aria-label="Juntar um produto à lista de compras"
+      onchange="juntarExtraManual(this)">
+    <datalist id="extra-cat">${catalogoDespensa().map(n=>`<option value="${esc(n)}">`).join('')}</datalist>
+  </div>`;
+}
+/* ---- O fim do cozinhado pergunta, não decide ---- */
+function guardarAcabou(){
+  const mo=modalAberto(); if(!mo){ return; }
+  const nomes=Object.keys(mo.itens||{}).filter(n=>mo.itens[n]);
+  let repostos=[];
+  nomes.forEach(n=>{ delete S.despensa[n]; if(reporSeBase(n)) repostos.push(n); });
+  S.ui.modal=null;
+  if(!nomes.length){ saveMeta(); render(); return; }
+  save('despensa depois de cozinhar');
+  flash('ok', plural(nomes.length,'ingrediente saiu da despensa','ingredientes saíram da despensa')
+    +(repostos.length? ' — '+repostos.map(n=>n.toLowerCase()).join(', ')+(repostos.length===1?' é base da casa e entrou':' são base da casa e entraram')+' na lista de compras.' : '.'),
+    {rot:'Anular',fn:'desfazer()'});
+  render();
+}
+function toggleAcabou(nome){
+  const mo=modalAberto(); if(!mo||!mo.itens) return;
+  mo.itens[nome]=!mo.itens[nome];
+  saveMeta(); render();
+}
+function todosAcabou(v){
+  const mo=modalAberto(); if(!mo||!mo.itens) return;
+  Object.keys(mo.itens).forEach(n=>{ mo.itens[n]=!!v; });
+  saveMeta(); render();
+}
+function modalAcabouHtml(mo){
+  const nomes=Object.keys(mo.itens||{});
+  const n=nomes.filter(x=>mo.itens[x]).length;
+  return `<div class="mfundo" onclick="fundoModal(event)">
+    <div class="mcaixa" role="dialog" aria-modal="true" aria-labelledby="md-acab-t">
+      <h2 id="md-acab-t">Acabou alguma coisa?</h2>
+      <p class="sub" style="margin-top:6px">${esc(mo.nome||'A receita')} usou ${plural(nomes.length,'ingrediente que estava na despensa','ingredientes que estavam na despensa')}.
+        Usar não é esgotar — marca só o que se acabou mesmo, e esses saem da despensa.
+        ${nomes.some(ehBase)? 'Os 🧂 são base da casa: se os marcares, entram logo na lista de compras.':''}</p>
+      <div class="row" style="margin-top:12px;flex-wrap:wrap">
+        ${nomes.map(x=>`<button class="chip ${mo.itens[x]?'on':''}" aria-pressed="${!!mo.itens[x]}"
+          onclick="toggleAcabou('${esc(x).replace(/'/g,'&#39;')}')">${mo.itens[x]?'✓ ':''}${esc(x)}${ehBase(x)?' 🧂':''}</button>`).join('')}
+      </div>
+      <div class="row" style="margin-top:14px;justify-content:space-between">
+        <button class="chip" onclick="todosAcabou(true)">Acabou tudo</button>
+        <div class="row">
+          <button class="btn ghost" onclick="S.ui.modal=null;saveMeta();render()">Nada acabou</button>
+          <button class="btn" onclick="guardarAcabou()">${n? 'Confirmar ('+n+')':'Fechar'}</button>
+        </div>
+      </div>
+    </div></div>`;
 }
 function cartaoResgate(){
   const m=missaoResgate();
@@ -18438,7 +18574,9 @@ function silenciarPalpite(n){
   if(S.ui.semPalpite.indexOf(n)<0) S.ui.semPalpite.push(n);
   saveMeta(); render();
 }
-function aceitarPalpite(n){ S.despensa[n]=false; delete S.despensa[n]; save('palpite aceite'); go('compras'); }
+function aceitarPalpite(n){ juntarExtra(n,true); delete S.despensa[n]; save('palpite aceite'); go('compras'); }
+/* O chip diz «Juntar à lista» e agora junta mesmo: só tirar da despensa
+   deixava o item invisível se nenhuma receita planeada o pedisse. */
 function cartaoPalpites(){
   const p=palpitesDespensa(); if(!p.length) return '';
   return `<div class="card" data-col="co-palpites" style="margin-top:14px;border-left:4px solid var(--warn)">
@@ -20046,7 +20184,7 @@ let jaPerguntouPeso=false, jaPerguntouCompras=false;
    S.ui.modal preenchido sem nada no ecrã: uma camada invisível que engolia o
    Escape, travava o go() e não tinha botão de fechar — só se saía recarregando.
    Recusar em voz alta é melhor do que abrir o nada. */
-const MODAIS=['peso','aviso','compras','ingrediente'];
+const MODAIS=['peso','aviso','compras','ingrediente','acabou'];
 function abrirModal(tipo,dados){
   if(MODAIS.indexOf(tipo)<0){ console.warn('Família Fit — modal desconhecido: '+tipo); return; }
   S.ui.modal=Object.assign({tipo},dados||{}); saveMeta(); render();
@@ -20157,9 +20295,13 @@ function guardarIngrediente(){
     sal:num(g.sal), al:num(g.al), de:String(g.de||'').trim().slice(0,140)});
   S.ingredientes=limparIngredientes(S.ingredientes);
   aplicaIngredientesDaCasa(S.ingredientes);
+  /* quem chegou aqui pela pesquisa da despensa estava a dizer «tenho isto em
+     casa» — guardar o ingrediente sem o marcar deixava a tarefa a meio */
+  const nomeLimpo=String(g.n).trim().replace(/\s+/g,' ').slice(0,60);
+  if(mo.marcarDespensa && temChave(NUTRI,nomeLimpo)) S.despensa[nomeLimpo]=true;
   S.ui.modal=null;
   save('ingrediente «'+g.n+'» acrescentado ao catálogo');
-  flash('ok','«'+String(g.n).trim()+'» já está no catálogo. Fica marcado como escrito à mão.');
+  flash('ok','«'+String(g.n).trim()+'» já está no catálogo.'+(mo.marcarDespensa&&S.despensa[nomeLimpo]? ' E já está marcado na despensa.':' Fica marcado como escrito à mão.'));
 }
 /* Apagar não mexe nas receitas que já o usam: o ingrediente sai do catálogo,
    mas quem já o pôs numa receita da casa fica com ele lá — apagá-lo por baixo
@@ -29750,7 +29892,11 @@ function shoppingItems(){
      deve estar a acabar, o pacote de café. Não vêm de receita nenhuma, por
      isso entram com uma unidade de embalagem, e é isso que a lista diz. */
   ((S.extras||{})[S.week]||[]).forEach(nome=>{
-    const u=unidadeDe(nome), key=nome+'|'+u;
+    /* texto livre («guardanapos») não tem unidade na tabela — entra como uma
+       unidade, e não como os 250 g que unidadeDe inventaria para um nome
+       desconhecido */
+    const u=podeIrADespensa(nome)? unidadeDe(nome) : 'un';
+    const key=nome+'|'+u;
     if(agg[key]) return;                 /* já vem de uma receita: não se duplica */
     agg[key]={n:nome, u, q:(u==='g'?250:u==='ml'?250:1), extra:true};
   });
@@ -29765,7 +29911,7 @@ function toggleBought(key,el){ if(!S.bought[S.week]) S.bought[S.week]={};
   /* comprar um ingrediente é o sinal mais natural de que ele passa a estar
      em casa — a despensa atualiza-se sozinha. Desmarcar não o remove: pode
      ter sido só um engano, não significa que a prateleira ficou vazia. */
-  if(novoEstado){ const nome=key.split('|')[0]; if(nome) S.despensa[nome]=true; }
+  if(novoEstado){ const nome=key.split('|')[0]; if(nome && podeIrADespensa(nome)) S.despensa[nome]=true; }
   /* Riscar dentro do modo supermercado é o único sinal fiável do percurso
      real: em casa a lista lê-se de cima a baixo, no corredor risca-se o que
      se apanha. Só se aprende com o que aconteceu no sítio certo. */
@@ -29831,6 +29977,11 @@ function renderCompras(){
       'A lista de compras monta-se sozinha a partir das receitas marcadas no plano da semana, somando as quantidades por número de comensais. Marca algumas refeições e ela aparece aqui.',
       `<button class="btn" onclick="go('plano')">Ir para o plano semanal</button>
        <button class="btn ghost" onclick="go('receitas')">Ver receitas</button>`)}
+    <div class="card" style="max-width:640px;margin-top:14px">
+      <h3>Ou aponta já o que falta</h3>
+      <p class="sub" style="margin-top:4px">A lista também aceita o que não vem de receita nenhuma — o café, o sal grosso, o que te lembraste no autocarro.</p>
+      ${campoExtraHtml()}
+    </div>
     ${cartaoCorredores()}`;
   const bought=S.bought[S.week]||{};
   const grupos=gruposCompras();
@@ -29867,7 +30018,10 @@ function renderCompras(){
       <ul class="shop">${arr.sort((a,b)=>a.n.localeCompare(b.n)).map(it=>{
         const key=it.n+'|'+it.u, ok=bought[key];
         return `<li class="${ok?'done':''}" data-sec="${iSec}"><label><input type="checkbox" ${ok?'checked':''} onchange="toggleBought('${esc(key).replace(/'/g,"\\'")}',this)">
-          <span>${esc(it.n)}${seloUrgencia(it)}</span>${botaoTalhao(key)}<span class="q">${fmtQ(it)}</span></label></li>`;}).join('')}</ul>`;}).join('')}
+          <span>${esc(it.n)}${it.extra? ' <span class="tag" title="Juntaste este à mão — não vem de receita nenhuma">à mão</span>':''}${seloUrgencia(it)}</span>${botaoTalhao(key)}<span class="q">${fmtQ(it)}</span></label>${
+          it.extra? `<button class="btn ghost small" style="flex:none" onclick="removerExtra('${esc(it.n).replace(/'/g,'&#39;')}')"
+            title="Tirar da lista" aria-label="Tirar ${esc(it.n)} da lista">✕</button>`:''}</li>`;}).join('')}</ul>`;}).join('')}
+    ${campoExtraHtml()}
   </div>
   <textarea id="co-txt" style="display:none;max-width:640px;margin-top:12px" readonly aria-label="Lista de compras em texto"></textarea>
   <p class="sub" style="margin-top:12px">Quantidades = receita por pessoa × nº de comensais em cada refeição (membros em cheat day não contam nesse dia).</p>
@@ -29941,7 +30095,7 @@ function seloUrgencia(it){
 function comprarUrgente(key){
   if(!S.bought[S.week]) S.bought[S.week]={};
   S.bought[S.week][key]=!S.bought[S.week][key];
-  if(S.bought[S.week][key]){ const nome=key.split('|')[0]; if(nome) S.despensa[nome]=true; }
+  if(S.bought[S.week][key]){ const nome=key.split('|')[0]; if(nome && podeIrADespensa(nome)) S.despensa[nome]=true; }
   save('item comprado');
   render();
 }
@@ -30019,7 +30173,15 @@ function cartaoFaltaComprar(items){
    clique — sem ter de escapar aspas nem confiar em nomes livres. */
 function toggleDespensaIdx(i){
   const nome=catalogoDespensa()[i]; if(!nome) return;
-  if(S.despensa[nome]) delete S.despensa[nome]; else S.despensa[nome]=true;
+  if(S.despensa[nome]){
+    delete S.despensa[nome];
+    /* desmarcar é dizer «acabou» — e se for base da casa, a reposição é já */
+    if(reporSeBase(nome)){
+      save('despensa: '+nome); render();
+      flash('ok','«'+esc(nome)+'» é base da casa: saiu da despensa e entrou na lista de compras.',{rot:'Anular',fn:'desfazer()'});
+      return;
+    }
+  } else S.despensa[nome]=true;
   save('despensa: '+nome); render();
 }
 function marcarTodaDespensa(){
@@ -30077,6 +30239,36 @@ function filtrarDespensa(el){
     d.style.display=achou?'':'none';
     d.open=achou;
   });
+  /* Procurar e não achar deixava a caixa a olhar para o vazio, e o caminho
+     para acrescentar o que falta ficava três ecrãs para o lado (o editor de
+     receitas). Aqui mesmo: se está no catálogo alargado, promove-se; se não
+     está em lado nenhum, abre-se a ficha de ingrediente da casa já com o nome
+     escrito. */
+  const add=document.getElementById('desp-add');
+  if(add){
+    const nada=q.length>=2 && ![...document.querySelectorAll('#despensa-lista li')].some(li=>li.style.display!=='none');
+    add.style.display=nada?'':'none';
+    if(nada){
+      const oculto=Object.keys(NUTRI_EXTRA).find(n=>n.toLowerCase().indexOf(q)>=0 && !temChave(NUTRI,n));
+      add.innerHTML='<p class="sub">Não há nada no catálogo com «'+esc(el.value.trim())+'».</p>'
+        +'<div class="row" style="margin-top:8px">'
+        +(oculto? '<button class="btn small" onclick="promoverParaDespensa(\''+esc(oculto).replace(/'/g,'&#39;')+'\')">+ Juntar «'+esc(oculto)+'» (catálogo alargado)</button>' : '')
+        +'<button class="btn ghost small" onclick="novoIngredienteDaDespensa(this)">+ Escrever «'+esc(el.value.trim())+'» do rótulo</button>'
+        +'</div>';
+      add.dataset.q=el.value.trim();
+    }
+  }
+}
+function promoverParaDespensa(nome){
+  if(!promoveIngrediente(nome)) return flash('warn','Não encontrei esse ingrediente no catálogo alargado.');
+  S.despensa[nome]=true;
+  save('«'+nome+'» promovido do catálogo alargado'); render();
+  flash('ok','«'+esc(nome)+'» entrou no catálogo e já está marcado na despensa.');
+}
+function novoIngredienteDaDespensa(el){
+  const nome=(el.closest('#desp-add')||{dataset:{}}).dataset.q||'';
+  abrirNovoIngrediente(nome);
+  const mo=modalAberto(); if(mo) mo.marcarDespensa=true;
 }
 function setAlergDesp(v){ S.ui.alergDesp=ehAlergenio(v)? v:''; saveMeta(); render(); }
 function togglePrecos(){ S.ui.precos=!S.ui.precos; saveMeta(); render(); }
@@ -30148,7 +30340,7 @@ function guardarComprasConf(){
     if(!mo.marcados[chave]) return;
     S.bought[wk][chave]=true;
     const nome=chave.split('|')[0];
-    if(nome){ S.despensa[nome]=true; n++; }
+    if(nome){ if(podeIrADespensa(nome)) S.despensa[nome]=true; n++; }
   });
   /* os preços escritos com o talão na mão entram agora no histórico, com a
      data de hoje — é este o momento em que eles existem */
@@ -30315,6 +30507,7 @@ function renderDespensa(){
     <div class="row">
       <button class="chip ${S.ui.precos?'on':''}" onclick="togglePrecos()" aria-pressed="${!!S.ui.precos}">💶 Preços</button>
       <button class="chip ${S.ui.validades?'on':''}" onclick="toggleValidades()" aria-pressed="${!!S.ui.validades}">📅 Validades</button>
+      <button class="chip ${S.ui.verBase?'on':''}" onclick="toggleVerBase()" aria-pressed="${!!S.ui.verBase}">🧂 Base da casa</button>
       <button class="btn ghost small" onclick="marcarTodaDespensa()">Marcar tudo</button>
       <button class="btn danger small" onclick="limparDespensa()">Esvaziar</button>
     </div></div>
@@ -30332,6 +30525,15 @@ function renderDespensa(){
       ${(function(){ const n=Object.keys(S.validades||{}).length;
         return n? '<br>Já tens '+plural(n,'validade escrita','validades escritas')+'.' : ''; })()}</p>
   </div>`:''}
+  ${S.ui.verBase? `<div class="card" style="max-width:640px;margin-bottom:12px">
+    <h3>Base da casa ${dica('basicos')}</h3>
+    <p class="sub" style="margin-top:4px">Marca com 🧂 o que nunca pode faltar — o azeite, o vinagre, a cebola, o alho,
+      o louro desta casa. É a <b>única reposição automática</b> que a app faz: quando um destes sai da despensa,
+      entra sozinho na lista de compras da semana. Tudo o resto só entra na lista se uma receita planeada o pedir
+      ou se o juntares à mão — usar uma coisa não quer dizer que ela tenha acabado.
+      ${(function(){ const n=Object.keys(S.basicos||{}).length;
+        return n? '<br>Já marcaste '+plural(n,'básico','básicos')+'.' : ''; })()}</p>
+  </div>`:''}
   <div class="row" style="margin:10px 0 14px">
     <input type="text" placeholder="Procurar ingrediente ou suplemento…" class="busca" aria-label="Procurar na despensa" oninput="filtrarDespensa(this)">
     <select style="width:auto" aria-label="Ver ingredientes com um alergénio" onchange="setAlergDesp(this.value)"><option value="">🚨 Ver por alergénio…</option>
@@ -30346,6 +30548,7 @@ function renderDespensa(){
       <button class="chip small" onclick="abrirTodasDespensa(false)">Fechar todas</button>
       <span class="sub" style="margin-left:auto">${plural(grouped.filter(([,idx])=>idx.length).length,'secção','secções')}</span>
     </div>
+    <div id="desp-add" class="alerta" style="display:none;max-width:640px;margin-bottom:10px"></div>
     <div id="despensa-lista">
     ${grouped.filter(([,idx])=>idx.length).map(([cat,idx])=>{
       const naDespensa=idx.filter(i=>S.despensa[catalogo[i]]).length;
@@ -30376,7 +30579,12 @@ function renderDespensa(){
               'epoca'):''}${
             val&&!S.ui.validades? ' '+selo(rotuloValidade(dv),
               'Validade que escreveste: '+rotuloData(val)+'. A app põe à frente o que está mais perto de acabar, e nunca inventa um prazo.',
-              classeValidade(dv)):''}</span></label>${
+              classeValidade(dv)):''}${
+            ehBase(nome)&&!S.ui.verBase? ' '+selo('🧂',
+              'Base da casa: quando sai da despensa, entra sozinho na lista de compras. Liga a coluna «Base da casa» para mudar.',
+              'base'):''}</span></label>${
+          S.ui.verBase? `<button class="chip small ${ehBase(nome)?'on':''}" style="flex:none" onclick="toggleBaseIdx(${i})"
+            aria-pressed="${ehBase(nome)}" title="${ehBase(nome)?'É base da casa: quando acaba, entra sozinho na lista':'Marcar como base da casa'}">🧂${ehBase(nome)?' base':''}</button>`:''}${
           S.ui.precos? `<span class="preco"><input type="number" min="0" step="0.01" inputmode="decimal"
             value="${p? p.v : ''}" placeholder="—" aria-label="Preço de ${esc(nome)} em ${rot}"
             onchange="guardarPreco('${esc(nome).replace(/'/g,'&#39;')}',this.value)"><span class="sub">${rot}</span>${
@@ -30390,6 +30598,7 @@ function renderDespensa(){
   </div>
   <p class="sub" style="margin-top:12px">Marca o que já tens em casa: as receitas e a lista de compras passam a saber
     o que falta comprar de verdade. Comprar um ingrediente na lista de compras marca-o aqui automaticamente.
+    Desmarcar um 🧂 básico repõe-no sozinho na lista — para o resto, usar não é esgotar.
     ${daCasa.length? 'Os símbolos assinalam os alergénios marcados nos perfis da família.':''}</p>`;
 }
 
@@ -30486,7 +30695,7 @@ function pacote(){
          receitas:S.receitas, ingredientes:S.ingredientes, medicoes:S.medicoes, regAtiv:S.regAtiv, regRef:S.regRef,
          sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa, pausas:S.pausas, diario:S.diario, cozPref:S.cozPref, metodoBMR:S.metodoBMR,
          validades:S.validades, veredictos:S.veredictos, brigada:S.brigada, desperdicio:S.desperdicio,
-         gostos:S.gostos, jejum:S.jejum, combos:S.combos, rituais:S.rituais, extras:S.extras, aindaHa:S.aindaHa,
+         gostos:S.gostos, jejum:S.jejum, combos:S.combos, rituais:S.rituais, extras:S.extras, aindaHa:S.aindaHa, basicos:S.basicos,
          visitas:S.visitas, ementas:S.ementas, anos:S.anos, provas:S.provas, bebidas:S.bebidas, notasCozinha:S.notasCozinha,
          /* A ordem aprendida do supermercado ficava de fora da cópia e o
             «substituir» apagava-a: meses a corrigir a ordem dos corredores
@@ -30917,6 +31126,7 @@ function juntar(txt){
   });
   Object.keys(d.bought).forEach(wk=>{ S.bought[wk]=Object.assign({}, d.bought[wk], S.bought[wk]||{}); });
   Object.keys(d.despensa||{}).forEach(k=>{ if(d.despensa[k]) S.despensa[k]=true; });   /* união: ter numa cópia chega */
+  Object.keys(limparBasicos(d.basicos)).forEach(k=>{ S.basicos[k]=true; });   /* base numa cópia é base na união */
   let objetivosNovos=0;
   (d.objetivos||[]).forEach(o=>{
     const mid=mapa[o.membroId]||o.membroId;
@@ -31056,6 +31266,7 @@ function juntar(txt){
     [conta(d.combos),'as variantes'],
     [conta(d.rituais),'os rituais'],
     [conta(d.extras),'os extras da lista'],
+    [conta(d.basicos),'os básicos da casa'],
     [conta(d.aindaHa),'o «ainda há»'],
     [conta(d.visitas),'as visitas'],
     [conta(d.ementas),'as ementas'],
@@ -32130,6 +32341,7 @@ function pintaModal(){
          : mo.tipo==='jejum'? modalJejumHtml(mo)
          : mo.tipo==='bandeja'? modalBandejaHtml(mo)
          : mo.tipo==='ingrediente'? modalIngredienteHtml(mo)
+         : mo.tipo==='acabou'? modalAcabouHtml(mo)
          : mo.tipo==='aviso'? modalAvisoHtml() : '')
     : fo? (fo.tipo==='mesa'? folhaMesaHtml(fo) : fo.tipo==='registo'? folhaRegistoHtml()
          : fo.tipo==='pessoa'? folhaPessoaHtml(fo)
