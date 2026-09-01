@@ -3868,7 +3868,20 @@ R('cheesecakejpmanga','Cheesecake japonês com coulis de manga','japonesa',['veg
 R('crumblemaca','Crumble de maçã','britanica',['vegetariana'],0,0,0,0,[['Maçã',150,'g'],['Farinha',24,'g'],['Manteiga',14,'g'],['Açúcar amarelo',14,'g'],['Aveia em flocos',12,'g'],['Canela',1,'g'],['Limão',0.15,'un']],['l'],0,['sob']),
 R('castela','Castela','japonesa',['vegetariana'],0,0,0,0,[['Ovo',0.9,'un'],['Açúcar branco',28,'g'],['Farinha',26,'g'],['Mel',10,'g'],['Leite',8,'ml']],['l','p'],0,['sob','sn']),
 /* ---- Peixe e arroz da casa ---- */
-R('peixeaosal','Peixe ao sal no forno','portuguesa',['mediterranica'],0,0,0,0,[['Dourada',350,'g'],['Sal grosso',600,'g'],['Clara de ovo de galinha, crua',30,'g'],['Limão',0.5,'un'],['Louro',2,'g'],['Azeite',10,'ml'],['Salsa',5,'g']],['a','j'],0,['pp']),
+/* Peixe ao sal, com o robalo à frente. Três coisas que a app tinha ao
+   contrário e que decidem o prato: o peixe NÃO se escama — são as escamas que
+   fazem de armadura contra o sal, e um peixe escamado sai salgado por fora
+   até ao lombo; não se escala nem se abre, amanha-se só das tripas; e a
+   abertura da barriga tapa-se com um pedaço de alumínio, senão o sal entra
+   por ali e salga a carne toda por dentro, que é o sítio onde não há escama
+   nenhuma a defendê-la.
+   O sal leva clara e pasta de azeitona: a clara é o que o faz pegar em placa,
+   e a azeitona dá-lhe o perfume que atravessa a crosta. E vinte minutos por
+   quilo a 180 °C, não os 200 que cá estavam — a esta temperatura a crosta
+   seca sem queimar. */
+R('peixeaosal','Robalo ao sal no forno','portuguesa',['mediterranica'],0,0,0,0,[['Robalo',350,'g'],['Sal grosso',600,'g'],['Clara de ovo de galinha, crua',30,'g'],['Azeitonas',25,'g'],['Alho',3,'dente'],['Tomilho fresco',3,'g'],['Salsa',5,'g'],['Limão',0.5,'un'],['Azeite',10,'ml']],['a','j'],0,['pp']),
+R('peixesaldourada','Dourada ao sal no forno','portuguesa',['mediterranica'],0,0,0,0,[['Dourada',350,'g'],['Sal grosso',600,'g'],['Clara de ovo de galinha, crua',30,'g'],['Azeitonas',25,'g'],['Alho',3,'dente'],['Tomilho fresco',3,'g'],['Salsa',5,'g'],['Limão',0.5,'un'],['Azeite',10,'ml']],['a','j'],0,['pp']),
+R('peixesalbesugo','Besugo ao sal no forno','portuguesa',['mediterranica'],0,0,0,0,[['Besugo cru',350,'g'],['Sal grosso',600,'g'],['Clara de ovo de galinha, crua',30,'g'],['Azeitonas',25,'g'],['Alho',3,'dente'],['Tomilho fresco',3,'g'],['Salsa',5,'g'],['Limão',0.5,'un'],['Azeite',10,'ml']],['a','j'],0,['pp']),
 R('arroztamboril','Arroz de tamboril','portuguesa',['mediterranica'],0,0,0,0,[['Tamboril cru',200,'g'],['Camarão',60,'g'],['Arroz carolino',80,'g'],['Cebola',0.5,'un'],['Alho',2,'dente'],['Tomate',1,'un'],['Pimento',0.25,'un'],['Coentros',10,'g'],['Azeite',15,'ml'],['Vinho branco',40,'ml'],['Colorau',2,'g'],['Louro',1,'g']],['a','j'],0,['pp']),
 /* ---- Doçaria conventual e de casa ---- */
 /* As quantidades são por dose servida, não por tacho nem por bolo inteiro —
@@ -6789,12 +6802,28 @@ P('ketoabacatelima',[['Abrir','Abacate ao meio, caroço fora. Se estiver no pont
 P('ketosardinha',[['Escorrer','Sardinhas escorridas do azeite da lata, mas sem secar de todo.'],
  ['Montar','Prato raso, cebola roxa em meias-luas finas por cima.'],
  ['Temperar','Limão espremido na hora e orégãos esfregados entre os dedos, para libertarem o óleo.']]);
-P('peixeaosal',[['Cama de sal','Sal grosso humedecido com a clara batida e um pouco de água, até ficar areia molhada. Espalha um dedo no fundo do tabuleiro.',8],
- ['Peixe','Peixe inteiro, escamado e amanhado mas NÃO aberto, com limão e louro na barriga. A pele inteira é o que impede o sal de entrar.'],
- ['Selar','Cobre por completo com o resto do sal, batendo com as mãos para ficar uma crosta fechada, sem falhas.',5],
- ['Forno','Forno a 200 °C, 20 a 25 minutos por quilo. A crosta racha e soa a oco quando está.',25],
- ['Abrir','Parte a crosta com as costas de uma colher e levanta-a em placas. Escova o sal antes de tirar a pele — se ficar sal na carne, salga.'],
- ['Servir','Lombos limpos, azeite bom por cima e salsa. Não leva mais nada: o peixe assado assim tempera-se sozinho.']]);
+P('peixeaosal',[['O peixe, como vem do mar','Peixe inteiro amanhado só das tripas. NÃO se escama e NÃO se escala: as escamas são a armadura que impede o sal de entrar, e um peixe escamado sai salgado até ao lombo. Pede-o assim na peixaria — é o contrário do que costumam fazer.',5],
+ ['Rechear a barriga e a boca','Alhos esmagados com a pele, tomilho, salsa e rodelas finas de limão, enfiados na barriga e também na boca. É daqui que vem o perfume, porque por fora não entra nada.',6],
+ ['Tapar a abertura','Um pedaço pequeno de papel de alumínio a fechar a abertura da barriga. É o único sítio sem escama, e sem isto o sal entra por ali e salga a carne toda por dentro.',2],
+ ['A pasta de sal','Sal grosso numa taça com a clara de ovo e a pasta de azeitona (azeitonas pretas descaroçadas e esmagadas até formarem pasta). Água aos poucos, a mexer, até ficar com a consistência de areia molhada: aperta-se na mão e mantém a forma, sem escorrer.',8],
+ ['Cama e cobertura','Um dedo de sal no fundo do tabuleiro, o peixe por cima, e o resto do sal por cima dele, a apertar com as mãos até ficar uma crosta fechada e sem falhas. Onde houver falha, entra calor a mais e o peixe seca.',6],
+ ['Forno a 180 °C','Vinte minutos por cada quilo de peixe. Um robalo de 350 g são sete minutos; um de um quilo e meio são trinta. A crosta fica dourada e soa a oco quando se bate.',20],
+ ['Abrir','Parte a crosta com as costas de uma colher e levanta-a em placas. Escova bem o sal antes de tirar a pele — um grão que fique passa para a carne e salga o garfo todo.',3],
+ ['Servir','Levanta os lombos, tira o alumínio e o recheio, e rega com azeite bom. Não leva mais nada: assado assim, o peixe temperou-se sozinho por dentro.']]);
+P('peixesaldourada',[['O peixe, como vem do mar','Dourada inteira amanhada só das tripas, sem escamar e sem escalar. As escamas da dourada são grandes e fazem uma armadura ainda melhor do que as do robalo.',5],
+ ['Rechear a barriga e a boca','Alhos esmagados com a pele, tomilho, salsa e rodelas finas de limão na barriga e na boca.',6],
+ ['Tapar a abertura','Papel de alumínio a fechar a abertura da barriga, para o sal não entrar por onde não há escama.',2],
+ ['A pasta de sal','Sal grosso com a clara e a pasta de azeitona, e água aos poucos até ficar areia molhada — aperta-se na mão e mantém a forma.',8],
+ ['Cama e cobertura','Um dedo de sal no fundo, a dourada por cima, e o resto do sal a fechar sem falhas.',6],
+ ['Forno a 180 °C','Vinte minutos por quilo. A dourada é mais gorda do que o robalo e perdoa melhor um minuto a mais.',20],
+ ['Abrir e servir','Parte a crosta em placas, escova o sal, levanta os lombos e rega com azeite.',3]]);
+P('peixesalbesugo',[['O peixe, como vem do mar','Besugo inteiro amanhado só das tripas, sem escamar e sem escalar.',5],
+ ['Rechear a barriga e a boca','Alhos esmagados com a pele, tomilho, salsa e rodelas finas de limão na barriga e na boca.',6],
+ ['Tapar a abertura','Papel de alumínio a fechar a abertura da barriga.',2],
+ ['A pasta de sal','Sal grosso com a clara e a pasta de azeitona, e água aos poucos até ficar areia molhada.',8],
+ ['Cama e cobertura','Um dedo de sal no fundo, o peixe por cima, e o resto a fechar sem falhas.',6],
+ ['Forno a 180 °C','Vinte minutos por quilo. O besugo é magro e seco de mais se passar do ponto: bate na crosta ao fim do tempo e não lhe dês mais.',20],
+ ['Abrir e servir','Crosta em placas, sal bem escovado, lombos levantados e azeite por cima.',3]]);
 P('arroztamboril',[['Caldo','As cascas e as cabeças do camarão em água a ferver com um louro dão o caldo — é ele que faz a diferença entre um arroz de peixe e este.',15],
  ['Refogado','Cebola e alho no azeite, devagar; tomate pelado e ralado e o pimento, até desfazer. Colorau no fim, fora do lume, para não amargar.',12],
  ['Vinho','Vinho branco a evaporar, depois o caldo coado. Prova o sal agora, com o caldo — depois do arroz dentro já não se corrige bem.',4],
@@ -9348,6 +9377,12 @@ const PC_EDIVEL={
   'Mexilhões':0.30, 'Amêijoas':0.30, 'Conquilhas':0.30, 'Camarão':0.55,
   'Sardinhas':0.55, 'Carapau':0.55, 'Cavala':0.55, 'Truta':0.58,
   'Dourada':0.52, 'Robalo':0.52,
+  /* O besugo entra pela mesma porta e sem a ambiguidade que a nota abaixo
+     descreve: só existe numa receita, e essa diz nos passos que o peixe vai
+     inteiro e amanhado só das tripas. Sem o fator, a mesma dose de 350 g dava
+     73 g de proteína contra os 38 do robalo -- o dobro, para o mesmo peixe ao
+     lado dele na mesma família de variantes. */
+  'Besugo cru':0.52,
   'Coxas de frango':0.75, 'Asas de frango':0.65, 'Costeletas de borrego':0.68,
   /* A tabela é indexada por nome exato, e o catálogo cresceu para além dela:
      entraram nomes irmãos que ninguém acrescentou aqui. Confirma-se pela dose
@@ -10336,6 +10371,7 @@ const NA_RESIDUAL=/^(abacate|abóbora|acelga|agrião|aipo|alcachofra|alface|alho
    seria pior do que assumir a omissão. */
 const NA_DESCARTADO={
   peixeaosal:['Sal grosso'],   /* crosta: parte-se e deita-se fora */
+  peixesaldourada:['Sal grosso'], peixesalbesugo:['Sal grosso'],
   camaraocozido:['Sal grosso'], /* água de cozer */
   polvocozido:['Sal grosso'], batatascozidas:['Sal grosso'],
   acbcoz:['Sal grosso'], acbmurro:['Sal grosso'],
@@ -18594,6 +18630,7 @@ const VARIANTES=[
   {k:'bitoque', n:'Bitoque',           ids:['bitoque','ketobitoque']},
   {k:'currywurst',n:'Currywurst',        ids:['c:currywurst+acbfritas~acmcurrywurst','c:currywurst+aclaipofritas~acmcurryketo']},
   {k:'sopatomate',n:'Sopa de tomate',    ids:['sopatomate','sopatomategratinada','sopatomategruyere','sopatomategrilled']},
+  {k:'peixeaosal',n:'Peixe ao sal',   ids:['peixeaosal','peixesaldourada','peixesalbesugo']},
   {k:'paoketo', n:'Pão sem farinha',   ids:['ketopaonuvem','ketopaoamendoa']},
   /* ---- O mesmo prato, molho diferente ----
      Estas são o caso mais puro de variante: a mesma peça de carne ou de peixe
