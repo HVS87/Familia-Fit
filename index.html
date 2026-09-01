@@ -1085,7 +1085,6 @@ main{max-width:1100px;margin:0 auto;padding:24px 20px}
 .card--capa.energia{border-color:color-mix(in srgb,var(--energy) 22%,var(--line));
   background:linear-gradient(180deg,var(--energy-soft),var(--card) 46%)}
 .card--capa.energia>h2::after, .card--capa.energia>.card-cab h2::after{background:var(--energy)}
-.card--quieto{background:var(--bg)}
 .card--quieto{background:color-mix(in srgb,var(--card) 60%,var(--bg))}
 /* Cartão «Hoje»: linhas de agenda com fio tracejado, avatares à direita. */
 .hoje-lista{margin-top:8px}
@@ -1143,9 +1142,9 @@ input[type=text],input[type=number],input[type=date],input[type=search],select{
 /* Os atalhos das doses saltam de 12 para 20; quem cozinha para 14 escreve o
    número, em vez de ficar preso ao salto mais próximo. */
 .doses-num{width:58px;padding:3px 6px;border:1px solid var(--line);border-radius:8px;
-  background:var(--bg);color:var(--ink);font:600 13.5px/1 inherit;text-align:center;min-height:24px}
+  background:var(--bg);color:var(--ink);font-family:var(--fonte-ui);font-weight:600;font-size:13.5px;
+  line-height:1;text-align:center;min-height:24px}
 @media (hover:none) and (pointer:coarse){ .doses-num{min-height:32px} }
-@media (hover:none) and (pointer:coarse){ .chip{min-height:32px;padding:6px 14px} }
 .chip.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
 .chip.party{border-color:var(--party);color:var(--party)}
 .chip.party.on{background:var(--party-soft)}
@@ -1309,7 +1308,7 @@ input[type=range].com-detentes::-moz-range-track{
 /* Aberta: ganha o tamanho a sério, e é o `overflow-y` com `pointer-events` que
    dá o que faltava — uma explicação de mil caracteres percorre-se com a roda
    ou com o dedo, sem arrastar a página atrás dela. */
-.dica:hover>.dica-bolha,.dica:focus-visible>.dica-bolha,.dica.on>.dica-bolha{
+.dica:hover>.dica-bolha,.dica:focus-visible>.dica-bolha,.dica:focus-within>.dica-bolha,.dica.on>.dica-bolha{
   width:max-content;max-width:min(270px,calc(100vw - 24px));
   height:auto;max-height:min(340px,var(--maxh,340px),calc(100vh - 40px));padding:9px 12px;
   clip-path:none;pointer-events:auto;opacity:1;overflow-y:auto;overscroll-behavior:contain}
@@ -1317,7 +1316,7 @@ input[type=range].com-detentes::-moz-range-track{
    trinta e tal linhas para vinte e poucas, e a maioria das explicações deixa
    de precisar de ser percorrida. */
 @media (min-width:760px){
-  .dica:hover>.dica-bolha,.dica:focus-visible>.dica-bolha,.dica.on>.dica-bolha{
+  .dica:hover>.dica-bolha,.dica:focus-visible>.dica-bolha,.dica:focus-within>.dica-bolha,.dica.on>.dica-bolha{
     max-width:min(360px,calc(100vw - 24px))} }
 .dica[data-cima]>.dica-bolha{top:auto;bottom:calc(100% + 8px)}
 .dica::before{content:'';position:absolute;left:5px;top:calc(100% + 2px);
@@ -3733,7 +3732,7 @@ R('sericaia','Sericaia','portuguesa',[],0,0,0,0,[['Leite',90,'ml'],['Ovo',1.5,'u
 /* ---------- Burritos e tacos ---------- */
 R('burritocarne','Burrito de carne picada com feijão','mexicana',[],0,0,0,0,[['Tortilhas de trigo',90,'g'],['Carne picada de vaca',140,'g'],['Feijão preto',90,'g'],['Arroz agulha',60,'g'],['Queijo cheddar',40,'g'],['Tomate',60,'g'],['Cebola',40,'g'],['Coentros',5,'g'],['Cominhos',2,'g'],['Azeite',10,'ml']],['a','j'],0,['pp']),
 R('burritofrango','Burrito de frango com abacate','mexicana',[],0,0,0,0,[['Tortilhas de trigo',90,'g'],['Peito de frango',150,'g'],['Abacate',70,'g'],['Arroz agulha',60,'g'],['Feijão preto',70,'g'],['Alface',30,'g'],['Lima',10,'ml'],['Coentros',5,'g'],['Azeite',10,'ml']],['a','j'],0,['pp']),
-R('burritovegan','Burrito vegan de feijão preto e batata-doce','mexicana',['vegan','vegetariana'],0,0,0,0,[['Tortilhas de trigo',90,'g'],['Feijão preto',120,'g'],['Batata doce crua',150,'g'],['Arroz agulha',60,'g'],['Abacate',60,'g'],['Pimento',50,'g'],['Cominhos',2,'g'],['Coentros',5,'g'],['Azeite',12,'ml']],['a','j'],0,['pp']),
+R('burritovegan','Burrito vegan de feijão preto e batata-doce','mexicana',['vegan','vegetariana'],0,0,0,0,[['Tortilhas de trigo',90,'g'],['Feijão preto',120,'g'],['Batata-doce crua',150,'g'],['Arroz agulha',60,'g'],['Abacate',60,'g'],['Pimento',50,'g'],['Cominhos',2,'g'],['Coentros',5,'g'],['Azeite',12,'ml']],['a','j'],0,['pp']),
 R('burritocamarao','Burrito de camarão com lima','mexicana',[],0,0,0,0,[['Tortilhas de trigo',90,'g'],['Camarão',150,'g'],['Arroz agulha',60,'g'],['Couve-roxa crua',50,'g'],['Abacate',50,'g'],['Lima',12,'ml'],['Coentros',5,'g'],['Malagueta',1,'g'],['Azeite',10,'ml']],['a','j'],0,['pp']),
 R('burritopequeno','Burrito de pequeno-almoço com ovo','mexicana',[],0,0,0,0,[['Tortilhas de trigo',80,'g'],['Ovo',2,'un'],['Bacon',40,'g'],['Feijão preto',60,'g'],['Queijo cheddar',35,'g'],['Tomate',50,'g'],['Coentros',4,'g']],['p','l'],0,['br']),
 R('tacocarnitas','Tacos de carnitas de porco','mexicana',[],0,0,0,0,[['Tortilhas de milho',80,'g'],['Carne de porco',160,'g'],['Cebola',50,'g'],['Coentros',6,'g'],['Lima',12,'ml'],['Cominhos',2,'g'],['Laranja',40,'g'],['Azeite',10,'ml']],['a','j'],0,['pp']),
@@ -3743,7 +3742,7 @@ R('tacocogumelos','Tacos de cogumelos e feijão preto','mexicana',['vegan','vege
 R('tacocamarao','Tacos de camarão salteado','mexicana',[],0,0,0,0,[['Tortilhas de milho',80,'g'],['Camarão',160,'g'],['Alface',40,'g'],['Lima',5,'ml'],['Coentros',5,'g'],['Azeite',10,'ml']],['a','j'],0,['pp']),
 
 /* ---------- Cozinha africana ---------- */
-R('cachupa','Cachupa','africana',[],0,0,0,0,[['Milho, grão seco cru',45,'g'],['Feijão encarnado',35,'g'],['Feijão branco',20,'g'],['Couve galega',70,'g'],['Batata doce crua',70,'g'],['Abóbora',70,'g'],['Mandioca crua',50,'g'],['Carne de porco',50,'g'],['Chouriço',20,'g'],['Linguiça',20,'g'],['Toucinho fumado',10,'g'],['Cebola',50,'g'],['Alho',2,'dente'],['Azeite',8,'ml'],['Louro',1,'g']],['a','j'],0,['pp']),
+R('cachupa','Cachupa','africana',[],0,0,0,0,[['Milho, grão seco cru',45,'g'],['Feijão encarnado',35,'g'],['Feijão branco',20,'g'],['Couve galega',70,'g'],['Batata-doce crua',70,'g'],['Abóbora',70,'g'],['Mandioca crua',50,'g'],['Carne de porco',50,'g'],['Chouriço',20,'g'],['Linguiça',20,'g'],['Toucinho fumado',10,'g'],['Cebola',50,'g'],['Alho',2,'dente'],['Azeite',8,'ml'],['Louro',1,'g']],['a','j'],0,['pp']),
 R('moamba','Moamba de galinha','africana',[],0,0,0,0,[['Frango inteiro com pele, cru',220,'g'],['Óleo de palma',20,'ml'],['Quiabo cru',100,'g'],['Abóbora',120,'g'],['Amendoim',30,'g'],['Tomate',120,'g'],['Cebola',80,'g'],['Alho',3,'dente'],['Jindungo (piri-piri)',5,'g'],['Louro',1,'g']],['a','j'],0,['pp']),
 
 /* ---------- Cozinha brasileira ---------- */
@@ -3794,7 +3793,7 @@ R('aclcouveroxa','Salada de couve-roxa e cenoura','mediterranica',['mediterranic
    são metade dos jantares de uma casa portuguesa, e os legumes salteados e
    gratinados, que dão a mesma verdura em dois registos diferentes. */
 R('acbpure','Puré de batata','portuguesa',[],0,0,0,0,[['Batata',200,'g'],['Leite',50,'ml'],['Manteiga',15,'g'],['Noz-moscada',0.3,'g'],['Flor de sal',1,'g']],['ac']),
-R('acbdoce','Batata-doce assada','portuguesa',['mediterranica'],0,0,0,0,[['Batata doce crua',200,'g'],['Azeite',8,'ml'],['Alecrim',3,'g'],['Flor de sal',1,'g']],['ac']),
+R('acbdoce','Batata-doce assada','portuguesa',['mediterranica'],0,0,0,0,[['Batata-doce crua',200,'g'],['Azeite',8,'ml'],['Alecrim',3,'g'],['Flor de sal',1,'g']],['ac']),
 R('acrfeijao','Arroz de feijão','portuguesa',['mediterranica'],0,0,0,0,[['Arroz carolino',60,'g'],['Feijão manteiga, seco, cru',30,'g'],['Cebola',0.5,'un'],['Alho',1,'dente'],['Azeite',10,'ml'],['Louro',1,'g'],['Salsa',3,'g']],['ac']),
 R('acrmanteiga','Arroz de manteiga','portuguesa',[],0,0,0,0,[['Arroz agulha',70,'g'],['Manteiga',15,'g'],['Cebola',0.25,'un'],['Louro',1,'g']],['ac']),
 R('aclesparregado','Esparregado de espinafres','portuguesa',[],0,0,0,0,[['Espinafres',200,'g'],['Alho',3,'dente'],['Farinha',8,'g'],['Leite',60,'ml'],['Azeite',10,'ml'],['Noz-moscada',0.3,'g'],['Vinagre de vinho',3,'ml']],['ac']),
@@ -4309,7 +4308,7 @@ R('bololevedo','Bolo lêvedo com manteiga','portuguesa',[],0,0,0,0,[['Farinha de
 /* Bolo do caco da Madeira: batata-doce e farinha, cozido na pedra quente. A
    proporção é a tradicional — 350 g de batata-doce por cada 500 g de farinha.
    A manteiga de alho é o que se lhe põe a seguir, e é meia receita. */
-R('bolocaco','Bolo do caco com manteiga de alho','portuguesa',[],0,0,0,0,[['Farinha de trigo tipo 65',80,'g'],['Batata doce crua',56,'g'],['Fermento de padeiro',2,'g'],['Manteiga com sal',15,'g'],['Alho',2,'dente'],['Salsa',4,'g']],['p','l'],0,['br']),
+R('bolocaco','Bolo do caco com manteiga de alho','portuguesa',[],0,0,0,0,[['Farinha de trigo tipo 65',80,'g'],['Batata-doce crua',56,'g'],['Fermento de padeiro',2,'g'],['Manteiga com sal',15,'g'],['Alho',2,'dente'],['Salsa',4,'g']],['p','l'],0,['br']),
 /* Papas de carolo: milho partido grosso cozido primeiro em água e só depois
    em leite, com casca de limão e canela. Era o pequeno-almoço da Beira Baixa
    e do Minho, e continua a dar para as duas pontas do dia. */
@@ -4497,7 +4496,7 @@ R('paodedeus','Pão de Deus','portuguesa',[],0,0,0,0,[['Farinha de trigo tipo 55
 R('acordaalentejana','Açorda alentejana com ovo escalfado','portuguesa',['mediterranica'],0,0,0,0,[['Pão alentejano',100,'g'],['Alho',2,'dente'],['Coentros',10,'g'],['Azeite',15,'ml'],['Ovo',1,'un'],['Sal grosso',2,'g']],['p','j'],0,['pp']),
 R('empadavilavicosa','Empadas de galinha à moda de Vila Viçosa','portuguesa',[],0,0,0,0,[['Massa quebrada',50,'g'],['Coxas de frango',60,'g'],['Bacon',10,'g'],['Gema de ovo de galinha, crua',15,'g'],['Cebola',20,'g'],['Banha de porco',5,'g'],['Limão',10,'g'],['Salsa',3,'g'],['Cravinho',0.3,'g'],['Pimenta branca',0.3,'g'],['Vinagre de vinho',5,'ml'],['Azeitonas',8,'g']],['l','a'],0,['sn']),
 R('domrodrigo','Dom Rodrigo','portuguesa',[],0,0,0,0,[['Gema de ovo de galinha, crua',25,'g'],['Açúcar branco',35,'g'],['Amêndoa, miolo, torrada, sem pele',15,'g'],['Canela',1,'g']],['l'],0,['sob']),
-R('massasovada','Massa sovada','portuguesa',[],0,0,0,0,[['Farinha de trigo tipo 55',65,'g'],['Açúcar branco',12,'g'],['Ovo',0.35,'un'],['Manteiga',13,'g'],['Leite meio gordo, UHT',17,'ml'],['Batata doce crua',10,'g'],['Fermento de padeiro',2,'g'],['Canela',0.5,'g'],['Raspa de limão',0.5,'g']],['p','l'],0,['br']),
+R('massasovada','Massa sovada','portuguesa',[],0,0,0,0,[['Farinha de trigo tipo 55',65,'g'],['Açúcar branco',12,'g'],['Ovo',0.35,'un'],['Manteiga',13,'g'],['Leite meio gordo, UHT',17,'ml'],['Batata-doce crua',10,'g'],['Fermento de padeiro',2,'g'],['Canela',0.5,'g'],['Raspa de limão',0.5,'g']],['p','l'],0,['br']),
 R('cachorropequeno','Cachorrinho à moda do Porto','portuguesa',[],0,0,0,0,[['Pão rústico',60,'g'],['Salsicha fresca crua',60,'g'],['Queijo Gouda',25,'g'],['Manteiga',8,'g'],['Molho piri-piri',5,'ml']],['l','j'],0,['sn']),
 R('tostamista','Tosta mista','portuguesa',[],0,0,0,0,[['Pão de forma',60,'g'],['Fiambre',40,'g'],['Queijo flamengo',40,'g'],['Manteiga',8,'g']],['p','l'],0,['sn']),
 R('omeletebacalhau','Omelete de bacalhau','portuguesa',['mediterranica'],0,0,0,0,[['Ovo',3,'un'],['Bacalhau demolhado cru',70,'g'],['Cebola',40,'g'],['Pimento',30,'g'],['Azeite',12,'ml'],['Salsa',5,'g'],['Colorau',1,'g'],['Pimenta preta',1,'g']],['p','j'],0,['br']),
@@ -4750,7 +4749,7 @@ R('acbpapelote','Batatas em papelote nas cinzas','portuguesa',[],0,0,0,0,[['Bata
 R('acabobrasa','Abóbora na brasa com alecrim','brasileira',['mediterranica'],0,0,0,0,[['Abóbora',200,'g'],['Azeite',8,'ml'],['Alecrim',1,'g'],['Flor de sal',1,'g'],['Pimenta preta',0.3,'g']],['ac']),
 R('acalhobrasa','Cabeças de alho assadas na brasa','mediterranica',['mediterranica'],0,0,0,0,[['Alho',50,'g'],['Azeite',8,'ml'],['Pão rústico',45,'g'],['Flor de sal',0.5,'g']],['ac']),
 R('acalcachofra','Alcachofras na brasa','italiana',['mediterranica'],0,0,0,0,[['Alcachofra crua',200,'g'],['Azeite',10,'ml'],['Alho',1,'dente'],['Salsa',3,'g'],['Limão',10,'g'],['Flor de sal',1,'g']],['ac']),
-R('accacobrasa','Bolo do caco na brasa','portuguesa',[],0,0,0,0,[['Farinha de trigo tipo 65',90,'g'],['Batata doce crua',55,'g'],['Fermento seco de padeiro',2,'g'],['Manteiga',15,'g'],['Alho',1,'dente'],['Salsa',2,'g'],['Flor de sal',1.5,'g']],['ac']),
+R('accacobrasa','Bolo do caco na brasa','portuguesa',[],0,0,0,0,[['Farinha de trigo tipo 65',90,'g'],['Batata-doce crua',55,'g'],['Fermento seco de padeiro',2,'g'],['Manteiga',15,'g'],['Alho',1,'dente'],['Salsa',2,'g'],['Flor de sal',1.5,'g']],['ac']),
 R('acsalbatata','Salada de batata com maionese e ovo','americana',[],0,0,0,0,[['Batata',180,'g'],['Maionese',25,'g'],['Mostarda',4,'g'],['Ovo de galinha cozido',30,'g'],['Aipo',20,'g'],['Cebola roxa',15,'g'],['Vinagre de vinho',5,'ml'],['Salsa',2,'g'],['Pimenta preta',0.3,'g']],['ac']),
 R('accoleslaw','Coleslaw','americana',[],0,0,0,0,[['Couve-branca crua',130,'g'],['Cenoura',30,'g'],['Maionese',25,'g'],['Vinagre de vinho',8,'ml'],['Açúcar branco',6,'g'],['Mostarda',3,'g'],['Pimenta preta',0.3,'g']],['ac']),
 R('acfeijaofrade','Salada de feijão-frade com cebola e coentros','portuguesa',['mediterranica'],0,0,0,0,[['Feijão-frade cozido',150,'g'],['Cebola',30,'g'],['Pimento',25,'g'],['Coentros',5,'g'],['Azeite',12,'ml'],['Vinagre de vinho',6,'ml'],['Flor de sal',1,'g'],['Pimenta preta',0.3,'g']],['ac']),
@@ -9010,7 +9009,7 @@ NI('Avelã, miolo',689,6,14,66.3,6.1,0,4);
 NI('Bacalhau, ovas cruas',104,0,21.7,1.9,0,0,0);
 NI('Bagas goji secas',303,51.8,11.2,2.8,12.8,0,2);
 NI('Banha de porco',896,0,0,99.5,0,0,4);
-NI('Batata doce crua',123,28.3,1,0,2.7,0,2);
+NI('Batata-doce crua',123,28.3,1,0,2.7,0,2);
 NI('Batata, fécula',345,85,0.5,0.3,0.1,0,4);
 NI('Beldroega crua',13,1,1,0,2.5,0,2);
 NI('Berbigão cru',59,2.7,10.5,0.7,0,0,0);
@@ -15891,7 +15890,7 @@ const SUBSTITUICOES=[
   {de:/^Coentros$/i, por:['Salsa','Manjericão'], nota:'A salsa é o substituto clássico em casa portuguesa.'},
   {de:/^Arroz$/i, por:['Quinoa','Couscous','Bulgur'], nota:'O couscous e o bulgur levam glúten; a quinoa não.'},
   {de:/^Esparguete$/i, por:['Massa de arroz','Gnocchi de batata'], nota:'A massa de arroz não leva glúten.'},
-  {de:/^Batata$/i, por:['Batata doce crua','Abóbora'], nota:'Ficam mais doces e com menos amido.'},
+  {de:/^Batata$/i, por:['Batata-doce crua','Abóbora'], nota:'Ficam mais doces e com menos amido.'},
   {de:/^Feijão$/i, por:['Grão-de-bico','Lentilhas'], nota:'Trocam-se a peso, com tempos de cozedura diferentes.'},
   {de:/^Frango|^Peito de frango$/i, por:['Bifes de peru','Peito de peru'], nota:'O peru é mais magro e seca mais depressa.'},
   {de:/^Bacalhau/i, por:['Pescada','Maruca crua'], nota:'Sem o sal do bacalhau — vale a pena provar antes de temperar.'},
@@ -33405,6 +33404,26 @@ document.addEventListener('click', e=>{
   const d=e.target.closest && e.target.closest(SEL_DICA);
   if(d) e.preventDefault();
   alternaBolha(d);
+});
+/* ---- Percorrer a explicação sem rato ----
+   As bolhas passaram a poder ser percorridas, e isso resolveu o problema para
+   quem tem rato ou dedo — e criou-o para quem só tem teclado: o foco está no
+   marcador, a bolha não é focável (e pô-la na ordem de tabulação seriam
+   duzentas e noventa e nove paragens novas), por isso as setas rolavam a
+   página por baixo dela em vez do texto que se estava a ler. Com o marcador
+   focado, as setas e o Page Up/Down passam a mover a bolha; o Home e o End
+   levam ao princípio e ao fim. Só quando há mesmo o que percorrer — se a
+   explicação cabe toda, as setas continuam a ser da página. */
+document.addEventListener('keydown', e=>{
+  const d=document.activeElement && document.activeElement.closest && document.activeElement.closest(SEL_DICA);
+  if(!d) return;
+  const bo=d.querySelector('.dica-bolha'); if(!bo) return;
+  if(bo.scrollHeight<=bo.clientHeight+1) return;
+  const salto=Math.max(40, bo.clientHeight-24);
+  const passos={ArrowDown:38, ArrowUp:-38, PageDown:salto, PageUp:-salto};
+  if(e.key in passos){ bo.scrollTop+=passos[e.key]; e.preventDefault(); return; }
+  if(e.key==='Home'){ bo.scrollTop=0; e.preventDefault(); return; }
+  if(e.key==='End'){ bo.scrollTop=bo.scrollHeight; e.preventDefault(); }
 });
 aplicarEcra();
 /* Agora sim: já cá estão todas as constantes de que os combos precisam, e
