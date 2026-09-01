@@ -543,7 +543,10 @@ html[data-dispositivo="telefone"][data-orient="retrato"] .fab{bottom:calc(84px +
 .metodo-op:hover{border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
 .metodo-op.on{border-color:var(--accent);background:var(--accent-soft)}
 .mo-nome{font-weight:700;font-size:13px;line-height:1.25}
-.mo-sel{display:inline-block;font:700 9.5px/1.6 var(--fonte-ui);text-transform:uppercase;letter-spacing:.05em;
+/* 9,5 px em maiúsculas com espaçamento era o texto mais pequeno da app, e
+   estava a dizer qual o método recomendado — precisamente o que mais interessa
+   ler. Sobe para 11, que é o piso do resto dos selos. */
+.mo-sel{display:inline-block;font:700 11px/1.6 var(--fonte-ui);text-transform:uppercase;letter-spacing:.05em;
   padding:0 5px;border-radius:999px;background:var(--accent);color:var(--on-accent);vertical-align:1px}
 .metodo-op.on .mo-sel{background:var(--on-accent);color:var(--accent)}
 .mo-val{font-family:var(--fonte-display);font-size:16px;font-variant-numeric:tabular-nums}
