@@ -3455,7 +3455,19 @@ R('uvaslima','Uvas com raspas de lima','portuguesa',['lowfat','vegan','mediterra
    que a mesma panna cotta serve framboesa, morango ou manga sem serem três
    receitas. O par com framboesa é a receita do Vincenzo por inteiro. */
 R('pannacotta','Panna cotta','italiana',[],0,0,0,0,[['Nata para bater 35% gordura',100,'ml'],['Açúcar branco',15,'g'],['Gelatina em folhas',1,'g'],['Baunilha',1,'g']],['l'],0,['sob']),
-R('abadepriscos','Pudim Abade de Priscos','portuguesa',[],0,0,0,0,[['Açúcar branco',34,'g'],['Gema de ovo de galinha, crua',36,'g'],['Toucinho fumado',8,'g'],['Vinho do Porto',12,'ml'],['Limão',2,'g'],['Canela',0.4,'g']],['l'],0,['sob']),
+/* Abade de Priscos com as quantidades da receita inteira, divididas por doze.
+   A receita completa é: caramelo com 200 g de açúcar e 100 ml de água; pudim
+   com 15 gemas, 350 g de açúcar, 500 ml de água, 60 ml de vinho do Porto,
+   50 g de toucinho, um pau de canela e a casca de um limão. São 550 g de
+   açúcar e 270 g de gema (a gema de galinha pesa cerca de 18 g) — perto de
+   3500 kcal no total, que a doze dá uma dose na casa das 300, do tamanho das
+   outras sobremesas da app.
+   Doze e não dez porque é o que este pudim serve de facto: é rico ao ponto de
+   a fatia ser pequena, e uma dose de dez seria mais açúcar do que qualquer
+   outra sobremesa daqui.
+   O toucinho passa a ser o fresco entremeado e não o fumado, que era o que cá
+   estava: num pudim, o fumo é a única coisa que se lhe sentiria. */
+R('abadepriscos','Pudim Abade de Priscos','portuguesa',[],0,0,0,0,[['Açúcar branco',46,'g'],['Gema de ovo de galinha, crua',22.5,'g'],['Porco, toucinho entremeado fresco, cru',4,'g'],['Vinho do Porto',5,'ml'],['Limão',2,'g'],['Canela',0.25,'g']],['l'],0,['sob']),
 R('leitecreme','Leite creme','portuguesa',[],0,0,0,0,[['Leite',110,'ml'],['Gema de ovo de galinha, crua',26,'g'],['Açúcar branco',24,'g'],['Milho, amido (pó)',7,'g'],['Limão',3,'g'],['Canela',0.5,'g']],['l'],0,['sob']),
 R('babacamelo','Baba de camelo','portuguesa',[],0,0,0,0,[['Leite condensado açucarado',70,'g'],['Ovo',1,'un'],['Amêndoa',8,'g']],['l'],0,['sob']),
 R('bolobolacha','Bolo de bolacha','portuguesa',[],0,0,0,0,[['Bolacha Maria',30,'g'],['Manteiga',22,'g'],['Açúcar branco',18,'g'],['Café expresso',22,'ml'],['Gema de ovo de galinha, crua',7,'g']],['l'],0,['sob']),
@@ -4685,11 +4697,14 @@ P('pannacotta',[['Gelatina em água muito fria','Folhas a demolhar em água bem 
  ['Dissolver a gelatina','Espreme a gelatina da água e junta-a às natas ainda quentes, fora do lume, mexendo até desaparecer por completo e o creme ficar liso. Um grão que fique nota-se todo depois de frio.',3],
  ['Ao frio, sem pressa','Deita em copos ou taças e leva ao frigorífico três horas no mínimo — de um dia para o outro é melhor, e aguenta três a quatro dias. Com 1 g de gelatina por 100 ml de nata, sai a tremer: é assim que é.',180],
  ['Escolher a cobertura','Vai à mesa lisa ou com um coulis por cima — é a cobertura que se escolhe à parte, e o coulis frio sobre a panna cotta fria. Quente, derretia-lhe a superfície.']]);
-P('abadepriscos',[['Calda','Leva o açúcar ao lume com pouca água, o limão e a canela, até fio pérola. Junta o toucinho em cubinhos e deixa cozinhar na calda — é ele o segredo deste pudim.',12],
- ['Arrefecer','Deixa a calda amornar. Se estiver a ferver, coalha as gemas.'],
- ['Gemas','Junta as gemas mexidas (não batidas) e o vinho do Porto, sem fazer espuma.'],
- ['Coar','Passa por um passador fino para a forma caramelizada.'],
- ['Banho-maria','Forno a 180 °C em banho-maria, tapado, até estar preso mas ainda a tremer.',60]]);
+P('abadepriscos',[['A receita inteira, para doze','As quantidades da ficha são por dose. Para o pudim todo multiplica por doze: caramelo com 200 g de açúcar e 100 ml de água; pudim com 15 gemas, 350 g de açúcar, 500 ml de água, 60 ml de vinho do Porto, 50 g de toucinho, um pau de canela e a casca de um limão. Não vale a pena fazer menos: um pudim pequeno coze desigual.'],
+ ['Caramelo','Os 200 g de açúcar com os 100 ml de água, em lume médio e SEM mexer — mexer faz o açúcar cristalizar. Deixa ir até âmbar escuro e deita logo na forma, a rodar para forrar o fundo e as paredes. Endurece em segundos, e é por isso que se faz primeiro.',10],
+ ['Calda com toucinho, canela e limão','Os 350 g de açúcar com os 500 ml de água, o pau de canela, a casca de limão só a amarela (o branco amarga) e o toucinho em cubinhos. Ferve até ponto de pérola — a calda escorre da colher num fio que não se parte. É o toucinho a cozinhar aqui que faz este pudim, e não outro qualquer.',20],
+ ['Coar e arrefecer','Coa a calda e deita fora o toucinho, a canela e a casca: já deram o que tinham. Deixa amornar mesmo — sobre calda a ferver, as gemas coalham e não há como voltar atrás.',20],
+ ['Gemas mexidas, não batidas','Junta as 15 gemas mexidas com um garfo, sem fazer espuma, e o vinho do Porto. Espuma no pudim vira buracos, e um Abade de Priscos quer-se liso como um creme.',5],
+ ['Coar outra vez para a forma','Passa tudo por um passador fino para a forma caramelizada. É este segundo coar que apanha o que ficou de gema mal desfeita.',3],
+ ['Banho-maria no forno','Forno a 180 °C, em banho-maria com água a ferver e a forma tapada com alumínio, até estar preso mas ainda a tremer no centro. Não deixes a água do banho ferver — é ela que faz os furos.',60],
+ ['Frio antes de desenformar','Frio por completo, e de véspera se puderes. Desenformado quente, desfaz-se; frio, sai inteiro e o caramelo escorre por cima.',240]]);
 P('leitecreme',[['Infusão','Aquece o leite com a casca de limão e o pau de canela e deixa em infusão fora do lume.',10],
  ['Gemas','Bate as gemas com o açúcar até esbranquiçarem, e junta o amido dissolvido num pouco de leite frio.'],
  ['Ligar','Junta o leite coado morno em fio, sempre a mexer, e leva a lume brando mexendo sem parar até engrossar. Nunca deixes ferver.',8],
