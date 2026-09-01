@@ -3434,7 +3434,13 @@ R('nasigoreng','Nasi Goreng','asiatica',[],0,0,0,0,[['Arroz jasmim',90,'g'],['Pe
 
 /* ---------- Sobremesas ---------- */
 R('uvaslima','Uvas com raspas de lima','portuguesa',['lowfat','vegan','mediterranica'],0,0,0,0,[['Uva de mesa (branca e tinta)',180,'g'],['Raspa de lima',3,'g'],['Lima',10,'ml'],['Hortelã',3,'g']],['p','l'],0,['sob','sn','br']),
-R('pannacotta','Panna cotta','italiana',[],0,0,0,0,[['Nata para bater 35% gordura',90,'ml'],['Leite',40,'ml'],['Açúcar branco',20,'g'],['Gelatina em folhas',2,'g'],['Baunilha',1,'g'],['Frutos vermelhos',60,'g']],['l'],0,['sob']),
+/* Proporções do Vincenzo's Plate, por dose (a receita dele é para seis): 600 ml
+   de natas, 6 g de gelatina e 90 g de açúcar. Duas diferenças para o que a app
+   tinha: não leva leite nenhum — é nata pura, e era o leite que lhe tirava o
+   corpo — e a gelatina desce para 1 g por 100 ml, metade do que cá estava. É
+   essa metade que separa uma panna cotta de um pudim: tem de tremer no prato e
+   ceder à colher, não de se aguentar de pé. */
+R('pannacotta','Panna cotta','italiana',[],0,0,0,0,[['Nata para bater 35% gordura',100,'ml'],['Açúcar branco',23,'g'],['Gelatina em folhas',1,'g'],['Baunilha',1,'g'],['Framboesa',42,'g'],['Limão',0.15,'un'],['Hortelã',1,'g']],['l'],0,['sob']),
 R('abadepriscos','Pudim Abade de Priscos','portuguesa',[],0,0,0,0,[['Açúcar branco',34,'g'],['Gema de ovo de galinha, crua',36,'g'],['Toucinho fumado',8,'g'],['Vinho do Porto',12,'ml'],['Limão',2,'g'],['Canela',0.4,'g']],['l'],0,['sob']),
 R('leitecreme','Leite creme','portuguesa',[],0,0,0,0,[['Leite',110,'ml'],['Gema de ovo de galinha, crua',26,'g'],['Açúcar branco',24,'g'],['Milho, amido (pó)',7,'g'],['Limão',3,'g'],['Canela',0.5,'g']],['l'],0,['sob']),
 R('babacamelo','Baba de camelo','portuguesa',[],0,0,0,0,[['Leite condensado açucarado',70,'g'],['Ovo',1,'un'],['Amêndoa',8,'g']],['l'],0,['sob']),
@@ -4634,11 +4640,14 @@ P('nasigoreng',[['Arroz frio','Usa arroz cozido do dia anterior, bem frio e solt
 P('uvaslima',[['Preparar','Lava as uvas, corta-as ao comprido em quatro e tira as grainhas. Ao meio não chega: é ao comprido e em quatro que a uva deixa de encaixar na traqueia de uma criança.'],
  ['Temperar','Sumo de lima por cima e envolve.'],
  ['Servir','Raspa de lima e hortelã picada à saída. Melhor bem fresco.']]);
-P('pannacotta',[['Gelatina','Demolha as folhas de gelatina em água muito fria até amolecerem.',5],
- ['Aquecer','Aquece a nata com o leite, o açúcar e a baunilha sem deixar ferver — se ferver, a nata talha.',5],
- ['Dissolver','Fora do lume, junta a gelatina bem escorrida e mexe até desaparecer por completo.'],
- ['Frio','Deita em taças e leva ao frigorífico pelo menos quatro horas.',240],
- ['Servir','Frutos vermelhos por cima, à saída.']]);
+P('pannacotta',[['Gelatina em água muito fria','Folhas a demolhar em água bem fria alguns minutos, até amolecerem. Em água morna dissolvem-se e perdem a força — depois a panna cotta não pega.',5],
+ ['Natas e açúcar','Natas em lume médio-brando, a bater devagar com as varas, e o açúcar (15 g dos 23; os outros 8 ficam para a coulis) a dissolver-se por completo antes de aquecer mais.',6],
+ ['Baunilha, e fora do lume ao primeiro sinal','Junta a baunilha e não te afastes: assim que aparecerem bolhas pequenas na berma do tacho, desliga. Não pode ferver — a nata talha e o creme fica granuloso.',4],
+ ['Dissolver a gelatina','Espreme a gelatina da água e junta-a às natas ainda quentes, fora do lume, mexendo até desaparecer por completo e o creme ficar liso. Um grão que fique nota-se todo depois de frio.',3],
+ ['Ao frio, sem pressa','Deita em copos ou taças e leva ao frigorífico três horas no mínimo — de um dia para o outro é melhor, e aguenta três a quatro dias. Com 1 g de gelatina por 100 ml de nata, sai a tremer: é assim que é.',180],
+ ['Coulis de framboesa','Framboesas num tacho, a raspa do limão por cima e o sumo coado. Os 8 g de açúcar que sobraram, lume médio, a mexer e a esmagar as framboesas até largarem o suco.',8],
+ ['Coar e arrefecer','Passa por um passador fino, a apertar com as costas de uma colher para tirar tudo o que dá — o que fica no passador são as grainhas, e é por elas que se coa. Arrefece por completo antes de servir.',5],
+ ['Servir','Coulis fria sobre a panna cotta fria e uma folha de hortelã. Quente sobre fria, derretia-lhe a superfície.']]);
 P('abadepriscos',[['Calda','Leva o açúcar ao lume com pouca água, o limão e a canela, até fio pérola. Junta o toucinho em cubinhos e deixa cozinhar na calda — é ele o segredo deste pudim.',12],
  ['Arrefecer','Deixa a calda amornar. Se estiver a ferver, coalha as gemas.'],
  ['Gemas','Junta as gemas mexidas (não batidas) e o vinho do Porto, sem fazer espuma.'],
