@@ -23313,12 +23313,36 @@ function textoBusca(r){
           +(base!==r.id && temChave(ALIAS_BUSCA,base)? ALIAS_BUSCA[base]+' ':'');
   return (_txBusca[r.id]=semAcentos(r.n+' '+fam+' '+al+r.i.map(x=>x[0]).join(' ')));
 }
+/* ---- O plural português que a comparação por substring não sabe fazer ----
+   «croquete» encontra «croquetes» porque o singular é prefixo do plural. Mas o
+   português tem plurais que MUDAM a palavra: rissol→rissóis, caracol→caracóis,
+   pastel→pastéis, animal→animais, pão→pães. Aí o prefixo comum acaba antes do
+   fim, e quem escreve o singular que conhece recebe zero resultados — testado:
+   «rissol» dava nada e «rissóis» dava cinco.
+   A regra é a da gramática e não uma lista de exceções: as palavras em -l
+   fazem o plural em -is, e as em -ão fazem-no em -ães/-ões/-ãos. Reduz-se
+   qualquer das formas ao mesmo radical («rissoi», «rissol» → «risso») e
+   compara-se por aí, dos dois lados. */
+function radicalPT(p){
+  return p
+    .replace(/([aeou])is?$/,'$1l')       /* rissois → rissol (a seguir cai o l) */
+    .replace(/oes$|aes$|aos$/,'ao')      /* paes, pões → pao */
+    .replace(/l$/,'')                    /* rissol e rissoil → risso */
+    .replace(/s$/,'');                   /* plural simples */
+}
 function correspondeBusca(r,q){
   if(!q) return true;
   const termos=q.split(/\s+/).filter(Boolean);
   if(!termos.length) return true;
   const alvo=textoBusca(r);
-  return termos.every(t=>alvo.indexOf(t)>=0);
+  return termos.every(t=>{
+    if(alvo.indexOf(t)>=0) return true;
+    /* só se a forma reduzida disser alguma coisa: um radical de duas letras
+       encontraria meio catálogo */
+    const rd=radicalPT(t);
+    if(rd.length<4 || rd===t) return false;
+    return alvo.split(/[^a-z0-9]+/).some(w=>radicalPT(w)===rd);
+  });
 }
 /* Trezentas e tal receitas de uma vez são um quarto de segundo de trabalho
    para mostrar cartões que ninguém percorre até ao fim. Mostram-se aos lotes,
