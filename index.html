@@ -6069,7 +6069,9 @@ P('ketoade',[
  ['Diluir e temperar','Completa até ao litro com o resto da água, junta o sumo de meio limão ou de meia lima, e a pitada de stévia se quiseres. Leva ao frio, se preferires fresca. O ácido não é enfeite: é ele que corta o travo metálico do potássio.',3],
  ['Beber devagar','Um jarro ao longo de quatro a seis horas, e não de uma vez. Dois jarros por dia dão aproximadamente uma colher de chá de sal, meia de cloreto de potássio e 300 a 400 mg de magnésio.',5],
  ['Acertar ao paladar e ao corpo','Se te sentires tonto, sobe o sal. Se souber a metal, baixa um pouco o potássio e acrescenta mais citrino. Sem adoçante fica com sabor a nada, que é o que muita gente prefere em jejum.'],
- ['As contas, e os números oficiais','Um jarro leva cerca de 1200 mg de sódio e 780 mg de potássio; dois dão 2400 e 1560. Para comparar: a Ingestão Adequada da EFSA para adultos é de 2,0 g de sódio e 3,5 g de potássio por dia, e o potássio deste jarro está na ordem de grandeza do que há em comida — uma batata assada tem perto de 900 mg. O magnésio é o único que sai da conta habitual: a EFSA fixa em 250 mg por dia o limite superior tolerável do magnésio DE SUPLEMENTOS (a comida não conta para esse teto), e dois jarros passam-no. O efeito de passar é intestinal e não perigoso — mas se der para o torto, é o magnésio.'],
+ ['O sal e o potássio, em números','Um jarro leva cerca de 1200 mg de sódio e 787 mg de potássio; dois dão 2400 e 1573. O potássio sai da conta do sal: o cloreto de potássio é 52,4 % potássio em massa (39,1 de 74,6 g/mol), por isso 1,5 g do pó dão 787 mg do mineral. Para comparar, a Ingestão Adequada da EFSA para adultos é de 2,0 g de sódio e 3,5 g de potássio por dia — dois jarros ficam em 45 % do potássio do dia, na ordem de grandeza do que há em comida: uma batata assada tem perto de 900 mg.'],
+ ['O magnésio: lê o rótulo, não a colher','Aqui a colher engana. O bisglicinato de magnésio PURO tem 14,1 % de magnésio elementar (24,3 de 172,4 g/mol), por isso um grama de pó dá cerca de 141 mg — e não os 150 a 200 mg que muitos rótulos anunciam. Quem anuncia mais está a vender pó TAMPONADO, misturado com óxido de magnésio, que é 60,3 % elementar; é um produto legítimo e comum, mas não é o quelato puro. O número que interessa vem sempre escrito no rótulo como «magnésio elementar», e é esse que se usa nas contas — a massa de pó não serve para nada.'],
+ ['O teto do magnésio','Com pó puro, dois jarros dão 282 mg de magnésio elementar; com um tamponado a 20 %, dão 400 mg. Nos dois casos passam os 250 mg por dia que a EFSA fixa como limite superior tolerável do magnésio DE SUPLEMENTOS — a comida não conta para esse teto. Uma ressalva honesta: esse limite foi derivado para sais prontamente dissociáveis, o óxido e o cloreto entre eles, e o bisglicinato é um quelato que costuma tolerar-se melhor. A app não lhe inventa um teto diferente por isso. O efeito de passar é intestinal e não perigoso — mas se der para o torto, o magnésio é o primeiro suspeito.'],
  ['Quem não deve fazer esta bebida','Com doença renal, insuficiência cardíaca, hipertensão sob tratamento, ou medicação que retém potássio — IECA, ARA ou diuréticos poupadores de potássio —, este jarro não é para ti sem falares primeiro com quem te segue. Nesses casos o potássio a mais não é desconforto, é risco de ritmo cardíaco, e uma dieta com pouco sal existe precisamente para não se fazer isto. A app diz o mesmo no cartão dos suplementos e no guia do jejum, e não muda de opinião por a bebida ser caseira.'],
  ['Sobre o substituto de sal','Os sais de potássio de marca nem todos são iguais: uns são cloreto de potássio puro, outros são MISTURA com sal comum — o Lo-Salt são dois terços de potássio e um terço de sal. Se usares um de mistura, o sódio do jarro sobe e o potássio desce em relação às contas de cima. O rótulo diz qual é qual.']]);
 P('ketogelado',[['Creme inglês a 82 °C','Leite e natas a aquecer; gemas batidas com o eritritol à parte; o quente sobre elas a fio, e volta ao lume brando até napar a colher. Passa dos 85 °C e talha.',12],
@@ -13665,6 +13667,17 @@ const NICE_RISCO_MODERADO=[
 ];
 /* A rampa, por duração do jejum. Cada número é a fração do alvo normal nesse
    dia. Quanto mais longo o jejum, mais lenta a subida. */
+/* ---- Uma assimetria deixada de propósito, e por isso escrita ----
+   As bandas do guia passaram a fechar em cima (`h<=`), para um jejum de 72 h
+   se ler como «48 a 72 horas», que é o que a etiqueta diz. Esta rampa mantém
+   o `<`, e por isso às 72 h dá a repartição da banda seguinte — três dias de
+   regresso em vez de dois. Não é um esquecimento: nas fronteiras redondas, um
+   regresso mais lento não custa nada a quem não precisava dele, e um regresso
+   mais rápido custa a quem precisava. Onde o erro tem lados diferentes, a app
+   escolhe o lado barato.
+   As horas de corte continuam a ser as mesmas — 24, 48, 72, 120, 168 — e é
+   isso que a nota do guia promete: as bandas são as mesmas, o que difere é
+   para que lado cai quem calha exatamente na linha. */
 function rampaRenutricao(horas){
   if(horas<24) return [];
   if(horas<48) return [0.6];
@@ -26541,9 +26554,17 @@ const GUIA_JEJUM=[
    des:'Seis refeições de rampa, à volta de 25%, 35%, 50%, 65%, 80% e 90% do alvo, ao longo de vários dias.',
    sinais:'A vigilância é de quem acompanha, não da app.'},
 ];
+/* ---- As bandas são inclusivas no topo, e o `<` dizia o contrário ----
+   As etiquetas são «Até 24 horas», «24 a 48 horas», «48 a 72 horas». Com
+   `h<g.h`, um jejum de 24 horas caía em «24 a 48» e um de 72 em «3 a 5 dias»
+   — e 24, 48 e 72 não são casos de fronteira, são OS casos: são os números
+   que as pessoas escolhem. Um jejum de 72 h mostrava o cartão a dizer «48 a
+   72 horas» e a tabela do guia a marcar «3 a 5 dias», a dois dedos um do
+   outro, com tetos de treino diferentes. `escalaoJejum` sempre usou `<=`;
+   passa a ser essa a regra dos dois lados. */
 function guiaJejum(horas){
   const h=parseFloat(horas)||0;
-  return GUIA_JEJUM.find(g=>h<g.h) || GUIA_JEJUM[GUIA_JEJUM.length-1];
+  return GUIA_JEJUM.find(g=>g.h!=null && h<=g.h) || GUIA_JEJUM[GUIA_JEJUM.length-1];
 }
 /* O nível a que um desporto está a ser praticado. Nos desportos de distância
    não há nível guardado — há velocidade — e o nível lê-se ao contrário: qual
