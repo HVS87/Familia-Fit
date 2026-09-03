@@ -3311,9 +3311,11 @@ R('ketoarrozdoce','Arroz doce de couve-flor com eritritol','portuguesa',['vegeta
 R('ketopannacotta','Panna cotta com eritritol','italiana',['vegetariana'],0,0,0,0,[['Nata para bater 35% gordura',90,'ml'],['Leite',40,'ml'],['Eritritol',18,'g'],['Gelatina em folhas',2,'g'],['Baunilha',1,'g'],['Frutos vermelhos',50,'g']],['l'],0,['sob']),
 R('ketobolochoc','Bolo de chocolate de amêndoa e eritritol','portuguesa',['vegetariana'],0,0,0,0,[['Farinha de amêndoa',32,'g'],['Eritritol',30,'g'],['Cacau em pó sem açúcar',10,'g'],['Ovo',0.8,'un'],['Manteiga',16,'g'],['Nata para bater 35% gordura',20,'ml'],['Fermento em pó',2,'g'],['Baunilha',0.5,'g'],['Flor de sal',0.5,'g']],['l'],0,['sob']),
 /* A ketoade é uma bebida e não uma refeição — entra ao lanche, que é o lugar
-   que a app tem para o que se toma fora das horas. O sal é o ingrediente, e é
-   por isso que a ficha mostra o sódio: quem a faz deve ver o número. */
-R('ketoade','Ketoade (água de eletrólitos)','outras',['vegetariana','vegan'],0,0,0,0,[['Limão',25,'ml'],['Flor de sal',1,'g'],['Eritritol',5,'g']],['l'],0,['sn']),
+   que a app tem para o que se toma fora das horas. Os sais são o ingrediente,
+   e é por isso que a ficha mostra o sódio: quem a faz deve ver o número.
+   Uma dose é um jarro de um litro, bebido ao longo de meio dia — e não de uma
+   vez, que é a parte da receita que mais se ignora. */
+R('ketoade','Ketoade (água de eletrólitos)','outras',['vegetariana','vegan'],0,0,0,0,[['Flor de sal',3,'g'],['Cloreto de potássio (substituto de sal)',1.5,'g'],['Magnésio bisglicinato em pó',1,'g'],['Limão',0.5,'un'],['Adoçante de stévia',0.2,'g']],['l'],0,['sn']),
 R('ketogelado','Gelado de baunilha com eritritol','italiana',['vegetariana'],0,0,0,0,[['Nata para bater 35% gordura',100,'ml'],['Leite',40,'ml'],['Eritritol',25,'g'],['Gema de ovo de galinha, crua',30,'g'],['Baunilha',1.5,'g'],['Flor de sal',0.3,'g']],['l'],0,['sob']),
 R('caprese','Salada caprese com rúcula','italiana',['keto','lowcarb','vegetariana','mediterranica'],340,9,16,27,[['Mozzarella fresca',100,'g'],['Tomate',2,'un'],['Rúcula',40,'g'],['Manjericão',5,'g'],['Azeite',10,'ml']],null,3),
 R('risotto','Risotto de cogumelos','italiana',['vegetariana'],480,62,12,20,[['Arroz para risotto',80,'g'],['Cogumelos',120,'g'],['Cebola',0.5,'un'],['Vinho branco',40,'ml'],['Parmesão',15,'g'],['Manteiga',10,'g'],['Azeite',10,'ml'],['Caldo de legumes',250,'ml']]),
@@ -6062,11 +6064,14 @@ P('ketobolochoc',[['Manteiga e eritritol em pó','Bate a manteiga amolecida com 
  ['Forma pequena, forno brando','170 °C durante vinte e cinco a trinta minutos. A farinha de amêndoa doura muito mais depressa do que a de trigo — se escurecer antes do tempo, tapa com alumínio.',28],
  ['Arrefecer na forma','Sem açúcar a dar estrutura, este bolo é frágil quente. Desenforma frio.',60]]);
 P('ketoade',[
- ['Porquê','Nos primeiros dias de keto o corpo perde sódio pela urina mais depressa do que é costume — a insulina baixa e o rim deixa de o reter da mesma maneira. É daí que vem boa parte do que se chama «gripe keto»: dor de cabeça, moleza, cãibras. Esta água salgada com limão não é uma poção: é sal e água, e é isso que faz falta.'],
- ['Misturar','Meio litro de água fria, o sumo de meio limão, a flor de sal e o eritritol. Mexe até o sal se dissolver por completo — sal por dissolver assenta no fundo e a última golada fica intragável. Bebe fresco, ao longo do dia e não de uma vez.',3],
- ['O que este copo traz','Meio litro leva cerca de 400 mg de sódio. A referência que a app usa para bebidas de esforço é a do ACSM — 300 a 600 mg de sódio por litro —, e este copo fica acima dela de propósito, porque o que se está a repor aqui não é o suor de um treino: é a perda renal dos primeiros dias sem hidratos. Quanto sódio faz falta ao dia inteiro é conversa para ter com quem te acompanha, e não uma conta a fazer sozinho.'],
- ['Potássio e magnésio: aqui não','A receita fica-se pelo sal por uma razão. O potássio é o eletrólito em que o excesso é perigoso — pode alterar o ritmo do coração — e não se toma por iniciativa própria, muito menos com doença renal ou com medicação para a tensão (IECA, ARA ou diuréticos poupadores de potássio). Se te disserem para o tomar, ele está nos suplementos da app, com a mesma nota. O magnésio também lá está. Nenhum dos dois entra aqui numa colher de medida caseira.'],
- ['Quem não deve juntar sal','Se tens hipertensão, doença renal ou insuficiência cardíaca, ou se te foi indicada uma dieta com pouco sal, esta receita não é para ti sem falares primeiro com quem te segue. Acrescentar sal por conta própria é exatamente o que essas indicações mandam não fazer.']]);
+ ['Porquê','Em jejum e nos primeiros dias de keto o corpo perde sódio pela urina mais depressa do que é costume — a insulina baixa e o rim deixa de o reter da mesma maneira. O potássio sai com ele. É daí que vem boa parte do que se chama «gripe keto»: dor de cabeça, moleza, cãibras. Isto não é uma poção: é água com sais, e é isso que faz falta.'],
+ ['Dissolver os sais','Numa pequena quantidade de água MORNA, junta a flor de sal, o cloreto de potássio e o pó de magnésio, e mexe até estar tudo dissolvido. A água morna é o passo que importa: o cloreto de potássio dissolve-se devagar em água fria e fica a assentar no fundo, e depois a última golada do jarro leva tudo de uma vez.',4],
+ ['Diluir e temperar','Completa até ao litro com o resto da água, junta o sumo de meio limão ou de meia lima, e a pitada de stévia se quiseres. Leva ao frio, se preferires fresca. O ácido não é enfeite: é ele que corta o travo metálico do potássio.',3],
+ ['Beber devagar','Um jarro ao longo de quatro a seis horas, e não de uma vez. Dois jarros por dia dão aproximadamente uma colher de chá de sal, meia de cloreto de potássio e 300 a 400 mg de magnésio.',5],
+ ['Acertar ao paladar e ao corpo','Se te sentires tonto, sobe o sal. Se souber a metal, baixa um pouco o potássio e acrescenta mais citrino. Sem adoçante fica com sabor a nada, que é o que muita gente prefere em jejum.'],
+ ['As contas, e os números oficiais','Um jarro leva cerca de 1200 mg de sódio e 780 mg de potássio; dois dão 2400 e 1560. Para comparar: a Ingestão Adequada da EFSA para adultos é de 2,0 g de sódio e 3,5 g de potássio por dia, e o potássio deste jarro está na ordem de grandeza do que há em comida — uma batata assada tem perto de 900 mg. O magnésio é o único que sai da conta habitual: a EFSA fixa em 250 mg por dia o limite superior tolerável do magnésio DE SUPLEMENTOS (a comida não conta para esse teto), e dois jarros passam-no. O efeito de passar é intestinal e não perigoso — mas se der para o torto, é o magnésio.'],
+ ['Quem não deve fazer esta bebida','Com doença renal, insuficiência cardíaca, hipertensão sob tratamento, ou medicação que retém potássio — IECA, ARA ou diuréticos poupadores de potássio —, este jarro não é para ti sem falares primeiro com quem te segue. Nesses casos o potássio a mais não é desconforto, é risco de ritmo cardíaco, e uma dieta com pouco sal existe precisamente para não se fazer isto. A app diz o mesmo no cartão dos suplementos e no guia do jejum, e não muda de opinião por a bebida ser caseira.'],
+ ['Sobre o substituto de sal','Os sais de potássio de marca nem todos são iguais: uns são cloreto de potássio puro, outros são MISTURA com sal comum — o Lo-Salt são dois terços de potássio e um terço de sal. Se usares um de mistura, o sódio do jarro sobe e o potássio desce em relação às contas de cima. O rótulo diz qual é qual.']]);
 P('ketogelado',[['Creme inglês a 82 °C','Leite e natas a aquecer; gemas batidas com o eritritol à parte; o quente sobre elas a fio, e volta ao lume brando até napar a colher. Passa dos 85 °C e talha.',12],
  ['Frio de um dia para o outro','O creme no frigorífico, tapado, pelo menos quatro horas. Batido morno, fica com cristais grandes.',240],
  ['O eritritol endurece o gelado','Ao contrário do açúcar, não baixa o ponto de congelação — um gelado só com eritritol sai duro como pedra. Tira-o do congelador quinze minutos antes de servir, e é normal.'],
@@ -9676,6 +9681,15 @@ NI('Manteiga de amêndoa',614,10.5,21,55.5,10.3,0,4);
 NI('Xarope de agave',310,76.4,0.1,0.5,0.2,0,4);
 NI('Eritritol',20,0,0,0,0,0,4);
 NI('Adoçante de stévia',0,0,0,0,0,0,4);
+/* ---- Dois minerais que passam a ser INGREDIENTE e não só suplemento ----
+   Já existiam na lista de suplementos, e lá continuam: um comprimido de
+   magnésio é outra coisa. Aqui entram como o que se compra na mercearia e se
+   dissolve num jarro — o substituto de sal de potássio vende-se ao lado do
+   sal, e o pó de magnésio ao lado dos chás. Sem isto, uma receita que os leve
+   dava «sem dados» nos macros e não os punha na lista de compras.
+   Energia zero nos dois: são sais, não são alimentos. */
+NI('Cloreto de potássio (substituto de sal)',0,0,0,0,0,0,4);
+NI('Magnésio bisglicinato em pó',0,0,0,0,0,0,4);
 NI('Farinha de coco',443,21.3,18.4,13.3,38.5,0,4);
 NI('Psílio em pó',200,4,1.5,0.5,80,0,4);
 NI('Kimchi',15,1.6,1.1,0.5,1.6,0,2);
@@ -10885,6 +10899,13 @@ const NA_DESCARTADO={
    era; metê-lo em «INSA» era pior ainda. Fica aqui, com o nome certo, e a
    app diz qual das três é. */
 const NA_TABELA={
+  /* Cloreto de potássio puro não tem sódio nenhum — é a razão de existir do
+     produto. Os substitutos de sal de marca são muitas vezes MISTURA (o
+     Lo-Salt é dois terços de potássio e um terço de sal comum) e nesses o
+     sódio vem no rótulo; a receita di-lo. Aqui fica o sal de potássio puro,
+     que é o que o zero descreve. */
+  'Cloreto de potássio (substituto de sal)':0,
+  'Magnésio bisglicinato em pó':0,
   'Adoçante de stévia':4,   /* CIQUAL 31087 Édulcorant à base d'extrait de stévia */
   'Asas de frango':86,   /* CIQUAL 36023 Poulet, aile, viande et peau crues */
   'Atum em conserva ao natural':293,   /* CoFID Tuna, canned in brine, drained */
@@ -27225,15 +27246,16 @@ function blocoEletrolitos(m){
       e num jejum prolongado as necessidades mudam — dependem da função renal, da tensão arterial e da medicação.
       Quanto tomar de cada um, e se se deve tomar, é decisão de quem te acompanha. Um excesso de potássio é
       perigoso, e não é o género de erro que dá para corrigir depois.</span></div>
-    ${/* Do guia para a cozinha: o sódio é o único dos três que se repõe com o
-         que há em casa, e é o que mais falta faz. Os outros dois ficam de fora
-         de propósito, e a receita di-lo com as mesmas palavras deste cartão —
-         se um dia divergirem, é aqui e lá que se corrige, não só num sítio. */''}
+    ${/* Do guia para a cozinha. A receita leva os TRÊS, e por isso este cartão
+         e ela têm de dizer o mesmo sobre quem não os deve tomar: se um dia
+         divergirem, corrige-se nos dois sítios e não só num. A ressalva do
+         potássio está lá dentro, palavra por palavra. */''}
     ${RECIPES.some(r=>r.id==='ketoade')? `<div class="row" style="margin-top:12px;align-items:center;gap:10px;
         border-top:1px solid var(--line);padding-top:12px">
-      <span class="sub" style="flex:1;min-width:0">O sódio é o único dos três que se repõe com o que há em casa:
-        água, sal e limão. A app tem a receita, com a conta do sódio por copo já feita — e com a mesma ressalva
-        deste cartão sobre o potássio e o magnésio.</span>
+      <span class="sub" style="flex:1;min-width:0">A app tem a receita da <b>ketoade</b> — água com os três sais e
+        citrino, um litro bebido ao longo de meio dia —, com o sódio por jarro já contado e as mesmas ressalvas
+        deste cartão sobre quem não a deve fazer. Continua a valer o que está aqui: <b>as doses são decisão de quem
+        te acompanha</b>, e a receita é um ponto de partida, não uma prescrição.</span>
       <button class="btn ghost small" style="flex:none" onclick="abrirFicha('ketoade')">🥤 Ver a ketoade</button>
     </div>`:''}
     <p class="sub" style="margin-top:8px"><i>Referências: valores de Ingestão Adequada da EFSA para adultos
