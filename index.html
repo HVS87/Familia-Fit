@@ -3310,6 +3310,10 @@ R('konjaccamarao','Konjac salteado com camarão e alho','asiatica',[],0,0,0,0,[[
 R('ketoarrozdoce','Arroz doce de couve-flor com eritritol','portuguesa',['vegetariana'],0,0,0,0,[['Couve-flor',150,'g'],['Nata para bater 35% gordura',60,'ml'],['Leite',35,'ml'],['Eritritol',22,'g'],['Gema de ovo de galinha, crua',12,'g'],['Raspa de limão',1,'g'],['Canela',1,'g'],['Manteiga',5,'g']],['l'],0,['sob']),
 R('ketopannacotta','Panna cotta com eritritol','italiana',['vegetariana'],0,0,0,0,[['Nata para bater 35% gordura',90,'ml'],['Leite',40,'ml'],['Eritritol',18,'g'],['Gelatina em folhas',2,'g'],['Baunilha',1,'g'],['Frutos vermelhos',50,'g']],['l'],0,['sob']),
 R('ketobolochoc','Bolo de chocolate de amêndoa e eritritol','portuguesa',['vegetariana'],0,0,0,0,[['Farinha de amêndoa',32,'g'],['Eritritol',30,'g'],['Cacau em pó sem açúcar',10,'g'],['Ovo',0.8,'un'],['Manteiga',16,'g'],['Nata para bater 35% gordura',20,'ml'],['Fermento em pó',2,'g'],['Baunilha',0.5,'g'],['Flor de sal',0.5,'g']],['l'],0,['sob']),
+/* A ketoade é uma bebida e não uma refeição — entra ao lanche, que é o lugar
+   que a app tem para o que se toma fora das horas. O sal é o ingrediente, e é
+   por isso que a ficha mostra o sódio: quem a faz deve ver o número. */
+R('ketoade','Ketoade (água de eletrólitos)','outras',['vegetariana','vegan'],0,0,0,0,[['Limão',25,'ml'],['Flor de sal',1,'g'],['Eritritol',5,'g']],['l'],0,['sn']),
 R('ketogelado','Gelado de baunilha com eritritol','italiana',['vegetariana'],0,0,0,0,[['Nata para bater 35% gordura',100,'ml'],['Leite',40,'ml'],['Eritritol',25,'g'],['Gema de ovo de galinha, crua',30,'g'],['Baunilha',1.5,'g'],['Flor de sal',0.3,'g']],['l'],0,['sob']),
 R('caprese','Salada caprese com rúcula','italiana',['keto','lowcarb','vegetariana','mediterranica'],340,9,16,27,[['Mozzarella fresca',100,'g'],['Tomate',2,'un'],['Rúcula',40,'g'],['Manjericão',5,'g'],['Azeite',10,'ml']],null,3),
 R('risotto','Risotto de cogumelos','italiana',['vegetariana'],480,62,12,20,[['Arroz para risotto',80,'g'],['Cogumelos',120,'g'],['Cebola',0.5,'un'],['Vinho branco',40,'ml'],['Parmesão',15,'g'],['Manteiga',10,'g'],['Azeite',10,'ml'],['Caldo de legumes',250,'ml']]),
@@ -6057,6 +6061,12 @@ P('ketobolochoc',[['Manteiga e eritritol em pó','Bate a manteiga amolecida com 
  ['Secos peneirados','Farinha de amêndoa, cacau, fermento e sal, peneirados por cima e envolvidos só até desaparecer o seco. Não se bate: sem glúten para desenvolver, bater só tira ar.'],
  ['Forma pequena, forno brando','170 °C durante vinte e cinco a trinta minutos. A farinha de amêndoa doura muito mais depressa do que a de trigo — se escurecer antes do tempo, tapa com alumínio.',28],
  ['Arrefecer na forma','Sem açúcar a dar estrutura, este bolo é frágil quente. Desenforma frio.',60]]);
+P('ketoade',[
+ ['Porquê','Nos primeiros dias de keto o corpo perde sódio pela urina mais depressa do que é costume — a insulina baixa e o rim deixa de o reter da mesma maneira. É daí que vem boa parte do que se chama «gripe keto»: dor de cabeça, moleza, cãibras. Esta água salgada com limão não é uma poção: é sal e água, e é isso que faz falta.'],
+ ['Misturar','Meio litro de água fria, o sumo de meio limão, a flor de sal e o eritritol. Mexe até o sal se dissolver por completo — sal por dissolver assenta no fundo e a última golada fica intragável. Bebe fresco, ao longo do dia e não de uma vez.',3],
+ ['O que este copo traz','Meio litro leva cerca de 400 mg de sódio. A referência que a app usa para bebidas de esforço é a do ACSM — 300 a 600 mg de sódio por litro —, e este copo fica acima dela de propósito, porque o que se está a repor aqui não é o suor de um treino: é a perda renal dos primeiros dias sem hidratos. Quanto sódio faz falta ao dia inteiro é conversa para ter com quem te acompanha, e não uma conta a fazer sozinho.'],
+ ['Potássio e magnésio: aqui não','A receita fica-se pelo sal por uma razão. O potássio é o eletrólito em que o excesso é perigoso — pode alterar o ritmo do coração — e não se toma por iniciativa própria, muito menos com doença renal ou com medicação para a tensão (IECA, ARA ou diuréticos poupadores de potássio). Se te disserem para o tomar, ele está nos suplementos da app, com a mesma nota. O magnésio também lá está. Nenhum dos dois entra aqui numa colher de medida caseira.'],
+ ['Quem não deve juntar sal','Se tens hipertensão, doença renal ou insuficiência cardíaca, ou se te foi indicada uma dieta com pouco sal, esta receita não é para ti sem falares primeiro com quem te segue. Acrescentar sal por conta própria é exatamente o que essas indicações mandam não fazer.']]);
 P('ketogelado',[['Creme inglês a 82 °C','Leite e natas a aquecer; gemas batidas com o eritritol à parte; o quente sobre elas a fio, e volta ao lume brando até napar a colher. Passa dos 85 °C e talha.',12],
  ['Frio de um dia para o outro','O creme no frigorífico, tapado, pelo menos quatro horas. Batido morno, fica com cristais grandes.',240],
  ['O eritritol endurece o gelado','Ao contrário do açúcar, não baixa o ponto de congelação — um gelado só com eritritol sai duro como pedra. Tira-o do congelador quinze minutos antes de servir, e é normal.'],
@@ -11080,7 +11090,12 @@ const RE_CARNE_NAO_KOSHER=/coelho|lebre|cavalo|javali|camelo|avestruz/i;
 const RE_CARNE_NAO_HALAL=/javali|cavalo|caracol|caracóis|caracois/i;
 /* Ultraprocessados e açúcar de adição: fora do paleo, que é uma dieta de
    alimentos inteiros e não apenas de ausência de cereais. */
-const RE_NAO_PALEO=/ketchup|maionese|molho barbecue|molho ingl|molho teriyaki|molho de soja|refrigerante|salsicha|chouri|farinheira|alheira|fiambre|mortadela|salame|bacon|nuggets|panados|margarina|shortening|xarope|açúcar|acucar|bolacha|chocolate|gelatina|caldo de|cubo de|creme vegetal/i;
+/* Os adoçantes de fabrico industrial faltavam aqui, e só se notou quando uma
+   receita sem lacticínios nem farinha passou por eles: a ketoade aparecia como
+   paleo por levar eritritol. As outras receitas com eritritol escapavam por
+   outra porta — natas, ovos, farinha —, e por isso a falha esteve à espera de
+   um caso que não tivesse mais nada a excluí-la. */
+const RE_NAO_PALEO=/ketchup|maionese|molho barbecue|molho ingl|molho teriyaki|molho de soja|refrigerante|salsicha|chouri|farinheira|alheira|fiambre|mortadela|salame|bacon|nuggets|panados|margarina|shortening|xarope|açúcar|acucar|eritritol|ad[oó][cç]ante|st[ée]via|xilitol|sucralose|bolacha|chocolate|gelatina|caldo de|cubo de|creme vegetal/i;
 /* A batata branca fica fora do paleo — em todas as formulações, a começar
    pela de Cordain, que é a referência. Sem esta linha, 34 receitas traziam a
    etiqueta com batata dentro, e quem se guia por ela comia batata a pensar
@@ -27210,6 +27225,17 @@ function blocoEletrolitos(m){
       e num jejum prolongado as necessidades mudam — dependem da função renal, da tensão arterial e da medicação.
       Quanto tomar de cada um, e se se deve tomar, é decisão de quem te acompanha. Um excesso de potássio é
       perigoso, e não é o género de erro que dá para corrigir depois.</span></div>
+    ${/* Do guia para a cozinha: o sódio é o único dos três que se repõe com o
+         que há em casa, e é o que mais falta faz. Os outros dois ficam de fora
+         de propósito, e a receita di-lo com as mesmas palavras deste cartão —
+         se um dia divergirem, é aqui e lá que se corrige, não só num sítio. */''}
+    ${RECIPES.some(r=>r.id==='ketoade')? `<div class="row" style="margin-top:12px;align-items:center;gap:10px;
+        border-top:1px solid var(--line);padding-top:12px">
+      <span class="sub" style="flex:1;min-width:0">O sódio é o único dos três que se repõe com o que há em casa:
+        água, sal e limão. A app tem a receita, com a conta do sódio por copo já feita — e com a mesma ressalva
+        deste cartão sobre o potássio e o magnésio.</span>
+      <button class="btn ghost small" style="flex:none" onclick="abrirFicha('ketoade')">🥤 Ver a ketoade</button>
+    </div>`:''}
     <p class="sub" style="margin-top:8px"><i>Referências: valores de Ingestão Adequada da EFSA para adultos
       (sódio 2019, potássio 2016, magnésio 2015). A app repete-as; não as adapta ao jejum, porque isso é um ato clínico.</i></p>
   </div>`;
