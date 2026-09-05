@@ -10186,7 +10186,7 @@ const ING_REGRAS=[
      o levedante do pão sem glúten certificado, e o próprio INSA classifica-o
      como auxiliar tecnológico e não como produto à base de cereais. */
   ['gluten',/pão|farinha|esparguete|massa|noodles|couscous|bulgur|granola|aveia|lasanha|gnocchi|bagel|pita|broa|tortilhas de trigo|cerveja|trigo|centeio|cevada|espelta|farelo|gérmen|sêmola|tosta|gressino|seitan|rabanada/i],
-  ['lacticinio',/queijo|iogurte|mozzarella|parmes|feta|gruy|ricotta|requeij|nata|halloumi|manchego|cheddar|manteiga|leite|caseína|mascarpone|brie|camembert|emmental|gouda|raclette|roquefort|quark|kefir/i],
+  ['lacticinio',/queijo|iogurte|mozzarella|parmes|feta|gruy|ricotta|requeij|nata|halloumi|manchego|cheddar|manteiga|leite|caseína|mascarpone|brie|camembert|emmental|gouda|raclette|roquefort|quark|kefir|pecorino|grana padano|gorgonzola|burrata|provolone|taleggio|stilton|paneer|labneh|skyr|ghee|\bedam\b|cottage|fontina|asiago|comt[ée]|reblochon|m[üu]nster|tomme|cabrales|idiaz[áa]bal|tetilla|scamorza|caciocavallo|bocconcini|stracciatella|crème fraîche|creme fraiche|soro de leite|whey|caseinato/i],
   ['ovo',/^ovo|maionese|clara de ovo|gema de ovo|com ovo|de ovos|e ovos/i],
   ['peixe',/bacalhau|salm|sardinh|atum|dourada|robalo|pescada|espadarte|cavala|carapau|truta|anchova|peixe|abrótea|besugo|cação|cachucho|cantarilho|cherne|chicharro|corvina|enguia|faneca|garoupa|goraz|imperador|lampreia|linguado|maruca|\bpargo|raia|safio|salmonete|\bsarda\b|solha|tamboril|perca|tilápia|arenque|alabote|escamudo|paloco|red ?fish|peixe-espada|ovas/i],
   ['crustaceos',/camar|lagost|sapateira|gamba|percebe|santola|navalheira|caranguejo/i],
@@ -11245,7 +11245,10 @@ const HC_TETO_EFETIVO={ keto:Math.min(HC_TETO.keto, tetoPorReceita('keto')),
                         lowcarb:Math.min(HC_TETO.lowcarb, tetoPorReceita('lowcarb')) };
 const DIETA_VETA={ vegetariana:['carne','peixe','crustaceos','moluscos'],
                    vegan:['carne','peixe','crustaceos','moluscos','lacticinio','ovo','mel'],
-                   paleo:['gluten','lacticinio','leguminosa','cereal'],
+                   /* o álcool também sai: a formulação de referência não o
+                      inclui, e uma lista «paleo» com whisky e vinho do Porto
+                      lá dentro dizia o contrário do guia */
+                   paleo:['gluten','lacticinio','leguminosa','cereal','alcool'],
                    /* porco e álcool saem por atributo; o resto verifica-se
                       pelos nomes, mais abaixo */
                    kosher:['porco','crustaceos','moluscos'],
@@ -11272,7 +11275,7 @@ const RE_CARNE_NAO_HALAL=/javali|cavalo|caracol|caracóis|caracois/i;
    paleo por levar eritritol. As outras receitas com eritritol escapavam por
    outra porta — natas, ovos, farinha —, e por isso a falha esteve à espera de
    um caso que não tivesse mais nada a excluí-la. */
-const RE_NAO_PALEO=/ketchup|maionese|molho barbecue|molho ingl|molho teriyaki|molho de soja|refrigerante|salsicha|chouri|farinheira|alheira|fiambre|mortadela|salame|bacon|nuggets|panados|margarina|shortening|xarope|açúcar|acucar|eritritol|ad[oó][cç]ante|st[ée]via|xilitol|sucralose|bolacha|chocolate|gelatina|caldo de|cubo de|creme vegetal/i;
+const RE_NAO_PALEO=/ketchup|maionese|molho barbecue|molho ingl|molho teriyaki|molho de soja|refrigerante|salsicha|chouri|farinheira|alheira|fiambre|mortadela|salame|bacon|nuggets|panados|margarina|shortening|xarope|açúcar|acucar|eritritol|ad[oó][cç]ante|st[ée]via|xilitol|sucralose|bolacha|chocolate|gelatina|caldo de|cubo de|creme vegetal|óleo de milho|óleo de girassol|óleo de soja|óleo alimentar|óleo vegetal|becel|polvilho|tapioca/i;
 /* A batata branca fica fora do paleo — em todas as formulações, a começar
    pela de Cordain, que é a referência. Sem esta linha, 34 receitas traziam a
    etiqueta com batata dentro, e quem se guia por ela comia batata a pensar
@@ -14217,6 +14220,7 @@ const DICAS={
   trajetoria:'Para onde o peso vai se nada mudar, e para onde iria se mudasse. A tendência assenta nas pesagens dos últimos 7, 14 ou 30 dias — quanto mais curta a janela, mais depressa reage e menos vale — e projeta-se a 7, 14, 30, 60 ou 90 dias, com um leque que é a dispersão real da balança. Os dois cursores mudam a linha à frente dos olhos: comer menos ou mais, mexer-se mais. O peso desejado desenha-se, e a app diz em que dia lá chegas com o planeado, ou quantas calorias por dia faltam para chegar no prazo. «Levar para os Objetivos» transforma o exercício em plano — dieta, treinos marcados e alvo de calorias —, e o plano da semana passa a ser sugerido dentro desse alvo. A conta é a de 7700 kcal por quilo: honesta e grosseira.',
   pesoHist:'Cada pesagem fica com a sua data. O peso do perfil é sempre a medição mais recente que já aconteceu, para os cálculos e a balança nunca contarem histórias diferentes. Podem registar-se medições passadas, se as tiveres anotadas.',
   acompanhamento:'O que vai ao lado do prato: batatas, arroz, legumes ou salada. As calorias somam-se às do prato no total do dia, os ingredientes somam-se à lista de compras, mas não conta como uma refeição — um arroz de coentros não é um jantar. O 🔀 troca por outro que sirva a mesma mesa, e o «juntar» põe mais um ao lado: como o lugar do acompanhamento é um só, os que lá estiverem repartem-no entre si — meia dose de batatas e meia de salada, e as calorias, os macros e as quantidades a comprar seguem essa divisão. O preenchimento automático escolhe um para cada almoço e jantar, respeitando as mesmas dietas e exclusões. Escolher ou trocar cria também uma variante com o nome inteiro — «Bife com batatas fritas» —, com os ingredientes somados e o passo-a-passo dos dois escrito de seguida, arrumada no cartão do prato de origem.',
+  guiaDieta:'Um guia por dieta: o que é, como se cumpre à mesa, o que fica de fora, e quanto cabe em cada refeição. Duas partes não são escritas à mão — são calculadas. A lista de ingredientes compatíveis sai da tabela de composição da app com as MESMAS regras que etiquetam as receitas (os vetos por ingrediente, as expressões do paleo, os tetos de hidratos e de gordura), por isso nunca se desalinha delas. Os gramas por refeição saem do teu alvo de calorias e da repartição da dieta, cortados pelo limite absoluto onde ele existe: 20 g de hidratos por dia no keto, 100 g no low carb, 30 % da energia em gordura no low fat. Onde não há limite absoluto, a tabela chama-lhe orientação e não teto — porque é isso que é. Podes ler o guia de qualquer dieta, não só o da tua; a que está a ser seguida tem um ponto ao lado do nome.',
   vegan:'Cada dieta é uma repartição diferente de hidratos, proteína e gordura; a «Personalizada» abre três sliders que somam sempre 100 %. Vegetariana e vegan são dietas diferentes: a vegetariana come ovos, lacticínios e mel, a vegan não come nada de origem animal — e as duas etiquetas são lidas dos ingredientes de cada receita, nunca escritas à mão.'
 };
 /* Um selo que se explica ao passar o rato, ao tocar ou ao chegar pelo teclado.
@@ -27304,6 +27308,223 @@ function modalJejumHtml(mo){
       </div>
     </div></div>`;
 }
+/* ================= GUIAS DAS DIETAS =================
+   Escolher uma dieta no seletor mudava os macros e mais nada: ninguém dizia o
+   que ela é, como se cumpre à mesa, o que fica de fora, nem quanto cabe numa
+   refeição. O guia responde a isso para cada dieta, e faz duas coisas a partir
+   dos dados que a app já tem em vez de as escrever à mão:
+
+   - A LISTA DE INGREDIENTES COMPATÍVEIS sai da tabela de composição e dos
+     atributos de cada ingrediente, com as MESMAS regras que etiquetam as
+     receitas (os vetos de DIETA_VETA, as expressões do paleo, os tetos de
+     hidratos e de gordura). Se a regra mudar, a lista muda com ela.
+   - OS TETOS POR REFEIÇÃO E POR DIA saem do alvo de calorias da pessoa e da
+     repartição da dieta, cortados pelos limites absolutos onde os há: 20 g de
+     hidratos por dia no keto e 100 g no low carb (DOSE_DIARIA), 30 % da
+     energia em gordura no low fat (GORD_TETO_LOWFAT). Onde não há limite
+     absoluto — equilibrada, mediterrânica, vegetariana —, o número é uma
+     orientação de proporção, e a tabela di-lo em vez de o vender como teto.
+
+   O que se escreve à mão é o que não é conta: a definição, a maneira de
+   cumprir e as fontes. Nenhuma dieta aqui é uma prescrição, e as duas mais
+   restritivas (keto e low carb) trazem o aviso de consulta em voz alta. */
+const RE_ULTRAPROCESSADO=/refrigerante|salsicha|nuggets|panados|margarina|shortening|xarope|bolacha|batatas? fritas de pacote|fiambre|mortadela|salame|bacon|creme vegetal|açúcar|acucar|chocolate de leite|cereais de pequeno|ketchup|maionese|sumo de fruta|néctar|gelatina/i;
+const GUIA_DIETA={
+  equilibrada:{
+    o:'A repartição de referência para um adulto saudável: cerca de metade da energia em hidratos, um quinto em proteína e menos de um terço em gordura. É o padrão da Roda dos Alimentos portuguesa e das recomendações da OMS — não exclui nenhum grupo de alimentos; vive de proporção, de variedade e de comida pouco processada.',
+    como:['Metade do prato em hortícolas, e fruta ao longo do dia: pelo menos 400 g por dia, sem contar batata e outras raízes ricas em amido.',
+      'Cereais de preferência integrais (pão escuro, aveia, arroz integral) e leguminosas várias vezes por semana.',
+      'Peixe duas a três vezes por semana, carnes magras, ovos; lacticínios magros ou meio-gordos.',
+      'Azeite como gordura de eleição, tanto a cozinhar como à mesa; frutos secos ao natural, um punhado.',
+      'Água como bebida principal; sal abaixo de 5 g por dia (uma colher de chá, contando com o que já vem nos alimentos).'],
+    evitar:['Açúcares livres acima de 10 % da energia — e idealmente abaixo de 5 %: refrigerantes, néctares, bolos e bolachas todos os dias.',
+      'Gordura saturada acima de 10 % da energia e qualquer gordura trans industrial (margarinas antigas, fritos de pacote).',
+      'Carnes processadas como rotina — fiambre, salsichas, bacon, enchidos.',
+      'Sal escondido: caldos concentrados, enchidos, snacks, refeições prontas.'],
+    compat:null,
+    fontes:'Roda dos Alimentos (DGS/FCNAUP); OMS, «Healthy diet», ficha informativa (2020); EFSA, intervalos de referência para macronutrientes (2010–2013).'
+  },
+  mediterranica:{
+    o:'Não é uma dieta de exclusão, é um padrão alimentar: o das populações do Mediterrâneo em meados do século XX, com o azeite como gordura quase única, muitos hortícolas, leguminosas, cereais pouco refinados, fruta, frutos secos, peixe com regularidade e carne vermelha poucas vezes. A UNESCO reconheceu-a como património cultural imaterial, com Portugal entre os países que a inscreveram; a DGS promove-a como padrão de referência.',
+    como:['Azeite em tudo: é a gordura de cozinhar e de temperar, e substitui manteiga, margarina e óleos de semente.',
+      'Hortícolas em todas as refeições principais, crus e cozinhados; sopa de legumes é uma tradição portuguesa que cabe aqui inteira.',
+      'Leguminosas (grão, feijão, lentilhas) pelo menos duas a três vezes por semana; cereais integrais todos os dias.',
+      'Peixe e marisco duas ou mais vezes por semana; ovos e aves com moderação; lacticínios sobretudo fermentados (iogurte, queijo), em doses pequenas.',
+      'Fruta fresca como sobremesa; frutos secos e azeitonas como petisco. Refeições partilhadas, com tempo, e atividade física diária fazem parte do padrão.'],
+    evitar:['Carne vermelha mais do que uma ou duas vezes por semana, e carne processada quase nunca.',
+      'Doces com açúcar de adição: ficam para dias de festa, não para a rotina.',
+      'Fritos por imersão — a app tira a etiqueta mediterrânica a qualquer receita frita em óleo abundante.',
+      'Manteiga, margarina e natas como gordura de cozinhar; refrigerantes e sumos industriais.'],
+    compat:(nome)=>!RE_ULTRAPROCESSADO.test(nome),
+    fontes:'Fundação Dieta Mediterrânica, pirâmide (2010); DGS, Programa Nacional para a Promoção da Alimentação Saudável, «Dieta Mediterrânica»; UNESCO, inscrição de 2013.'
+  },
+  keto:{
+    o:'Uma dieta cetogénica limita os hidratos a ponto de o corpo passar a produzir corpos cetónicos a partir da gordura — na prática, cerca de 20 g de hidratos por dia, com a gordura a fornecer a maior parte da energia. Nasceu como tratamento da epilepsia refratária em crianças, sob vigilância médica, e é aí que tem a evidência mais sólida; como dieta de emagrecimento é uma escolha de adulto informado, com acompanhamento.',
+    como:['Conta os hidratos de tudo, incluindo os dos hortícolas, dos lacticínios e dos frutos secos: 20 g por dia esgotam-se depressa.',
+      'Constrói cada refeição com proteína moderada (carne, peixe, ovos, queijo) e gordura à vontade dentro do alvo (azeite, manteiga, abacate, azeitonas, frutos secos).',
+      'Hortícolas de folha e de baixo amido em todas as refeições: são a fibra e o potássio que faltam sem cereais nem leguminosas.',
+      'Sal, água e eletrólitos nas primeiras semanas — a perda de água com o glicogénio leva sódio, potássio e magnésio consigo. A receita de ketoade da app foi feita para isto.',
+      'A app só etiqueta como keto as receitas com até 10 g de hidratos — metade do teto diário, para caberem pelo menos duas por dia.'],
+    evitar:['Cereais e tudo o que vem deles: pão, massa, arroz, bolachas, cerveja.',
+      'Batata, batata-doce, mandioca, milho, leguminosas — e a maior parte da fruta, à exceção de frutos vermelhos em pouca quantidade.',
+      'Açúcar em qualquer forma, mel, néctares, refrigerantes; leite (a lactose é hidrato) em mais do que um pingo.',
+      'Fazer isto na gravidez, na amamentação, em idade de crescimento, com diabetes tipo 1 ou com doença renal ou hepática — a app encosta os macros à faixa recomendada nesses perfis e não propõe a dieta.'],
+    compat:(nome,ni,at)=>ni.c<=5 && at.indexOf('alcool')<0,
+    limite:'≤ 5 g de hidratos por 100 g',
+    fontes:'Epilepsy Foundation e NICE (epilepsia), sobre a dieta cetogénica clássica; Diabetes UK, posição sobre dietas low carb (2021); a definição de ≤ 20 g/dia é a usada na literatura clínica para a dieta cetogénica de muito baixo teor de hidratos.',
+    aviso:'Uma dieta cetogénica prolongada é um ato clínico. Fala com quem te acompanha antes de começar, sobretudo se tomas medicação para a diabetes ou para a tensão — as doses podem ter de mudar nos primeiros dias.'
+  },
+  lowcarb:{
+    o:'Menos hidratos do que a dieta de referência, sem chegar à cetose: a app usa 100 g por dia, que é o valor conservador do intervalo habitual (a Diabetes UK define low carb como menos de 130 g por dia). A energia que sai dos hidratos passa sobretudo para a proteína e para gorduras de boa qualidade.',
+    como:['Tira os hidratos refinados primeiro — pão branco, arroz branco, doces — e fica com os que vêm com fibra: hortícolas, leguminosas em dose pequena, fruta inteira.',
+      'Proteína em todas as refeições: é o que dá saciedade quando o prato tem menos cereal.',
+      'Gordura de azeite, frutos secos, abacate e peixe gordo; não é uma dieta de gordura à vontade.',
+      'Uma refeição low carb na app tem até 25 g de hidratos — um quarto do teto diário, para caberem quatro por dia.',
+      'Se tomas medicação para a diabetes, avisa quem te acompanha: menos hidratos podem exigir ajuste das doses.'],
+    evitar:['Refrigerantes, sumos e doces — são os hidratos que mais rápido enchem o orçamento do dia sem saciar.',
+      'Pão, massa, arroz e batata em doses grandes; o que fica são porções pequenas ou versões integrais.',
+      'Substituir os hidratos por carne processada e fritos: baixar hidratos não é licença para subir gordura saturada.',
+      'Cortar hidratos na gravidez, na amamentação ou em idade de crescimento sem indicação médica.'],
+    compat:(nome,ni)=>ni.c<=10,
+    limite:'≤ 10 g de hidratos por 100 g',
+    fontes:'Diabetes UK, «Low-carb diets for people with diabetes» (2021), definição de < 130 g/dia; SACN (Reino Unido), relatório sobre dietas low carb na diabetes tipo 2 (2021).'
+  },
+  lowfat:{
+    o:'A gordura fica abaixo de 30 % da energia, que é o limite superior que a OMS recomenda para toda a gente — e, com uma gordura saturada abaixo de 10 %, é o padrão que as recomendações cardiovasculares mais repetem. Não é uma dieta sem gordura: é uma dieta com pouca gordura e com a gordura certa.',
+    como:['Cozinha com pouca gordura e conta-a: grelhados, cozidos, estufados com um fio de azeite, assados sem regar em excesso.',
+      'Proteína magra — peixe branco, aves sem pele, leguminosas, lacticínios magros, claras.',
+      'A gordura que fica deve ser insaturada: azeite, frutos secos em dose pequena, peixe gordo uma a duas vezes por semana.',
+      'Hidratos de cereais integrais, leguminosas e hortícolas, que enchem sem gordura.',
+      'A app só etiqueta como low fat as receitas em que a gordura fica abaixo de 30 % das calorias — e tira a etiqueta a qualquer prato frito por imersão.'],
+    evitar:['Fritos, folhados, natas, manteiga e margarina, queijos gordos, enchidos.',
+      'Molhos gordos (maionese, molhos de natas) e bolos — a gordura escondida é a que mais pesa.',
+      'Trocar a gordura por açúcar: os produtos «magros» industriais costumam compensar com açúcar, e o balanço fica pior.',
+      'Descer abaixo de 20 % da energia em gordura sem indicação: as vitaminas A, D, E e K precisam de gordura para se absorverem.'],
+    compat:(nome,ni)=>(ni.f<=3 || (ni.k>0 && ni.f*9/ni.k<=GORD_TETO_LOWFAT))
+      && !/açúcar|acucar|condensado|achocolatado|refrigerante|néctar|xarope|\bmel\b|marmelada|compota|doce de|pasta doce/i.test(nome),
+    limite:'≤ 3 g de gordura por 100 g, ou menos de 30 % das calorias em gordura',
+    fontes:'OMS, «Healthy diet» (2020): gordura total < 30 % da energia, saturada < 10 %, trans < 1 %; EFSA, valores de referência para gorduras (2010).'
+  },
+  paleo:{
+    o:'Come-se o que se poderia obter sem agricultura: carne, peixe, ovos, hortícolas, fruta, frutos secos e sementes. Ficam de fora os cereais, as leguminosas, os lacticínios, o açúcar de adição e tudo o que é industrial. Não tem uma entidade de saúde a recomendá-la; a formulação de referência é a de Loren Cordain (2002), e é essa que a app aplica.',
+    como:['Alimentos inteiros e reconhecíveis: se tem lista de ingredientes no rótulo, provavelmente não é paleo.',
+      'Hortícolas em grande quantidade — sem cereais nem leguminosas, são eles a fibra do dia.',
+      'Proteína de carne, peixe e ovos; gordura de azeite, abacate, frutos secos, coco.',
+      'Batata-doce e outras raízes cabem; a batata branca não, na formulação de referência.',
+      'Cálcio sem lacticínios: couves, brócolos, sardinha com espinha, amêndoa — é o nutriente que mais falha nesta dieta, e convém vigiá-lo.'],
+    evitar:['Cereais e derivados (pão, massa, arroz, milho, aveia), leguminosas (feijão, grão, lentilhas, soja, amendoim).',
+      'Leite, queijo, iogurte, manteiga.',
+      'Açúcar, mel em excesso, adoçantes industriais (eritritol, estévia, sucralose) — a dieta é de alimentos inteiros, não de substitutos.',
+      'Carnes processadas e molhos industriais: salsichas, fiambre, ketchup, maionese, molho de soja.'],
+    compat:(nome,ni,at)=>!(DIETA_VETA.paleo||[]).some(t=>at.indexOf(t)>=0) && !RE_NAO_PALEO.test(nome) && !RE_BATATA_NAO_PALEO.test(nome),
+    limite:'sem cereais, leguminosas, lacticínios, açúcar nem ultraprocessados',
+    fontes:'Cordain, L., «The Paleo Diet» (2002), a formulação de referência; British Dietetic Association, sobre os riscos de excluir grupos inteiros (cálcio).'
+  },
+  vegetariana:{
+    o:'Sem carne nem peixe, com ovos, lacticínios e mel — a chamada ovo-lacto-vegetariana, que é a mais comum. A Academy of Nutrition and Dietetics e a British Dietetic Association consideram que uma dieta vegetariana bem planeada é adequada em todas as fases da vida, incluindo gravidez, infância e desporto.',
+    como:['Proteína de leguminosas, ovos, lacticínios, tofu e frutos secos, repartida por todas as refeições.',
+      'Ferro de leguminosas, folhas verdes e sementes, sempre com vitamina C na mesma refeição (citrinos, pimento, tomate) — o ferro vegetal absorve-se mal sozinho.',
+      'Iodo e vitamina B12 vêm dos lacticínios e dos ovos: se forem poucos, considera um suplemento.',
+      'Ómega-3 de linhaça, chia, nozes; vitamina D como toda a gente, sobretudo no inverno.',
+      'A app tira a etiqueta a qualquer receita com carne, peixe ou marisco — mesmo em caldo ou em pequena quantidade.'],
+    evitar:['Carne, aves, peixe, marisco, e o que deles vem: caldos de carne, gelatina, banha, molho de peixe.',
+      'Substituir a carne por fritos e queijo em excesso: «vegetariano» não é sinónimo de saudável.',
+      'Contar só com massa e pão: uma refeição vegetariana sem leguminosa, ovo ou lacticínio fica curta em proteína.'],
+    compat:(nome,ni,at)=>!(DIETA_VETA.vegetariana||[]).some(t=>at.indexOf(t)>=0) && at.indexOf('porco')<0,
+    limite:'sem carne, peixe, crustáceos nem moluscos',
+    fontes:'Academy of Nutrition and Dietetics, posição sobre dietas vegetarianas (2016); British Dietetic Association, «Vegetarian, vegan and plant-based diet» (2021); NHS, «The vegetarian diet».'
+  },
+  vegan:{
+    o:'Nada de origem animal: sem carne, peixe, ovos, lacticínios nem mel. É adequada em todas as fases da vida se for bem planeada — as posições da Academy of Nutrition and Dietetics e da BDA são explícitas —, mas «bem planeada» aqui inclui um suplemento obrigatório: a vitamina B12 não existe em fontes vegetais fiáveis.',
+    como:['Vitamina B12 em suplemento ou em alimentos fortificados, todos os dias ou semanalmente — não é opcional.',
+      'Proteína de leguminosas, tofu, tempeh, seitan, frutos secos e sementes, em todas as refeições; junta cereais e leguminosas ao longo do dia.',
+      'Cálcio de bebidas vegetais fortificadas, tofu com cálcio, couves, amêndoa, sésamo; iodo de algas com moderação ou de sal iodado; ferro com vitamina C.',
+      'Ómega-3 de linhaça, chia, nozes, e considera um suplemento de algas (EPA/DHA); vitamina D no inverno.',
+      'A etiqueta vegan da app é derivada dos ingredientes: uma receita com manteiga ou mel perde-a, mesmo que o resto seja vegetal.'],
+    evitar:['Carne, peixe, marisco, ovos, leite e derivados, mel, gelatina, e os ingredientes escondidos: caldos, banha, molho de peixe, manteiga nas massas.',
+      'Ultraprocessados «plant-based» como base do dia: muitos são ricos em sal e gordura saturada de coco.',
+      'Ficar sem B12 «porque se come muita fruta e legumes»: a carência é lenta e o dano neurológico pode ser irreversível.',
+      'Na gravidez, na amamentação e em bebés e crianças, fazer isto sem acompanhamento — é possível, mas pede plano e suplementação.'],
+    compat:(nome,ni,at)=>!(DIETA_VETA.vegan||[]).some(t=>at.indexOf(t)>=0) && at.indexOf('porco')<0,
+    limite:'sem nenhum ingrediente de origem animal',
+    fontes:'Academy of Nutrition and Dietetics, posição sobre dietas vegetarianas (2016); British Dietetic Association, «Vegetarian, vegan and plant-based diet» (2021); NHS, «The vegan diet» (B12, cálcio, iodo, ómega-3).'
+  }
+};
+/* Lista de ingredientes que cabem numa dieta, agrupada por corredor de
+   supermercado. Calculada uma vez por dieta e guardada — são 750 ingredientes
+   e o cartão volta a desenhar-se a cada cursor. */
+const _compatDieta=Object.create(null);
+function ingredientesCompativeis(k){
+  if(_compatDieta[k]) return _compatDieta[k];
+  const g=GUIA_DIETA[k]; const grupos=CATS.map(()=>[]); let total=0;
+  if(g && g.compat){
+    Object.keys(NUTRI).forEach(nome=>{ const ni=NUTRI[nome]; if(!ni || ni.u==='dose') return;
+      total++;
+      if(!g.compat(nome,ni,atributosIng(nome))) return;
+      const s=grupoDoItem({n:nome,u:ni.u}); if(s>=0 && s<CATS.length) grupos[s].push(nome); });
+  }
+  grupos.forEach(a=>a.sort((x,y)=>x.localeCompare(y,'pt')));
+  return (_compatDieta[k]={grupos, n:grupos.reduce((t,a)=>t+a.length,0), total});
+}
+/* Os números por refeição e por dia. `teto` diz se a linha é um limite
+   absoluto ou só a proporção da dieta aplicada ao alvo. */
+function tetosDieta(m,k){
+  const kcal=Math.max(0,Math.round(targetKcal(m)));
+  const pct = k===chaveDieta(m)? macrosAjustados(m) : (DIETS[k]||DIETS.equilibrada);
+  const dia={c:kcal*pct.c/100/4, p:kcal*pct.p/100/4, f:kcal*pct.f/100/9};
+  const tetoC = DOSE_DIARIA[k]? DOSE_DIARIA[k].dia : null;
+  const tetoF = k==='lowfat'? kcal*GORD_TETO_LOWFAT/9 : null;
+  if(tetoC!=null) dia.c=Math.min(dia.c,tetoC);
+  if(tetoF!=null) dia.f=Math.min(dia.f,tetoF);
+  const linhas=MEALS.map(([mk,nome,fr])=>({nome, kcal:Math.round(kcal*fr), c:Math.round(dia.c*fr), p:Math.round(dia.p*fr), f:Math.round(dia.f*fr)}));
+  linhas.push({nome:'Dia inteiro', kcal, c:Math.round(dia.c), p:Math.round(dia.p), f:Math.round(dia.f), dia:true});
+  return {linhas, tetoC, tetoF, porReceita: HC_TETO_EFETIVO[k]||null, ajustado: k===chaveDieta(m) && macrosAjustados(m).ajustado};
+}
+function setGuiaDieta(k){ if(!temChave(GUIA_DIETA,k)) return; S.ui.guiaDieta=k; saveMeta(); render(); }
+function verReceitasDieta(k){ if(!temChave(DIETAS_FILTRAVEIS,k)) return; S.ui.dietaF=[k]; S.ui.recLimite=LOTE_RECEITAS; saveMeta(); go('receitas'); }
+function cartaoGuiaDieta(m){
+  const minha=chaveDieta(m);
+  const k = temChave(GUIA_DIETA,S.ui.guiaDieta)? S.ui.guiaDieta : (temChave(GUIA_DIETA,minha)? minha : 'equilibrada');
+  const g=GUIA_DIETA[k], nome=DIETS[k].n, t=tetosDieta(m,k), ic=ingredientesCompativeis(k);
+  const ehMinha = k===minha;
+  const restritiva = k==='keto'||k==='lowcarb';
+  const chips=Object.keys(GUIA_DIETA).map(kk=>`<button class="chip ${kk===k?'on':''}" onclick="setGuiaDieta('${kk}')" aria-pressed="${kk===k}">${esc(DIETS[kk].n)}${kk===minha?' ·':''}</button>`).join('');
+  const lista = g.compat? `<details class="quant" style="margin-top:12px"><summary>Ingredientes compatíveis — ${ic.n} dos ${ic.total} da tabela <span class="sub">(${esc(g.limite||'')})</span></summary>
+      ${ic.grupos.map((a,i)=>a.length? `<div style="margin-top:8px"><b>${esc(CATS[i][0])}</b> <span class="sub">(${a.length})</span>
+        <p class="sub" style="margin:2px 0 0;line-height:1.55">${a.map(esc).join(' · ')}</p></div>`:'').join('')}
+      <p class="sub" style="margin-top:8px"><i>A lista sai da tabela de composição da app, com as mesmas regras que etiquetam as receitas: se um ingrediente aqui falta, ou não está na tabela ou não passa na regra. Cabe na dieta não quer dizer «à vontade» — os tetos em cima continuam a mandar.</i></p>
+    </details>`
+    : `<p class="sub" style="margin-top:12px">A dieta equilibrada não exclui nenhum ingrediente: a lista seria a tabela inteira. O que a define é a proporção, e é isso que a tabela em cima mostra.</p>`;
+  const tetoNota = t.tetoC!=null? `Os hidratos são um <b>teto</b>: ${t.tetoC} g por dia, o limite da dieta, mesmo que ${DIETS[k].c} % das tuas calorias dessem mais. A app só etiqueta como ${esc(nome.toLowerCase())} as receitas com até <b>${t.porReceita} g</b>, para caberem várias por dia.`
+    : t.tetoF!=null? `A gordura é um <b>teto</b>: 30 % das calorias, o limite superior da OMS. A proteína e os hidratos são a repartição da dieta aplicada ao teu alvo.`
+    : `Nesta dieta não há limite absoluto: os gramas são a <b>repartição da dieta aplicada ao teu alvo</b> de ${t.linhas[t.linhas.length-1].kcal} kcal — uma orientação para montar cada refeição, não um teto a não ultrapassar.`;
+  return `<div class="card" data-col="nu-guia" style="margin-top:16px">
+    <h2>Guia da dieta — ${esc(nome)} ${dica('guiaDieta')}</h2>
+    <div class="row" style="margin-top:8px">${chips}</div>
+    <p class="sub" style="margin-top:4px">${ehMinha? 'É a dieta de '+nomeCurto(m)+'.' : 'A dieta de '+nomeCurto(m)+' é '+esc(DIETS[minha]? DIETS[minha].n : 'personalizada')+' — estás a ver o guia de outra.'}${m.dieta==='personalizada'? ' Com macros personalizados, a app mostra o guia da dieta mais próxima; muda-a no seletor em cima se quiseres seguir uma destas.':''}</p>
+    ${restritiva && !permiteDefice(m)? `<div class="alerta forte" style="margin-top:10px"><span aria-hidden="true">🚨</span><span><b>Não é para esta fase.</b> ${gravida(m)?'Na gravidez':'Em idade de crescimento'} a app não aplica esta repartição: encosta os macros à faixa recomendada e di-lo no simulador. O guia fica aqui para leitura.</span></div>`:''}
+    ${g.aviso? `<div class="alerta" style="margin-top:10px"><span aria-hidden="true">⚠️</span><span>${esc(g.aviso)}</span></div>`:''}
+    <div class="splabel" style="margin-top:12px"><span>O que é</span></div>
+    <p class="sub" style="margin-top:6px">${esc(g.o)}</p>
+    <div class="splabel" style="margin-top:12px"><span>Como cumprir</span></div>
+    <ul class="lista-acog">${g.como.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+    <div class="splabel" style="margin-top:12px"><span>O que evitar</span></div>
+    <ul class="lista-acog">${g.evitar.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+    <div class="splabel" style="margin-top:12px"><span>Por refeição e por dia</span>
+      <span class="pill ${t.tetoC!=null||t.tetoF!=null?'warn':''}">${t.tetoC!=null||t.tetoF!=null? 'com teto' : 'orientação'}</span></div>
+    <div style="overflow-x:auto"><table class="tab-guia" style="margin-top:8px">
+      <thead><tr><th>Refeição</th><th>kcal</th><th>Hidratos</th><th>Proteína</th><th>Gordura</th></tr></thead>
+      <tbody>${t.linhas.map(l=>`<tr${l.dia?' class="gj-eu"':''}><td>${esc(l.nome)}</td><td>${l.kcal}</td>
+        <td>${t.tetoC!=null?'≤ ':''}${l.c} g</td><td>${l.p} g</td><td>${t.tetoF!=null?'≤ ':''}${l.f} g</td></tr>`).join('')}</tbody></table></div>
+    <p class="sub" style="margin-top:8px">${tetoNota}${t.ajustado? ' Os macros já estão encostados à faixa recomendada para a fase, e é esse ajuste que a tabela usa.':''} A repartição pelas refeições é a da app (25 / 35 / 10 / 30 %).</p>
+    ${lista}
+    <div class="row" style="margin-top:12px">
+      <button class="btn small" onclick="verReceitasDieta('${k}')">🍳 Ver receitas ${esc(nome.toLowerCase())}</button>
+      ${!ehMinha && m.dieta!=='personalizada'? `<button class="btn ghost small" onclick="upd('${m.id}','dieta','${k}')">Passar ${nomeCurto(m)} para ${esc(nome.toLowerCase())}</button>`:''}
+    </div>
+    <p class="sub" style="margin-top:10px"><i>Fontes: ${esc(g.fontes)} Nenhuma parte disto substitui a consulta — a app aplica a repartição e as regras; quem decide se a dieta é para ti é quem te acompanha.</i></p>
+  </div>`;
+}
 function cartaoJejum(m){
   const bloqueio=jejumDesaconselhado(m);
   const c=jejumCfg(), im=c.im[m.id]||{}, ativo=!!im.ativo;
@@ -27952,6 +28173,7 @@ function renderNutricao(){
     </div>`}
   </div>
   ${definido? cartaoGraficoRef(m) : ''}
+  ${cartaoGuiaDieta(m)}
   ${cartaoJejum(m)}
   ${definido? cartaoFibra(m) : ''}
   ${definido? cartaoSalAcucar(m) : ''}
