@@ -833,6 +833,16 @@ ol.passos li span{color:var(--mut);font-size:14px;margin-top:2px}
 /* As listas do ACOG: texto corrido não serve para o que é uma lista de
    verificação, e os sinais de alarme distinguem-se por marca e não só por cor. */
 .lista-acog{margin:8px 0 0;padding-left:20px;font-size:13.5px;line-height:1.6}
+/* A lista de ingredientes de uma dieta são centenas de nomes seguidos: num
+   telemóvel é uma coluna e lê-se, num ecrã de portátil era uma linha de mil
+   pixéis e o olho perdia-se a voltar ao início. Colunas resolvem-no sem mudar
+   o marcado, e `break-inside` impede que um nome parta ao meio. */
+/* `column-width` e não `column-count` com media queries: o cartão vive dentro
+   de uma grelha que muda de largura por sua conta, e a 1280 px ficava com 524
+   px e três colunas de 157 — «Iogurte grego magro natural» partido em três
+   linhas. Dizendo a largura MÍNIMA de coluna, o número sai da largura real do
+   sítio onde a lista está, e num telemóvel dá uma coluna sozinho. */
+.lista-ing{margin:2px 0 0;line-height:1.55;columns:17em;column-gap:26px}
 .lista-acog li{margin-bottom:3px}
 .lista-acog.alarme li::marker{content:"⚠ ";color:var(--bad)}
 #atv-gravidez details>summary{cursor:pointer;min-height:32px;display:flex;align-items:center;
@@ -1058,7 +1068,10 @@ main{max-width:1100px;margin:0 auto;padding:24px 20px}
    de interface com preço ou caixa de seleção à direita, não um parágrafo. */
 #main [style*="text-align:center"], .mcaixa [style*="text-align:center"],
 .vazio p, .vazio .sub, .rotulo p, .rotulo .sub,
-.row > .sub, .ac-linha .sub, .mleg .sub{ max-width:none }
+/* `.lista-ing` entra aqui porque já tem medida própria: a largura de coluna
+   dá-lhe as suas 17 em, e a medida do texto corrido, aplicada por cima,
+   limitava a lista INTEIRA a uma coluna e meia no meio de um cartão vazio. */
+.row > .sub, .ac-linha .sub, .mleg .sub, #main .lista-ing, .lista-ing{ max-width:none }
 /* Num ecrã grande a largura que sobra vale mais em colunas do que em margem:
    a 1500 px cabem cinco cartões de receita ou quatro dias do plano lado a
    lado, e continua a ler-se bem porque o texto tem teto próprio. */
@@ -23612,7 +23625,7 @@ function cartaoJejumAtiv(m){
   const nivelNome=n=>{ const x=NIVEIS.find(y=>y[0]===n); return x? x[1].toLowerCase() : n; };
   /* o teto a mostrar é o mais apertado de todos os jejuns em causa: com dois
      jejuns marcados, quem manda é o mais longo */
-  const tetos=conf.map(x=>x.g.tecto);
+  const tetos=conf.map(x=>x.g.teto);
   const teto=tetos.indexOf(null)>=0? null
     : NIVEIS[Math.min.apply(null, tetos.map(t=>nivelIndice(t)))][0];
   if(!maus.length) return `<div class="card" data-col="atv-jejum" style="margin-top:16px">
@@ -23825,9 +23838,16 @@ function correspondeBusca(r,q){
   return termos.every(t=>{
     if(alvo.indexOf(t)>=0) return true;
     /* só se a forma reduzida disser alguma coisa: um radical de duas letras
-       encontraria meio catálogo */
+       encontraria meio catálogo.
+       Três letras, porém, chegam — e o teto de quatro deixava de fora o plural
+       português mais comum de todos: «pães» reduz-se a «pao», três letras, e a
+       busca não devolvia nenhuma das 152 receitas com pão. A comparação a
+       seguir é de palavra INTEIRA contra palavra inteira («pao» só encontra
+       «pao», «paes», «paos»), e não uma procura de pedaço dentro de palavra —
+       é isso que torna seguro descer aqui. De caminho, «ovos» passa a devolver
+       o mesmo que «ovo», que era outra assimetria sem explicação. */
     const rd=radicalPT(t);
-    if(rd.length<4 || rd===t) return false;
+    if(rd.length<3 || rd===t) return false;
     return alvo.split(/[^a-z0-9]+/).some(w=>radicalPT(w)===rd);
   });
 }
@@ -25503,7 +25523,13 @@ const EVITAR_SINAL={
   'Uvas e tomate cherry inteiros':
     {re:/^(Uvas?\b(?!\s*passa)|Tomate cereja)/i,
      semPasso:/em quatro|ao comprido|aos quartos|assa|coze|saltea|forno|grelha|refoga|estufa|frita|tabuleiro|tacho|panela|frigideira|lume/i},
-  'Rebuçados, chupas, pastilhas, pipocas, marshmallows': {re:/^(Pipocas|Rebuçad|Marshmallow)/i},
+  /* «Pastilha» estava no NOME da regra e não na expressão, e o catálogo tem
+     «Pastilha elástica» desde sempre: a linha prometia cobrir as pastilhas e
+     era a única das cinco palavras que nunca apanhava nada. Numa regra de
+     engasgamento, o que o rótulo diz e o que o código faz têm de ser a mesma
+     coisa — é o mesmo erro das uvas com uma âncora a mais, do lado de lá. */
+  'Rebuçados, chupas, pastilhas, pipocas, marshmallows':
+    {re:/^(Pipocas|Rebuçad|Marshmallow|Pastilha|Chupa)/i},
   'Bebidas de arroz': {re:/^Bebida de arroz/i},
   /* O limite desta linha não é o dos outros. A própria entrada de EVITAR diz
      que o NHS desaconselha tubarão, espadarte e marlim ATÉ AOS 16 ANOS por
@@ -27000,7 +27026,7 @@ const ELETROLITOS=[
    As bandas são exatamente as mesmas que `rampaRenutricao` usa para repartir
    esse regresso — 24, 48, 72, 120 e 168 horas. Se divergissem, a app dizia
    uma coisa no guia e fazia outra nas contas do plano.
-   `tecto` é o nível máximo de intensidade (dos três de NIVEIS) que faz
+   `teto` é o nível máximo de intensidade (dos três de NIVEIS) que faz
    sentido nesta banda; `null` quer dizer que não se treina de todo. */
 const GUIA_JEJUM=[
   {h:24, cls:'ok', t:'Até 24 horas', curto:'Não muda nada',
@@ -27008,7 +27034,7 @@ const GUIA_JEJUM=[
    ele:['Salga a comida como sempre salgaste. É na janela em que comes que se repõe o sódio do dia inteiro, não durante o jejum.',
         'Bebe à sede. Beber muita água sem sal nenhum não é a opção mais segura — é o caminho conhecido para a hiponatremia.',
         'Chá e café simples não quebram o jejum. Com açúcar, leite ou natas, quebram.'],
-   supl:[], tecto:'intenso',
+   supl:[], teto:'intenso',
    tr:['Treina como treinas. Se puderes escolher a hora, encosta a sessão mais dura à janela de comer — mesmo antes de a abrir, ou depois de já teres comido.',
        'Um recorde pessoal em jejum é possível, mas raramente é neste dia que ele aparece: o que costuma faltar não é energia, é ritmo.'],
    des:'Não há desmame nenhum: a refeição a seguir é uma refeição normal, do tamanho do costume.',
@@ -27019,7 +27045,7 @@ const GUIA_JEJUM=[
    ele:['O sódio é o primeiro a faltar e o que mais alívio dá. Água com uma pitada de sal, ou um caldo sem gordura, resolve a maior parte das dores de cabeça deste primeiro dia e meio.',
         'O magnésio é o segundo a dar sinal — aparece como cãibras à noite e sono mau.',
         'O potássio só com indicação de quem te acompanha. É o único dos três em que mais é pior: um excesso mexe com o ritmo do coração.'],
-   supl:['sais','magnesio'], tecto:'moderado',
+   supl:['sais','magnesio'], teto:'moderado',
    tr:['Mantém o movimento e corta a intensidade. Caminhar, mobilidade, bicicleta leve e força com cargas de técnica cabem aqui.',
        'Fora: séries até à falha, treino por intervalos, provas, e tudo o que passe de uma hora em esforço contínuo.',
        'Se treinares, treina no início do jejum e não no fim — a diferença entre a hora 6 e a hora 40 sente-se toda.'],
@@ -27031,7 +27057,7 @@ const GUIA_JEJUM=[
    ele:['A reposição de sódio passa a ser todos os dias e repartida pelo dia, não toda de uma vez.',
         'Magnésio e potássio entram na conversa, mas as doses são clínicas: dependem da função renal, da tensão arterial e da medicação.',
         'Se tomas diuréticos, medicação para a tensão ou para a diabetes, isto tem de ser revisto antes de começar — não a meio.'],
-   supl:['sais','magnesio','potassio'], tecto:'leve',
+   supl:['sais','magnesio','potassio'], teto:'leve',
    tr:['Só treino leve: caminhar devagar, alongar, mobilidade. Nada com carga, nada com o coração acima do passo de conversa.',
        'Levanta-te devagar de todas as vezes. A tensão baixa e a cabeça vem atrás do corpo.',
        'Um treino duro aqui não rende menos: rende ao contrário, porque a proteína que se gasta vem do músculo.'],
@@ -27042,7 +27068,7 @@ const GUIA_JEJUM=[
    o:'A partir do terceiro dia o risco maior deixa de estar no jejum e passa a estar na volta. É aqui que começa a contar a síndrome de renutrição: quando os hidratos regressam, o fósforo, o potássio e o magnésio caem a pique, e isso pode matar.',
    ele:['A reposição deixa de se improvisar em casa. Quem acompanha decide o quê e quanto, e vale a pena haver análises antes e depois.',
         'A tiamina (vitamina B1) antes da primeira refeição é prática corrente nos protocolos de renutrição de risco. Não é decisão da app nem tua.'],
-   supl:['sais','magnesio','potassio'], tecto:null,
+   supl:['sais','magnesio','potassio'], teto:null,
    tr:['Sem treino. Nem leve, nem «só uma corridinha».',
        'Caminhar pouco e devagar, para não estar parado o dia todo, é o limite.',
        'O regresso ao treino faz-se depois de a rampa de renutrição acabar, e começa abaixo do que fazias antes — não onde paraste.'],
@@ -27053,7 +27079,7 @@ const GUIA_JEJUM=[
    o:'Cinco a sete dias sem comer é território clínico. A app regista-o porque alguém o pode estar a fazer sob acompanhamento — não porque o recomende a ninguém.',
    ele:['Sem análises não há forma de saber o que falta. O sal e o magnésio de farmácia não substituem isso.',
         'Um excesso de potássio nesta fase é uma emergência cardíaca, não um desconforto.'],
-   supl:['sais','magnesio','potassio'], tecto:null,
+   supl:['sais','magnesio','potassio'], teto:null,
    tr:['Sem treino nenhum. Movimento só o de andar por casa.',
        'A massa muscular perdida a esta altura já não se defende com esforço: defende-se com proteína, depois, e devagar.'],
    des:'Quatro refeições de rampa, à volta de 30%, 45%, 60% e 80% do alvo. A primeira é a mais importante e a mais pequena.',
@@ -27062,7 +27088,7 @@ const GUIA_JEJUM=[
   {h:Infinity, cls:'bad', t:'Mais de 7 dias', curto:'Só sob vigilância médica',
    o:'Um jejum de mais de uma semana é um procedimento clínico, com vigilância e análises pelo meio. Sem acompanhamento médico, não.',
    ele:['Tudo o que diz respeito a eletrólitos aqui é prescrição, e o que a app mostra são referências para quem come.'],
-   supl:['sais','magnesio','potassio'], tecto:null,
+   supl:['sais','magnesio','potassio'], teto:null,
    tr:['Sem treino. O plano de treino fica suspenso e retoma-se depois da renutrição, de baixo para cima.'],
    des:'Seis refeições de rampa, à volta de 25%, 35%, 50%, 65%, 80% e 90% do alvo, ao longo de vários dias.',
    sinais:'A vigilância é de quem acompanha, não da app.'},
@@ -27090,9 +27116,9 @@ function nivelDoDesporto(s){
   sp.mets.forEach((met,k)=>{ const d=Math.abs(velocidadeParaMet(sp.dist,met)-v); if(d<dif){ dif=d; melhor=k; } });
   return NIVEIS[melhor][0];
 }
-function excedeTetoJejum(s,tecto){
-  if(!tecto) return true;                    /* banda em que não se treina de todo */
-  return nivelIndice(nivelDoDesporto(s)) > nivelIndice(tecto);
+function excedeTetoJejum(s,teto){
+  if(!teto) return true;                    /* banda em que não se treina de todo */
+  return nivelIndice(nivelDoDesporto(s)) > nivelIndice(teto);
 }
 /* Os dias de calendário que um jejum cobre. Um jejum de 40 h que começa às
    20h00 pinta três dias, não dois — e em qualquer um deles pode estar marcado
@@ -27115,7 +27141,7 @@ function treinosNoJejum(m){
       m.desportos.forEach(s=>{
         const sp=SPORT[s.s]; if(!sp) return;
         if(diasPlano(s).indexOf(dow)<0) return;
-        out.push({d, dow, j, g, s, sp, excede:excedeTetoJejum(s,g.tecto), nivel:nivelDoDesporto(s)});
+        out.push({d, dow, j, g, s, sp, excede:excedeTetoJejum(s,g.teto), nivel:nivelDoDesporto(s)});
       });
     });
   });
@@ -27131,7 +27157,7 @@ function treinosNoJejum(m){
 function dowsProibidosJejum(m,s){
   const out={};
   jejumCfg().pontuais.filter(x=>x.mid===m.id && x.horas>=24).forEach(j=>{
-    if(!excedeTetoJejum(s, guiaJejum(j.horas).tecto)) return;
+    if(!excedeTetoJejum(s, guiaJejum(j.horas).teto)) return;
     diasDoJejum(j).forEach(d=>{ out[diaSemana(d)]=true; });
   });
   return out;
@@ -27360,11 +27386,11 @@ const GUIA_DIETA={
   },
   keto:{
     o:'Uma dieta cetogénica limita os hidratos a ponto de o corpo passar a produzir corpos cetónicos a partir da gordura — na prática, cerca de 20 g de hidratos por dia, com a gordura a fornecer a maior parte da energia. Nasceu como tratamento da epilepsia refratária em crianças, sob vigilância médica, e é aí que tem a evidência mais sólida; como dieta de emagrecimento é uma escolha de adulto informado, com acompanhamento.',
-    como:['Conta os hidratos de tudo, incluindo os dos hortícolas, dos lacticínios e dos frutos secos: 20 g por dia esgotam-se depressa.',
+    como:['Conta os hidratos de tudo, incluindo os dos hortícolas, dos lacticínios e dos frutos secos: '+DOSE_DIARIA.keto.dia+' g por dia esgotam-se depressa.',
       'Constrói cada refeição com proteína moderada (carne, peixe, ovos, queijo) e gordura à vontade dentro do alvo (azeite, manteiga, abacate, azeitonas, frutos secos).',
       'Hortícolas de folha e de baixo amido em todas as refeições: são a fibra e o potássio que faltam sem cereais nem leguminosas.',
       'Sal, água e eletrólitos nas primeiras semanas — a perda de água com o glicogénio leva sódio, potássio e magnésio consigo. A receita de ketoade da app foi feita para isto.',
-      'A app só etiqueta como keto as receitas com até 10 g de hidratos — metade do teto diário, para caberem pelo menos duas por dia.'],
+      'A app só etiqueta como keto as receitas com até '+HC_TETO_EFETIVO.keto+' g de hidratos — metade do teto diário, para caberem pelo menos duas por dia.'],
     evitar:['Cereais e tudo o que vem deles: pão, massa, arroz, bolachas, cerveja.',
       'Batata, batata-doce, mandioca, milho, leguminosas — e a maior parte da fruta, à exceção de frutos vermelhos em pouca quantidade.',
       'Açúcar em qualquer forma, mel, néctares, refrigerantes; leite (a lactose é hidrato) em mais do que um pingo.',
@@ -27375,11 +27401,11 @@ const GUIA_DIETA={
     aviso:'Uma dieta cetogénica prolongada é um ato clínico. Fala com quem te acompanha antes de começar, sobretudo se tomas medicação para a diabetes ou para a tensão — as doses podem ter de mudar nos primeiros dias.'
   },
   lowcarb:{
-    o:'Menos hidratos do que a dieta de referência, sem chegar à cetose: a app usa 100 g por dia, que é o valor conservador do intervalo habitual (a Diabetes UK define low carb como menos de 130 g por dia). A energia que sai dos hidratos passa sobretudo para a proteína e para gorduras de boa qualidade.',
+    o:'Menos hidratos do que a dieta de referência, sem chegar à cetose: a app usa '+DOSE_DIARIA.lowcarb.dia+' g por dia, que é o valor conservador do intervalo habitual (a Diabetes UK define low carb como menos de 130 g por dia). A energia que sai dos hidratos passa sobretudo para a proteína e para gorduras de boa qualidade.',
     como:['Tira os hidratos refinados primeiro — pão branco, arroz branco, doces — e fica com os que vêm com fibra: hortícolas, leguminosas em dose pequena, fruta inteira.',
       'Proteína em todas as refeições: é o que dá saciedade quando o prato tem menos cereal.',
       'Gordura de azeite, frutos secos, abacate e peixe gordo; não é uma dieta de gordura à vontade.',
-      'Uma refeição low carb na app tem até 25 g de hidratos — um quarto do teto diário, para caberem quatro por dia.',
+      'Uma refeição low carb na app tem até '+HC_TETO_EFETIVO.lowcarb+' g de hidratos — um quarto do teto diário, para caberem quatro por dia.',
       'Se tomas medicação para a diabetes, avisa quem te acompanha: menos hidratos podem exigir ajuste das doses.'],
     evitar:['Refrigerantes, sumos e doces — são os hidratos que mais rápido enchem o orçamento do dia sem saciar.',
       'Pão, massa, arroz e batata em doses grandes; o que fica são porções pequenas ou versões integrais.',
@@ -27415,7 +27441,9 @@ const GUIA_DIETA={
     evitar:['Cereais e derivados (pão, massa, arroz, milho, aveia), leguminosas (feijão, grão, lentilhas, soja, amendoim).',
       'Leite, queijo, iogurte, manteiga.',
       'Açúcar, mel em excesso, adoçantes industriais (eritritol, estévia, sucralose) — a dieta é de alimentos inteiros, não de substitutos.',
-      'Carnes processadas e molhos industriais: salsichas, fiambre, ketchup, maionese, molho de soja.'],
+      'Carnes processadas e molhos industriais: salsichas, fiambre, ketchup, maionese, molho de soja.',
+      'Óleos de semente refinados (girassol, milho, soja, «óleo alimentar») e féculas isoladas como a tapioca e o polvilho — a gordura é de azeite, coco, abacate e frutos secos.',
+      'Álcool, incluindo o vinho de cozinhar: a formulação de referência não o inclui, e por isso a app tira a etiqueta a um frango à provençal ou a uns rojões, mesmo com o álcool a evaporar.'],
     compat:(nome,ni,at)=>!(DIETA_VETA.paleo||[]).some(t=>at.indexOf(t)>=0) && !RE_NAO_PALEO.test(nome) && !RE_BATATA_NAO_PALEO.test(nome),
     limite:'sem cereais, leguminosas, lacticínios, açúcar nem ultraprocessados',
     fontes:'Cordain, L., «The Paleo Diet» (2002), a formulação de referência; British Dietetic Association, sobre os riscos de excluir grupos inteiros (cálcio).'
@@ -27470,17 +27498,35 @@ function ingredientesCompativeis(k){
    absoluto ou só a proporção da dieta aplicada ao alvo. */
 function tetosDieta(m,k){
   const kcal=Math.max(0,Math.round(targetKcal(m)));
-  const pct = k===chaveDieta(m)? macrosAjustados(m) : (DIETS[k]||DIETS.equilibrada);
+  /* A tabela mostra o que a app APLICARIA a esta pessoa com esta dieta, e não
+     a repartição de catálogo: passa-se sempre por macrosAjustados com a dieta
+     do guia, que é o que encosta uma dieta à faixa recomendada da fase.
+     Sem isto, a mesma criança via duas tabelas diferentes para a mesma dieta
+     conforme ela estivesse ou não escolhida no seletor. */
+  const pct = macrosAjustados(Object.assign({}, m, {dieta:k}));
   const dia={c:kcal*pct.c/100/4, p:kcal*pct.p/100/4, f:kcal*pct.f/100/9};
-  const tetoC = DOSE_DIARIA[k]? DOSE_DIARIA[k].dia : null;
-  const tetoF = k==='lowfat'? kcal*GORD_TETO_LOWFAT/9 : null;
+  /* ---- E os tetos absolutos só valem se a dieta for mesmo aplicada ----
+     Numa criança, a app recusa a repartição cetogénica e encosta os hidratos
+     à faixa da idade: 45 % de 1595 kcal são 179 g por dia. A linha «≤ 20 g»
+     dizia-lhe o contrário do que a própria app planeia — e num guia de
+     alimentação infantil isso é o pior sítio para haver uma contradição.
+     Quando os macros foram encostados, o teto da dieta não se aplica, porque
+     a dieta não se está a aplicar. */
+  const tetoC = (!pct.ajustado && DOSE_DIARIA[k])? DOSE_DIARIA[k].dia : null;
+  const tetoF = (!pct.ajustado && k==='lowfat')? kcal*GORD_TETO_LOWFAT/9 : null;
   if(tetoC!=null) dia.c=Math.min(dia.c,tetoC);
   if(tetoF!=null) dia.f=Math.min(dia.f,tetoF);
   const linhas=MEALS.map(([mk,nome,fr])=>({nome, kcal:Math.round(kcal*fr), c:Math.round(dia.c*fr), p:Math.round(dia.p*fr), f:Math.round(dia.f*fr)}));
   linhas.push({nome:'Dia inteiro', kcal, c:Math.round(dia.c), p:Math.round(dia.p), f:Math.round(dia.f), dia:true});
-  return {linhas, tetoC, tetoF, porReceita: HC_TETO_EFETIVO[k]||null, ajustado: k===chaveDieta(m) && macrosAjustados(m).ajustado};
+  return {linhas, tetoC, tetoF, porReceita: (!pct.ajustado && HC_TETO_EFETIVO[k])||null, ajustado:pct.ajustado, pct};
 }
 function setGuiaDieta(k){ if(!temChave(GUIA_DIETA,k)) return; S.ui.guiaDieta=k; saveMeta(); render(); }
+/* Trocar de dieta redesenha o cartão inteiro, e a lista de ingredientes
+   fechava-se de cada vez — logo em quem está a comparar duas dietas, que é
+   exatamente para isso que a lista serve. Guarda-se aberta ou fechada, como já
+   se faz com as secções da despensa: é preferência de vista, não altera dados
+   nem entra no desfazer. */
+function guardaListaGuia(el){ if(!el) return; S.ui.guiaLista=!!el.open; saveMeta(); }
 function verReceitasDieta(k){ if(!temChave(DIETAS_FILTRAVEIS,k)) return; S.ui.dietaF=[k]; S.ui.recLimite=LOTE_RECEITAS; saveMeta(); go('receitas'); }
 function cartaoGuiaDieta(m){
   const minha=chaveDieta(m);
@@ -27489,13 +27535,15 @@ function cartaoGuiaDieta(m){
   const ehMinha = k===minha;
   const restritiva = k==='keto'||k==='lowcarb';
   const chips=Object.keys(GUIA_DIETA).map(kk=>`<button class="chip ${kk===k?'on':''}" onclick="setGuiaDieta('${kk}')" aria-pressed="${kk===k}">${esc(DIETS[kk].n)}${kk===minha?' ·':''}</button>`).join('');
-  const lista = g.compat? `<details class="quant" style="margin-top:12px"><summary>Ingredientes compatíveis — ${ic.n} dos ${ic.total} da tabela <span class="sub">(${esc(g.limite||'')})</span></summary>
+  const lista = g.compat? `<details class="quant" style="margin-top:12px" ${S.ui.guiaLista?"open":""} ontoggle="guardaListaGuia(this)"><summary>Ingredientes compatíveis — ${ic.n} dos ${ic.total} da tabela <span class="sub">(${esc(g.limite||'')})</span></summary>
       ${ic.grupos.map((a,i)=>a.length? `<div style="margin-top:8px"><b>${esc(CATS[i][0])}</b> <span class="sub">(${a.length})</span>
-        <p class="sub" style="margin:2px 0 0;line-height:1.55">${a.map(esc).join(' · ')}</p></div>`:'').join('')}
+        <p class="sub lista-ing">${a.map(esc).join(' · ')}</p></div>`:'').join('')}
       <p class="sub" style="margin-top:8px"><i>A lista sai da tabela de composição da app, com as mesmas regras que etiquetam as receitas: se um ingrediente aqui falta, ou não está na tabela ou não passa na regra. Cabe na dieta não quer dizer «à vontade» — os tetos em cima continuam a mandar.</i></p>
     </details>`
     : `<p class="sub" style="margin-top:12px">A dieta equilibrada não exclui nenhum ingrediente: a lista seria a tabela inteira. O que a define é a proporção, e é isso que a tabela em cima mostra.</p>`;
-  const tetoNota = t.tetoC!=null? `Os hidratos são um <b>teto</b>: ${t.tetoC} g por dia, o limite da dieta, mesmo que ${DIETS[k].c} % das tuas calorias dessem mais. A app só etiqueta como ${esc(nome.toLowerCase())} as receitas com até <b>${t.porReceita} g</b>, para caberem várias por dia.`
+  const tetoNota = t.ajustado
+    ? `Nesta fase a app <b>não aplica</b> a repartição de ${esc(nome.toLowerCase())} (${DIETS[k].c}/${DIETS[k].p}/${DIETS[k].f}): encosta-a à faixa recomendada para ${gravida(m)?"a gravidez":"a idade"} e fica em <b>${t.pct.c}/${t.pct.p}/${t.pct.f}</b>. A tabela mostra esse ajuste, que é o que o plano usaria — e por isso não mostra o teto de hidratos da dieta, que só faz sentido se a dieta for mesmo aplicada.`
+    : t.tetoC!=null? `Os hidratos são um <b>teto</b>: ${t.tetoC} g por dia, o limite da dieta, mesmo que ${DIETS[k].c} % das tuas calorias dessem mais. A app só etiqueta como ${esc(nome.toLowerCase())} as receitas com até <b>${t.porReceita} g</b>, para caberem várias por dia.`
     : t.tetoF!=null? `A gordura é um <b>teto</b>: 30 % das calorias, o limite superior da OMS. A proteína e os hidratos são a repartição da dieta aplicada ao teu alvo.`
     : `Nesta dieta não há limite absoluto: os gramas são a <b>repartição da dieta aplicada ao teu alvo</b> de ${t.linhas[t.linhas.length-1].kcal} kcal — uma orientação para montar cada refeição, não um teto a não ultrapassar.`;
   return `<div class="card" data-col="nu-guia" style="margin-top:16px">
@@ -27511,12 +27559,13 @@ function cartaoGuiaDieta(m){
     <div class="splabel" style="margin-top:12px"><span>O que evitar</span></div>
     <ul class="lista-acog">${g.evitar.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
     <div class="splabel" style="margin-top:12px"><span>Por refeição e por dia</span>
-      <span class="pill ${t.tetoC!=null||t.tetoF!=null?'warn':''}">${t.tetoC!=null||t.tetoF!=null? 'com teto' : 'orientação'}</span></div>
+      <span class="pill ${t.ajustado?'warn':(t.tetoC!=null||t.tetoF!=null?'warn':'')}">${
+        t.ajustado? 'encostado à faixa d'+(gravida(m)?'a gravidez':'a idade') : (t.tetoC!=null||t.tetoF!=null? 'com teto' : 'orientação')}</span></div>
     <div style="overflow-x:auto"><table class="tab-guia" style="margin-top:8px">
       <thead><tr><th>Refeição</th><th>kcal</th><th>Hidratos</th><th>Proteína</th><th>Gordura</th></tr></thead>
       <tbody>${t.linhas.map(l=>`<tr${l.dia?' class="gj-eu"':''}><td>${esc(l.nome)}</td><td>${l.kcal}</td>
         <td>${t.tetoC!=null?'≤ ':''}${l.c} g</td><td>${l.p} g</td><td>${t.tetoF!=null?'≤ ':''}${l.f} g</td></tr>`).join('')}</tbody></table></div>
-    <p class="sub" style="margin-top:8px">${tetoNota}${t.ajustado? ' Os macros já estão encostados à faixa recomendada para a fase, e é esse ajuste que a tabela usa.':''} A repartição pelas refeições é a da app (25 / 35 / 10 / 30 %).</p>
+    <p class="sub" style="margin-top:8px">${tetoNota} A repartição pelas refeições é a da app (25 / 35 / 10 / 30 %).</p>
     ${lista}
     <div class="row" style="margin-top:12px">
       <button class="btn small" onclick="verReceitasDieta('${k}')">🍳 Ver receitas ${esc(nome.toLowerCase())}</button>
@@ -27914,10 +27963,10 @@ function blocoGuiaJejum(m){
              : `<button class="btn small" onclick="setDoses('${m.id}','${id}',1)">+ Juntar aos suplementos</button>`}
     ${SUPL[id].nota? `<span class="sub" style="display:block">${esc(SUPL[id].nota)}</span>`:''}</li>`).join('');
 
-  const conflitos = maus.length? `<div class="alerta ${g.tecto?'':'forte'}" style="margin-top:8px">
-      <span aria-hidden="true">${g.tecto?'⚠️':'🚨'}</span><span>
+  const conflitos = maus.length? `<div class="alerta ${g.teto?'':'forte'}" style="margin-top:8px">
+      <span aria-hidden="true">${g.teto?'⚠️':'🚨'}</span><span>
       <b>${maus.length===1?'Há um treino marcado':'Há '+maus.length+' treinos marcados'} por cima do jejum.</b>
-      ${g.tecto? `Nesta duração o teto é o esforço <b>${esc(nivelNome(g.tecto))}</b>.`
+      ${g.teto? `Nesta duração o teto é o esforço <b>${esc(nivelNome(g.teto))}</b>.`
                : 'Nesta duração não se treina.'}</span></div>
     <ul class="lista-acog">${maus.map(x=>`<li><b>${esc(x.sp.nome)}</b> — ${esc(DAYN[x.dow])}, ${esc(fmtShort(x.d))}
       a ${esc(nivelNome(x.nivel))}
@@ -27929,13 +27978,13 @@ function blocoGuiaJejum(m){
     <p class="sub" style="margin-top:6px">O plano de treino é semanal e os jejuns são datas: mudar o dia
       muda-o <b>em todas as semanas</b>, não só na do jejum. Se preferires mexer só nesta, faz-se à mão na Atividade.</p>`
     : (conf.length? `<p class="sub" style="margin-top:8px">Tens ${conf.length} treino(s) marcado(s) em dias de
-        jejum, todos dentro do teto desta duração (${esc(nivelNome(g.tecto))}). Não há nada a mudar.</p>`
+        jejum, todos dentro do teto desta duração (${esc(nivelNome(g.teto))}). Não há nada a mudar.</p>`
       : `<p class="sub" style="margin-top:8px">Não há treinos do plano marcados por cima dos dias de jejum.</p>`);
 
   const bandas=GUIA_JEJUM.map(b=>`<tr${b===g?' class="gj-eu"':''}>
     <td><b>${esc(b.t)}</b>${b===g?' <span class="pill">o teu</span>':''}</td>
     <td>${esc(b.curto)}</td>
-    <td>${b.tecto? esc(nivelNome(b.tecto)) : '<b>sem treino</b>'}</td>
+    <td>${b.teto? esc(nivelNome(b.teto)) : '<b>sem treino</b>'}</td>
     <td>${rampaRenutricao(b.h===Infinity? 200 : b.h-1).length||'—'}</td></tr>`).join('');
 
   return `<div style="margin-top:14px;border-top:1px solid var(--line);padding-top:10px">
@@ -27949,7 +27998,7 @@ function blocoGuiaJejum(m){
           : '<p class="sub">Nesta duração não há suplemento nenhum a acrescentar: come com sal na janela em que comes.</p>'}
 
     <div class="splabel" style="margin-top:12px"><span>Treino durante o jejum</span>
-      <span class="pill ${g.tecto?'':'bad'}">${g.tecto? 'até '+esc(nivelNome(g.tecto)) : 'sem treino'}</span></div>
+      <span class="pill ${g.teto?'':'bad'}">${g.teto? 'até '+esc(nivelNome(g.teto)) : 'sem treino'}</span></div>
     <ul class="lista-acog">${g.tr.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
     ${conflitos}
 
@@ -32719,6 +32768,16 @@ function limparMembro(m){
     emoji: (typeof m.emoji==='string' && m.emoji.length>0 && m.emoji.length<=4)? m.emoji : undefined,
     cor: (typeof m.cor==='string' && /^#[0-9A-Fa-f]{6}$/.test(m.cor))? m.cor : undefined,
     desportos: Array.isArray(m.desportos) ? m.desportos.map(normalizaDesporto).filter(Boolean) : [],
+    /* O que esta pessoa disse que não gosta. Saía na cópia e não voltava da
+       leitura: restaurar apagava, sem uma palavra, a lista inteira de sabores
+       recusados — e é ela que faz o «Preencher automaticamente» deixar de
+       propor o que ninguém come cá em casa. Não se filtra pelo catálogo: um
+       ingrediente da casa que ainda não foi lido nesta altura do saneamento
+       desapareceria da lista por não ser reconhecido. */
+    naoGosta: Array.isArray(m.naoGosta)
+      ? m.naoGosta.filter(x=>typeof x==='string' && x.trim())
+          .map(x=>x.trim().slice(0,60)).filter((x,i,a)=>a.indexOf(x)===i).slice(0,300)
+      : [],
     suplementos: Array.isArray(m.suplementos)
       ? m.suplementos.filter(s=>s&&temChave(SUPL,s.s))
           .map(s=>({s:s.s, doses:clampNum(Math.round((parseFloat(s.doses)||0)*2)/2,0,20)}))
@@ -32867,6 +32926,13 @@ function lerPacote(txt){
           if(temChave(SPORT,k)) h[k]=clampNum(parseFloat(o.horasAplicadas[k])||0,0,40); });
         return h; })() : {},
       bandaManter: clampNum(parseFloat(o.bandaManter)||2,0.5,10),
+      /* quantos treinos o objetivo chegou mesmo a marcar na semana. É o que o
+         cartão mostra («2 treinos marcados»), e não voltava da cópia: depois
+         de restaurar, um objetivo com a semana toda marcada dizia que não
+         tinha marcado nada. Zero é um valor legítimo — quem não pediu para
+         agendar tem zero —, por isso o teto é generoso e não há valor de
+         recurso a inventar treinos. */
+      marcados: clampNum(Math.round(parseFloat(o.marcados)||0),0,98),
       concluido: !!o.concluido, celebrado: !!o.celebrado,
       dataConclusao: (o.dataConclusao && !isNaN(new Date(o.dataConclusao).getTime()))? o.dataConclusao : null
     });
