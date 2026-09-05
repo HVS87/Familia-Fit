@@ -14215,6 +14215,7 @@ const DICAS={
   partilhada:'Uma atividade ou refeição partilhada fica registada uma vez por pessoa, ligadas entre si. Cada uma tem o seu tempo, a sua intensidade, a sua dose e os seus acompanhamentos — partilhar a hora não obriga a partilhar o esforço nem a quantidade. Confirmar uma confirma o grupo; editar ou apagar pergunta primeiro se vale para os outros.',
   registoDia:'O que ficou registado é o que aconteceu, por oposição ao plano, que é o que se tencionava fazer. É do registo que saem o gasto real do dia, o alvo de calorias ajustado e o ritmo verdadeiro dos objetivos.',
   amamenta:'Amamentar tem um custo energético diário que não se suspende. A Autoridade Europeia para a Segurança dos Alimentos (EFSA, 2013) estima cerca de «500 kcal por dia» nos primeiros seis meses de amamentação exclusiva; a app soma-o ao alvo. Em amamentação mista soma metade, porque não há valor publicado para todas as combinações e é preferível uma aproximação declarada a assumir zero. Passados seis meses, com a alimentação complementar já a entrar, o acréscimo desce para metade. Enquanto amamentas, um défice para perder peso fica limitado a 10% — perder devagar é compatível com a produção de leite, cortar muito não é. Isto são referências populacionais: quem acompanha a amamentação é a consulta.',
+  pesoIdeal:'Não é uma fórmula de tabela nem uma prescrição: é o centro da faixa que a OMS chama saudável — IMC 22 — para a tua altura. Dentro da faixa 18,5 a 25 qualquer peso é saudável, e se já lá estás o plano é manter. «Criar plano» faz tudo num clique: um objetivo a meio quilo por semana (o mais lento do intervalo de 0,5 a 1 kg que o NHS aponta como seguro), com o exercício repartido pelas modalidades que já praticas — ou tudo pela dieta, se não houver treinos no plano —, e a semana preenchida dentro do novo alvo de calorias. Uma distância grande faz-se por etapas: a primeira cabe num ano, e a app diz o que fica para depois. Em crescimento ou gravidez não há peso ideal nem plano, porque o peso muda por o corpo estar a mudar.',
   trajetoria:'Para onde o peso vai se nada mudar, e para onde iria se mudasse. A tendência assenta nas pesagens dos últimos 7, 14 ou 30 dias — quanto mais curta a janela, mais depressa reage e menos vale — e projeta-se a 7, 14, 30, 60 ou 90 dias, com um leque que é a dispersão real da balança. Os dois cursores mudam a linha à frente dos olhos: comer menos ou mais, mexer-se mais. O peso desejado desenha-se, e a app diz em que dia lá chegas com o planeado, ou quantas calorias por dia faltam para chegar no prazo. «Levar para os Objetivos» transforma o exercício em plano — dieta, treinos marcados e alvo de calorias —, e o plano da semana passa a ser sugerido dentro desse alvo. A conta é a de 7700 kcal por quilo: honesta e grosseira.',
   pesoHist:'Cada pesagem fica com a sua data. O peso do perfil é sempre a medição mais recente que já aconteceu, para os cálculos e a balança nunca contarem histórias diferentes. Podem registar-se medições passadas, se as tiveres anotadas.',
   acompanhamento:'O que vai ao lado do prato: batatas, arroz, legumes ou salada. As calorias somam-se às do prato no total do dia, os ingredientes somam-se à lista de compras, mas não conta como uma refeição — um arroz de coentros não é um jantar. O 🔀 troca por outro que sirva a mesma mesa, e o «juntar» põe mais um ao lado: como o lugar do acompanhamento é um só, os que lá estiverem repartem-no entre si — meia dose de batatas e meia de salada, e as calorias, os macros e as quantidades a comprar seguem essa divisão. O preenchimento automático escolhe um para cada almoço e jantar, respeitando as mesmas dietas e exclusões. Escolher ou trocar cria também uma variante com o nome inteiro — «Bife com batatas fritas» —, com os ingredientes somados e o passo-a-passo dos dois escrito de seguida, arrumada no cartão do prato de origem.',
@@ -21436,6 +21437,54 @@ function blocoTrajetoria(m){
     </div>
     <div id="traj-corpo" style="margin-top:8px">${trajCorpoHtml(m)}</div>`;
 }
+/* ================= O PESO IDEAL, E UM PLANO NUM CLIQUE =================
+   «Peso ideal» é uma expressão perigosa, e a app trata-a com cuidado: não é
+   uma fórmula de tabela nem uma prescrição, é o CENTRO da faixa que a OMS
+   chama saudável — IMC 22, para a altura da pessoa. Dentro dessa faixa
+   qualquer peso é saudável, e a app di-lo em vez de apontar para o meio como
+   se fosse obrigatório. O plano que o botão cria trabalha a meio quilo por
+   semana, o mais lento do intervalo que o NHS aponta como seguro (0,5 a 1),
+   com o exercício repartido pelas modalidades que a pessoa já pratica — se
+   não pratica nenhuma, é tudo pela dieta, e diz-se. Uma distância grande não
+   se resolve num objetivo só: a primeira etapa cabe num ano, e o resto fica
+   dito. */
+const IMC_IDEAL=22, RITMO_SEGURO_KG_SEM=0.5;
+function pesoIdeal(m){ const h=(m.altura||0)/100; return h>0? Math.round(IMC_IDEAL*h*h*10)/10 : 0; }
+function textoPesoIdeal(m){
+  const h2=Math.pow((m.altura||0)/100,2), zmin=18.5*h2, zmax=25*h2, d=pesoIdeal(m)-m.peso;
+  if(m.peso>=zmin && m.peso<=zmax) return 'Estás dentro da faixa saudável — o ideal é o centro dela, e não há razão de saúde para lá chegar. O plano, aqui, é manter.';
+  const sem=Math.ceil(Math.abs(d)/RITMO_SEGURO_KG_SEM);
+  return (d<0? 'Perder ' : 'Ganhar ')+nPT(Math.abs(d),1)+' kg a '+nPT(RITMO_SEGURO_KG_SEM,1)+' kg por semana são '
+    +(sem>52? 'mais de um ano: o plano faz a primeira etapa de um ano e diz o resto.' : plural(sem,'semana','semanas')+'.');
+}
+function criarPlanoIdeal(mid){
+  const m=S.members.find(x=>x.id===mid); if(!m||!permiteDefice(m)) return;
+  const alvo=pesoIdeal(m), h2=Math.pow(m.altura/100,2), delta=alvo-m.peso;
+  const naFaixa = m.peso>=18.5*h2 && m.peso<=25*h2;
+  if(naFaixa){
+    S.ui.objForm=Object.assign({}, S.ui.objForm||{}, {membros:[mid], tipo:'manter', semanas:12, banda:2, blocos:[]});
+  } else {
+    const ids=[...new Set((m.desportos||[]).map(s=>s.s).filter(id=>temChave(SPORT,id)))];
+    const etapa=Math.min(Math.abs(delta), RITMO_SEGURO_KG_SEM*52);
+    S.ui.objForm=Object.assign({}, S.ui.objForm||{}, {membros:[mid], tipo: delta<0?'perder':'ganhar',
+      delta:clampNum(Math.round(etapa*2)/2,0.5,30), semanas:clampNum(Math.ceil(etapa/RITMO_SEGURO_KG_SEM),2,52),
+      split: ids.length? 50:100, desportos:ids, blocos:[], sessoes:Math.max(1,Math.min(14,ids.length*2)),
+      nivel:'moderado', agendar:true, dieta:''});
+  }
+  const antes=S.objetivos.length;
+  criarObjetivo();
+  if(S.objetivos.length===antes) return;   /* recusado (fase, gravidez): o flash de lá já explicou */
+  const o=S.objetivos[S.objetivos.length-1];
+  planoDoObjetivo(mid);
+  const resto=Math.abs(delta)-(o.tipo==='manter'?0:Math.abs(o.pesoAlvo-o.pesoInicial));
+  flash('ok', (o.tipo==='manter'
+      ? 'Plano criado: manter os '+nPT(m.peso,1)+' kg de '+esc(nomeCurto(m))+' durante 12 semanas'
+      : 'Plano criado: '+(o.tipo==='perder'?'perder':'ganhar')+' '+nPT(Math.abs(o.pesoAlvo-o.pesoInicial),1)+' kg em '+plural(o.semanas,'semana','semanas')
+        +' a '+nPT(RITMO_SEGURO_KG_SEM,1)+' kg/semana'+(resto>0.5? ' — primeira etapa; faltam depois '+nPT(resto,1)+' kg' : '')
+        +((m.desportos||[]).length? ', metade pelo exercício que já fazes' : ', tudo pela dieta porque não há treinos no plano'))
+    +'. A semana já está preenchida dentro do novo alvo. «Anular» desfaz a semana; o objetivo remove-se nos Objetivos.',
+    {rot:'Anular', fn:'desfazer()'});
+}
 /* Do objetivo ao prato: vai ao Plano e preenche o que falta na semana dentro
    do alvo de calorias que o objetivo acabou de pôr. `autoFill` só toca nas
    refeições vazias — o que a casa já tinha escolhido fica — e já escolhe pelo
@@ -22127,6 +22176,11 @@ function renderFamilia(){
         <div style="min-height:1.6em"><span class="sub ${fase==='adulto'&&dentro?'f-ok-txt':''}" id="f-${mid}-zona">${
           fase==='adulto'? (dentro?'✓ ':'')+'Peso saudável para '+Math.round(m.altura)+' cm: '+zmin+'–'+zmax+' kg'
           : 'Em idade de crescimento o IMC lê-se em percentil para a idade e o sexo, não por estes limites de adulto.'}</span></div>
+        ${permiteDefice(m)? `<div class="row" style="margin-top:8px;align-items:center;gap:10px">
+          <div class="stat"><b id="f-${mid}-ideal">${nPT(pesoIdeal(m),1)} kg</b><span>Peso ideal ${dica('pesoIdeal')}</span></div>
+          <span class="sub" id="f-${mid}-idealtxt" style="flex:1;min-width:0">${textoPesoIdeal(m)}</span>
+          <button class="btn small" style="flex:none" onclick="criarPlanoIdeal('${mid}')">📋 Criar plano</button>
+        </div>`:''}
         <div class="row" style="margin-top:10px">
           <div class="stat"><b id="f-${mid}-imc">${nPT(v,1)}</b><span>IMC ${dica('imc')}</span></div>
           <div class="stat"><b id="f-${mid}-bmr">${Math.round(bmr(m))}</b><span>Basal kcal ${dica('basal')}</span></div>
@@ -22301,6 +22355,9 @@ function atualizarFamilia(mid){
   const zel=document.getElementById('f-'+mid+'-zona');
   if(zel && adulto){ zel.textContent=(dentro?'✓ ':'')+'Peso saudável para '+Math.round(m.altura)+' cm: '+zmin+'–'+zmax+' kg';
     zel.setAttribute('class', dentro?'sub f-ok-txt':'sub'); }
+  /* o peso ideal depende só da altura, mas a distância a ele depende do peso:
+     arrastar qualquer dos dois cursores tem de os refrescar aos dois */
+  if(adulto && permiteDefice(m)){ põe('f-'+mid+'-ideal', nPT(pesoIdeal(m),1)+' kg'); põe('f-'+mid+'-idealtxt', textoPesoIdeal(m)); }
 }
 
 /* ================= ATIVIDADE ================= */
