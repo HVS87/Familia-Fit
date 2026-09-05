@@ -4935,7 +4935,8 @@ P('caracoisportuguesa',[
  ['Água morna, e devagar','Põe os caracóis numa panela com água FRIA que os cubra bem e leva a lume brando. Este é o passo que faz a diferença entre caracóis bonitos e caracóis encolhidos: a água tem de aquecer devagar, para eles saírem da casca antes de o calor os fechar lá dentro. Não mexas, não tapes, e não tenhas pressa.',20],
  ['Temperar quando espumar','Quando começar a fumegar e a formar espuma, tira a espuma com uma escumadeira e junta então o sal grosso, os dentes de alho esmagados com casca e tudo, a folha de louro e os orégãos. É agora e não antes: o sal a frio faz os caracóis recolher.',5],
  ['Cozer','Deixa cozer vinte a trinta minutos em fervura mansa, conforme o tamanho. Estão prontos quando um deles sai da casca inteiro com o palito, sem resistir.',25],
- ['Piri-piri e descanso','Junta o molho de piri-piri, prova o caldo — é ele que se bebe a seguir aos caracóis — e apaga o lume. Deixa-os repousar na água pelo menos meia hora antes de servir: é a repousar que apanham o tempero todo. Servem-se mornos, na travessa e com o caldo, e come-se com palito e sem pressa nenhuma.',30]]);
+ ['Piri-piri e descanso','Junta o molho de piri-piri, prova o caldo — é ele que se bebe a seguir aos caracóis — e apaga o lume. Deixa-os repousar na água pelo menos meia hora antes de servir: é a repousar que apanham o tempero todo. Servem-se mornos, na travessa e com o caldo, e come-se com palito e sem pressa nenhuma.',30],
+ ['O sal que a conta não vê','A app não conta o sal desta receita, porque os oito gramas vão para o litro e meio de água que fica no tacho. Mas o caldo bebe-se, e com ele vai sal a sério: uma chávena leva perto de meio grama. Quem tem de contar o sódio do dia deve somá-lo à mão, e quem tem indicação para comer com pouco sal faz melhor em provar os caracóis e deixar o caldo.']]);
 P('croquetescaca',[
  ['Estufar a caça','Pica a carne de javali e de perdiz miudinha, à faca. Refoga a cebola e o alho picados na manteiga, junta a carne e deixa-a alourar bem antes de molhar com o vinho tinto. Acrescenta o louro e deixa apurar em lume brando, até o vinho ter evaporado e a carne se desfazer.',35],
  ['Massa','Polvilha a carne com a farinha e deixa cozer um minuto, mexendo sempre — a farinha crua sabe a farinha crua. Junta o leite aos poucos, sem parar de mexer, até teres uma massa grossa que se descola do fundo do tacho. Tempera com noz-moscada, sal e pimenta, junta a salsa picada.',12],
@@ -10992,7 +10993,14 @@ const NA_RESIDUAL=/^(abacate|abóbora|acelga|agrião|aipo|alcachofra|alface|alho
 const NA_DESCARTADO={
   peixeaosal:['Sal grosso'],   /* crosta: parte-se e deita-se fora */
   peixesaldourada:['Sal grosso'], peixesalbesugo:['Sal grosso'],
-  camaraocozido:['Sal grosso'], /* água de cozer */
+  camaraocozido:['Sal grosso'],
+  /* Os oito gramas de sal grosso vão para um litro e meio de água de cozer, e
+     é essa a água que fica no tacho. Sem esta linha, uma travessa de caracóis
+     aparecia com 3198 mg de sódio — a receita com mais sal de toda a app, mais
+     do que o limite de um dia inteiro da OMS, num petisco de tasca. O caldo
+     bebe-se, e por isso alguma coisa vai mesmo: os passos dizem-no, que é o
+     sítio honesto para o dizer quando a conta não sabe dividir. */
+  caracoisportuguesa:['Sal grosso'], /* água de cozer */
   polvocozido:['Sal grosso'], batatascozidas:['Sal grosso'],
   acbcoz:['Sal grosso'], acbmurro:['Sal grosso'],
   /* A tabela ficou nas seis receitas antigas e não acompanhou a leva de pratos
@@ -15414,7 +15422,14 @@ function salDaFicha(r){
       O que se puser na panela conta por cima disto.</p>${rodape(nota)}`;
   const sal=na.mg*SAL_POR_SODIO/1000;
   const pct=Math.round(na.mg/OMS_SODIO_ADULTO*100);
-  if(faltam) nota.unshift(plural(faltam,'ingrediente sem valor na tabela','ingredientes sem valor na tabela')+', a conta fica por baixo');
+  /* ---- Dizer QUAIS, e não só quantos ----
+     O ramo de cima, para o total zero, já nomeia os ingredientes em falta.
+     Este não nomeava, e é onde o silêncio custa mais: a currywurst mostrava
+     «1 mg de sódio» — a salsicha alemã, que é a coisa salgada do prato, não
+     tem valor na tabela, e o que sobrava era o miligrama do resto. Um número
+     pequeno parece uma medição; «1 mg, e falta a salsicha» já se percebe. */
+  if(faltam) nota.unshift(plural(faltam,'ingrediente sem valor na tabela','ingredientes sem valor na tabela')
+    +' ('+esc((na.semValor||[]).slice(0,3).join(', '))+(faltam>3? ' e mais '+(faltam-3):'')+'), a conta fica por baixo');
   return `<div class="kv" style="margin-top:12px">
     <span>Sal por dose ${dica('salacucar')}</span>
     <b class="${pct>=100?'f-bad-txt':''}">${nPT(sal,1)} g · ${pct} % do dia</b></div>
