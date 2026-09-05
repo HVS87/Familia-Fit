@@ -1378,6 +1378,7 @@ input[type=range].com-detentes::-moz-range-track{
    aos alvos, e só neste gráfico. */
 .peso-wrap{position:relative;max-width:420px}
 .svgfx .pt-hit{pointer-events:auto;fill:transparent;cursor:pointer}
+.svgfx .traj-hit{pointer-events:auto;fill:transparent;cursor:crosshair}
 .svgfx .pt-hit:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .peso-tip{position:absolute;z-index:12;transform:translate(-50%,-100%);
   background:var(--ink);color:var(--card);padding:5px 9px;border-radius:8px;
@@ -1385,6 +1386,10 @@ input[type=range].com-detentes::-moz-range-track{
   box-shadow:0 3px 12px rgba(0,0,0,.22);margin-top:-8px}
 .peso-tip::after{content:'';position:absolute;left:50%;top:100%;transform:translateX(-50%);
   border:5px solid transparent;border-top-color:var(--ink)}
+/* `width:max-content` porque um elemento posicionado encolhe até ao mínimo
+   quando pode partir: sem isto, «25/11/26 · 84,3 kg» partia-se em quatro
+   linhas de setenta pixéis. A largura máxima trava-o num telemóvel. */
+.peso-tip.tip-traj{white-space:pre-line;text-align:center;width:max-content;max-width:min(250px,84vw)}
 .f-ok{fill:var(--ok)} .f-warn{fill:var(--warn)} .f-bad{fill:var(--bad)}
 .f-mut{fill:var(--mut)} .f-line{fill:var(--line)} .f-ink{fill:var(--ink)}
 .f-acc{fill:var(--accent)} .f-energy{fill:var(--energy)} .f-party{fill:var(--party)}
@@ -14230,7 +14235,7 @@ const DICAS={
   registoDia:'O que ficou registado é o que aconteceu, por oposição ao plano, que é o que se tencionava fazer. É do registo que saem o gasto real do dia, o alvo de calorias ajustado e o ritmo verdadeiro dos objetivos.',
   amamenta:'Amamentar tem um custo energético diário que não se suspende. A Autoridade Europeia para a Segurança dos Alimentos (EFSA, 2013) estima cerca de «500 kcal por dia» nos primeiros seis meses de amamentação exclusiva; a app soma-o ao alvo. Em amamentação mista soma metade, porque não há valor publicado para todas as combinações e é preferível uma aproximação declarada a assumir zero. Passados seis meses, com a alimentação complementar já a entrar, o acréscimo desce para metade. Enquanto amamentas, um défice para perder peso fica limitado a 10% — perder devagar é compatível com a produção de leite, cortar muito não é. Isto são referências populacionais: quem acompanha a amamentação é a consulta.',
   pesoIdeal:'Não é uma fórmula de tabela nem uma prescrição: é o centro da faixa que a OMS chama saudável — IMC 22 — para a tua altura. Dentro da faixa 18,5 a 25 qualquer peso é saudável, e se já lá estás o plano é manter. «Criar plano» faz tudo num clique: um objetivo a meio quilo por semana (o mais lento do intervalo de 0,5 a 1 kg que o NHS aponta como seguro), com o exercício repartido pelas modalidades que já praticas — ou tudo pela dieta, se não houver treinos no plano —, e a semana preenchida dentro do novo alvo de calorias. Uma distância grande faz-se por etapas: a primeira cabe num ano, e a app diz o que fica para depois. Em crescimento ou gravidez não há peso ideal nem plano, porque o peso muda por o corpo estar a mudar.',
-  trajetoria:'Para onde o peso vai se nada mudar, e para onde iria se mudasse. A tendência assenta nas pesagens dos últimos 7, 14 ou 30 dias — quanto mais curta a janela, mais depressa reage e menos vale — e projeta-se a 7, 14, 30, 60 ou 90 dias, com um leque que é a dispersão real da balança. Os dois cursores mudam a linha à frente dos olhos: comer menos ou mais, mexer-se mais. O peso desejado desenha-se, e a app diz em que dia lá chegas com o planeado, ou quantas calorias por dia faltam para chegar no prazo. «Levar para os Objetivos» transforma o exercício em plano — dieta, treinos marcados e alvo de calorias —, e o plano da semana passa a ser sugerido dentro desse alvo. A conta é a de 7700 kcal por quilo: honesta e grosseira.',
+  trajetoria:'Para onde o peso vai se nada mudar, e para onde iria se mudasse. Passar o cursor — ou o dedo — por cima de uma pesagem diz o peso e o dia dela; por cima da projeção, diz em que dia se estaria em que peso, com o leque a dizer quanto vale essa conta. A tendência assenta nas pesagens dos últimos 7, 14 ou 30 dias — quanto mais curta a janela, mais depressa reage e menos vale — e projeta-se a 7, 14, 30, 60 ou 90 dias, com um leque que é a dispersão real da balança. Os dois cursores mudam a linha à frente dos olhos: comer menos ou mais, mexer-se mais. O peso desejado desenha-se, e a app diz em que dia lá chegas com o planeado, ou quantas calorias por dia faltam para chegar no prazo. «Levar para os Objetivos» transforma o exercício em plano — dieta, treinos marcados e alvo de calorias —, e o plano da semana passa a ser sugerido dentro desse alvo. A conta é a de 7700 kcal por quilo: honesta e grosseira.',
   pesoHist:'Cada pesagem fica com a sua data. O peso do perfil é sempre a medição mais recente que já aconteceu, para os cálculos e a balança nunca contarem histórias diferentes. Podem registar-se medições passadas, se as tiveres anotadas.',
   acompanhamento:'O que vai ao lado do prato: batatas, arroz, legumes ou salada. As calorias somam-se às do prato no total do dia, os ingredientes somam-se à lista de compras, mas não conta como uma refeição — um arroz de coentros não é um jantar. O 🔀 troca por outro que sirva a mesma mesa, e o «juntar» põe mais um ao lado: como o lugar do acompanhamento é um só, os que lá estiverem repartem-no entre si — meia dose de batatas e meia de salada, e as calorias, os macros e as quantidades a comprar seguem essa divisão. O preenchimento automático escolhe um para cada almoço e jantar, respeitando as mesmas dietas e exclusões. Escolher ou trocar cria também uma variante com o nome inteiro — «Bife com batatas fritas» —, com os ingredientes somados e o passo-a-passo dos dois escrito de seguida, arrumada no cartão do prato de origem.',
   guiaDieta:'Um guia por dieta: o que é, como se cumpre à mesa, o que fica de fora, e quanto cabe em cada refeição. Duas partes não são escritas à mão — são calculadas. A lista de ingredientes compatíveis sai da tabela de composição da app com as MESMAS regras que etiquetam as receitas (os vetos por ingrediente, as expressões do paleo, os tetos de hidratos e de gordura), por isso nunca se desalinha delas. Os gramas por refeição saem do teu alvo de calorias e da repartição da dieta, cortados pelo limite absoluto onde ele existe: 20 g de hidratos por dia no keto, 100 g no low carb, 30 % da energia em gordura no low fat. Onde não há limite absoluto, a tabela chama-lhe orientação e não teto — porque é isso que é. Podes ler o guia de qualquer dieta, não só o da tua; a que está a ser seguida tem um ponto ao lado do nome.',
@@ -21339,7 +21344,13 @@ function trajSvg(m,fit,c){
   const X=d=>X0+(X1-X0)*clampNum((d+base)/total,0,1);
   const mObs=fit.m, mPlan=declivePlaneado(fit,c), p0=fit.p0;
   const yObs=d=>p0+mObs*d, yPlan=d=>p0+mPlan*d;
-  const pts=fit.pts.map(p=>({x:diasEntre(h,p.d), y:p.p}));
+  const pts=fit.pts.map(p=>({x:diasEntre(h,p.d), y:p.p, d:p.d}));
+  /* O alvo do rato cresce até dez, mas nunca passa de metade da distância
+     entre duas pesagens: com trinta pesagens diárias espremidas em cento e
+     vinte pixéis, alvos de dez tapavam-se uns aos outros e só a última se
+     conseguia apontar. */
+  const _passo=(X1-X0)*(base/(base+hor))/Math.max(1,pts.length-1);
+  const rHit=clampNum(_passo*0.55, 2.6, 10);
   const vals=pts.map(p=>p.y).concat([yObs(hor), yPlan(hor), yObs(hor)+leque(fit,hor), yObs(hor)-leque(fit,hor), yObs(-base)]);
   if(c.alvo) vals.push(c.alvo);
   let pmin=Math.min(...vals), pmax=Math.max(...vals);
@@ -21365,7 +21376,28 @@ function trajSvg(m,fit,c){
     <line x1="${f(X(0))}" y1="${f(Y(p0))}" x2="${f(X(hor))}" y2="${f(Y(yObs(hor)))}" class="s-mut" stroke-width="1.6" stroke-dasharray="5 4"/>
     ${(c.dieta||c.exer)? `<line x1="${f(X(0))}" y1="${f(Y(p0))}" x2="${f(X(hor))}" y2="${f(Y(yPlan(hor)))}" class="s-acc" stroke-width="2.4"/>`:''}
     ${alvoSvg}
-    ${pts.map(p=>`<circle cx="${f(X(p.x))}" cy="${f(Y(p.y))}" r="2.6" class="f-ink"><title>${fmtLongo(fit.pts.find(q=>diasEntre(h,q.d)===p.x).d)}: ${nPT(p.y,1)} kg</title></circle>`).join('')}
+    ${pts.map(p=>`<circle cx="${f(X(p.x))}" cy="${f(Y(p.y))}" r="2.6" class="f-ink"><title>${fmtLongo(p.d)}: ${nPT(p.y,1)} kg</title></circle>`).join('')}
+    ${''/* ---- O que se pode apontar com o cursor ----
+       Os pontos medidos são de 2,6 px e a projeção é uma linha: nenhum dos
+       dois se acerta com o rato, e o <title> nativo nem sequer dispara,
+       porque `.svgfx` não recebe eventos. Por cima de cada pesagem fica um
+       alvo invisível — do tamanho do espaço que sobra entre elas, para que
+       duas pesagens seguidas não se tapem uma à outra — e por cima de todo o
+       futuro fica um retângulo que responde a qualquer sítio: aí não há
+       pontos a acertar, há um dia a escolher, e o dia lê-se da posição.
+       Os números da conta viajam em data-*: o mesmo desenho é refeito a cada
+       toque nos cursores, e um tratador no documento não tem onde os guardar. */}
+    ${pts.map(p=>`<circle class="pt-hit" cx="${f(X(p.x))}" cy="${f(Y(p.y))}" r="${f(rHit)}"
+      data-p="${nPT(p.y,1)}" data-d="${esc(fmtCurto(p.d))}"/>`).join('')}
+    <g class="traj-cursor" style="display:none">
+      <line class="s-line" stroke-dasharray="2 3" y1="${Y0}" y2="${Y1}" x1="0" x2="0"/>
+      <circle class="traj-pt-obs f-mut" r="3.4" cx="0" cy="0"/>
+      <circle class="traj-pt-plan f-acc" r="3.4" cx="0" cy="0" style="display:none"/>
+    </g>
+    <rect class="traj-hit" x="${f(X(0))}" y="${Y0}" width="${f(X1-X(0))}" height="${Y1-Y0}"
+      data-hor="${hor}" data-p0="${p0}" data-mobs="${mObs}" data-mplan="${mPlan}"
+      data-plan="${(c.dieta||c.exer)?1:0}" data-sd="${fit.sd||0}" data-span="${fit.span||1}"
+      data-pmin="${pmin}" data-pmax="${pmax}" data-y0="${Y0}" data-y1="${Y1}"/>
     <text x="${f(X(-base))}" y="${H-6}" font-size="9.5" class="f-mut">−${base} d</text>
     <text x="${f(X(0))}" y="${H-6}" font-size="9.5" text-anchor="middle" class="f-mut">hoje</text>
     <text x="${X1}" y="${H-6}" font-size="9.5" text-anchor="end" class="f-mut">+${hor} d</text>
@@ -21400,7 +21432,7 @@ function trajCorpoHtml(m){
     }
   }
   const minCam=c.exer? Math.round(c.exer/(3.5*m.peso/60)) : 0;
-  return `${trajSvg(m,fit,c)}
+  return `<div class="peso-wrap">${trajSvg(m,fit,c)}<div class="peso-tip" hidden aria-hidden="true"></div></div>
     ${fit.fraco? `<p class="sub" style="margin-top:6px">⚠︎ Tendência assente em ${fit.n} pesagens ao longo de ${fit.span} ${fit.span===1?'dia':'dias'}: é pouco para levar a sério. Vale como exercício, não como previsão.</p>`:''}
     <div class="row" style="margin-top:10px">
       <div class="stat"><b class="${tomRitmo(kgSemObs)==='ok'?'':'f-'+tomRitmo(kgSemObs)+'-txt'}">${kgSemObs>0?'+':''}${nPT(kgSemObs,2)} kg/sem</b><span>Tendência dos ${c.base} dias</span></div>
@@ -34477,6 +34509,10 @@ document.addEventListener('focusin', e=>{ const d=e.target.closest&&e.target.clo
 function mostraBalaoPeso(alvo){
   const wrap=alvo.closest('.peso-wrap'); if(!wrap) return;
   const tip=wrap.querySelector('.peso-tip'); if(!tip) return;
+  tip.classList.remove('tip-traj');
+  /* passar de um ponto do futuro para uma pesagem medida apaga o traço
+     vertical: são duas leituras diferentes e só uma está a ser feita */
+  const g=wrap.querySelector('.traj-cursor'); if(g) g.style.display='none';
   tip.textContent=alvo.getAttribute('data-p')+' kg — '+alvo.getAttribute('data-d');
   tip.hidden=false;
   const a=alvo.getBoundingClientRect(), c=wrap.getBoundingClientRect();
@@ -34487,14 +34523,73 @@ function mostraBalaoPeso(alvo){
   const meia=tip.offsetWidth/2;
   tip.style.left=Math.round(Math.min(Math.max(meio,meia+2), c.width-meia-2))+'px';
 }
-function escondeBalaoPeso(){ document.querySelectorAll('.peso-tip').forEach(t=>{ t.hidden=true; }); }
+function escondeBalaoPeso(){
+  document.querySelectorAll('.peso-tip').forEach(t=>{ t.hidden=true; });
+  document.querySelectorAll('.traj-cursor').forEach(g=>{ g.style.display='none'; });
+}
+/* ---- E o mesmo balão em cima da projeção ----
+   No futuro não há pontos para apontar: há uma linha, e o que se quer saber
+   é «que peso, em que dia, ali». O retângulo invisível dá a posição, a
+   posição dá o dia, e o dia dá o peso pela mesma reta que desenhou a linha —
+   nada é medido do desenho, tudo é recalculado da conta, senão o balão
+   dizia uma coisa e o traço dizia outra.
+   Quando os cursores estão puxados há duas linhas, e o balão diz as duas:
+   ler só uma delas seria esconder metade da resposta. */
+function mostraBalaoTraj(rect, clientX){
+  const wrap=rect.closest('.peso-wrap'); if(!wrap) return;
+  const tip=wrap.querySelector('.peso-tip'); if(!tip) return;
+  const g=wrap.querySelector('.traj-cursor'); if(!g) return;
+  const n=k=>parseFloat(rect.getAttribute('data-'+k))||0;
+  const r=rect.getBoundingClientRect(); if(r.width<=0) return;
+  const hor=n('hor');
+  const dias=clampNum(Math.round((clientX-r.left)/r.width*hor), 0, hor);
+  const p0=n('p0'), obs=p0+n('mobs')*dias, plan=p0+n('mplan')*dias, temPlan=n('plan')===1;
+  const sd=n('sd'), span=n('span')||1;
+  const l=sd>0? sd*1.96*Math.sqrt(1+dias/span) : 0;
+  const dia=addDias(hojeISO(),dias);
+  /* Duas linhas e não uma tira só: com o leque e a linha dos ajustes, a frase
+     inteira não cabe na largura de um telemóvel, e `nowrap` empurrava-a para
+     fora do cartão. A classe deixa-a partir; o balão das pesagens, que é
+     curto, continua numa linha. */
+  tip.classList.add('tip-traj');
+  tip.textContent=(dias===0? 'hoje' : fmtCurto(dia))+' · '+nPT(obs,1)+' kg'+(l>0? ' ± '+nPT(l,1) : '')
+    +(temPlan? '\ncom os ajustes: '+nPT(plan,1)+' kg' : '');
+  tip.hidden=false;
+  /* O marcador desenha-se em coordenadas do SVG; o balão, em coordenadas do
+     contentor. São escalas diferentes — o SVG tem viewBox e estica com a
+     largura —, por isso o balão é posicionado a partir do retângulo que o
+     marcador ocupa no ecrã, e não das unidades de dentro do desenho. */
+  const X0=parseFloat(rect.getAttribute('x')), W=parseFloat(rect.getAttribute('width'));
+  const y0=n('y0'), y1=n('y1'), pmin=n('pmin'), pmax=n('pmax');
+  const px=X0+W*(hor? dias/hor : 0);
+  const Y=p=>y1-(y1-y0)*clampNum((p-pmin)/((pmax-pmin)||1),0,1);
+  const linha=g.querySelector('line'), cObs=g.querySelector('.traj-pt-obs'), cPlan=g.querySelector('.traj-pt-plan');
+  linha.setAttribute('x1',px.toFixed(1)); linha.setAttribute('x2',px.toFixed(1));
+  cObs.setAttribute('cx',px.toFixed(1)); cObs.setAttribute('cy',Y(obs).toFixed(1));
+  cPlan.style.display=temPlan?'':'none';
+  if(temPlan){ cPlan.setAttribute('cx',px.toFixed(1)); cPlan.setAttribute('cy',Y(plan).toFixed(1)); }
+  g.style.display='';
+  const alto=temPlan? Math.min(Y(obs),Y(plan)) : Y(obs);
+  const svg=rect.ownerSVGElement, sr=svg.getBoundingClientRect(), c=wrap.getBoundingClientRect();
+  const vb=svg.viewBox.baseVal, escala=sr.width/(vb.width||1);
+  const meio=sr.left-c.left+px*escala, topo=sr.top-c.top+alto*escala;
+  tip.style.left='0px'; tip.style.top=Math.round(topo)+'px';
+  const meia=tip.offsetWidth/2;
+  tip.style.left=Math.round(clampNum(meio, meia+2, c.width-meia-2))+'px';
+}
 document.addEventListener('pointerover', e=>{
   const a=e.target.closest && e.target.closest('.pt-hit');
   if(a) mostraBalaoPeso(a); else if(!(e.target.closest&&e.target.closest('.peso-wrap'))) escondeBalaoPeso();
 });
+document.addEventListener('pointermove', e=>{
+  const r=e.target.closest && e.target.closest('.traj-hit');
+  if(r) mostraBalaoTraj(r, e.clientX);
+});
 document.addEventListener('pointerdown', e=>{
   const a=e.target.closest && e.target.closest('.pt-hit');
   if(a){ mostraBalaoPeso(a); return; }
+  const r=e.target.closest && e.target.closest('.traj-hit');
+  if(r){ mostraBalaoTraj(r, e.clientX); return; }
   escondeBalaoPeso();
 });
 document.addEventListener('pointerleave', e=>{
