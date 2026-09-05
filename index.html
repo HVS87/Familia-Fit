@@ -1379,7 +1379,7 @@ input[type=range].com-detentes::-moz-range-track{
 .s-acc{stroke:var(--accent)} .s-energy{stroke:var(--energy)} .s-mut{stroke:var(--mut)}
 .s-warn{stroke:var(--warn)} .s-bad{stroke:var(--bad)}
 .f-ok-txt{color:var(--ok)}
-.f-acc-txt{color:var(--accent)} .f-warn-txt{color:var(--warn)}
+.f-acc-txt{color:var(--accent)}
 /* A tabela dos horizontes da trajetória: a linha do horizonte escolhido
    sobe de tom, para se ver de relance onde os cursores estão a apontar. */
 .traj-tab{width:100%;border-collapse:collapse;font-size:13px}
@@ -14087,7 +14087,6 @@ const DICAS={
   esforco:'O que é recomendado para esta idade ou estado, e o que convém evitar. Os valores vêm da Organização Mundial da Saúde e, na gravidez, das orientações de obstetrícia.',
   copias:'Os dados vivem só neste browser. O ficheiro de cópia é a única coisa que sobrevive a limpar o histórico, trocar de telemóvel ou reinstalar.',
   juntar:'«Substituir» troca tudo pelo conteúdo da cópia. «Juntar» acrescenta o que falta sem apagar nada — é a opção para combinar o que duas pessoas preencheram em dispositivos diferentes.',
-  desfazer:'Anula a última alteração aos dados. Guarda as últimas 30 e funciona também com Ctrl+Z; mudar de separador não conta como alteração.',
   bebePerc:'As curvas de peso para a idade da Organização Mundial da Saúde (2006), do percentil 3 ao 97. O ponto laranja é o teu bebé; a linha azul é a mediana. O percentil diz a posição entre bebés da mesma idade e sexo — não é uma nota.',
   bebeDdr:'Os valores de referência do escalão etário, todos da Autoridade Europeia para a Segurança dos Alimentos (EFSA, Dietary Reference Values 2017–2019): energia como necessidade média (AR), proteína como dose recomendada por quilo de peso (PRI), e o resto como ingestões adequadas (AI) ou intervalos de referência. São referências de população, não metas individuais — e abaixo dos 6 meses a EFSA não publica nenhuma, pelo que a aplicação também não mostra.',
   bebeLeite:'A conta parte de 67 kcal por 100 ml — o valor clássico de 20 kcal/onça, dentro do intervalo de 60 a 70 kcal/100 ml do Codex Alimentarius para fórmulas de início e próximo do leite materno maduro. O volume por omissão sai das necessidades de energia; a referência de ml por quilo desce com a idade, à medida que entram os sólidos.',
@@ -14095,7 +14094,6 @@ const DICAS={
   bebeRef:'A partir dos 6 meses a energia divide-se entre o leite e os sólidos. A repartição sugerida segue o padrão habitual da diversificação em Portugal: papa ou fruta a meio da manhã, sopa e prato ao almoço, e por aí em diante.',
   objCriar:'A partir de quantos quilos e de quanto tempo, a app calcula o défice ou o excedente diário necessário e reparte-o entre a dieta e o exercício. Ao criar, isso é logo aplicado ao objetivo da Nutrição e ao desporto escolhido — não fica só no papel.',
   objDieta:'A dieta escolhida aqui passa a ser a de quem entra neste objetivo, e com ela mudam os alvos de hidratos, proteína e gordura do dia, o que o plano da semana sugere e aceita, e a lista de compras que sai desse plano. Em crianças, adolescentes e grávidas a app encosta os macros à faixa recomendada para a idade e diz que o fez — uma dieta cetogénica não se aplica tal e qual a quem está a crescer. «Não mudar» deixa cada um com a dieta que já tinha.',
-  objIntensidade:'A que ritmo tencionas treinar. Mais intenso gasta mais por hora — correr a doze quilómetros por hora gasta quase o dobro de correr a sete —, o que significa menos horas por semana para o mesmo efeito. Em troca, pede mais recuperação: o músculo não se reconstrói durante o treino, reconstrói-se entre treinos, e é por isso que a app conta os dias livres a seguir. Se a intensidade escolhida for maior do que a que praticas hoje, sobe por degraus ao longo de algumas semanas em vez de saltar lá para cima de uma vez.',
   objDesportos:'Escolhe os que quiseres: o tempo extra que o objetivo pede reparte-se por igual entre eles, e o gasto por hora é a média dos gastos de cada um — correr e fazer ioga meia hora de cada dá o mesmo que uma hora a meio caminho dos dois. Os que já praticas aparecem primeiro, marcados com uma estrela; os outros entram no teu plano quando os escolheres aqui.',
   objEstrategia:'Quanto do ajuste diário vem de comer menos (ou mais) e quanto vem de gastar mais a fazer desporto. Mais dieta pede menos esforço físico extra; mais exercício permite comer com menos restrição para o mesmo ritmo.',
   receitasDisp:'Cada receita mostra os ingredientes com o estado da tua despensa: um visto verde para o que já tens, uma cruz vermelha para o que falta. A etiqueta no topo resume tudo — «Pronta a cozinhar» quando não falta nada.',
@@ -22179,7 +22177,9 @@ function renderFamilia(){
         ${permiteDefice(m)? `<div class="row" style="margin-top:8px;align-items:center;gap:10px">
           <div class="stat"><b id="f-${mid}-ideal">${nPT(pesoIdeal(m),1)} kg</b><span>Peso ideal ${dica('pesoIdeal')}</span></div>
           <span class="sub" id="f-${mid}-idealtxt" style="flex:1;min-width:0">${textoPesoIdeal(m)}</span>
-          <button class="btn small" style="flex:none" onclick="criarPlanoIdeal('${mid}')">📋 Criar plano</button>
+          ${S.objetivos.some(o=>!o.concluido&&o.membroId===mid)
+            ? `<button class="btn small ghost" style="flex:none" onclick="go('objetivos')" title="Já há um objetivo a decorrer: ajusta-o ou remove-o antes de criar outro">🎯 Ver objetivo</button>`
+            : `<button class="btn small" style="flex:none" onclick="criarPlanoIdeal('${mid}')">📋 Criar plano</button>`}
         </div>`:''}
         <div class="row" style="margin-top:10px">
           <div class="stat"><b id="f-${mid}-imc">${nPT(v,1)}</b><span>IMC ${dica('imc')}</span></div>
@@ -28413,7 +28413,10 @@ function calcEstrategia(m,pesoAlvo,semanasRestantes,tipo,splitDieta,desportoId,n
   }
   let objetivoPctSugerido = tipo==='manter'? 0 : Math.round(sinal*viaDieta/tdeeAtual*100);
   objetivoPctSugerido = tipo==='manter'?0 : clampNum(objetivoPctSugerido, tipo==='perder'?-25:0, tipo==='ganhar'?20:0);
-  const targetKcalNovo=tdeeAtual*(1+objetivoPctSugerido/100);
+  /* o alvo que vai ficar conta com o exercício que este objetivo acrescenta —
+     é ele que sobe o gasto; sem isto o aviso «abaixo do basal» disparava por
+     um alvo que nunca chegava a existir */
+  const targetKcalNovo=(tdeeAtual+viaExercicio)*(1+objetivoPctSugerido/100);
   const ritmoKgSemana=Math.abs(kgRestante)/Math.max(semanasRestantes,0.001);
   return {kgRestante, deficitDiario, viaDieta, viaExercicio, horasExtraSemana, minutosExtraSemana:horasExtraSemana*60,
     objetivoPctSugerido, abaixoBasal: targetKcalNovo<bmr(m), ritmoKgSemana,
@@ -28529,6 +28532,15 @@ function aplicarExercicio(m,sportId,horasExtraSemana,nivel){
    ele o gasto estimado de 2539 para 2820 kcal. A app passava a mandar comer
    mais por causa de um treino que a pessoa acabara de retirar.
    Chamar isto duas vezes é inócuo: à segunda, `horasAplicadas` está vazio. */
+/* A mesma linha de base, sem tocar em nada: uma cópia da pessoa com o que
+   este objetivo lhe somou já devolvido. É o que a pré-visualização do painel
+   de ajuste deve usar — o gasto de partida certo, e o plano intacto. */
+function semAplicado(m,o){
+  const c=Object.assign({}, m, {desportos:JSON.parse(JSON.stringify(m.desportos||[]))});
+  const oc=Object.assign({}, o, {horasAplicadas:Object.assign({}, o.horasAplicadas||{}), blocosIds:(o.blocosIds||[]).slice()});
+  retirarAplicado(c,oc);
+  return c;
+}
 function retirarAplicado(m,o){
   /* Os blocos saem pelos ids das linhas que criaram, e não por modalidade: a
      mesma modalidade tem duas linhas, e tirar «corrida» tirava a errada. */
@@ -29240,10 +29252,20 @@ function gerarPreviewHtml(){
 function criarObjetivo(){
   const f=S.ui.objForm;
   if(!f.membros.length) return flash('bad','Escolhe pelo menos um membro da família.');
-  let criados=0; const ignorados=[], dietaMudou=[], dietaEncostada=[];
+  let criados=0; const ignorados=[], jaTem=[], dietaMudou=[], dietaEncostada=[];
   f.membros.forEach(mid=>{
     const m=S.members.find(x=>x.id===mid); if(!m) return;
     if(f.tipo==='perder' && !permiteDefice(m)){ ignorados.push(m.nome); return; }
+    /* ---- Um objetivo ativo por pessoa ----
+       Dois objetivos a decorrer para a mesma pessoa somam-se: cada um aplica
+       a sua estratégia, e as horas de exercício do segundo entram por cima
+       das do primeiro — o gasto estimado sobe, e com ele o alvo de calorias.
+       Medido: dois «Criar plano» seguidos levaram o alvo de 3159 para 3447
+       kcal, ou seja, a app mandava comer MAIS por causa de um objetivo de
+       emagrecer repetido. Enquanto exigia o formulário isto era raro; com um
+       botão de um clique deixou de ser. Quem já tem objetivo ajusta-o ou
+       remove-o — os dois botões estão no cartão dele. */
+    if(S.objetivos.some(o=>!o.concluido && o.membroId===mid)){ jaTem.push(m.nome); return; }
     const pesoAlvo = f.tipo==='ganhar'? Math.round((m.peso+f.delta)*10)/10
       : f.tipo==='perder'? Math.max(1,Math.round((m.peso-f.delta)*10)/10) : m.peso;
     /* A dieta faz parte da estratégia e não é um campo à parte do perfil: quem
@@ -29278,8 +29300,10 @@ function criarObjetivo(){
     aplicarEstrategia(mid,calc,o);
     S.objetivos.push(o); criados++;
   });
-  if(!criados) return flash('bad','Não foi possível criar objetivo'+(ignorados.length>1?'s':'')+' para '
-    +ignorados.join(', ')+': em crescimento ou gravidez não se recomenda défice calórico.');
+  const fraseJaTem = jaTem.length? enumera(jaTem)+' já '+(jaTem.length===1?'tem':'têm')+' um objetivo a decorrer — ajusta-o ou remove-o nos Objetivos' : '';
+  if(!criados) return flash('bad','Não foi possível criar objetivo'+((ignorados.length+jaTem.length)>1?'s':'')+'. '
+    +(ignorados.length? 'Em crescimento ou gravidez não se recomenda défice calórico ('+ignorados.join(', ')+'). ':'')
+    +(fraseJaTem? fraseJaTem+'.':''));
   /* O jejum aplica-se depois de os objetivos estarem criados, e só a quem
      entrou mesmo — quem foi recusado por estar em crescimento não leva jejum
      por arrasto. As contraindicações do jejum são verificadas outra vez lá
@@ -29287,7 +29311,7 @@ function criarObjetivo(){
   let jj={feitos:[],bloqueados:[]};
   if(f.jejum){
     const entraram=f.membros.filter(mid=>{ const m=S.members.find(x=>x.id===mid);
-      return m && !(f.tipo==='perder' && !permiteDefice(m)); });
+      return m && !(f.tipo==='perder' && !permiteDefice(m)) && !jaTem.includes(m.nome); });
     jj=aplicarJejumObjetivo(entraram, f.jejumH, f.jejumIni, diasDeJejumPontual(f.jejumDias,f.semanas));
   }
   /* Repõe o formulário guardando o que é PREFERÊNCIA (desportos, dieta, ritmo
@@ -29300,14 +29324,17 @@ function criarObjetivo(){
     blocos:limparBlocos(f.blocos),
     jejum:f.jejum, jejumH:f.jejumH, jejumIni:f.jejumIni, jejumDias:f.jejumDias, banda:2};
   save(plural(criados,'novo objetivo','novos objetivos'));
-  flash('ok', plural(criados,'Objetivo criado','Objetivos criados')
-    +(dietaMudou.length? '. Dieta de '+enumera(dietaMudou)+' passou a '+DIETS[f.dieta].n+', e os macros do dia já mudaram.':'')
-    +(dietaEncostada.length? ' Em '+enumera(dietaEncostada)+' os macros foram encostados à faixa recomendada para a idade.':'')
-    +(jj.feitos.length? ' Jejum '+protocoloIM(f.jejumH).n+' ligado para '+enumera(jj.feitos)+'.':'')
-    +(jj.bloqueados.length? ' Sem jejum para '+enumera(jj.bloqueados.map(x=>x.nome))+': o jejum não tem indicação nesta fase.':'')
-    +(ignorados.length? ' Sem défice para '+enumera(ignorados)
-      +(ignorados.length===1? ', por estar' : ', por estarem')+' em crescimento ou gravidez.':''),
-    {rot:'Anular', fn:'desfazer()'});
+  /* Cada aviso é uma frase inteira, e junta-se com ponto e espaço — antes
+     concatenavam-se com espaço só, e «Objetivo criado Em Ana os macros…»
+     saía sem ponto sempre que a primeira frase opcional não era a da dieta. */
+  const frases=[plural(criados,'Objetivo criado','Objetivos criados')];
+  if(dietaMudou.length) frases.push('Dieta de '+enumera(dietaMudou)+' passou a '+DIETS[f.dieta].n+', e os macros do dia já mudaram');
+  if(dietaEncostada.length) frases.push('Em '+enumera(dietaEncostada)+' os macros foram encostados à faixa recomendada para a idade');
+  if(jj.feitos.length) frases.push('Jejum '+protocoloIM(f.jejumH).n+' ligado para '+enumera(jj.feitos));
+  if(jj.bloqueados.length) frases.push('Sem jejum para '+enumera(jj.bloqueados.map(x=>x.nome))+': o jejum não tem indicação nesta fase');
+  if(ignorados.length) frases.push('Sem défice para '+enumera(ignorados)+(ignorados.length===1? ', por estar' : ', por estarem')+' em crescimento ou gravidez');
+  if(jaTem.length) frases.push(fraseJaTem);
+  flash('ok', frases.join('. ')+'.', {rot:'Anular', fn:'desfazer()'});
 }
 function removerObjetivo(oid){
   const o=S.objetivos.find(x=>x.id===oid); if(!o) return;
@@ -29342,7 +29369,9 @@ function slideObjAdj(oid,campo,el){
   aoVivo('objadj', ()=>{
     const o=S.objetivos.find(x=>x.id===oid), m=o&&S.members.find(x=>x.id===o.membroId);
     if(!o||!m) return;
-    const calc=calcEstrategia(m,o.pesoAlvo,semanasRestantesDe(o),o.tipo,S.ui.objAdj.split,S.ui.objAdj.desportos,S.ui.objAdj.nivel);
+    /* a mesma linha de base que «Gravar» vai usar, senão o número que se vê
+       a arrastar o cursor não é o que fica */
+    const calc=calcEstrategia(semAplicado(m,o),o.pesoAlvo,semanasRestantesDe(o),o.tipo,S.ui.objAdj.split,S.ui.objAdj.desportos,S.ui.objAdj.nivel);
     const el2=document.getElementById('obj-adj-preview-'+oid); if(el2) el2.innerHTML=previewAjusteHtml(calc);
     põe('obj-adj-split-o-'+oid, S.ui.objAdj.split+'% dieta · '+(100-S.ui.objAdj.split)+'% exercício');
     põe('obj-adj-sessoes-o-'+oid, plural(S.ui.objAdj.sessoes,'treino','treinos'));
@@ -29520,8 +29549,12 @@ function painelAjuste(o,m){
      mexer em nada movia o alvo de 2195 para 2247 kcal, porque a segunda conta
      partia de um TDEE inflacionado pela primeira. Devolvendo primeiro, o
      reajuste parte da mesma linha de base que a criação. */
-  retirarAplicado(m,o);
-  const calc=calcEstrategia(m,o.pesoAlvo,semanasRestantesDe(o),o.tipo,adj.split,adj.desportos,adj.nivel);
+  /* …mas devolver numa CÓPIA. Isto está dentro do render: o `retirarAplicado`
+     a sério mexia no plano da pessoa e limpava `horasAplicadas` só por se
+     abrir o cartão — a caminhada passava de 8,3 para 3,3 horas semanais e o
+     alvo descia 130 kcal sem ninguém carregar em «Gravar». E como o registo do
+     que fora aplicado ficava vazio, fechar o painel já não recuperava nada. */
+  const calc=calcEstrategia(semAplicado(m,o),o.pesoAlvo,semanasRestantesDe(o),o.tipo,adj.split,adj.desportos,adj.nivel);
   /* todos, com os que esta pessoa já pratica à frente */
   const pratica=new Set((m.desportos||[]).map(s=>s.s));
   const todos=SPORTS.map(s=>s.id).filter(id=>temChave(SPORT,id));
