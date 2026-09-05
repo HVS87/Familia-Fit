@@ -1358,6 +1358,20 @@ input[type=range].com-detentes::-moz-range-track{
    inline ganha a este por ser inline, e é o caso das barras da semana, que
    pedem 600, e do mosaico, que pede a largura do seu desenho. */
 .svgfx{display:block;width:100%;height:auto;pointer-events:none;max-width:420px}
+/* ---- O alvo do rato no gráfico do peso ----
+   `.svgfx` ignora o rato de propósito, para o gráfico não roubar os cliques do
+   cartão — e era por isso que os `<title>` dos pontos nunca disparavam: o
+   browser nunca chegava a saber que o cursor lá estava. Devolve-se o rato só
+   aos alvos, e só neste gráfico. */
+.peso-wrap{position:relative;max-width:420px}
+.svgfx .pt-hit{pointer-events:auto;fill:transparent;cursor:pointer}
+.svgfx .pt-hit:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.peso-tip{position:absolute;z-index:12;transform:translate(-50%,-100%);
+  background:var(--ink);color:var(--card);padding:5px 9px;border-radius:8px;
+  font:600 12px/1.35 var(--fonte-ui);white-space:nowrap;pointer-events:none;
+  box-shadow:0 3px 12px rgba(0,0,0,.22);margin-top:-8px}
+.peso-tip::after{content:'';position:absolute;left:50%;top:100%;transform:translateX(-50%);
+  border:5px solid transparent;border-top-color:var(--ink)}
 .f-ok{fill:var(--ok)} .f-warn{fill:var(--warn)} .f-bad{fill:var(--bad)}
 .f-mut{fill:var(--mut)} .f-line{fill:var(--line)} .f-ink{fill:var(--ink)}
 .f-acc{fill:var(--accent)} .f-energy{fill:var(--energy)} .f-party{fill:var(--party)}
@@ -13102,6 +13116,12 @@ function estadoDia(m,di,dates){
   return Object.assign({st: dv<=0.10?'ok': dv<=0.25?'warn':'bad'},d);
 }
 function fmtShort(isoD){ const d=new Date(isoD+'T12:00:00'); return d.getDate()+' '+['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][d.getMonth()]; }
+/* dd/mm/aa — a data como se escreve num papel, para caber num balão estreito
+   ao lado de um número. As outras duas formas continuam onde estavam: esta
+   não substitui nenhuma, serve o sítio onde o espaço manda. */
+function fmtCurto(isoD){ const d=new Date(isoD+'T12:00:00');
+  const dd=String(d.getDate()).padStart(2,'0'), mm=String(d.getMonth()+1).padStart(2,'0');
+  return dd+'/'+mm+'/'+String(d.getFullYear()).slice(2); }
 function fmtLongo(isoD){ const d=new Date(isoD+'T12:00:00');
   return d.getDate()+' de '+['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'][d.getMonth()]+' de '+d.getFullYear(); }
 function isCheat(mid,date){ return (S.cheats[mid]||[]).includes(date); }
@@ -21162,8 +21182,17 @@ function graficoPesoSvg(m){
       aria-label="Evolução do peso de ${esc(m.nome)} em ${JANELAS[jan][1]}">
     ${grelha}${svgAtiv}${svgKcal}
     ${pts.length>1? `<polyline points="${linha}" fill="none" class="s-ink" stroke-width="2"/>`:''}
+    ${/* O ponto visível fica pequeno de propósito — é a leitura da curva que
+         interessa —, e por isso o alvo do rato é outro círculo, invisível e
+         com dez de raio. Sem ele, acertar num ponto de 1,8 px é sorte.
+         O <title> fica onde está: é o que o leitor de ecrã anuncia. Como o
+         alvo passa por cima dele, o balão nativo do browser não chega a
+         disparar, e não há dois balões a dizer o mesmo com um segundo de
+         diferença. */''}
     ${pts.map(x=>`<circle cx="${X(x.d).toFixed(1)}" cy="${Y(x.p).toFixed(1)}" r="${pts.length>40?1.8:3}" class="f-ink"
       ><title>${fmtLongo(x.d)}: ${nPT(x.p,1)} kg</title></circle>`).join('')}
+    ${pts.map(x=>`<circle class="pt-hit" cx="${X(x.d).toFixed(1)}" cy="${Y(x.p).toFixed(1)}" r="10"
+      data-p="${nPT(x.p,1)}" data-d="${esc(fmtCurto(x.d))}"/>`).join('')}
     <text x="${X0}" y="${H-5}" font-size="9.5" class="f-mut">${fmtShort(ini)}</text>
     <text x="${X1}" y="${H-5}" font-size="9.5" text-anchor="end" class="f-mut">hoje</text>
   </svg>`};
@@ -21189,7 +21218,7 @@ function cartaoPeso(){
     ${!pts.length? estadoVazio('balanca','Ainda sem pesagens',
         'Regista o peso de hoje e, se tiveres medições antigas anotadas, também essas — a linha só liga o que foi mesmo medido.',
         `<button class="btn" onclick="abrirPesagens('${m.id}')">+ Registar pesagem</button>`)
-    : `${g.svg}
+    : `<div class="peso-wrap">${g.svg}<div class="peso-tip" id="peso-tip" hidden aria-hidden="true"></div></div>
       <div class="row" style="margin-top:8px">
         <button class="chip ${L.ativ?'on':''}" onclick="toggleLinhaPeso('ativ')" aria-pressed="${!!L.ativ}">🏃 Atividade registada</button>
         <button class="chip ${L.kcal?'on':''}" onclick="toggleLinhaPeso('kcal')" aria-pressed="${!!L.kcal}">🍽️ Calorias ingeridas</button>
@@ -33816,6 +33845,40 @@ document.addEventListener('mouseover', e=>{
   posicionaDica(d);
 });
 document.addEventListener('focusin', e=>{ const d=e.target.closest&&e.target.closest(SEL_DICA); if(d) posicionaDica(d); });
+/* ---- O balão das pesagens ----
+   Um tratador só, no documento, pela mesma razão das dicas: cada desenho
+   refaz o main e os pontos são elementos novos.
+   Ao toque não há hover, e por isso o mesmo alvo responde ao toque — e o
+   toque seguinte fora do gráfico fecha-o. O balão desenha-se em coordenadas
+   do ECRÃ convertidas para o contentor: o SVG tem viewBox e escala com a
+   largura, e por isso as coordenadas de dentro dele não servem para
+   posicionar um elemento de fora. */
+function mostraBalaoPeso(alvo){
+  const wrap=alvo.closest('.peso-wrap'); if(!wrap) return;
+  const tip=wrap.querySelector('.peso-tip'); if(!tip) return;
+  tip.textContent=alvo.getAttribute('data-p')+' kg — '+alvo.getAttribute('data-d');
+  tip.hidden=false;
+  const a=alvo.getBoundingClientRect(), c=wrap.getBoundingClientRect();
+  const meio=a.left-c.left+a.width/2;
+  tip.style.left='0px'; tip.style.top=(a.top-c.top)+'px';
+  /* medir depois de ter texto, e encostar às bordas do cartão em vez de sair
+     por elas: num ponto perto do fim do gráfico o balão saía do cartão */
+  const meia=tip.offsetWidth/2;
+  tip.style.left=Math.round(Math.min(Math.max(meio,meia+2), c.width-meia-2))+'px';
+}
+function escondeBalaoPeso(){ document.querySelectorAll('.peso-tip').forEach(t=>{ t.hidden=true; }); }
+document.addEventListener('pointerover', e=>{
+  const a=e.target.closest && e.target.closest('.pt-hit');
+  if(a) mostraBalaoPeso(a); else if(!(e.target.closest&&e.target.closest('.peso-wrap'))) escondeBalaoPeso();
+});
+document.addEventListener('pointerdown', e=>{
+  const a=e.target.closest && e.target.closest('.pt-hit');
+  if(a){ mostraBalaoPeso(a); return; }
+  escondeBalaoPeso();
+});
+document.addEventListener('pointerleave', e=>{
+  if(e.target.closest && e.target.closest('.peso-wrap')) escondeBalaoPeso();
+}, true);
 /* Ao toque não há hover: o marcador de explicação alterna com um toque.
    O preventDefault não é cosmético: os selos da despensa vivem dentro do
    <label> do ingrediente, e a ação por omissão de um clique dentro de um
