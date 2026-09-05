@@ -1337,7 +1337,10 @@ input[type=range].com-detentes::-moz-range-track{
 .dica[data-cima]::before{top:auto;bottom:calc(100% + 2px);
   border-bottom-color:transparent;border-top-color:var(--ink)}
 .dica:hover::before,.dica:focus-visible::before,.dica.on::before{display:block}
-@media (hover:none) and (pointer:coarse){ .dica{width:30px;height:30px;font-size:14px;margin-left:8px} }
+/* O tamanho do «i» no toque está mais abaixo, junto das outras regras de dedo
+   — havia aqui uma segunda regra a pedir 30 px que a de lá anulava em
+   silêncio (mesmo seletor, mesma media query, mais abaixo no ficheiro), e o
+   botão ficava nos 26 sem que nada o dissesse. */
 /* Barra de desfazer */
 .hist{display:flex;gap:4px}
 .hist button{background:none;border:1px solid var(--line);border-radius:8px;color:var(--mut);
@@ -1411,7 +1414,7 @@ input[type=range].com-detentes::-moz-range-track{
    min-height fica nos 24 px que a WCAG 2.5.8 pede, e mais folgada ainda num
    ecrã tátil, onde acertar numa lista de duzentos ingredientes custa. */
 .shop label{display:flex;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer;min-height:24px}
-@media (hover:none) and (pointer:coarse){ .shop label{min-height:30px} .shop li{padding:8px 4px} }
+@media (hover:none) and (pointer:coarse){ .shop label{min-height:30px} }   /* o padding dos itens no toque está no bloco grande de alvos, mais abaixo: estava aqui uma segunda regra, morta, a pedir menos */
 @media (prefers-reduced-motion: no-preference){
   #co-bar{transition:width .2s,background-color .2s}
   .anel-arco{transition:stroke-dashoffset .6s ease, stroke .3s ease}
@@ -1493,8 +1496,10 @@ input[type=range].com-detentes::-moz-range-track{
   /* O «i» das explicações media 18 px, abaixo do mínimo de 24 do critério
      2.5.8 da WCAG — e um alvo de 18 px num dedo é um alvo que se falha. No
      rato fica pequeno de propósito, para não roubar atenção ao texto; no
-     toque cresce para 26, que é o que se consegue acertar em andamento. */
-  .dica{width:26px;height:26px;font-size:12.5px}
+     toque cresce para 30, com um pouco mais de ar à esquerda para não colar
+     ao texto do rótulo. (Eram duas regras a dizer 26 e 30 uma por cima da
+     outra; ficou a maior, que é a que o dedo pede.) */
+  .dica{width:30px;height:30px;font-size:14px;margin-left:8px}
 }
 /* Mesmo no rato, nenhum destes dois desce abaixo dos 24 px de alvo. */
 .col-btn{min-width:24px;min-height:24px}
@@ -1685,7 +1690,7 @@ ul.fora li{margin:2px 0}
      barra de deslocamento não andar aos saltos enquanto se rola. */
   content-visibility:auto;contain-intrinsic-size:auto 34px}
 .shop li.done span{text-decoration:line-through;color:var(--mut)}
-.shop .q{margin-left:auto;color:var(--mut);font-variant-numeric:tabular-nums;white-space:nowrap;font-size:13.5px}
+.shop .q{margin-left:auto;color:var(--mut);font-variant-numeric:tabular-nums;white-space:nowrap}
 /* Talão de mercearia: os corredores são carimbos com fio tracejado e um
    contador-pastilha, e colam ao topo enquanto se percorre a lista — no
    supermercado sabe-se sempre em que corredor se está. */
