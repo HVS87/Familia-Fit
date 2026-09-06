@@ -1609,6 +1609,11 @@ input[type=range].com-detentes::-moz-range-track{
   overscroll-behavior:contain}
 .cal-grelha{display:grid;grid-template-columns:44px repeat(7,minmax(118px,1fr));min-width:870px;position:relative}
 .cal-canto{position:sticky;top:0;left:0;z-index:4;background:var(--card);border-bottom:1px solid var(--line)}
+.cal-canto-s{top:44px;border-bottom:1px solid var(--line)}
+.cal-strip{position:sticky;top:44px;z-index:3;background:var(--card);border-bottom:1px solid var(--line);border-left:1px solid var(--line);min-height:22px;padding:2px 3px;display:flex;flex-wrap:wrap;gap:2px;align-content:flex-start}
+.cal-strip.hoje{background:color-mix(in srgb,var(--accent) 5%,var(--card))}
+.cal-chip{font:inherit;font-size:10.5px;line-height:1.2;padding:1px 6px;border-radius:999px;cursor:pointer;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;color:var(--ink);background:color-mix(in srgb,var(--ev) 18%,var(--card));border:1px solid color-mix(in srgb,var(--ev) 55%,var(--card))}
+.cal-chip:hover,.cal-chip:focus-visible{background:color-mix(in srgb,var(--ev) 30%,var(--card));outline:none}
 .cal-dia{position:sticky;top:0;z-index:3;background:var(--card);border-bottom:1px solid var(--line);border-left:1px solid var(--line);
   padding:6px 4px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:1px}
 .cal-dn{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut)}
@@ -2631,13 +2636,38 @@ const AQUECE_CAT={
  combate:['polichinelo','rotacaotronco','circulos'], danca:['marcha','circulos','balancoperna'],
  corpo:['gatovaca','rotacaotronco'], natureza:['marcha','balancoperna','circulos'],
 };
+/* ---- Alongar no fim, por tipo de esforço ----
+   Cada categoria leva os músculos que ESSA modalidade encurta, e não uma
+   lista igual para tudo. A regra de fundo é a do ACSM e da AHA: alongar com
+   o músculo quente, no fim, trinta segundos por posição, sem ressaltos e sem
+   chegar à dor. A escolha por categoria segue o que se encurta:
+   · corrida e trilho — gémeos, isquiotibiais, quadricípite, flexores da anca
+     e piriforme (é a anca que a corrida fecha);
+   · ciclismo — quadricípite e flexores da anca, e o peito e o pescoço que a
+     posição em cima do guiador encolhe;
+   · força — o que se contraiu: peito, dorsais (posição da criança), isquios
+     e quadricípite, com uma torção para a coluna;
+   · água — ombros, peito, pescoço e o flanco do braço de alcance;
+   · bola e raquete — pernas inteiras e adutores, mais o peito e o flanco de
+     quem faz rotação;
+   · combate e dança — isquios, adutores, quadricípite e o pescoço;
+   · corpo (pilates, ioga, calistenia) — já alonga em si; fica o essencial;
+   · natureza — o mesmo que a corrida, com o piriforme à frente das descidas.
+   Cinco minutos a aquecer e seis a alongar é o que a prática corrente
+   recomenda para uma sessão normal, e é o que se põe por omissão. */
 const ALONGA_CAT={
- corrida:['gemeosparede','isquios','quadricipite'], ciclismo:['quadricipite','isquios','peito'],
- forca:['peito','quadricipite','crianca'], agua:['peito','alongpescoco','alonglateral'],
- bola:['isquios','quadricipite','gemeosparede'], raquete:['peito','alonglateral','gemeosparede'],
- combate:['isquios','peito','alongpescoco'], danca:['gemeosparede','isquios','alonglateral'],
- corpo:['crianca','alongpescoco'], natureza:['gemeosparede','quadricipite','isquios'],
+ corrida:['gemeosparede','isquios','quadricipite','afundoprofundo','piriforme'],
+ ciclismo:['quadricipite','afundoprofundo','isquios','peito','alongpescoco'],
+ forca:['peito','crianca','isquios','quadricipite','torcaodeitada'],
+ agua:['peito','alongpescoco','alonglateral','torcaodeitada'],
+ bola:['isquios','quadricipite','gemeosparede','afundoprofundo','piriforme'],
+ raquete:['peito','alonglateral','gemeosparede','isquios','alongpescoco'],
+ combate:['isquios','afundoprofundo','quadricipite','peito','alongpescoco'],
+ danca:['gemeosparede','isquios','alonglateral','quadricipite','afundoprofundo'],
+ corpo:['crianca','alongpescoco','torcaodeitada'],
+ natureza:['gemeosparede','quadricipite','isquios','piriforme'],
 };
+const ALONGA_MIN={aq:5, al:6};
 function fichaMov(id,aberto){
   const e=MOV[id]; if(!e) return '';
   return `<details class="mov"${aberto?' open':''}><summary><b>${esc(e.n)}</b>
@@ -2692,12 +2722,15 @@ function normalizaDesporto(s){
     const out={id, s:sp.id, per, v, km:Math.max(0,Math.round(km*10)/10)};
     out.dias=(dias&&dias.length)? dias : diasSugeridos(out);
     if(rot) out.rot=rot;
+    /* alongar é o normal; só se guarda a exceção, e é ela que aciona o aviso */
+    if(s.semAlonga) out.semAlonga=true;
     return out;
   }
   const out={id, s:sp.id, per, h:Math.max(0,parseFloat(s.h)||0),
     i:NIVEIS.some(n=>n[0]===s.i)? s.i : 'moderado'};
   out.dias=(dias&&dias.length)? dias : diasSugeridos(out);
   if(rot) out.rot=rot;
+  if(s.semAlonga) out.semAlonga=true;
   return out;
 }
 /* Data de nascimento: a idade deixa de ser um número que envelhece sozinho no
@@ -21994,7 +22027,7 @@ let jaPerguntouPeso=false, jaPerguntouCompras=false;
    S.ui.modal preenchido sem nada no ecrã: uma camada invisível que engolia o
    Escape, travava o go() e não tinha botão de fechar — só se saía recarregando.
    Recusar em voz alta é melhor do que abrir o nada. */
-const MODAIS=['peso','aviso','compras','ingrediente','acabou','favoritos'];
+const MODAIS=['peso','aviso','compras','ingrediente','acabou','favoritos','cal'];
 function abrirModal(tipo,dados){
   if(MODAIS.indexOf(tipo)<0){ console.warn('Família Fit — modal desconhecido: '+tipo); return; }
   S.ui.modal=Object.assign({tipo},dados||{}); saveMeta(); render();
@@ -23882,7 +23915,8 @@ function updSport(mid,i,f,val){
     s.per=val;
     const sp=SPORT[s.s];
     if(sp && sp.dist) s.km=Math.min(parseFloat(s.km)||0, faixaDist(sp,val).max);
-  } else if(f==='h'||f==='km'||f==='v'){ s[f]=parseFloat(val)||0; }
+  } else if(f==='semAlonga'){ if(val===true||val==='true') s.semAlonga=true; else delete s.semAlonga; }
+  else if(f==='h'||f==='km'||f==='v'){ s[f]=parseFloat(val)||0; }
   else { s[f]=val; }
   save(); render();
 }
@@ -24073,7 +24107,7 @@ function blocoDesporto(m,s,i){
         title="Um segundo treino desta modalidade, com outra intensidade e outro volume"
       >+ Outro bloco de ${esc(SPORT[s.s].nome.toLowerCase())}</button>
     </div>
-    ${blocoAqueceAlonga(s.s)}</div>`;
+    ${blocoAqueceAlonga(m,s,i)}</div>`;
 }
 /* Em que dias da semana este treino acontece. Os dias só repartem o volume que
    já estava no plano — o total semanal, e portanto o gasto calórico, não muda
@@ -25077,18 +25111,33 @@ function cartaoCiatica(){
 }
 /* O aquecimento e os alongamentos certos para um desporto do plano — a
    categoria decide, e aparecem dentro do próprio bloco do desporto. */
-function blocoAqueceAlonga(spId){
-  const sp=SPORT[spId]; if(!sp) return '';
+/* ---- Aquecer e alongar vêm por omissão, e tirar avisa ----
+   Cada linha do plano de treino traz cinco minutos de aquecimento antes e
+   seis de alongamentos no fim, contados na duração que o Calendário mostra.
+   Não é uma sugestão escondida numa dobra: é parte do treino. Quem quiser
+   treinar sem alongar pode — é o corpo dele —, mas a app diz, com a fonte,
+   que é desaconselhado, e deixa o caminho de volta a um toque. */
+function blocoAqueceAlonga(m,s,i){
+  const sp=SPORT[s.s]; if(!sp) return '';
   const aq=AQUECE_CAT[sp.cat]||AQUECE_CAT.corrida, al=ALONGA_CAT[sp.cat]||ALONGA_CAT.corrida;
-  return `<details class="mov" style="margin-top:8px">
-    <summary><b>Aquecimento e alongamentos</b><span class="sub">· para ${esc(sp.nome.toLowerCase())}</span></summary>
-    <p class="sub" style="margin:8px 0 0">Antes: 5 a 10 minutos a mexer, do leve para o vivo (Mayo Clinic).
-      No fim, e não antes: alongar com o músculo quente (ACSM/AHA).</p>
-    <div class="splabel" style="margin-top:10px"><span>Antes — aquecer</span></div>
-    ${listaMovs(aq)}
-    <div class="splabel" style="margin-top:10px"><span>No fim — alongar</span></div>
-    ${listaMovs(al)}
-  </details>`;
+  const sem=!!s.semAlonga;
+  return `<div style="margin-top:8px">
+    ${sem? `<div class="aviso warn"><b>Sem aquecimento nem alongamentos — desaconselhado.</b>
+        <span class="sub" style="display:block;margin-top:2px">O ACSM e a AHA recomendam aquecer antes de qualquer sessão e alongar no fim, com o músculo quente: é o que baixa o risco de lesão e a rigidez do dia seguinte. Ficam de fora só porque pediste.</span>
+        <div class="row" style="margin-top:6px"><button class="btn small" onclick="updSport('${m.id}',${i},'semAlonga',false)">Repor os ${ALONGA_MIN.aq} + ${ALONGA_MIN.al} minutos</button></div></div>`
+      : `<div class="row" style="align-items:center;gap:8px;flex-wrap:wrap">
+        <span class="pill ok">🔥 ${ALONGA_MIN.aq} min a aquecer · 🧘 ${ALONGA_MIN.al} min a alongar</span>
+        <span class="sub" style="flex:1;min-width:0">já dentro da duração de cada sessão no Calendário</span>
+        <button class="btn ghost small" onclick="updSport('${m.id}',${i},'semAlonga',true)" title="Treinar sem aquecer nem alongar — a app avisa que é desaconselhado">Retirar</button></div>`}
+    <details class="mov" style="margin-top:6px">
+      <summary><b>Os movimentos</b><span class="sub">· para ${esc(sp.nome.toLowerCase())}</span></summary>
+      <p class="sub" style="margin:8px 0 0">Antes: 5 a 10 minutos a mexer, do leve para o vivo (Mayo Clinic).
+        No fim, e não antes: alongar com o músculo quente, trinta segundos por posição, sem ressaltos (ACSM/AHA).</p>
+      <div class="splabel" style="margin-top:10px"><span>Antes — aquecer</span></div>
+      ${listaMovs(aq)}
+      <div class="splabel" style="margin-top:10px"><span>No fim — alongar</span></div>
+      ${listaMovs(al)}
+    </details></div>`;
 }
 /* O aviso do jejum no separador da Atividade.
    Sem ele o guia do jejum vive todo na Nutrição, e quem está a montar o plano
@@ -34675,6 +34724,7 @@ function renderDespensa(){
       <button class="chip ${S.ui.validades?'on':''}" onclick="toggleValidades()" aria-pressed="${!!S.ui.validades}">📅 Validades</button>
       <button class="chip ${S.ui.verBase?'on':''}" onclick="toggleVerBase()" aria-pressed="${!!S.ui.verBase}">🧂 Base da casa</button>
       <button class="btn ghost small" onclick="marcarTodaDespensa()">Marcar tudo</button>
+      <button class="btn small" onclick="agendarSupermercado()" title="Marca a ida às compras no Calendário, já com o que falta na nota">🛒 Agendar ida ao Supermercado</button>
       <button class="btn danger small" onclick="limparDespensa()">Esvaziar</button>
     </div></div>
   ${S.ui.precos? `<div class="card" style="max-width:640px;margin-bottom:12px">
@@ -35962,11 +36012,14 @@ function eventosDaSemana(wk){
       if(!(s.dias||[]).includes(dow)) return;
       const sp=SPORT[s.s]; if(!sp) return;
       const nDias=Math.max(1,(s.dias||[]).length);
-      const dur=s.h? clampNum(s.h/nDias,0.25,4) : (s.km&&s.v? clampNum((s.km/s.v)/nDias,0.25,4) : 1);
+      /* a sessão traz o aquecimento e os alongamentos por omissão, dentro da duração */
+      const base=s.h? clampNum(s.h/nDias,0.25,4) : (s.km&&s.v? clampNum((s.km/s.v)/nDias,0.25,4) : 1);
+      const extraMin=s.semAlonga? 0 : ALONGA_MIN.aq+ALONGA_MIN.al;
+      const dur=clampNum(base+extraMin/60,0.25,5);
       const reg=feitos.find(r=>r.mid===m.id && r.s===s.s && !cobertos.has(r.id));
       if(reg) cobertos.add(reg.id);
       ev.push({id:'tr:'+d+':'+m.id+':'+s.s, tipo:'treino', d, h:18, dur, feito:!!reg,
-        titulo:sp.nome, sub:nomeCurto(m)+(reg? ' · '+reg.min+' min':''),
+        titulo:sp.nome, sub:nomeCurto(m)+(reg? ' · '+reg.min+' min':'')+(s.semAlonga? ' · sem alongar' : ' · aquec. '+ALONGA_MIN.aq+' + along. '+ALONGA_MIN.al+' min'),
         cor:corDesporto(s.s)||calCorDe('ok'), fonte:'planoTreino', mid:m.id, s:s.s});
     }));
     feitos.forEach(r=>{ if(cobertos.has(r.id)) return;
@@ -36005,8 +36058,42 @@ function eventosDaSemana(wk){
         cor:(sp? (corDesporto(b.s)||calCorDe('ok')) : calCorDe(t.tok)), fonte:'agenda', bid:b.id, mid:b.mid||'', s:b.s||''});
     });
   });
+  /* ---- O que é do dia inteiro ----
+     Nem tudo tem hora. Um cheat day, uma pausa por doença, a festa da casa,
+     um aniversário, a pesagem da manhã, o fim de um objetivo, um pacote a
+     acabar a validade — são coisas do dia, e ficam numa fiada por cima das
+     horas, como qualquer calendário faz. Sem elas o Calendário dizia que a
+     semana era só refeições e treinos, e não era. */
+  const diaInteiro=[];
+  const anoDe=d=>d.slice(0,4), mdDe=d=>d.slice(5);
+  dias.forEach((d,di)=>{
+    S.members.forEach(m=>{
+      if(isCheat(m.id,d)) diaInteiro.push({id:'ch:'+d+':'+m.id, d, tipo:'cheat', titulo:'🎉 Cheat day', sub:nomeCurto(m), cor:calCorDe('party'), mid:m.id});
+      if(nascValida(m.nasc) && mdDe(m.nasc)===mdDe(d)){
+        const anos=anosDesde(m.nasc,d);
+        diaInteiro.push({id:'an:'+d+':'+m.id, d, tipo:'aniversario', titulo:'🎂 '+nomeCurto(m)+' faz '+anos, sub:'aniversário', cor:calCorDe('party'), mid:m.id});
+      }
+      medicoesDe(m.id).filter(x=>x.d===d).forEach(x=>diaInteiro.push({id:'pe:'+d+':'+m.id, d, tipo:'pesagem', titulo:'⚖ '+nPT(x.p,1)+' kg', sub:nomeCurto(m), cor:calCorDe('ink'), mid:m.id, feito:true}));
+      (S.regAtiv||[]).filter(r=>r.mid===m.id && r.d===d && r.estado==='agendada').forEach(r=>{
+        const sp=SPORT[r.s]; if(!sp) return;
+        diaInteiro.push({id:'ag-tr:'+r.id, d, tipo:'treinoAgendado', titulo:'📌 '+sp.nome, sub:nomeCurto(m)+' · '+r.min+' min · agendado', cor:corDesporto(r.s)||calCorDe('ok'), mid:m.id});
+      });
+    });
+    (S.festas||[]).filter(f=>f.md===mdDe(d)).forEach(f=>diaInteiro.push({id:'fe:'+d+':'+f.id, d, tipo:'festa', titulo:'🎊 '+f.n, sub:'festa da casa', cor:calCorDe('party')}));
+    (S.pausas||[]).filter(p=>p.wk===wk).forEach(p=>{ if(di!==0) return;
+      const m=p.mid==='casa'? null : S.members.find(x=>x.id===p.mid);
+      diaInteiro.push({id:'pa:'+wk+':'+p.mid, d, tipo:'pausa', titulo:'⏸ Semana de pausa', sub:(m? nomeCurto(m) : 'a casa toda')+' · doença, férias ou lesão', cor:calCorDe('mut'), semana:true});
+    });
+    (S.objetivos||[]).forEach(o=>{ if(o.concluido && !(o.man&&o.man.ativa&&!o.man.feita)) return;
+      const m=S.members.find(x=>x.id===o.membroId); if(!m) return;
+      const fim=addDias(iso(new Date(o.dataInicio)), Math.round((o.semanas||12)*7));
+      if(fim===d) diaInteiro.push({id:'ob:'+o.id+':'+d, d, tipo:'objetivo', titulo:'🎯 Fim do prazo: '+(o.tipo==='perder'?'perder':o.tipo==='ganhar'?'ganhar':'manter'), sub:nomeCurto(m)+(o.tipo!=='manter'? ' · alvo '+nPT(o.pesoAlvo,1)+' kg':''), cor:calCorDe('accent'), mid:m.id});
+    });
+    Object.keys(S.validades||{}).forEach(k=>{ const v=S.validades[k]; if(v && v.d===d)
+      diaInteiro.push({id:'va:'+d+':'+k, d, tipo:'validade', titulo:'🧾 '+k, sub:'acaba a validade', cor:calCorDe('warn')}); });
+  });
   ev.sort((a,b)=> a.d===b.d? a.h-b.h : (a.d<b.d?-1:1));
-  return {ev, fundo, dias};
+  return {ev, fundo, dias, diaInteiro};
 }
 /* ---- A grelha ----
    Sete colunas, as horas à esquerda, e cada evento no seu dia à altura da
@@ -36064,6 +36151,12 @@ function renderCalendario(){
       ${d===hoje? `<div class="cal-agora" style="top:${(new Date().getHours()+new Date().getMinutes()/60-CAL_H0)*CAL_PX}px"></div>`:''}
     </div>`;
   }).join('');
+  /* a fiada do dia inteiro, por cima das horas */
+  const {diaInteiro}=eventosDaSemana(wk);
+  const strip=dias.map((d,i)=>{ const meus=diaInteiro.filter(e=>e.d===d);
+    return `<div class="cal-strip ${d===hoje?'hoje':''}" role="gridcell" aria-label="${esc(DAYN[i])}, dia inteiro">${meus.map(e=>
+      `<button class="cal-chip ${e.feito?'feito':''}" style="--ev:${e.cor}" title="${esc(e.titulo)}${e.sub?' — '+esc(e.sub):''}"
+        onclick="calAbrirDiaInteiro('${e.id}')" aria-label="${esc(e.titulo)}${e.sub?', '+esc(e.sub):''}">${esc(e.titulo)}</button>`).join('')}</div>`; }).join('');
   const nEv=ev.length, nFeitos=ev.filter(e=>e.feito).length;
   return `<h2>Calendário ${dica('calendario')}</h2>
   <p class="sub" style="max-width:70ch">A semana inteira num sítio só: refeições, treinos, jejuns e os blocos de tempo que a casa marca.
@@ -36093,6 +36186,7 @@ function renderCalendario(){
     <div class="cal-wrap" id="cal-wrap">
       <div class="cal-grelha" role="grid" aria-label="Semana de ${esc(fmtShort(dias[0]))}">
         <div class="cal-canto"></div>${cab}
+        <div class="cal-canto cal-canto-s"></div>${strip}
         <div class="cal-horas" style="height:${alt}px">${horas.map(h=>`<span style="top:${(h-CAL_H0)*CAL_PX}px">${String(h).padStart(2,'0')}h</span>`).join('')}</div>
         ${colunas}
       </div>
@@ -36115,7 +36209,7 @@ function calCliqueColuna(e,d){
 /* ---- Um bloco novo, ou um evento aberto ---- */
 function calNovoBloco(d,h){
   if(!S.members.length) return flash('warn','Cria primeiro alguém na Família.');
-  S.ui.modal={tipo:'cal', modo:'novo', b:{tipo:'compras', d:d||hojeISO(), h:h==null? 10 : h, dur:1, mid:'', nota:'', s:'caminhada'}};
+  S.ui.modal={tipo:'cal', modo:'novo', b:{tipo:'compras', d:d||hojeISO(), h:h==null? 10 : h, dur:1, mid:'', nota:'', s:'caminhada', aq:ALONGA_MIN.aq, al:ALONGA_MIN.al}};
   saveMeta(); render();
 }
 function calAbrirEvento(id){
@@ -36125,7 +36219,7 @@ function calAbrirEvento(id){
 function setBlocoCal(campo,v){
   const mo=modalAberto(); if(!mo||mo.tipo!=='cal'||!mo.b) return;
   const b=mo.b;
-  if(campo==='tipo'){ if(temChave(CAL_TIPOS,v)){ b.tipo=v; b.dur=CAL_TIPOS[v].dur; } }
+  if(campo==='tipo'){ if(temChave(CAL_TIPOS,v)){ b.tipo=v; b.dur=CAL_TIPOS[v].dur; if(v==='treino'){ b.aq=ALONGA_MIN.aq; b.al=ALONGA_MIN.al; b.dur=clampNum(b.dur+(b.aq+b.al)/60,0.25,12); } } }
   else if(campo==='d'){ if(dataValida(v)) b.d=v; }
   else if(campo==='h'){ const x=horaEmFracao(v); if(x!==null) b.h=x; }
   else if(campo==='dur'){ b.dur=clampNum(Math.round((parseFloat(v)||1)*4)/4,0.25,12); }
@@ -36175,6 +36269,9 @@ function marcarBlocoFeito(id,v){
       if(r) S.regAtiv.push(r); }
   }
   S.ui.modal=null; save(b.feito? 'bloco feito':'bloco por fazer'); render();
+  /* uma ida às compras feita é uma lista para riscar: abre-se a Mercearia na
+     lista, que é onde se marca o que se comprou e passa à despensa */
+  if(b.tipo==='compras' && b.feito){ S.ui.mercVista='compras'; go('mercearia'); flash('ok','Compras feitas — marca na lista o que trouxeste, e passa para a despensa.'); }
 }
 /* Registar um treino do plano como feito NAQUELE dia, e não hoje: o
    calendário é onde se olha para ontem. */
@@ -36243,11 +36340,11 @@ function modalCalHtml(mo){
          do treino, e o tempo previsto tem de os incluir — senão o bloco no
          calendário mente por dez minutos. */
       const s=sugestaoAqAl(b.s), tem=(b.aq||0)+(b.al||0);
-      return `<div class="aviso ${tem?'ok':''}" style="margin-top:10px">
-        <b>${tem? 'Com aquecimento e alongamentos' : 'Juntar aquecimento e alongamentos?'}</b>
+      return `<div class="aviso ${tem?'ok':'warn'}" style="margin-top:10px">
+        <b>${tem? 'Com aquecimento e alongamentos' : 'Sem aquecimento nem alongamentos — desaconselhado'}</b>
         <span class="sub" style="display:block;margin-top:2px">${tem
           ? plural(b.aq,'minuto','minutos')+' de aquecimento antes e '+plural(b.al,'minuto','minutos')+' de alongamentos no fim, já dentro da duração do bloco.'
-          : 'Para '+esc((SPORT[b.s]||{}).nome||'este treino')+': '+plural(s.aq,'minuto','minutos')+' de aquecimento e '+plural(s.al,'minuto','minutos')+' de alongamentos, e o bloco alarga o mesmo.'}</span>
+          : 'O ACSM e a AHA recomendam aquecer antes de qualquer sessão e alongar no fim, com o músculo quente — é o que baixa o risco de lesão. Para '+esc((SPORT[b.s]||{}).nome||'este treino')+' seriam '+plural(s.aq,'minuto','minutos')+' antes e '+plural(s.al,'minuto','minutos')+' no fim. Ficam de fora só porque pediste.'}</span>
         <div class="row" style="margin-top:6px;gap:6px">
           <button class="btn ${tem?'ghost ':''}small" onclick="setBlocoCal('aqal',true)">${tem?'Repor os sugeridos':'Sim, juntar'}</button>
           ${tem? `<button class="btn ghost small" onclick="setBlocoCal('aqal',false)">Tirar</button>` : `<button class="btn ghost small" onclick="setBlocoCal('aqal',false)">Não, só o treino</button>`}
@@ -36299,8 +36396,8 @@ function icsDe(eventos){
     linhas.push('BEGIN:VEVENT',
       'UID:'+e.id.replace(/[^A-Za-z0-9_.-]/g,'-')+'@familiafit',
       'DTSTAMP:'+agora,
-      'DTSTART:'+icsData(e.d,e.h),
-      'DTEND:'+icsData(dFim,fimH%24),
+      (e.diaInteiro? 'DTSTART;VALUE=DATE:'+e.d.replace(/-/g,'') : 'DTSTART:'+icsData(e.d,e.h)),
+      (e.diaInteiro? 'DTEND;VALUE=DATE:'+addDias(e.d,1).replace(/-/g,'') : 'DTEND:'+icsData(dFim,fimH%24)),
       'SUMMARY:'+icsEscapa((e.feito?'✓ ':'')+e.titulo),
       'DESCRIPTION:'+icsEscapa((e.sub?e.sub+'\n':'')+cat+' · Família Fit'),
       'CATEGORIES:'+icsEscapa(cat),
@@ -36315,7 +36412,11 @@ function eventosParaExportar(alcance){
   const de = alcance==='semana'? 0 : -4, ate = alcance==='semana'? 0 : 8;
   for(let i=de;i<=ate;i++){
     const d=new Date(base+'T12:00:00'); d.setDate(d.getDate()+7*i);
-    eventosDaSemana(mondayISO(d)).ev.forEach(e=>{ if(!vistos.has(e.id)){ vistos.add(e.id); out.push(e); } });
+    const sem=eventosDaSemana(mondayISO(d));
+    sem.ev.forEach(e=>{ if(!vistos.has(e.id)){ vistos.add(e.id); out.push(e); } });
+    /* o dia inteiro também se exporta — um aniversário e um prazo de objetivo
+       são exatamente o que se quer ver no calendário do telemóvel */
+    sem.diaInteiro.forEach(e=>{ if(!vistos.has(e.id)){ vistos.add(e.id); out.push(Object.assign({h:0,dur:24,diaInteiro:true},e)); } });
   }
   return out;
 }
@@ -36361,6 +36462,31 @@ function sincronizarCalendario(){
   if(!como) return flash('bad','O browser não deixou criar o ficheiro.');
   S.meta.calSincronizadoEm=new Date().toISOString(); saveMeta();
   flash('ok',plural(ev.length,'evento entregue','eventos entregues')+' ao '+p.n+' (4 semanas para trás, 8 para a frente). '+p.como);
+}
+/* ---- A ida ao supermercado marca-se na Despensa ----
+   É na despensa que se vê o que falta, e é aí que se decide quando se vai.
+   O botão abre o bloco de compras do Calendário já preenchido: o próximo
+   sábado de manhã — ou amanhã, se o sábado for hoje —, com a conta do que
+   está em falta na nota. Quem quiser outro dia muda-o na janela. */
+function agendarSupermercado(){
+  if(!S.members.length) return flash('warn','Cria primeiro alguém na Família.');
+  const h=hojeISO(), dow=diaSemana(h);
+  const ateSab=(5-dow+7)%7;
+  const d=addDias(h, ateSab===0? 1 : ateSab);
+  let nota='';
+  try{ const n=itensEmFalta(shoppingItems().items).length; if(n) nota=plural(n,'item em falta','itens em falta')+' na lista desta semana'; }catch(e){}
+  S.ui.modal={tipo:'cal', modo:'novo', b:{tipo:'compras', d, h:10, dur:1, mid:'', nota, s:'caminhada'}};
+  saveMeta(); render();
+}
+/* Um item do dia inteiro não se edita aqui: abre-se onde vive. */
+function calAbrirDiaInteiro(id){
+  const t=id.split(':')[0];
+  const mid=(id.split(':')[2]||'');
+  if(t==='ch'||t==='pe'||t==='an'){ if(mid && S.members.some(m=>m.id===mid)) pickM(mid); go('familia'); return; }
+  if(t==='ag-tr'){ go('atividade'); return; }
+  if(t==='fe'||t==='pa'){ go('plano'); return; }
+  if(t==='ob'){ go('objetivos'); return; }
+  if(t==='va'){ S.ui.mercVista='despensa'; S.ui.validades=true; go('mercearia'); return; }
 }
 function cartaoCalendarioPref(){
   const k=calPref();
