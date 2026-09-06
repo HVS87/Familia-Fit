@@ -797,6 +797,10 @@ ol.passos li span{color:var(--mut);font-size:14px;margin-top:2px}
 .talao .lbl{white-space:nowrap}
 .spark-preco{flex:none;margin-left:2px;opacity:.9}
 .preco input[type=number]{width:76px;text-align:right;padding:4px 6px;font-size:13px}
+/* No dedo, 28 px de altura é pouco para acertar num campo que se escreve a
+   olhar para a prateleira. Só onde o ponteiro é grosso, para no rato não
+   engordar uma coluna que já está apertada. */
+@media (pointer:coarse){ .preco input[type=number]{min-height:32px;padding:6px} }
 .shop li:has(.preco){display:flex;align-items:center;gap:8px}
 .conv-linha{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px}
 .sobra-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--ok);
@@ -12305,7 +12309,7 @@ function listaIngredientesComEstado(r,n){
 
 /* ================= ESTADO ================= */
 const KEY='familiaFitV1', APPID='familia-fit', FORMATO=1;
-let saveErr='';
+let saveErr='', msg=null;
 /* ---- Um desenho por gesto ----
    Quase todas as acções acabavam em `save(); render(); flash(...)` — e o
    `flash()` desenhava outra vez. Eram dois desenhos completos por toque: no
@@ -15505,7 +15509,7 @@ function go(t){
   const de=TABS.findIndex(x=>x[0]===S.ui.tab), para=TABS.findIndex(x=>x[0]===t);
   viraFolha = (de<0||para<0||de===para)? null : (para>de? 'vira-frente':'vira-tras');
   if(viraFolha) som('folha');
-  S.ui.tab=t;
+  S.ui.tab=t; msg=null;
   /* histórico é uma vista dentro do separador, não um sítio onde se fica ao
      mudar de separador */
   if(t!=='atividade') S.ui.histAtiv=null;
@@ -26022,22 +26026,22 @@ function cartaoEditor(){
         as duas passam a partilhar um cartão na grelha, e aparece a que melhor servir os gostos da casa.</p>` : ''; })():''}
     <div class="frow">
       <div style="grid-column:span 2"><label class="lbl">Nome</label>
-        <input type="text" value="${esc(e.n)}" placeholder="Ex.: Arroz de forno da avó" onchange="edSet('n',this.value)"></div>
-      <div><label class="lbl">Cozinha</label><select onchange="edSet('coz',this.value)">
+        <input type="text" value="${esc(e.n)}" placeholder="Ex.: Arroz de forno da avó" aria-label="Nome da receita" onchange="edSet('n',this.value)"></div>
+      <div><label class="lbl">Cozinha</label><select aria-label="Cozinha da receita" onchange="edSet('coz',this.value)">
         ${Object.entries(CUIS).map(([k,v])=>`<option value="${k}" ${e.coz===k?'selected':''}>${(ICO_COZ[k]||'')+' '+v}</option>`).join('')}</select></div>
       <div><label class="lbl">Doses que rende</label>
-        <input type="number" min="1" max="${MAX_DOSES}" step="1" value="${e.doses}" onchange="edSet('doses',this.value)"></div>
+        <input type="number" min="1" max="${MAX_DOSES}" step="1" value="${e.doses}" aria-label="Doses que a receita rende" onchange="edSet('doses',this.value)"></div>
     </div>
     <div class="frow" style="margin-top:10px">
       <div><label class="lbl">De quem veio ${dica('historia')}</label>
-        <input type="text" value="${esc(e.de||'')}" maxlength="40" placeholder="Ex.: Avó Alice" onchange="edSet('de',this.value)"></div>
+        <input type="text" value="${esc(e.de||'')}" maxlength="40" placeholder="Ex.: Avó Alice" aria-label="De quem veio a receita" onchange="edSet('de',this.value)"></div>
       <div style="grid-column:span 2"><label class="lbl">A história (opcional)</label>
         <input type="text" value="${esc(e.hist||'')}" maxlength="240"
-          placeholder="Ex.: fazia-se sempre no Natal, em Trás-os-Montes" onchange="edSet('hist',this.value)"></div>
+          placeholder="Ex.: fazia-se sempre no Natal, em Trás-os-Montes" aria-label="A história da receita" onchange="edSet('hist',this.value)"></div>
       <div style="grid-column:span 2"><label class="lbl">Como a avó diz ${dica('oral')}</label>
         <textarea maxlength="1200" rows="4" style="width:100%"
           placeholder="Um fio de azeite, um punhado de farinha, sal q.b., mexer até dar ponto…&#10;Escreve a receita como ela se diz. Os gramas em cima são a conta; isto é a receita."
-          onchange="edSet('oral',this.value)">${esc(e.oral||'')}</textarea>
+          aria-label="A receita como se diz, por palavras" onchange="edSet('oral',this.value)">${esc(e.oral||'')}</textarea>
         <p class="sub" style="margin-top:4px">Guardam-se as duas versões: os gramas alimentam a despensa e os macros, esta aparece na ficha e imprime-se no Livro tal e qual foi ditada.</p></div>
     </div>
     <div style="margin-top:12px"><label class="lbl">Encaixa em</label>
@@ -33928,7 +33932,13 @@ function ligarOrientacao(){
    dezenas de confirmações espalhadas pela app não apareciam a ninguém. Passa
    a falar também pelo toast, que é fixo e vive fora do #main — e aceita uma
    ação, para «Anular» ficar colado ao aviso que o justifica. */
-function flash(kind,text,accao){ toast(text,accao,kind); if(!_renderTick) render(); }
+function flash(kind,text,accao){
+  msg={kind,text}; toast(text,accao,kind);
+  /* O separador Dados mostra a última mensagem num aviso fixo, que sobrevive
+     ao toast: aí desenha-se sempre, senão o aviso ficava um gesto atrás. Nos
+     outros, se o gesto já desenhou, não se desenha outra vez. */
+  if(!_renderTick || S.ui.tab==='dados') render();
+}
 function pacote(){
   /* Um arrasto do objetivo que acabe onde começou não dispara change, e o
      m.objetivo legado ficaria dessincronizado do objetivoPct. Sincroniza-se
@@ -35979,7 +35989,7 @@ window.addEventListener('popstate', e=>{
   if(_recuando){ _recuando=false; return; }
   if(camadaAberta()){ _camadas=Math.max(0,_camadas-1); _camadaAntes=false; return fecharCamadaDeCima(); }
   const t=(e.state&&e.state.tab)||separadorDoEndereco();
-  if(t&&t!==S.ui.tab){ S.ui.tab=t; saveMeta(); render(); }
+  if(t&&t!==S.ui.tab){ S.ui.tab=t; msg=null; saveMeta(); render(); }
 });
 function sincronizaHistorico(){
   const agora=camadaAberta();
