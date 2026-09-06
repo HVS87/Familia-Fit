@@ -1401,9 +1401,10 @@ input[type=range].com-detentes::-moz-range-track{
    quem é desenhado por último, e as pesagens vêm depois dela. Quem aponta
    a uma pesagem continua a ler o peso; só quem aponta ao vazio da faixa
    é que pergunta pelo jejum. */
-.svgfx .jj-hit{pointer-events:auto;fill:transparent;cursor:help}
+.svgfx .jj-hit,.svgfx .nota-hit{pointer-events:auto;fill:transparent;cursor:help}
 .svgfx .jj-hit:hover,.svgfx .jj-hit:focus-visible{fill:var(--bad);fill-opacity:.14}
-.svgfx .jj-hit:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.svgfx .nota-hit:hover,.svgfx .nota-hit:focus-visible{fill:var(--ink);fill-opacity:.12}
+.svgfx .jj-hit:focus-visible,.svgfx .nota-hit:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .svgfx .pt-hit:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .peso-tip{position:absolute;z-index:12;transform:translate(-50%,-100%);
   background:var(--ink);color:var(--card);padding:5px 9px;border-radius:8px;
@@ -1421,7 +1422,7 @@ input[type=range].com-detentes::-moz-range-track{
 .s-ok{stroke:var(--ok)} .s-line{stroke:var(--line)} .s-ink{stroke:var(--ink)}
 .s-acc{stroke:var(--accent)} .s-energy{stroke:var(--energy)} .s-mut{stroke:var(--mut)}
 .s-warn{stroke:var(--warn)} .s-bad{stroke:var(--bad)}
-.f-ok-txt{color:var(--ok)}
+.f-ok-txt{color:var(--ok)} .f-warn-txt{color:var(--warn)}
 .f-acc-txt{color:var(--accent)}
 /* A tabela dos horizontes da trajetória: a linha do horizonte escolhido
    sobe de tom, para se ver de relance onde os cursores estão a apontar. */
@@ -14886,7 +14887,7 @@ const DICAS={
   talhoes:'Dividir a lista por duas pessoas, por corredor e não item a item, para não irem as duas ao mesmo sítio. Cada uma pode ver só o seu talhão no supermercado. Voltar a uma lista só desfaz tudo.',
   fio:'O dia por ordem de relógio: pesagens, refeições, treinos, compras e sobras, tudo numa linha só. Cada item traz o botão que o resolve sem sair daqui, e no telemóvel deslizar para a direita faz o mesmo que carregar no botão.',
   bandeja:'A fila do que ficou por confirmar, um cartão de cada vez. Aparece uma vez por dia ao abrir a aplicação. «Logo vejo» adia até amanhã sem apagar nada — o que fica por confirmar não conta como feito em nenhuma estatística.',
-  balcao:'Escrever em vez de navegar. Aceita uma pesagem («Ana 62,4»), um treino («corri 8 km»), uma refeição («jantar feito») ou uma compra («comprei azeite»). Mostra sempre o que entendeu antes de gravar, e nada sai daqui para fora.',
+  balcao:'Escrever em vez de navegar. Aceita uma pesagem («Ana 62,4»), um treino («corri 8 km»), um jejum («jejuei 24h»), uma refeição («jantar feito») ou uma compra («comprei azeite»). Mostra sempre o que entendeu antes de gravar, e nada sai daqui para fora.',
   pessoa:'A folha de uma pessoa: o dia dela, os números dela, o que lhe falta confirmar. Abre-se com pressão longa no avatar, ou com o botão direito no computador.',
   imc:'Peso a dividir pela altura ao quadrado. É uma medida de rastreio para adultos: não distingue músculo de gordura, por isso um atleta pode aparecer em «excesso de peso» sem o estar. Em crianças lê-se por percentil para a idade, não por estes limites.',
   /* Dizia «Mifflin-St Jeor nos adultos e Schofield abaixo dos 19 anos», que
@@ -21183,6 +21184,42 @@ function interpretarBalcao(txt){
      de gravar seja o que for, e quem se enganar tem o anular à mão. */
   const quem=S.members.find(m=>t.indexOf(nome(m))>=0)
     || S.members.find(m=>m.id===S.ui.mid) || S.members[0] || null;
+  /* ---- jejum: «jejuei 24h», «jejum de 2 dias», «jejum 36 horas» ----
+     Vem ANTES da pesagem de propósito: «jejum 24h» tem um número de dois
+     dígitos, e a regra da pesagem, que aceita um número solto, apanhava-o
+     como sessenta e dois quilos. Aqui a palavra manda no número.
+     O que se escreve é um jejum que ACABOU — é isso que este campo é, um
+     registo do que aconteceu —, por isso o fim é agora e o início conta-se
+     para trás. Quem quiser marcar um jejum futuro tem o botão. */
+  if(/(jejum|jejue|jejua)/.test(t)){
+    if(!quem) return null;
+    const bloq=jejumDesaconselhado(quem);
+    if(bloq) return {t:'Jejum não registado para '+nomeCurto(quem), aviso:true, fn:()=>{
+      flash('warn', bloq); }};
+    const md=/(\d{1,2})\s*(dias?|d)\b/.exec(t);
+    const mh=/(\d{1,3})\s*(h|hs|horas?)\b/.exec(t);
+    const horas=md? parseInt(md[1],10)*24 : (mh? parseInt(mh[1],10) : 24);
+    if(horas<12||horas>JEJUM_MAX_H) return {t:'Um jejum conta-se entre 12 horas e '+(JEJUM_MAX_H/24)+' dias.', aviso:true, fn:()=>{
+      flash('warn','Um jejum regista-se a partir das 12 horas e até '+(JEJUM_MAX_H/24)+' dias.'); }};
+    /* o fim é agora, ao quarto de hora; o início é o fim menos a duração */
+    const ag=new Date(), fimH=Math.round((ag.getHours()+ag.getMinutes()/60)*4)/4;
+    const recuo=Math.ceil((horas-fimH)/24);
+    const dIni=addDias(hojeISO(), -Math.max(0,recuo));
+    const iniH=((fimH-horas)%24+24)%24;
+    const j={id:uid(), mid:quem.id, d:dIni, inicio:iniH, horas, agua:true};
+    return {t:'Jejum de '+textoDuracaoJejum(horas)+' para '+nomeCurto(quem)+', '+periodoJejumTexto(j), fn:()=>{
+      const lim=limparJejumPontual(j, S.members.map(x=>x.id));
+      if(!lim) return flash('bad','Não foi possível registar esse jejum.');
+      const c=jejumCfg();
+      const emH=x=>{ const f=fimDeJejum(x); return [diasEntre('2000-01-01',x.d)*24+x.inicio,
+                                                 diasEntre('2000-01-01',f.d)*24+f.h]; };
+      const [ja,jb]=emH(lim);
+      if(c.pontuais.some(x=>{ if(x.mid!==lim.mid) return false; const [a,b]=emH(x); return ja<b && a<jb; }))
+        return flash('warn','Esse período sobrepõe-se a um jejum já registado.');
+      c.pontuais.push(lim); save('jejum registado'); render();
+      flash('ok','Jejum de '+textoDuracaoJejum(horas)+' registado — aparece sombreado no gráfico do peso.',
+        {rot:'Anular',fn:'desfazer()'}); }};
+  }
   /* pesagem: «ana 62,4» ou «62,4 kg» */
   const kg=/(\d{2,3}[.,]?\d?)\s*(kg)?\b/.exec(t);
   if(kg && (/(kg|pes)/.test(t) || (quem && t.replace(nome(quem),'').trim()===kg[0].trim()))){
@@ -21229,7 +21266,7 @@ function balcaoAoVivo(v){
   _balcaoAccao = r? r.fn : null;
   const tem=!!String(v||'').trim();
   põe('balcao-eco', r? r.t
-    : (tem? 'Não percebi. Tenta «Ana 62,4», «corri 8 km», «jantar feito» ou «comprei azeite».' : ''));
+    : (tem? 'Não percebi. Tenta «Ana 62,4», «corri 8 km», «jejuei 24h», «jantar feito» ou «comprei azeite».' : ''));
   const eco=document.getElementById('balcao-eco');
   if(eco) eco.className='sub'+(r? ' ok' : (tem? ' nada':''));
   const b=document.getElementById('balcao-ok');
@@ -21248,7 +21285,7 @@ function blocoBalcao(){
   return `<div class="balcao">
     <label for="balcao" class="lbl" style="margin:0">Escrever e despachar ${dica('balcao')}</label>
     <div class="row" style="gap:8px;flex-wrap:nowrap">
-      <input id="balcao" type="text" placeholder="Ana 62,4 · corri 8 km · jantar feito · comprei azeite"
+      <input id="balcao" type="text" placeholder="Ana 62,4 · corri 8 km · jejuei 24h · jantar feito"
         aria-label="Balcão rápido: escreve o que aconteceu" aria-describedby="balcao-eco"
         oninput="balcaoAoVivo(this.value)"
         onkeydown="if(event.key==='Enter'){event.preventDefault();balcaoConfirmar();}">
@@ -22165,6 +22202,71 @@ function toggleLinhaPeso(k){
   S.ui.linhasPeso[k]=!S.ui.linhasPeso[k]; saveMeta(); render();
 }
 function janelaPeso(){ return temChave(JANELAS,S.ui.janelaPeso)? S.ui.janelaPeso : 'mes'; }
+/* ================= O QUE ACONTECEU, POR BAIXO DA CURVA =================
+   Um gráfico de peso sozinho não explica nada: mostra a linha a descer e
+   cala-se sobre o porquê. Estas três camadas são o porquê, e vivem todas na
+   mesma faixa junto ao eixo, para não disputarem a escala dos quilos — não
+   têm valor em quilos nenhum, têm data.
+
+   · pontos VERDES — os treinos que foram mesmo feitos naquele dia;
+   · pontos AMARELOS — as refeições registadas (o `--warn` da paleta, que é o
+     amarelo-mostarda testado contra os dois fundos);
+   · listas VERMELHAS CLARAS — as horas de jejum intermitente de cada dia,
+     que se repetem todos os dias e por isso se leem como um padrão. O
+     vermelho é de propósito mais fraco do que o das faixas dos jejuns a
+     sério: um é o horário de todos os dias, o outro é um jejum que
+     aconteceu, e confundi-los seria dizer que a casa jejua sempre.
+
+   Um ponto por DIA e não por registo: três refeições de três pessoas num dia
+   dariam nove pontos em cima uns dos outros, e o que interessa é se aquele
+   dia teve ou não teve. O resumo do dia vai no balão. */
+function camadasRegistos(mid, dias, iniISO, xDe, larguraDia, Y0, Y1){
+  /* Acima de quatro meses nada disto se lê: os pontos empastam-se numa nódoa
+     e as listras diárias fundem-se num banho uniforme que não distingue dia
+     nenhum — além de serem centenas de elementos e outros tantos alvos de
+     rato. A essa distância fica o que ainda se lê: a linha do peso e as
+     faixas dos jejuns registados. */
+  if(dias>120) return {listras:'', pontos:''};
+  const im=imDe(mid);
+  const listras=[];
+  if(im){
+    /* A janela de alimentação abre à hora escolhida e dura 24−h; o jejum é o
+       resto, e começa quando ela fecha. Desenha-se dia a dia porque é assim
+       que se vive — e a lista de um dia entra pela madrugada do seguinte. */
+    const dur=24-im.h, fecha=(im.inicio+dur)%24;
+    for(let i=0;i<dias;i++){
+      const d=addDias(iniISO,i);
+      const x0=xDe(d)+larguraDia*(fecha/24), larg=larguraDia*(im.h/24);
+      if(larg<=0) continue;
+      listras.push(`<rect x="${x0.toFixed(1)}" y="${Y0}" width="${larg.toFixed(1)}" height="${(Y1-Y0).toFixed(1)}"
+        class="f-bad" opacity=".055"/>`);
+    }
+  }
+  /* Duas fiadas junto ao eixo: os treinos por cima das refeições, porque é a
+     ordem em que se lê a pergunta — «mexi-me?» antes de «comi?». */
+  const yT=Y1-11, yR=Y1-4, pontos=[];
+  for(let i=0;i<dias;i++){
+    const d=addDias(iniISO,i), x=xDe(d)+larguraDia/2;
+    const tre=regAtivDe(mid).filter(r=>r.d===d && r.estado==='feita');
+    if(tre.length){
+      const kc=Math.round(tre.reduce((t,r)=>t+kcalRegAtiv(r),0));
+      const min=Math.round(tre.reduce((t,r)=>t+(parseFloat(r.min)||0),0));
+      const nota=fmtCurto(d)+'\n'+plural(tre.length,'treino','treinos')+(min? ' · '+min+' min':'')+(kc? ' · '+kc+' kcal':'');
+      pontos.push(`<circle cx="${x.toFixed(1)}" cy="${yT}" r="2.4" class="f-ok"/>
+        <circle class="nota-hit" cx="${x.toFixed(1)}" cy="${yT}" r="6" role="img"
+          tabindex="0" aria-label="${esc(nota.replace('\n',': '))}" data-nota="${esc(nota)}"/>`);
+    }
+    const ref=regRefDe(mid).filter(r=>r.d===d && r.estado==='feita');
+    if(ref.length){
+      const k=Math.round(ingeridoRealDia(mid,d).k);
+      const nota=fmtCurto(d)+'\n'+plural(ref.length,'refeição registada','refeições registadas')+(k? ' · '+k+' kcal':'');
+      pontos.push(`<circle cx="${x.toFixed(1)}" cy="${yR}" r="2.4" class="f-warn"/>
+        <circle class="nota-hit" cx="${x.toFixed(1)}" cy="${yR}" r="6" role="img"
+          tabindex="0" aria-label="${esc(nota.replace('\n',': '))}" data-nota="${esc(nota)}"/>`);
+    }
+  }
+  return {listras:listras.join(''), pontos:pontos.join('')};
+}
 function graficoPesoSvg(m){
   const jan=janelaPeso(), dias=JANELAS[jan][0], h=hojeISO(), ini=addDias(h,-dias+1);
   const pts=medicoesDe(m.id).filter(x=>x.d>=ini);
@@ -22224,9 +22326,13 @@ function graficoPesoSvg(m){
   const grelha=[0,0.5,1].map(t=>{ const p=pmin+(pmax-pmin)*t;
     return `<line x1="${X0}" y1="${Y(p).toFixed(1)}" x2="${X1}" y2="${Y(p).toFixed(1)}" class="s-line" opacity=".55"/>
       <text x="${X0-4}" y="${(Y(p)+3).toFixed(1)}" font-size="9.5" text-anchor="end" class="f-mut" style="font-variant-numeric:tabular-nums">${nPT(p,1)}</text>`;}).join('');
+  /* As três camadas do que aconteceu: a lista do horário de jejum por baixo
+     de tudo, e as duas fiadas de pontos junto ao eixo. */
+  const cam=camadasRegistos(m.id, dias, ini, d=>X(d)-((X1-X0)/(dias-1||1))/2, (X1-X0)/(dias-1||1), Y0, Y1);
   return {pts:pts.length, svg:`<svg class="svgfx" viewBox="0 0 ${W} ${H}" role="img"
       aria-label="Evolução do peso de ${esc(m.nome)} em ${JANELAS[jan][1]}">
-    ${bandasJejum}${grelha}${svgAtiv}${svgKcal}
+    ${cam.listras}${bandasJejum}${grelha}${svgAtiv}${svgKcal}
+    ${cam.pontos}
     ${pts.length>1? `<polyline points="${linha}" fill="none" class="s-ink" stroke-width="2"/>`:''}
     ${/* O ponto visível fica pequeno de propósito — é a leitura da curva que
          interessa —, e por isso o alvo do rato é outro círculo, invisível e
@@ -22273,6 +22379,7 @@ function cartaoPeso(){
         <button class="chip ${L.kcal?'on':''}" onclick="toggleLinhaPeso('kcal')" aria-pressed="${!!L.kcal}">🍽️ Calorias ingeridas</button>
       </div>
       ${(L.ativ||L.kcal)? `<p class="sub" style="margin-top:6px">As linhas sobrepostas têm escala própria: servem para ver a <i>forma</i> ao lado da do peso, não para comparar quilos com calorias.</p>`:''}
+      <p class="sub" style="margin-top:6px"><span class="f-ok-txt">●</span> treinos feitos · <span class="f-warn-txt">●</span> refeições registadas · faixa vermelha clara, as horas de jejum intermitente de cada dia · faixa vermelha forte, um jejum registado. Passa o cursor por cima de qualquer um para ver o resumo.</p>
       <div class="row" style="margin-top:12px">
         <div class="stat"><b>${nPT(pts[pts.length-1].p,1)} kg</b><span>Última · ${fmtShort(pts[pts.length-1].d)}</span></div>
         <div class="stat"><b>${pts.length}</b><span>Pesagens</span></div>
@@ -22505,9 +22612,13 @@ function trajSvg(m,fit,c){
         role="img" tabindex="0" aria-label="Jejum de ${esc(textoDuracaoJejum(j.horas))}, ${esc(periodoJejumTexto(j))}"
         data-jj="${esc(resumoJ)}"/>`;
   }).join('');
+  /* As mesmas camadas do gráfico do peso, mas só no PASSADO: no futuro não
+     há treinos feitos nem refeições comidas, e desenhá-los seria inventar. */
+  const largDia=(X1-X0)/((base+hor)||1);
+  const camT=camadasRegistos(m.id, base+1, addDias(h,-base), d=>X(diasEntre(h,d))-largDia/2, largDia, Y0, Y1);
   return `<svg class="svgfx" viewBox="0 0 ${W} ${H}" role="img"
       aria-label="Trajetória do peso de ${esc(m.nome)}: tendência dos últimos ${base} dias e projeção a ${hor} dias">
-    ${bandasJ}${grelha}${lequeSvg}
+    ${camT.listras}${bandasJ}${grelha}${lequeSvg}${camT.pontos}
     <line x1="${f(X(0))}" y1="${Y0}" x2="${f(X(0))}" y2="${Y1}" class="s-line" stroke-dasharray="3 3"/>
     <line x1="${f(X(-base))}" y1="${f(Y(yObs(-base)))}" x2="${f(X(0))}" y2="${f(Y(p0))}" class="s-ink" stroke-width="1.6" opacity=".7"/>
     <line x1="${f(X(0))}" y1="${f(Y(p0))}" x2="${f(X(hor))}" y2="${f(Y(yObs(hor)))}" class="s-mut" stroke-width="1.6" stroke-dasharray="5 4"/>
@@ -31528,7 +31639,9 @@ function graficoObjetivo(o,m){
     <div class="peso-tip" hidden aria-hidden="true"></div></div>
     <p class="sub" style="margin-top:4px">A tracejado cinzento, para onde o peso vai se nada mudar;
       a cheio, o ritmo que este objetivo pede. Cada marca no alvo é o dia em que cada uma lá chega.
-      As faixas vermelhas são jejuns registados — passa por cima para ver quanto duraram.</p>`;
+      Junto ao eixo, <span class="f-ok-txt">●</span> os treinos feitos e <span class="f-warn-txt">●</span> as refeições registadas;
+      a faixa vermelha clara são as horas de jejum intermitente de cada dia, a forte um jejum registado.
+      Passa o cursor por cima de qualquer um para ver o resumo.</p>`;
 }
 function cartaoObjetivo(o){
   const m=S.members.find(x=>x.id===o.membroId); if(!m) return '';
@@ -36323,12 +36436,12 @@ function mostraBalaoPeso(alvo){
    A mesma caixa das pesagens, com o resumo do jejum em vez do peso. Fica
    encostada ao topo da faixa e ao meio dela — a faixa é um intervalo e não um
    ponto, e apontar ao meio é o que corresponde ao que ela representa. */
-function mostraBalaoJejum(rect){
+function mostraBalaoNota(rect){
   const wrap=rect.closest('.peso-wrap'); if(!wrap) return;
   const tip=wrap.querySelector('.peso-tip'); if(!tip) return;
   const g=wrap.querySelector('.traj-cursor'); if(g) g.style.display='none';
   tip.classList.add('tip-traj');   /* multilinha, como o balão da projeção */
-  tip.textContent=rect.getAttribute('data-jj')||'';
+  tip.textContent=rect.getAttribute("data-nota")||rect.getAttribute("data-jj")||"";
   tip.hidden=false;
   const a=rect.getBoundingClientRect(), c=wrap.getBoundingClientRect();
   const meio=a.left-c.left+a.width/2;
@@ -36397,8 +36510,8 @@ document.addEventListener('pointerover', e=>{
   const t=e.target.closest? e.target : null; if(!t) return;
   const a=t.closest('.pt-hit');
   if(a) return mostraBalaoPeso(a);
-  const j=t.closest('.jj-hit');
-  if(j) return mostraBalaoJejum(j);
+  const j=t.closest('.jj-hit,.nota-hit');
+  if(j) return mostraBalaoNota(j);
   if(!t.closest('.peso-wrap')) escondeBalaoPeso();
 });
 document.addEventListener('pointermove', e=>{
@@ -36409,19 +36522,19 @@ document.addEventListener('pointerdown', e=>{
   const t=e.target.closest? e.target : null; if(!t) return escondeBalaoPeso();
   const a=t.closest('.pt-hit');
   if(a){ mostraBalaoPeso(a); return; }
-  const j=t.closest('.jj-hit');
-  if(j){ mostraBalaoJejum(j); return; }
+  const j=t.closest('.jj-hit,.nota-hit');
+  if(j){ mostraBalaoNota(j); return; }
   const r=t.closest('.traj-hit');
   if(r){ mostraBalaoTraj(r, e.clientX); return; }
   escondeBalaoPeso();
 });
 /* Com teclado: a faixa é focável, e ao receber foco diz o que é. */
 document.addEventListener('focusin', e=>{
-  const j=e.target.closest && e.target.closest('.jj-hit');
-  if(j) mostraBalaoJejum(j);
+  const j=e.target.closest && e.target.closest('.jj-hit,.nota-hit');
+  if(j) mostraBalaoNota(j);
 });
 document.addEventListener('focusout', e=>{
-  if(e.target.closest && e.target.closest('.jj-hit')) escondeBalaoPeso();
+  if(e.target.closest && e.target.closest('.jj-hit,.nota-hit')) escondeBalaoPeso();
 });
 document.addEventListener('pointerleave', e=>{
   if(e.target.closest && e.target.closest('.peso-wrap')) escondeBalaoPeso();
