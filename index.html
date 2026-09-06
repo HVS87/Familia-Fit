@@ -1668,6 +1668,14 @@ input[type=range].com-detentes::-moz-range-track{
 .cal-ev-t{display:block;font-weight:600;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
 .cal-ev-s{display:block;color:var(--mut);white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
 .cal-instr .mov{margin-top:6px}
+/* A legenda do Calendário é material de consulta, não coisa que se leia todos
+   os dias: no telemóvel ao alto ocupava 157 px — a grelha começava a meio do
+   ecrã. Fica fechada lá, e aberta onde há espaço. */
+.cal-leg{margin-top:8px}
+.cal-leg>summary{cursor:pointer;min-height:24px;list-style:none;display:flex;align-items:center;gap:6px}
+.cal-leg>summary::-webkit-details-marker{display:none}
+.cal-leg>summary::before{content:'▸';font-size:11px;color:var(--mut)}
+.cal-leg[open]>summary::before{content:'▾'}
 @media (max-width:760px){
   .cal-barra{flex-direction:column;align-items:stretch}
   .cal-barra>.row{justify-content:space-between}
@@ -22094,7 +22102,7 @@ let jaPerguntouPeso=false, jaPerguntouCompras=false;
    S.ui.modal preenchido sem nada no ecrã: uma camada invisível que engolia o
    Escape, travava o go() e não tinha botão de fechar — só se saía recarregando.
    Recusar em voz alta é melhor do que abrir o nada. */
-const MODAIS=['peso','aviso','compras','ingrediente','acabou','favoritos','cal','recuperacao'];
+const MODAIS=['peso','aviso','compras','ingrediente','acabou','favoritos','cal','recuperacao','exportarCal'];
 function abrirModal(tipo,dados){
   if(MODAIS.indexOf(tipo)<0){ console.warn('Família Fit — modal desconhecido: '+tipo); return; }
   S.ui.modal=Object.assign({tipo},dados||{}); saveMeta(); render();
@@ -36344,13 +36352,12 @@ function renderCalendario(){
       </div>
       <div class="row" style="gap:6px">
         <button class="btn ghost small" onclick="calNovoBloco('${hoje}',null)">+ Bloco</button>
-        <button class="btn ghost small" onclick="exportarCalendarioIcs('semana')" title="Um ficheiro .ics para importar em qualquer calendário">⬇ .ics</button>
-        <button class="btn ghost small" onclick="exportarCalendarioImagem()" title="Uma imagem da semana, para mandar a alguém">🖼 Imagem</button>
-        <button class="btn ghost small" onclick="imprimirCalendario()" title="Imprimir a semana, ou guardar em PDF pelo diálogo de impressão">🖨 Imprimir / PDF</button>
-        <button class="btn small" onclick="sincronizarCalendario()" title="Entregar as próximas semanas ao ${esc(pref)}">🔄 Sincronizar Calendário</button>
+        <button class="btn small" onclick="abrirExportarCal()" title="Ficheiro .ics, imagem, papel ou sincronizar com o ${esc(pref)}">📤 Exportar</button>
       </div>
     </div>
-    <div class="row" style="gap:8px;margin-top:8px;flex-wrap:wrap">
+    <details class="cal-leg" ${modoBarraInferior()? '' : 'open'}>
+      <summary class="sub">O que é cada cor · ${plural(nEv,'coisa marcada','coisas marcadas')}${nFeitos? ', '+nFeitos+' com visto':''}</summary>
+      <div class="row" style="gap:8px;margin-top:6px;flex-wrap:wrap">
       <span class="sub"><i class="dot" style="background:${calCorDe('warn')}"></i> refeições</span>
       <span class="sub"><i class="dot" style="background:${calCorDe('energy')}"></i> cozinhar · sombreado até à hora da mesa</span>
       <span class="sub"><i class="dot" style="background:${calCorDe('ok')}"></i> treinos</span>
@@ -36359,8 +36366,8 @@ function renderCalendario(){
       <span class="sub"><i class="dot" style="background:${calCorDe('party')}"></i> cheat days</span>
       <span class="sub"><i class="dot" style="background:${calCorDe('mut')}"></i> dias de recuperação</span>
       <span class="sub"><i class="dot" style="background:${calCorDe('accent')}"></i> compras e blocos da casa</span>
-      <span class="sub" style="margin-left:auto">${plural(nEv,'evento','eventos')}${nFeitos? ' · '+nFeitos+' com visto':''}</span>
-    </div>
+      </div>
+    </details>
     <div class="cal-wrap" id="cal-wrap">
       <div class="cal-grelha" role="grid" aria-label="Semana de ${esc(fmtShort(dias[0]))}">
         <div class="cal-canto"></div>${cab}
@@ -37142,6 +37149,50 @@ function imprimirCalendario(){
   let svg; try{ svg=svgDaSemana(wk); }catch(e){ return flash('bad','Não foi possível desenhar a semana.'); }
   imprimirFolha('cal-print','cal-print',
     `<div class="cal-folha">${svg}</div>`, 'calendario', 'size:A4 landscape; margin:8mm');
+}
+/* ---- Sair da app com a semana na mão ----
+   Havia quatro botões na barra a dizer a mesma coisa por quatro palavras —
+   .ics, imagem, imprimir, sincronizar —, e no telemóvel ocupavam três linhas
+   antes de se ver um único dia. São todos a mesma pergunta com respostas
+   diferentes: para onde vai isto. Ficam numa janela só, cada um com a frase
+   que explica quando serve. */
+function abrirExportarCal(){ abrirModal('exportarCal',{}); }
+function modalExportarCalHtml(){
+  const p=CAL_PREFS[calPref()], wk=calSemana();
+  const {ev,diaInteiro}=eventosDaSemana(wk);
+  const n=ev.length+diaInteiro.length;
+  return `<div class="mfundo" onclick="fundoModal(event)"><div class="mcaixa" role="dialog" aria-modal="true" aria-labelledby="exp-t">
+    <span class="lbl">Semana de ${esc(fmtShort(weekDates(wk)[0]))} a ${esc(fmtShort(weekDates(wk)[6]))}</span>
+    <h2 id="exp-t" style="margin-top:2px">Levar esta semana daqui</h2>
+    <p class="sub" style="margin-top:4px">${plural(n,'coisa marcada','coisas marcadas')} nesta semana. Escolhe para onde vai.</p>
+    <div class="val-item" style="margin-top:12px">
+      <b>🔄 Para o ${esc(p.n)}</b>
+      <p class="sub" style="margin-top:4px">Entrega quatro semanas para trás e oito para a frente, no formato que todos os calendários leem.
+        Num sentido só — a app não tem conta nem servidor, e o que mudares lá não volta para cá. ${esc(p.como)}</p>
+      <div class="row" style="margin-top:8px;gap:6px">
+        <button class="btn small" onclick="fecharModal();sincronizarCalendario()">Sincronizar</button>
+        <button class="btn ghost small" onclick="fecharModal();go('dados')">Trocar de calendário</button>
+      </div>
+      ${S.meta.calSincronizadoEm? `<p class="sub" style="margin-top:6px">Última entrega: ${esc(dataHora(S.meta.calSincronizadoEm))}.</p>`:''}
+    </div>
+    <div class="val-item" style="margin-top:10px">
+      <b>📅 Só esta semana, em ficheiro</b>
+      <p class="sub" style="margin-top:4px">Um .ics com o que está marcado nestes sete dias, para abrir ou importar onde quiseres.</p>
+      <div class="row" style="margin-top:8px"><button class="btn ghost small" onclick="fecharModal();exportarCalendarioIcs('semana')">Guardar .ics da semana</button></div>
+    </div>
+    <div class="val-item" style="margin-top:10px">
+      <b>🖼 Uma imagem para mandar a alguém</b>
+      <p class="sub" style="margin-top:4px">A semana desenhada numa folha branca, com as horas, os sombreados e a legenda — para o telemóvel de quem não tem a app.</p>
+      <div class="row" style="margin-top:8px"><button class="btn ghost small" onclick="fecharModal();exportarCalendarioImagem()">Guardar imagem (PNG)</button></div>
+    </div>
+    <div class="val-item" style="margin-top:10px">
+      <b>🖨 Papel, ou PDF</b>
+      <p class="sub" style="margin-top:4px">A mesma folha em A4 deitado. No diálogo de impressão, escolher «Guardar como PDF» dá o ficheiro em vez do papel.</p>
+      <div class="row" style="margin-top:8px"><button class="btn ghost small" onclick="fecharModal();imprimirCalendario()">Imprimir a semana</button></div>
+    </div>
+    <div class="row" style="margin-top:12px;justify-content:flex-end">
+      <button class="btn ghost small" onclick="fecharModal()">Fechar</button>
+    </div></div></div>`;
 }
 function cartaoCalendarioPref(){
   const k=calPref();
@@ -38025,6 +38076,7 @@ function pintaModal(){
          : mo.tipo==='fimVisita'? modalFimVisitaHtml()
          : mo.tipo==='jejum'? modalJejumHtml(mo)
          : mo.tipo==='recuperacao'? modalRecuperacaoHtml(mo)
+         : mo.tipo==='exportarCal'? modalExportarCalHtml()
          : mo.tipo==='cal'? modalCalHtml(mo)
          : mo.tipo==='bandeja'? modalBandejaHtml(mo)
          : mo.tipo==='ingrediente'? modalIngredienteHtml(mo)
