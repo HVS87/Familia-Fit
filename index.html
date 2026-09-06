@@ -35112,6 +35112,14 @@ function limparMembro(m){
   const out = {id:limparId(m.id), nome:String(m.nome||'Sem nome').slice(0,60),
     sexo: m.sexo==='f'?'f':'m',
     idade:clampNum(num(m.idade,35),0,120),
+    /* A data de nascimento saía na cópia e nunca voltava da leitura: a lista
+       de campos aqui é branca, e esta faltava. Quem restaurasse um ficheiro
+       perdia os aniversários no Calendário e nas Datas da casa, a idade
+       deixava de envelhecer sozinha, e um bebé ficava parado nos meses que
+       tinha no dia da cópia — logo na parte da app onde a idade em meses
+       decide tudo. Sai daqui a idade derivada, mais abaixo, com
+       aplicaNascimento(). */
+    nasc: nascValida(m.nasc)? m.nasc : undefined,
     altura:clampNum(num(m.altura,170),30,250),
     peso:clampNum(num(m.peso,70),1,400),
     atividade: temChave(BASE_ACT,m.atividade)? m.atividade:'sedentario',
@@ -35167,6 +35175,10 @@ function limparMembro(m){
   }
   /* a configuração do bebé passa pelo mesmo saneamento que usa em runtime */
   if(m.bebe && typeof m.bebe==='object') out.bebe=bebeCfg(Object.assign({},out,{bebe:m.bebe}));
+  /* com data de nascimento, a idade e os meses derivam dela e não do que
+     vinha escrito no ficheiro — é a mesma regra que normalizaMembro aplica
+     ao que está gravado neste browser */
+  if(out.nasc) aplicaNascimento(out);
   return out;
 }
 function lerPacote(txt){
