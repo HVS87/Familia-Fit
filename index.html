@@ -13153,7 +13153,10 @@ function kcalPlaneadasDia(m,di,dates){
     /* o acompanhamento come-se com o prato: as calorias dele contam no dia,
        mas não conta como refeição — um arroz de tomate não é um jantar. Vários
        acompanhamentos repartem o mesmo lugar, e contam só a sua fatia. */
-    kcal+=somaAc(acompsDe(meal),'k'); });
+    /* e o molho, por inteiro e pela mesma razão: come-se com o prato sem ser
+       uma refeição. Trinta gramas de beurre blanc são duzentas calorias que o
+       plano da semana estava a somar a zero. */
+    kcal+=somaAc(acompsDe(meal),'k')+moKcal(moId(meal)); });
   return {cheat:false,kcal,refs};
 }
 function estadoDia(m,di,dates){
@@ -13302,8 +13305,17 @@ function kcalRegAtiv(r){
 function kcalRegRef(r){
   const rec=RECIPES.find(x=>x.id===r.r); if(!rec) return 0;
   const acs=(r.ac||[]).map(id=>RECIPES.find(x=>x.id===id)).filter(Boolean);
-  return (rec.k+somaAc(acs,'k'))*(parseFloat(r.dose)||1);
+  /* O molho conta, e por inteiro — a mesma regra que `macrosRegRef` já
+     aplicava aqui ao lado. Sem esta linha, a mesma refeição registada tinha
+     DUAS respostas para as suas calorias: os macros contavam o beurre blanc e
+     o total do dia não. */
+  return (rec.k+somaAc(acs,'k')+moKcal(r.mo))*(parseFloat(r.dose)||1);
 }
+/* O molho de um registo ou de uma refeição, resolvido e por inteiro. Vive
+   numa função porque são cinco contas diferentes a fazer a mesma pergunta, e
+   cinco sítios é onde uma delas se esquece. */
+function moRec(id){ const x=id? RECIPES.find(y=>y.id===id) : null; return (x&&ehMolho(x))? x : null; }
+function moKcal(id){ const x=moRec(id); return x? x.k : 0; }
 function macrosRegRef(r){
   const rec=RECIPES.find(x=>x.id===r.r); if(!rec) return {k:0,c:0,p:0,f:0,fib:0};
   const acs=(r.ac||[]).map(id=>RECIPES.find(x=>x.id===id)).filter(Boolean);
@@ -13448,6 +13460,16 @@ function sodioRegRef(r){
     s.estimados.forEach(n=>est.push(n));
     (s.outraTabela||[]).forEach(n=>out.push(n));
   });
+  /* E o molho, por inteiro. Um molho é sal com gordura à volta — a manteiga
+     de alho, o tonkatsu, a soja de um ponzu — e era exatamente ele que não
+     entrava na conta que a app usa para dizer quanto sal se comeu no dia. */
+  const moR=moRec(r.mo);
+  if(moR){ const s=sodioDeIngredientes(moR.i,1,moR.id);
+    mg+=s.mg*dose;
+    s.semValor.forEach(n=>sem.push(n));
+    s.estimados.forEach(n=>est.push(n));
+    (s.outraTabela||[]).forEach(n=>out.push(n));
+  }
   return {mg:Math.round(mg), semValor:sem, estimados:est, outraTabela:out};
 }
 function sodioMedia(mid,dias){
@@ -13478,6 +13500,10 @@ function acucarLivreRegRef(r){
   const acsR=(r.ac||[]).map(id=>RECIPES.find(x=>x.id===id)).filter(Boolean);
   const qAc=fatiaAc(acsR);
   acsR.forEach(a=>{ g+=acucarLivreDeIngredientes(a.i,1)*dose*qAc; });
+  /* O coulis ocupa o lugar do molho e é açúcar quase puro: ficar de fora
+     desta conta era deixar a sobremesa a fingir que não leva açúcar. */
+  const moR=moRec(r.mo);
+  if(moR) g+=acucarLivreDeIngredientes(moR.i,1)*dose;
   return g;
 }
 function acucarLivreMedia(mid,dias){
@@ -13627,7 +13653,10 @@ function hortofruticolasDia(mid,d){
     /* os acompanhamentos repartem entre si a mesma fatia do prato — contar
        cada um por inteiro dava a uma refeição o triplo dos legumes que tem */
     const lado=acs.reduce((s,a)=>s+gramasHortofruticolas(a),0)*fatiaAc(acs);
-    return t+(gramasHortofruticolas(rec)+lado)*dose;
+    /* o molho não reparte lugar com ninguém, e há molhos que são hortícolas
+       quase inteiros — um tzatziki é pepino, um chimichurri é salsa */
+    const moR=moRec(r.mo);
+    return t+(gramasHortofruticolas(rec)+lado+(moR? gramasHortofruticolas(moR):0))*dose;
   },0);
 }
 /* Quantas plantas diferentes entraram na casa esta semana. Não há aqui número
@@ -14058,7 +14087,7 @@ function registarRefeicao(base,mids,estado){
      cozinhado e comido — mais do que o tê-lo escolhido no plano. É aqui, e
      não a cada mexida no formulário, que o par vira variante: caso contrário
      ficavam guardadas combinações que ninguém chegou a pôr na mesa. */
-  if(criados.length) registaCombo(base.r, acIds(base));
+  if(criados.length) registaCombo(base.r, acIds(base), base.mo||"");   /* o molho faz parte do par que foi mesmo à mesa */
   return criados;
 }
 function irmaosDe(lista,r){ return r.grupo? lista.filter(x=>x.grupo===r.grupo && x.id!==r.id) : []; }
@@ -17089,7 +17118,9 @@ function fichaHtml(f){
             <h2 id="fi-t">${esc(r.n)}${climaDoPrato(r)}</h2>
             <p class="rotulo-coz">${cozinhasDe(r).map(k=>CUIS[k]).join(' · ')}</p>
             ${r.u? '<p class="rotulo-assina">Receita da casa</p>':''}
-            ${ehCombo(r)? `<p class="rotulo-assina">Prato com acompanhamento</p>`:''}
+            ${ehCombo(r)? `<p class="rotulo-assina">${(r.acIds||[]).length
+              ? (r.moId? 'Prato com acompanhamento e '+palavraMolho(pratoBaseDe(r)) : 'Prato com acompanhamento')
+              : 'Prato com '+palavraMolho(pratoBaseDe(r))}</p>`:''}
             <span class="rotulo-filete" aria-hidden="true"></span>
           </div>
           <div style="margin-top:6px"><span class="tag">${ICO_COZ[r.coz]||''} ${cozinhasDe(r).map(k=>CUIS[k]).join(' · ')}</span>${
@@ -17097,13 +17128,23 @@ function fichaHtml(f){
         </div>
         <button class="btn ghost small" style="flex:none" onclick="fecharFicha()" aria-label="Fechar a receita">✕</button>
       </div>
-      ${ehCombo(r)? `<p class="sub" style="margin-top:8px">Feito de
-        <button class="linkish" onclick="abrirFicha('${r.base}',${f.n})">${esc((RECIPES.find(x=>x.id===r.base)||{}).n||'')}</button>
-        ${(r.acIds||[]).length===1? 'com' : 'com'}
-        ${(r.acIds||[]).map(id=>{ const a=RECIPES.find(x=>x.id===id); return a
-          ? `<button class="linkish" onclick="abrirFicha('${id}',${f.n})">${esc(a.n)}</button>` : ''; }).join(' e ')}.
-        ${(r.acIds||[]).length>1? 'Os acompanhamentos repartem o lugar do lado, e as quantidades aqui já estão a essa conta.'
-          : 'As quantidades e as calorias somam as dos dois.'}</p>`:''}
+      ${ehCombo(r)? (function(){
+        /* A frase da proveniência dizia só os acompanhamentos: um prato feito
+           de bife COM molho de mostarda saía «Feito de Bife com .» — com o
+           molho de fora e a frase pendurada num ponto. O molho é uma parte
+           como as outras, e clica-se para a sua ficha como elas. */
+        const elo=(id,txt)=>`<button class="linkish" onclick="abrirFicha('${id}',${f.n})">${esc(txt)}</button>`;
+        const acs=(r.acIds||[]).map(id=>RECIPES.find(x=>x.id===id)).filter(Boolean);
+        const mo=r.moId? RECIPES.find(x=>x.id===r.moId) : null;
+        const partes=acs.map(a=>elo(a.id,a.n));
+        if(mo) partes.push(elo(mo.id,mo.n)+' <span class="sub">('+palavraMolho(pratoBaseDe(r))+')</span>');
+        const lista=partes.length>1? partes.slice(0,-1).join(', ')+' e '+partes[partes.length-1] : partes[0]||'';
+        return `<p class="sub" style="margin-top:8px">Feito de
+          ${elo(r.base,(RECIPES.find(x=>x.id===r.base)||{}).n||'')} com ${lista}.
+          ${acs.length>1? 'Os acompanhamentos repartem o lugar do lado, e as quantidades aqui já estão a essa conta.'
+            : 'As quantidades e as calorias somam as das partes.'}
+          ${mo? artigoMolho(pratoBaseDe(r)).toUpperCase()+' '+palavraMolho(pratoBaseDe(r))+' conta por inteiro: não reparte lugar com ninguém.' : ''}</p>`;
+      })():''}
       <div class="row" style="margin-top:10px">
         <div class="stat"><b>${r.k*f.n}</b><span>kcal ${f.n>1?'total':''}</span></div>
         <div class="stat"><b style="color:var(--mc)">${r.c*f.n} g</b><span>Hidratos</span></div>
@@ -17193,7 +17234,11 @@ function passosDerivados(r,n){
 function abrirCozinha(rid,n,ctx,acs){
   const r=RECIPES.find(x=>x.id===rid); if(!r) return;
   S.ui.cozinha={r:rid, n:clampNum(n||1,1,MAX_DOSES), passo:0, feitos:[], ctx:ctx||null,
-    ac:Array.isArray(acs)? acs.slice(0,MAX_AC) : [], vista:'passos', trancado:false, feitosEspera:[]};
+    /* MAX_AC+1 porque o que entra aqui é `ladoIds`: os acompanhamentos MAIS o
+       molho. Cortar em MAX_AC deitava fora o último id, e o último é sempre o
+       molho — uma mesa com três acompanhamentos ia para a bancada sem os
+       passos do molho, que era precisamente o que faltava fazer. */
+    ac:Array.isArray(acs)? acs.slice(0,MAX_AC+1) : [], vista:'passos', trancado:false, feitosEspera:[]};
   saveMeta(); render(); pedirEcraAceso();
 }
 /* ================= O MAESTRO =================
@@ -19008,7 +19053,7 @@ function cartaoResgate(){
 function plantarResgate(rid){
   const m=missaoResgate(); if(!m||!m.vazios.length) return flash('warn','A semana já está toda planeada.');
   const v=m.vazios[0], meal=planMeal(v.di,v.mk);
-  meal.r=rid; registaCombo(rid, acIds(meal));
+  meal.r=rid; registaCombo(rid, acIds(meal), moId(meal));
   save('resgate no plano'); render();
   const r=RECIPES.find(x=>x.id===rid);
   flash('ok',(r?r.n:'A receita')+' entrou em '+DAYN[v.di].toLowerCase()+', ao '+nomeRefeicao(v.mk).toLowerCase()+'.',
@@ -19048,7 +19093,11 @@ function repetirSemana(wk){
     if(comem.length && !avaliaReceita(r,comem,mk,false).ok){ fora++; return; }
     meal.r=r.id; meal.ac=acIds(m0).filter(id=>{
       const a=RECIPES.find(x=>x.id===id); return a&&ehAcompanhamento(a); });
-    registaCombo(meal.r, acIds(meal)); n++;
+    /* o molho vem com a refeição, como o acompanhamento: repetir a semana
+       trazia o bife e deixava para trás o molho de mostarda com que ele foi
+       comido — e depois a lista de compras não o comprava */
+    meal.mo=moId(m0);
+    registaCombo(meal.r, acIds(meal), moId(meal)); n++;
   });
   save('semana repetida'); render();
   flash('ok', plural(n,'refeição copiada','refeições copiadas')
@@ -19081,7 +19130,7 @@ function aplicarPlanoDoCesto(){
   const cesto=Object.keys(S.bought[S.week]||{}).filter(k=>S.bought[S.week][k]).map(k=>k.split('|')[0]);
   const p=planoDoCesto(cesto);
   if(!p.props.length) return flash('warn','Não há dias vazios para preencher.');
-  p.props.forEach(x=>{ const meal=planMeal(x.di,x.mk); meal.r=x.r.id; registaCombo(meal.r, acIds(meal)); });
+  p.props.forEach(x=>{ const meal=planMeal(x.di,x.mk); meal.r=x.r.id; registaCombo(meal.r, acIds(meal), moId(meal)); });
   save('plano a partir do cesto'); render();
   flash('ok', plural(p.props.length,'refeição planeada','refeições planeadas')
     +' com o que veio das compras.', {rot:'Anular',fn:'desfazer()'});
@@ -20483,7 +20532,7 @@ function fecharDiaComoPlaneado(){
   p.ref.forEach(x=>{
     if((S.regRef||[]).some(r=>r.mid===x.mid&&r.d===d&&r.mk===x.mk)) return;
     const m=S.members.find(y=>y.id===x.mid), rec=RECIPES.find(y=>y.id===x.meal.r);
-    registarRefeicao({d, mk:x.mk, r:x.meal.r, ac:acIds(x.meal),
+    registarRefeicao({d, mk:x.mk, r:x.meal.r, ac:acIds(x.meal), mo:moId(x.meal),
       dose: m&&rec? doseSugerida(m,rec,x.mk) : 1}, [x.mid], 'feita'); nR++;
   });
   p.ativ.forEach(x=>{
@@ -24337,11 +24386,13 @@ function avisoLadoNosFiltros(r){
   const linhas=f.maus.map(x=>{
     const porque=x.dietas.map(k=>'não é '+nomeDieta(k).toLowerCase())
       .concat(x.alergs.map(k=>'traz '+RESTR[k].n.toLowerCase())).join(' e ');
-    const sub=x.molho? null : acSubstitutoFiltros(x.a,dF,aF,(r.acIds||[]));
+    const sub=acSubstitutoFiltros(x.a,dF,aF,(r.acIds||[]).concat(r.moId? [r.moId]:[]));
+    const p=x.molho? palavraMolho(pratoBaseDe(r)) : '';
     return '<b>'+esc(x.a.n)+'</b> '+esc(porque)
       +(sub? ' — troca por <b>'+esc(sub.n)+'</b>'
         +' <button class="btn small" style="margin-left:6px" onclick="trocarLadoDoCombo(&quot;'+r.id+'&quot;,&quot;'+x.a.id+'&quot;,&quot;'+sub.id+'&quot;)">Trocar</button>'
-        : (x.molho? ' — tira o molho' : ' — e não há alternativa que cumpra os filtros'));
+        : (x.molho? ' — e não há outr'+(artigoMolho(pratoBaseDe(r))==='a'?'a':'o')+' '+esc(p)+' que cumpra os filtros; tirá-l'+artigoMolho(pratoBaseDe(r))+' resolve'
+                  : ' — e não há alternativa que cumpra os filtros'));
   });
   return `<div class="aviso warn" style="margin-top:6px">
     <b>O prato cumpre; o que vai ao lado é que não.</b>
@@ -24353,17 +24404,28 @@ function avisoLadoNosFiltros(r){
    existir como qualquer outro que alguém componha no plano. */
 function trocarLadoDoCombo(comboId,acId,novoId){
   const r=RECIPES.find(x=>x.id===comboId); if(!r || !ehCombo(r)) return;
-  const acs=(r.acIds||[]).map(id=>id===acId? novoId : id);
-  const novo=idCombo(r.base, acs, r.moId||'');
-  registaCombo(r.base, acs, r.moId||'');
+  /* A parte que se troca tanto pode ser um acompanhamento como o molho: sem
+     este ramo, carregar em «Trocar» num molho recompunha o mesmo par e a
+     pessoa via a app não fazer nada. */
+  const trocaMolho = r.moId===acId;
+  const acs=trocaMolho? (r.acIds||[]).slice() : (r.acIds||[]).map(id=>id===acId? novoId : id);
+  const mo=trocaMolho? novoId : (r.moId||'');
+  const novo=idCombo(r.base, acs, mo);
+  registaCombo(r.base, acs, mo);
   const feito=RECIPES.find(x=>x.id===novo);
   if(!feito) return flash('warn','Não consegui compor esse par.');
   const a=RECIPES.find(x=>x.id===acId), b=RECIPES.find(x=>x.id===novoId);
   flash('ok',(a&&b? esc(a.n)+' → '+esc(b.n)+'. ' : '')+'O prato é o mesmo.',{rot:'Anular', fn:'desfazer()'});
   abrirFicha(novo, porcoesAtuais());
 }
+/* Serve os dois lugares: pede-se-lhe um substituto para o que falha, e ela vai
+   buscá-lo à prateleira certa — molho por molho, acompanhamento por
+   acompanhamento. Enquanto só olhava aos acompanhamentos, um par que falhava
+   por causa do molho só sabia dizer «tira o molho»: o acompanhamento tinha
+   direito a uma proposta concreta e o molho não, sendo o mesmo problema. */
 function acSubstitutoFiltros(ac,dietas,alergs,excluir){
-  const cands=acompanhamentos().filter(x=>
+  const pool=ehMolho(ac)? molhos().filter(x=>ehSobremesa(x)===ehSobremesa(ac)) : acompanhamentos();
+  const cands=pool.filter(x=>
     x.id!==ac.id && (excluir||[]).indexOf(x.id)<0
     && (dietas||[]).every(k=>(x.dc||[]).indexOf(k)>=0)
     && (alergs||[]).every(k=>(x.at||[]).indexOf(k)<0));
@@ -25029,9 +25091,13 @@ function apagarReceita(id){
      o plano lê como refeição vazia sem dizer porquê */
   Object.values(S.plans).forEach(w=>Object.values(w).forEach(d=>MEALK.forEach(k=>{
     if(!d[k]) return;
-    if(d[k].r===id){ d[k].r=''; d[k].ac=[]; delete d[k].acPor; }
+    if(d[k].r===id){ d[k].r=''; d[k].ac=[]; d[k].mo=''; delete d[k].acPor; }
     else {
       d[k].ac=acIds(d[k]).filter(x=>x!==id);
+      /* o molho também aponta para uma receita, e ficava a apontar para uma
+         apagada: `moId` limpa-o na leitura, mas o plano guardado ficava com
+         um id morto lá dentro para sempre */
+      if(d[k].mo===id) d[k].mo='';
       /* Os pratos individuais também apontam para receitas, e ficavam a
          apontar para uma que já não existe: a lista de compras deixava de
          comprar da travessa para essa pessoa E não comprava nada para ela —
@@ -26581,7 +26647,7 @@ function confirmarTodasRef(mid){
   pend.forEach(p=>{
     if((S.regRef||[]).some(r=>r.mid===mid&&r.d===p.d&&r.mk===p.mk)) return;
     const rec=RECIPES.find(x=>x.id===p.meal.r);
-    registarRefeicao({d:p.d, mk:p.mk, r:p.meal.r, ac:acIds(p.meal),
+    registarRefeicao({d:p.d, mk:p.mk, r:p.meal.r, ac:acIds(p.meal), mo:moId(p.meal),
       dose: rec? doseSugerida(m,rec,p.mk) : 1}, [mid], 'feita');
   });
   save('refeições confirmadas');
@@ -26593,7 +26659,7 @@ function ignorarTodasRef(mid){
   const pend=pendentesRef(m);
   if(!pend.length) return;
   if(!confirm('Marcar '+plural(pend.length,'refeição','refeições')+' por confirmar como não realizadas?')) return;
-  pend.forEach(p=>registarRefeicao({d:p.d, mk:p.mk, r:p.meal.r, ac:acIds(p.meal), dose:1},[mid],'falhada'));
+  pend.forEach(p=>registarRefeicao({d:p.d, mk:p.mk, r:p.meal.r, ac:acIds(p.meal), mo:moId(p.meal), dose:1},[mid],'falhada'));
   save('refeições por confirmar'); render();
 }
 function abrirValRef(chave){ S.ui.valRefAberto = S.ui.valRefAberto===chave? null : chave; saveMeta(); render(); }
@@ -30314,7 +30380,7 @@ function setMeal(di,mk,rid){
   /* mudar o prato com acompanhamentos já postos é um par novo: «Bife com
      arroz» que passa a «Frango com arroz» é outra variante, e é agora que
      ela nasce */
-  else registaCombo(rid, acIds(meal));
+  else registaCombo(rid, acIds(meal), moId(meal));
   save('escolha de refeição'); render(); }
 /* Trocar um acompanhamento por outro é mudar o seletor daquela linha; deixar
    o seletor vazio é tirar aquela linha, e as que ficam voltam a repartir o
@@ -30414,6 +30480,12 @@ function ehComplementoDoce(r){ return ehMolho(r) && ehSobremesa(r); }
 /* A palavra que a interface usa para o lugar do molho: numa sobremesa é uma
    cobertura, e chamar-lhe molho fazia a app soar a quem nunca comeu o prato. */
 function palavraMolho(prato){ return ehSobremesa(prato)? 'cobertura' : 'molho'; }
+/* «O molho» e «a cobertura»: as duas palavras não têm o mesmo género, e sem
+   isto a app escrevia «A molho conta por inteiro» em todos os pratos
+   salgados. O artigo anda sempre com a palavra, e por isso vive aqui ao lado
+   dela — quem acrescentar uma terceira palavra não se esquece do género. */
+function artigoMolho(prato){ return ehSobremesa(prato)? 'a' : 'o'; }
+function esseMolho(prato){ return ehSobremesa(prato)? 'essa' : 'esse'; }
 function iconeMolho(prato){ return ehSobremesa(prato)? '🍓' : '🥄'; }
 function molhos(){ return RECIPES.filter(ehMolho); }
 function moId(meal){
@@ -30490,8 +30562,12 @@ function diagnosticoMesa(prato,acs,mo,comem,mk,meal){
    em calorias, de entre os que servem essa pessoa. Parecido em calorias porque
    é isso que mantém a refeição equilibrada — trocar 280 kcal de batatas fritas
    por 40 de alface muda o jantar, não o conserta. */
+/* Serve os dois lugares, como a irmã que responde aos filtros: um molho
+   procura-se entre molhos, e uma cobertura entre coberturas. */
 function acSubstituto(acOriginal,m,mk,jaUsados){
-  const cands=acompanhamentos().filter(x=>
+  const pool=ehMolho(acOriginal)
+    ? molhos().filter(x=>ehSobremesa(x)===ehSobremesa(acOriginal)) : acompanhamentos();
+  const cands=pool.filter(x=>
     x.id!==acOriginal.id && (jaUsados||[]).indexOf(x.id)<0 && avaliaReceita(x,[m],mk,false).ok);
   if(!cands.length) return null;
   return cands.slice().sort((a,b)=>
@@ -30878,6 +30954,20 @@ function planearSugestao(rid,valor,el){
     if(jaLa.length>=MAX_AC) return flash('warn','Mais do que '+MAX_AC+' acompanhamentos deixam de ser acompanhamento.');
     meal.ac=jaLa.concat(rid);
   }
+  /* ---- O molho vai para o lugar do molho ----
+     Planear um chimichurri punha-o como PRATO do jantar, e o jantar que lá
+     estava desaparecia: era o único dos três que não tinha caminho próprio
+     aqui. Tem as mesmas regras do acompanhamento — precisa de um prato ao pé
+     dele — e a sua, que é ser um só: escolher outro troca o que está. */
+  else if(ehMolho(r)){
+    if(!meal.r) return flash('warn','Escolhe primeiro o prato desta refeição: o molho vai por cima dele.');
+    const prato=RECIPES.find(x=>x.id===meal.r);
+    const p=palavraMolho(prato), art=artigoMolho(prato);
+    if(moId(meal)===rid) return flash('warn',esseMolho(prato).charAt(0).toUpperCase()+esseMolho(prato).slice(1)+' '+p+' já está nesta refeição.');
+    const antes=molhoDe(meal);
+    meal.mo=rid;
+    if(antes) flash('ok',art.toUpperCase()+' '+p+' passou de '+esc(antes.n)+' para '+esc(r.n)+' — só há lugar para um'+(art==='a'?'a':'')+'.');
+  }
   else { meal.r=rid; }
   const ids=selSug(); if(ids.length) meal.m=ids.slice();
   if(el) el.value='';
@@ -30972,7 +31062,11 @@ const MOTIVO_CURTO={dieta:'dieta',ingredientes:'ingrediente',calorias:'calorias'
    quando o problema é mesmo só do lado, porque é o único caso em que há uma
    saída que não obriga a mudar o jantar de todos. */
 function blocoAcIncompativel(r,comem,mk,acs,mo,di){
-  if(!r || !comem.length || !(acs||[]).length) return '';
+  /* A guarda pedia acompanhamentos para sequer olhar para a mesa, e por isso
+     um jantar SÓ com molho — bife com molho de mostarda, e alguém com alergia
+     a mostarda — não dizia nada a ninguém. O molho conta para abrir o aviso
+     como qualquer outra parte do lado. */
+  if(!r || !comem.length || (!(acs||[]).length && !mo)) return '';
   const meal=di!==undefined? (planWeek()[di]||{})[mk] : null;
   const d=diagnosticoMesa(r,acs,mo,comem,mk,meal);
   if(!d.resolvivel) return '';
@@ -30990,9 +31084,16 @@ function blocoAcIncompativel(r,comem,mk,acs,mo,di){
     linhas.push('<b>'+esc(a.n)+'</b> não serve '+esc(enumera(quem))
       +(sub? ' — mas <b>'+esc(sub.n)+'</b> serve.' : ' e não encontrei alternativa dentro da dieta.'));
   });
-  if(d.moFalha.length){
+  if(d.moFalha.length && mo){
     const quem=d.moFalha.map(id=>{ const m=comem.find(x=>x.id===id); return m? nomeCurto(m):''; }).filter(Boolean);
-    linhas.push('O molho não serve '+esc(enumera(quem))+' — tira-o do prato de quem não o pode comer.');
+    const um=comem.find(x=>x.id===d.moFalha[0]);
+    /* o molho merece a mesma proposta concreta que o acompanhamento: dizer só
+       «tira-o» é deixar o trabalho todo do lado de quem cozinha */
+    const sub=um? acSubstituto(mo,um,mk,[mo.id]) : null;
+    const p=palavraMolho(r), art=artigoMolho(r);
+    linhas.push('<b>'+esc(mo.n)+'</b> não serve '+esc(enumera(quem))
+      +(sub? ' — mas <b>'+esc(sub.n)+'</b> serve.'
+           : ' e não encontrei outr'+(art==='a'?'a':'o')+' '+esc(p)+' dentro da dieta: tirá-l'+art+' resolve, e o prato fica igual.'));
   }
   if(!linhas.length) return '';
   const temTroca=Object.keys(d.porAc).length>0;
@@ -33051,7 +33152,15 @@ function lerPacote(txt){
       const or={};
       MEALK.forEach(mk=>{ const r=refs[mk]; if(!r || typeof r!=='object') return;
         const mm=Array.isArray(r.m)? r.m.map(idOk).filter(Boolean) : [];
-        const o={ r: receitaExiste(r.r)? String(r.r):'', ac: acLimpo(r.ac), m: mm };
+        /* O molho é uma parte da refeição como o acompanhamento, e era a única
+           que não voltava da cópia: restaurar deixava o bife sem o molho de
+           mostarda com que foi planeado — sem aviso, e com a lista de compras
+           a deixar de o comprar. Só entra se for mesmo um molho no catálogo:
+           um acompanhamento neste lugar não é um erro benigno, porque as
+           contas contam-no por inteiro em vez de à fatia. */
+        const moIn=(typeof r.mo==='string' && r.mo)? RECIPES.find(x=>x.id===r.mo) : null;
+        const o={ r: receitaExiste(r.r)? String(r.r):'', ac: acLimpo(r.ac),
+          mo: (moIn && ehMolho(moIn))? r.mo : '', m: mm };
         /* porções em dobro, marmitas e convidados vêm com a refeição */
         const dob=parseFloat(r.dobro); if(isFinite(dob)&&dob>1) o.dobro=Math.min(4,Math.round(dob*10)/10);
         if(Array.isArray(r.marmita)){ const mar=r.marmita.map(idOk).filter(x=>x&&mm.indexOf(x)>=0);
