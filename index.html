@@ -14264,6 +14264,41 @@ function gramasHortofruticolas(r){
     return t+(gramasDe(nome,x[1],x[2])||0);
   },0);
 }
+/* ---- As peças de uma refeição, num sítio só ----
+   Uma refeição são quatro coisas — o prato, os acompanhamentos, o molho e a
+   massa de base — e cada uma entra nas contas com um peso próprio: o prato e
+   o molho e a massa por inteiro, os acompanhamentos à fatia que repartem
+   entre si. Havia SEIS funções a redescobrir isto sozinhas, e cinco delas
+   tinham parado nos acompanhamentos: a cobertura da despensa, a preparação de
+   véspera, o plano de lote, as trocas baratas e a conta das plantas da semana
+   não sabiam que os molhos existem. Quem planeava picanha com chimichurri via
+   «tens tudo» sem a salsa em casa, e o pesto não contava como planta.
+   Agora é uma pergunta só, e quem a fizer recebe tudo o que lá está. */
+function pecasDaRefeicao(meal){
+  if(!meal || !meal.r) return [];
+  const rec=RECIPES.find(x=>x.id===meal.r); if(!rec) return [];
+  const acs=acompsDe(meal), fatia=fatiaAc(acs);
+  const out=[{r:rec, peso:1}];
+  acs.forEach(a=>out.push({r:a, peso:fatia}));
+  const mo=molhoDe(meal); if(mo) out.push({r:mo, peso:1});
+  const ma=massaDe(meal); if(ma) out.push({r:ma, peso:1, i:ingredientesMassa(ma)});
+  return out;
+}
+/* O mesmo para uma refeição JÁ REGISTADA, que guarda ids em vez de objetos. */
+function pecasDoRegisto(reg){
+  if(!reg || !reg.r) return [];
+  const rec=RECIPES.find(x=>x.id===reg.r); if(!rec) return [];
+  const acs=(reg.ac||[]).map(id=>RECIPES.find(x=>x.id===id)).filter(Boolean);
+  const fatia=fatiaAc(acs);
+  const out=[{r:rec, peso:1}];
+  acs.forEach(a=>out.push({r:a, peso:fatia}));
+  const mo=moRec(reg.mo); if(mo) out.push({r:mo, peso:1});
+  const ma=maRec(reg.ma); if(ma) out.push({r:ma, peso:1, i:ingredientesMassa(ma)});
+  return out;
+}
+/* Os ingredientes de uma peça: os dela, ou os do pacote se a massa for
+   comprada feita. */
+function ingredientesDaPeca(p){ return p.i || p.r.i || []; }
 function hortofruticolasDia(mid,d){
   return regRefDe(mid).filter(r=>r.d===d&&r.estado==='feita').reduce((t,r)=>{
     const rec=RECIPES.find(x=>x.id===r.r); if(!rec) return t;
@@ -14285,8 +14320,10 @@ function plantasDaSemana(mid,dias){
   const h=hojeISO(), vistos={};
   for(let i=0;i<(dias||7);i++){ const d=addDias(h,-i);
     regRefDe(mid).filter(r=>r.d===d&&r.estado==='feita').forEach(r=>{
-      const recs=[RECIPES.find(x=>x.id===r.r)].concat((r.ac||[]).map(id=>RECIPES.find(x=>x.id===id))).filter(Boolean);
-      recs.forEach(rec=>(rec.i||[]).forEach(x=>{
+      /* o molho conta como planta: um pesto é manjericão, pinhões e alho, e
+         um chimichurri é salsa — deixá-los de fora era subestimar a
+         variedade de quem tempera bem */
+      pecasDoRegisto(r).forEach(p=>ingredientesDaPeca(p).forEach(x=>{
         const g=grupoDoItem({n:x[0]});
         if(g===2 || /feijão|grão-de-bico|lentilha|ervilha|fava|quinoa|aveia|amêndoa|noz|caju|semente|arroz integral/i.test(x[0])) vistos[x[0]]=1;
       }));
@@ -17199,10 +17236,8 @@ function trocasBaratas(dates){
     const meal=wk[di]&&wk[di][mk]; if(!meal||!meal.r) return;
     const comem=S.members.filter(m=>meal.m.includes(m.id)&&!isCheat(m.id,semana[di]));
     if(!comem.length) return;
-    const pratos=[RECIPES.find(x=>x.id===meal.r)].concat(acompsDe(meal)).filter(Boolean);
-    pratos.forEach((rec,idx)=>{
-      const fatia=idx===0? 1 : fatiaAc(acompsDe(meal));
-      escalaIngredientes(rec, comem.length, fatia).forEach(x=>{
+    pecasDaRefeicao(meal).forEach(p=>{
+      escalaIngredientes({i:ingredientesDaPeca(p)}, comem.length, p.peso).forEach(x=>{
         const k=x.n+'|'+x.u;
         usados[k]=(usados[k]||0)+x.q;
       });
@@ -18640,7 +18675,7 @@ function planoDeLote(){
       if(bases[b.k].dias.indexOf(di)<0) bases[b.k].dias.push(di);
       if(bases[b.k].receitas.indexOf(rec.n)<0) bases[b.k].receitas.push(rec.n);
     });
-    junta(rec.i,1); acs.forEach(x=>junta(x.i,q));
+    pecasDaRefeicao(meal).forEach(p=>junta(ingredientesDaPeca(p), p.peso));
   });
   /* só vale a pena cozinhar em lote o que serve dois dias ou mais */
   return Object.values(bases).filter(b=>b.dias.length>=2)
@@ -20404,7 +20439,9 @@ function planoFoodPrep(wk){
         if(tarefas[k].receitas.indexOf(rec.n)<0) tarefas[k].receitas.push(rec.n);
       });
     });
-    junta(rec.i,1); acs.forEach(x=>junta(x.i,q));
+    /* o molho e a massa também se preparam de véspera: a salsa do chimichurri
+       pica-se no domingo como a do resto */
+    pecasDaRefeicao(meal).forEach(p=>junta(ingredientesDaPeca(p), p.peso));
   });
   return Object.values(tarefas)
     .filter(t=>t.dias.length>=1 && t.q>0)
@@ -32810,10 +32847,10 @@ function coberturaDespensa(dates){
   dates.forEach((date,di)=>{
     MEALK.forEach(mk=>{
       const meal=(planWeek()[di]||{})[mk]; if(!meal||!meal.r) return;
-      const rec=RECIPES.find(x=>x.id===meal.r); if(!rec) return;
       if(!S.members.some(x=>(meal.m||[]).includes(x.id)&&!isCheat(x.id,date))) return;
-      (rec.i||[]).forEach(l=>{ precisa[l[0]]=1; });
-      acompsDe(meal).forEach(a=>(a.i||[]).forEach(l=>{ precisa[l[0]]=1; }));
+      /* tudo o que a refeição leva, e não só o prato e os acompanhamentos:
+         um molho tem ingredientes que também é preciso ter em casa */
+      pecasDaRefeicao(meal).forEach(p=>ingredientesDaPeca(p).forEach(l=>{ precisa[l[0]]=1; }));
     });
   });
   const nomes=Object.keys(precisa);
