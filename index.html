@@ -14375,14 +14375,52 @@ function refeicaoNaJanela(mid,mk){
    — arredondar um dia de jejum para cima ou para baixo são 2000 kcal de erro. */
 /* JEJUM_MAX_H está declarado lá em cima, com o MAX_AC: os saneadores do
    arranque precisam dele antes deste ponto do ficheiro. */
+/* ---- Um jejum tem hora de início e hora de fim ----
+   Guardava-se dia + hora inteira + duração em horas inteiras, e isso chega
+   para a conta do dia mas não para o que a pessoa escreve: um jejum começa às
+   20h30 de terça e acaba às 8h15 de quinta. As horas passam a levar minutos
+   (guardadas em fração de hora, que é a unidade em que todas as contas de
+   jejum já trabalham) e o quarto de hora é a resolução — é o que uma pessoa
+   consegue dizer com honestidade sobre a hora a que deixou de comer. */
 function limparJejumPontual(x,ids){
   if(!x||typeof x!=='object') return null;
   if(!dataValida(x.d)) return null;
   const mid=String(x.mid||''); if(ids && ids.indexOf(mid)<0) return null;
-  const horas=clampNum(Math.round(parseFloat(x.horas)||24),12,JEJUM_MAX_H);
+  const q=v=>Math.round(v*4)/4;
+  const horas=clampNum(q(parseFloat(x.horas)||24),12,JEJUM_MAX_H);
   return {id:limparId(x.id), mid, d:x.d, horas,
-    inicio:clampNum(Math.round(parseFloat(x.inicio)||20),0,23),
+    inicio:clampNum(q(parseFloat(x.inicio)||20),0,23.75),
     agua: x.agua===false? false : true};
+}
+/* Uma fração de hora escrita como o relógio a mostra. */
+function hhmmJejum(h){
+  const t=Math.round(((h%24)+24)%24*60);
+  return String(Math.floor(t/60)).padStart(2,'0')+'h'+String(t%60).padStart(2,'0');
+}
+/* O fim de um jejum, em data e hora. */
+function fimDeJejum(j){
+  const total=j.inicio+j.horas;
+  return {d:addDias(j.d, Math.floor(total/24)), h:total%24};
+}
+/* «das 20h30 de 1 de setembro às 8h15 de 3 de setembro» — a frase que a
+   pessoa escreveu, devolvida na mesma forma. */
+function periodoJejumTexto(j,curto){
+  const f=fimDeJejum(j);
+  const dt=curto? fmtCurto : fmtShort;
+  return 'das '+hhmmJejum(j.inicio)+' de '+dt(j.d)+' às '+hhmmJejum(f.h)+' de '+dt(f.d);
+}
+/* Os jejuns de alguém, do mais recente para o mais antigo. */
+function jejunsDe(mid){
+  return jejumCfg().pontuais.filter(j=>j.mid===mid)
+    .slice().sort((a,b)=> a.d===b.d? b.inicio-a.inicio : (a.d<b.d?1:-1));
+}
+/* Os jejuns que tocam uma janela de datas — é o que o gráfico do peso sombreia. */
+function jejunsNaJanela(mid,ini,fim){
+  return jejumCfg().pontuais.filter(j=>{
+    if(j.mid!==mid) return false;
+    const f=fimDeJejum(j);
+    return !(f.d<ini || j.d>fim);
+  });
 }
 function limparJejum(o,ids){
   const d={im:{}, pontuais:[]};
@@ -21964,6 +22002,22 @@ function graficoPesoSvg(m){
     if(p.length<2) return '';
     return `<polyline points="${p.join(' ')}" fill="none" class="${classe}" stroke-width="1.3" opacity=".65"/>`;
   };
+  /* ---- Os jejuns, sombreados por baixo da curva ----
+     Uma queda de dois quilos numa semana lê-se de maneira diferente conforme
+     tenha havido dois dias sem comer pelo meio. A banda vermelha põe as duas
+     coisas no mesmo eixo: é a única forma de o gráfico não mentir por omissão.
+     Desenha-se ANTES da grelha e da curva, para ficar por baixo de tudo. */
+  const bandasJejum=jejunsNaJanela(m.id, ini, h).map(j=>{
+    const f=fimDeJejum(j);
+    const xa=X(j.d)+((X1-X0)/(dias-1||1))*(j.inicio/24);
+    const xb=X(f.d)+((X1-X0)/(dias-1||1))*(f.h/24);
+    const a=clampNum(Math.min(xa,xb),X0,X1), b=clampNum(Math.max(xa,xb),X0,X1);
+    /* Um jejum que só toca a janela pela ponta ficava com zero de largura e
+       desaparecia: dá-se-lhe um pixel, que é o mínimo para se ver. */
+    const larg=Math.max(1,b-a);
+    return `<rect x="${a.toFixed(1)}" y="${Y0}" width="${larg.toFixed(1)}" height="${Y1-Y0}"
+      class="f-bad" opacity=".13"><title>Jejum ${periodoJejumTexto(j)} — ${textoDuracaoJejum(j.horas)}</title></rect>`;
+  }).join('');
   const svgAtiv=L.ativ? desenhaSerie(serie(d=>regAtivDe(m.id).filter(r=>r.d===d&&r.estado==='feita').reduce((t,r)=>t+kcalRegAtiv(r),0)),'s-energy') : '';
   const svgKcal=L.kcal? desenhaSerie(serie(d=>ingeridoRealDia(m.id,d).k),'s-acc') : '';
   const grelha=[0,0.5,1].map(t=>{ const p=pmin+(pmax-pmin)*t;
@@ -21971,7 +22025,7 @@ function graficoPesoSvg(m){
       <text x="${X0-4}" y="${(Y(p)+3).toFixed(1)}" font-size="9.5" text-anchor="end" class="f-mut" style="font-variant-numeric:tabular-nums">${nPT(p,1)}</text>`;}).join('');
   return {pts:pts.length, svg:`<svg class="svgfx" viewBox="0 0 ${W} ${H}" role="img"
       aria-label="Evolução do peso de ${esc(m.nome)} em ${JANELAS[jan][1]}">
-    ${grelha}${svgAtiv}${svgKcal}
+    ${bandasJejum}${grelha}${svgAtiv}${svgKcal}
     ${pts.length>1? `<polyline points="${linha}" fill="none" class="s-ink" stroke-width="2"/>`:''}
     ${/* O ponto visível fica pequeno de propósito — é a leitura da curva que
          interessa —, e por isso o alvo do rato é outro círculo, invisível e
@@ -22000,7 +22054,10 @@ function cartaoPeso(){
   return `<div class="card" id="peso-hist" data-col="fam-peso" style="margin-top:16px">
     <div class="row" style="justify-content:space-between">
       <div><span class="lbl">Peso</span><h2 style="margin-top:2px">Evolução de ${esc(m.nome.split(' ')[0])} ${dica('pesoHist')}</h2></div>
-      <button class="btn small" onclick="abrirPesagens('${m.id}')">+ Registar pesagem</button></div>
+      <div class="row" style="gap:6px">
+      <button class="btn small" onclick="abrirPesagens('${m.id}')">+ Registar pesagem</button>
+        ${jejumDesaconselhado(m)? '' : `<button class="btn ghost small" onclick="abrirNovoJejum('${m.id}')">⏳ Registar jejum</button>`}
+      </div></div>
     <div class="row" style="margin-top:10px">${S.members.map(x=>`<button class="chip ${x.id===m.id?'on':''}"
       onclick="pickM('${x.id}')">${avatar(x,20)} ${esc(x.nome.split(' ')[0])}</button>`).join('')}</div>
     <div class="row" style="margin-top:10px">
@@ -22028,6 +22085,22 @@ function cartaoPeso(){
           <div class="reg-acoes"><button class="btn danger small" aria-label="Apagar pesagem de ${fmtShort(x.d)}"
             onclick="removerMedicao('${m.id}','${x.d}')">✕</button></div></div>`).join('')}</div>
       </details>`}
+      ${(function(){
+        /* Os jejuns registados, por baixo do gráfico e não noutro separador:
+           é aqui que a banda vermelha aparece, e é aqui que se pergunta o que
+           ela é. A lista é a legenda da banda. */
+        const js=jejunsDe(m.id); if(!js.length) return '';
+        const naJan=jejunsNaJanela(m.id, ini, hojeISO()).length;
+        return `<details class="quant" style="margin-top:8px"><summary>Jejuns registados (${js.length}${naJan?', '+naJan+' nesta janela':''})</summary>
+          <p class="sub" style="margin-top:6px">A faixa vermelha no gráfico é cada um destes períodos. Serve para ler
+            o que a balança mostra: uma queda de dois quilos numa semana diz outra coisa se houve dois dias sem comer pelo meio —
+            boa parte disso é água e conteúdo intestinal, e volta.</p>
+          <div style="margin-top:6px">${js.map(j=>`<div class="reg-linha">
+            <div class="rl-corpo"><b>${textoDuracaoJejum(j.horas)}</b> <span class="sub">· ${periodoJejumTexto(j)}${j.agua?'':' · seco'}</span></div>
+            <div class="reg-acoes"><button class="btn danger small" aria-label="Apagar o jejum ${esc(periodoJejumTexto(j,true))}"
+              onclick="apagarJejumPontual('${j.id}')">✕</button></div></div>`).join('')}</div>
+        </details>`;
+      })()}
     ${pts.length? blocoTrajetoria(m):''}
   </div>`;
 }
@@ -22051,13 +22124,49 @@ function cartaoPeso(){
    janela pode ser de sete dias, e o que se pede é dizer em voz alta quando o
    ajuste assenta em pouco. */
 const TRAJ_BASES=[7,14,30], TRAJ_HORIZ=[7,14,30,60,90];
+/* ---- Jejum e exercício na simulação ----
+   `jsem` são as horas de jejum POR SEMANA que se quer simular (0, 24, 48 ou
+   72) e `exN` é o escalão de exercício. Os dois traduzem-se para o mesmo par
+   de números que a ferramenta já usava — kcal/dia a menos na alimentação e
+   kcal/dia a mais de gasto —, porque a conta da trajetória é uma só e não
+   ganha nada em ter três. O que muda é a pergunta que se faz ao utilizador:
+   ninguém sabe quantas calorias são um jejum de 48 horas, mas toda a gente
+   sabe o que são dois dias sem comer.
+
+   O jejum entra pelo lado da ALIMENTAÇÃO e não do gasto: quem jejua não gasta
+   mais, come menos. A energia não ingerida numa semana é o gasto total dessas
+   horas, dividido por sete para dar a média diária.
+
+   Os escalões de exercício saem dos mínimos da OMS para adultos (150 min por
+   semana de intensidade moderada, ou 75 de vigorosa) e do compêndio de METs:
+   leve ≈ 3 MET, moderado ≈ 5, vigoroso ≈ 8. A conta por minuto é a de sempre,
+   MET × 3,5 × peso ÷ 200, e por isso o mesmo escalão dá números diferentes a
+   pessoas diferentes — que é como tem de ser. */
+const TRAJ_JEJUM_H=[0,24,48,72];
+const TRAJ_EXER={
+  0:      {t:'Nenhum',  met:0, min:0,   d:'Sem mexer-se mais do que hoje.'},
+  leve:   {t:'Leve',    met:3, min:150, d:'150 min por semana de caminhada, jardinagem ou bicicleta a passo de conversa — o mínimo que a OMS aponta.'},
+  medio:  {t:'Médio',   met:5, min:210, d:'210 min por semana a passo animado, natação ou bicicleta: a meio da faixa dos 150 a 300 que a OMS recomenda.'},
+  intenso:{t:'Intenso', met:8, min:150, d:'150 min por semana de corrida, HIIT ou desporto de equipa — o dobro do mínimo vigoroso da OMS.'}
+};
+function kcalDiaExer(m,esc){
+  const e=TRAJ_EXER[esc]; if(!e||!e.met) return 0;
+  return Math.round(e.met*3.5*(parseFloat(m.peso)||70)/200 * e.min / 7);
+}
+/* O que um jejum semanal tira à média diária de energia ingerida. */
+function kcalDiaJejum(m,horasSem){
+  if(!horasSem) return 0;
+  return Math.round(tdee(m)*horasSem/24/7);
+}
 function trajCfg(){
-  if(!S.ui.traj||typeof S.ui.traj!=='object') S.ui.traj={base:14,hor:30,dieta:0,exer:0,alvo:null};
+  if(!S.ui.traj||typeof S.ui.traj!=='object') S.ui.traj={base:14,hor:30,dieta:0,exer:0,alvo:null,jsem:0,exN:0};
   const c=S.ui.traj;
   if(TRAJ_BASES.indexOf(c.base)<0) c.base=14;
   if(TRAJ_HORIZ.indexOf(c.hor)<0) c.hor=30;
   c.dieta=clampNum(Math.round(parseFloat(c.dieta)||0),-500,500);
   c.exer=clampNum(Math.round(parseFloat(c.exer)||0),0,600);
+  if(TRAJ_JEJUM_H.indexOf(c.jsem)<0) c.jsem=0;
+  if(!TRAJ_EXER[c.exN]) c.exN=0;
   const a=parseFloat(c.alvo); c.alvo=(isFinite(a)&&a>20&&a<300)? Math.round(a*10)/10 : null;
   return c;
 }
@@ -22084,9 +22193,26 @@ function ajusteTrajetoria(mid,dias){
 /* O declive planeado: o observado, mais o que os dois cursores lhe fazem.
    `dieta` é a MUDANÇA na alimentação (negativo = comer menos), `exer` é o
    gasto extra. Ambos em kcal por dia. */
-function declivePlaneado(fit,c){ return fit.m+(c.dieta-c.exer)/7700; }
+/* O que os quatro controlos somam, em kcal por dia. `dieta` negativa é comer
+   menos — e o jejum entra por aí. `exer` é gasto extra. */
+function efeitoTraj(m,c){
+  return {dieta:(c.dieta||0) - kcalDiaJejum(m,c.jsem||0),
+          exer:(c.exer||0) + kcalDiaExer(m,c.exN||0)};
+}
+function declivePlaneado(fit,c,m){
+  const e=m? efeitoTraj(m,c) : {dieta:c.dieta, exer:c.exer};
+  return fit.m+(e.dieta-e.exer)/7700;
+}
 function leque(fit,d){ return fit.sd*1.96*Math.sqrt(1+Math.max(0,d)/Math.max(1,fit.span)); }
 function tomRitmo(kgSem){ const a=Math.abs(kgSem); return a<=0.75?'ok':a<=1?'warn':'bad'; }
+function limparTraj(){
+  const c=trajCfg();
+  c.dieta=0; c.exer=0; c.jsem=0; c.exN=0; c.alvo=null;
+  saveMeta(); render();
+}
+/* O jejum e o exercício por escalão: um toque põe, o mesmo toque tira. */
+function setTrajJejum(h){ const c=trajCfg(); c.jsem=(c.jsem===h)? 0 : h; saveMeta(); render(); }
+function setTrajExer(k){ const c=trajCfg(); c.exN=(c.exN===k)? 0 : k; saveMeta(); render(); }
 function setTraj(campo,val){
   const c=trajCfg();
   if(campo==='base'||campo==='hor') c[campo]=parseInt(val,10);
@@ -22104,7 +22230,7 @@ function slideTraj(campo,el){
 function trajSvg(m,fit,c){
   const W=340,H=150,X0=34,X1=332,Y0=12,Y1=H-22, base=c.base, hor=c.hor, total=base+hor, h=hojeISO();
   const X=d=>X0+(X1-X0)*clampNum((d+base)/total,0,1);
-  const mObs=fit.m, mPlan=declivePlaneado(fit,c), p0=fit.p0;
+  const mObs=fit.m, mPlan=declivePlaneado(fit,c,m), p0=fit.p0;
   const yObs=d=>p0+mObs*d, yPlan=d=>p0+mPlan*d;
   const pts=fit.pts.map(p=>({x:diasEntre(h,p.d), y:p.p, d:p.d}));
   /* O alvo do rato cresce até dez, mas nunca passa de metade da distância
@@ -22130,13 +22256,23 @@ function trajSvg(m,fit,c){
   const lequeSvg=fit.sd>0? `<polygon points="${cima.concat(baixo).join(' ')}" class="f-mut" opacity=".13"/>` : '';
   const alvoSvg=c.alvo? `<line x1="${X0}" y1="${f(Y(c.alvo))}" x2="${X1}" y2="${f(Y(c.alvo))}" class="s-acc" stroke-width="1" stroke-dasharray="2 3" opacity=".8"/>
     <text x="${X1}" y="${f(Y(c.alvo)-3)}" font-size="9" text-anchor="end" class="f-acc">alvo ${nPT(c.alvo,1)}</text>` : '';
+  /* Os jejuns já registados, sombreados também aqui: é sobre estas pesagens
+     que a reta é ajustada, e uma tendência puxada por dois dias sem comer não
+     se lê da mesma maneira quando se projeta para a frente. */
+  const bandasJ=jejunsNaJanela(m.id, addDias(h,-base), h).map(j=>{
+    const fj=fimDeJejum(j);
+    const xa=X(diasEntre(h,j.d)+j.inicio/24), xb=X(diasEntre(h,fj.d)+fj.h/24);
+    const a=Math.min(xa,xb), b=Math.max(xa,xb);
+    return `<rect x="${f(a)}" y="${Y0}" width="${f(Math.max(1,b-a))}" height="${Y1-Y0}"
+      class="f-bad" opacity=".12"><title>Jejum ${periodoJejumTexto(j)}</title></rect>`;
+  }).join('');
   return `<svg class="svgfx" viewBox="0 0 ${W} ${H}" role="img"
       aria-label="Trajetória do peso de ${esc(m.nome)}: tendência dos últimos ${base} dias e projeção a ${hor} dias">
-    ${grelha}${lequeSvg}
+    ${bandasJ}${grelha}${lequeSvg}
     <line x1="${f(X(0))}" y1="${Y0}" x2="${f(X(0))}" y2="${Y1}" class="s-line" stroke-dasharray="3 3"/>
     <line x1="${f(X(-base))}" y1="${f(Y(yObs(-base)))}" x2="${f(X(0))}" y2="${f(Y(p0))}" class="s-ink" stroke-width="1.6" opacity=".7"/>
     <line x1="${f(X(0))}" y1="${f(Y(p0))}" x2="${f(X(hor))}" y2="${f(Y(yObs(hor)))}" class="s-mut" stroke-width="1.6" stroke-dasharray="5 4"/>
-    ${(c.dieta||c.exer)? `<line x1="${f(X(0))}" y1="${f(Y(p0))}" x2="${f(X(hor))}" y2="${f(Y(yPlan(hor)))}" class="s-acc" stroke-width="2.4"/>`:''}
+    ${(c.dieta||c.exer||c.jsem||c.exN)? `<line x1="${f(X(0))}" y1="${f(Y(p0))}" x2="${f(X(hor))}" y2="${f(Y(yPlan(hor)))}" class="s-acc" stroke-width="2.4"/>`:''}
     ${alvoSvg}
     ${pts.map(p=>`<circle cx="${f(X(p.x))}" cy="${f(Y(p.y))}" r="2.6" class="f-ink"><title>${fmtLongo(p.d)}: ${nPT(p.y,1)} kg</title></circle>`).join('')}
     ${''/* ---- O que se pode apontar com o cursor ----
@@ -22158,7 +22294,7 @@ function trajSvg(m,fit,c){
     </g>
     <rect class="traj-hit" x="${f(X(0))}" y="${Y0}" width="${f(X1-X(0))}" height="${Y1-Y0}"
       data-hor="${hor}" data-p0="${p0}" data-mobs="${mObs}" data-mplan="${mPlan}"
-      data-plan="${(c.dieta||c.exer)?1:0}" data-sd="${fit.sd||0}" data-span="${fit.span||1}"
+      data-plan="${(c.dieta||c.exer||c.jsem||c.exN)?1:0}" data-sd="${fit.sd||0}" data-span="${fit.span||1}"
       data-pmin="${pmin}" data-pmax="${pmax}" data-y0="${Y0}" data-y1="${Y1}"/>
     <text x="${f(X(-base))}" y="${H-6}" font-size="9.5" class="f-mut">−${base} d</text>
     <text x="${f(X(0))}" y="${H-6}" font-size="9.5" text-anchor="middle" class="f-mut">hoje</text>
@@ -22169,12 +22305,12 @@ function trajCorpoHtml(m){
   const c=trajCfg(), fit=ajusteTrajetoria(m.id,c.base);
   if(fit.fraco==='poucas' && (!fit.m && fit.m!==0)) return `<p class="sub" style="margin-top:8px">Nos últimos ${c.base} dias há ${plural(fit.pts.length,'pesagem','pesagens')}, e uma reta precisa de duas em dias diferentes.
       ${c.base<30? 'Experimenta assentar a tendência em mais dias, ou ' : 'Regista mais pesagens e '}volta cá.</p>`;
-  const mObs=fit.m, mPlan=declivePlaneado(fit,c), p0=fit.p0, hor=c.hor;
+  const mObs=fit.m, mPlan=declivePlaneado(fit,c,m), p0=fit.p0, hor=c.hor;
   const kgSemObs=mObs*7, kgSemPlan=mPlan*7;
   const linhas=TRAJ_HORIZ.map(d=>{ const o=p0+mObs*d, p=p0+mPlan*d, l=leque(fit,d);
     return `<tr class="${d===hor?'traj-eu':''}"><td>+${d} d</td>
       <td style="font-variant-numeric:tabular-nums">${nPT(o,1)} kg${fit.sd>0? ' <span class="sub">± '+nPT(l,1)+'</span>':''}</td>
-      <td style="font-variant-numeric:tabular-nums">${(c.dieta||c.exer)? '<b class="f-acc-txt">'+nPT(p,1)+' kg</b>' : '<span class="sub">—</span>'}</td></tr>`; }).join('');
+      <td style="font-variant-numeric:tabular-nums">${(c.dieta||c.exer||c.jsem||c.exN)? '<b class="f-acc-txt">'+nPT(p,1)+' kg</b>' : '<span class="sub">—</span>'}</td></tr>`; }).join('');
   /* o alvo: quando se chega, ou o que falta para chegar no prazo */
   let alvoTxt='';
   if(c.alvo){
@@ -22198,7 +22334,7 @@ function trajCorpoHtml(m){
     ${fit.fraco? `<p class="sub" style="margin-top:6px">⚠︎ Tendência assente em ${fit.n} pesagens ao longo de ${fit.span} ${fit.span===1?'dia':'dias'}: é pouco para levar a sério. Vale como exercício, não como previsão.</p>`:''}
     <div class="row" style="margin-top:10px">
       <div class="stat"><b class="${tomRitmo(kgSemObs)==='ok'?'':'f-'+tomRitmo(kgSemObs)+'-txt'}">${kgSemObs>0?'+':''}${nPT(kgSemObs,2)} kg/sem</b><span>Tendência dos ${c.base} dias</span></div>
-      ${(c.dieta||c.exer)? `<div class="stat"><b class="f-acc-txt">${kgSemPlan>0?'+':''}${nPT(kgSemPlan,2)} kg/sem</b><span>Com os ajustes</span></div>`:''}
+      ${(c.dieta||c.exer||c.jsem||c.exN)? `<div class="stat"><b class="f-acc-txt">${kgSemPlan>0?'+':''}${nPT(kgSemPlan,2)} kg/sem</b><span>Com os ajustes</span></div>`:''}
     </div>
     <div class="tabela-rolar" style="margin-top:8px"><table class="traj-tab">
       <thead><tr><th>Daqui a</th><th>Se nada mudar</th><th>Com os ajustes</th></tr></thead><tbody>${linhas}</tbody></table></div>
@@ -22213,18 +22349,68 @@ function trajCorpoHtml(m){
           aria-label="Gasto extra em exercício, em calorias por dia" oninput="slideTraj('exer',this)" onchange="saveMeta()">
         <p class="sub" style="margin-top:2px">${c.exer? '≈ '+minCam+' min de caminhada por dia, ao peso de '+esc(nomeCurto(m))+'.' : 'Sem mexer-se mais do que hoje.'}</p></div>
     </div>
+    ${''/* ---- Dois atalhos para os mesmos dois cursores ----
+         Ninguém sabe quantas calorias são um jejum de 48 horas nem 210
+         minutos de bicicleta. Sabem-se as duas coisas pelo nome, e é por elas
+         que a app pergunta — traduzindo depois para os kcal/dia que a conta
+         já usava, com o número à vista para quem o quiser conferir. */}
+    <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
+      <div class="splabel"><span>Exercício, por escalão</span>
+        <output style="min-width:12ch;text-align:right">${c.exN? '+'+kcalDiaExer(m,c.exN)+' kcal/dia' : '—'}</output></div>
+      <div class="row" style="margin-top:6px;gap:6px;flex-wrap:wrap">
+        ${Object.keys(TRAJ_EXER).filter(k=>k!=='0').map(k=>`<button class="chip small ${c.exN===k?'on':''}"
+          aria-pressed="${c.exN===k}" title="${esc(TRAJ_EXER[k].d)}" onclick="setTrajExer('${k}')">${TRAJ_EXER[k].t}</button>`).join('')}
+      </div>
+      <p class="sub" style="margin-top:4px">${c.exN
+        ? esc(TRAJ_EXER[c.exN].d)+' Ao peso de '+esc(nomeCurto(m))+' dá '+kcalDiaExer(m,c.exN)+' kcal por dia, somados ao cursor de cima.'
+        : 'Os escalões seguem os mínimos da Organização Mundial da Saúde para adultos — 150 a 300 minutos por semana de intensidade moderada, ou 75 a 150 de vigorosa.'}</p>
+    </div>
+    ${(function(){
+      /* O jejum só se simula a quem o pode fazer. O bloqueio é o mesmo que
+         impede marcar um jejum a sério — crescimento, gravidez, amamentação,
+         diabetes, baixo peso —, porque simular é o primeiro passo de fazer, e
+         uma app que desenha a linha bonita a quem não devia jejuar já deu o
+         conselho, mesmo sem o escrever. */
+      const bloqueio=jejumDesaconselhado(m);
+      if(bloqueio) return `<div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
+        <div class="splabel"><span>Jejum por semana</span></div>
+        <div class="alerta" style="margin-top:6px"><span aria-hidden="true">⚠️</span><span>${esc(bloqueio)}</span></div></div>`;
+      const kj=kcalDiaJejum(m,c.jsem);
+      return `<div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
+      <div class="splabel"><span>Jejum por semana</span>
+        <output style="min-width:12ch;text-align:right">${c.jsem? '−'+kj+' kcal/dia' : '—'}</output></div>
+      <div class="row" style="margin-top:6px;gap:6px;flex-wrap:wrap">
+        ${TRAJ_JEJUM_H.filter(x=>x).map(x=>`<button class="chip small ${c.jsem===x?'on':''}"
+          aria-pressed="${c.jsem===x}" onclick="setTrajJejum(${x})">${x} h</button>`).join('')}
+      </div>
+      <p class="sub" style="margin-top:4px">${c.jsem
+        ? plural(Math.round(c.jsem/24),'dia inteiro','dias inteiros')+' sem comer por semana. A energia não ingerida é o teu gasto nessas '
+          +c.jsem+' horas — '+Math.round(tdee(m)*c.jsem/24)+' kcal —, que dividido por sete dá '+kj+' kcal por dia. Entra pelo lado da alimentação, e não do gasto: quem jejua não gasta mais, come menos.'
+        : 'Quantas horas por semana sem comer. A conta assume que não se compensa a seguir — e compensa-se quase sempre, em parte.'}</p>
+      ${c.jsem>=48? `<div class="alerta forte" style="margin-top:8px"><span aria-hidden="true">🚨</span><span>
+        <b>Acima de 24 horas seguidas não há recomendação oficial nenhuma para perder peso.</b> O NHS é claro
+        que dietas abaixo das 800 kcal por dia só se seguem com acompanhamento médico, e ${c.jsem} horas por
+        semana ficam muito abaixo disso na média. E o risco maior não é o jejum: é a volta à comida —
+        a síndrome de realimentação. Isto é uma simulação, não um plano.</span></div>`
+        : c.jsem? `<div class="alerta" style="margin-top:8px"><span aria-hidden="true">⚠️</span><span>
+        Um dia por semana sem comer é a versão mais estudada disto, e mesmo essa não tem recomendação
+        oficial para perda de peso — as revisões dizem que dá resultados parecidos com comer menos todos
+        os dias. Se decidires fazê-lo, marca-o em baixo: a app trata a volta à comida com o cuidado devido.</span></div>`:''}
+      ${c.jsem? `<div class="row" style="margin-top:8px"><button class="btn ghost small" onclick="abrirNovoJejum('${m.id}')">⏳ Marcar um jejum a sério</button></div>`:''}
+    </div>`;
+    })()}
     <div class="row" style="margin-top:10px;align-items:center;gap:8px">
       <label class="lbl" for="traj-alvo" style="margin:0">Peso desejado</label>
       <input type="number" id="traj-alvo" class="doses-num" style="width:76px" step="0.1" min="20" max="300" inputmode="decimal"
         value="${c.alvo!=null? c.alvo : ''}" placeholder="kg" aria-label="Peso desejado em quilos" onchange="setTraj('alvo',this.value)">
       <span class="sub">kg</span>
-      ${(c.dieta||c.exer||c.alvo)? `<button class="btn ghost small" style="margin-left:auto" onclick="setTraj('dieta',0);setTraj('exer',0);trajCfg().alvo=null;saveMeta();render()">Limpar</button>`:''}
+      ${(c.dieta||c.exer||c.jsem||c.exN||c.alvo)? `<button class="btn ghost small" style="margin-left:auto" onclick="limparTraj()">Limpar</button>`:''}
     </div>
     <div class="row" style="margin-top:12px;align-items:center;gap:10px;border-top:1px solid var(--line);padding-top:12px">
-      <span class="sub" style="flex:1;min-width:0">${(c.dieta||c.exer)
+      <span class="sub" style="flex:1;min-width:0">${(c.dieta||c.exer||c.jsem||c.exN)
         ? 'Para isto passar de exercício a plano — com dieta, treinos marcados e o alvo de calorias a mudar —, vai para os Objetivos já com estes números.'
         : 'Puxa os cursores para ver a linha dobrar. Quando gostares do que vês, leva-o para os Objetivos.'}</span>
-      <button class="btn small" style="flex:none" onclick="trajParaObjetivo('${m.id}')" ${(c.dieta||c.exer||c.alvo)?'':'disabled'}>🎯 Levar para os Objetivos</button>
+      <button class="btn small" style="flex:none" onclick="trajParaObjetivo('${m.id}')" ${(c.dieta||c.exer||c.jsem||c.exN||c.alvo)?'':'disabled'}>🎯 Levar para os Objetivos</button>
     </div>
     ${S.objetivos.some(o=>!o.concluido&&o.membroId===m.id)? `<div class="row" style="margin-top:8px;align-items:center;gap:10px">
       <span class="sub" style="flex:1;min-width:0">${esc(nomeCurto(m))} já tem um objetivo a decorrer, com alvo de ${Math.round(targetKcal(m))} kcal por dia. A semana pode ser preenchida dentro dele.</span>
@@ -22319,11 +22505,12 @@ function trajParaObjetivo(mid){
   const m=S.members.find(x=>x.id===mid); if(!m||!permiteProjecao(m)) return;
   const c=trajCfg(), fit=ajusteTrajetoria(mid,c.base);
   if(!fit||fit.m==null) return flash('warn','Faltam pesagens para desenhar uma trajetória.');
-  const mPlan=declivePlaneado(fit,c);
+  const mPlan=declivePlaneado(fit,c,m);
   const alvo = c.alvo!=null? c.alvo : Math.round((fit.p0+mPlan*c.hor)*10)/10;
   const delta=Math.abs(alvo-m.peso);
   if(delta<0.3) return flash('warn','O alvo é o peso de hoje: não há objetivo a criar.');
-  const dietaAbs=Math.abs(Math.min(0,c.dieta)), total=dietaAbs+c.exer;
+  const ef=efeitoTraj(m,c);
+  const dietaAbs=Math.abs(Math.min(0,ef.dieta)), total=dietaAbs+ef.exer;
   const split = total>0? Math.round(dietaAbs/total*100/5)*5 : 50;
   /* o prazo: o horizonte escolhido, ou os dias que a trajetória planeada
      leva a chegar ao alvo, se forem menos */
@@ -28341,11 +28528,36 @@ function abrirNovoJejum(mid){
   S.ui.modal={tipo:'jejum', mid, horas:24, d:hojeISO(), inicio:20, agua:true, aceite:false};
   saveMeta(); render();
 }
+/* «HH:MM» de um <input type=time> em fração de hora, ao quarto de hora. */
+function horaEmFracao(v){
+  const p=String(v||'').split(':');
+  const h=parseInt(p[0],10), min=parseInt(p[1],10);
+  if(!Number.isFinite(h)) return null;
+  return clampNum(Math.round((h+(Number.isFinite(min)?min:0)/60)*4)/4, 0, 23.75);
+}
 function setNovoJejum(campo,v){
   const mo=modalAberto(); if(!mo||mo.tipo!=='jejum') return;
-  if(campo==='horas') mo.horas=clampNum(Math.round(parseFloat(v)||24),12,JEJUM_MAX_H);
+  const q=x=>Math.round(x*4)/4;
+  if(campo==='horas') mo.horas=clampNum(q(parseFloat(v)||24),12,JEJUM_MAX_H);
   else if(campo==='d'){ if(dataValida(v)) mo.d=v; }
-  else if(campo==='inicio') mo.inicio=clampNum(Math.round(parseFloat(v)||20),0,23);
+  else if(campo==='inicio'){
+    /* Mexer no início mantém a DURAÇÃO e empurra o fim: é o que se espera de
+       quem se enganou na hora a que deixou de comer. Quem quer mudar o fim
+       muda o fim. */
+    const h=horaEmFracao(v); if(h!==null) mo.inicio=h;
+  }
+  else if(campo==='fimD' || campo==='fimH'){
+    /* O fim não se guarda — deduz-se a duração dele, que é o que as contas
+       usam. Um fim antes do início, ou a menos de doze horas dele, é um engano
+       de quem escreveu: encosta-se ao mínimo e diz-se. */
+    const f=fimDeJejum(mo);
+    const fd = campo==='fimD'? (dataValida(v)? v : f.d) : f.d;
+    const fh = campo==='fimH'? (horaEmFracao(v)!==null? horaEmFracao(v) : f.h) : f.h;
+    const horas=q(diasEntre(mo.d,fd)*24 + fh - mo.inicio);
+    if(horas<12){ flash('warn','Um jejum conta-se a partir das 12 horas — e o fim que escreveste dá '
+      +(horas>0? nPT(horas,2)+' h' : 'um tempo negativo')+'. Ficou nas 12 horas.'); mo.horas=12; }
+    else mo.horas=clampNum(horas,12,JEJUM_MAX_H);
+  }
   else if(campo==='agua') mo.agua=!!v;
   else if(campo==='aceite') mo.aceite=!!v;
   render();
@@ -28356,6 +28568,7 @@ function slideNovoJejum(el){
   mo.horas=clampNum(Math.round(parseFloat(el.value)||24),12,JEJUM_MAX_H);
   const e=escalaoJejum(mo.horas);
   põe('nj-out', textoDuracaoJejum(mo.horas));
+  põe('nj-periodo', periodoJejumTexto(mo)+' — '+textoDuracaoJejum(mo.horas)+'.');
   põe('nj-esc', e.t);
   põe('nj-desc', e.d);
   const cx=document.getElementById('nj-caixa');
@@ -28364,10 +28577,16 @@ function slideNovoJejum(el){
   const ok=document.getElementById('nj-ok');
   if(ok) ok.disabled = mo.horas>72 && !mo.aceite;
 }
+/* Horas com quarto de hora dizem-se como o relógio as diz — «40 h 15» e não
+   «40.25 h», que além de feio estava com ponto decimal inglês. */
+function horasEMin(h){
+  const t=Math.round(h*60), hh=Math.floor(t/60), mm=t%60;
+  return hh+' h'+(mm? ' '+String(mm).padStart(2,'0') : '');
+}
 function textoDuracaoJejum(h){
-  if(h<24) return h+' horas';
-  const d=Math.floor(h/24), r=h%24;
-  return h+' h · '+plural(d,'dia','dias')+(r? ' e '+r+' h':'');
+  if(h<24) return horasEMin(h);
+  const d=Math.floor(h/24), r=h-d*24;
+  return horasEMin(h)+' · '+plural(d,'dia','dias')+(r? ' e '+horasEMin(r) : '');
 }
 function guardarNovoJejum(){
   const mo=modalAberto(); if(!mo||mo.tipo!=='jejum') return;
@@ -28376,8 +28595,15 @@ function guardarNovoJejum(){
   const j=limparJejumPontual({id:uid(), mid:mo.mid, d:mo.d, horas:mo.horas, inicio:mo.inicio, agua:mo.agua},
     S.members.map(m=>m.id));
   if(!j) return flash('bad','Não foi possível marcar esse jejum.');
-  if(c.pontuais.some(x=>x.mid===j.mid && x.d===j.d))
-    return flash('warn','Já há um jejum marcado para essa pessoa nesse dia.');
+  /* Agora que um jejum tem duas pontas, a regra é a sobreposição e não o dia:
+     um jejum que acaba na quarta de manhã e outro que começa na quarta à noite
+     são dois jejuns legítimos, e o teste antigo recusava o segundo. */
+  const emH=x=>{ const f=fimDeJejum(x); return [diasEntre('2000-01-01',x.d)*24+x.inicio,
+                                              diasEntre('2000-01-01',f.d)*24+f.h]; };
+  const [ja,jb]=emH(j);
+  const choca=c.pontuais.find(x=>{ if(x.mid!==j.mid) return false; const [a,b]=emH(x); return ja<b && a<jb; });
+  if(choca) return flash('warn','Esse período sobrepõe-se a um jejum já registado — '
+    +periodoJejumTexto(choca)+'. Apaga o antigo ou ajusta as horas.');
   c.pontuais.push(j);
   S.ui.modal=null;
   save('jejum marcado');
@@ -28414,18 +28640,30 @@ function modalJejumHtml(mo){
       <div id="nj-caixa" class="alerta${e.cls==='bad'?' forte':''}" style="margin-top:12px">
         <span aria-hidden="true">${e.cls==='bad'?'🚨':'⚠️'}</span>
         <span><b id="nj-esc">${esc(e.t)}</b> — <span id="nj-desc">${esc(e.d)}</span></span></div>
-
+      ${''/* Início e fim, os dois com hora e minuto: é assim que a pessoa
+           conta o jejum — «das 20h30 de terça às 8h15 de quinta» — e não em
+           horas de duração. A duração continua a existir e continua a mandar
+           nas contas; o que muda é que ela se deduz das duas pontas, e o
+           cursor lá em cima passa a empurrar o fim. */}
       <div class="frow" style="margin-top:12px">
-        <div><label class="lbl">Começa em</label>
-          <input type="date" value="${mo.d}" onchange="setNovoJejum('d',this.value)"></div>
-        <div><label class="lbl">Às</label>
-          <select onchange="setNovoJejum('inicio',this.value)">
-            ${[...Array(24).keys()].map(x=>`<option value="${x}" ${mo.inicio===x?'selected':''}>${String(x).padStart(2,'0')}h00</option>`).join('')}</select></div>
+        <div><label class="lbl">Começa a</label>
+          <input type="date" value="${mo.d}" aria-label="Dia em que o jejum começa" onchange="setNovoJejum('d',this.value)"></div>
+        <div><label class="lbl">Hora de início</label>
+          <input type="time" step="900" value="${hhmmJejum(mo.inicio).replace('h',':')}"
+            aria-label="Hora a que o jejum começa" onchange="setNovoJejum('inicio',this.value)"></div>
+      </div>
+      <div class="frow" style="margin-top:8px">
+        <div><label class="lbl">Acaba a</label>
+          <input type="date" value="${fimDeJejum(mo).d}" aria-label="Dia em que o jejum acaba" onchange="setNovoJejum('fimD',this.value)"></div>
+        <div><label class="lbl">Hora de fim</label>
+          <input type="time" step="900" value="${hhmmJejum(fimDeJejum(mo).h).replace('h',':')}"
+            aria-label="Hora a que o jejum acaba" onchange="setNovoJejum('fimH',this.value)"></div>
         <div><label class="lbl">Tipo</label>
-          <select onchange="setNovoJejum('agua',this.value==='agua')">
+          <select aria-label="Tipo de jejum" onchange="setNovoJejum('agua',this.value==='agua')">
             <option value="agua" ${mo.agua?'selected':''}>Só água</option>
             <option value="seco" ${!mo.agua?'selected':''}>Seco</option></select></div>
       </div>
+      <p class="sub" id="nj-periodo" style="margin-top:6px">${periodoJejumTexto(mo)} — ${textoDuracaoJejum(mo.horas)}.</p>
       ${!mo.agua? `<div class="alerta forte" style="margin-top:10px"><span aria-hidden="true">🚨</span><span>
         <b>O jejum seco não é uma versão mais intensa do outro: é outra coisa.</b> Sem água, a desidratação
         instala-se em horas e o risco renal é real. A app deixa-te registá-lo porque é o teu registo, mas
@@ -28727,8 +28965,8 @@ function cartaoJejum(m){
     ${meus.length? `<div class="splabel" style="margin-top:14px"><span>Jejuns pontuais</span>
       <output>${plural(meus.length,'marcado','marcados')}</output></div>
     <div style="margin-top:6px">${meus.map(x=>`<div class="vere-linha">
-      <span class="vere-quem">${x.horas>=48? '🔴':x.horas>=24?'🟡':'🟢'} <b>${x.horas} h</b>
-        <span class="sub">· ${rotuloData(x.d)}</span></span>
+      <span class="vere-quem">${x.horas>=48? '🔴':x.horas>=24?'🟡':'🟢'} <b>${textoDuracaoJejum(x.horas)}</b>
+        <span class="sub">· ${periodoJejumTexto(x,true)}</span></span>
       <button class="btn danger small" onclick="apagarJejumPontual('${x.id}')" aria-label="Apagar este jejum">✕</button>
     </div>`).join('')}</div>`:''}
     ${/* A rampa de renutrição já aceite continua a baixar o alvo de hoje pelo
@@ -28786,8 +29024,8 @@ function cartaoJejum(m){
     ${meus.length? `<div style="margin-top:6px">${meus.map(x=>{
       const e=escalaoJejum(x.horas), passou=x.d<hojeISO() && horasDeJejumNoDia(m.id,hojeISO())===0;
       return `<div class="vere-linha">
-        <span class="vere-quem">${x.horas>=48? '🔴':x.horas>=24?'🟡':'🟢'} <b>${x.horas} h</b>
-          <span class="sub">· ${rotuloData(x.d)} às ${String(x.inicio).padStart(2,'0')}h00 · ${x.agua?'só água':'seco'}${passou?' · passou':''}</span></span>
+        <span class="vere-quem">${x.horas>=48? '🔴':x.horas>=24?'🟡':'🟢'} <b>${textoDuracaoJejum(x.horas)}</b>
+          <span class="sub">· ${periodoJejumTexto(x)} · ${x.agua?"só água":"seco"}${passou?" · passou":""}</span></span>
         <button class="btn danger small" onclick="apagarJejumPontual('${x.id}')" aria-label="Apagar este jejum">✕</button>
       </div>`;}).join('')}</div>`:''}
     <div class="row" style="margin-top:8px">
