@@ -17000,7 +17000,10 @@ function ladosDaFicha(r){
 }
 /* Só um prato leva coisas ao lado: um molho não leva molho, e um
    acompanhamento não é o centro da mesa. */
-function levaLado(r){ const b=pratoBaseDe(r); return !!b && !ehAcompanhamento(b) && !ehMolho(b); }
+/* Um molho não leva molho; um acompanhamento leva — mas só molho, nunca outro
+   acompanhamento, que é o que a composição também recusa. */
+function levaLado(r){ const b=pratoBaseDe(r); return !!b && !ehMolho(b); }
+function soLevaMolho(r){ const b=pratoBaseDe(r); return !!b && ehAcompanhamento(b); }
 /* Como no plano: não se oferece o que traz um alergénio ou quebra a dieta de
    quem cá vive. O que fica de fora conta-se em voz alta, para a lista curta
    não parecer um catálogo pobre. */
@@ -17089,16 +17092,19 @@ function blocoLadosFicha(r,f){
     L.acs.length? ICO_REF.ac+' '+L.acs.map(nomeDe).filter(Boolean).join(' · ') : '',
     L.mo? ICO_REF.mo+' '+nomeDe(L.mo) : ''
   ].filter(Boolean);
+  const soMo=soLevaMolho(r), pal=palavraMolho(pratoBaseDe(r));
   return `<div class="lados-ficha">
     <div class="row lados-bt">
-      <button class="btn ${f.lado==='ac'?'':'ghost'}" onclick="ladoFicha('ac')" aria-expanded="${f.lado==='ac'}"
-        aria-controls="lado-painel">${ICO_REF.ac} Trocar/acrescentar acompanhamento</button>
+      ${soMo? '' : `<button class="btn ${f.lado==='ac'?'':'ghost'}" onclick="ladoFicha('ac')" aria-expanded="${f.lado==='ac'}"
+        aria-controls="lado-painel">${ICO_REF.ac} Trocar/acrescentar acompanhamento</button>`}
       <button class="btn ${f.lado==='mo'?'':'ghost'}" onclick="ladoFicha('mo')" aria-expanded="${f.lado==='mo'}"
-        aria-controls="lado-painel">${ICO_REF.mo} Trocar/acrescentar molho</button>
+        aria-controls="lado-painel">${ICO_REF.mo} Trocar/acrescentar ${esc(pal)}${soMo? ' próprio'.replace('o próprio', artigoMolho(pratoBaseDe(r))==='a'?' própria':' próprio') : ''}</button>
     </div>
     <p class="sub lados-agora">${postos.length
-      ? 'Neste prato: '+postos.join(' · ')+(L.acs.length>1? ' — '+notaDivisao(L.acs.length) : '')
-      : 'Prato só, sem nada ao lado. O que juntares entra nos ingredientes, nas calorias e nos passos.'}</p>
+      ? (soMo? 'Neste acompanhamento: ' : 'Neste prato: ')+postos.join(' · ')+(L.acs.length>1? ' — '+notaDivisao(L.acs.length) : '')
+      : (soMo
+        ? 'Um acompanhamento também leva '+pal+' — o arroz de tomate leva o dele, a salada leva o vinagrete. O que juntares fica a fazer parte dele, e vai com ele para qualquer prato.'
+        : 'Prato só, sem nada ao lado. O que juntares entra nos ingredientes, nas calorias e nos passos.')}</p>
     ${f.lado? painelLadoFicha(r,f.lado) : ''}
   </div>`;
 }
@@ -24467,6 +24473,14 @@ const AC_CURTO={
 function nomeCurtoAc(r){
   if(!r) return '';
   if(AC_CURTO[r.id]) return AC_CURTO[r.id];
+  /* Um acompanhamento com molho próprio é composto: o nome curto dele é o
+     nome curto da base MAIS o molho, senão o molho desaparecia da frase
+     («Bacalhau à Brás com batatas cozidas», sem sinal da raita que lá está a
+     contar 87 calorias). É a mesma regra do prato: o molho vem no fim. */
+  if(ehCombo(r) && r.moId){
+    const b=RECIPES.find(x=>x.id===r.base), mo=RECIPES.find(x=>x.id===r.moId);
+    if(b && mo) return nomeCurtoAc(b)+' com '+nomeCurtoMolho(mo);
+  }
   /* uma receita da casa marcada como acompanhamento não está na tabela: corta-se
      no primeiro «com», que é onde costuma começar a descrição */
   return r.n.replace(/\s+com\s+.*$/i,'').toLowerCase();
@@ -24483,6 +24497,10 @@ const MO_CURTO={
   acmpiripiri:'molho de piri-piri', acmalhosalsa:'molho de alho e salsa',
   acchurrasqueira:'molho de churrasco', acmantalho:'manteiga de alho',
   acmolhoverde:'molho verde', acvinhadalhos:'vinha-d\'alhos',
+  /* Caesar é o nome de quem o inventou (Caesar Cardini, Tijuana, 1924) e não
+     um adjetivo: a minúscula que a regra geral põe em «molho caesar» está
+     errada da mesma maneira que estaria em «molho bechamel». */
+  acmcaesar:'molho Caesar',
   acchimichurri:'chimichurri', accriolla:'salsa criolla',
   acvinagretebr:'vinagrete', acsalsasm:'salsa fresca',
   acchermoula:'chermoula', acsalmoriglio:'salmoriglio',
@@ -24706,6 +24724,35 @@ const COMBOS_BASE=[
   {base:'cheesecakejapones', ac:[], mo:'acmcoulismanga'},
   {base:'currywurst', ac:['acbfritas'], mo:'acmcurrywurst'},
   {base:'currywurst', ac:['aclaipofritas'], mo:'acmcurryketo'},
+  /* ---- O prato português leva DOIS ao lado, não um ----
+     A mecânica sempre soube compor três acompanhamentos, mas a biblioteca não
+     trazia um único par com mais do que um — e um bife com batatas fritas E
+     salada, que é o prato mais servido do país, tinha de ser montado à mão
+     por quem o quisesse. Estes são os que a mesa portuguesa (e a churrasqueira
+     brasileira) serve de facto aos pares. Continuam a repartir o lugar do
+     lado: dois são meia dose de cada, não duas doses. */
+  {base:'cgpicanha', ac:['acbfritas','aclsalmista'], mo:''},
+  {base:'cgpicanha', ac:['aclfarofa','acvinagrete'], mo:''},
+  {base:'cgbiflombo', ac:['acbfritas','aclsalmista'], mo:''},
+  {base:'cgcostnov', ac:['acbfritas','aclsalmista'], mo:''},
+  {base:'maminha', ac:['aclfarofa','acvinagrete'], mo:''},
+  {base:'frangopiri', ac:['acbfritas','acrbranco'], mo:''},
+  {base:'pxdourada', ac:['acbcoz','aclbrocolos'], mo:''},
+  {base:'pxcarapau', ac:['acbcoz','aclsalmista'], mo:''},
+  {base:'sardinhas', ac:['acbcoz','aclpimentoassado'], mo:''},
+  {base:'borregoervas', ac:['acbforno','aclfverde'], mo:''},
+  /* ---- E o acompanhamento leva o molho DELE ----
+     O molho de um prato é do prato; estes são do que vai ao lado, e vão com
+     ele para onde ele for. São acompanhamentos completos: entram em qualquer
+     lugar do lado como outro qualquer, e o molho já lhes conta dentro. */
+  {base:'aclespargos', ac:[], mo:'acmholandes'},
+  {base:'aclbrocolos', ac:[], mo:'acmholandes'},
+  {base:'aclsalmista', ac:[], mo:'acmvinagretemostarda'},
+  {base:'aclalface', ac:[], mo:'acmcaesar'},
+  {base:'acllegumes', ac:[], mo:'acsalmoriglio'},
+  {base:'accouscoussimples', ac:[], mo:'acchermoula'},
+  {base:'acbdoce', ac:[], mo:'acmtahini'},
+  {base:'acbcoz', ac:[], mo:'acmolhoverde'},
 ];
 function nomeCombo(baseId,acs,mo){
   const k=idCombo(baseId,acs,mo);
@@ -24737,7 +24784,12 @@ function nomeComposto(prato,acs,mo){
      do fim vem de listaPT() e dois «e» seguidos deixam de se perceber onde
      acaba o prato — «Picanha com flor de sal e batatas fritas e chimichurri»
      lê-se três vezes antes de se entender. Com vírgula, lê-se à primeira. */
-  const lig = partes.length>1 ? ', '
+  /* Um acompanhamento que traz molho próprio já tem o seu «com» dentro —
+     «batatas cozidas com raita» —, e o «com» da ligação punha dois seguidos:
+     «Bacalhau à Brás com batatas cozidas com raita». Nesse caso a vírgula é
+     que separa, como já separa quando há mais do que uma coisa ao lado. */
+  const parteComCom=partes.some(p=>/\scom\s/i.test(p));
+  const lig = (partes.length>1 || parteComCom) ? ', '
     : !/\scom\s/i.test(n)? ' com ' : (/\se\s/i.test(n)? ', e ' : ' e ');
   return n+lig+listaPT(partes);
 }
@@ -24840,10 +24892,31 @@ function sincronizaCombos(){
      O mesmo para um par que nunca poderia existir — um acompanhamento como
      prato, que uma cópia estragada pode trazer: era ignorado na hora de
      desenhar, mas ficava a ocupar lugar na lista para sempre. */
-  const pratoVivo=x=>{ const p=RECIPES.find(r=>r.id===x && !ehCombo(r)); return !!p && !ehAcompanhamento(p) && !ehMolho(p); };
-  const acVivo=x=>{ const a=RECIPES.find(r=>r.id===x && !ehCombo(r)); return !!a && ehAcompanhamento(a); };
-  const moVivo=x=>{ const m=RECIPES.find(r=>r.id===x && !ehCombo(r)); return !!m && ehMolho(m); };
-  S.combos=combosCfg().filter(c=>c && pratoVivo(c.base)
+  /* ---- Um acompanhamento também leva molho ----
+     A base de um par era sempre um prato. Mas o arroz de tomate leva o seu
+     molho, a salada leva o seu vinagrete, e as batatas levam o seu alho — e
+     isso não é o molho do prato, é o molho DAQUILO. Um acompanhamento passa a
+     poder ser base, com uma condição: só para levar molho. Um acompanhamento
+     com acompanhamento não é nada, e a app não tem onde o pôr.
+     O que sai daqui continua a ser um acompanhamento (herda o `mt` da base),
+     e por isso pode entrar em qualquer lugar do lado como outro qualquer. */
+  const cru=x=>RECIPES.find(r=>r.id===x && !ehCombo(r));
+  const pratoVivo=(x,c)=>{ const p=cru(x); if(!p || ehMolho(p)) return false;
+    return ehAcompanhamento(p)? (!(c.ac||[]).length && !!c.mo) : true; };
+  const moVivo=x=>{ const m=cru(x); return !!m && ehMolho(m); };
+  const ehAcBase=c=>{ const p=cru(c.base); return !!p && ehAcompanhamento(p); };
+  /* ---- Um acompanhamento composto também serve de acompanhamento ----
+     «Batatas cozidas com raita» é um acompanhamento como outro qualquer, e um
+     prato pode querê-lo ao lado. Mas este ciclo começa por apagar todos os
+     combos, e por isso perguntar a RECIPES se ele existe responde sempre que
+     não — foi assim que um par montado com ele se apagava a si próprio na
+     gravação seguinte. A pergunta certa não é «existe agora?», é «vai existir
+     quando este ciclo acabar?», e isso lê-se das DEFINIÇÕES, não da lista. */
+  const acCompostos=new Set(COMBOS_BASE.concat(combosCfg())
+    .filter(c=>c && ehAcBase(c) && !(c.ac||[]).length && moVivo(c.mo))
+    .map(c=>idCombo(c.base,[],c.mo)));
+  const acVivo=x=>{ const a=cru(x); return (!!a && ehAcompanhamento(a)) || acCompostos.has(x); };
+  S.combos=combosCfg().filter(c=>c && pratoVivo(c.base,c)
     && ((c.ac||[]).some(acVivo) || moVivo(c.mo)));
   /* Os combos da casa são os que cada um montou, e vivem no estado — entram e
      saem, e o teto vai deitando fora os mais antigos. Os do catálogo não: um
@@ -24851,13 +24924,20 @@ function sincronizaCombos(){
      ninguém o ter montado, ou o prato desaparecia do livro por não haver quem
      o pedisse. Ficam fora do estado, e por isso fora do teto e fora da cópia
      de segurança — são biblioteca, não são dados de quem usa a app. */
-  const todos=COMBOS_BASE.filter(c=>c && pratoVivo(c.base)
+  /* Os acompanhamentos compostos nascem PRIMEIRO: um prato que os queira ao
+     lado precisa de os encontrar já feitos, e a lista percorre-se uma vez só.
+     É a única ordem que este ciclo exige, e por isso é a única que se impõe. */
+  const todos=COMBOS_BASE.filter(c=>c && pratoVivo(c.base,c)
       && ((c.ac||[]).some(acVivo) || moVivo(c.mo)))
-    .concat(S.combos);
+    .concat(S.combos)
+    .sort((a,b)=>(ehAcBase(a)?0:1)-(ehAcBase(b)?0:1));
   todos.forEach(c=>{
     const prato=RECIPES.find(x=>x.id===c.base && !ehCombo(x));
-    if(!prato || ehAcompanhamento(prato) || ehMolho(prato)) return;
-    const acs=(c.ac||[]).map(id=>RECIPES.find(x=>x.id===id && !ehCombo(x))).filter(x=>ehAcompanhamento(x));
+    if(!prato || ehMolho(prato)) return;
+    /* um acompanhamento só é base para levar molho: com outro acompanhamento
+       ao lado deixaria de haver prato nenhum na frase */
+    if(ehAcompanhamento(prato) && (c.ac||[]).length) return;
+    const acs=(c.ac||[]).map(id=>RECIPES.find(x=>x.id===id)).filter(x=>ehAcompanhamento(x));
     const mo=c.mo? RECIPES.find(x=>x.id===c.mo && !ehCombo(x) && ehMolho(x)) : null;
     if(!acs.length && !mo) return;
     const id=idCombo(prato.id,acs.map(a=>a.id), mo? mo.id : '');
@@ -24893,7 +24973,10 @@ function registaCombo(baseId,ids,moId2){
   const mo=(typeof moId2==='string' && moId2)? moId2 : '';
   if(!ac.length && !mo) return null;   /* prato só, sem nada ao lado: não é combo */
   const prato=RECIPES.find(x=>x.id===baseId && !ehCombo(x));
-  if(!prato || ehAcompanhamento(prato) || ehMolho(prato)) return null;
+  if(!prato || ehMolho(prato)) return null;
+  /* Um acompanhamento pode ser base, mas só com molho: é o arroz de tomate com
+     o molho dele, e não um acompanhamento com acompanhamento. */
+  if(ehAcompanhamento(prato) && (ac.length || !mo)) return null;
   if(mo){ const m=RECIPES.find(x=>x.id===mo); if(!m || !ehMolho(m)) return null; }
   const id=idCombo(baseId,ac,mo);
   const lista=combosCfg();
@@ -24922,7 +25005,12 @@ function limparCombos(a){
   a.slice(0,MAX_COMBOS).forEach(c=>{
     if(!c || typeof c!=='object') return;
     if(typeof c.base!=='string' || !c.base || c.base.length>40) return;
-    const ac=(Array.isArray(c.ac)? c.ac : []).filter(x=>typeof x==='string' && x && x.length<=40)
+    /* 64 e não 40: um acompanhamento pode agora ser composto (o seu molho
+       próprio lá dentro), e o id dele é o dos dois — «c:aclsalmista+~acm
+       vinagretemostarda» tem 35, e o mais comprido que o catálogo consegue
+       gerar tem 49. Com o teto antigo, um par montado com um acompanhamento
+       de nome longo desaparecia na primeira gravação, sem nada a dizê-lo. */
+    const ac=(Array.isArray(c.ac)? c.ac : []).filter(x=>typeof x==='string' && x && x.length<=64)
       .slice(0,MAX_AC).sort();
     const mo=(typeof c.mo==='string' && c.mo && c.mo.length<=40)? c.mo : '';
     if(!ac.length && !mo) return;
