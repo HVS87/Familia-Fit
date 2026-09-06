@@ -22211,9 +22211,9 @@ function graficoPesoSvg(m){
     const resumo=textoDuracaoJejum(j.horas)+'\n'+periodoJejumTexto(j)+(j.agua?'':'\njejum seco');
     /* A faixa VISÍVEL tem a largura do jejum, que na janela de dois anos são
        dois dias em 730 — um pixel. O alvo do rato é outro retângulo, sem cor
-       e com seis pixéis no mínimo, centrado nela: a mesma solução que os
+       e com doze pixéis no mínimo, centrado nela: a mesma solução que os
        pontos das pesagens já usavam, e pela mesma razão. */
-    const lHit=Math.max(6,larg), xHit=clampNum(a+larg/2-lHit/2, X0, X1-lHit);
+    const lHit=Math.max(12,larg), xHit=clampNum(a+larg/2-lHit/2, X0, X1-lHit);
     return `<rect class="f-bad" x="${a.toFixed(1)}" y="${Y0}" width="${larg.toFixed(1)}" height="${Y1-Y0}" opacity=".13"/>
       <rect class="jj-hit" x="${xHit.toFixed(1)}" y="${Y0}" width="${lHit.toFixed(1)}" height="${Y1-Y0}"
         role="img" tabindex="0" aria-label="Jejum de ${esc(textoDuracaoJejum(j.horas))}, ${esc(periodoJejumTexto(j))}"
@@ -22457,6 +22457,40 @@ function trajSvg(m,fit,c){
   const lequeSvg=fit.sd>0? `<polygon points="${cima.concat(baixo).join(' ')}" class="f-mut" opacity=".13"/>` : '';
   const alvoSvg=c.alvo? `<line x1="${X0}" y1="${f(Y(c.alvo))}" x2="${X1}" y2="${f(Y(c.alvo))}" class="s-acc" stroke-width="1" stroke-dasharray="2 3" opacity=".8"/>
     <text x="${X1}" y="${f(Y(c.alvo)-3)}" font-size="9" text-anchor="end" class="f-acc">alvo ${nPT(c.alvo,1)}</text>` : '';
+  /* ---- O dia em que a linha corta o alvo ----
+     A linha do alvo já lá estava, e a frase por baixo do gráfico já dizia a
+     data — mas o gráfico, que é onde se olha primeiro, não a marcava. O ponto
+     de encontro é a resposta à pergunta que se faz a um gráfico destes: «e
+     quando é que lá chego?». Marca-se onde as duas linhas se cruzam, com a
+     data por cima, e só quando o cruzamento cai dentro do que está desenhado
+     — prometer uma data fora do horizonte era desenhar o que não se vê.
+     Duas linhas, dois cruzamentos: o da tendência (o que acontece se nada
+     mudar) e o do planeado (com os cursores puxados). Quando não há ajustes
+     são a mesma, e desenha-se uma só. */
+  const cruzamento=(declive,alvo)=>{
+    if(alvo==null || Math.abs(declive)<1e-9) return null;
+    const d=(alvo-p0)/declive;
+    return (d>=0 && d<=hor)? d : null;
+  };
+  const marcaCruz=(d,alvo,cls,rotulo)=>{
+    if(d==null) return '';
+    const x=X(d), y=Y(alvo);
+    /* a data foge do topo quando o cruzamento cai lá em cima, e da direita
+       quando cai perto do fim: um rótulo cortado não diz nada */
+    const acima=y>Y0+16, anchor=x>X1-46? 'end' : x<X0+46? 'start' : 'middle';
+    return `<line x1="${f(x)}" y1="${f(y)}" x2="${f(x)}" y2="${f(acima? y-9 : y+9)}" class="${cls}" stroke-width="1" opacity=".7"/>
+      <circle cx="${f(x)}" cy="${f(y)}" r="3.6" class="${cls==='s-acc'?'f-acc':'f-mut'}"/>
+      <circle cx="${f(x)}" cy="${f(y)}" r="3.6" fill="none" class="${cls}" stroke-width="1.4"/>
+      <text x="${f(anchor==='end'? Math.min(x+4,X1) : anchor==='start'? Math.max(x-4,X0) : x)}"
+        y="${f(acima? y-12 : y+18)}" font-size="9" text-anchor="${anchor}"
+        class="${cls==='s-acc'?'f-acc':'f-mut'}">${esc(rotulo)}</text>`;
+  };
+  const dObs=cruzamento(mObs,c.alvo), dPlan=(c.dieta||c.exer||c.jsem||c.exN)? cruzamento(mPlan,c.alvo) : null;
+  const dataCurta=d=>fmtCurto(addDias(h,Math.round(d)));
+  const cruzSvg=c.alvo? (
+    (dPlan!=null? marcaCruz(dPlan,c.alvo,'s-acc',dataCurta(dPlan)) : '')
+    + ((dObs!=null && (dPlan==null || Math.abs(dObs-dPlan)>1.5))? marcaCruz(dObs,c.alvo,'s-mut',dataCurta(dObs)) : '')
+  ) : '';
   /* Os jejuns já registados, sombreados também aqui: é sobre estas pesagens
      que a reta é ajustada, e uma tendência puxada por dois dias sem comer não
      se lê da mesma maneira quando se projeta para a frente. */
@@ -22465,7 +22499,7 @@ function trajSvg(m,fit,c){
     const xa=X(diasEntre(h,j.d)+j.inicio/24), xb=X(diasEntre(h,fj.d)+fj.h/24);
     const a=Math.min(xa,xb), b=Math.max(xa,xb);
     const resumoJ=textoDuracaoJejum(j.horas)+'\n'+periodoJejumTexto(j)+(j.agua?'':'\njejum seco');
-    const largJ=Math.max(1,b-a), lHitJ=Math.max(6,largJ), xHitJ=clampNum(a+largJ/2-lHitJ/2, X0, X1-lHitJ);
+    const largJ=Math.max(1,b-a), lHitJ=Math.max(12,largJ), xHitJ=clampNum(a+largJ/2-lHitJ/2, X0, X1-lHitJ);
     return `<rect class="f-bad" x="${f(a)}" y="${Y0}" width="${f(largJ)}" height="${Y1-Y0}" opacity=".12"/>
       <rect class="jj-hit" x="${f(xHitJ)}" y="${Y0}" width="${f(lHitJ)}" height="${Y1-Y0}"
         role="img" tabindex="0" aria-label="Jejum de ${esc(textoDuracaoJejum(j.horas))}, ${esc(periodoJejumTexto(j))}"
@@ -22478,7 +22512,7 @@ function trajSvg(m,fit,c){
     <line x1="${f(X(-base))}" y1="${f(Y(yObs(-base)))}" x2="${f(X(0))}" y2="${f(Y(p0))}" class="s-ink" stroke-width="1.6" opacity=".7"/>
     <line x1="${f(X(0))}" y1="${f(Y(p0))}" x2="${f(X(hor))}" y2="${f(Y(yObs(hor)))}" class="s-mut" stroke-width="1.6" stroke-dasharray="5 4"/>
     ${(c.dieta||c.exer||c.jsem||c.exN)? `<line x1="${f(X(0))}" y1="${f(Y(p0))}" x2="${f(X(hor))}" y2="${f(Y(yPlan(hor)))}" class="s-acc" stroke-width="2.4"/>`:''}
-    ${alvoSvg}
+    ${alvoSvg}${cruzSvg}
     ${pts.map(p=>`<circle cx="${f(X(p.x))}" cy="${f(Y(p.y))}" r="2.6" class="f-ink"><title>${fmtLongo(p.d)}: ${nPT(p.y,1)} kg</title></circle>`).join('')}
     ${''/* ---- O que se pode apontar com o cursor ----
        Os pontos medidos são de 2,6 px e a projeção é uma linha: nenhum dos
@@ -31467,6 +31501,35 @@ function cartaoConquista(o){
     <button class="btn danger small" onclick="removerObjetivo('${o.id}')">Remover</button>
   </div>`;
 }
+/* ================= O GRÁFICO DO OBJETIVO =================
+   O cartão do objetivo dizia tudo por palavras — «entre 12 e 26 de outubro» —
+   e não mostrava nada. É o mesmo desenho da Trajetória, com a mesma máquina:
+   as pesagens com o balão, as faixas dos jejuns com o resumo, a tendência
+   observada com o leque da dispersão, e a linha do alvo.
+   A diferença está na linha de destaque: na Trajetória ela vem dos cursores,
+   aqui vem do CONTRATO — o ritmo que o objetivo pede para chegar ao alvo no
+   prazo. Traduz-se para o mesmo `dieta` em kcal/dia que a ferramenta já usa,
+   e por isso as duas marcas de cruzamento passam a dizer o que interessa:
+   a azul é o dia prometido, a cinzenta é o dia a que o ritmo atual chega.
+   Quando estão longe uma da outra, é isso que o cartão está a contar. */
+function graficoObjetivo(o,m){
+  if(o.tipo==='manter' || !permiteProjecao(m)) return '';
+  const fit=ajusteTrajetoria(m.id,30);
+  if(!fit || fit.m==null) return '';
+  const h=hojeISO();
+  /* dias que faltam até ao fim do prazo, com um mínimo para o desenho não
+     ficar espremido e um teto para não desenhar um ano de nada */
+  const fim=addDias(iso(new Date(o.dataInicio)), Math.round((o.semanas||12)*7));
+  const restam=clampNum(diasEntre(h,fim), 14, 180);
+  const mContrato=(o.pesoAlvo-fit.p0)/restam;
+  const c={base:30, hor:restam, alvo:o.pesoAlvo, exer:0, jsem:0, exN:0,
+    dieta:(mContrato-fit.m)*7700};
+  return `<div class="peso-wrap" style="margin-top:10px">${trajSvg(m,fit,c)}
+    <div class="peso-tip" hidden aria-hidden="true"></div></div>
+    <p class="sub" style="margin-top:4px">A tracejado cinzento, para onde o peso vai se nada mudar;
+      a cheio, o ritmo que este objetivo pede. Cada marca no alvo é o dia em que cada uma lá chega.
+      As faixas vermelhas são jejuns registados — passa por cima para ver quanto duraram.</p>`;
+}
 function cartaoObjetivo(o){
   const m=S.members.find(x=>x.id===o.membroId); if(!m) return '';
   const p=progressoObjetivo(o);
@@ -31493,6 +31556,7 @@ function cartaoObjetivo(o){
       return `<div class="sub" style="margin-top:8px;${t.fraco?'':'color:var(--ink)'}">
         📈 <b>${esc(t.txt)}</b> ${dica('leque')}
         ${t.fraco?'':'<span class="sub" style="display:block">Um intervalo, não uma data: é o que as pesagens sustentam.</span>'}</div>`;})()}
+    ${(o.tipo==="manter"||o.concluido)? "" : graficoObjetivo(o,m)}
     ${balancaObjetivo(o,m)}
     ${o.concluido? '' : blocoValidacao(o,m)}
     ${expandido? painelAjuste(o,m) : ''}
