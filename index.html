@@ -1999,7 +1999,7 @@ const ICO_SPORT={corrida:'🏃',ciclismo:'🚴',agua:'🏊',forca:'🏋️',corp
   raquete:'🎾',combate:'🥊',natureza:'⛰️',danca:'💃'};
 const ICO_CAT={'Peixe & Marisco':'🐟','Carne & Ovos':'🥩','Frutas & Legumes':'🥦',
   'Laticínios':'🥛','Mercearia & Outros':'🫙','Suplementos':'💊'};
-const ICO_REF={p:'🌅',a:'🍽️',l:'🍎',j:'🌙',ac:'🍚',mo:'🥄'};
+const ICO_REF={p:'🌅',a:'🍽️',l:'🍎',j:'🌙',ac:'🍚',mo:'🥄',ma:'🥧'};
 /* Os ícones são pratos e ingredientes, não bandeiras — a portuguesa é a
    exceção porque é a cozinha da casa. O feijão vale pela feijoada, que é o
    prato nacional brasileiro, e a salsicha pelas cozinhas do centro da Europa
@@ -3064,9 +3064,13 @@ function limparRegRef(r,ids,lookup){
      metesse um prato principal dobrava as calorias da refeição em silêncio */
   const moR=r.mo? lookup(r.mo) : null;
   const mo=(moR && ehMolho(moR))? r.mo : '';
+  /* a massa de base segue a regra do molho: conta por inteiro, e um id
+     trocado aqui inflava as calorias do dia sem ninguém dar por isso */
+  const maR=r.ma? lookup(r.ma) : null;
+  const ma=(maR && ehMassa(maR))? r.ma : '';
   /* uma refeição não se come no futuro */
   if(r.d>hojeISO()) return null;
-  return {id:limparId(r.id), mid:r.mid, d:r.d, mk:r.mk, r:r.r, ac, mo,
+  return {id:limparId(r.id), mid:r.mid, d:r.d, mk:r.mk, r:r.r, ac, mo, ma,
     dose:clampNum(parseFloat(r.dose)||1,0.25,4),
     estado: ESTADOS_REG.indexOf(r.estado)>=0 && r.estado!=='agendada'? r.estado : 'feita',
     grupo: /^[A-Za-z0-9_-]{1,32}$/.test(String(r.grupo||''))? r.grupo : null,
@@ -3231,6 +3235,8 @@ const BEBIDAS=[
   {k:'conhaque',   n:'Conhaque / brandy',             ml:50, abv:40.0, i:'🥃'},
 ];
 function nomeRefeicao(k){ if(k==='ac') return 'Acompanhamento';
+  if(k==='mo') return 'Molho';
+  if(k==='ma') return 'Massa de base';
   const m=MEALS.find(x=>x[0]===k); return m? m[1] : k; }
 
 /* Receitas: por dose (uma pessoa). d = dietas declaradas (hoje só a
@@ -3429,7 +3435,7 @@ R('gnocchi','Gnocchi com tomate e manjericão','italiana',['vegetariana'],520,72
 R('saltimbocca','Escalopes de peru com presunto e salva','italiana',['keto','lowcarb'],0,0,0,0,[['Bifes de peru',180,'g'],['Presunto',25,'g'],['Salva',2,'g'],['Manteiga',6,'g'],['Azeite',5,'ml']]),
 R('espadarte','Espadarte grelhado','italiana',['keto','lowcarb','paleo','mediterranica'],0,0,0,0,[['Espadarte',200,'g']],null,2),
 R('cassoulet','Cassoulet de feijão branco','francesa',[],580,52,36,24,[['Feijão branco',130,'g'],['Coxas de frango',150,'g'],['Chouriço',25,'g'],['Cenoura',60,'g'],['Cebola',0.5,'un'],['Tomate',1,'un'],['Azeite',8,'ml']]),
-R('quiche','Quiche de alho-francês','francesa',['vegetariana'],510,38,18,32,[['Massa quebrada',55,'g'],['Alho-francês',150,'g'],['Ovo',2,'un'],['Nata',60,'ml'],['Queijo gruyère',30,'g'],['Manteiga',12,'g']]),
+R('quiche','Quiche de alho-francês','francesa',['vegetariana'],510,38,18,32,[['Alho-francês',150,'g'],['Ovo',2,'un'],['Nata',60,'ml'],['Queijo gruyère',30,'g'],['Manteiga',12,'g']]),
 R('coqauvin','Coq au vin','francesa',['lowcarb'],480,14,44,26,[['Coxas de frango',200,'g'],['Vinho tinto',100,'ml'],['Cogumelos',100,'g'],['Cenoura',80,'g'],['Cebola',0.5,'un'],['Manteiga',12,'g'],['Bacon',35,'g']],null,4),
 R('sopapeixe','Sopa de peixe à francesa','francesa',['lowfat','mediterranica'],320,22,32,11,[['Pescada',180,'g'],['Tomate',2,'un'],['Batata',100,'g'],['Alho-francês',80,'g'],['Açafrão',0.5,'g'],['Azeite',8,'ml']],null,0,['sop']),
 R('tabule','Tabule de quinoa com legumes','libanesa',['vegetariana','lowfat','mediterranica'],420,58,14,14,[['Quinoa',70,'g'],['Tomate',2,'un'],['Pepino',0.5,'un'],['Hortelã',8,'g'],['Salsa',8,'g'],['Limão',0.5,'un'],['Azeite',10,'ml']]),
@@ -4230,6 +4236,21 @@ R('acmranch','Ranch dressing','americana',[],0,0,0,0,[['Buttermilk',40,'ml'],['M
 R('acmvinagreteclassico','Vinagrete clássico','francesa',['mediterranica'],0,0,0,0,[['Azeite',30,'ml'],['Vinagre de vinho',10,'ml'],['Mostarda de Dijon',3,'g'],['Flor de sal',0.5,'g'],['Pimenta preta',0.2,'g']],['mo']),
 R('aclcouveflorgrelhada','Couve-flor na grelha','mediterranica',['mediterranica'],0,0,0,0,[['Couve-flor',220,'g'],['Azeite',15,'ml'],['Alho',2,'dente'],['Pimentão-doce',1,'g'],['Limão',10,'g'],['Salsa',3,'g'],['Flor de sal',0.5,'g']],['ac']),
 R('aclespinafresalho','Espinafres salteados com alho','mediterranica',['mediterranica'],0,0,0,0,[['Espinafres',250,'g'],['Alho',3,'dente'],['Azeite',12,'ml'],['Limão',8,'g'],['Flor de sal',0.5,'g'],['Pimenta preta',0.2,'g']],['ac']),
+/* ================= AS MASSAS DE BASE =================
+   Cinco massas e uma base de bolacha, escritas como receitas e não como
+   ingredientes comprados. O catálogo continua a ter a massa folhada
+   congelada e a bolacha Maria — quem compra feito não perde nada —, mas
+   quem quiser fazer tem agora a receita, e a app conta-a certa: uma empada
+   em massa quebrada e a mesma empada em massa folhada não têm as mesmas
+   calorias, e até aqui não havia como o dizer.
+   Todas são `mt:['ma']`, o lugar da massa de base, e as quantidades são as
+   de UMA dose — a massa de uma empada, de uma quiche individual ou da fatia
+   de tarte que cabe a uma pessoa. */
+R('maquebrada','Massa quebrada','francesa',[],0,0,0,0,[['Farinha',30,'g'],['Manteiga',20,'g'],['Ovo',0.1,'un'],['Flor de sal',0.5,'g']],['ma']),
+R('mafolhada','Massa folhada','francesa',[],0,0,0,0,[['Farinha',25,'g'],['Manteiga',15,'g'],['Flor de sal',0.5,'g']],['ma']),
+R('mafilo','Massa filo','grega',[],0,0,0,0,[['Farinha',25,'g'],['Azeite',2,'ml'],['Vinagre de vinho',1,'ml'],['Flor de sal',0.5,'g']],['ma']),
+R('matarte','Massa de tarte doce','francesa',[],0,0,0,0,[['Farinha',28,'g'],['Manteiga',18,'g'],['Açúcar em pó',10,'g'],['Ovo',0.1,'un'],['Flor de sal',0.3,'g']],['ma']),
+R('mabolacha','Base de bolacha moída com manteiga','americana',[],0,0,0,0,[['Bolacha Maria',18,'g'],['Manteiga',8,'g'],['Açúcar amarelo',2,'g']],['ma']),
 /* ---- Os gratinados de couve-flor e de brócolos ----
    Três de cada, e a diferença entre eles é o que vai por cima: só queijo, com
    molho branco, ou com bacon. O que já cá estava — a couve-flor com bechamel
@@ -4245,7 +4266,7 @@ R('aclespinafresalho','Espinafres salteados com alho','mediterranica',['mediterr
    jantar. As quantidades dão a massa de uma pessoa: quatro ou cinco pastéis.
    A técnica é a fathead, a mesma da pizza keto que já cá estava — queijo
    derretido faz de glúten, que é o que uma massa sem farinha não tem. */
-R('ketomassapastel','Massa de pastel keto','portuguesa',[],0,0,0,0,[['Mozzarella',100,'g'],['Farinha de amêndoa',60,'g'],['Queijo creme',30,'g'],['Ovo',1,'un'],['Fermento em pó',2,'g'],['Flor de sal',1,'g']],['a','j','l'],0,['ent','sn']),
+R('ketomassapastel','Massa de pastel keto','portuguesa',[],0,0,0,0,[['Mozzarella',45,'g'],['Farinha de amêndoa',30,'g'],['Queijo creme',15,'g'],['Ovo',0.4,'un'],['Fermento em pó',1,'g'],['Flor de sal',0.5,'g']],['ma']),
 /* Duas couves-flores que não são gratinados e por isso ficam fora daquela
    família: uma é o gesto do Bulhão Pato — alho, coentros, azeite e limão —
    emprestado às amêijoas de onde veio o nome; a outra é panada e frita, que
@@ -4262,7 +4283,7 @@ R('aclcouveflormilanesa','Couve-flor à milanesa','italiana',[],0,0,0,0,[['Couve
    farinha e manteiga, dá lugar à massa de pastel keto. A conta muda de 55 g
    de farinha para queijo e amêndoa, e é isso que faz caber uma quiche numa
    dieta cetogénica sem fingir que a massa não existe. */
-R('ketoquiche','Quiche keto de espinafres e bacon','francesa',[],0,0,0,0,[['Mozzarella',50,'g'],['Farinha de amêndoa',25,'g'],['Queijo creme',15,'g'],['Ovo',2,'un'],['Espinafres',120,'g'],['Nata para bater 35% gordura',40,'ml'],['Bacon',30,'g'],['Queijo gruyère',25,'g'],['Manteiga',8,'g'],['Noz-moscada',0.2,'g'],['Flor de sal',1,'g']],['a','j'],0,['pp']),
+R('ketoquiche','Quiche keto de espinafres e bacon','francesa',[],0,0,0,0,[['Ovo',2,'un'],['Espinafres',120,'g'],['Nata para bater 35% gordura',40,'ml'],['Bacon',30,'g'],['Queijo gruyère',25,'g'],['Manteiga',8,'g'],['Noz-moscada',0.2,'g'],['Flor de sal',1,'g']],['a','j'],0,['pp']),
 R('aclcouveflorgrat','Couve-flor gratinada','portuguesa',[],0,0,0,0,[['Couve-flor',200,'g'],['Queijo gruyère',35,'g'],['Manteiga',10,'g'],['Noz-moscada',0.2,'g'],['Flor de sal',0.5,'g'],['Pimenta preta',0.2,'g']],['ac']),
 R('aclcouveflorgratbacon','Couve-flor gratinada com bacon','portuguesa',[],0,0,0,0,[['Couve-flor',200,'g'],['Bacon',35,'g'],['Queijo gruyère',30,'g'],['Nata para bater 35% gordura',30,'ml'],['Cebolinho',3,'g'],['Pimenta preta',0.2,'g']],['ac']),
 R('aclbrocolosgrat','Brócolos gratinados','portuguesa',[],0,0,0,0,[['Brócolos',200,'g'],['Queijo gruyère',35,'g'],['Manteiga',10,'g'],['Noz-moscada',0.2,'g'],['Flor de sal',0.5,'g'],['Pimenta preta',0.2,'g']],['ac']),
@@ -4381,7 +4402,7 @@ R('mousselima','Mousse de lima','portuguesa',[],0,0,0,0,[['Lima',0.75,'un'],['Le
    separadas de propósito — quem quer um não está a hesitar sobre o outro, tal
    como no gelado e no sorvete. O coulis é sempre fruta e açúcar reduzidos, e é
    por isso que ele muda a receita sem mudar a técnica. */
-R('cheesecakeny','Cheesecake de Nova Iorque','americana',['vegetariana'],0,0,0,0,[['Queijo creme',60,'g'],['Açúcar branco',16,'g'],['Ovo',0.35,'un'],['Nata para bater 35% gordura',12,'ml'],['Bolacha Maria',18,'g'],['Manteiga',8,'g'],['Maizena (amido de milho em pó)',3,'g'],['Baunilha',0.5,'g'],['Raspa de limão',0.5,'g']],['l'],0,['sob']),
+R('cheesecakeny','Cheesecake de Nova Iorque','americana',['vegetariana'],0,0,0,0,[['Queijo creme',60,'g'],['Açúcar branco',16,'g'],['Ovo',0.35,'un'],['Nata para bater 35% gordura',12,'ml'],['Maizena (amido de milho em pó)',3,'g'],['Baunilha',0.5,'g'],['Raspa de limão',0.5,'g']],['l'],0,['sob']),
 R('cheesecakejapones','Cheesecake japonês','japonesa',['vegetariana'],0,0,0,0,[['Queijo creme',30,'g'],['Ovo',0.8,'un'],['Açúcar branco',17,'g'],['Leite',25,'ml'],['Manteiga',8,'g'],['Farinha',10,'g'],['Maizena (amido de milho em pó)',5,'g'],['Limão',0.1,'un']],['l'],0,['sob']),
 R('crumblemaca','Crumble de maçã','britanica',['vegetariana'],0,0,0,0,[['Maçã',150,'g'],['Farinha',24,'g'],['Manteiga',14,'g'],['Açúcar amarelo',14,'g'],['Aveia em flocos',12,'g'],['Canela',1,'g'],['Limão',0.15,'un']],['l'],0,['sob']),
 R('castela','Castela','japonesa',['vegetariana'],0,0,0,0,[['Ovo',0.9,'un'],['Açúcar branco',28,'g'],['Farinha',26,'g'],['Mel',10,'g'],['Leite',8,'ml']],['l','p'],0,['sob','sn']),
@@ -4679,7 +4700,7 @@ R('kouignamann','Kouign-amann','francesa',[],0,0,0,0,[['Farinha de trigo tipo 55
 R('pissaladiere','Pissaladière niçoise','francesa',['mediterranica'],0,0,0,0,[['Massa para pizza',80,'g'],['Cebola',150,'g'],['Azeite',10,'ml'],['Anchovas',8,'g'],['Azeitonas pretas',12,'g'],['Tomilho fresco',1,'g'],['Orégãos',1,'g']],['l','a'],0,['br']),
 R('panbagnat','Pan-bagnat','francesa',['mediterranica'],0,0,0,0,[['Pão rústico',100,'g'],['Tomate',120,'g'],['Atum em conserva',60,'g'],['Anchovas',8,'g'],['Ovo de galinha cozido',50,'g'],['Azeitonas pretas',15,'g'],['Cebola roxa',20,'g'],['Favas',30,'g'],['Rabanete cru',20,'g'],['Manjericão',2,'g'],['Azeite',15,'ml'],['Alho',1,'dente']],['l','a'],0,['br']),
 R('oeufsmimosa','Ovos mimosa','francesa',[],0,0,0,0,[['Ovo de galinha cozido',90,'g'],['Maionese',20,'g'],['Mostarda de Dijon',3,'g'],['Cebolinho',2,'g'],['Salsa',1,'g'],['Pimenta preta',1,'g']],['l','a'],0,['br']),
-R('quichelorraine','Quiche lorraine','francesa',[],0,0,0,0,[['Massa quebrada',60,'g'],['Ovo',60,'g'],['Nata',30,'ml'],['Leite gordo, UHT',30,'ml'],['Toucinho fumado',35,'g'],['Noz-moscada',1,'g'],['Pimenta preta',1,'g']],['l','a','j'],0,['br']),
+R('quichelorraine','Quiche lorraine','francesa',[],0,0,0,0,[['Ovo',60,'g'],['Nata',30,'ml'],['Leite gordo, UHT',30,'ml'],['Toucinho fumado',35,'g'],['Noz-moscada',1,'g'],['Pimenta preta',1,'g']],['l','a','j'],0,['br']),
 R('oeufcoque','Ovo quente com mouillettes','francesa',[],0,0,0,0,[['Ovo',120,'g'],['Pão rústico',60,'g'],['Manteiga com sal',10,'g'],['Flor de sal',1,'g']],['p','l'],0,['br']),
 R('ovosbanhomaria','Ovos mexidos em banho-maria','francesa',[],0,0,0,0,[['Ovo',3,'un'],['Manteiga',20,'g'],['Nata pasteurizada 33% gordura',20,'ml'],['Cebolinho',4,'g'],['Flor de sal',1,'g'],['Pimenta branca',1,'g'],['Pão rústico',40,'g']],['p'],0,['br']),
 
@@ -4766,17 +4787,17 @@ R('ovosverdes','Ovos verdes','portuguesa',['vegetariana'],0,0,0,0,[['Ovo',2,'un'
 R('ovosrotos','Ovos rotos','espanhola',[],0,0,0,0,[['Batata',200,'g'],['Ovo',2,'un'],['Presunto',30,'g'],['Pimentão-doce',1,'g'],['Flor de sal',1,'g'],['Óleo alimentar',15,'ml']],['a','j','l'],0,['ent','pp']),
 R('peixinhoshorta','Peixinhos da horta','portuguesa',['vegetariana'],0,0,0,0,[['Feijão verde',180,'g'],['Farinha',45,'g'],['Ovo',0.5,'un'],['Flor de sal',1,'g'],['Óleo alimentar',15,'ml']],['a','j','l'],0,['ent']),
 R('pasteistentugal','Pastéis de Tentúgal','portuguesa',['vegetariana'],0,0,0,0,[['Massa folhada, congelada',40,'g'],['Gema de ovo de galinha, crua',45,'g'],['Açúcar branco',55,'g'],['Açúcar em pó',4,'g'],['Canela',0.3,'g']],['l'],0,['sob']),
-R('empadavilavicosa','Empadas de galinha à moda de Vila Viçosa','portuguesa',[],0,0,0,0,[['Massa quebrada',50,'g'],['Coxas de frango',60,'g'],['Bacon',10,'g'],['Gema de ovo de galinha, crua',15,'g'],['Cebola',20,'g'],['Banha de porco',5,'g'],['Limão',10,'g'],['Salsa',3,'g'],['Cravinho',0.3,'g'],['Pimenta branca',0.3,'g'],['Vinagre de vinho',5,'ml'],['Azeitonas',8,'g']],['l','a','j'],0,['ent','sn','pp']),
+R('empadavilavicosa','Empadas de galinha à moda de Vila Viçosa','portuguesa',[],0,0,0,0,[['Coxas de frango',60,'g'],['Bacon',10,'g'],['Gema de ovo de galinha, crua',15,'g'],['Cebola',20,'g'],['Banha de porco',5,'g'],['Limão',10,'g'],['Salsa',3,'g'],['Cravinho',0.3,'g'],['Pimenta branca',0.3,'g'],['Vinagre de vinho',5,'ml'],['Azeitonas',8,'g']],['l','a','j'],0,['ent','sn','pp']),
 /* ---- As outras empadas ----
    A de Vila Viçosa já cá estava e fica onde está: é a receita com morada, e
    é ela a variante de galinha da família. Estas quatro seguem-lhe a escala —
    duas empadas por dose — e o método: recheio cozinhado e FRIO, massa fina,
    forno alto. O que muda é o que vai lá dentro, e a de espinafres troca a
    banha por manteiga, senão a palavra «vegetariana» não se podia escrever. */
-R('empadapato','Empadas de pato','portuguesa',[],0,0,0,0,[['Massa quebrada',50,'g'],['Pato com pele, cru',70,'g'],['Cebola',25,'g'],['Vinho do Porto',15,'ml'],['Gema de ovo de galinha, crua',12,'g'],['Banha de porco',5,'g'],['Louro',0.5,'g'],['Canela',0.2,'g'],['Pimenta preta',0.3,'g'],['Salsa',2,'g']],['l','a','j'],0,['ent','sn','pp']),
-R('empadavitela','Empadas de vitela','portuguesa',[],0,0,0,0,[['Massa quebrada',50,'g'],['Vitela',75,'g'],['Cebola',25,'g'],['Vinho branco',20,'ml'],['Gema de ovo de galinha, crua',12,'g'],['Banha de porco',5,'g'],['Louro',0.5,'g'],['Noz-moscada',0.3,'g'],['Pimenta preta',0.3,'g'],['Salsa',3,'g']],['l','a','j'],0,['ent','sn','pp']),
-R('empadabacalhau','Empadas de bacalhau','portuguesa',[],0,0,0,0,[['Massa quebrada',50,'g'],['Bacalhau desfiado',75,'g'],['Cebola',25,'g'],['Leite',40,'ml'],['Farinha',6,'g'],['Azeite',8,'ml'],['Gema de ovo de galinha, crua',12,'g'],['Salsa',3,'g'],['Noz-moscada',0.3,'g']],['l','a','j'],0,['ent','sn','pp']),
-R('empadaespinafres','Empadas de espinafres','portuguesa',['vegetariana'],0,0,0,0,[['Massa quebrada',50,'g'],['Espinafres',120,'g'],['Cebola',20,'g'],['Alho',1,'dente'],['Leite',40,'ml'],['Farinha',6,'g'],['Manteiga',10,'g'],['Queijo flamengo',25,'g'],['Gema de ovo de galinha, crua',12,'g'],['Noz-moscada',0.3,'g']],['l','a','j'],0,['ent','sn','pp']),
+R('empadapato','Empadas de pato','portuguesa',[],0,0,0,0,[['Pato com pele, cru',70,'g'],['Cebola',25,'g'],['Vinho do Porto',15,'ml'],['Gema de ovo de galinha, crua',12,'g'],['Banha de porco',5,'g'],['Louro',0.5,'g'],['Canela',0.2,'g'],['Pimenta preta',0.3,'g'],['Salsa',2,'g']],['l','a','j'],0,['ent','sn','pp']),
+R('empadavitela','Empadas de vitela','portuguesa',[],0,0,0,0,[['Vitela',75,'g'],['Cebola',25,'g'],['Vinho branco',20,'ml'],['Gema de ovo de galinha, crua',12,'g'],['Banha de porco',5,'g'],['Louro',0.5,'g'],['Noz-moscada',0.3,'g'],['Pimenta preta',0.3,'g'],['Salsa',3,'g']],['l','a','j'],0,['ent','sn','pp']),
+R('empadabacalhau','Empadas de bacalhau','portuguesa',[],0,0,0,0,[['Bacalhau desfiado',75,'g'],['Cebola',25,'g'],['Leite',40,'ml'],['Farinha',6,'g'],['Azeite',8,'ml'],['Gema de ovo de galinha, crua',12,'g'],['Salsa',3,'g'],['Noz-moscada',0.3,'g']],['l','a','j'],0,['ent','sn','pp']),
+R('empadaespinafres','Empadas de espinafres','portuguesa',['vegetariana'],0,0,0,0,[['Espinafres',120,'g'],['Cebola',20,'g'],['Alho',1,'dente'],['Leite',40,'ml'],['Farinha',6,'g'],['Manteiga',10,'g'],['Queijo flamengo',25,'g'],['Gema de ovo de galinha, crua',12,'g'],['Noz-moscada',0.3,'g']],['l','a','j'],0,['ent','sn','pp']),
 R('domrodrigo','Dom Rodrigo','portuguesa',[],0,0,0,0,[['Gema de ovo de galinha, crua',25,'g'],['Açúcar branco',35,'g'],['Amêndoa, miolo, torrada, sem pele',15,'g'],['Canela',1,'g']],['l'],0,['sob']),
 R('massasovada','Massa sovada','portuguesa',[],0,0,0,0,[['Farinha de trigo tipo 55',65,'g'],['Açúcar branco',12,'g'],['Ovo',0.35,'un'],['Manteiga',13,'g'],['Leite meio gordo, UHT',17,'ml'],['Batata-doce crua',10,'g'],['Fermento de padeiro',2,'g'],['Canela',0.5,'g'],['Raspa de limão',0.5,'g']],['p','l'],0,['br']),
 R('cachorropequeno','Cachorrinho à moda do Porto','portuguesa',[],0,0,0,0,[['Pão rústico',60,'g'],['Salsicha fresca crua',60,'g'],['Queijo Gouda',25,'g'],['Manteiga',8,'g'],['Molho piri-piri',5,'ml']],['l','j'],0,['sn']),
@@ -7492,6 +7513,31 @@ P('acmvinagreteclassico',[
  ['Mostarda primeiro','Dissolve a mostarda no vinagre com a flor de sal e a pimenta preta moída ANTES do azeite. A mostarda é o que segura a emulsão; deitada no fim, o molho separa-se no prato.',2],
  ['Azeite em fio','Junta o azeite em fio, a bater com um garfo, até ficar turvo e cremoso. Ao contrário do que parece, isto faz-se num frasco com tampa e vinte segundos de agitação.',3],
  ['Só à mesa','Tempera-se a salada à mesa e não antes: cinco minutos com vinagrete e a alface murcha. O que sobrar guarda-se dias, e volta a ligar-se com uma agitação.',1]]);
+P('maquebrada',[
+ ['Manteiga fria, e depressa','Farinha e flor de sal numa taça, manteiga fria aos cubos, e esfrega com as pontas dos dedos até parecer areia grossa. Depressa e sem amassar: o calor das mãos derrete a manteiga, e é a manteiga em pedacinhos sólidos que faz a massa quebrar em vez de ficar elástica.',6],
+ ['Ligar com o mínimo','Junta o ovo e, se precisar, uma colher de água muito fria — só até a massa se juntar numa bola. Cada volta a mais desenvolve glúten, e glúten numa massa quebrada é o que a faz encolher no forno.',3],
+ ['Meia hora no frio','Achata em disco, embrulha em película e frigorífico. Este descanso relaxa a massa e volta a solidificar a manteiga: sem ele, encolhe nas paredes da forma.',30],
+ ['Estender e cozer em branco','Estende entre dois papéis, forra a forma sem esticar, pica o fundo com o garfo e coze 15 minutos a 190 °C com peso por cima (feijão seco serve). Só depois leva o recheio — sem isto, o fundo fica cru.',20]]);
+P('mafolhada',[
+ ['A massa base, e a manteiga à parte','Amassa a farinha com a flor de sal e água fria até ficar lisa e deixa descansar. À parte, achata a manteiga fria entre dois papéis num quadrado — tem de estar maleável mas ainda fria, senão sai pelas beiras.',20],
+ ['Dobrar em três, três vezes','Envolve a manteiga na massa, estende num retângulo e dobra em três. Roda um quarto de volta e repete. São as camadas de manteiga entre camadas de massa que fazem a folha — não há fermento nenhum nisto.',20],
+ ['Frio entre cada dobra','Vinte minutos no frigorífico entre cada volta, sempre. Manteiga amolecida funde-se na massa e as camadas desaparecem: em vez de folhado sai um biscoito.',60],
+ ['Forno bem quente','200 °C e nunca menos: é o choque de calor que evapora a água da manteiga de uma vez e levanta as camadas. Forno morno derrete a manteiga antes de ela levantar nada, e a massa fica ensopada.',25]]);
+P('mafilo',[
+ ['Massa muito trabalhada','Farinha, flor de sal, azeite, o vinagre de vinho e água morna. Amassa dez minutos até ficar lisa e elástica — ao contrário da quebrada, esta QUER glúten: é ele que a deixa esticar sem rasgar.',12],
+ ['Descansar uma hora','Bola untada de azeite, tapada, uma hora à temperatura ambiente. Sem este descanso não estica; com ele, estende-se até se ver a mesa através dela.',60],
+ ['Esticar até ficar transparente','Estende com o rolo e depois com as costas das mãos, das bordas para fora, até ficar fina como papel. Se rasgar, não faz mal: as folhas sobrepõem-se e ninguém dá por isso.',25],
+ ['Pincelar folha a folha','Cada folha vai pincelada de azeite ou manteiga derretida antes da seguinte. É a gordura entre as folhas que as separa no forno — sem ela colam-se e fica um bloco. E tapa sempre as que esperam com um pano húmido: ao ar, secam e estalam em minutos.',10]]);
+P('matarte',[
+ ['Areia de manteiga e açúcar','Farinha, açúcar em pó e flor de sal, manteiga fria aos cubos, esfregado até areia. O açúcar em pó e não o granulado: dissolve-se de imediato e não deixa a massa arenosa.',6],
+ ['Ligar e não amassar','Junta o ovo e liga só até formar bola. Esta massa é irmã da quebrada com açúcar — as mesmas regras, e a mesma punição se for trabalhada demais.',3],
+ ['Uma hora no frio','Mais tempo do que a quebrada, porque o açúcar a torna mais mole e mais difícil de estender. Se partir ao estender, remenda-se com os dedos dentro da forma: com esta massa isso não se nota.',60],
+ ['Cozer em branco a 180 °C','Mais brando do que a quebrada, que o açúcar tosta depressa: 180 °C, quinze minutos com peso e mais cinco sem, até ficar cor de areia dourada.',20]]);
+P('mabolacha',[
+ ['Moer a bolacha, não esmigalhar','Bolacha Maria na picadora até ficar areia fina e igual. Aos pedaços grandes a base parte-se ao cortar a fatia; farinha fina de mais fica dura como cimento.',4],
+ ['Manteiga derretida a ligar','Manteiga derretida e o açúcar amarelo misturados com a bolacha, até a areia agarrar quando se aperta na mão. Se ainda esfarelar, mais uma colher de manteiga.',3],
+ ['Calcar bem no fundo','Espalha na forma e calca com o fundo de um copo, subindo um pouco pelas paredes. Mal calcada, desfaz-se; calcada a sério, corta-se em fatias inteiras.',5],
+ ['Frio ou forno, conforme o recheio','Para um cheesecake frio, meia hora no congelador chega. Para um que vá ao forno, dez minutos a 180 °C antes do recheio, para a base não amolecer por baixo.',30]]);
 P('arrozsarrabulho',[
  ['Cozer as carnes e guardar o caldo','Põe o lombo de porco, o frango com pele, o presunto e o chouriço a cozer em água com a cebola, o alho, o louro e um bocado de sal, até as carnes cederem à ponta da faca. Coa o caldo e GUARDA-O: é nele que o arroz vai cozer, e é dele que vem tudo o que este prato tem de sabor.',50],
  ['Desfiar à mão','Desfia as carnes com os dedos, tirando peles e ossos, e corta o chouriço e o presunto em cubinhos. À mão e não à faca: a fibra desfeita agarra o molho, e cortada em cubos fica-lhe a nadar.',15],
@@ -7517,7 +7563,7 @@ P('ketoquiche',[
  ['Montar e cozer devagar','Espinafres e bacon sobre a base pré-cozida, o creme por cima, o gruyère ralado a rematar. Forno a 170 °C — mais brando do que numa quiche de massa quebrada, porque a de queijo tosta mais depressa — até o meio abanar como gelatina e não como água.',35],
  ['Descansar antes de cortar','Vinte minutos fora do forno. Uma quiche cortada a quente escorre e desfaz-se; morna, corta-se em fatias inteiras — e é morna que ela sabe melhor.',20]]);
 P('ketomassapastel',[
- ['Isto é uma massa, não é um jantar','O que sai daqui é a massa de quatro ou cinco pastéis: recheia-se com o que se quiser — carne estufada, bacalhau desfiado, frango — e as calorias do recheio somam-se a estas. Sem farinha não há glúten, e é o queijo derretido que faz o papel dele: chama-se massa fathead e é a mesma da pizza keto.',2],
+ ['Isto é uma massa, não é um jantar','O que sai daqui é uma base: a massa de uma empada, de uma quiche individual ou de dois pastéis pequenos. Recheia-se com o que se quiser — carne estufada, bacalhau desfiado, frango — e as calorias do recheio somam-se a estas. Sem farinha não há glúten, e é o queijo derretido que faz o papel dele: chama-se massa fathead e é a mesma da pizza keto.',2],
  ['Derreter os queijos juntos','Mozzarella ralada e queijo creme no micro-ondas, trinta segundos de cada vez, mexendo entre elas, até formarem uma pasta única e brilhante. Em banho-maria também vai; o que não pode é ferver, ou o queijo separa-se e larga gordura.',3],
  ['Ovo e farinha de amêndoa, depressa','Fora do lume, junta o ovo batido, a farinha de amêndoa, o fermento em pó e a flor de sal, e amassa com as mãos molhadas enquanto está morna. Arrefecida endurece e deixa de ligar — se isso acontecer, quinze segundos no micro-ondas e volta.',5],
  ['Descansar no frio','Bola em película, meia hora no frigorífico. É este descanso que a torna esticável: quente agarra-se a tudo, fria estende-se entre duas folhas de papel vegetal sem se rasgar.',30],
@@ -13585,7 +13631,7 @@ function kcalPlaneadasDia(m,di,dates){
     /* e o molho, por inteiro e pela mesma razão: come-se com o prato sem ser
        uma refeição. Trinta gramas de beurre blanc são duzentas calorias que o
        plano da semana estava a somar a zero. */
-    kcal+=somaAc(acompsDe(meal),'k')+moKcal(moId(meal)); });
+    kcal+=somaAc(acompsDe(meal),'k')+moKcal(moId(meal))+maKcal(maId(meal)); });
   return {cheat:false,kcal,refs};
 }
 function estadoDia(m,di,dates){
@@ -13738,7 +13784,7 @@ function kcalRegRef(r){
      aplicava aqui ao lado. Sem esta linha, a mesma refeição registada tinha
      DUAS respostas para as suas calorias: os macros contavam o beurre blanc e
      o total do dia não. */
-  return (rec.k+somaAc(acs,'k')+moKcal(r.mo))*(parseFloat(r.dose)||1);
+  return (rec.k+somaAc(acs,'k')+moKcal(r.mo)+maKcal(r.ma))*(parseFloat(r.dose)||1);
 }
 /* O molho de um registo ou de uma refeição, resolvido e por inteiro. Vive
    numa função porque são cinco contas diferentes a fazer a mesma pergunta, e
@@ -13753,7 +13799,9 @@ function macrosRegRef(r){
      manteiga de alho são duzentas calorias — deixá-las de fora porque «é só
      um molho» era a mesma cegueira que a app corrigiu no álcool. */
   const mo=r.mo? RECIPES.find(x=>x.id===r.mo) : null;
-  const m=(campo)=>mo? (mo[campo]||0) : 0;
+  const ma=maRec(r.ma);
+  /* o molho e a massa somam-se os dois por inteiro */
+  const m=(campo)=>(mo? (mo[campo]||0) : 0)+(ma? (ma[campo]||0) : 0);
   const dose=parseFloat(r.dose)||1;
   return {k:(rec.k+somaAc(acs,'k')+m('k'))*dose, c:(rec.c+somaAc(acs,'c')+m('c'))*dose,
           p:(rec.p+somaAc(acs,'p')+m('p'))*dose, f:(rec.f+somaAc(acs,'f')+m('f'))*dose,
@@ -13892,13 +13940,16 @@ function sodioRegRef(r){
   /* E o molho, por inteiro. Um molho é sal com gordura à volta — a manteiga
      de alho, o tonkatsu, a soja de um ponzu — e era exatamente ele que não
      entrava na conta que a app usa para dizer quanto sal se comeu no dia. */
-  const moR=moRec(r.mo);
-  if(moR){ const s=sodioDeIngredientes(moR.i,1,moR.id);
+  /* o molho e a massa contam os dois por inteiro, e pela mesma razão: nenhum
+     reparte lugar com ninguém. Uma massa quebrada leva sal, e é sal que se
+     come — deixá-la de fora era o mesmo buraco que o molho já teve. */
+  [moRec(r.mo), maRec(r.ma)].filter(Boolean).forEach(moR=>{
+    const s=sodioDeIngredientes(moR.i,1,moR.id);
     mg+=s.mg*dose;
     s.semValor.forEach(n=>sem.push(n));
     s.estimados.forEach(n=>est.push(n));
     (s.outraTabela||[]).forEach(n=>out.push(n));
-  }
+  });
   return {mg:Math.round(mg), semValor:sem, estimados:est, outraTabela:out};
 }
 function sodioMedia(mid,dias){
@@ -13933,6 +13984,10 @@ function acucarLivreRegRef(r){
      desta conta era deixar a sobremesa a fingir que não leva açúcar. */
   const moR=moRec(r.mo);
   if(moR) g+=acucarLivreDeIngredientes(moR.i,1)*dose;
+  /* e a massa: uma base de bolacha moída com manteiga é açúcar quase puro, e
+     é justamente ela que a app tem de contar num cheesecake */
+  const maR=maRec(r.ma);
+  if(maR) g+=acucarLivreDeIngredientes(maR.i,1)*dose;
   return g;
 }
 function acucarLivreMedia(mid,dias){
@@ -14516,7 +14571,7 @@ function registarRefeicao(base,mids,estado){
      cozinhado e comido — mais do que o tê-lo escolhido no plano. É aqui, e
      não a cada mexida no formulário, que o par vira variante: caso contrário
      ficavam guardadas combinações que ninguém chegou a pôr na mesa. */
-  if(criados.length) registaCombo(base.r, acIds(base), base.mo||"");   /* o molho faz parte do par que foi mesmo à mesa */
+  if(criados.length) registaCombo(base.r, acIds(base), base.mo||"", base.ma||"");   /* o molho faz parte do par que foi mesmo à mesa */
   return criados;
 }
 function irmaosDe(lista,r){ return r.grupo? lista.filter(x=>x.grupo===r.grupo && x.id!==r.id) : []; }
@@ -17425,20 +17480,21 @@ function pratoBaseDe(r){
 function ladosDaFicha(r){
   return {base:pratoBaseDe(r),
     acs:(ehCombo(r)? (r.acIds||[]) : []).slice(),
-    mo:(ehCombo(r)? (r.moId||'') : '')};
+    mo:(ehCombo(r)? (r.moId||'') : ''),
+    ma:(ehCombo(r)? (r.maId||'') : '')};
 }
 /* Só um prato leva coisas ao lado: um molho não leva molho, e um
    acompanhamento não é o centro da mesa. */
 /* Um molho não leva molho; um acompanhamento leva — mas só molho, nunca outro
    acompanhamento, que é o que a composição também recusa. */
-function levaLado(r){ const b=pratoBaseDe(r); return !!b && !ehMolho(b); }
+function levaLado(r){ const b=pratoBaseDe(r); return !!b && !ehMolho(b) && !ehMassa(b); }
 function soLevaMolho(r){ const b=pratoBaseDe(r); return !!b && ehAcompanhamento(b); }
 /* Como no plano: não se oferece o que traz um alergénio ou quebra a dieta de
    quem cá vive. O que fica de fora conta-se em voz alta, para a lista curta
    não parecer um catálogo pobre. */
 function poolLadoFicha(tipo){
   const casa=S.members||[];
-  return (tipo==='mo'? molhos() : acompanhamentos())
+  return (tipo==='ma'? massas() : tipo==='mo'? molhos() : acompanhamentos())
     .filter(x=>!casa.length || avaliaReceita(x,casa,'j',false).ok)
     .sort((a,b)=>{
       const da=disponibilidadeReceita(a).pronta, db=disponibilidadeReceita(b).pronta;
@@ -17454,8 +17510,9 @@ function poeLadoFicha(tipo,rid){
   const f=fichaAberta(); if(!f) return;
   const L=ladosDaFicha(RECIPES.find(x=>x.id===f.r));
   if(!L.base) return;
-  const acs=L.acs.slice(); let mo=L.mo;
+  const acs=L.acs.slice(); let mo=L.mo, ma=L.ma;
   if(tipo==='mo'){ mo=(mo===rid)? '' : rid; }
+  else if(tipo==='ma'){ ma=(ma===rid)? '' : rid; }
   else {
     const j=acs.indexOf(rid);
     if(j>=0) acs.splice(j,1);
@@ -17463,54 +17520,55 @@ function poeLadoFicha(tipo,rid){
       ' acompanhamentos. Tira um antes de juntar outro — passado isto deixa de ser acompanhamento.');
     else acs.push(rid);
   }
-  aplicaLadosFicha(L.base.id, acs, mo, f.n, f.lado);
+  aplicaLadosFicha(L.base.id, acs, mo, f.n, f.lado, ma);
 }
 /* O painel fica aberto depois da escolha: quem junta um acompanhamento quase
    sempre quer ver logo o segundo, e fechá-lo obrigava a carregar outra vez no
    botão a cada tentativa. Por isso a ficha é reapontada à mão em vez de passar
    por abrirFicha(), que a abriria de painel fechado. */
-function aplicaLadosFicha(baseId, acs, mo, n, lado){
+function aplicaLadosFicha(baseId, acs, mo, n, lado, ma){
   const irPara=(id,txt)=>{
     if(!RECIPES.some(x=>x.id===id)) return flash('bad','Não foi possível compor este prato.');
     S.ui.ficha={r:id, n:clampNum(n||1,1,MAX_DOSES), lado:lado||''};
     saveMeta(); flash('ok',txt);
   };
-  if(!acs.length && !mo){
+  if(!acs.length && !mo && !ma){
     save('prato sem acompanhamento');
     return irPara(baseId,'Voltou ao prato simples, com as contas e os passos só dele.');
   }
-  const combo=registaCombo(baseId, acs, mo);
+  const combo=registaCombo(baseId, acs, mo, ma);
   if(!combo) return flash('bad','Não foi possível compor este prato.');
   save('o que vai ao lado');
   irPara(combo.id,'Agora é «'+combo.n+'» — ingredientes, calorias e passos já refeitos.');
 }
 function painelLadoFicha(r,tipo){
-  const L=ladosDaFicha(r), soUm=tipo==='mo';
-  const todos=soUm? molhos() : acompanhamentos();
+  const L=ladosDaFicha(r), soUm=(tipo==='mo'||tipo==='ma');
+  const todos=tipo==='ma'? massas() : tipo==='mo'? molhos() : acompanhamentos();
   const pool=poolLadoFicha(tipo), fora=todos.length-pool.length;
-  const postos=soUm? (L.mo? [L.mo] : []) : L.acs;
+  const postos=tipo==='ma'? (L.ma? [L.ma] : []) : tipo==='mo'? (L.mo? [L.mo] : []) : L.acs;
   const cheio=!soUm && L.acs.length>=MAX_AC;
-  const rot=soUm? 'molho' : 'acompanhamento';
+  const rot=tipo==='ma'? 'massa de base' : tipo==='mo'? 'molho' : 'acompanhamento';
   if(!pool.length) return `<div class="lado-painel" id="lado-painel">
-    <p class="sub">Não há nenhum ${rot} que sirva as dietas e as alergias desta casa.</p></div>`;
+    <p class="sub">Não há ${tipo==='ma'?'nenhuma':'nenhum'} ${rot} que sirva as dietas e as alergias desta casa.</p></div>`;
   const linha=x=>{
     const posto=postos.indexOf(x.id)>=0, pronta=disponibilidadeReceita(x).pronta;
     return `<button class="chip lado-op ${posto?'on':''}" onclick="poeLadoFicha('${tipo}','${x.id}')"
       aria-pressed="${posto}"
-      aria-label="${posto? 'Tirar ':(soUm&&L.mo? 'Trocar para ':'Juntar ')}${esc(x.n)}${posto?'':', '+x.k+' quilocalorias'}"
+      aria-label="${posto? 'Tirar ':(soUm&&(tipo==='ma'?L.ma:L.mo)? 'Trocar para ': tipo==='ma'? 'Escolher ':'Juntar ')}${esc(x.n)}${posto?'':', '+x.k+' quilocalorias'}"
       ${(!posto&&cheio)? 'disabled title="O lugar do lado já está cheio"':''}
       >${posto? '✕ ' : ''}${esc(x.n)} <span class="sub">· ${x.k} kcal${pronta? ' · ✓ tens':''}</span></button>`;
   };
   return `<div class="lado-painel" id="lado-painel" role="group" aria-label="Escolher ${rot}">
     <p class="sub" style="margin:0 0 8px">${soUm
-      ? 'Um molho de cada vez — dois no mesmo prato não é receita, é indecisão. Escolher outro troca o que está.'
+      ? (tipo==='ma'? 'Uma massa de base de cada vez — a base do prato é uma só. Escolher outra troca a que está.'
+        : 'Um molho de cada vez — dois no mesmo prato não é receita, é indecisão. Escolher outro troca o que está.')
       : 'Até '+MAX_AC+' acompanhamentos, a repartirem o lugar do lado: dois são meia dose de cada, não duas doses.'}
       Carrega no que está posto para o tirar. ${pool.filter(x=>disponibilidadeReceita(x).pronta).length
         ? 'Aparecem primeiro os que já tens em casa.' : ''}</p>
     <div class="lado-lista">${pool.map(linha).join('')}</div>
     ${cheio? `<p class="sub" style="margin-top:8px">⚖ ${notaDivisao(L.acs.length)}. O lugar do lado está cheio.</p>`:''}
     ${fora>0? `<p class="sub" style="margin-top:8px">${fora===1? 'Fica de fora 1 '+rot
-      : 'Ficam de fora '+fora+' '+(soUm?'molhos':'acompanhamentos')} por causa das dietas e das alergias marcadas nesta casa.</p>`:''}
+      : 'Ficam de fora '+fora+' '+(tipo==='ma'?'massas de base':soUm?'molhos':'acompanhamentos')} por causa das dietas e das alergias marcadas nesta casa.</p>`:''}
   </div>`;
 }
 function blocoLadosFicha(r,f){
@@ -17519,20 +17577,24 @@ function blocoLadosFicha(r,f){
   const nomeDe=id=>{ const x=RECIPES.find(y=>y.id===id); return x? x.n : ''; };
   const postos=[
     L.acs.length? ICO_REF.ac+' '+L.acs.map(nomeDe).filter(Boolean).join(' · ') : '',
-    L.mo? ICO_REF.mo+' '+nomeDe(L.mo) : ''
+    L.mo? ICO_REF.mo+' '+nomeDe(L.mo) : '',
+    L.ma? ICO_REF.ma+' '+nomeDe(L.ma) : ''
   ].filter(Boolean);
-  const soMo=soLevaMolho(r), pal=palavraMolho(pratoBaseDe(r));
+  const soMo=soLevaMolho(r), pal=palavraMolho(pratoBaseDe(r)), temMassa=levaMassa(r);
   return `<div class="lados-ficha">
     <div class="row lados-bt">
       ${soMo? '' : `<button class="btn ${f.lado==='ac'?'':'ghost'}" onclick="ladoFicha('ac')" aria-expanded="${f.lado==='ac'}"
         aria-controls="lado-painel">${ICO_REF.ac} Trocar/acrescentar acompanhamento</button>`}
       <button class="btn ${f.lado==='mo'?'':'ghost'}" onclick="ladoFicha('mo')" aria-expanded="${f.lado==='mo'}"
         aria-controls="lado-painel">${ICO_REF.mo} Trocar/acrescentar ${esc(pal)}${soMo? ' próprio'.replace('o próprio', artigoMolho(pratoBaseDe(r))==='a'?' própria':' próprio') : ''}</button>
+      ${temMassa? `<button class="btn ${f.lado==='ma'?'':'ghost'}" onclick="ladoFicha('ma')" aria-expanded="${f.lado==='ma'}"
+        aria-controls="lado-painel">${ICO_REF.ma} ${L.ma? 'Trocar':'Escolher'} a massa de base</button>`:''}
     </div>
     <p class="sub lados-agora">${postos.length
       ? (soMo? 'Neste acompanhamento: ' : 'Neste prato: ')+postos.join(' · ')+(L.acs.length>1? ' — '+notaDivisao(L.acs.length) : '')
       : (soMo
         ? 'Um acompanhamento também leva '+pal+' — o arroz de tomate leva o dele, a salada leva o vinagrete. O que juntares fica a fazer parte dele, e vai com ele para qualquer prato.'
+        : temMassa? 'Sem massa escolhida é só o recheio — o que vai por dentro, sem a base por baixo. Escolhe uma e ela entra nos ingredientes, nas calorias e nos passos.'
         : 'Prato só, sem nada ao lado. O que juntares entra nos ingredientes, nas calorias e nos passos.')}</p>
     ${f.lado? painelLadoFicha(r,f.lado) : ''}
   </div>`;
@@ -19488,7 +19550,7 @@ function cartaoResgate(){
 function plantarResgate(rid){
   const m=missaoResgate(); if(!m||!m.vazios.length) return flash('warn','A semana já está toda planeada.');
   const v=m.vazios[0], meal=planMeal(v.di,v.mk);
-  meal.r=rid; registaCombo(rid, acIds(meal), moId(meal));
+  meal.r=rid; registaCombo(rid, acIds(meal), moId(meal), maId(meal));
   save('resgate no plano'); render();
   const r=RECIPES.find(x=>x.id===rid);
   flash('ok',(r?r.n:'A receita')+' entrou em '+DAYN[v.di].toLowerCase()+', ao '+nomeRefeicao(v.mk).toLowerCase()+'.',
@@ -19531,8 +19593,8 @@ function repetirSemana(wk){
     /* o molho vem com a refeição, como o acompanhamento: repetir a semana
        trazia o bife e deixava para trás o molho de mostarda com que ele foi
        comido — e depois a lista de compras não o comprava */
-    meal.mo=moId(m0);
-    registaCombo(meal.r, acIds(meal), moId(meal)); n++;
+    meal.mo=moId(m0); meal.ma=maId(m0);
+    registaCombo(meal.r, acIds(meal), moId(meal), maId(meal)); n++;
   });
   save('semana repetida'); render();
   flash('ok', plural(n,'refeição copiada','refeições copiadas')
@@ -19565,7 +19627,7 @@ function aplicarPlanoDoCesto(){
   const cesto=Object.keys(S.bought[S.week]||{}).filter(k=>S.bought[S.week][k]).map(k=>k.split('|')[0]);
   const p=planoDoCesto(cesto);
   if(!p.props.length) return flash('warn','Não há dias vazios para preencher.');
-  p.props.forEach(x=>{ const meal=planMeal(x.di,x.mk); meal.r=x.r.id; registaCombo(meal.r, acIds(meal), moId(meal)); });
+  p.props.forEach(x=>{ const meal=planMeal(x.di,x.mk); meal.r=x.r.id; registaCombo(meal.r, acIds(meal), moId(meal), maId(meal)); });
   save('plano a partir do cesto'); render();
   flash('ok', plural(p.props.length,'refeição planeada','refeições planeadas')
     +' com o que veio das compras.', {rot:'Anular',fn:'desfazer()'});
@@ -20591,7 +20653,7 @@ function confirmarRefFio(mk){
   const jaTem=m=>(S.regRef||[]).some(r=>r.mid===m.id && r.d===d && r.mk===mk);
   const comem=S.members.filter(m=>meal.m.includes(m.id)&&!isCheat(m.id,d)&&!jaTem(m));
   if(!comem.length) return flash('warn','Já estava registada para toda a gente que estava à mesa.');
-  registarRefeicao({d, mk, r:meal.r, ac:acIds(meal), mo:moId(meal), dose:1}, comem.map(m=>m.id), 'feita');
+  registarRefeicao({d, mk, r:meal.r, ac:acIds(meal), mo:moId(meal), ma:maId(meal), dose:1}, comem.map(m=>m.id), 'feita');
   save('refeição confirmada'); render();
   flash('ok','Registada para '+plural(comem.length,'pessoa','pessoas')+'.',
     {rot:'Anular', fn:'desfazer()'});
@@ -20723,7 +20785,7 @@ function confirmarOntem(mid){
     const meal=((S.plans[wk]||{})[di]||{})[mk];
     if(!meal||!meal.r||!meal.m.includes(mid)) return;
     if((S.regRef||[]).some(r=>r.mid===mid&&r.d===ontem&&r.mk===mk)) return;
-    registarRefeicao({d:ontem, mk, r:meal.r, ac:acIds(meal), mo:moId(meal), dose:1},[mid],'feita'); n++;
+    registarRefeicao({d:ontem, mk, r:meal.r, ac:acIds(meal), mo:moId(meal), ma:maId(meal), dose:1},[mid],'feita'); n++;
   });
   save('refeições de ontem'); bandejaSeguinte();
   flash('ok', plural(n,'refeição confirmada','refeições confirmadas')+'.',
@@ -20952,7 +21014,7 @@ function folhaPessoaHtml(fo){
 function confirmarRefPessoa(mid,mk){
   const d=hojeISO(), di=diaSemana(d);
   const meal=((S.plans[mondayISO(d)]||{})[di]||{})[mk]; if(!meal||!meal.r) return;
-  registarRefeicao({d, mk, r:meal.r, ac:acIds(meal), mo:moId(meal), dose:1},[mid],'feita');
+  registarRefeicao({d, mk, r:meal.r, ac:acIds(meal), mo:moId(meal), ma:maId(meal), dose:1},[mid],'feita');
   save('refeição confirmada'); render();
   flash('ok','Registada.',{rot:'Anular', fn:'desfazer()'});
 }
@@ -20976,7 +21038,7 @@ function fecharDiaComoPlaneado(){
   p.ref.forEach(x=>{
     if((S.regRef||[]).some(r=>r.mid===x.mid&&r.d===d&&r.mk===x.mk)) return;
     const m=S.members.find(y=>y.id===x.mid), rec=RECIPES.find(y=>y.id===x.meal.r);
-    registarRefeicao({d, mk:x.mk, r:x.meal.r, ac:acIds(x.meal), mo:moId(x.meal),
+    registarRefeicao({d, mk:x.mk, r:x.meal.r, ac:acIds(x.meal), mo:moId(x.meal), ma:maId(x.meal),
       dose: m&&rec? doseSugerida(m,rec,x.mk) : 1}, [x.mid], 'feita'); nR++;
   });
   p.ativ.forEach(x=>{
@@ -21052,7 +21114,7 @@ function guardarFolhaMesa(){
     porMembro[mid]={dose: m? doseNaFolha(f,m,rec) : 1}; });
   const mids=f.sel.filter(mid=>!(S.regRef||[]).some(r=>r.mid===mid&&r.d===f.d&&r.mk===f.mk));
   if(!mids.length){ S.ui.folha=null; saveMeta(); return render(); }
-  registarRefeicao({d:f.d, mk:f.mk, r:meal.r, ac:acIds(meal), mo:moId(meal), dose:1, porMembro}, mids, 'feita');
+  registarRefeicao({d:f.d, mk:f.mk, r:meal.r, ac:acIds(meal), mo:moId(meal), ma:maId(meal), dose:1, porMembro}, mids, 'feita');
   carimboAlvo='ref:'+f.d+':'+f.mk; som('tinta');
   save('refeição registada à mesa');
   /* o passo seguinte natural é o fecho da mesa: sobrou, repete-se e quem
@@ -21075,15 +21137,15 @@ function folhaMesaHtml(f){
   const dia=(S.plans[mondayISO(f.d)]||{})[diaSemana(f.d)]||{};
   const meal=dia[f.mk]; if(!meal||!meal.r) return '';
   const rec=RECIPES.find(x=>x.id===meal.r);
-  const acs=acompsDe(meal);
+  const acs=acompsDe(meal), mo=molhoDe(meal), ma=massaDe(meal);
   const comem=S.members.filter(m=>meal.m.indexOf(m.id)>=0 && !isCheat(m.id,f.d));
   const jaFeitos=(S.regRef||[]).filter(r=>r.d===f.d&&r.mk===f.mk&&r.estado==='feita').map(r=>r.mid);
   return `<div class="mfundo" onclick="fundoFolha(event)" style="align-items:flex-end;padding:0">
     <div class="folha" role="dialog" aria-modal="true" aria-labelledby="fm-t">
       <div class="folha-pega" aria-hidden="true"></div>
       <span class="lbl">${nomeRefeicao(f.mk)} · ${rotuloData(f.d)}</span>
-      <h2 id="fm-t" style="margin-top:2px">${esc(rec?rec.n:'Refeição')}</h2>
-      <p class="sub" style="margin-top:4px">${acs.length? 'com '+acs.map(x=>esc(x.n)).join(' + ')+' · ':''}${rec? rec.k+somaAc(acs,'k') : 0} kcal por dose. Toca em quem comeu; toca na dose para a corrigir; toque longo para «comeu outra coisa».</p>
+      <h2 id="fm-t" style="margin-top:2px">${esc(nomeDaRefeicao(meal)||(rec?rec.n:'Refeição'))}</h2>
+      <p class="sub" style="margin-top:4px">${acs.length? 'com '+acs.map(x=>esc(x.n)).join(' + ')+' · ':''}${rec? rec.k+somaAc(acs,'k')+(mo?mo.k:0)+(ma?ma.k:0) : 0} kcal por dose. Toca em quem comeu; toca na dose para a corrigir; toque longo para «comeu outra coisa».</p>
       <div class="lugares">${comem.map(m=>{
         const feito=jaFeitos.indexOf(m.id)>=0;
         const on=f.sel.indexOf(m.id)>=0;
@@ -24790,7 +24852,8 @@ function partesDoCombo(r){
   if(!base) return null;
   return {base,
     acs:(r.acIds||[]).map(id=>RECIPES.find(x=>x.id===id)).filter(Boolean),
-    mo: r.moId? RECIPES.find(x=>x.id===r.moId) : null};
+    mo: r.moId? RECIPES.find(x=>x.id===r.moId) : null,
+    ma: r.maId? RECIPES.find(x=>x.id===r.maId) : null};
 }
 /* Passa o teste (dietas marcadas + alergénios marcados) só olhando ao prato? */
 function pratoBaseCumpre(r,dietas,alergs){
@@ -24854,8 +24917,8 @@ function trocarLadoDoCombo(comboId,acId,novoId){
   const trocaMolho = r.moId===acId;
   const acs=trocaMolho? (r.acIds||[]).slice() : (r.acIds||[]).map(id=>id===acId? novoId : id);
   const mo=trocaMolho? novoId : (r.moId||'');
-  const novo=idCombo(r.base, acs, mo);
-  registaCombo(r.base, acs, mo);
+  const novo=idCombo(r.base, acs, mo, r.maId||"");
+  registaCombo(r.base, acs, mo, r.maId||"");
   const feito=RECIPES.find(x=>x.id===novo);
   if(!feito) return flash('warn','Não consegui compor esse par.');
   const a=RECIPES.find(x=>x.id===acId), b=RECIPES.find(x=>x.id===novoId);
@@ -24882,8 +24945,11 @@ function acSubstitutoFiltros(ac,dietas,alergs,excluir){
 /* O molho entra na chave depois de um til, e não de um mais, para os pares
    guardados antes de os molhos existirem continuarem a dar exatamente a
    mesma chave — sem isso, uma atualização apagava as variantes todas. */
-function idCombo(base,acs,mo){
-  return COMBO_PREFIXO+base+'+'+(acs||[]).slice().sort().join('+')+(mo? '~'+mo : '');
+function idCombo(base,acs,mo,ma){
+  /* A massa entra depois de um circunflexo, como o molho entrou depois de um
+     til: os pares guardados antes de ela existir dão exatamente a mesma chave
+     que davam, e por isso não se perdem nem se duplicam na atualização. */
+  return COMBO_PREFIXO+base+'+'+(acs||[]).slice().sort().join('+')+(mo? '~'+mo : '')+(ma? '^'+ma : '');
 }
 function combosCfg(){ if(!Array.isArray(S.combos)) S.combos=[]; return S.combos; }
 /* O nome do acompanhamento como ele cabe dentro do nome de outro prato. «Puré
@@ -24973,6 +25039,12 @@ const NOME_COMBO={
      em vez de uma receita nova: quem quiser o mesmo sem o molho já o tinha, e
      agora tem-nos aos dois sem repetir uma linha de ingredientes. */
   'c:ovosbenedict+~acmholandes':'Ovos Benedict',
+  /* Os pratos de forno que largaram a massa NÃO recuperam aqui o nome de
+     sempre, e é de propósito: com o nome de sempre, o par com massa
+     quebrada e o prato sem massa nenhuma ficavam com o mesmo nome em duas
+     receitas diferentes — «Quiche de alho-francês» de 610 kcal e outra de
+     871 — e ninguém os distinguia na lista. Cada um diz o que é: a massa
+     no fim do nome, e quem a não tem não a promete. */
   'c:bitoque+acbfritas+acrbranco~acmbitoque':'Bitoque',
   'c:zarusoba+~acmtsuyu':'Zaru soba, soba fria com molho de mergulhar',
   'c:peixecrosta+acllegumes':'Dourada assada em crosta de sal com legumes',
@@ -25229,6 +25301,21 @@ const COMBOS_BASE=[
      trocar-se; juntos, dão exatamente o prato de antes, e é esse par que
      leva o nome de sempre na tabela de nomes. */
   {base:'bitoque', ac:['acbfritas','acrbranco'], mo:'acmbitoque'},
+  /* ---- Cada prato de forno com a massa que lhe é de tradição ----
+     Nove receitas largaram a massa que tinham escrita na lista de
+     ingredientes e passaram a escolhê-la. Estes são os pares que repõem o
+     prato de sempre; trocar a massa é agora uma escolha de quem cozinha, e a
+     conta das calorias acompanha — uma empada em folhada não é a mesma
+     empada em quebrada, e até aqui a app dizia que era. */
+  {base:'quiche', ac:[], mo:'', ma:'maquebrada'},
+  {base:'quichelorraine', ac:[], mo:'', ma:'maquebrada'},
+  {base:'empadavilavicosa', ac:[], mo:'', ma:'maquebrada'},
+  {base:'empadapato', ac:[], mo:'', ma:'maquebrada'},
+  {base:'empadavitela', ac:[], mo:'', ma:'maquebrada'},
+  {base:'empadabacalhau', ac:[], mo:'', ma:'maquebrada'},
+  {base:'empadaespinafres', ac:[], mo:'', ma:'maquebrada'},
+  {base:'cheesecakeny', ac:[], mo:'', ma:'mabolacha'},
+  {base:'ketoquiche', ac:[], mo:'', ma:'ketomassapastel'},
   /* O prato brasileiro da milanesa e da parmigiana é arroz e batata frita —
      os dois, e não um deles. */
   {base:'frangoparmigiana', ac:['acrbranco','acbfritas'], mo:''},
@@ -25242,22 +25329,30 @@ const COMBOS_BASE=[
   {base:'aclcouveflorgrelhada', ac:[], mo:'acmtahini'},
   {base:'aclcouveflorgrelhada', ac:[], mo:'acmbeterrabacenoura'},
 ];
-function nomeCombo(baseId,acs,mo){
-  const k=idCombo(baseId,acs,mo);
+function nomeCombo(baseId,acs,mo,ma){
+  const k=idCombo(baseId,acs,mo,ma);
   return temChave(NOME_COMBO,k)? NOME_COMBO[k] : '';
 }
-function nomeComposto(prato,acs,mo){
+function nomeComposto(prato,acs,mo,ma){
   if(!prato) return '';
-  if((!acs||!acs.length) && !mo) return prato.n;
-  const proprio=nomeCombo(prato.id,(acs||[]).map(a=>a.id), mo? mo.id : '');
+  if((!acs||!acs.length) && !mo && !ma) return prato.n;
+  const proprio=nomeCombo(prato.id,(acs||[]).map(a=>a.id), mo? mo.id : '', ma? ma.id : '');
   if(proprio) return proprio;
+  /* A massa não entra na lista do que vai AO LADO: ela não vai ao lado, está
+     por baixo. Diz-se como se diz na pastelaria — «empada de galinha em massa
+     folhada» — e vem no fim da frase, depois de tudo o resto. */
+  /* «em massa folhada», mas «com base de bolacha»: uma massa envolve o prato,
+     uma base está por baixo dele, e a preposição muda com isso. */
+  const curtaMa = ma? nomeCurtoMassa(ma) : '';
+  const sufMassa = ma? (/^base /i.test(curtaMa)? ' com ' : ' em ')+curtaMa : '';
   /* Sem acompanhamento e só com molho, o molho toma o lugar da frase: «Bife
      com chimichurri». Com os dois, o molho vem sempre no fim, porque é o que
      se põe por cima no prato e é assim que se diz em voz alta. */
   if(!acs || !acs.length){
     const n0=prato.n;
+    if(!mo) return n0+sufMassa;
     const lig0 = !/\scom\s/i.test(n0)? ' com ' : (/\se\s/i.test(n0)? ', e ' : ' e ');
-    return n0+lig0+nomeCurtoMolho(mo);
+    return n0+lig0+nomeCurtoMolho(mo)+sufMassa;
   }
   /* Três casos, e cada um lê-se de maneira diferente em voz alta:
      «Bife» + batatas          → «Bife com batatas fritas»
@@ -25279,8 +25374,14 @@ function nomeComposto(prato,acs,mo){
   const parteComCom=partes.some(p=>/\scom\s/i.test(p));
   const lig = (partes.length>1 || parteComCom) ? ', '
     : !/\scom\s/i.test(n)? ' com ' : (/\se\s/i.test(n)? ', e ' : ' e ');
-  return n+lig+listaPT(partes);
+  return n+lig+listaPT(partes)+sufMassa;
 }
+/* O nome da massa como ele cabe dentro do nome de outro prato: «Massa
+   quebrada caseira» é «massa quebrada». */
+const MA_CURTO={ maquebrada:'massa quebrada', mafolhada:'massa folhada', mafilo:'massa filo',
+  matarte:'massa de tarte', mabolacha:'base de bolacha', ketomassapastel:'massa keto' };
+function nomeCurtoMassa(r){ if(!r) return '';
+  return MA_CURTO[r.id] || r.n.replace(/\s+caseira$/i,'').toLowerCase(); }
 /* ---- A mesma coisa, medida de duas maneiras ----
    O prato pede «meia cebola» e o molho pede «40 g de cebola». É a mesma
    cebola, e tem de dar uma linha só: duas linhas fazem quem cozinha cortar
@@ -25310,7 +25411,7 @@ function minutosDe(id){ return (PASSOS[id]||[]).reduce((t,p)=>t+(p[2]||0),0); }
    acompanhamento entra uma nota com o tempo que ele leva ao todo, que é a
    única pergunta que interessa a quem tem duas panelas ao lume — quando é que
    se começa este para chegar ao mesmo tempo que o outro. */
-function passosCompostos(prato,acs,mo){
+function passosCompostos(prato,acs,mo,ma){
   const out=(PASSOS[prato.id]||[]).map(p=>p.slice());
   if(!out.length) return out;
   const tPrato=minutosDe(prato.id);
@@ -25364,6 +25465,17 @@ function passosCompostos(prato,acs,mo){
         : t? 'Leva '+t+' minutos ao todo — convém estar feito antes de o prato sair do lume.'
             : 'Faz-se enquanto o prato descansa, para ir a escorrer para a mesa.');
   }
+  /* A massa vem ANTES do resto: e o primeiro trabalho de uma empada ou de uma
+     tarte, e muitas vezes tem de descansar no frio antes de se usar. Poe-se
+     no topo da lista para quem le os passos por ordem nao chegar a ela com o
+     recheio ja feito e a arrefecer. */
+  if(ma){
+    const t=minutosDe(ma.id), curto=(ma.n||'').toLowerCase();
+    const passosMa=(PASSOS[ma.id]||[]).map(p=>['Massa: '+curto+' — '+p[0], p[1], p[2]]);
+    out.unshift.apply(out, [['Massa: '+curto, t>60
+      ? 'A base leva '+t+' minutos, com descanso no frio pelo meio: comeca por ela, ou faz-se de vespera.'
+      : 'A base faz-se primeiro — o recheio espera por ela melhor do que ela pelo recheio.']].concat(passosMa));
+  }
   if(acs.length>1) out.push(['Repartir o lugar','Os '+acs.length+' acompanhamentos repartem o lugar do lado — '
     +(acs.length===2?'meia dose':'um terço de dose')+' de cada. As quantidades já estão a essa conta.']);
   return out;
@@ -25392,6 +25504,7 @@ function sincronizaCombos(){
   const pratoVivo=(x,c)=>{ const p=cru(x); if(!p || ehMolho(p)) return false;
     return ehAcompanhamento(p)? (!(c.ac||[]).length && !!c.mo) : true; };
   const moVivo=x=>{ const m=cru(x); return !!m && ehMolho(m); };
+  const maVivo=x=>{ const m=cru(x); return !!m && ehMassa(m); };
   const ehAcBase=c=>{ const p=cru(c.base); return !!p && ehAcompanhamento(p); };
   /* ---- Um acompanhamento composto também serve de acompanhamento ----
      «Batatas cozidas com raita» é um acompanhamento como outro qualquer, e um
@@ -25405,7 +25518,7 @@ function sincronizaCombos(){
     .map(c=>idCombo(c.base,[],c.mo)));
   const acVivo=x=>{ const a=cru(x); return (!!a && ehAcompanhamento(a)) || acCompostos.has(x); };
   S.combos=combosCfg().filter(c=>c && pratoVivo(c.base,c)
-    && ((c.ac||[]).some(acVivo) || moVivo(c.mo)));
+    && ((c.ac||[]).some(acVivo) || moVivo(c.mo) || maVivo(c.ma)));
   /* Os combos da casa são os que cada um montou, e vivem no estado — entram e
      saem, e o teto vai deitando fora os mais antigos. Os do catálogo não: um
      bife à Marrare tem de estar lá para toda a gente no primeiro arranque, sem
@@ -25416,7 +25529,7 @@ function sincronizaCombos(){
      lado precisa de os encontrar já feitos, e a lista percorre-se uma vez só.
      É a única ordem que este ciclo exige, e por isso é a única que se impõe. */
   const todos=COMBOS_BASE.filter(c=>c && pratoVivo(c.base,c)
-      && ((c.ac||[]).some(acVivo) || moVivo(c.mo)))
+      && ((c.ac||[]).some(acVivo) || moVivo(c.mo) || maVivo(c.ma)))
     .concat(S.combos)
     .sort((a,b)=>(ehAcBase(a)?0:1)-(ehAcBase(b)?0:1));
   todos.forEach(c=>{
@@ -25427,8 +25540,10 @@ function sincronizaCombos(){
     if(ehAcompanhamento(prato) && (c.ac||[]).length) return;
     const acs=(c.ac||[]).map(id=>RECIPES.find(x=>x.id===id)).filter(x=>ehAcompanhamento(x));
     const mo=c.mo? RECIPES.find(x=>x.id===c.mo && !ehCombo(x) && ehMolho(x)) : null;
-    if(!acs.length && !mo) return;
-    const id=idCombo(prato.id,acs.map(a=>a.id), mo? mo.id : '');
+    /* A massa de base só entra em quem a leva: uma empada leva, um bife não. */
+    const ma=(c.ma && levaMassa(prato))? RECIPES.find(x=>x.id===c.ma && !ehCombo(x) && ehMassa(x)) : null;
+    if(!acs.length && !mo && !ma) return;
+    const id=idCombo(prato.id,acs.map(a=>a.id), mo? mo.id : '', ma? ma.id : '');
     if(RECIPES.some(x=>x.id===id)) return;
     /* o acompanhamento entra à fatia que lhe cabe, exatamente como o plano já
        o conta: dois acompanhamentos são meia dose de cada, não duas doses.
@@ -25440,40 +25555,49 @@ function sincronizaCombos(){
     });
     acs.forEach(a=>somar(a.i,fatia));
     if(mo) somar(mo.i,1);
-    const r={id, n:nomeComposto(prato,acs,mo), coz:prato.coz, d:[], k:0,c:0,p:0,f:0,fib:0,
+    /* a massa também por inteiro: uma tarte tem uma base, e não meia */
+    if(ma) somar(ma.i,1);
+    const r={id, n:nomeComposto(prato,acs,mo,ma), coz:prato.coz, d:[], k:0,c:0,p:0,f:0,fib:0,
       i:ing, mt:prato.mt.slice(), cg:Array.isArray(prato.cg)? prato.cg.slice():null,
-      co:true, base:prato.id, acIds:acs.map(a=>a.id), moId:mo? mo.id : ''};
+      co:true, base:prato.id, acIds:acs.map(a=>a.id), moId:mo? mo.id : '', maId:ma? ma.id : ''};
     const m=macrosDeIngredientes(r.i,1);
     if(!m.semDados.length){ r.k=m.k; r.c=Math.round(m.c); r.p=Math.round(m.p);
       r.f=Math.round(m.f); r.fib=Math.round(m.fib); }
     const s=[]; r.i.forEach(l=>atributosIng(l[0]).forEach(t=>{ if(s.indexOf(t)<0) s.push(t); }));
     r.at=s; r.dc=dietasDaReceita(r);
-    PASSOS[id]=passosCompostos(prato,acs,mo);
+    PASSOS[id]=passosCompostos(prato,acs,mo,ma);
     RECIPES.push(r);
   });
   _ixFam=null;   /* e outra vez no fim: a lista so agora esta na forma final */
 }
 /* Chamada de todos os sítios onde se mexe no acompanhamento. Devolve o combo
    para quem quiser dizer ao utilizador em que é que o prato se tornou. */
-function registaCombo(baseId,ids,moId2){
+function registaCombo(baseId,ids,moId2,maId2){
   if(!baseId) return null;
   const ac=Array.isArray(ids)? ids.slice().sort() : [];
   const mo=(typeof moId2==='string' && moId2)? moId2 : '';
-  if(!ac.length && !mo) return null;   /* prato só, sem nada ao lado: não é combo */
+  const ma=(typeof maId2==='string' && maId2)? maId2 : '';
+  if(!ac.length && !mo && !ma) return null;   /* prato só, sem nada ao lado: não é combo */
   const prato=RECIPES.find(x=>x.id===baseId && !ehCombo(x));
-  if(!prato || ehMolho(prato)) return null;
+  if(!prato || ehMolho(prato) || ehMassa(prato)) return null;
   /* Um acompanhamento pode ser base, mas só com molho: é o arroz de tomate com
      o molho dele, e não um acompanhamento com acompanhamento. */
   if(ehAcompanhamento(prato) && (ac.length || !mo)) return null;
   if(mo){ const m=RECIPES.find(x=>x.id===mo); if(!m || !ehMolho(m)) return null; }
-  const id=idCombo(baseId,ac,mo);
+  /* A massa só vale em quem a leva: uma empada, uma quiche, uma tarte. */
+  if(ma){ const m=RECIPES.find(x=>x.id===ma); if(!m || !ehMassa(m) || !levaMassa(prato)) return null; }
+  const id=idCombo(baseId,ac,mo,ma);
   const lista=combosCfg();
+  const chave=c=>idCombo(c.base,c.ac||[],c.mo||'',c.ma||'');
   /* Um par que a app já traz não se volta a guardar no estado: ficaria lá a
      ocupar lugar no teto e a empurrar para fora um que alguém tivesse mesmo
      montado. A receita composta existe na mesma — vem do catálogo. */
-  if(COMBOS_BASE.some(c=>idCombo(c.base,c.ac||[],c.mo||'')===id)) return RECIPES.find(x=>x.id===id)||null;
-  if(!lista.some(c=>idCombo(c.base,c.ac||[],c.mo||'')===id)){
-    lista.push(mo? {base:baseId, ac, mo} : {base:baseId, ac});
+  if(COMBOS_BASE.some(c=>chave(c)===id)) return RECIPES.find(x=>x.id===id)||null;
+  if(!lista.some(c=>chave(c)===id)){
+    const novo={base:baseId, ac};
+    if(mo) novo.mo=mo;
+    if(ma) novo.ma=ma;
+    lista.push(novo);
     while(lista.length>MAX_COMBOS) lista.shift();
     sincronizaCombos();
   }
@@ -25485,7 +25609,7 @@ function nomeDaRefeicao(meal){
   if(!meal || !meal.r) return '';
   const prato=RECIPES.find(x=>x.id===meal.r);
   if(!prato) return '';
-  return nomeComposto(prato, acompsDe(meal), molhoDe(meal));
+  return nomeComposto(prato, acompsDe(meal), molhoDe(meal), massaDe(meal));
 }
 function limparCombos(a){
   if(!Array.isArray(a)) return [];
@@ -25501,10 +25625,11 @@ function limparCombos(a){
     const ac=(Array.isArray(c.ac)? c.ac : []).filter(x=>typeof x==='string' && x && x.length<=64)
       .slice(0,MAX_AC).sort();
     const mo=(typeof c.mo==='string' && c.mo && c.mo.length<=40)? c.mo : '';
-    if(!ac.length && !mo) return;
-    const k=idCombo(c.base,ac,mo);
+    const ma=(typeof c.ma==='string' && c.ma && c.ma.length<=40)? c.ma : '';
+    if(!ac.length && !mo && !ma) return;
+    const k=idCombo(c.base,ac,mo,ma);
     if(vistos[k]) return; vistos[k]=1;
-    out.push(mo? {base:c.base, ac, mo} : {base:c.base, ac});
+    const o={base:c.base, ac}; if(mo) o.mo=mo; if(ma) o.ma=ma; out.push(o);
   });
   return out;
 }
@@ -25667,13 +25792,15 @@ function apagarReceita(id){
      o plano lê como refeição vazia sem dizer porquê */
   Object.values(S.plans).forEach(w=>Object.values(w).forEach(d=>MEALK.forEach(k=>{
     if(!d[k]) return;
-    if(d[k].r===id){ d[k].r=''; d[k].ac=[]; d[k].mo=''; delete d[k].acPor; }
+    if(d[k].r===id){ d[k].r=''; d[k].ac=[]; d[k].mo=''; d[k].ma=''; delete d[k].acPor; }
     else {
       d[k].ac=acIds(d[k]).filter(x=>x!==id);
       /* o molho também aponta para uma receita, e ficava a apontar para uma
          apagada: `moId` limpa-o na leitura, mas o plano guardado ficava com
          um id morto lá dentro para sempre */
       if(d[k].mo===id) d[k].mo='';
+      /* e a massa de base pela mesma razão que o molho */
+      if(d[k].ma===id) d[k].ma='';
       /* Os pratos individuais também apontam para receitas, e ficavam a
          apontar para uma que já não existe: a lista de compras deixava de
          comprar da travessa para essa pessoa E não comprava nada para ela —
@@ -27196,7 +27323,7 @@ function validarRefFeita(mid,d,mk){
   mids.forEach(id=>{ const mm=S.members.find(x=>x.id===id);
     const rec=RECIPES.find(x=>x.id===meal.r);
     porMembro[id]={dose: mm&&rec? doseSugerida(mm,rec,mk) : 1}; });
-  registarRefeicao({d, mk, r:meal.r, ac:acIds(meal), mo:moId(meal), dose:1, porMembro}, mids, 'feita');
+  registarRefeicao({d, mk, r:meal.r, ac:acIds(meal), mo:moId(meal), ma:maId(meal), dose:1, porMembro}, mids, 'feita');
   carimboAlvo='ref:'+d+':'+mk;
   save('refeição confirmada');
   flash('ok', mids.length>1? 'Confirmada para '+mids.length+' pessoas.' : 'Refeição confirmada.');
@@ -27205,7 +27332,7 @@ function validarRefFeita(mid,d,mk){
 function validarRefFalhou(mid,d,mk,modo){
   const dia=(S.plans[mondayISO(d)]||{})[diaSemana(d)]||{};
   const meal=dia[mk]||{};
-  registarRefeicao({d, mk, r:meal.r, ac:acIds(meal), mo:moId(meal), dose:1}, [mid], 'falhada');
+  registarRefeicao({d, mk, r:meal.r, ac:acIds(meal), mo:moId(meal), ma:maId(meal), dose:1}, [mid], 'falhada');
   carimboAlvo='ref:'+d+':'+mk;
   save('refeição não realizada');
   if(modo==='substituir'){
@@ -27223,7 +27350,7 @@ function confirmarTodasRef(mid){
   pend.forEach(p=>{
     if((S.regRef||[]).some(r=>r.mid===mid&&r.d===p.d&&r.mk===p.mk)) return;
     const rec=RECIPES.find(x=>x.id===p.meal.r);
-    registarRefeicao({d:p.d, mk:p.mk, r:p.meal.r, ac:acIds(p.meal), mo:moId(p.meal),
+    registarRefeicao({d:p.d, mk:p.mk, r:p.meal.r, ac:acIds(p.meal), mo:moId(p.meal), ma:maId(p.meal),
       dose: rec? doseSugerida(m,rec,p.mk) : 1}, [mid], 'feita');
   });
   save('refeições confirmadas');
@@ -27235,7 +27362,7 @@ function ignorarTodasRef(mid){
   const pend=pendentesRef(m);
   if(!pend.length) return;
   if(!confirm('Marcar '+plural(pend.length,'refeição','refeições')+' por confirmar como não realizadas?')) return;
-  pend.forEach(p=>registarRefeicao({d:p.d, mk:p.mk, r:p.meal.r, ac:acIds(p.meal), mo:moId(p.meal), dose:1},[mid],'falhada'));
+  pend.forEach(p=>registarRefeicao({d:p.d, mk:p.mk, r:p.meal.r, ac:acIds(p.meal), mo:moId(p.meal), ma:maId(p.meal), dose:1},[mid],'falhada'));
   save('refeições por confirmar'); render();
 }
 function abrirValRef(chave){ S.ui.valRefAberto = S.ui.valRefAberto===chave? null : chave; saveMeta(); render(); }
@@ -29069,7 +29196,7 @@ function renderReceitas(){
      presunto é português e espanhol, e tem de aparecer nas duas listas */
   const _q0=semAcentos(S.ui.busca||'').trim();
   let list=RECIPES.filter(r=> (S.ui.cuis==='todas'||ehDaCozinha(r,S.ui.cuis))
-    && (S.ui.mealF==='todas'? (!!_q0 || !(ehAcompanhamento(r)||ehMolho(r))) : r.mt.indexOf(S.ui.mealF)>=0));
+    && (S.ui.mealF==='todas'? (!!_q0 || !(ehAcompanhamento(r)||ehMolho(r)||ehMassa(r))) : r.mt.indexOf(S.ui.mealF)>=0));
   /* cumulativos: a receita tem de cumprir todas as dietas marcadas e estar
      livre de todos os alergénios marcados ao mesmo tempo */
   const dF=dietasFiltro().filter(k=>temChave(DIETAS_FILTRAVEIS,k));
@@ -29194,6 +29321,8 @@ function renderReceitas(){
     <button class="chip ${S.ui.mealF==='ac'?'on':''}" aria-pressed="${S.ui.mealF==='ac'}" onclick="setMealF('ac')">${ICO_REF.ac} Acompanhamentos</button>
     <button class="chip ${S.ui.mealF==='mo'?'on':''}" aria-pressed="${S.ui.mealF==='mo'}" onclick="setMealF('mo')"
       title="Molhos, marinadas e manteigas compostas — o que se junta a um prato já feito">${ICO_REF.mo} Molhos</button>
+    <button class="chip ${S.ui.mealF==='ma'?'on':''}" aria-pressed="${S.ui.mealF==='ma'}" onclick="setMealF('ma')"
+      title="Massas de base: a quebrada, a folhada, a filo, a de tarte e a base de bolacha — o que fica por baixo de uma empada, de uma quiche ou de uma tarte">${ICO_REF.ma} Massas de base</button>
     <button class="chip ${S.ui.soEpoca?'on':''}" onclick="toggleEpoca()" aria-pressed="${!!S.ui.soEpoca}"
       title="Receitas com pelo menos um ingrediente na época em Portugal, este mês">🌱 Da época agora</button>
   </div>
@@ -30952,11 +31081,13 @@ function setMeal(di,mk,rid){
   /* tirar o prato tira o que ia ao lado: um arroz sozinho não é plano, e um
      molho sozinho ainda menos — ficava pendurado no dia, invisível no ecrã
      porque a linha só aparece com prato, e a somar calorias na mesma */
-  if(!rid){ meal.ac=[]; meal.mo=''; }
+  if(!rid){ meal.ac=[]; meal.mo=''; meal.ma=''; }
   /* mudar o prato com acompanhamentos já postos é um par novo: «Bife com
      arroz» que passa a «Frango com arroz» é outra variante, e é agora que
      ela nasce */
-  else registaCombo(rid, acIds(meal), moId(meal));
+  else { /* um prato que não leva massa não guarda a que lá estava */
+    if(!levaMassa(RECIPES.find(x=>x.id===rid))) meal.ma='';
+    registaCombo(rid, acIds(meal), moId(meal), maId(meal)); }
   save('escolha de refeição'); render(); }
 /* Trocar um acompanhamento por outro é mudar o seletor daquela linha; deixar
    o seletor vazio é tirar aquela linha, e as que ficam voltam a repartir o
@@ -30969,7 +31100,7 @@ function setAcomp(di,mk,i,rid){
     ids[i]=rid;
   } else ids.splice(i,1);
   meal.ac=ids.filter(Boolean).slice(0,MAX_AC);
-  const combo=registaCombo(meal.r, meal.ac);
+  const combo=registaCombo(meal.r, meal.ac, moId(meal), maId(meal));
   save('acompanhamento'); render();
   if(combo) flash('ok','Agora é «'+combo.n+'» — ficou guardado como variante, com os passos dos dois.',
     {rot:'Ver a receita', fn:"irReceita('"+combo.id+"')"});
@@ -31064,6 +31195,55 @@ function artigoMolho(prato){ return ehSobremesa(prato)? 'a' : 'o'; }
 function esseMolho(prato){ return ehSobremesa(prato)? 'essa' : 'esse'; }
 function iconeMolho(prato){ return ehSobremesa(prato)? '🍓' : '🥄'; }
 function molhos(){ return RECIPES.filter(ehMolho); }
+/* ================= A MASSA DE BASE =================
+   O terceiro lugar da refeição, e o mais tardio: uma empada é um recheio
+   dentro de uma massa, e a massa não é um detalhe da receita — é uma escolha
+   com nome, com passos e com calorias próprias. A mesma empada de galinha
+   feita em massa quebrada, em folhada ou na massa keto é o mesmo recheio e
+   três pratos diferentes na balança.
+   Comporta-se como o molho e não como o acompanhamento: há UMA por prato e
+   conta por inteiro, porque a base de uma tarte não se reparte com ninguém.
+   Só alguns pratos a levam — quem leva diz-se em `levaMassa`, e não se
+   oferece uma massa a um bife. */
+function ehMassa(r){ return !!r && (r.mt||[]).indexOf('ma')>=0; }
+function massas(){ return RECIPES.filter(ehMassa); }
+function maId(meal){
+  if(!meal || !meal.ma) return '';
+  const r=RECIPES.find(x=>x.id===meal.ma);
+  return (r && ehMassa(r))? meal.ma : '';
+}
+function massaDe(meal){ const id=maId(meal); return id? RECIPES.find(x=>x.id===id) : null; }
+function maRec(id){ const x=id? RECIPES.find(y=>y.id===id) : null; return (x&&ehMassa(x))? x : null; }
+function maKcal(id){ const x=maRec(id); return x? x.k : 0; }
+/* Quem leva massa de base. Não é uma lista de ids à mão — que a próxima
+   empada esqueceria — mas a categoria do prato cruzada com o que ele é:
+   empadas, quiches, tartes, folhados, pizzas e cheesecakes. Um prato que já
+   traga a massa na lista de ingredientes fica de fora: a massa dele está
+   escrita lá dentro, e oferecer outra por cima somava duas. */
+const RE_LEVA_MASSA=/empada|quiche|tarte|folhado|pizza|cheesecake|pastel de nata|pastelão|torta salgada|galette/i;
+/* «Já traz a massa» não é só a massa comprada: uma pizza escreve a dela
+   com farinha e fermento, e a fathead com farinha de amêndoa. Mas farinha
+   na lista não chega para o dizer — seis gramas são o roux do recheio de
+   uma empada, noventa são a massa da pizza. É a quantidade que separa as
+   duas, e não o nome: por isso a pizza, a sfiha e a fathead ficam de fora,
+   e a quiche e as empadas, que a massa não têm escrita em lado nenhum,
+   continuam a pedi-la. */
+const RE_MASSA_ING=/^(Massa quebrada|Massa folhada|Massa filo|Massa brisa|Bolacha )/i;
+const RE_FARINHA=/^Farinha/i;
+const MIN_FARINHA_MASSA=20;   /* gramas por dose: abaixo disto é molho, não é massa */
+function jaTrazMassa(b){
+  const ing=b.i||[];
+  if(ing.some(l=>RE_MASSA_ING.test(l[0]))) return true;
+  if(ing.some(l=>RE_FARINHA.test(l[0]) && l[2]==='g' && l[1]>=MIN_FARINHA_MASSA)) return true;
+  /* e quem já diz no próprio nome de que é feita a base */
+  return /com base de|de massa /i.test(b.n);
+}
+function levaMassa(r){
+  const b=pratoBaseDe(r); if(!b) return false;
+  if(ehMassa(b)||ehMolho(b)||ehAcompanhamento(b)) return false;
+  if(jaTrazMassa(b)) return false;
+  return RE_LEVA_MASSA.test(b.n);
+}
 function moId(meal){
   if(!meal || !meal.mo) return '';
   const r=RECIPES.find(x=>x.id===meal.mo);
@@ -31074,7 +31254,8 @@ function molhoDe(meal){ const id=moId(meal); return id? RECIPES.find(x=>x.id===i
    que a distinção não muda nada — «tenho os ingredientes?», «que passos são?»,
    «há aqui algum alergénio?». Onde a fatia importa, e importa nos macros, não
    se usa esta: o acompanhamento reparte lugar e o molho não. */
-function ladoIds(meal){ const mo=moId(meal); return acIds(meal).concat(mo? [mo] : []); }
+function ladoIds(meal){ const mo=moId(meal), ma=maId(meal);
+  return acIds(meal).concat(mo? [mo] : []).concat(ma? [ma] : []); }
 function ehAcompanhamento(r){ return !!r && r.mt.indexOf('ac')>=0; }
 
 /* ---- Acompanhamentos: um lugar no prato, repartido ----
@@ -31262,7 +31443,7 @@ function trocarAcomp(di,mk,i){
   const nova=pool.length? pool[(j+1)%pool.length] : null;
   if(!nova || nova.id===ids[i]) return flash('warn','Não há outro acompanhamento que sirva esta mesa.');
   ids[i]=nova.id; meal.ac=ids;
-  const combo=registaCombo(meal.r, meal.ac);
+  const combo=registaCombo(meal.r, meal.ac, moId(meal), maId(meal));
   save('acompanhamento trocado'); render();
   if(combo) flash('ok','Agora é «'+combo.n+'» — variante guardada, com o passo-a-passo já refeito.',
     {rot:'Ver a receita', fn:"irReceita('"+combo.id+"')"});
@@ -31292,7 +31473,7 @@ function poolMolho(di,mk){
 function setMolho(di,mk,rid){
   const meal=planMeal(di,mk);
   meal.mo = rid || '';
-  const combo=registaCombo(meal.r, acIds(meal), meal.mo);
+  const combo=registaCombo(meal.r, acIds(meal), meal.mo, maId(meal));
   save('molho'); render();
   if(combo) flash('ok','Agora é «'+combo.n+'» — ficou guardado como variante, com os passos do molho já dentro.',
     {rot:'Ver a receita', fn:"irReceita('"+combo.id+"')"});
@@ -31309,11 +31490,48 @@ function trocarMolho(di,mk){
   const nova=pool[(j+1)%pool.length];
   if(nova.id===atual) return flash('warn','Não há outra '+p+' que sirva esta mesa.');
   meal.mo=nova.id;
-  const combo=registaCombo(meal.r, acIds(meal), meal.mo);
+  const combo=registaCombo(meal.r, acIds(meal), meal.mo, maId(meal));
   save(p+' trocada'); render();
   if(combo) flash('ok','Agora é «'+combo.n+'» — variante guardada, com o passo-a-passo já refeito.',
     {rot:'Ver a receita', fn:"irReceita('"+combo.id+"')"});
   else flash('ok','Agora com '+nova.n.toLowerCase()+'.');
+}
+/* A massa de base de uma refeição planeada. Só aparece em quem a leva — uma
+   empada, uma quiche, uma tarte —, e por isso a lista é curta e não precisa de
+   separar doces de salgados: quem escolhe a base de bolacha para a quiche
+   sabe o que está a fazer, e às vezes é mesmo isso que quer. */
+function poolMassa(di,mk){
+  const meal=planWeek()[di]?.[mk], date=weekDates(S.week)[di];
+  const comem=S.members.filter(m=>(meal? meal.m.includes(m.id) : true) && !isCheat(m.id,date));
+  return massas().filter(x=>avaliaReceita(x,comem,mk,false).ok)
+    .sort((a,b)=>{
+      const da=disponibilidadeReceita(a).pronta, db=disponibilidadeReceita(b).pronta;
+      if(da!==db) return da? -1 : 1;
+      return a.n.localeCompare(b.n,'pt');
+    });
+}
+function setMassa(di,mk,rid){
+  const meal=planMeal(di,mk);
+  meal.ma = rid || '';
+  const combo=registaCombo(meal.r, acIds(meal), moId(meal), meal.ma);
+  save('massa de base'); render();
+  if(combo) flash('ok','Agora é «'+combo.n+'» — ficou guardado como variante, com os passos da massa já dentro.',
+    {rot:'Ver a receita', fn:"irReceita('"+combo.id+"')"});
+}
+/* Como no molho: anda para a seguinte da lista em vez de sortear. */
+function trocarMassa(di,mk){
+  const meal=planMeal(di,mk), atual=maId(meal);
+  const pool=poolMassa(di,mk);
+  if(!pool.length) return flash('warn','Não há massas de base que sirvam esta mesa.');
+  const j=pool.findIndex(x=>x.id===atual);
+  const nova=pool[(j+1)%pool.length];
+  if(nova.id===atual) return flash('warn','Não há outra massa de base que sirva esta mesa.');
+  meal.ma=nova.id;
+  const combo=registaCombo(meal.r, acIds(meal), moId(meal), meal.ma);
+  save('massa trocada'); render();
+  if(combo) flash('ok','Agora é «'+combo.n+'» — variante guardada, com o passo-a-passo já refeito.',
+    {rot:'Ver a receita', fn:"irReceita('"+combo.id+"')"});
+  else flash('ok','Agora com '+nomeCurtoMassa(nova)+'.');
 }
 function juntarAcomp(di,mk){
   const meal=planMeal(di,mk); if(!meal.r) return;
@@ -31322,7 +31540,7 @@ function juntarAcomp(di,mk){
   const nova=poolAcomp(di,mk).find(x=>ids.indexOf(x.id)<0);
   if(!nova) return flash('warn','Não há mais acompanhamentos que sirvam esta mesa.');
   meal.ac=ids.concat(nova.id);
-  const combo=registaCombo(meal.r, meal.ac);
+  const combo=registaCombo(meal.r, meal.ac, moId(meal), maId(meal));
   save('acompanhamento juntado'); render();
   if(combo) flash('ok','Agora é «'+combo.n+'», '+notaDivisao(meal.ac.length)+'.',
     {rot:'Ver a receita', fn:"irReceita('"+combo.id+"')"});
@@ -31682,7 +31900,7 @@ function blocoAcIncompativel(r,comem,mk,acs,mo,di){
     <p class="sub" style="margin-top:6px">Cada um continua com o mesmo prato. Só muda o que vai ao lado, e só a quem precisa — as quantidades e a lista de compras acompanham.</p>`:''}
   </div>`;
 }
-function blocoReceitaPlaneada(r,comem,mk,acs,extra,mo,di){
+function blocoReceitaPlaneada(r,comem,mk,acs,extra,mo,di,ma){
   const n=comem.length+(extra||0), disp=disponibilidadeReceita(r), falta=disp.total-disp.tem;
   const a=avaliaReceita(r,comem,mk,true);
   acs=acs||[];
@@ -31695,11 +31913,13 @@ function blocoReceitaPlaneada(r,comem,mk,acs,extra,mo,di){
      mais do que um, cada um entra pela fatia que lhe cabe do mesmo lugar —
      meia dose de batatas e meia de salada, não uma dose de cada. */
   const q=fatiaAc(acs);
-  const kt=r.k+somaAc(acs,'k')+(mo?mo.k:0), ct=r.c+somaAc(acs,'c')+(mo?mo.c:0),
-        pt=r.p+somaAc(acs,'p')+(mo?mo.p:0), ft=r.f+somaAc(acs,'f')+(mo?mo.f:0);
-  const faltaAc=acs.concat(mo?[mo]:[]).reduce((t,x)=>{ const d=disponibilidadeReceita(x); return t+(d.total-d.tem); },0);
+  const kt=r.k+somaAc(acs,'k')+(mo?mo.k:0)+(ma?ma.k:0), ct=r.c+somaAc(acs,'c')+(mo?mo.c:0)+(ma?ma.c:0),
+        pt=r.p+somaAc(acs,'p')+(mo?mo.p:0)+(ma?ma.p:0), ft=r.f+somaAc(acs,'f')+(mo?mo.f:0)+(ma?ma.f:0);
+  const faltaAc=acs.concat(mo?[mo]:[],ma?[ma]:[]).reduce((t,x)=>{ const d=disponibilidadeReceita(x); return t+(d.total-d.tem); },0);
   const total=falta+faltaAc;
-  const comQue = acs.length&&mo? 'com o que vai ao lado' : acs.length? (acs.length===1?'com o acompanhamento':'com os acompanhamentos') : mo? 'com o molho' : '';
+  const oQue=[]; if(acs.length) oQue.push(acs.length===1?'o acompanhamento':'os acompanhamentos');
+  if(mo) oQue.push('o molho'); if(ma) oQue.push('a massa de base');
+  const comQue = oQue.length>1? 'com tudo o que leva' : oQue.length? 'com '+oQue[0] : '';
   return `<div class="sub" style="margin-top:4px">${comQue? `<b>${kt} kcal</b> ${comQue} · `:''}H ${ct} · P ${pt} · G ${ft} g/dose
     ${total>0?' · <span style="color:var(--warn)">'+total+' ingrediente'+(total===1?'':'s')+' em falta</span>':' · <span style="color:var(--ok)">✓ tens tudo</span>'}</div>
     ${a.ok?'':`<div class="sub" style="color:var(--warn)">⚠ ${motivoTexto({r,a})}</div>`}
@@ -31718,6 +31938,12 @@ function blocoReceitaPlaneada(r,comem,mk,acs,extra,mo,di){
         nTrav>0? acs.map(x=>'<br><b>'+esc(x.n)+(acs.length>1? ' ('+(acs.length===2?'meia dose':'1/'+acs.length)+')':'')
           +(proprios.length? ' — para '+plural(nTrav,'pessoa','pessoas') : '')
           +':</b> '+textoEscala(x,nTrav,q)).join('') : ''}${
+        /* O molho e a massa entram aqui pelas mesmas contas com que entram na
+           lista de compras: por inteiro e por pessoa. Faltavam nas quantidades
+           do cartão, e quem cozinhava pelo ecrã ficava sem saber quanta
+           farinha ou quanto molho fazer para a mesa que ali estava. */
+        mo? '<br><b>'+esc(mo.n)+':</b> '+textoEscala(mo,n) : ''}${
+        ma? '<br><b>'+esc(ma.n)+':</b> '+textoEscala(ma,n) : ''}${
         proprios.map(m=>{
           const meus=acsPara(meal,m.id).map(id=>RECIPES.find(x=>x.id===id)).filter(Boolean);
           const qm=fatiaAc(meus);
@@ -31738,14 +31964,14 @@ function blocoReceitaPlaneada(r,comem,mk,acs,extra,mo,di){
    eventos cobrem rato, teclado e dedo. */
 function opcoesRefeicao(di,mk,tipo,i){
   const meal=planWeek()[di]?.[mk], date=weekDates(S.week)[di];
-  const acomp=tipo==='ac', molho=tipo==='mo', lado=acomp||molho;
+  const acomp=tipo==='ac', molho=tipo==='mo', massa=tipo==='ma', lado=acomp||molho||massa;
   const ids=acIds(meal);
-  const rid=acomp? (ids[i]||'') : molho? moId(meal) : (meal&&meal.r);
+  const rid=acomp? (ids[i]||'') : molho? moId(meal) : massa? maId(meal) : (meal&&meal.r);
   const comem=S.members.filter(m=>(meal? meal.m.includes(m.id) : true) && !isCheat(m.id,date));
   /* os acompanhamentos já escolhidos nas outras linhas saem da lista: repetir
      o mesmo arroz duas vezes só dividia a dose dele ao meio */
   const lista=acomp? acompanhamentos().filter(x=>x.id===rid || ids.indexOf(x.id)<0)
-    : molho? molhos() : receitasDe(mk);
+    : molho? molhos() : massa? massas() : receitasDe(mk);
   const servem=[], outras=[];
   /* Nem o acompanhamento nem o molho levam teto de calorias próprio: somam-se
      ao prato, e é o prato que já foi medido contra a fatia da refeição.
@@ -31754,7 +31980,8 @@ function opcoesRefeicao(di,mk,tipo,i){
   lista.forEach(x=>{ const a=avaliaReceita(x,comem,mk,!lado); (a.ok?servem:outras).push({r:x,a}); });
   const op=e=>`<option value="${e.r.id}" ${rid===e.r.id?'selected':''}>${esc(e.r.n)} · ${e.r.k} kcal${e.a.ok?'':' — '+MOTIVO_CURTO[e.a.motivo]}</option>`;
   return `<option value="">${acomp? (rid?'— tirar este acompanhamento —':'— sem acompanhamento —')
-      : molho? (rid?'— tirar o molho —':'— sem molho —') : '— escolher receita —'}</option>`
+      : molho? (rid?'— tirar o molho —':'— sem molho —')
+      : massa? (rid?'— tirar a massa —':'— sem massa de base —') : '— escolher receita —'}</option>`
     +(!comem.length? lista.map(x=>op({r:x,a:{ok:true}})).join('')
       : (servem.length? `<optgroup label="Servem ${comem.length===1? nomeCurto(comem[0]) : 'os '+comem.length+' à mesa'}">${servem.map(op).join('')}</optgroup>`:'')
         +(outras.length? `<optgroup label="Fora dos critérios">${outras.map(op).join('')}</optgroup>`:''));
@@ -31821,6 +32048,24 @@ function blocoMolho(di,mk,mo,label,prato){
         aria-label="Trocar ${esc(mo.n)} por outra ${esc(p)} do ${ref} de ${dia}">🔀</button>`:''}
   </div>`;
 }
+/* A linha da massa de base, irmã da do molho: só aparece nos pratos que se
+   fazem sobre uma massa, e o que se escolher aqui entra nos ingredientes, nas
+   calorias e nos passos, como o molho já entrava. */
+function blocoMassa(di,mk,ma,label){
+  const ref=label.toLowerCase(), dia=DAYN[di].toLowerCase();
+  return `<div class="ac-linha">
+    <select class="acomp ${ma?'cheio':''}" data-di="${di}" data-mk="${mk}" data-tipo="ma" data-i="0"
+      onfocus="encheSelect(this)" onmousedown="encheSelect(this)" ontouchstart="encheSelect(this)"
+      onchange="setMassa(${di},'${mk}',this.value)"
+      aria-label="Massa de base do ${ref} de ${dia}">
+      <option value="">${ICO_REF.ma} ${ma?'— tirar a massa —':'— sem massa de base —'}</option>
+      ${ma? `<option value="${ma.id}" selected>${ICO_REF.ma} ${esc(ma.n)} · ${ma.k} kcal</option>`:''}
+    </select>
+    ${ma? `<button class="btn ghost ac-troca" onclick="trocarMassa(${di},'${mk}')"
+        title="Trocar por outra massa de base"
+        aria-label="Trocar ${esc(ma.n)} por outra massa de base do ${ref} de ${dia}">🔀</button>`:''}
+  </div>`;
+}
 /* Quem, dos que estavam à mesa, já confirmou esta refeição. É daqui que sai o
    lápis-ou-tinta do cartão e o desenho da mesa cheia. */
 function estadoValidacaoRef(comem,date,mk){
@@ -31881,7 +32126,8 @@ function mealBlock(di,mk,label,date){
     </select>
     ${r&&(mk==='a'||mk==='j')? blocoAcomp(di,mk,acs,label) : ''}
     ${r&&(mk==='a'||mk==='j'||ehSobremesa(r))? blocoMolho(di,mk,molhoDe(meal),label,r) : ''}
-    ${r? blocoReceitaPlaneada(r,comem,mk,acs,nExtraMesa(meal),molhoDe(meal),di) : ''}
+    ${r&&levaMassa(r)? blocoMassa(di,mk,massaDe(meal),label) : ''}
+    ${r? blocoReceitaPlaneada(r,comem,mk,acs,nExtraMesa(meal),molhoDe(meal),di,massaDe(meal)) : ''}
     <div class="row" style="margin-top:7px">${members.map(m=>{
       const on=meal? meal.m.includes(m.id) : true, cheat=isCheat(m.id,date);
       return `<button class="chip ${on&&!cheat?'on':''}" ${cheat?'style="opacity:.45" title="Cheat day"':''}
@@ -32694,6 +32940,10 @@ function shoppingItems(){
        salsa na lista e descobria-o em casa, com a picanha já na brasa. */
     const mo=molhoDe(meal);
     if(mo) junta(mo.i,1);
+    /* e a massa de base, pela mesma razão: quem escolheu fazer a empada em
+       massa folhada precisa da farinha e da manteiga na lista */
+    const ma=massaDe(meal);
+    if(ma) junta(ma.i,1);
   }
   /* Os suplementos consomem-se todos os dias, não por refeição planeada:
      entram na lista pelas doses de sete dias, para a compra da semana
@@ -33735,8 +33985,10 @@ function lerPacote(txt){
            um acompanhamento neste lugar não é um erro benigno, porque as
            contas contam-no por inteiro em vez de à fatia. */
         const moIn=(typeof r.mo==='string' && r.mo)? RECIPES.find(x=>x.id===r.mo) : null;
+        const maIn=(typeof r.ma==='string' && r.ma)? RECIPES.find(x=>x.id===r.ma) : null;
         const o={ r: receitaExiste(r.r)? String(r.r):'', ac: acLimpo(r.ac),
-          mo: (moIn && ehMolho(moIn))? r.mo : '', m: mm };
+          mo: (moIn && ehMolho(moIn))? r.mo : '',
+          ma: (maIn && ehMassa(maIn))? r.ma : '', m: mm };
         /* porções em dobro, marmitas e convidados vêm com a refeição */
         const dob=parseFloat(r.dobro); if(isFinite(dob)&&dob>1) o.dobro=Math.min(4,Math.round(dob*10)/10);
         if(Array.isArray(r.marmita)){ const mar=r.marmita.map(idOk).filter(x=>x&&mm.indexOf(x)>=0);
@@ -33895,7 +34147,7 @@ function lerPacote(txt){
      com cebolada, o tonkatsu com o seu molho, a panna cotta com o coulis:
      todos desapareciam em silêncio na primeira importação. */
   const combos=limparCombos(d.combos)
-    .filter(c=>acha(c.base) && ((c.ac||[]).some(acha) || (c.mo && acha(c.mo))));
+    .filter(c=>acha(c.base) && ((c.ac||[]).some(acha) || (c.mo && acha(c.mo)) || (c.ma && acha(c.ma))));
   return {d:{ members, cheats, plans, bought, objetivos, despensa, receitas,
               medicoes, regAtiv, regRef, sobras, precos, festas, casa, pausas, diario, cozPref,
               validades, veredictos, brigada, desperdicio, gostos, jejum, combos, rituais, extras, aindaHa, basicos, visitas, ementas, anos, provas, bebidas, notasCozinha,
