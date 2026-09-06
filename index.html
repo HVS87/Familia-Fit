@@ -4239,6 +4239,21 @@ R('acmyakitori','Molho yakitori (tare)','japonesa',[],0,0,0,0,[['Molho de soja',
    já no prato; o de manteiga é o de pincelar na brasa, e derrete com o calor;
    o de ervas é frio, para peixe e legumes. São três receitas e não uma com
    notas, porque o método de cada um é outro. */
+/* ---- Os dois pestos ----
+   O verde é o de Génova: manjericão, pinhões, alho e dois queijos, num
+   almofariz e sem lume nenhum. O calabrese é vermelho e do sul — pimento
+   assado, tomate seco, ricotta e malagueta —, mais cremoso e picante, e não
+   é uma variante do outro: é outro molho, com outra despensa.
+   O catálogo já tinha «Pesto» como INGREDIENTE comprado, e as receitas que o
+   usam continuam a usá-lo. Isto são as receitas de o fazer, e entram no lugar
+   do molho — daí poderem ir a qualquer massa, legume ou pão. */
+/* As quantidades são de UMA dose, como em todos os molhos: o lugar do molho
+   conta por inteiro no prato de cada pessoa, e um pesto escrito para o
+   almofariz cheio punha oitocentas calorias num prato só. Faz-se mais de uma
+   vez à mão — o almofariz não trabalha bem com tão pouco —, e o que sobrar
+   guarda-se coberto de azeite. */
+R('acmpesto','Pesto genovês','italiana',['vegetariana','mediterranica'],0,0,0,0,[['Manjericão',15,'g'],['Pinhões',7,'g'],['Alho',0.5,'dente'],['Parmesão',8,'g'],['Pecorino romano',4,'g'],['Azeite',18,'ml'],['Flor de sal',0.3,'g']],['mo']),
+R('acmpestocalabrese','Pesto calabrese','italiana',['vegetariana','mediterranica'],0,0,0,0,[['Pimento assado em conserva',35,'g'],['Tomate seco',8,'g'],['Ricotta',20,'g'],['Amêndoa',8,'g'],['Alho',0.5,'dente'],['Malagueta',1,'g'],['Pecorino romano',6,'g'],['Azeite',12,'ml'],['Flor de sal',0.3,'g']],['mo']),
 R('acmalho','Molho de alho','portuguesa',['mediterranica'],0,0,0,0,[['Alho',25,'g'],['Azeite',30,'ml'],['Vinagre de vinho',10,'ml'],['Salsa',4,'g'],['Flor de sal',1,'g']],['mo']),
 R('acmalhomanteiga','Molho de alho e manteiga para churrasco','portuguesa',[],0,0,0,0,[['Alho',20,'g'],['Manteiga',40,'g'],['Flor de sal',1,'g'],['Pimenta preta',0.3,'g']],['mo']),
 R('acmalhoervas','Molho de alho e ervas','mediterranica',['mediterranica'],0,0,0,0,[['Alho',15,'g'],['Azeite',35,'ml'],['Salsa',6,'g'],['Coentros',4,'g'],['Tomilho fresco',2,'g'],['Limão',10,'g'],['Flor de sal',1,'g']],['mo']),
@@ -7268,6 +7283,16 @@ P('acmholandes',[['Derreter e assentar a manteiga','Derrete a manteiga em lume b
  ['Manteiga em fio','Afasta do calor forte e junta a manteiga morna gota a gota ao princípio e depois em fio, sempre a bater, até o molho cobrir as costas da colher.',5],
  ['Se talhar','Tira do calor e bate uma colher de água fria; se não voltar, recomeça com uma gema nova e vai-lhe juntando o molho talhado. Manteiga a ferver coze a gema e aí não há volta a dar.',2],
  ['Temperar e manter morno','Flor de sal e pimenta no fim. Guarda-o morno, nunca quente, e usa-o dentro de meia hora — parado e frio, endurece.']]);
+P('acmpesto',[
+ ['Manjericão seco e frio','Lava as folhas e seca-as mesmo bem — água no manjericão é o que faz o pesto separar-se. Só folhas: os talos amargam.',8],
+ ['Pinhões tostados a seco','Frigideira sem gordura, lume brando, a abanar, até cheirarem e ganharem cor de palha. Um minuto a mais e ficam amargos, e o amargo do pinhão não se disfarça.',4],
+ ['Almofariz, e não varinha','O nome vem de «pestare», pisar. No almofariz esmaga-se primeiro o alho com a flor de sal, depois os pinhões, depois o manjericão aos poucos, em movimento circular. A lâmina da varinha corta e aquece, e o manjericão cortado e quente oxida e fica escuro. Se usares varinha, usa-a aos toques e com o copo frio.',12],
+ ['Queijos e azeite no fim','Parmesão e pecorino romano ralados, e o azeite em fio a envolver — não a bater. Nunca vai ao lume: junta-se à massa fora do calor, com uma colher da água da cozedura a soltá-lo.',5]]);
+P('acmpestocalabrese',[
+ ['Escorrer o que vem em conserva','Escorre e seca o pimento assado, e demolha o tomate seco dez minutos em água morna se estiver duro. A água que trazem é o que torna este pesto aguado.',10],
+ ['Amêndoa tostada','Tosta a amêndoa a seco até cheirar. No calabrese é a amêndoa que faz o corpo, onde o genovês tem o pinhão.',5],
+ ['Triturar, aqui sim','Este leva varinha ou picadora sem problema: não tem folha nenhuma para escurecer. Pimento, tomate seco, amêndoa, alho e malagueta até ficar uma pasta grossa e ainda com textura.',4],
+ ['Ricotta e pecorino a rematar','Envolve a ricotta e o pecorino romano com o azeite e a flor de sal, à colher. É o queijo fresco que o distingue do pesto vermelho siciliano e o que o torna cremoso o suficiente para agarrar à massa curta.',4]]);
 P('acmalho',[
  ['Esmagar, não picar','Esmaga o alho com sal grosso na ponta da faca até virar pasta. Picado fica em pedacinhos que ardem na boca; esmagado com sal, dissolve-se e o molho fica liso.',5],
  ['Vinagre antes do azeite','Junta o vinagre de vinho e a flor de sal à pasta e mexe. O ácido tira ao alho o bafo cru, e é por isso que entra primeiro.',2],
@@ -11703,6 +11728,10 @@ const ALIAS_BUSCA={
   /* Gambas e camarão são o mesmo bicho com dois nomes e dois tamanhos, e a
      açorda é a mesma: quem procura «açorda de gambas» quer esta. Também
      «pezinhos» e «chispe», que é a mesma peça vista do talho e da mesa. */
+  /* Ninguém pede «pesto genovês» ao almoço: pede pesto, ou pesto verde. E o
+     calabrese diz-se também pesto vermelho, que é o que o distingue à vista. */
+  acmpesto:'pesto verde pesto alla genovese basilico',
+  acmpestocalabrese:'pesto vermelho pesto rosso calabria',
   acorda:'gambas gamba',
   pezinhoscoentrada:'chispe pes de porco mao de vaca coentrada',
   /* As duas grafias, nos dois pratos: o andaluz escreve-se com z na origem e
