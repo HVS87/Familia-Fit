@@ -1376,7 +1376,7 @@ input[type=range].com-detentes::-moz-range-track{
 @media (prefers-reduced-motion: no-preference){ #toast{transition:opacity .18s} }
 /* O aviso de erro distingue-se por uma barra, não só pela palavra: quem só vê
    o canto do ecrã percebe na mesma que aquilo não correu bem. */
-#toast.toast-bad,#toast.toast-erro{border-left:4px solid var(--bad)}
+#toast.toast-bad{border-left:4px solid var(--bad)}
 #toast.toast-warn{border-left:4px solid var(--warn)}
 #toast.toast-ok{border-left:4px solid var(--ok)}
 .toast-acao{flex:none;background:transparent;border:1px solid currentColor;color:inherit;
@@ -1894,6 +1894,12 @@ textarea{width:100%;min-height:120px;background:var(--inset);border:1px solid va
 .kv b{font-variant-numeric:tabular-nums}
 .msg{border-radius:9px;padding:10px 14px;font-size:13.5px;font-weight:600;margin-bottom:16px}
 .msg.ok{color:var(--ok)}
+/* Faltava. O aviso fixo do separador Definições recebe a classe do tipo da
+   mensagem, e `warn` — que é o tipo de 78 das mensagens da app — não tinha
+   regra nenhuma: a mais comum das três saía sem cor, numa caixa cinzenta
+   igual à de uma informação. `warn-msg` aqui ao lado é outra coisa: é o
+   aviso escrito à mão dentro de um cartão. */
+.msg.warn{color:var(--warn)}
 .msg.bad{color:var(--bad)}
 @media (prefers-reduced-motion: no-preference){ .card,.day,.rc{transition:box-shadow .15s} }
 
@@ -1907,6 +1913,8 @@ textarea{width:100%;min-height:120px;background:var(--inset);border:1px solid va
 .pill.bad{background:rgba(184,61,49,.14)}
 .pill.bad{background:color-mix(in srgb,var(--bad) 12%,var(--card))}
 .msg.ok{background:rgba(44,119,75,.13)}
+.msg.warn{background:rgba(134,97,15,.13)}
+.msg.warn{background:color-mix(in srgb,var(--warn) 12%,var(--card))}
 .msg.warn-msg{background:rgba(134,97,15,.13);color:var(--warn);font-weight:400;line-height:1.5}
 .msg.ok{background:color-mix(in srgb,var(--ok) 12%,var(--card))}
 .msg.bad{background:rgba(194,64,52,.13)}
@@ -16013,7 +16021,7 @@ function podeCongelar(rid){
 }
 function congelarSobra(id){
   const s=(S.sobras||[]).find(x=>x.id===id); if(!s) return;
-  if(!podeCongelar(s.r)){ flash('erro','Este prato não congela bem — vale mais comê-lo.'); return; }
+  if(!podeCongelar(s.r)){ flash('warn','Este prato não congela bem — vale mais comê-lo.'); return; }
   s.est='cong'; s.dc=hojeISO();
   save('sobra congelada');
   const rec=RECIPES.find(x=>x.id===s.r), c=conservacaoDe(rec);
