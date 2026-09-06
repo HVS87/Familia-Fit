@@ -1744,7 +1744,7 @@ select.acomp{margin-top:6px;border-style:dashed;font-size:13.5px}
 /* A semana de relance: sete colunas, a altura da barra é o tempo de treino do
    dia. Os dias de descanso são coluna na mesma — a ausência de treino é
    informação, e uma semana sem nenhum é o que o aviso precisa de mostrar. */
-.tira-semana{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:4px}
+.tira-semana{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin-top:4px}
 .ts-dia{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;
   border:1px solid var(--line);border-radius:10px;background:var(--card);min-width:0}
 .ts-dia.ts-livre{background:var(--bg);border-style:dashed}
@@ -1961,6 +1961,16 @@ body{padding-bottom:max(60px,calc(env(safe-area-inset-bottom) + 44px))}
      alvo a sério. */
   .pill.hoje-pend,.pill.dia-alerta{min-height:40px;padding:9px 14px;font-size:13px;
     display:inline-flex;align-items:center}
+  /* Um <summary> é um controlo como outro qualquer, e ficava com a altura do
+     texto — 24 px. Só se mexe na altura: há summaries em linha e summaries em
+     bloco, e cada um tem o seu desenho a valer. Os seletores estão todos
+     escritos porque cada um tem a sua regra base com classe à frente, e um
+     `summary` sozinho perdia a especificidade contra ela. */
+  summary,summary.sub,.coz-mais summary,.mov summary,.filtros>summary,
+  .quant summary,.massa-dobra>summary,.cat-sec>summary,#atv-gravidez details>summary{min-height:40px}
+  /* As etiquetas dos sombreados do Calendário (jejum, confeção) nasceram do
+     tamanho do texto e ficavam com 16 px — metade do que um dedo acerta. */
+  .cal-tag{min-height:26px;padding:4px 9px}
   .toggle input{width:20px;height:20px}
   textarea{min-height:140px}
   .spline select,.spline input[type=number]{min-height:42px}
@@ -2007,10 +2017,16 @@ html[data-orient="paisagem"][data-dispositivo="telefone"] .g2,
 html[data-orient="paisagem"][data-dispositivo="telefone"] .g3,
 html[data-orient="paisagem"][data-dispositivo="telefone"] .gdias{grid-template-columns:repeat(auto-fill,minmax(min(272px,100%),1fr))}
 
-/* Telemóvel de pé: uma coluna, sem cartões a partir em duas metades estreitas. */
+/* Telemóvel de pé: uma coluna, sem cartões a partir em duas metades estreitas.
+   `minmax(0,1fr)` e não `1fr`: uma pista de `1fr` tem como mínimo automático o
+   min-content do que lá está dentro, e o cartão de receita — com a linha do
+   nome, as calorias, as etiquetas e a lista de ingredientes — tem um
+   min-content de mil e quinhentos pixéis. A grelha esticava-se para os
+   acomodar e o `overflow-x:clip` do html cortava tudo o que passasse dos 375,
+   em silêncio: no telemóvel viam-se cartões de receita sem metade direita. */
 html[data-orient="retrato"][data-dispositivo="telefone"] .g2,
 html[data-orient="retrato"][data-dispositivo="telefone"] .g3,
-html[data-orient="retrato"][data-dispositivo="telefone"] .gdias{grid-template-columns:1fr}
+html[data-orient="retrato"][data-dispositivo="telefone"] .gdias{grid-template-columns:minmax(0,1fr)}
 
 /* Tablet de pé: duas colunas largas e mais respiro nas margens. */
 html[data-orient="retrato"][data-dispositivo="tablet"] main{padding-left:24px;padding-right:24px}
@@ -12509,6 +12525,10 @@ function marcaDesenho(){
   Promise.resolve().then(()=>{ _tickPendente=false; _renderTick=0; });
 }
 function blank(){ return {members:[],cheats:{},recuperacao:{},plans:{},bought:{},prefCuisine:'todas',objetivos:[],despensa:{},
+  /* cores: a paleta dos gráficos, criada por coresCfg() à primeira leitura.
+     Fica declarada aqui na mesma, para o estado vazio ter a mesma forma que
+     o estado cheio — é o que impede um leitor novo de a ler a seco. */
+  cores:{porDesporto:{}},
   receitas:[],
   /* ingredientes: os que faltavam ao catálogo e alguém escreveu à mão a partir
      do rótulo. Ficam na gaveta «Da casa», que é a de prioridade mais baixa —
@@ -36460,7 +36480,7 @@ function modalCalHtml(mo){
   if(mo.modo==='ver'){
     const wk=mondayISO(new Date((mo.evId.split(':')[1]||hojeISO())+'T12:00:00'));
     const e=eventosDaSemana(wk).ev.find(x=>x.id===mo.evId) || eventosDaSemana(calSemana()).ev.find(x=>x.id===mo.evId);
-    if(!e) return `<div class="mfundo" onclick="fundoModal(event)"><div class="modal"><p class="sub">Este evento já não existe.</p>
+    if(!e) return `<div class="mfundo" onclick="fundoModal(event)"><div class="mcaixa"><p class="sub">Este evento já não existe.</p>
       <div class="row" style="justify-content:flex-end"><button class="btn ghost small" onclick="fecharModal()">Fechar</button></div></div></div>`;
     const b=e.fonte==='agenda'? agendaCfg().find(x=>x.id===e.bid) : null;
     if(b){ mo.b=Object.assign({}, b); mo.modo='editar'; return modalCalHtml(mo); }
@@ -36477,7 +36497,7 @@ function modalCalHtml(mo){
       `<button class="btn ghost small" onclick="fecharModal();pickM('${e.mid}');go('familia')">Abrir o perfil</button>`);
     if(e.tipo==='jejum') acoes.push(`<button class="btn ghost small" onclick="fecharModal();pickM('${e.mid}');go('nutricao')">Abrir o jejum</button>`,
       `<button class="btn danger small" onclick="fecharModal();apagarJejumPontual('${e.jid}')">Apagar este jejum</button>`);
-    return `<div class="mfundo" onclick="fundoModal(event)"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="cal-t">
+    return `<div class="mfundo" onclick="fundoModal(event)"><div class="mcaixa" role="dialog" aria-modal="true" aria-labelledby="cal-t">
       <span class="lbl">${esc(rotuloData(e.d))} · ${hCal(e.h)}–${hCal((e.h+e.dur)%24)}</span>
       <h2 id="cal-t" style="margin-top:2px">${esc(e.titulo)}</h2>
       ${e.sub? `<p class="sub">${esc(e.sub)}</p>`:''}
@@ -36490,7 +36510,7 @@ function modalCalHtml(mo){
       </div></div></div>`;
   }
   const b=mo.b, t=CAL_TIPOS[b.tipo]||CAL_TIPOS.compras, editar=mo.modo==='editar';
-  return `<div class="mfundo" onclick="fundoModal(event)"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="cal-t">
+  return `<div class="mfundo" onclick="fundoModal(event)"><div class="mcaixa" role="dialog" aria-modal="true" aria-labelledby="cal-t">
     <h2 id="cal-t">${editar? 'Editar bloco' : 'Marcar um bloco'}</h2>
     <div class="row" style="margin-top:8px;flex-wrap:wrap;gap:6px">${Object.entries(CAL_TIPOS).map(([k,v])=>
       `<button class="chip ${b.tipo===k?'on':''}" aria-pressed="${b.tipo===k}" onclick="setBlocoCal('tipo','${k}')">${v.ico} ${esc(v.n)}</button>`).join('')}</div>
@@ -36703,10 +36723,9 @@ function nivelDoRegisto(r){
   const met=r.met>0? r.met : metPorVelocidade(sp.dist.curva, clampNum(parseFloat(r.v)||sp.dist.vdef, sp.dist.vmin, sp.dist.vmax));
   return nivelPorMet(sp,met);
 }
-/* a mesma forma para o que se compara, venha de um registo, do plano ou de um
-   bloco marcado no Calendário */
+/* a mesma forma para o que se compara, venha de um registo ou de um bloco
+   marcado no Calendário */
 function sessaoDeRegisto(r){ const sp=SPORT[r.s]; return {id:r.id, nome:sp? sp.nome : 'Treino', kcal:kcalRegAtiv(r), nivelIdx:nivelDoRegisto(r)}; }
-function sessaoDoPlano(mid,s,d){ const sp=SPORT[s.s]; return {nome:sp? sp.nome : 'Treino', kcal:kcalSessao(mid,s,d||hojeISO()), nivelIdx:nivelDaSessao(s)}; }
 function sessaoDeBloco(b){
   const sp=b&&b.s? SPORT[b.s] : null; if(!sp||!b.mid) return null;
   if(!S.members.some(x=>x.id===b.mid)) return null;
@@ -36820,7 +36839,7 @@ function modalRecuperacaoHtml(mo){
       ? 'Esta sessão gastou '+f.kcal+' kcal, contra uma mediana de '+f.mediana+' kcal por sessão'+(f.nRegs>=3? ' nas '+plural(f.nRegs,'sessão registada','sessões registadas')+' das últimas oito semanas' : ' no plano de treino')
       : 'Esta sessão foi a nível intenso, num plano que vive no leve ou no moderado')
       +'. A ACSM recomenda pelo menos 48 horas entre sessões intensas para o mesmo grupo muscular — é nesse intervalo, com descanso e com proteína, que o corpo reconstrói o que o treino desfez.';
-  return `<div class="mfundo" onclick="fundoModal(event)"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="rec-t">
+  return `<div class="mfundo" onclick="fundoModal(event)"><div class="mcaixa" role="dialog" aria-modal="true" aria-labelledby="rec-t">
     <span class="lbl">${nomeCurto(m)}${s.nome? ' · '+esc(s.nome) : ''}${s.kcal? ' · '+s.kcal+' kcal':''}</span>
     <h2 id="rec-t" style="margin-top:2px">${f? 'Foi mais forte do que o habitual' : 'Dia de recuperação'}</h2>
     <p class="sub" style="margin-top:4px">${porque}</p>
