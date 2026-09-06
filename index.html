@@ -809,6 +809,17 @@ ol.passos li span{color:var(--mut);font-size:14px;margin-top:2px}
 /* A estrela da casa não é só a cor: tem um símbolo e um title, porque é uma
    distinção e não um estado de erro. */
 .estrela-casa{font-size:.9em;filter:saturate(1.1)}
+/* A estrela do cartão da receita. Vazia é um convite discreto — não compete
+   com o nome do prato; cheia é um estado, e o número diz quantos, que é a
+   pergunta seguinte. O alvo é maior do que o desenho, porque um ☆ de catorze
+   pixéis não se acerta com o polegar. */
+.estrela{background:none;border:none;cursor:pointer;padding:2px 4px;margin:-2px -4px;
+  font-size:17px;line-height:1;color:var(--mut);display:inline-flex;align-items:center;gap:3px;
+  min-width:28px;min-height:28px;justify-content:center;border-radius:8px}
+.estrela:hover,.estrela:focus-visible{background:var(--bg)}
+.estrela.on{color:var(--accent)}
+.estrela-n{font-size:11.5px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
+@media (hover:none) and (pointer:coarse){ .estrela{min-width:40px;min-height:40px;font-size:19px} }
 .pill.variantes{background:var(--energy-soft,var(--card));color:var(--energy);
   border:1px solid color-mix(in srgb,var(--energy) 40%,transparent)}
 /* O jejum tem cor própria e símbolo próprio: nem alerta nem sucesso, é um
@@ -2701,6 +2712,11 @@ function migraRegistos(s){
   s.ui = s.ui || {};
   if(!Array.isArray(s.ui.dietaF)) s.ui.dietaF = temChave(DIETAS_FILTRAVEIS,s.ui.dietaF)? [s.ui.dietaF] : [];
   if(!Array.isArray(s.ui.alergF)) s.ui.alergF = ehAlergenio(s.ui.alergF)? [s.ui.alergF] : [];
+  /* O filtro das favoritas guarda um id de membro, e um id de membro é a
+     primeira coisa que deixa de existir quando se apaga um perfil ou se
+     importa uma cópia de outra casa. Sem esta linha, a lista de receitas
+     ficava vazia sem que nada no ecrã dissesse porquê. */
+  if(s.ui.favF!=='todas' && !(s.members||[]).some(m=>m.id===s.ui.favF)) s.ui.favF='';
   /* Que secções da despensa ficaram abertas. Vive em s.ui, logo entra por
      ficheiro de cópia como tudo o resto: só se aceitam booleanos, e no máximo
      uma entrada por secção que existe. */
@@ -14152,6 +14168,7 @@ const DICAS={
   genero:'Um gaspacho e uma feijoada não apetecem no mesmo dia. A app lê o género do prato do nome e dos ingredientes e pesa-o na sugestão: no verão os pratos frios ganham vantagem, sobretudo ao almoço; fora dele, os quentes.',
   sugDespensa:'Uma pergunta muito mais curta do que a do plano semanal: o que é que dá para fazer agora, com o que está aí. Ordena as receitas que servem toda a gente à mesa — dietas e alergias já contadas — pela percentagem de ingredientes que já tens em casa, e diz o que falta nas que não estão completas. A percentagem é sobre o número de ingredientes e não sobre o peso: para quem está à frente do frigorífico às sete da tarde, o que conta é quantas coisas faltam ir buscar. As que se podem cozinhar já ficam com uma barra verde à esquerda.',
   variantes:'Sete tacos e cinco burritos ocupavam sete e cinco lugares na grelha, como se fossem doze pratos diferentes. São o mesmo prato com recheios diferentes, e o que a casa decide é «hoje é taco?» e não «qual dos sete tacos?». As variantes passam a partilhar um cartão, que mostra a que melhor serve os gostos desta mesa — pelo saldo de favoritas e não-gostas, depois por quem já se pode cozinhar com o que há em casa — e as outras ficam a um toque na ficha. O agrupamento é uma tabela explícita e não uma regra sobre os nomes: uma sopa de legumes e uma vichyssoise começam ambas por «Sopa» e não são variantes uma da outra. Numa pesquisa não se agrupa nada, porque quem escreve «taco de camarão» quer aquele taco.',
+  favoritas:'A estrela de cada cartão marca a receita como favorita, e pergunta logo de quem — porque uma favorita não é da casa, é de alguém: o mesmo arroz de pato é o prato preferido de um e indiferente a outro. Podem ser vários, e é a mesma marca que a ficha da receita mostra em «Quem gosta». O filtro tem três estados: sem filtro, as favoritas de qualquer pessoa cá de casa, ou as de uma pessoa em concreto — que é a pergunta que se faz mesmo, «o que é que ele gosta de jantar». As variantes contam como uma: marcar um taco marca a família toda, senão procurar favoritas devolvia lista vazia por o cartão que representa o grupo ser outro. Marcar como favorita por cima de um «não gosto» apaga-o, e a app di-lo em vez de o fazer calada.',
   gostos:'Diferente do veredicto, que é sobre uma refeição que aconteceu: isto é a preferência estável de cada pessoa sobre o prato, e não muda com o jantar de ontem. Pesa nas sugestões automáticas — o que alguém não gosta pesa mais a descer do que um gosto a subir, porque um prato que alguém detesta serve pior a mesa do que um prato de que mais um gosta — e é o que decide qual das variantes de um prato aparece primeiro. A estrela aparece quando toda a gente que pode comer o prato o marcou como favorito, e são pelo menos duas pessoas: quem não o pode comer por alergia ou dieta não conta nem a favor nem contra, porque não lhe foi dada a hipótese.',
   acog:'Tudo o que este cartão diz vem do Committee Opinion n.º 804 do American College of Obstetricians and Gynecologists (2020) — a recomendação de 150 minutos por semana, as modalidades seguras, as que se desaconselham e porquê, as contraindicações absolutas e os sinais para parar. Nem um número nem uma modalidade foram decididos pela app. E nada disto substitui a consulta: há contraindicações que só uma consulta identifica, e são elas que mandam. No pós-parto a orientação não dá um calendário fixo — diz que se retoma gradualmente assim que for clinicamente seguro, conforme o tipo de parto e as complicações que tenha havido — e é isso que a app repete, em vez de inventar uma semana a partir da qual se pode correr.',
   tabelas:'Três tabelas oficiais cobrem a mesma comida com números diferentes, e a diferença não é ruído: a convenção europeia declara hidratos disponíveis, sem fibra, e a norte-americana declara-os por diferença, com a fibra lá dentro. Somar as duas sem converter dá erros de dezenas de gramas. A prioridade é a que faz sentido numa casa portuguesa — INSA primeiro, porque é a que conhece o carapau, a couve galega e o queijo da Serra; depois a UE, com a mesma convenção; e só por último a FDA, que é a que mais precisa de conversão. Um valor do INSA nunca é substituído por um do USDA, mesmo que este seja carregado depois: a ordem por que as coisas chegam não é um critério.',
@@ -18860,6 +18877,95 @@ function todosAcabou(v){
   Object.keys(mo.itens).forEach(n=>{ mo.itens[n]=!!v; });
   saveMeta(); render();
 }
+/* ================= AS FAVORITAS, DE QUEM =================
+   Uma favorita nesta casa não é da casa: é de alguém. O mesmo arroz de pato é
+   o prato preferido de um e indiferente a outro, e é essa a informação que
+   depois faz o plano da semana escolher bem. Por isso a estrela do cartão não
+   liga nem desliga nada sozinha — abre a pergunta «de quem?».
+
+   Guarda-se em `S.gostos`, o mapa que já existia para a ficha da receita
+   (1 gosta, −1 não gosta). Aqui só se mexe no lado do 1: quem tinha −1 vê-o
+   dito, porque marcar como favorita por cima de um «não gosto» é apagá-lo, e
+   isso não se faz em silêncio. */
+function abrirFavoritos(rid){
+  const r=RECIPES.find(x=>x.id===rid); if(!r) return;
+  if(!S.members.length) return flash('warn','Ainda não há perfis na família — as favoritas são de alguém, e é preciso haver alguém.');
+  abrirModal('favoritos',{r:rid});
+}
+function toggleFavorito(rid,mid){
+  const m=S.members.find(x=>x.id===mid); if(!m) return;
+  const antes=gostoDe(rid,mid);
+  /* setGosto alterna quando o valor é o mesmo, e substitui quando é outro:
+     de −1 para 1 é uma marcação, de 1 para nada é desmarcar. */
+  setGosto(rid,mid,1);
+  const r=RECIPES.find(x=>x.id===rid);
+  save('favoritas de '+(r?r.n:'uma receita'));
+  if(antes===-1) flash('ok',esc(nomeCurto(m))+' tinha «não gosto» nesta receita, e passou a favorita.');
+  render();
+}
+function favoritosTodos(rid){
+  const r=RECIPES.find(x=>x.id===rid); if(!r) return;
+  const quem=S.members.filter(m=>faseDe(m)!=='bebe' && avaliaReceita(r,[m],'j',false).ok);
+  if(!quem.length) return flash('warn','Esta receita não serve a dieta nem as alergias de ninguém cá em casa.');
+  /* `setGosto` ALTERNA quando o valor já é o mesmo — é o que faz o botão de
+     cada pessoa desmarcar ao segundo toque. Aqui isso seria o contrário do
+     que o botão diz: «Toda a gente» com dois já marcados desmarcava-os e
+     marcava os outros. Só se toca em quem ainda não está. */
+  quem.forEach(m=>{ if(gostoDe(rid,m.id)!==1) setGosto(rid,m.id,1); });
+  save('favoritas de '+r.n); render();
+}
+function limparFavoritos(rid){
+  const g=(S.gostos||{})[rid]; if(!g) return;
+  Object.keys(g).forEach(mid=>{ if(g[mid]===1) delete g[mid]; });
+  if(!Object.keys(g).length) delete S.gostos[rid];
+  save('favoritas'); render();
+}
+/* Quantos gostam, para o botão do cartão. Conta só o 1 — um «não gosto» não
+   torna a estrela mais cheia nem mais vazia, aparece na caixa. */
+function nFavoritos(rid){ const g=(S.gostos||{})[rid]||{};
+  return S.members.filter(m=>g[m.id]===1).length; }
+function estrelaCartao(r){
+  const n=nFavoritos(r.id), casa=favoritaDaCasa(r.id);
+  const nomes=quemGosta(r.id).map(m=>m.nome.split(' ')[0]);
+  const t = !S.members.length? 'Marcar como favorita'
+    : n===0? 'Marcar como favorita — escolhe de quem'
+    : (casa? 'Favorita de toda a gente que a pode comer: ' : 'Favorita de ')+nomes.join(', ');
+  return `<button class="estrela ${n?'on':''}" onclick="abrirFavoritos('${r.id}')"
+    title="${esc(t)}" aria-label="${esc(t)}">${n? '⭐':'☆'}${n>1? '<span class="estrela-n">'+n+'</span>':''}</button>`;
+}
+function modalFavoritosHtml(mo){
+  const r=RECIPES.find(x=>x.id===mo.r);
+  if(!r) return '';
+  /* Os bebés ficam de fora, como no resto da app: ainda não escolhem pratos. */
+  const quem=S.members.filter(m=>faseDe(m)!=='bebe');
+  const naos=quem.filter(m=>gostoDe(r.id,m.id)===-1);
+  const n=nFavoritos(r.id);
+  return `<div class="mfundo" onclick="fundoModal(event)">
+    <div class="mcaixa" role="dialog" aria-modal="true" aria-labelledby="md-fav-t">
+      <h2 id="md-fav-t">Quem gosta de ${esc(r.n)}?</h2>
+      <p class="sub" style="margin-top:6px">Podem ser vários. É o que faz esta receita subir nas sugestões de
+        quem a marcar, e é por pessoa e não pela casa — o prato preferido de um não é o de todos.</p>
+      ${quem.length? `<div class="row" style="margin-top:12px;flex-wrap:wrap">
+        ${quem.map(m=>{ const g=gostoDe(r.id,m.id), serve=avaliaReceita(r,[m],'j',false).ok;
+          return `<button class="chip ${g===1?'on':''}" aria-pressed="${g===1}"
+            onclick="toggleFavorito('${r.id}','${m.id}')"
+            title="${esc(serve? '' : 'Esta receita não serve a dieta ou as alergias de '+m.nome.split(' ')[0]+' — a marca fica, mas ela não vai ser sugerida.')}">
+            ${g===1?'⭐ ':''}${avatar(m,20)} ${esc(m.nome.split(' ')[0])}${serve?'':' <span class="sub">(não serve)</span>'}</button>`;
+        }).join('')}
+      </div>`
+      : '<p class="sub" style="margin-top:12px">Só há bebés nos perfis, e esses ainda não escolhem pratos.</p>'}
+      ${naos.length? `<p class="sub" style="margin-top:10px">🚫 ${esc(enumera(naos.map(m=>m.nome.split(' ')[0])))}
+        ${naos.length===1?'tem':'têm'} «não gosto» marcado nesta receita. Marcar como favorita substitui-o;
+        o «não gosto» muda-se na ficha da receita, em «Quem gosta».</p>`:''}
+      <div class="row" style="margin-top:14px;justify-content:space-between">
+        <div class="row">
+          ${quem.length>1? `<button class="chip" onclick="favoritosTodos('${r.id}')">⭐ Toda a gente</button>`:''}
+          ${n? `<button class="chip" onclick="limparFavoritos('${r.id}')">Nenhum</button>`:''}
+        </div>
+        <button class="btn" onclick="fecharModal()">Fechar</button>
+      </div>
+    </div></div>`;
+}
 function modalAcabouHtml(mo){
   const nomes=Object.keys(mo.itens||{});
   const n=nomes.filter(x=>mo.itens[x]).length;
@@ -20910,7 +21016,7 @@ let jaPerguntouPeso=false, jaPerguntouCompras=false;
    S.ui.modal preenchido sem nada no ecrã: uma camada invisível que engolia o
    Escape, travava o go() e não tinha botão de fechar — só se saía recarregando.
    Recusar em voz alta é melhor do que abrir o nada. */
-const MODAIS=['peso','aviso','compras','ingrediente','acabou'];
+const MODAIS=['peso','aviso','compras','ingrediente','acabou','favoritos'];
 function abrirModal(tipo,dados){
   if(MODAIS.indexOf(tipo)<0){ console.warn('Família Fit — modal desconhecido: '+tipo); return; }
   S.ui.modal=Object.assign({tipo},dados||{}); saveMeta(); render();
@@ -23811,8 +23917,37 @@ function haFiltros(){
     || dietasFiltro().length || alergsFiltro().length || !!S.ui.catF || S.ui.soEpoca || S.ui.soComp;
 }
 function limparFiltros(){ S.ui.cuis='todas'; S.ui.dietaF=[]; S.ui.mealF='todas'; S.ui.busca='';
-  S.ui.alergF=[]; S.ui.catF=''; S.ui.soEpoca=false; S.ui.soComp=false;
+  S.ui.alergF=[]; S.ui.catF=''; S.ui.soEpoca=false; S.ui.soComp=false; S.ui.favF='';
   S.ui.recLimite=LOTE_RECEITAS; saveMeta(); render(); }
+/* ---- O filtro das favoritas ----
+   Três estados, e não dois: sem filtro, as favoritas de qualquer pessoa da
+   casa, ou as de uma pessoa em concreto. O terceiro é o que vale a pena —
+   «o que é que o Bruno gosta de jantar» é uma pergunta que se faz todos os
+   dias, e sem ele o filtro só respondia «o que alguém aqui gosta». */
+function favFiltro(){ const v=S.ui.favF;
+  return v==='todas' || (v && S.members.some(m=>m.id===v))? v : ''; }
+function setFavF(v){
+  S.ui.favF = favFiltro()===v? '' : v;
+  S.ui.recLimite=LOTE_RECEITAS; saveMeta(); render();
+}
+function passaFavoritos(r){
+  const f=favFiltro(); if(!f) return true;
+  const marcada=x=> f==='todas'? nFavoritos(x.id)>0 : gostoDe(x.id,f)===1;
+  if(marcada(r)) return true;
+  /* ---- A estrela de uma variante vale pela família, mas só enquanto elas
+     estiverem colapsadas ----
+     Com as variantes juntas num cartão só, quem representa a família pode não
+     ser a que foi marcada: marcar «Taco de camarão» e depois filtrar por
+     favoritas devolvia lista vazia, porque o cartão que sobrevive ao colapso é
+     outro taco. Aqui a estrela sobe à família.
+     Com as variantes abertas — no «ver variantes» ou numa pesquisa, que é
+     exatamente quando alguém quer distinguir uma da outra — a família deixa de
+     valer, senão o filtro respondia com sete tacos por causa de um. */
+  const colapsadas = !S.ui.verVariantes && !semAcentos(S.ui.busca||'').trim();
+  const k=familiaDe(r.id);
+  if(!colapsadas || !k) return false;
+  return RECIPES.some(x=>familiaDe(x.id)===k && marcada(x));
+}
 /* Pesquisa por nome: sem acentos e sem maiúsculas dos dois lados, porque
    ninguém escreve «Bacalhau à Brás» com o à certo numa caixa de pesquisa. E
    procura também nos ingredientes — «quem tem couve na despensa» é uma
@@ -25073,7 +25208,7 @@ function recipeCard(r,n){
       aria-label="Abrir a ficha de ${esc(r.n)}, com os passos de preparação"
       onclick="if(!event.target.closest('button,select,a,summary,details')) abrirFicha('${r.id}',${n||1})"
       onkeydown="if((event.key==='Enter'||event.key===' ')&&!event.target.closest('button,select,a,summary,details')){event.preventDefault();abrirFicha('${r.id}',${n||1});}">
-    <div class="row" style="justify-content:space-between"><h3>${favoritaDaCasa(r.id)? '<span class="estrela-casa" title="Favorita de toda a gente que a pode comer">⭐</span> ':''}${esc(r.n)}</h3><span class="kcal">${r.k} kcal</span></div>
+    <div class="row" style="justify-content:space-between;align-items:flex-start;gap:8px"><h3 style="flex:1;min-width:0">${esc(r.n)}</h3><span class="row" style="flex:none;gap:6px;align-items:center"><span class="kcal">${r.k} kcal</span>${estrelaCartao(r)}</span></div>
     <div><span class="tag" style="border-color:var(--accent);color:var(--accent)">${r.mt.map(nomeRefeicao).join(' / ')}</span>
       <span class="tag">${ICO_COZ[r.coz]||''} ${cozinhasDe(r).map(k=>CUIS[k]).join(' · ')}</span>${selosCategoria(r)}${r.dc.filter(d=>d!==r.coz).map(d=>`<span class="tag">${esc(nomeDieta(d))}</span>`).join('')}${selosEpoca(r)}${seloGenero(r)}${seloSaborNovo(r,S.members)}</div>
     <div class="sub" style="font-variant-numeric:tabular-nums">H ${r.c} g · P ${r.p} g · G ${r.f} g${
@@ -28312,6 +28447,7 @@ function renderReceitas(){
   if(S.ui.soComp && m) list=list.filter(r=>compat(r,chaveDieta(m))&&!ingredientesVetados(r,m).length);
   if(S.ui.soEpoca) list=list.filter(receitaDaEpoca);
   if(S.ui.catF && temChave(CATEG,S.ui.catF)) list=list.filter(r=>temCategoria(r,S.ui.catF));
+  if(favFiltro()) list=list.filter(passaFavoritos);
   const q=semAcentos(S.ui.busca||'').trim();
   if(q) list=list.filter(r=>correspondeBusca(r,q));
   const fam=S.members.length? RECIPES.filter(r=>compatAll(r,S.members)) : [];
@@ -28419,6 +28555,18 @@ function renderReceitas(){
     <button class="chip ${S.ui.soEpoca?'on':''}" onclick="toggleEpoca()" aria-pressed="${!!S.ui.soEpoca}"
       title="Receitas com pelo menos um ingrediente na época em Portugal, este mês">🌱 Da época agora</button>
   </div>
+  ${S.members.filter(m=>faseDe(m)!=='bebe').length? (function(){
+    const f=favFiltro(), quem=S.members.filter(m=>faseDe(m)!=='bebe');
+    const nTodas=RECIPES.filter(r=>nFavoritos(r.id)>0).length;
+    return `<div class="row" style="margin-bottom:12px;align-items:center">
+      <span class="lbl" style="margin:0">Favoritas ${dica('favoritas')}</span>
+      <button class="chip ${f==='todas'?'on':''}" aria-pressed="${f==='todas'}" onclick="setFavF('todas')"
+        title="Receitas marcadas por alguém cá em casa">⭐ De qualquer pessoa${nTodas? ' <span class="sub">('+nTodas+')</span>':''}</button>
+      ${quem.map(m=>{ const n=RECIPES.filter(r=>gostoDe(r.id,m.id)===1).length;
+        return `<button class="chip ${f===m.id?'on':''}" aria-pressed="${f===m.id}" onclick="setFavF('${m.id}')"
+          title="Só as favoritas de ${esc(m.nome)}">${avatar(m,20)} ${esc(m.nome.split(' ')[0])}${n? ' <span class="sub">('+n+')</span>':''}</button>`; }).join('')}
+      ${f? `<button class="chip" onclick="setFavF('')">✕ Sem filtro</button>`:''}
+    </div>`; })() : ''}
   <div class="row" style="margin-bottom:12px">
     <span class="lbl" style="margin:0">Categoria ${dica('categorias')}</span>
     <button class="chip ${!S.ui.catF?'on':''}" aria-pressed="${!S.ui.catF}" onclick="setCatF('')">Todas</button>
@@ -28432,10 +28580,16 @@ function renderReceitas(){
       <div id="rec-vazio" style="display:none">${estadoVazio('lupa','Nada com esse nome',
         'Nenhuma das receitas visíveis tem esse texto no nome nem nos ingredientes. Apaga a pesquisa ou alarga os filtros.',
         `<button class="btn ghost" onclick="limparFiltros()">Limpar filtros</button>`)}</div>`
-    : estadoVazio('lupa','Nenhuma receita com estes filtros',
-        'Nenhuma das '+RECIPES.length+' receitas corresponde à combinação de refeição, cozinha e dieta que escolheste. Alarga um dos filtros para voltares a ver sugestões.',
-        `<button class="btn ghost" onclick="setCuis('todas')">Todas as cozinhas</button>
-         <button class="btn ghost" onclick="setMealF('todas')">Todas as refeições</button>`)}
+    : estadoVazio('lupa', favFiltro()? 'Ainda sem favoritas aqui' : 'Nenhuma receita com estes filtros',
+        favFiltro()
+          ? (favFiltro()==='todas'
+              ? 'Ninguém cá em casa marcou ainda nenhuma receita com estes outros filtros. A estrela no canto de cada cartão marca — e pergunta de quem.'
+              : 'Esta pessoa ainda não tem favoritas com estes outros filtros. A estrela no canto de cada cartão marca — e podem ser várias pessoas na mesma receita.')
+          : 'Nenhuma das '+RECIPES.length+' receitas corresponde à combinação de refeição, cozinha e dieta que escolheste. Alarga um dos filtros para voltares a ver sugestões.',
+        favFiltro()
+          ? `<button class="btn ghost" onclick="setFavF('')">Ver todas as receitas</button>`
+          : `<button class="btn ghost" onclick="setCuis('todas')">Todas as cozinhas</button>
+             <button class="btn ghost" onclick="setMealF('todas')">Todas as refeições</button>`)}
 
   ${cartaoEsquecidos()}
   ${S.members.length>1? `<div class="secgap">
@@ -34363,6 +34517,7 @@ function pintaModal(){
          : mo.tipo==='bandeja'? modalBandejaHtml(mo)
          : mo.tipo==='ingrediente'? modalIngredienteHtml(mo)
          : mo.tipo==='acabou'? modalAcabouHtml(mo)
+         : mo.tipo==='favoritos'? modalFavoritosHtml(mo)
          : mo.tipo==='aviso'? modalAvisoHtml() : '')
     : fo? (fo.tipo==='mesa'? folhaMesaHtml(fo) : fo.tipo==='registo'? folhaRegistoHtml()
          : fo.tipo==='pessoa'? folhaPessoaHtml(fo)
