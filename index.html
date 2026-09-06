@@ -15031,6 +15031,7 @@ function confirmaPartilha(irmaos,verbo){
 /* Explicadores. Ficam todos aqui para o texto ser escrito uma vez e revisto
    de uma assentada, em vez de andar espalhado pelos templates. */
 const DICAS={
+  desfazer:'Os três botões que estão aqui ao lado. O ⌕ procura em toda a aplicação — receitas, ingredientes, modalidades, perfis e os próprios cartões, para «onde é que se marcam as alergias?» não obrigar a saber a arrumação da casa; ao teclado abre-se com a tecla «/». O ↶ desfaz a última alteração e o ↷ volta a fazê-la: guardam-se as últimas 30, e o ↶ também responde a Ctrl+Z (ou ⌘Z). Desfazer alcança tudo o que se muda por aqui — uma refeição planeada, um treino registado, uma pesagem, um dia livre —, com uma exceção escrita a claro no sítio onde acontece: apagar todos os dados não se desfaz, porque leva a própria pilha do desfazer atrás. E os pequenos «i» como este, espalhados pela aplicação, explicam cada funcionalidade: passa o rato por cima, ou toca-lhes.',
   responsabilidade:'Esta é uma ferramenta simples e gratuita, e destina-se a um uso responsável. Tudo o que calcula sai de tabelas oficiais — INSA, EFSA, Organização Mundial da Saúde — construídas para populações «saudáveis»: são médias de gente, não medições de ninguém, e não conhecem a história clínica, a medicação nem a composição corporal de quem as lê. Todas as indicações e todos os números são «sugestões», e devem ser alvo de verificação independente. Qualquer alteração drástica na alimentação, ou o início de uma nova atividade física, deve ter «acompanhamento médico» — muito em especial em crianças, na gravidez e na amamentação, e em quem tenha qualquer doença diagnosticada ou esteja sob medicação. O autor «não se responsabiliza» pelo impacto do uso desta aplicação.',
   metodoBmr:'O metabolismo basal — as calorias que o corpo gasta só para se manter vivo — não tem uma fórmula certa. Tem equações de regressão feitas sobre populações diferentes, em décadas diferentes, que dão valores diferentes para a mesma pessoa. A aplicação mostra as três mais usadas com o resultado de cada uma ao lado, para a escolha ser informada em vez de invisível: «Henry (2005)», a mais recente e a que a EFSA e o serviço nacional de saúde britânico adotaram, é a recomendada; «Schofield (1985)» é o padrão histórico da FAO e da OMS; «Mifflin-St Jeor (1990)» é a única que usa a altura, e só existe para adultos. A escolha vale para a casa toda e muda os alvos de calorias — passa o rato por cada uma para saber de onde vem e o que lhe falta.',
   instalar:'A app instala-se como qualquer aplicação: ícone no ecrã principal, ecrã inteiro sem barra do browser, e funciona sem rede. Cada plataforma tem o seu caminho — no Chrome e Edge é um botão de um toque; no iPhone e iPad é Partilhar → «Adicionar ao ecrã principal», porque a Apple não dá outro; no Firefox do Android é pelo menu. No iPhone instalar também protege os dados: o Safari apaga o armazenamento de sites que não se abrem há semanas, e a app instalada escapa a essa limpeza. Os dados continuam a ser só deste aparelho — instalar não cria conta nenhuma.',
@@ -15870,6 +15871,8 @@ function go(t){
   S.ui.tab=t; msg=null;
   /* histórico é uma vista dentro do separador, não um sítio onde se fica ao
      mudar de separador */
+  /* entrar no Calendário volta a apontar a grelha ao que a semana tem */
+  if(t==='calendario') _calRolo=null;
   if(t!=='atividade') S.ui.histAtiv=null;
   if(t!=='nutricao') S.ui.histRef=null;
   saveMeta(); render();
@@ -36399,11 +36402,64 @@ function renderCalendario(){
       É uma exportação num sentido só: a app não tem conta nem servidor, e o que mudares lá não volta para cá.</p>
   </div>`;
 }
-/* depois de desenhar, a grelha aparece já às sete da manhã e não à meia-noite */
-function calRolaParaManha(){
+/* ---- Onde a grelha abre ----
+   A grelha vai das seis da manhã à meia-noite e cabe pouco mais de metade no
+   ecrã: abrir sempre no mesmo sítio dava, conforme a casa, uma manhã vazia ou
+   um jantar fora de vista. Abre onde a semana acontece — procura-se o
+   intervalo do que está marcado e centra-se nele.
+
+   O sombreado do jejum fica de fora da conta: um jejum de 24 horas cobre o dia
+   inteiro e responderia «a semana é o dia todo», que não ajuda ninguém a ver
+   nada. Se for a única coisa marcada, vale o princípio dele, que é a hora que
+   interessa. E sem nada marcado o intervalo é o horário útil da casa —
+   tirado das horas que a app já usa noutros sítios, e não de um número
+   escolhido aqui: da pesagem da manhã ao fim do jantar. */
+function horarioUtilDoDia(){
+  const refs=MEALK.map(k=>HORA_REF[k]).filter(h=>Number.isFinite(h));
+  const ini=Math.min(HORA_PESAGEM, ...refs)-0.5;
+  const fim=Math.max(HORA_LINHA.treino+1, ...refs.map(h=>h+0.75))+0.5;
+  return {ini:clampNum(ini,CAL_H0,CAL_H1), fim:clampNum(fim,CAL_H0,CAL_H1), vazia:true};
+}
+function faixaDaSemana(wk){
+  let ini=Infinity, fim=-Infinity;
+  try{
+    const {ev,confecao}=eventosDaSemana(wk);
+    ev.forEach(e=>{ if(e.tipo==='jejum') return;
+      ini=Math.min(ini,e.h); fim=Math.max(fim,e.h+(e.dur||0)); });
+    (confecao||[]).forEach(c=>{ ini=Math.min(ini,c.h0); fim=Math.max(fim,c.h1); });
+    if(!(ini<fim)) ev.filter(e=>e.tipo==='jejum').forEach(e=>{
+      ini=Math.min(ini,e.h); fim=Math.max(fim,e.h+1); });
+  }catch(e){}
+  if(!(ini<fim)) return horarioUtilDoDia();
+  return {ini:clampNum(ini-0.25,CAL_H0,CAL_H1), fim:clampNum(fim+0.25,CAL_H0,CAL_H1), vazia:false};
+}
+/* Onde a grelha ficou depois de alguém a deslizar. Não vai para o estado
+   gravado: é posição de ecrã, não é dado da casa. */
+var _calRolo=null;   /* var e não let: go() é declarada 20 000 linhas acima e pode correr antes desta linha; com let ficaria na zona morta */
+function calRolaParaOQueHa(){
   const w=document.getElementById('cal-wrap'); if(!w) return;
-  if(w.dataset.rolado===calSemana()) return;
-  w.dataset.rolado=calSemana(); w.scrollTop=Math.max(0,(7-CAL_H0)*CAL_PX-8);
+  const wk=calSemana();
+  /* Cada desenho refaz o #main, e com ele o elemento que rola: sem memória, um
+     visto num bloco das dez da noite atirava a vista de volta para o meio da
+     tarde. Enquanto se está na mesma semana, manda quem está a ver; entrar no
+     separador ou mudar de semana volta a apontar. */
+  if(!w.dataset.ouve){ w.dataset.ouve='1';
+    w.addEventListener('scroll',()=>{ _calRolo={wk:calSemana(), top:w.scrollTop}; },{passive:true}); }
+  if(_calRolo && _calRolo.wk===wk){ w.scrollTop=_calRolo.top; return; }
+  const f=faixaDaSemana(wk);
+  /* A coluna das horas não começa no topo do que rola: por cima dela estão a
+     fiada dos dias e a do dia inteiro, que são pegajosas. Sem descontar essa
+     altura, a grelha abria uma hora e meia mais cedo do que se pedia — e no
+     fim da tarde chegava a apontar para depois da meia-noite. */
+  const hs=w.querySelector('.cal-horas');
+  const desvio=hs? (hs.getBoundingClientRect().top-w.getBoundingClientRect().top+w.scrollTop) : 0;
+  const vista=Math.max(0,(w.clientHeight||0)-desvio), maximo=Math.max(0,w.scrollHeight-(w.clientHeight||0));
+  const topo=(f.ini-CAL_H0)*CAL_PX, fundo=(f.fim-CAL_H0)*CAL_PX;
+  /* Cabe? centra-se. Não cabe? começa-se no princípio: cortar a manhã para
+     mostrar o meio da tarde não serve ninguém, e o resto está a um deslize. */
+  const alvo=desvio+((fundo-topo<=vista)? (topo+fundo)/2-vista/2 : topo-8);
+  w.scrollTop=clampNum(Math.round(alvo),0,maximo);
+  _calRolo={wk, top:w.scrollTop};
 }
 function calCliqueColuna(e,d){
   const col=e.currentTarget, r=col.getBoundingClientRect();
@@ -37954,7 +38010,7 @@ function render(){
   if(S.ui.tab==='nutricao' && S.members.length && !S.ui.histRef) atualizarNutricao();
   pintaModal();
   montaColapsaveis(); marcaChipsPremidos(); pintaAura(); montaMembrosFixos();
-  calRolaParaManha();
+  calRolaParaOQueHa();
   /* a bancada liga o toque de cotovelo depois de cada desenho, e le o passo
      em voz alta se a voz estiver ligada */
   if(S.ui.cozinha){ ligarCotovelo(); if(S.ui.voz && S.ui.cozinha.vista==='passos') lerPassoAtual(); }
@@ -38416,6 +38472,10 @@ sincronizaCombos();
 (function(){ const d=document.getElementById('dica-desfazer'); if(!d) return;
   const t=DICAS.desfazer||'';
   d.removeAttribute('data-dica');
+  /* Sem texto não há bolha: a chave esteve em falta durante algum tempo e o
+     botão abria uma caixa vazia de 24 por 18 — pior do que não estar lá.
+     Um explicador sem explicação esconde-se, e vê-se logo que falta. */
+  if(!t.trim()){ d.hidden=true; return; }
   /* a bolha é o elemento — o mesmo que o leitor de ecrã alcança e o mesmo que
      se percorre com a roda, como em todas as outras dicas que dica() faz */
   const s=document.createElement('span');
