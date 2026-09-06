@@ -4250,6 +4250,12 @@ R('ketomassapastel','Massa de pastel keto','portuguesa',[],0,0,0,0,[['Mozzarella
    família: uma é o gesto do Bulhão Pato — alho, coentros, azeite e limão —
    emprestado às amêijoas de onde veio o nome; a outra é panada e frita, que
    é o que «à milanesa» quer dizer em qualquer legume. */
+/* ---- Arroz de sarrabulho ----
+   Irmão das papas, que já cá estavam, e não a mesma receita: em Ponte de
+   Lima é arroz malandro onde as papas levam farinha, e é ele que vai à mesa
+   com os rojões. O sangue é o que faz o prato e é também o único passo
+   delicado — entra fora da fervura e com limão, ou coalha em grumos. */
+R('arrozsarrabulho','Arroz de sarrabulho','portuguesa',[],0,0,0,0,[['Arroz carolino',70,'g'],['Porco, lombo cru',70,'g'],['Frango inteiro com pele, cru',50,'g'],['Presunto',20,'g'],['Chouriço',25,'g'],['Sangue de porco',50,'g'],['Cebola',0.5,'un'],['Alho',2,'dente'],['Banha de porco',8,'g'],['Vinho branco',30,'ml'],['Cominhos',1,'g'],['Louro',1,'g'],['Limão',0.25,'un']],['a','j'],0,['pp']),
 R('aclcouveflorbulhao','Couve-flor à Bulhão Pato','portuguesa',['mediterranica'],0,0,0,0,[['Couve-flor',220,'g'],['Alho',3,'dente'],['Coentros',8,'g'],['Azeite',14,'ml'],['Limão',15,'g'],['Vinho branco',25,'ml'],['Flor de sal',0.5,'g']],['ac']),
 R('aclcouveflormilanesa','Couve-flor à milanesa','italiana',[],0,0,0,0,[['Couve-flor',220,'g'],['Ovo',1,'un'],['Pão ralado',30,'g'],['Farinha',15,'g'],['Óleo alimentar',15,'ml'],['Parmesão',12,'g'],['Limão',10,'g'],['Flor de sal',1,'g']],['ac']),
 /* A quiche keto é a mesma de sempre com a massa trocada: a quebrada, que é
@@ -7486,6 +7492,13 @@ P('acmvinagreteclassico',[
  ['Mostarda primeiro','Dissolve a mostarda no vinagre com a flor de sal e a pimenta preta moída ANTES do azeite. A mostarda é o que segura a emulsão; deitada no fim, o molho separa-se no prato.',2],
  ['Azeite em fio','Junta o azeite em fio, a bater com um garfo, até ficar turvo e cremoso. Ao contrário do que parece, isto faz-se num frasco com tampa e vinte segundos de agitação.',3],
  ['Só à mesa','Tempera-se a salada à mesa e não antes: cinco minutos com vinagrete e a alface murcha. O que sobrar guarda-se dias, e volta a ligar-se com uma agitação.',1]]);
+P('arrozsarrabulho',[
+ ['Cozer as carnes e guardar o caldo','Põe o lombo de porco, o frango com pele, o presunto e o chouriço a cozer em água com a cebola, o alho, o louro e um bocado de sal, até as carnes cederem à ponta da faca. Coa o caldo e GUARDA-O: é nele que o arroz vai cozer, e é dele que vem tudo o que este prato tem de sabor.',50],
+ ['Desfiar à mão','Desfia as carnes com os dedos, tirando peles e ossos, e corta o chouriço e o presunto em cubinhos. À mão e não à faca: a fibra desfeita agarra o molho, e cortada em cubos fica-lhe a nadar.',15],
+ ['Refogar e tostar o arroz','Aloura a cebola picada e o alho na banha de porco, junta o arroz carolino e mexe um minuto até ficar translúcido. Rega com o vinho branco e deixa-o evaporar antes do caldo.',8],
+ ['Arroz no caldo, e malandro','Junta as carnes e o caldo a ferver, cerca de três medidas para uma de arroz, e deixa em lume brando. Este arroz é MALANDRO: quer-se caldoso e não seco, e enxuga sempre um pouco no prato.',18],
+ ['O sangue, fora da fervura','Desliga o lume e espera um minuto. Bate o sangue de porco com o sumo de limão e um pouco do caldo quente, e só então o deita no tacho, mexendo sem parar. Sobre fervura, o sangue coalha em grumos e já não há volta a dar — o limão é o que o ajuda a manter-se liso.',5],
+ ['Cominhos, limão e os rojões ao lado','Cominhos moídos na hora e mais limão a acertar: são eles a assinatura de Ponte de Lima, e sem eles isto é só arroz de carne. Serve logo, e se houver rojões à moda do Minho, é ao lado deles que ele pertence.',3]]);
 P('aclcouveflorbulhao',[
  ['Cozer al dente e secar','Raminhos de couve-flor três a quatro minutos em água a ferver com sal, escorridos e bem secos. Aqui não se coze até ao fim: ela acaba de cozinhar na frigideira, dentro do molho.',6],
  ['Alho sem cor','Alho laminado em azeite morno, lume brando, só até ficar louro e cheirar. No Bulhão Pato o alho e os coentros não temperam, são o prato — alourado a sério fica amargo e leva tudo atrás.',3],
@@ -11840,6 +11853,10 @@ const ALIAS_BUSCA={
   /* «Bróculos» com u é forma dicionarizada e há quem só a escreva assim; o
      catálogo usa «brócolos», que é a mais corrente em Portugal. A busca tem
      de responder às duas, ou metade da casa não encontra o prato. */
+  /* O sarrabulho diz-se pela terra tanto como pelo nome: quem o procura
+     escreve muitas vezes «Ponte de Lima» e mais nada. */
+  arrozsarrabulho:'ponte de lima minho sangue', sarrabulho:'ponte de lima minho sangue',
+  rojoesminho:'ponte de lima minho',
   aclbrocolosgrat:'broculos gratinados', aclbrocolosgratmb:'broculos gratinados molho branco',
   aclbrocolosgratbacon:'broculos gratinados bacon', aclbrocolos:'broculos',
   acmpesto:'pesto verde pesto alla genovese basilico',
