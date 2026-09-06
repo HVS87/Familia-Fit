@@ -2805,8 +2805,14 @@ function migraRegistos(s){
     jejumIni: clampNum(Math.round(parseFloat(fo.jejumIni)||12), 0, 23),
     jejumDias: clampNum(Math.round(parseFloat(fo.jejumDias)||0), 0, 3),
     banda: clampNum(parseFloat(fo.banda)||2, 0, 20),
+    /* a segunda fase viaja no mesmo formulário: planeia-se ao mesmo tempo */
+    manAtiva: !!fo.manAtiva,
+    manDieta: temChave(DIETS,fo.manDieta)? fo.manDieta : '',
+    manJejum: !!fo.manJejum,
+    manJejumH: clampNum(Math.round(parseFloat(fo.manJejumH)||16), 12, 23),
+    manSemanas: clampNum(Math.round(parseFloat(fo.manSemanas)||0), 0, 52),
     blocos: limparBlocos(fo.blocos)
-  } : {membros:[],tipo:'perder',delta:5,semanas:12,split:50,desportos:[],dieta:'',sessoes:3,agendar:true,nivel:'moderado',jejum:false,jejumH:16,jejumIni:12,jejumDias:0,banda:2,blocos:[]};
+  } : {membros:[],tipo:'perder',delta:5,semanas:12,split:50,desportos:[],dieta:'',sessoes:3,agendar:true,nivel:'moderado',jejum:false,jejumH:16,jejumIni:12,jejumDias:0,banda:2,blocos:[],manAtiva:false,manDieta:'',manJejum:false,manJejumH:16,manSemanas:12};
   s.validades = limparValidades(s.validades);
   s.veredictos = limparVeredictos(s.veredictos, ids);
   s.brigada = limparBrigada(s.brigada, ids);
@@ -14981,6 +14987,7 @@ const DICAS={
   comecarTreinar:'Um plano de treino começa por haver onde treinar. A app abre uma pesquisa de ginásios, piscinas, clubes, treinadores e estúdios perto de ti — mas convém saber como: a app não faz chamadas de rede nenhumas. Pede a posição ao browser, que é uma API local com permissão explícita, e usa-a para montar uma ligação para um mapa. A ligação só abre quando lhe tocas, e até lá as coordenadas não saem do dispositivo. Não são gravadas, não entram na cópia de segurança e desaparecem ao fechar a app. O OpenStreetMap vem primeiro porque não exige conta nem rastreia quem pesquisa.',
   naArea:'Para quem está de férias ou em viagem e quer manter o ritmo. Além de ginásios e piscinas para um dia solto, procura o que não precisa de inscrição nenhuma: trilhos e percursos pedestres, ciclovias e ecopistas, equipamentos de manutenção ao ar livre e polidesportivos. Funciona da mesma forma — a app monta a ligação, o browser é que a abre, e a posição fica só nesta sessão.',
   renutricao:'Sair de um jejum longo é o momento de maior risco de todo o processo — mais do que o jejum em si. Quando a insulina volta a subir de repente, puxa fosfato, potássio e magnésio para dentro das células e esvazia-os do sangue: chama-se síndrome de realimentação e pode ser grave. A app propõe-se sozinha porque é precisamente o momento em que ninguém se lembra de o fazer, e faz o alvo de calorias subir por degraus ao longo de vários dias em vez de saltar de zero para o normal — quanto mais longo o jejum, mais lenta a subida. Os critérios de risco elevado são os do NICE (guideline CG32), escritos para doentes internados em desnutrição: se algum se aplicar, a saída do jejum é assunto de consulta e não de app. Acima de 72 horas, com acompanhamento médico e análises, sempre.',
+  manutencao:'A fase de perda tem fim, e o que vem a seguir decide-se melhor no dia em que se planeia do que no dia em que a balança chega ao número. A manutenção pode divergir em tudo da perda: outra dieta, outro jejum ou nenhum, outra banda de oscilação. Quando a perda acabar — por chegar ao alvo ou ao prazo — a app propõe a passagem com o que vai mudar escrito por extenso, e espera pela confirmação: quem decide que aquilo acabou é quem lá está.',
   objJejum:'Porque se jejua muda o que faz sentido fazer: perder peso e procurar autofagia não pedem o mesmo protocolo. Escolher um objetivo muda a sugestão e, no caso da autofagia, abre o que se sabe e o que não se sabe sobre ela — que é o tema do jejum em que mais se afirma o que não está demonstrado.',
   autofagia:'A autofagia existe e a privação de nutrientes ativa-a: isso está demonstrado em levedura, em células e em animais, e valeu o Nobel da Medicina de 2016 a Yoshinori Ohsumi. Em humanos mediu-se muito menos — aumentos de marcadores indiretos em leucócitos e músculo após jejuns de 24 a 72 horas, em amostras pequenas. O que NÃO existe é um limiar horário validado em humanos: as «16 horas» que circulam vêm de extrapolações de roedores, que têm um metabolismo várias vezes mais rápido. Também não está demonstrado que mais autofagia signifique melhor saúde. A app dá as estratégias que a literatura associa a maior ativação e recusa-se a dizer que a certa hora «entraste em autofagia», porque isso não se mede sem uma biópsia.',
   calendarios:'Dois calendários com naturezas diferentes. A Páscoa calcula-se ao dia com o algoritmo de Meeus, e a Quaresma deriva dela — Cinzas 46 dias antes, e são 46 porque os 40 dias não contam os domingos. O Ramadão não se calcula com a mesma certeza: o calendário islâmico é lunar e o início de cada mês depende do avistamento da lua nova, que varia com o país e com a autoridade religiosa. A app dá a conversão tabular, que costuma acertar dentro de um dia, e diz que é uma estimativa. O Ramadão marca-se como jejum diurno repetido e não como um jejum contínuo de trinta dias, que seria outra coisa completamente.',
@@ -31285,6 +31292,66 @@ function limparBlocos(a){
       dias, vol:clampNum(parseFloat(b.vol)||fx.min, fx.min, fx.max), volManual:!!b.volManual};
   }).filter(Boolean);
 }
+/* ================= A SEGUNDA FASE: A MANUTENÇÃO =================
+   Toda a gente sabe que perder peso é a parte fácil. A app tratava o objetivo
+   como uma coisa que acaba — chega-se ao alvo, e depois? Depois vinha o
+   nada: a dieta de défice ficava aplicada, o jejum ficava ligado, e ninguém
+   dizia que aquilo tinha deixado de fazer sentido.
+   Agora um objetivo tem duas fases, e a segunda planeia-se ao mesmo tempo que
+   a primeira — que é quando se pensa nela com clareza. Podem divergir em
+   tudo: outra dieta, outro jejum, outra janela. E a passagem não é
+   automática: a app propõe, e quem manda confirma. */
+function blocoManutencaoForm(){
+  const f=S.ui.objForm;
+  if(f.tipo!=='perder') return '';
+  const pm=protocoloIM(f.manJejumH||16);
+  return `<div style="margin-top:16px;border-top:1px solid var(--line);padding-top:12px">
+    <div class="splabel"><span>Depois de chegar lá ${dica('manutencao')}</span>
+      <output>${f.manAtiva? 'manutenção planeada' : 'por decidir'}</output></div>
+    <p class="sub" style="margin:2px 0 6px">A fase de perda tem fim. O que vem a seguir decide-se melhor agora
+      do que no dia em que a balança chega ao número — e pode ser outra coisa: outra dieta, outro jejum, ou nenhum.</p>
+    <div class="row" style="margin:6px 0">
+      <button class="chip ${!f.manAtiva?'on':''}" onclick="setObjForm('manAtiva',false)" aria-pressed="${!f.manAtiva}">Decidir depois</button>
+      <button class="chip ${f.manAtiva?'on':''}" onclick="setObjForm('manAtiva',true)" aria-pressed="${!!f.manAtiva}">Planear a manutenção</button>
+    </div>
+    ${!f.manAtiva? `<p class="sub">Sem plano de manutenção, quando a fase de perda acabar a app avisa e pergunta
+      — mas a dieta e o jejum do défice ficam ligados até alguém os mudar.</p>` : `
+    <div class="splabel" style="margin-top:10px"><span>Dieta na manutenção</span></div>
+    <div class="row" style="margin-top:4px;flex-wrap:wrap">
+      <button class="chip ${!f.manDieta?'on':''}" onclick="setObjForm('manDieta','')" aria-pressed="${!f.manDieta}">Manter a da perda</button>
+      ${Object.entries(DIETS).map(([k,v])=>
+        `<button class="chip ${f.manDieta===k?'on':''}" onclick="setObjForm('manDieta','${k}')" aria-pressed="${f.manDieta===k}">${esc(v.n)}</button>`).join('')}
+    </div>
+    <p class="sub" style="margin-top:4px">${f.manDieta && f.manDieta!==f.dieta
+      ? 'A dieta muda no dia da passagem: '+(f.dieta? esc((DIETS[f.dieta]||{}).n||f.dieta) : 'a de agora')+' para perder, '+esc((DIETS[f.manDieta]||{}).n||'')+' para manter.'
+      : 'Fica a mesma dieta da fase de perda. O que muda é o alvo de calorias, que sobe para a manutenção.'}</p>
+
+    <div class="splabel" style="margin-top:12px"><span>Jejum na manutenção</span>
+      <output>${f.manJejum? pm.n : 'sem jejum'}</output></div>
+    <div class="row" style="margin:4px 0">
+      <button class="chip ${!f.manJejum?'on':''}" onclick="setObjForm('manJejum',false)" aria-pressed="${!f.manJejum}">Sem jejum</button>
+      <button class="chip ${f.manJejum?'on':''}" onclick="setObjForm('manJejum',true)" aria-pressed="${!!f.manJejum}">Jejum intermitente</button>
+    </div>
+    ${f.manJejum? `<input type="range" min="12" max="23" step="1" value="${f.manJejumH}" style="--pct:${Math.round((f.manJejumH-12)/11*100)}%"
+        aria-label="Horas de jejum por dia na manutenção" oninput="slideObjForm('manJejumH',this)" onchange="saveMeta()">
+      <p class="sub" style="margin-top:4px">${esc(pm.d)}</p>` : ''}
+    ${(f.jejum&&!f.manJejum)? `<p class="sub">O jejum da fase de perda desliga-se na passagem.</p>`:''}
+    ${(!f.jejum&&f.manJejum)? `<p class="sub">Sem jejum a perder, com jejum a manter — é uma escolha legítima, e é a app a não a inventar por ti.</p>`:''}
+
+    <div class="splabel" style="margin-top:12px"><span>A manutenção dura</span>
+      <output id="obj-o-mansem">${f.manSemanas? plural(f.manSemanas,'semana','semanas') : 'sem prazo'}</output></div>
+    <input type="range" min="0" max="52" step="2" value="${f.manSemanas}" style="--pct:${Math.round(f.manSemanas/52*100)}%"
+      aria-label="Semanas de manutenção" oninput="slideObjForm('manSemanas',this)" onchange="saveMeta()">
+    <p class="sub" style="margin-top:4px">${f.manSemanas
+      ? 'Um prazo para a manutenção é uma data para olhar outra vez para isto, e não uma data em que ela acaba.'
+      : 'Sem prazo: a manutenção fica a decorrer até alguém decidir outra coisa.'}</p>
+    <div class="splabel" style="margin-top:12px"><span>Banda de manutenção</span>
+      <output id="obj-o-manbanda">±${nPT(f.banda,1)}%</output></div>
+    <input type="range" min="1" max="5" step="0.5" value="${f.banda}" style="--pct:${Math.round((f.banda-1)/4*100)}%"
+      aria-label="Banda de manutenção em percentagem" oninput="slideObjForm('banda',this)" onchange="saveMeta()">
+    <p class="sub" style="margin-top:4px">A margem em que o peso pode oscilar sem ser considerado desvio.</p>`}
+  </div>`;
+}
 function setObjForm(campo,val){
   S.ui.objForm[campo]= campo==='delta'||campo==='semanas'||campo==='split'||campo==='banda'? parseFloat(val)||0 : val;
   saveMeta(); render();
@@ -31366,6 +31433,12 @@ function criarObjetivo(){
          se ele for ajustado, e o que se retira se for apagado */
       blocos:f.tipo==='perder'? limparBlocos(f.blocos) : [],
       agendar:!!f.agendar,
+      /* A segunda fase viaja com o objetivo, não com o perfil: é dela que
+         sai a proposta de passagem quando a perda acabar, e é o que se
+         perde se o objetivo for removido — que é o correto. */
+      man: (f.tipo==='perder' && f.manAtiva)? {ativa:true, dieta:f.manDieta||'',
+        jejum:!!f.manJejum, jejumH:f.manJejumH, jejumIni:f.jejumIni,
+        semanas:f.manSemanas||0, banda:f.banda||2, feita:false} : null,
       bandaManter:f.banda||2, concluido:false, celebrado:false, dataConclusao:null};
     const calc=calcEstrategia(m,pesoAlvo,f.semanas,f.tipo,f.split,o.desportosEscolhidos,f.nivel);
     aplicarEstrategia(mid,calc,o);
@@ -31722,6 +31795,85 @@ function graficoObjetivo(o,m){
       a faixa vermelha clara são as horas de jejum intermitente de cada dia, a forte um jejum registado.
       Passa o cursor por cima de qualquer um para ver o resumo.</p>`;
 }
+/* ---- A passagem à manutenção ----
+   Não é automática de propósito. A app sabe quando a fase de perda acabou —
+   pelo alvo atingido ou pelo prazo cumprido — mas quem decide que aquilo
+   acabou é quem lá está: há quem chegue ao número e queira continuar mais
+   duas semanas, e há quem pare antes. A app propõe, com o que vai mudar
+   escrito por extenso, e espera. */
+function fasePerdaTerminou(o){
+  /* Um objetivo concluído é precisamente quando isto interessa: a app já
+     celebrou, e a pergunta a seguir é «e agora?». Só fica de fora quem já
+     passou à manutenção. */
+  if(!o || o.tipo!=='perder' || (o.man && o.man.feita)) return null;
+  const m=S.members.find(x=>x.id===o.membroId); if(!m) return null;
+  const fim=addDias(iso(new Date(o.dataInicio)), Math.round((o.semanas||12)*7));
+  const chegou=m.peso<=o.pesoAlvo+0.15;
+  const prazo=hojeISO()>=fim;
+  if(!chegou && !prazo) return null;
+  return {porque: chegou? 'alvo' : 'prazo', fim, m};
+}
+function textoPassagem(o){
+  const man=o.man; if(!man) return '';
+  const m=S.members.find(x=>x.id===o.membroId);
+  const partes=[];
+  if(man.dieta && man.dieta!==m.dieta) partes.push('a dieta passa a <b>'+esc((DIETS[man.dieta]||{}).n||man.dieta)+'</b>');
+  else partes.push('a dieta fica como está');
+  const imAgora=imDe(o.membroId);
+  if(man.jejum) partes.push('o jejum passa a <b>'+esc(protocoloIM(man.jejumH).n)+'</b>');
+  else if(imAgora) partes.push('o jejum intermitente <b>desliga-se</b>');
+  else partes.push('continua sem jejum');
+  partes.push('o alvo de calorias sobe para a manutenção');
+  return partes.join(', ')+'.';
+}
+function passarAManutencao(oid){
+  const o=S.objetivos.find(x=>x.id===oid); if(!o) return;
+  const m=S.members.find(x=>x.id===o.membroId); if(!m) return;
+  const man=o.man||{};
+  /* A dieta da manutenção, se houver e se for outra. */
+  if(man.dieta && temChave(DIETS,man.dieta)) m.dieta=man.dieta;
+  /* O jejum: liga-se, muda-se ou desliga-se — e volta a passar pelas
+     contraindicações, porque o corpo de quem chegou ao alvo não é o mesmo de
+     quem começou, e um IMC que desceu abaixo de 18,5 muda a resposta. */
+  const c=jejumCfg();
+  if(man.jejum && !jejumDesaconselhado(m)){
+    c.im[m.id]={ativo:true, h:clampNum(Math.round(man.jejumH||16),12,23),
+      inicio:clampNum(Math.round(man.jejumIni||12),0,23)};
+  } else if(c.im[m.id]) c.im[m.id].ativo=false;
+  /* O objetivo não se apaga: transforma-se. Guarda o que foi a fase de perda
+     para o histórico poder contar a coisa toda. */
+  o.perda={pesoInicial:o.pesoInicial, pesoAlvo:o.pesoAlvo, semanas:o.semanas,
+    dataInicio:o.dataInicio, dieta:o.dieta||null, atingido:m.peso<=o.pesoAlvo+0.15};
+  o.tipo='manter';
+  o.pesoInicial=Math.round(m.peso*10)/10;
+  o.pesoAlvo=o.pesoInicial;
+  o.dataInicio=new Date().toISOString();
+  o.semanas=man.semanas||12;
+  o.bandaManter=man.banda||2;
+  o.dieta=man.dieta||o.dieta;
+  o.desportosEscolhidos=[]; o.blocos=[];
+  if(o.man) o.man.feita=true;
+  save('passagem à manutenção'); render();
+  flash('ok','Passou à manutenção em '+nPT(o.pesoInicial,1)+' kg. '
+    +(man.dieta? 'Dieta '+((DIETS[man.dieta]||{}).n||'').toLowerCase()+'. ':'')
+    +(man.jejum? 'Jejum '+protocoloIM(man.jejumH).n+'.' : 'Sem jejum.'),
+    {rot:'Anular', fn:'desfazer()'});
+}
+/* O cartão do objetivo, quando a fase de perda chegou ao fim. */
+function blocoPassagem(o){
+  const f=fasePerdaTerminou(o); if(!f) return '';
+  if(!o.man || !o.man.ativa) return `<div class="aviso warn" style="margin-top:10px">
+    <b>A fase de perda ${f.porque==='alvo'? 'chegou ao alvo' : 'chegou ao fim do prazo'}.</b>
+    Não há manutenção planeada, e a dieta e o jejum do défice continuam ligados até alguém os mudar.
+    <span class="sub" style="display:block;margin-top:4px">Perder é a parte fácil. Vale a pena decidir o que vem a seguir — ajusta o objetivo ou cria um de manutenção.</span></div>`;
+  return `<div class="aviso ok" style="margin-top:10px">
+    <b>A fase de perda ${f.porque==='alvo'? 'chegou ao alvo' : 'chegou ao fim do prazo'}.</b>
+    Está planeada uma manutenção: ${textoPassagem(o)}
+    <div class="row" style="margin-top:8px">
+      <button class="btn small" onclick="passarAManutencao('${o.id}')">Passar à manutenção</button>
+      <button class="btn ghost small" onclick="toggleObjExpandido('${o.id}')">Ajustar antes</button>
+    </div></div>`;
+}
 function cartaoObjetivo(o){
   const m=S.members.find(x=>x.id===o.membroId); if(!m) return '';
   const p=progressoObjetivo(o);
@@ -31748,6 +31900,7 @@ function cartaoObjetivo(o){
       return `<div class="sub" style="margin-top:8px;${t.fraco?'':'color:var(--ink)'}">
         📈 <b>${esc(t.txt)}</b> ${dica('leque')}
         ${t.fraco?'':'<span class="sub" style="display:block">Um intervalo, não uma data: é o que as pesagens sustentam.</span>'}</div>`;})()}
+    ${blocoPassagem(o)}
     ${(o.tipo==="manter"||o.concluido)? "" : graficoObjetivo(o,m)}
     ${balancaObjetivo(o,m)}
     ${o.concluido? '' : blocoValidacao(o,m)}
@@ -31873,6 +32026,7 @@ function formCriacaoHtml(){
 
     ${blocoDietaObjetivo(f)}
     ${blocoJejumObjetivo(f)}
+    ${blocoManutencaoForm()}
     ${f.tipo==='perder'? `
 
     <div class="splabel" style="margin-top:14px"><span>Estratégia mista ${dica('objEstrategia')}</span>
@@ -31913,8 +32067,12 @@ function renderObjetivos(){
     if(p.atingido){ o.concluido=true; o.dataConclusao=new Date().toISOString();
       if(!S.ui.celebrando) S.ui.celebrando=o.id; writeLS(); }
   });
-  const ativos=S.objetivos.filter(o=>!o.concluido && S.members.some(m=>m.id===o.membroId));
-  const concluidos=S.objetivos.filter(o=>o.concluido).sort((a,b)=>new Date(b.dataConclusao||0)-new Date(a.dataConclusao||0));
+  /* Um objetivo com manutenção planeada e por tomar ainda não acabou: o
+     plano diz que tem segunda fase, e é no cartão dele que a passagem se
+     propõe. Fica com os ativos até alguém decidir. */
+  const porPassar=o=>o.concluido && o.tipo==='perder' && o.man && o.man.ativa && !o.man.feita;
+  const ativos=S.objetivos.filter(o=>(!o.concluido||porPassar(o)) && S.members.some(m=>m.id===o.membroId));
+  const concluidos=S.objetivos.filter(o=>o.concluido && !porPassar(o)).sort((a,b)=>new Date(b.dataConclusao||0)-new Date(a.dataConclusao||0));
   const celebrarObj = S.ui.celebrando? S.objetivos.find(x=>x.id===S.ui.celebrando) : null;
   /* o progresso de um objetivo lê-se da balança, e a balança é o histórico de
      pesagens — daí a porta para registar uma estar aqui, e não só na Família */
@@ -34931,6 +35089,16 @@ function lerPacote(txt){
           if(temChave(SPORT,k)) h[k]=clampNum(parseFloat(o.horasAplicadas[k])||0,0,40); });
         return h; })() : {},
       bandaManter: clampNum(parseFloat(o.bandaManter)||2,0.5,10),
+      /* a segunda fase, saneada como o resto: sem ela, restaurar uma cópia
+         deitava fora a manutenção planeada e o objetivo acabava sem plano */
+      man: (o.man && typeof o.man==='object' && o.man.ativa)? {ativa:true,
+        dieta: temChave(DIETS,o.man.dieta)? o.man.dieta : '',
+        jejum: !!o.man.jejum,
+        jejumH: clampNum(Math.round(parseFloat(o.man.jejumH)||16),12,23),
+        jejumIni: clampNum(Math.round(parseFloat(o.man.jejumIni)||12),0,23),
+        semanas: clampNum(Math.round(parseFloat(o.man.semanas)||0),0,52),
+        banda: clampNum(parseFloat(o.man.banda)||2,0.5,10),
+        feita: !!o.man.feita} : null,
       /* quantos treinos o objetivo chegou mesmo a marcar na semana. É o que o
          cartão mostra («2 treinos marcados»), e não voltava da cópia: depois
          de restaurar, um objetivo com a semana toda marcada dizia que não
