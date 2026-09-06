@@ -4167,6 +4167,23 @@ R('acmbaja','Molho branco à Baja','mexicana',[],0,0,0,0,[['Maionese',20,'g'],['
 R('acmmaionesepicante','Molho picante de maionese e lima','mexicana',[],0,0,0,0,[['Maionese',15,'g'],['Molho piri-piri',10,'ml'],['Lima',5,'ml'],['Flor de sal',0.3,'g']],['mo']),
 R('acmcaesar','Molho Caesar','americana',[],0,0,0,0,[['Anchovas',8,'g'],['Maionese',20,'g'],['Mostarda',5,'g'],['Limão',0.5,'un']],['mo']),
 R('acmtomatemanjericao','Molho de tomate e manjericão','italiana',[],0,0,0,0,[['Polpa de tomate',150,'g'],['Alho',2,'dente'],['Manjericão',5,'g'],['Azeite',5,'ml']],['mo']),
+/* ---- Molhos para o que vai ao lado ----
+   Sete molhos que existem para vestir um acompanhamento, e não só um prato:
+   é para isso que o lugar do molho do acompanhamento passou a existir. O de
+   cogumelos é a exceção que confirma — esse nasceu para o bife. */
+R('acmcogumelos','Molho de cogumelos','portuguesa',[],0,0,0,0,[['Cogumelos',80,'g'],['Nata para bater 35% gordura',40,'ml'],['Alho',1,'dente'],['Manteiga',8,'g'],['Vinho branco',20,'ml'],['Salsa',3,'g'],['Flor de sal',0.5,'g'],['Pimenta preta',0.2,'g']],['mo']),
+R('acmtomate','Molho de tomate','portuguesa',['mediterranica'],0,0,0,0,[['Polpa de tomate',120,'g'],['Cebola',30,'g'],['Alho',1,'dente'],['Azeite',8,'ml'],['Louro',0.2,'g'],['Flor de sal',0.5,'g']],['mo']),
+R('acmpimentos','Molho de pimentos','portuguesa',['mediterranica'],0,0,0,0,[['Pimento assado em conserva',90,'g'],['Alho',1,'dente'],['Azeite',10,'ml'],['Vinagre de vinho',5,'ml'],['Flor de sal',0.5,'g']],['mo']),
+R('acmostraspicante','Molho de ostras picante','asiatica',[],0,0,0,0,[['Molho de ostras',20,'g'],['Malagueta',2,'g'],['Alho',1,'dente'],['Gengibre',3,'g'],['Óleo de sésamo',3,'ml'],['Vinagre de arroz',5,'ml']],['mo']),
+R('acmoriental','Molho oriental','asiatica',[],0,0,0,0,[['Molho de soja',15,'ml'],['Mirin',10,'ml'],['Gengibre',4,'g'],['Alho',1,'dente'],['Óleo de sésamo',3,'ml'],['Sementes de sésamo',2,'g'],['Cebola verde',10,'g']],['mo']),
+R('acmiogurte','Molho de iogurte','grega',['mediterranica'],0,0,0,0,[['Iogurte natural',60,'g'],['Alho',0.5,'dente'],['Limão',8,'g'],['Hortelã',2,'g'],['Azeite',4,'ml'],['Flor de sal',0.5,'g']],['mo']),
+R('acmmornay','Molho Mornay','francesa',[],0,0,0,0,[['Leite meio gordo, UHT',100,'ml'],['Manteiga',10,'g'],['Farinha',10,'g'],['Queijo gruyère',25,'g'],['Noz-moscada',0.1,'g'],['Flor de sal',0.5,'g']],['mo']),
+/* ---- E dois cogumelos que são o acompanhamento inteiro ----
+   Os salteados com alho e salsa já cá estavam, e é sobre eles que os molhos
+   se põem. Estes dois não levam molho por cima porque já o trazem dentro: o
+   estufado faz o seu na panela, e o Bulhão Pato é o molho. */
+R('aclcogumelosestufados','Cogumelos estufados com molho de soja','asiatica',[],0,0,0,0,[['Cogumelos',150,'g'],['Cebola',40,'g'],['Alho',2,'dente'],['Molho de soja',12,'ml'],['Azeite',8,'ml'],['Gengibre',3,'g'],['Cebolinho',3,'g']],['ac']),
+R('aclcogumelosbulhaopato','Cogumelos à Bulhão Pato','portuguesa',['mediterranica'],0,0,0,0,[['Cogumelos',150,'g'],['Alho',3,'dente'],['Coentros',8,'g'],['Azeite',12,'ml'],['Limão',15,'g'],['Vinho branco',25,'ml'],['Flor de sal',0.5,'g']],['ac']),
 R('acmcurrywurst','Molho de currywurst','outras',[],0,0,0,0,[['Cebola',0.4,'un'],['Óleo alimentar',5,'ml'],['Polpa de tomate',60,'g'],['Tomate concentrado',10,'g'],['Maçã',60,'g'],['Molho inglês',5,'ml'],['Vinagre balsâmico',8,'ml'],['Mel',6,'g'],['Caril em pó',4,'g'],['Páprica fumada',2,'g'],['Pimenta de caiena',0.5,'g']],['mo']),
 /* A alternativa keto às Pommes que acompanham o currywurst: o aipo-rábano
    assado em palitos tosta por fora e fica cremoso por dentro, que é o que se
@@ -7187,6 +7204,51 @@ P('acmholandes',[['Derreter e assentar a manteiga','Derrete a manteiga em lume b
  ['Manteiga em fio','Afasta do calor forte e junta a manteiga morna gota a gota ao princípio e depois em fio, sempre a bater, até o molho cobrir as costas da colher.',5],
  ['Se talhar','Tira do calor e bate uma colher de água fria; se não voltar, recomeça com uma gema nova e vai-lhe juntando o molho talhado. Manteiga a ferver coze a gema e aí não há volta a dar.',2],
  ['Temperar e manter morno','Flor de sal e pimenta no fim. Guarda-o morno, nunca quente, e usa-o dentro de meia hora — parado e frio, endurece.']]);
+P('acmcogumelos',[
+ ['Dourar sem os afogar','Frigideira quente, manteiga e os cogumelos laminados em camada única. Não mexas no primeiro minuto e não os salgues já: o sal puxa-lhes a água e daí em diante cozem em vez de dourar.',6],
+ ['Alho e vinho','Junta o alho laminado e, mal cheire, o vinho branco. Deixa evaporar até o fundo da frigideira ficar quase seco — é aí que fica o sabor que as natas vão levantar.',4],
+ ['Natas e ponto','Baixa o lume, junta as natas e deixa apurar até cobrir as costas de uma colher. Ferver com natas talha-as; o molho quer fumegar, não borbulhar.',5],
+ ['Temperar no fim','Flor de sal, pimenta moída na hora e a salsa fora do lume. Sobre um bife, deita-se por cima na altura de servir — parado, engrossa e ganha pele.',2]]);
+P('acmtomate',[
+ ['Cebola primeiro, devagar','Cebola picada fina em azeite morno, em lume brando, até ficar translúcida e doce. É este quarto de hora que dispensa o açúcar que tanta gente junta a seguir.',12],
+ ['Alho e polpa','Junta o alho, deixa-o cheirar meio minuto e só então a polpa e a folha de louro. Alho em azeite quente com tomate por cima queima antes de dar sabor.',2],
+ ['Apurar','Lume brando, tacho meio tapado, vinte minutos, mexendo de vez em quando. Está pronto quando a colher deixa risco no fundo e o azeite aparece à superfície.',20],
+ ['Sal no fim, e o louro fora','Flor de sal só agora, e prova antes: o tomate concentra-se e o que estava certo ao princípio fica salgado no fim. Tira o louro antes de servir.',2]]);
+P('acmpimentos',[
+ ['Escorrer bem','Escorre os pimentos e seca-os com papel. A água da conserva é o que faz um molho destes ficar aguado e escorrer do prato.',3],
+ ['Triturar com o alho','Tritura os pimentos com o alho até ficar liso, e junta o azeite em fio com o motor a andar — é assim que emulsiona e ganha corpo em vez de se separar.',4],
+ ['Acertar com o vinagre','Uma colher de vinagre e flor de sal. O vinagre não é para saber a vinagre: é para o doce do pimento assado não ficar enjoativo.',2],
+ ['Descansar','Meia hora no frio assenta-lhe o sabor. Aguenta três dias tapado, e engrossa — solta-se com uma colher de água.',30]]);
+P('acmostraspicante',[
+ ['Aromáticos primeiro','Alho e gengibre ralados fininhos, e a malagueta sem sementes se a quiseres mais domada. Cortados grossos, ficam pedaços picantes em vez de molho picante.',5],
+ ['Sem levantar fervura','Aquece tudo com o molho de ostras em lume brando, só até fumegar. O molho de ostras fervido fica amargo e perde o doce que o define.',3],
+ ['Sésamo e vinagre fora do lume','Óleo de sésamo e vinagre de arroz já fora do calor: o sésamo é para cheirar, e no lume o cheiro vai-se embora.',1],
+ ['Provar antes de salgar','Não leva sal nenhum — o molho de ostras já traz o que precisa, e é dos condimentos mais salgados que há na despensa.',1]]);
+P('acmoriental',[
+ ['Soja e mirin','Junta a soja e o mirin num tacho pequeno e aquece só até começar a fumegar, para o álcool do mirin sair e o molho ganhar brilho.',3],
+ ['Gengibre e alho','Fora do lume, junta o gengibre e o alho ralados. Ralados e crus mantêm o picante fresco; salteados, ficam doces e o molho perde a ponta.',2],
+ ['Sésamo no fim','Óleo de sésamo e sementes tostadas a seco numa frigideira, um minuto, até estalarem. Tostadas cheiram; cruas são só textura.',3],
+ ['Cebola verde a rematar','A parte verde cortada fina por cima, na altura de servir. Junta antes e murcha, e o molho fica com um verde apagado.',1]]);
+P('acmiogurte',[
+ ['Alho domado','Rala o alho e deixa-o cinco minutos no sumo de limão antes de o juntar ao iogurte. O ácido tira-lhe o bafo cru — é o mesmo truque do tzatziki.',5],
+ ['Envolver, não bater','Junta o iogurte e envolve com a colher. Batido com varas, o iogurte solta soro e o molho fica líquido daí a meia hora.',2],
+ ['Hortelã e azeite','Hortelã picada à mão (a faca escurece-a) e um fio de azeite por cima. Flor de sal só no fim, e prova: o iogurte precisa de menos sal do que parece.',3],
+ ['Repousar no frio','Vinte minutos no frigorífico e sabe a uma coisa só. Dura dois dias; ao segundo, mexe-o antes de servir.',20]]);
+P('acmmornay',[
+ ['Roux claro','Derrete a manteiga, junta a farinha e mexe dois minutos em lume brando, sem deixar tomar cor. Cru, o molho sabe a farinha; tostado, deixa de engrossar.',3],
+ ['Leite aos poucos','Junta o leite morno em três vezes, batendo bem entre elas. Todo de uma vez faz grumos, e a partir daí só um passador os tira.',6],
+ ['Engrossar','Lume brando, dez minutos, mexendo. Está pronto quando cobre as costas da colher e o dedo deixa risco que não fecha.',10],
+ ['Queijo fora do lume','Tira do lume e só então o gruyère ralado, a noz-moscada e a flor de sal. Queijo em molho a ferver desfia-se e larga a gordura — é essa a diferença entre um Mornay e um bechamel com queijo derretido dentro. Prova antes do sal: o gruyère já é salgado.',3]]);
+P('aclcogumelosestufados',[
+ ['Cebola a suar','Cebola em meias-luas em azeite, tacho tapado, lume brando, até ficar transparente. Tapado é que é estufar: a cebola cozinha no próprio vapor e adoça.',8],
+ ['Cogumelos e paciência','Junta os cogumelos em quartos e o alho laminado, e volta a tapar. Vão largar água — deixa-os. É essa água, com a soja, que se torna o molho no fim.',10],
+ ['Soja e gengibre','Destapa, junta a soja e o gengibre ralado e deixa reduzir até o fundo ficar xaroposo e agarrar aos cogumelos.',6],
+ ['Cebolinho e sem sal','Cebolinho picado fora do lume. Não leva sal: a soja já é sal, e é por isso que o prato ao lado deste pede menos.',1]]);
+P('aclcogumelosbulhaopato',[
+ ['Alho e coentros são o prato','Lamina o alho fino e pica os coentros grosseiros, talos incluídos — no Bulhão Pato o alho e os coentros não temperam, são o prato.',5],
+ ['Azeite morno, alho sem cor','Alho em azeite morno, em lume brando, só até cheirar e ficar louro. Alourado a sério fica amargo e leva o molho atrás.',3],
+ ['Cogumelos e vinho','Sobe o lume, junta os cogumelos e deixa-os dourar antes do vinho branco. Depois do vinho, deixa evaporar metade — o molho quer redondo, não ácido.',7],
+ ['Coentros, limão e servir','Coentros, sumo de limão e flor de sal fora do lume, mexe e serve logo com o molho todo. Isto come-se com pão ao lado, como as amêijoas de que veio o nome.',2]]);
 P('acmsalsafresca',[['Tirar a água ao tomate','Corta o tomate ao meio e retira as sementes e o líquido antes de o picar. Se as deixares, a salsa vira caldo e encharca a tortilha por baixo.'],
  ['Picar tudo do mesmo tamanho','Tomate, cebola roxa e coentros picados finos e todos do mesmo calibre. É o corte parelho que faz a salsa saber a uma coisa só e não a três.',5],
  ['Temperar e deixar assentar','Sumo de lima e flor de sal, envolve e deixa repousar dez minutos. O sal puxa o sumo e junta os sabores; passada meia hora o tomate amolece e perde o estaladiço.',10],
@@ -24501,6 +24563,9 @@ const MO_CURTO={
      um adjetivo: a minúscula que a regra geral põe em «molho caesar» está
      errada da mesma maneira que estaria em «molho bechamel». */
   acmcaesar:'molho Caesar',
+  /* Mornay é o mesmo caso do Caesar: é um nome de gente (o duque de Mornay),
+     e não um adjetivo que a minúscula da regra geral possa engolir. */
+  acmmornay:'molho Mornay',
   acchimichurri:'chimichurri', accriolla:'salsa criolla',
   acvinagretebr:'vinagrete', acsalsasm:'salsa fresca',
   acchermoula:'chermoula', acsalmoriglio:'salmoriglio',
@@ -24753,6 +24818,18 @@ const COMBOS_BASE=[
   {base:'accouscoussimples', ac:[], mo:'acchermoula'},
   {base:'acbdoce', ac:[], mo:'acmtahini'},
   {base:'acbcoz', ac:[], mo:'acmolhoverde'},
+  /* Os cogumelos salteados vestidos de seis maneiras. É o mesmo salteado —
+     limpar, frigideira quente, alho no fim — e o que muda é o que se lhe põe
+     por cima; por isso não são seis receitas de cogumelos, são um
+     acompanhamento com seis molhos. */
+  {base:'aclcogumelos', ac:[], mo:'acmtomate'},
+  {base:'aclcogumelos', ac:[], mo:'acmpimentos'},
+  {base:'aclcogumelos', ac:[], mo:'acmostraspicante'},
+  {base:'aclcogumelos', ac:[], mo:'acmoriental'},
+  {base:'aclcogumelos', ac:[], mo:'acmiogurte'},
+  {base:'aclcogumelos', ac:[], mo:'acmmornay'},
+  /* E o molho de cogumelos onde ele nasceu: em cima de um bife. */
+  {base:'cgbiflombo', ac:[], mo:'acmcogumelos'},
 ];
 function nomeCombo(baseId,acs,mo){
   const k=idCombo(baseId,acs,mo);
