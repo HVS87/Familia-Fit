@@ -12572,7 +12572,7 @@ function blank(){ return {members:[],cheats:{},recuperacao:{},plans:{},bought:{}
   ui:{tab:'familia',mid:null,cuis:'todas',soComp:false,mealF:'todas',dietaF:[],busca:'',editor:null,
       objForm:{membros:[],tipo:'perder',delta:5,semanas:12,split:50,desportos:[],dieta:'',sessoes:3,agendar:true,nivel:'moderado',jejum:false,jejumH:16,jejumIni:12,jejumDias:0,banda:2,blocos:[]},
       objExpandido:null, objAdj:null, celebrando:null, tourPasso:null, tourVisto:false,
-      tema:'auto', paleta:'azulejo', colapsados:{}, alergF:[], alergDesp:'',
+      tema:'auto', paleta:'azulejo', colapsados:{}, alergF:[], alergDesp:'', tourFundo:false,
       recLimite:48, recQ:'',
       sug:{membros:null,ref:'a',teto:true,cuis:'todas',verFora:false}, porcoes:null,
       histAtiv:null, histRef:null, janelaPeso:'mes', linhasPeso:{ativ:false,kcal:false},
@@ -37270,7 +37270,46 @@ function renderDados(){
    treinos em conjunto, histórico, registo. Apontar para um cartão que não está
    no ecrã seria explicar o vazio, por isso esses passos têm condição e a
    visita salta-os. */
-function passosTour(){ return TOUR.filter(p=>!p.quando || (()=>{ try{ return !!p.quando(); }catch(e){ return false; } })()); }
+/* ---- Duas visitas, e a segunda é opcional ----
+   A visita explicava setenta e uma coisas. Quem a começa quer saber o que a
+   app faz, não conhecê-la toda: catorze passos chegam para isso, um por cada
+   sítio onde se decide alguma coisa. O resto — o passaporte de sabores, a
+   ordem do supermercado, a autofagia, o mosaico do ano — continua lá, com o
+   mesmo texto, numa segunda parte que só corre a quem a pedir no fim.
+
+   A ordem é a da barra de separadores, e não a de escrita: uma visita que
+   salta da Família para a Nutrição, volta à Atividade e regressa à Família
+   cansa mais pelo salto do que pelo texto. Dentro de cada separador, a ordem
+   em que os passos foram escritos manda. */
+function passosTour(){
+  const ordem=k=>{ const i=TABS.findIndex(x=>x[0]===k); return i<0? 99 : i; };
+  return TOUR
+    .filter(p=>S.ui.tourFundo? (!p.base || p.fim) : !!p.base)
+    .filter(p=>!p.quando || (()=>{ try{ return !!p.quando(); }catch(e){ return false; } })())
+    .map((p,i)=>({p, i}))
+    .sort((a,b)=>{ const fa=a.p.fim?1:0, fb=b.p.fim?1:0;
+      if(fa!==fb) return fa-fb;
+      const ta=ordem(a.p.tab), tb=ordem(b.p.tab);
+      if(ta!==tb) return ta-tb;
+      const oa=a.p.ord||0, ob=b.p.ord||0;
+      return oa!==ob? oa-ob : a.i-b.i; })
+    .map(x=>x.p);
+}
+/* Quantas notas ficam de fora — é o número que a proposta do fim mostra, e
+   tem de ser o verdadeiro naquele momento e naquela casa. */
+function passosAprofundados(){
+  const antes=S.ui.tourFundo; S.ui.tourFundo=true;
+  const n=passosTour().filter(p=>!p.base).length;
+  S.ui.tourFundo=antes;
+  return n;
+}
+/* A segunda parte é o que a primeira deixou de fora, e começa do princípio:
+   não é «continuar», é outra visita. */
+function tourAprofundar(){
+  if(!tourAtivo()) return;
+  S.ui.tourFundo=true; S.ui.tourPasso=0;
+  saveMeta(); irParaPassoTour();
+}
 /* Um passo pode trazer o texto numa função em vez de numa cadeia. Não é
    preciosismo: TOUR escreve-se quando o ficheiro é lido, e há coisas que só
    existem depois — os pratos compostos, por exemplo, nascem no arranque a
@@ -37278,7 +37317,10 @@ function passosTour(){ return TOUR.filter(p=>!p.quando || (()=>{ try{ return !!p
    e o separador ao lado mostrava 447. Contar tarde é contar certo. */
 function textoTour(x){ return typeof x==='function'? x() : (x||''); }
 const TOUR=[
-  {tab:'familia', sel:'#capa',
+  {base:1, tab:'calendario', sel:'#cal-wrap',
+   t:'O Calendário: a semana inteira num sítio',
+   d:'Sete colunas, as horas à esquerda, a andar para trás e para a frente. Junta o que os outros separadores já sabem — as <b>refeições</b> do plano com o <b>tempo de as cozinhar</b> encostado à hora da mesa, os <b>treinos</b>, os <b>jejuns</b> em sombreado, as <b>pesagens</b> marcadas, os <b>cheat days</b> e os <b>dias de recuperação</b> a tingir o dia — e acrescenta o que só aqui vive: blocos de tempo para ir às compras, cozinhar, preparar de véspera ou pensar a semana. Toca num espaço vazio para marcar; toca num evento para o abrir. E a semana sai daqui em <b>.ics</b> para o teu calendário do telemóvel, em <b>imagem</b> para mandar a alguém, ou <b>impressa</b> para a porta do frigorífico.'},
+  {base:1, tab:'familia', sel:'#capa',
    t:'O caderno desta família',
    d:'A app abre pela capa: o nome da casa, um lema se quiseres, o monograma desenhado das iniciais e a data em que o caderno começou. Personaliza-se em «✎ Personalizar» e tudo fica neste dispositivo, como o resto.'},
   {tab:'familia', sel:'#primeiros', quando:()=>!S.ui.passosFeitos && marcosIniciais().some(x=>!x.ok),
@@ -37293,7 +37335,7 @@ const TOUR=[
   {tab:'familia', sel:'#hoje',
    t:'Comer primeiro, e voltar sem culpa',
    d:'Se escreveres validades na despensa, os itens mais perto de acabar sobem para aqui e ganham vantagem nas sugestões de receitas — a app nunca inventa um prazo, limita-se a ordenar o que tu escreveste da embalagem. E quem volta depois de uma semana fora encontra aqui o convite para marcar esse tempo como pausa: a sequência da casa congela em vez de partir, porque uma gripe não apaga dois meses de esforço.'},
-  {tab:'familia', sel:'main .grid.g2 .card',
+  {base:1, tab:'familia', sel:'main .grid.g2 .card',
    t:'Perfis da família',
    d:'Cada pessoa tem aqui o seu perfil. A idade vem da data de nascimento e envelhece sozinha; a altura escreve-se uma vez. O que se mexe todos os dias é o peso, e o slider dele mexe em direto no índice de massa corporal, no metabolismo basal e no gasto diário. A fase da vida (bebé, criança, adolescente, adulto ou gravidez) escolhe as fórmulas certas para cada idade.'},
   {tab:'familia', sel:'#peso-hist',
@@ -37306,7 +37348,7 @@ const TOUR=[
    antes:()=>{ S.ui.modal=null; S.ui.folha=null; },
    t:'Registar, sempre debaixo do polegar',
    d:'O botão flutuante abre uma folha com as duas ou três ações mais prováveis para a hora que é: às 13h o almoço de hoje, em dia de treino o treino, de manhã a pesagem se a última já tem uma semana. Tocar numa refeição do cartão «Hoje» abre a mesa: um toque por pessoa que comeu e está registado — o prato, a dose e os acompanhamentos vêm do plano.'},
-  {tab:'familia', sel:'.card-alergia',
+  {base:1, tab:'familia', sel:'.card-alergia',
    t:'Alergias e intolerâncias',
    d:'As catorze categorias de declaração obrigatória na União Europeia, marcadas pessoa a pessoa. Uma receita que traga um alergénio marcado deixa de ser sugerida e fica assinalada a vermelho, com o ingrediente concreto que o traz. Ajuda a planear — não substitui ler o rótulo.'},
   {tab:'familia', sel:'main .av',
@@ -37348,7 +37390,7 @@ const TOUR=[
   {tab:'familia', sel:'[data-col="fam-resumo"]',
    t:'O mês em palavras',
    d:'Um retrato dos últimos 30 dias escrito em prosa a partir do que está registado: refeições planeadas, dias livres, atividade e objetivos. Só afirma o que os dados sustentam.'},
-  {tab:'atividade', sel:'#fa-cartao', quando:()=>S.members.length&&(curM().desportos||[]).length,
+  {base:1, tab:'atividade', sel:'#fa-cartao', quando:()=>S.members.length&&(curM().desportos||[]).length,
    t:'Atividade Física — plano e registo',
    d:'O separador separa duas coisas que não são a mesma: o plano é o que se tenciona fazer, o registo é o que se fez. Enquanto não há plano, é ele que ocupa o destaque; a partir daí o lugar de cima passa a ser deste cartão, para o gesto de todos os dias ser registar. O que se regista entra logo no gasto do dia, no alvo de calorias e no ritmo dos objetivos.'},
   {tab:'atividade', sel:'#atv-plano .dias-plano', quando:()=>S.members.length&&(curM().desportos||[]).length,
@@ -37366,7 +37408,7 @@ const TOUR=[
   {tab:'atividade', sel:'#ga-basal',
    t:'De onde vem o gasto do dia',
    d:'A barra reparte o gasto entre metabolismo basal, dia-a-dia, deslocações e desporto — e ganha um quinto segmento a quem está a crescer, grávida ou a amamentar, porque essa energia existe e não é treino. A linha tracejada marca o alvo alimentar: a distância entre o fim da barra e a linha é o défice ou o excedente do plano.'},
-  {tab:'nutricao', sel:'#nu-r-obj',
+  {base:1, tab:'nutricao', sel:'#nu-r-obj',
    t:'Nutrição — objetivo e macros',
    d:'O objetivo é um slider contínuo de −25 % a +20 % do gasto, com o ritmo em quilos por semana e um aviso a vermelho quando o alvo desce abaixo do metabolismo basal — a app avisa com mais força, não trava: quem decide é quem come. A dieta escolhida — incluindo vegetariana e vegan, que a app distingue — vira gramas de hidratos, proteína e gordura.'},
   {tab:'nutricao', sel:'#fr-cartao', quando:()=>S.members.length&&temPlanoNut(curM()),
@@ -37390,13 +37432,13 @@ const TOUR=[
      desatualiza-se na receita seguinte, e já desatualizou. Numa função e não
      numa cadeia, porque os pratos compostos entram em RECIPES depois de esta
      linha correr — contada aqui, a receita dava 422 e o ecrã dava 447. */
-  {tab:'receitas', sel:'#rec-busca',
+  {base:1, ord:-1, tab:'receitas', sel:'#rec-busca',
    t:()=>`${RECIPES.length} receitas, ${Object.keys(CUIS).length} cozinhas`,
    d:`Peixe grelhado e no forno, marisco à portuguesa, carne na brasa com os cortes pelo nome, keto, vegan e muito mais — de ${CUIS.portuguesa.toLowerCase()} a ${CUIS.africana.toLowerCase()} e ${CUIS.brasileira.toLowerCase()}. Pesquisa por nome ou por ingrediente, e filtra por refeição, cozinha, dieta, categoria — ${CATEG_K.map(k=>CATEG[k].n.toLowerCase()).join(', ')} — ou «sem» um alergénio. Os acompanhamentos e os molhos têm filtro próprio, ao lado das refeições: ninguém janta um chimichurri, mas ele vai a um bife.`},
   {tab:'receitas', sel:'.rc',
    t:'Macros que saem dos ingredientes',
    d:'As calorias e os macros de cada receita são calculados da composição de cada ingrediente (tabela do INSA), com as quantidades já multiplicadas pelas pessoas escolhidas. Os ✓ e ✗ mostram o que já tens na despensa.'},
-  {tab:'receitas', sel:'.rc',
+  {base:1, tab:'receitas', sel:'.rc',
    t:'Toca na receita: os passos de preparação',
    d:'Cada receita abre uma ficha com os ingredientes já na quantidade certa para quem vai comer, o que está e o que falta na despensa, e os passos de preparação escritos um a um, com os tempos. Lá dentro há dois botões — acompanhamento e molho — que compõem o prato: o mesmo bife com chimichurri ou com manteiga de alho é outro prato, e as calorias, os ingredientes e os passos refazem-se sozinhos. Daí segue-se para o modo Cozinha, um passo de cada vez em letra grande e com o ecrã impedido de adormecer — para se seguir a receita com as mãos na massa.'},
   {tab:'receitas', sel:'.filtros', antes:()=>{S.ui.dietaF=S.ui.dietaF||[];},
@@ -37417,13 +37459,13 @@ const TOUR=[
   {tab:'receitas', sel:'.rc .quant', quando:()=>true,
    t:'Guardar, reaquecer, quente ou frio',
    d:'Cada receita diz quanto tempo aguenta no frigorífico e como se reaquece — o arroz é o que tem menos folga, as sopas e os cozidos os que têm mais. São prazos genéricos e conservadores para sobras refrigeradas, que não substituem o cheiro nem o bom senso. E cada prato traz o seu género: no verão os frios ganham peso nas sugestões, sobretudo ao almoço.'},
-  {tab:'mercearia', sel:'#despensa-lista', antes:()=>{S.ui.mercVista='despensa';},
+  {base:1, tab:'mercearia', sel:'#despensa-lista', antes:()=>{S.ui.mercVista='despensa';},
    t:'A minha despensa',
    d:'Marca aqui o que tens em casa. A lista vem dos ingredientes das próprias receitas, para os nomes baterem sempre certo — e cada ingrediente mostra os alergénios marcados na família. Comprar um item na lista de compras marca-o aqui automaticamente, e ao entrar a app pergunta se as compras que ficaram por marcar já foram feitas, para validar item a item de uma vez.'},
   {tab:'mercearia', sel:'#despensa-lista', antes:()=>{S.ui.mercVista='despensa'; S.ui.validades=true;},
    t:'Preços e validades',
    d:'Dois interruptores no topo da despensa. «💶 Preços» abre um campo por ingrediente e é o que permite à app estimar o custo de uma receita, de uma semana e do talão — sem nunca inventar um cêntimo: o que não tiver preço aparece sempre contado como «faltam N». «📅 Validades» abre um campo de data para copiares o que vem impresso na embalagem; a app não calcula prazos nenhuns, limita-se a pôr à frente o que está mais perto de acabar e a dar vantagem, nas sugestões, às receitas que o gastem.'},
-  {tab:'objetivos', sel:'main .card',
+  {base:1, tab:'objetivos', sel:'main .card',
    t:'Objetivos com estratégia mista',
    d:'Define quantos quilos e em quanto tempo: a app calcula o défice diário e reparte-o entre dieta e exercício num slider. Ao criar, aplica logo o objetivo à Nutrição e acrescenta as horas de treino ao desporto escolhido.'},
   {tab:'objetivos', sel:'.anel', quando:()=>(S.objetivos||[]).some(o=>!o.concluido&&S.members.some(m=>m.id===o.membroId)),
@@ -37444,7 +37486,7 @@ const TOUR=[
   {tab:'plano', sel:'#sug-partilha', quando:()=>sugestoesPartilhaRef().length,
    t:'Comer em conjunto',
    d:'Cozinhar duas coisas para a mesma mesa é o trabalho a dobrar que as casas com dietas diferentes fazem todos os dias. Quando duas pessoas gostam do mesmo — lê-se do que já comeram e planearam — e querem o peso a ir para o mesmo lado, o prato é um só: o que muda é a dose de cada um e o que vai ao lado, mais leve para quem está em défice.'},
-  {tab:'plano', sel:'#sug',
+  {base:1, tab:'plano', sel:'#sug',
    t:'Sugestões para a mesa',
    d:'Liga e desliga quem se senta à mesa: a lista mostra só as receitas que servem toda a gente ligada ao mesmo tempo — e diz quantas caíram por dieta, por alergénio ou por calorias, e porquê. Planeia-se num toque, já com os comensais certos.'},
   {tab:'plano', sel:'#pla-equilibrio', quando:()=>{ const d=weekDates(S.week);
@@ -37454,7 +37496,7 @@ const TOUR=[
   {tab:'plano', sel:'#pla-equilibrio', quando:()=>quemEscolheEstaSemana(),
    t:'A vez de escolher, e a votação',
    d:'Uma rotativa entre quem cá vive dá a cada um a sua semana para escolher um jantar — turno garantido, que é a justiça que as crianças percebem, e troca-se com um toque porque trocas de vez acontecem em todas as casas. Diferente disso é a votação do jantar especial, no fecho de domingo: o telemóvel passa de mão em mão, cada um toca no seu avatar e no prato, e os candidatos já passaram pelo crivo das alergias, das dietas e do teto de calorias da mesa toda — por isso a escolha é real e não fingida. Em empate ganha quem não venceu da última vez.'},
-  {tab:'plano', sel:'#pla-resumo',
+  {base:1, tab:'plano', sel:'#pla-resumo',
    t:'Plano semanal e acompanhamentos',
    d:'Quatro refeições por dia, com quem come cada uma — e ao almoço e jantar, uma linha tracejada para o acompanhamento: batatas, arroz, legumes ou salada, com as calorias somadas ao dia. O 🔀 troca-o por outro que sirva a mesma mesa; o «juntar acompanhamento» põe mais um ao lado, e os dois repartem o mesmo lugar — meia dose de cada, com as calorias, os macros e as compras a seguir a divisão. Cinzento é dia incompleto, rosa é cheat day.'},
   {tab:'plano', sel:'.prato-composto', quando:()=>{ const w=S.plans[S.week]||{};
@@ -37475,7 +37517,7 @@ const TOUR=[
      for(let d=0;d<7;d++) for(const k of MEALK) if(((w[d]||{})[k]||{}).r) return true; return false; },
    t:'Como correu? O fecho da mesa',
    d:'Depois de registar quem comeu — e a dose de cada um corrige-se ali mesmo, tocando no «1× dose» — a app faz três perguntas rápidas, todas opcionais. Se sobrou, e para onde vai. O que a mesa achou: «repetir em breve» dá vantagem à receita nas sugestões, «não é para nós» arrefece-a oito semanas sem nunca a esconder dos filtros, porque um «não» de há dois meses não é uma proibição. E quem cozinhou e quem ajudou — a app sabia o que se comeu, mas não quem pôs as mãos na massa, e isso reparte o mérito e dá às crianças um papel com nome.'},
-  {tab:'mercearia', sel:'#falta-corpo', antes:()=>{S.ui.mercVista='compras';}, quando:()=>shoppingItems().items.length,
+  {base:1, tab:'mercearia', sel:'#falta-corpo', antes:()=>{S.ui.mercVista='compras';}, quando:()=>shoppingItems().items.length,
    t:'Compras e o que falta',
    d:'A lista agrega os ingredientes da semana — pratos e acompanhamentos — pelo número de comensais, e acompanhamentos que dividem o mesmo lugar entram com a fatia que lhes cabe. O cartão «O que falta comprar» tira o que já está na despensa e envia-se pelo menu de partilha do telemóvel.'},
   {tab:'mercearia', sel:'#falta-corpo', antes:()=>{S.ui.mercVista='compras';}, quando:()=>shoppingItems().items.length,
@@ -37493,7 +37535,7 @@ const TOUR=[
   {tab:'dados', sel:'[data-col="dados-aspeto"]',
    t:'Seguir o sol, e os sons da casa',
    d:'Além de claro, escuro e «segue o sistema», há «🌅 Segue o sol»: a app escurece quando o sol se põe em Portugal e clareia quando ele nasce — em dezembro anoitece por volta das 17h30, em junho aguenta clara até perto das 21h. As horas saem das equações solares clássicas, contas feitas aqui dentro, sem rede e sem saber onde estás; e só alterna entre os dois modos que já conheces, por isso as cores e os contrastes ficam intactos. Mais abaixo, «Sons da casa» acrescenta três apontamentos sonoros gerados na hora — um toc quando uma mesa passa a tinta, um tlim ao registar, papel ao virar a folha. Desligados por defeito, calados com o separador escondido, e nunca num erro.'},
-  {tab:'dados', sel:'main .card',
+  {base:1, tab:'dados', sel:'main .card',
    t:'Cópias de segurança',
    d:'Tudo fica gravado só neste browser, por isso o ficheiro de cópia é a única coisa que sobrevive a limpar o histórico ou trocar de telemóvel. Podes substituir tudo por uma cópia ou juntar duas, para combinar o que duas pessoas preencheram.'},
   {tab:'familia', sel:'#hoje', quando:()=>mosaicoDoAno(),
@@ -37510,7 +37552,7 @@ const TOUR=[
      mais dez notas afugentavam quem a começa. Cada um destes cobre um tema
      inteiro em vez de uma funcionalidade, e todos têm «quando» — quem não
      tem bebé em casa não ouve falar da calculadora de bebés. */
-  {tab:'familia', sel:'#fio',
+  {base:1, ord:-1, tab:'familia', sel:'#fio',
    t:'O fio do dia',
    d:'O primeiro cartão da app passou a ser o dia por ordem de relógio: pesagens, refeições, treinos, compras e sobras, tudo numa linha só com a hora à esquerda. Cada item traz o botão que o resolve ali mesmo — e no telemóvel deslizar a linha para a direita faz o mesmo que carregar no botão. Por baixo, o <b>balcão rápido</b> aceita uma frase escrita: «Ana 62,4», «corri 8 km», «jantar feito», «comprei azeite». Mostra sempre o que entendeu antes de gravar seja o que for.'},
   {tab:'familia', sel:'#fio',
@@ -37531,7 +37573,7 @@ const TOUR=[
   {tab:'dados', sel:'[data-col="dados-aspeto"]',
    t:'A casa também tem cara',
    d:'Sete paletas, claro e escuro, e um padrão de azulejo esbatido na capa de cada separador. Depois das nove da noite entra a <b>noite de taberna</b>: as superfícies aquecem um pouco, como uma luz ao fundo da sala — e não mexe em nenhuma cor de texto, por construção. Desliga-se aqui, e não se aplica na paleta «Contraste», onde quem manda é a legibilidade.'},
-  {tab:'familia', sel:'#capa', quando:()=>!!S.ui.exemploSemeado,
+  {base:1, fim:1, tab:'familia', sel:'#capa', quando:()=>!!S.ui.exemploSemeado,
    t:'E a família da visita?',
    d:'A visita correu sobre uma família de demonstração, com duas semanas de histórico inventado para os gráficos terem o que mostrar. Ao fechar esta última nota, a app pergunta o que lhe queres fazer: apagá-la e começar do zero com a tua casa, ou ficar com ela mais um bocado para experimentares tudo sem receio. Se escolheres explorar, o caminho de volta fica explicado — <b>Dados → Apagar todos os dados</b> limpa tudo de uma vez, e se entretanto tiveres escrito alguma receita que queiras guardar, exporta uma cópia antes.'}
 ];
@@ -37543,11 +37585,13 @@ function iniciarTour(comExemplo){
        é o que permite, no fim, oferecer apagá-los sem apagar o que é real */
     S.ui.exemploSemeado=true; saveMeta();
   }
+  /* uma visita nova começa sempre pela curta: a longa pede-se no fim */
+  S.ui.tourFundo=false;
   S.ui.tourPasso=0; saveMeta(); irParaPassoTour();
 }
 function fecharTour(){
   const eraExemplo=!!S.ui.exemploSemeado && S.members.length>0;
-  S.ui.tourPasso=null; S.ui.tourVisto=true;
+  S.ui.tourPasso=null; S.ui.tourFundo=false; S.ui.tourVisto=true;
   limpaDestaqueTour();
   const c=document.getElementById('tour-cartao'); if(c) c.remove();
   /* Quem acabou a visita com a família de demonstração fica com uma casa que
@@ -37649,15 +37693,21 @@ function pintaTour(){
   if(!p){ if(c) c.remove(); return; }
   if(!c){ c=document.createElement('div'); c.id='tour-cartao'; c.className='tour-cartao';
     c.setAttribute('role','dialog'); c.setAttribute('aria-label','Visita guiada'); document.body.appendChild(c); }
+  const noFim=S.ui.tourPasso>=passos.length-1;
+  const extra=(!S.ui.tourFundo && noFim)? passosAprofundados() : 0;
   c.innerHTML=`<div class="row" style="justify-content:space-between;align-items:baseline">
-      <h3>${esc(textoTour(p.t))}</h3><span class="sub">${S.ui.tourPasso+1} de ${passos.length}</span></div>
+      <h3>${esc(textoTour(p.t))}</h3><span class="sub">${S.ui.tourPasso+1} de ${passos.length}${S.ui.tourFundo?' · aprofundada':''}</span></div>
     <p class="sub">${textoTour(p.d)}</p>
     <div class="tour-progresso" aria-hidden="true">${passos.map((_,i)=>`<i class="${i<=S.ui.tourPasso?'feito':''}"></i>`).join('')}</div>
+    ${extra? `<p class="sub" style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)">Isto é a app toda em ${passos.length} passos.
+      Há ${plural(extra,'nota','notas')} mais a fundo — o passaporte de sabores, a ordem do supermercado, o jejum ao pormenor, as paletas —
+      para quando quiseres. Ficam sempre em <b>Definições ▸ Visita guiada</b>.</p>`:''}
     <div class="tour-acoes">
       <button class="btn ghost small" onclick="fecharTour()">Sair</button>
       <span style="flex:1"></span>
       ${S.ui.tourPasso>0? '<button class="btn ghost" onclick="tourAnterior()">← Anterior</button>':''}
-      <button class="btn" onclick="tourSeguinte()">${S.ui.tourPasso>=passos.length-1?'Terminar':'Seguinte →'}</button>
+      ${extra? `<button class="btn ghost" onclick="tourAprofundar()">Ver a fundo →</button>`:''}
+      <button class="btn" onclick="tourSeguinte()">${noFim?'Terminar':'Seguinte →'}</button>
     </div>`;
   /* o alvo pode não existir neste estado (sem membros, sem plano) — o passo
      continua a fazer sentido pelo texto, só não há halo */
@@ -37778,8 +37828,9 @@ function cartaoBoasVindas(){
            <button class="btn ghost" onclick="addMember()">+ Criar primeiro perfil</button>`}
       <button class="btn ghost" onclick="go('dados')">Restaurar uma cópia</button>
     </div>
-    <p class="sub" style="max-width:62ch;margin:12px auto 0">A visita percorre os ${TABS.length} separadores em cerca de ${passosTour().length} passos, com uma família
-      de exemplo para veres tudo a funcionar. Podes sair a qualquer momento e apagar o exemplo no separador Dados.</p>
+    <p class="sub" style="max-width:62ch;margin:12px auto 0">A visita passa pelos ${TABS.length} separadores em ${passosTour().length} passos — o essencial, sem exaustão —,
+      com uma família de exemplo para veres tudo a funcionar. No fim, quem quiser tem uma segunda parte, mais a fundo,
+      sobre o resto. Podes sair a qualquer momento e apagar o exemplo nas Definições.</p>
     <div style="max-width:62ch;margin:16px auto 0;text-align:left">${avisoResponsabilidade()}</div>
   </div>`;
 }
