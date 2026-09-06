@@ -21062,7 +21062,12 @@ function pendentesPorSeparador(){
    próprio lugar. Nenhum estado novo: deriva-se do plano, dos treinos, da
    lista, das sobras e das pesagens em atraso. Os geradores são preguiçosos de
    propósito — a abertura é onde o orçamento dos 100 ms se perde. */
-const HORA_LINHA={pesagem:7, p:8, l:16, a:13, j:20, treino:18, sobra:21, congelador:21, compras:11};
+/* As horas das refeições vêm de HORA_REF, que é onde vivem: escritas outra vez
+   aqui, o lanche ficou às 16h nesta linha e às 17h no Calendário — a mesma
+   refeição, duas horas diferentes, conforme o ecrã onde se olhava. O que é
+   próprio desta lista são as linhas que não são refeições. */
+const HORA_LINHA=Object.assign({}, HORA_REF,
+  {pesagem:7, treino:18, sobra:21, congelador:21, compras:11});
 function fioDoDia(){
   if(!S.members.length) return [];
   const d=hojeISO(), di=diaSemana(d), out=[];
@@ -21554,12 +21559,14 @@ function confirmarRefPessoa(mid,mk){
    Um toque fecha o dia inteiro — mas só depois da hora da última refeição
    planeada. Aparecer de manhã seria convidar a registar o que ainda não
    aconteceu, e a fronteira entre plano e registo é o que sustenta esta app. */
-const HORA_REFEICAO={p:10, a:15, l:18, j:22};
+/* Não confundir com HORA_REF: aquelas são as horas a que se come, estas são
+   as horas a partir das quais já se pode dizer que se comeu. */
+const HORA_LIMITE_REF={p:10, a:15, l:18, j:22};
 function podeFecharDia(){
   const p=pendenciasHoje();
   if(!p.total) return null;
   const agora=new Date().getHours();
-  const ultima=Math.max(0,...p.ref.map(x=>HORA_REFEICAO[x.mk]||22), p.ativ.length? 21:0);
+  const ultima=Math.max(0,...p.ref.map(x=>HORA_LIMITE_REF[x.mk]||22), p.ativ.length? 21:0);
   return agora>=ultima? p : null;
 }
 function fecharDiaComoPlaneado(){
