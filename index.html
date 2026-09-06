@@ -3496,7 +3496,11 @@ R('castanhas','Castanhas assadas','portuguesa',['vegetariana','lowfat'],210,44,3
 /* ---------- Mediterrânica ---------- */
 R('souvlaki','Souvlaki de porco grelhado','grega',['lowcarb','mediterranica'],0,0,0,0,[['Carne de porco',170,'g'],['Limão',0.5,'un'],['Orégãos',2,'g'],['Azeite',10,'ml']],null,2),
 R('falafel','Falafel assado com salada','libanesa',['vegetariana','mediterranica'],0,0,0,0,[['Grão-de-bico cozido',150,'g'],['Coentros',8,'g'],['Cominhos',2,'g'],['Alface',50,'g'],['Tomate',1,'un'],['Azeite',10,'ml']],null,12),
-R('peixecrosta','Dourada assada em crosta de sal com legumes','mediterranica',['keto','lowcarb','paleo','mediterranica'],380,12,42,18,[['Dourada',280,'g'],['Courgette',100,'g'],['Tomate cereja',80,'g'],['Limão',0.5,'un'],['Alecrim',3,'g'],['Azeite',10,'ml']],null,4),
+/* Os legumes deste iam «noutro tabuleiro», e os próprios passos o diziam:
+   é um acompanhamento com nome de acompanhamento, e não parte da crosta.
+   O peixe em crosta de sal fica de pé sozinho — que é a prova de que a
+   separação está certa. */
+R('peixecrosta','Dourada assada em crosta de sal','mediterranica',['keto','lowcarb','paleo','mediterranica'],0,0,0,0,[['Dourada',280,'g'],['Limão',0.5,'un'],['Alecrim',3,'g'],['Azeite',10,'ml']],null,4),
 R('saladalentilhas','Salada morna de lentilhas com feta','mediterranica',['vegetariana','mediterranica'],440,46,22,18,[['Lentilhas',100,'g'],['Queijo feta',50,'g'],['Tomate cereja',80,'g'],['Cebola roxa',0.25,'un'],['Salsa',8,'g'],['Limão',0.5,'un'],['Azeite',12,'ml']],null,10),
 R('shakshuka','Shakshuka de ovos em tomate','mediterranica',['lowcarb','vegetariana','mediterranica'],360,22,20,22,[['Ovo',3,'un'],['Tomate pelado',200,'g'],['Pimento',0.5,'un'],['Cebola',0.5,'un'],['Cominhos',2,'g'],['Azeite',12,'ml']],['p','a','j'],5),
 R('tagine','Tagine de frango com limão e azeitonas','marroquina',['lowcarb','mediterranica'],470,26,44,20,[['Coxas de frango',200,'g'],['Limão',1,'un'],['Azeitonas',30,'g'],['Cebola',0.5,'un'],['Cenoura',80,'g'],['Cominhos',2,'g'],['Azeite',10,'ml']],null,5),
@@ -3727,7 +3731,12 @@ R('bifemarrare','Bife do lombo salteado em manteiga','portuguesa',['lowcarb'],0,
 R('bifecervejeira','Bife de vaca selado em manteiga','portuguesa',['lowcarb'],0,0,0,0,[['Bife de vaca',180,'g'],['Manteiga',15,'g'],['Pimenta preta',1,'g']],['a','j'],0,['pp']),
 R('bifemostarda','Bife de vaca salteado em manteiga','francesa',['keto','lowcarb'],0,0,0,0,[['Bife de vaca',180,'g'],['Manteiga',12,'g'],['Pimenta preta',1,'g']],['a','j'],0,['pp']),
 R('bifecafe','Bife de vaca selado com alho','portuguesa',['keto','lowcarb'],0,0,0,0,[['Bife de vaca',180,'g'],['Manteiga',12,'g'],['Alho',2,'dente'],['Pimenta preta',0.5,'g']],['a','j'],0,['pp']),
-R('bitoque','Bitoque','portuguesa',[],0,0,0,0,[['Bife de vaca',150,'g'],['Ovo',1,'un'],['Batata',180,'g'],['Arroz carolino branqueado cru',60,'g'],['Alho',2,'dente'],['Manteiga',10,'g'],['Azeite',12,'ml'],['Vinho branco',30,'ml'],['Louro',1,'g']],['a','j'],0,['pp']),
+/* O bitoque era quatro receitas numa: o bife com o ovo, as batatas fritas, o
+   arroz e o molho da frigideira. Fica só o que não se troca — o bife e o ovo
+   a cavalo, que é um prato feito por si — e as outras três partes passam a
+   ser escolhas. O par completo continua a chamar-se «Bitoque»; a diferença é
+   que agora se pode trocar o arroz por uma salada sem a app perder a conta. */
+R('bitoque','Bife com ovo a cavalo','portuguesa',[],0,0,0,0,[['Bife de vaca',150,'g'],['Ovo',1,'un'],['Alho',2,'dente'],['Azeite',12,'ml']],['a','j'],0,['pp']),
 /* Bitoque keto: o bitoque é bife, ovo e molho — o arroz e a batata é que o
    põem fora da conta. Trocados por grelos salteados, o prato mantém-se
    inteiro e os hidratos líquidos caem para um valor keto, sem inventar nada
@@ -4091,7 +4100,7 @@ R('chawanmushi','Chawanmushi, creme de ovo a vapor','japonesa',[],0,0,0,0,[['Ovo
 R('oyakodon','Oyakodon, taça de frango e ovo','japonesa',[],0,0,0,0,[['Coxas de frango',120,'g'],['Cebola',60,'g'],['Ovo',1.5,'un'],['Dashi',60,'ml'],['Molho de soja',15,'ml'],['Mirin',15,'ml'],['Saqué de cozinha',8,'ml'],['Açúcar branco',4,'g'],['Arroz para sushi',70,'g'],['Cebolinho',5,'g']],['a','j'],0,['pp']),
 R('nikujaga','Nikujaga, guisado de carne e batata','japonesa',[],0,0,0,0,[['Vaca, alcatra crua',100,'g'],['Batata',200,'g'],['Cebola',80,'g'],['Cenoura',60,'g'],['Dashi',200,'ml'],['Molho de soja',20,'ml'],['Mirin',20,'ml'],['Saqué de cozinha',10,'ml'],['Açúcar branco',5,'g'],['Óleo alimentar',5,'ml'],['Ervilhas',30,'g']],['a','j'],0,['pp']),
 R('okonomiyaki','Okonomiyaki, panqueca de repolho de Osaka','japonesa',[],0,0,0,0,[['Farinha',60,'g'],['Dashi',80,'ml'],['Ovo',1,'un'],['Repolho',150,'g'],['Bacon',40,'g'],['Gengibre em conserva (beni shoga)',10,'g'],['Fermento em pó',1,'g'],['Sal grosso',1,'g'],['Óleo alimentar',6,'ml'],['Maionese',12,'g'],['Katsuobushi',2,'g'],['Aonori (alga em pó)',1,'g']],['a','j'],0,['pp']),
-R('zarusoba','Zaru soba, soba fria com molho de mergulhar','japonesa',[],0,0,0,0,[['Massa soba seca',100,'g'],['Dashi',60,'ml'],['Molho de soja',20,'ml'],['Mirin',20,'ml'],['Algas nori',2,'g'],['Cebolinho',5,'g'],['Wasabi, raiz crua',3,'g']],['a','j'],0,['pp']),
+R('zarusoba','Zaru soba, soba fria','japonesa',[],0,0,0,0,[['Massa soba seca',100,'g'],['Algas nori',2,'g'],['Cebolinho',5,'g'],['Wasabi, raiz crua',3,'g']],['a','j'],0,['pp']),
 R('kakeudon','Kake udon, udon quente em caldo claro','japonesa',[],0,0,0,0,[['Massa udon seca',100,'g'],['Dashi',350,'ml'],['Molho de soja',20,'ml'],['Mirin',15,'ml'],['Sal grosso',1,'g'],['Cebolinho',8,'g'],['Shichimi togarashi',0.5,'g']],['a','j'],0,['pp']),
 R('dorayaki','Dorayaki, panquecas com pasta de feijão doce','japonesa',[],0,0,0,0,[['Ovo',0.5,'un'],['Açúcar branco',14,'g'],['Mel',5,'g'],['Farinha',22,'g'],['Fermento em pó',0.5,'g'],['Pasta doce de feijão azuki (anko)',40,'g'],['Óleo alimentar',2,'ml']],['l'],0,['sob','sn']),
 R('agedashitofu','Agedashi tofu, tofu frito em caldo','japonesa',[],0,0,0,0,[['Tofu',200,'g'],['Batata, fécula',20,'g'],['Óleo alimentar',10,'ml'],['Dashi',120,'ml'],['Molho de soja',15,'ml'],['Mirin',15,'ml'],['Rabanete branco cru',40,'g'],['Gengibre',4,'g'],['Cebolinho',4,'g'],['Katsuobushi',1,'g']],['a','j'],0,['ent']),
@@ -4205,6 +4214,14 @@ R('acmteriyaki','Molho teriyaki','japonesa',[],0,0,0,0,[['Molho de soja',30,'ml'
 R('acmranch','Ranch dressing','americana',[],0,0,0,0,[['Buttermilk',40,'ml'],['Maionese',40,'g'],['Endro',2,'g'],['Cebolinho',3,'g'],['Alho em pó',0.5,'g'],['Cebola em pó',0.5,'g'],['Limão',5,'g'],['Flor de sal',0.5,'g']],['mo']),
 R('acmvinagreteclassico','Vinagrete clássico','francesa',['mediterranica'],0,0,0,0,[['Azeite',30,'ml'],['Vinagre de vinho',10,'ml'],['Mostarda de Dijon',3,'g'],['Flor de sal',0.5,'g'],['Pimenta preta',0.2,'g']],['mo']),
 R('aclcouveflorgrelhada','Couve-flor na grelha','mediterranica',['mediterranica'],0,0,0,0,[['Couve-flor',220,'g'],['Azeite',15,'ml'],['Alho',2,'dente'],['Pimentão-doce',1,'g'],['Limão',10,'g'],['Salsa',3,'g'],['Flor de sal',0.5,'g']],['ac']),
+/* ---- Dois molhos que estavam presos dentro de um prato ----
+   Uma varredura às receitas escritas à procura de molhos que fossem peça e
+   não ingrediente: não o que se junta na wok nem o que marina a carne, mas o
+   que se faz à parte e se põe ao lado ou por cima, e que se pode trocar sem
+   o prato deixar de ser o que é. Destes dois, os próprios passos já o diziam
+   — «serve com o molho ao lado» e «raspa o fundo até reduzir». */
+R('acmtsuyu','Tsuyu, molho de mergulhar','japonesa',[],0,0,0,0,[['Dashi',60,'ml'],['Molho de soja',20,'ml'],['Mirin',20,'ml']],['mo']),
+R('acmbitoque','Molho de bitoque','portuguesa',[],0,0,0,0,[['Manteiga',10,'g'],['Vinho branco',30,'ml'],['Louro',1,'g'],['Alho',1,'dente']],['mo']),
 R('acmcurrywurst','Molho de currywurst','outras',[],0,0,0,0,[['Cebola',0.4,'un'],['Óleo alimentar',5,'ml'],['Polpa de tomate',60,'g'],['Tomate concentrado',10,'g'],['Maçã',60,'g'],['Molho inglês',5,'ml'],['Vinagre balsâmico',8,'ml'],['Mel',6,'g'],['Caril em pó',4,'g'],['Páprica fumada',2,'g'],['Pimenta de caiena',0.5,'g']],['mo']),
 /* A alternativa keto às Pommes que acompanham o currywurst: o aipo-rábano
    assado em palitos tosta por fora e fica cremoso por dentro, que é o que se
@@ -5009,11 +5026,10 @@ P('bifemostarda',[['Temperar à hora','Seca o bife e tempera com sal e pimenta m
 P('bifecafe',[['Temperar','Bife bem seco, com sal e pimenta só na altura de ir ao lume.'],
  ['Manteiga com alho','Manteiga quente com os dentes de alho esmagados, só até perfumarem sem corar.',1],
  ['Selar e retirar','Bife dentro, selado dos dois lados até ganhar crosta. Retira para um prato quente e deixa a frigideira ao lume para o molho.',4]]);
-P('bitoque',[['Batatas','Corta as batatas em palitos e frita em óleo bem quente, em duas vezes: a primeira coze, a segunda tosta.',12],
- ['Arroz','Refoga o alho no azeite, junta o arroz e o dobro de água a ferver. Tapa.',18],
- ['Bife','Bife temperado, frigideira bem quente com manteiga, selado dos dois lados. Retira.',4],
- ['Molho','Vinho branco e louro na frigideira, a raspar o fundo, até reduzir.',3],
- ['Ovo','Estrela o ovo à parte e monta: bife, molho, ovo por cima, batatas e arroz ao lado.',3]]);
+P('bitoque',[['Temperar e deixar tomar temperatura','Bife com alho esmagado e sal, fora do frigorífico vinte minutos antes. Bife frio na frigideira arrefece-a e o bife cinza em vez de selar.',20],
+ ['Selar sem mexer','Frigideira bem quente com azeite, bife dos dois lados sem lhe tocar entretanto. Um minuto e meio de cada lado para mal passado, dois e meio para o ponto.',4],
+ ['Descansar','Retira o bife para um prato morno e deixa-o descansar enquanto fazes o ovo. Cortado a sair da frigideira, perde o suco todo na tábua.',4],
+ ['Ovo a cavalo','Estrela o ovo em lume brando, para a clara ficar feita e a gema mole, e põe-no por cima do bife. É a gema que faz de molho quando não há outro.',3]]);
 P('ketobitoque',[['Grelos','Coze os grelos em água a ferver com sal, três a quatro minutos, e escorre. Aperta-os com as mãos para largarem a água — grelos molhados não salteiam, cozem outra vez na frigideira.',6],
  ['Bife','Tempera o bife com sal e pimenta e sela-o numa frigideira bem quente com a manteiga, dos dois lados. Retira e deixa descansar.',4],
  ['Molho','Junta o vinho branco e o louro à frigideira do bife e raspa o fundo com uma colher de pau, até reduzir a metade.',3],
@@ -5786,9 +5802,9 @@ P('falafel',[['Grão demolhado','Grão-de-bico de molho de véspera, cru e bem e
  ['Repousar','Meia hora no frigorífico, para a massa agarrar antes de a moldar.',30],
  ['Assar','Bolinhas achatadas num tabuleiro com um fio de azeite, forno a 200 °C, virando a meio. Estão prontas quando soam ocas ao toque.',25],
  ['Salada','Alface e tomate cortados na hora, ao lado, para dar frescura ao que sai quente do forno.']]);
-P('peixecrosta',[['Crosta','Sal grosso humedecido, cama no tabuleiro, peixe em cima e coberto por completo.'],
+P('peixecrosta',[['Crosta','Sal grosso humedecido, cama no tabuleiro, a dourada inteira e por amanhar em cima, coberta por completo.'],
  ['Forno','Forno a 200 °C, vinte minutos por cada 500 g.',25],
- ['Legumes ao lado','Enquanto o peixe assa, põe a courgette em meias-luas e os tomates cereja inteiros noutro tabuleiro, com azeite, alecrim e sal, no mesmo forno. Ficam prontos ao mesmo tempo que a crosta.',20],
+ ['O que puseres ao lado, no mesmo forno','A crosta ocupa um tabuleiro e o forno leva outro: o acompanhamento que escolheres assa ao mesmo tempo, com azeite, alecrim e sal. Legumes grelhados, batata assada ou pimentos — o peixe não pede nenhum em especial.',20],
  ['Abrir','Parte a crosta e retira a pele com o sal agarrado. Rega com azeite e limão à mesa.']]);
 P('saladalentilhas',[['Lentilhas','Coze com louro, escorre e tempera ainda mornas — é morno que absorve.',20],
  ['Juntar','Feta esmigalhada, cebola roxa e salsa.'],
@@ -7065,10 +7081,9 @@ P('okonomiyaki',[['Faz a massa e mete-a no frio','Mistura a farinha, o fermento,
  ['Cozinha tapado e não achates','Deita a massa na frigideira untada num montinho alto de dois dedos, põe as fatias de bacon por cima e tapa. Cinco minutos em lume médio-baixo. Nunca a esmagues com a espátula — é ar espremido que não volta, e a panqueca fica de borracha.',6],
  ['Vira uma vez só','Vira com as duas espátulas, num gesto decidido, e tapa outra vez por mais cinco minutos. Depois destapa e dá-lhe dois minutos de cada lado a descoberto para secar a superfície. Está pronta quando um palito sai limpo do meio e o bacon estala em cima.',10],
  ['Veste a panqueca à japonesa','Pincela com molho tonkatsu, faz riscas de maionese por cima e polvilha com o aonori. As lascas de katsuobushi vão em último e mexem-se sozinhas com o calor — é para isso que servem. Serve inteira e corta à mesa.',3]]);
-P('zarusoba',[['Faz o tsuyu e arrefece-o','Leva o mirin a levantar fervura para evaporar o álcool, junta a soja e o dashi, deixa ferver uns segundos e arrefece por completo. Serve-se frio, e um molho morno amolece a massa mal lhe tocas. Podes fazê-lo de véspera e é aí que fica melhor.',10],
- ['Coze a soba em muita água a ferver','Usa pelo menos dois litros de água por cada cem gramas de massa, sem sal, e solta os fios com os pauzinhos assim que entram. Segue o tempo do pacote e prova um minuto antes do fim. Água a menos baixa de temperatura e a soba coze desigual, mole por fora e crua no meio.',6],
+P('zarusoba',[['Coze a soba em muita água a ferver','Usa pelo menos dois litros de água por cada cem gramas de massa, sem sal, e solta os fios com os pauzinhos assim que entram. Segue o tempo do pacote e prova um minuto antes do fim. Água a menos baixa de temperatura e a soba coze desigual, mole por fora e crua no meio.',6],
  ['Lava a massa com água fria','Escorre e lava a soba debaixo da torneira, esfregando os fios entre as mãos até a água sair limpa e a massa ficar mesmo fria. É este passo que tira o amido de fora e devolve à soba a firmeza — soba escorrida e não lavada cola-se num bolo em cinco minutos.',4],
- ['Serve na esteira, com o molho ao lado','Escorre bem e estende a massa sobre uma esteira ou grelha, para não ficar assente na sua própria água. Espalha a nori em tiras finas por cima. Põe o tsuyu numa taça pequena, com o wasabi e o cebolinho para cada um juntar a seu gosto, e mergulha só a ponta de cada porção.',4]]);
+ ['Serve na esteira, com o molho ao lado','Escorre bem e estende a massa sobre uma esteira ou grelha, para não ficar assente na sua própria água. Espalha as algas nori em tiras finas por cima. O molho vai numa taça pequena à parte — o tsuyu é o clássico —, com o wasabi e o cebolinho para cada um juntar a seu gosto, e mergulha-se só a ponta de cada porção.',4]]);
 P('kakeudon',[['Aquece o caldo e prova-lhe o sal','Junta o dashi, a soja e o mirin e leva a aquecer sem deixar ferver a sério — fervura forte tira o aroma ao dashi e deixa-o a saber só a soja. Prova e acerta com o sal. O caldo do kake udon é claro e bebe-se até ao fim, por isso tem de saber bem sozinho, sem a massa.',6],
  ['Coze o udon em água à parte','Coze a massa em muita água a ferver, sem sal e em panela separada do caldo. Se a cozeres dentro do caldo, o amido que ela larga turva-o e engrossa-o, e o kake udon deixa de ser kake udon. Prova um fio: tem de ceder ao dente e continuar firme no centro.',10],
  ['Escorre e passa por água a ferver','Escorre a massa, passa-a rapidamente por água a ferver limpa e escorre outra vez. Este passo tira o amido de fora sem a arrefecer, que é o equilíbrio todo desta receita — lavá-la em água fria, como se faz na soba, mataria o prato quente.',2],
@@ -7225,6 +7240,16 @@ P('acmholandes',[['Derreter e assentar a manteiga','Derrete a manteiga em lume b
  ['Manteiga em fio','Afasta do calor forte e junta a manteiga morna gota a gota ao princípio e depois em fio, sempre a bater, até o molho cobrir as costas da colher.',5],
  ['Se talhar','Tira do calor e bate uma colher de água fria; se não voltar, recomeça com uma gema nova e vai-lhe juntando o molho talhado. Manteiga a ferver coze a gema e aí não há volta a dar.',2],
  ['Temperar e manter morno','Flor de sal e pimenta no fim. Guarda-o morno, nunca quente, e usa-o dentro de meia hora — parado e frio, endurece.']]);
+P('acmtsuyu',[
+ ['Mirin primeiro, para o álcool sair','Leva o mirin sozinho a levantar fervura e deixa-o um minuto: é o que tira o álcool e deixa ficar o doce. Sem isto, o tsuyu sabe a aguardente doce.',3],
+ ['Soja e dashi','Junta o molho de soja e o dashi e deixa ferver uns segundos, mais nada. O dashi em fervura forte perde o aroma e passa a saber só a soja.',3],
+ ['Arrefecer por completo','Arrefece-o até ficar frio de frigorífico. Morno, amolece a massa mal lhe tocas — e o zaru soba vive de a massa estar fria e firme.',30],
+ ['De véspera é melhor','Feito no dia anterior fica mais redondo, e dura uma semana no frio. Serve-se numa taça pequena, para mergulhar só a ponta da massa.',5]]);
+P('acmbitoque',[
+ ['Na frigideira do bife','Isto não se faz num tacho limpo: faz-se na frigideira onde o bife acabou de selar, com o que ficou agarrado ao fundo. É esse fundo que é o molho.',1],
+ ['Alho e louro na manteiga','Fora do lume forte, junta a manteiga, o alho esmagado e o louro. Manteiga em frigideira a escaldar queima em segundos e fica amarga.',2],
+ ['Vinho a raspar o fundo','Vinho branco e uma colher de pau a raspar tudo o que está preso, em lume médio, até reduzir a metade e ganhar brilho.',3],
+ ['Por cima do bife','Deita-se por cima do bife na altura de servir, com o ovo a cavalo por cima disso. Não se guarda — é um molho de frigideira, e faz-se no momento.',1]]);
 P('acmbechamel',[
  ['Roux, e sem cor','Derrete a manteiga, junta a farinha de uma vez e mexe dois minutos em lume brando. Não deixes tomar cor: um béchamel é branco, e um roux tostado deixa de engrossar tão bem.',3],
  ['Leite morno, aos poucos','Junta o leite morno em três vezes, batendo bem entre cada uma até ficar liso. Frio e todo de uma vez é a receita dos grumos — e depois só o passador os resolve.',6],
@@ -24690,6 +24715,9 @@ const NOME_COMBO={
      em vez de uma receita nova: quem quiser o mesmo sem o molho já o tinha, e
      agora tem-nos aos dois sem repetir uma linha de ingredientes. */
   'c:ovosbenedict+~acmholandes':'Ovos Benedict',
+  'c:bitoque+acbfritas+acrbranco~acmbitoque':'Bitoque',
+  'c:zarusoba+~acmtsuyu':'Zaru soba, soba fria com molho de mergulhar',
+  'c:peixecrosta+acllegumes':'Dourada assada em crosta de sal com legumes',
   'c:sardinhas+aclpimentoassado':'Sardinhas assadas com pimentos',
   'c:rojoes+aclgrelosdrojo':'Rojões com grelos',
   'c:polvo+aclgrelosdpolvo':'Polvo à lagareiro com grelos salteados',
@@ -24938,6 +24966,13 @@ const COMBOS_BASE=[
      Os outros continuam à escolha em qualquer prato, no lugar do molho. */
   {base:'ovosbenedict', ac:[], mo:'acmholandes'},
   {base:'peixinhoshorta', ac:[], mo:'acmtartaro'},
+  /* ---- Os pratos que voltam a ser o que eram, agora por peças ----
+     Estes três estavam escritos como um bloco só. Separados, cada peça pode
+     trocar-se; juntos, dão exatamente o prato de antes, e é esse par que
+     leva o nome de sempre na tabela de nomes. */
+  {base:'bitoque', ac:['acbfritas','acrbranco'], mo:'acmbitoque'},
+  {base:'zarusoba', ac:[], mo:'acmtsuyu'},
+  {base:'peixecrosta', ac:['acllegumes'], mo:''},
   {base:'aclcouveflorgrelhada', ac:[], mo:'acmtahini'},
   {base:'aclcouveflorgrelhada', ac:[], mo:'acmbeterrabacenoura'},
 ];
