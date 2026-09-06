@@ -1601,6 +1601,50 @@ input[type=range].com-detentes::-moz-range-track{
 .quant .sub{font-variant-numeric:tabular-nums;line-height:1.5}
 /* A dobra da massa dentro de uma receita: parece um cartão pequeno, para
    se ver que aquilo é um bloco à parte e não uma linha da lista. */
+/* ===== CALENDÁRIO =====
+   Uma grelha de sete colunas com as horas à esquerda. No telemóvel as sete
+   não cabem: a grelha rola para o lado dentro do cartão, com cada dia a
+   guardar uma largura mínima legível — a página nunca rola na horizontal. */
+.cal-wrap{margin-top:10px;max-height:min(72vh,900px);overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--card);
+  overscroll-behavior:contain}
+.cal-grelha{display:grid;grid-template-columns:44px repeat(7,minmax(118px,1fr));min-width:870px;position:relative}
+.cal-canto{position:sticky;top:0;left:0;z-index:4;background:var(--card);border-bottom:1px solid var(--line)}
+.cal-dia{position:sticky;top:0;z-index:3;background:var(--card);border-bottom:1px solid var(--line);border-left:1px solid var(--line);
+  padding:6px 4px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:1px}
+.cal-dn{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut)}
+.cal-dd{font-size:17px;font-weight:700;line-height:1.1;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.cal-dia.hoje .cal-dd{background:var(--accent);color:var(--on-accent)}
+.cal-dia.passado .cal-dn,.cal-dia.passado .cal-dd{opacity:.65}
+.cal-horas{position:sticky;left:0;z-index:2;background:var(--card);border-right:1px solid var(--line);position:relative}
+.cal-horas span{position:absolute;right:6px;transform:translateY(-7px);font-size:10.5px;color:var(--mut);font-variant-numeric:tabular-nums}
+.cal-col{position:relative;border-left:1px solid var(--line);cursor:cell;background:var(--card)}
+.cal-col.passado{background:color-mix(in srgb,var(--ink) 3%,var(--card))}
+.cal-col.hoje{background:color-mix(in srgb,var(--accent) 5%,var(--card))}
+.cal-linha{position:absolute;left:0;right:0;height:0;border-top:1px solid var(--line);opacity:.6;pointer-events:none}
+.cal-im{position:absolute;left:0;right:0;opacity:.07;pointer-events:none}
+.cal-agora{position:absolute;left:0;right:0;height:0;border-top:2px solid var(--accent);pointer-events:none;z-index:1}
+.cal-agora::before{content:'';position:absolute;left:-4px;top:-4px;width:7px;height:7px;border-radius:50%;background:var(--accent)}
+.cal-ev{position:absolute;box-sizing:border-box;margin:1px 0 0 1px;padding:2px 5px;border-radius:6px;text-align:left;overflow:hidden;
+  font:inherit;font-size:11.5px;line-height:1.25;color:var(--ink);cursor:pointer;z-index:2;
+  background:color-mix(in srgb,var(--ev) 18%,var(--card));border:1px solid color-mix(in srgb,var(--ev) 55%,var(--card));border-left:3px solid var(--ev)}
+.cal-ev:hover,.cal-ev:focus-visible{background:color-mix(in srgb,var(--ev) 30%,var(--card));z-index:3;outline:none}
+.cal-ev:focus-visible{box-shadow:0 0 0 2px var(--accent)}
+.cal-ev.feito{border-style:solid;opacity:.85}
+.cal-ev.feito .cal-ev-t{text-decoration:none}
+.cal-col.passado .cal-ev:not(.feito){opacity:.55;border-left-style:dashed}
+.cal-ev.jejum{background:color-mix(in srgb,var(--ev) 12%,var(--card))}
+.cal-ev-h{display:block;font-size:10px;color:var(--mut);font-variant-numeric:tabular-nums}
+.cal-ev-t{display:block;font-weight:600;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+.cal-ev-s{display:block;color:var(--mut);white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+.cal-instr .mov{margin-top:6px}
+@media (max-width:760px){
+  .cal-barra{flex-direction:column;align-items:stretch}
+  .cal-barra>.row{justify-content:space-between}
+  .cal-grelha{grid-template-columns:40px repeat(7,minmax(112px,1fr));min-width:824px}
+}
+@media (pointer:coarse){ .cal-ev{min-height:26px} }
+@media (prefers-reduced-motion:reduce){ .cal-ev{transition:none} }
+@media print{ .cal-wrap{max-height:none;overflow:visible} .cal-barra button{display:none} }
 .massa-dobra{border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--bg)}
 .massa-dobra>summary{cursor:pointer;font-weight:600;font-size:13.5px;list-style:none;display:flex;align-items:center;gap:6px;min-height:32px}
 .massa-dobra>summary::-webkit-details-marker{display:none}
@@ -3198,6 +3242,16 @@ const MAX_AC=3;   /* acompanhamentos por prato: passado isto deixa de ser acompa
    ainda está na zona morta temporal nesse momento — o que dava um ecrã em
    branco, sem nada na consola, a quem tivesse um jejum guardado. */
 const JEJUM_MAX_H=8*24;
+/* Os tipos de bloco do Calendário vivem aqui, e não no módulo, pela mesma
+   razão dos tetos de cima: limparAgenda() corre no arranque, dentro do
+   load(), e uma const declarada depois dele ainda não existe nesse momento. */
+const CAL_TIPOS={
+  compras:{n:'Ir às compras',               ico:'🛒', dur:1,   tok:'accent', d:'Encher a despensa com o que falta para a semana.'},
+  cozinhar:{n:'Cozinhar',                   ico:'🍳', dur:1.5, tok:'energy', d:'Tempo reservado ao fogão — uma refeição, ou várias de uma vez.'},
+  prep:{n:'Preparação de véspera',          ico:'🔪', dur:2,   tok:'energy', d:'Descascar, picar, demolhar, marinar: o que poupa cinco jantares à pressa.'},
+  plano:{n:'Preparar o plano da semana',    ico:'🗓️', dur:0.5, tok:'mut',    d:'Meia hora com esta ferramenta a decidir a semana que vem.'},
+  treino:{n:'Treino',                       ico:'🏃', dur:1,   tok:'ok',     d:'Um treino pontual, fora do plano semanal.'},
+};
 /* Quantos preços se guardam por ingrediente na memória de talão, e quantas
    visitas cabem no livro. Vivem aqui pela mesma razão dos dois de cima: os
    saneadores que os leem correm no arranque, dentro de migraRegistos(). */
@@ -12426,6 +12480,9 @@ function blank(){ return {members:[],cheats:{},plans:{},bought:{},prefCuisine:'t
      compra a folhada congelada compra-a para a empada e para o folhado,
      e é isso que a lista de compras passa a pedir. */
   massaFeita:{},
+  /* agenda: os blocos de tempo que so o Calendario guarda — compras, cozinhar,
+     preparacao, planear a semana, treinos pontuais. */
+  agenda:[],
   /* rituais: o que a casa confirmou sobre os seus proprios ritmos. extras: o
      que se juntou a mao a lista de compras de uma semana. */
   rituais:{}, extras:{}, aindaHa:{}, basicos:{},
@@ -12594,6 +12651,7 @@ function load(){
   const b=blank();
   if(!dataValida(s.week)) s.week=mondayISO(new Date());   /* semana corrompida não prende a app */
   s.members.forEach(normalizaMembro);
+  s.agenda=limparAgenda(s.agenda, s.members.map(m=>m.id));
   /* A ordem aqui não é indiferente: limparReceita valida os ingredientes
      contra o catálogo, e uma receita da casa feita com um ingrediente escrito
      à mão desaparecia se ele ainda não lá estivesse. Os da casa entram
@@ -12658,7 +12716,7 @@ function instantaneo(){ return JSON.stringify({members:S.members, cheats:S.cheat
   receitas:S.receitas, ingredientes:S.ingredientes, medicoes:S.medicoes, regAtiv:S.regAtiv, regRef:S.regRef,
   sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa, pausas:S.pausas, diario:S.diario, cozPref:S.cozPref, metodoBMR:S.metodoBMR,
   validades:S.validades, veredictos:S.veredictos, brigada:S.brigada, desperdicio:S.desperdicio,
-  gostos:S.gostos, jejum:S.jejum, combos:S.combos, massaFeita:S.massaFeita, cores:S.cores, rituais:S.rituais, extras:S.extras, aindaHa:S.aindaHa, basicos:S.basicos,
+  gostos:S.gostos, jejum:S.jejum, combos:S.combos, massaFeita:S.massaFeita, cores:S.cores, agenda:S.agenda, rituais:S.rituais, extras:S.extras, aindaHa:S.aindaHa, basicos:S.basicos,
   visitas:S.visitas, ementas:S.ementas, anos:S.anos, provas:S.provas, bebidas:S.bebidas, notasCozinha:S.notasCozinha}); }
 function aplicaInstantaneo(js){
   const d=JSON.parse(js);
@@ -14988,6 +15046,7 @@ const DICAS={
   naArea:'Para quem está de férias ou em viagem e quer manter o ritmo. Além de ginásios e piscinas para um dia solto, procura o que não precisa de inscrição nenhuma: trilhos e percursos pedestres, ciclovias e ecopistas, equipamentos de manutenção ao ar livre e polidesportivos. Funciona da mesma forma — a app monta a ligação, o browser é que a abre, e a posição fica só nesta sessão.',
   renutricao:'Sair de um jejum longo é o momento de maior risco de todo o processo — mais do que o jejum em si. Quando a insulina volta a subir de repente, puxa fosfato, potássio e magnésio para dentro das células e esvazia-os do sangue: chama-se síndrome de realimentação e pode ser grave. A app propõe-se sozinha porque é precisamente o momento em que ninguém se lembra de o fazer, e faz o alvo de calorias subir por degraus ao longo de vários dias em vez de saltar de zero para o normal — quanto mais longo o jejum, mais lenta a subida. Os critérios de risco elevado são os do NICE (guideline CG32), escritos para doentes internados em desnutrição: se algum se aplicar, a saída do jejum é assunto de consulta e não de app. Acima de 72 horas, com acompanhamento médico e análises, sempre.',
   manutencao:'A fase de perda tem fim, e o que vem a seguir decide-se melhor no dia em que se planeia do que no dia em que a balança chega ao número. A manutenção pode divergir em tudo da perda: outra dieta, outro jejum ou nenhum, outra banda de oscilação. Quando a perda acabar — por chegar ao alvo ou ao prazo — a app propõe a passagem com o que vai mudar escrito por extenso, e espera pela confirmação: quem decide que aquilo acabou é quem lá está.',
+  calendario:'A semana inteira num sitio so — refeicoes do plano, treinos do plano semanal e os registados, jejuns, e os blocos de tempo que so aqui se marcam: compras, cozinhar, preparacao de vespera, meia hora para planear a semana. Nao e uma segunda fonte de verdade: le o que os outros separadores guardam e desenha-o. O que registares aqui vai para onde pertence. Exporta em iCalendar, que o Google, a Apple e a Microsoft leem todos.',
   objJejum:'Porque se jejua muda o que faz sentido fazer: perder peso e procurar autofagia não pedem o mesmo protocolo. Escolher um objetivo muda a sugestão e, no caso da autofagia, abre o que se sabe e o que não se sabe sobre ela — que é o tema do jejum em que mais se afirma o que não está demonstrado.',
   autofagia:'A autofagia existe e a privação de nutrientes ativa-a: isso está demonstrado em levedura, em células e em animais, e valeu o Nobel da Medicina de 2016 a Yoshinori Ohsumi. Em humanos mediu-se muito menos — aumentos de marcadores indiretos em leucócitos e músculo após jejuns de 24 a 72 horas, em amostras pequenas. O que NÃO existe é um limiar horário validado em humanos: as «16 horas» que circulam vêm de extrapolações de roedores, que têm um metabolismo várias vezes mais rápido. Também não está demonstrado que mais autofagia signifique melhor saúde. A app dá as estratégias que a literatura associa a maior ativação e recusa-se a dizer que a certa hora «entraste em autofagia», porque isso não se mede sem uma biópsia.',
   calendarios:'Dois calendários com naturezas diferentes. A Páscoa calcula-se ao dia com o algoritmo de Meeus, e a Quaresma deriva dela — Cinzas 46 dias antes, e são 46 porque os 40 dias não contam os domingos. O Ramadão não se calcula com a mesma certeza: o calendário islâmico é lunar e o início de cada mês depende do avistamento da lua nova, que varia com o país e com a autoridade religiosa. A app dá a conversão tabular, que costuma acertar dentro de um dia, e diz que é uma estimativa. O Ramadão marca-se como jejum diurno repetido e não como um jejum contínuo de trinta dias, que seria outra coisa completamente.',
@@ -15113,7 +15172,7 @@ function dica(k,extra){ let t=DICAS[k]; if(typeof t==='function') t=t();
    no momento mais apressado da semana. Passam a ser duas vistas da Mercearia,
    e a barra desce de nove destinos para oito. */
 const TABS=[['familia','Família'],['atividade','Atividade Física'],['nutricao','Nutrição'],['receitas','Receitas'],
-  ['objetivos','Objetivos'],['plano','Plano de Refeições'],['mercearia','Mercearia'],['dados','Dados']];
+  ['objetivos','Objetivos'],['plano','Plano de Refeições'],['calendario','Calendário'],['mercearia','Mercearia'],['dados','Dados']];
 const VISTAS_MERCEARIA=[['compras','Para comprar'],['despensa','Em casa']];
 function vistaMercearia(){ return S.ui.mercVista==='despensa'? 'despensa':'compras'; }
 function setVistaMercearia(v){ S.ui.mercVista= v==='despensa'?'despensa':'compras'; saveMeta(); render();
@@ -15131,6 +15190,7 @@ const ICONES_NAV={
   plano:'<rect x="4" y="5.2" width="16" height="14.6" rx="2.2"/><path d="M4 9.8h16"/><path d="M9 3.2v3.6"/><path d="M15 3.2v3.6"/>',
   despensa:'<rect x="7" y="8.2" width="10" height="11.6" rx="2"/><path d="M8.6 8.2V6.6A1.6 1.6 0 0 1 10.2 5h3.6a1.6 1.6 0 0 1 1.6 1.6v1.6"/><path d="M9.6 13.4h4.8"/>',
   compras:'<path d="M4.4 9.4h15.2l-1.5 8.6a2.1 2.1 0 0 1-2.1 1.8H8a2.1 2.1 0 0 1-2.1-1.8z"/><path d="M8.6 9.4 12 4.4l3.4 5"/><path d="M9.8 12.6l.6 3.6"/><path d="M14.2 12.6l-.6 3.6"/>',
+  calendario:'<rect x="4" y="5.2" width="16" height="14.6" rx="2.2"/><path d="M4 9.8h16"/><path d="M9 3.2v3.6"/><path d="M15 3.2v3.6"/><path d="M8 13.4h2.4v2.4H8z"/><path d="M13.6 13.4H16v2.4h-2.4z"/>',
   dados:'<path d="M4 7.2h16"/><path d="M4 12h16"/><path d="M4 16.8h16"/><circle cx="9.2" cy="7.2" r="1.9" fill="var(--card)"/><circle cx="15" cy="12" r="1.9" fill="var(--card)"/><circle cx="8" cy="16.8" r="1.9" fill="var(--card)"/>',
   mercearia:'<path d="M4.4 9.4h15.2l-1.5 8.6a2.1 2.1 0 0 1-2.1 1.8H8a2.1 2.1 0 0 1-2.1-1.8z"/><path d="M8.6 9.4 12 4.4l3.4 5"/><path d="M9.8 13h4.4"/>',
   mais:'<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>'
@@ -34808,7 +34868,7 @@ function pacote(){
          receitas:S.receitas, ingredientes:S.ingredientes, medicoes:S.medicoes, regAtiv:S.regAtiv, regRef:S.regRef,
          sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa, pausas:S.pausas, diario:S.diario, cozPref:S.cozPref, metodoBMR:S.metodoBMR,
          validades:S.validades, veredictos:S.veredictos, brigada:S.brigada, desperdicio:S.desperdicio,
-         gostos:S.gostos, jejum:S.jejum, combos:S.combos, massaFeita:S.massaFeita, cores:S.cores, rituais:S.rituais, extras:S.extras, aindaHa:S.aindaHa, basicos:S.basicos,
+         gostos:S.gostos, jejum:S.jejum, combos:S.combos, massaFeita:S.massaFeita, cores:S.cores, agenda:S.agenda, rituais:S.rituais, extras:S.extras, aindaHa:S.aindaHa, basicos:S.basicos,
          visitas:S.visitas, ementas:S.ementas, anos:S.anos, provas:S.provas, bebidas:S.bebidas, notasCozinha:S.notasCozinha,
          /* A ordem aprendida do supermercado ficava de fora da cópia e o
             «substituir» apagava-a: meses a corrigir a ordem dos corredores
@@ -35203,6 +35263,8 @@ function lerPacote(txt){
      a um atributo `fill` do SVG e podia levar lá dentro o que não é cor. */
   const HEX=/^#[0-9A-Fa-f]{6}$/;
   const cores={porDesporto:{}};
+  /* os blocos com dono passam pelo mesmo remapeamento de ids que os registos */
+  const agenda=limparAgenda((Array.isArray(d.agenda)? d.agenda : []).slice(0,600).map(remapa), idsOk);
   if(d.cores && typeof d.cores==='object'){
     CORES_GRAFICO.forEach(x=>{ if(HEX.test(String(d.cores[x.k]||''))) cores[x.k]=d.cores[x.k]; });
     const pd=d.cores.porDesporto;
@@ -35211,7 +35273,7 @@ function lerPacote(txt){
   }
   return {d:{ members, cheats, plans, bought, objetivos, despensa, receitas,
               medicoes, regAtiv, regRef, sobras, precos, festas, casa, pausas, diario, cozPref,
-              validades, veredictos, brigada, desperdicio, gostos, jejum, combos, massaFeita, cores, rituais, extras, aindaHa, basicos, visitas, ementas, anos, provas, bebidas, notasCozinha,
+              validades, veredictos, brigada, desperdicio, gostos, jejum, combos, massaFeita, cores, agenda, rituais, extras, aindaHa, basicos, visitas, ementas, anos, provas, bebidas, notasCozinha,
               prefCuisine:temChave(CUIS,d.prefCuisine)?d.prefCuisine:'todas',
               /* Cinco estruturas saíam na cópia e nunca voltavam da leitura, o
                  que quer dizer que «substituir» as apagava sem aviso:
@@ -35796,6 +35858,560 @@ function cartaoInstalarApp(){
     ${corpo}
   </div>`;
 }
+/* ================= CALENDÁRIO =================
+   Tudo o que a app sabe sobre o tempo vivia em oito separadores: o plano de
+   refeições numa semana, os treinos numa lista de dias, os jejuns num cartão,
+   as compras num botão. Cada um estava certo e nenhum mostrava o dia inteiro.
+   O Calendário é essa vista que faltava — uma semana com as sete colunas e as
+   horas, a andar para trás e para a frente, com o que está planeado e o que
+   ficou registado lado a lado, e o passado a distinguir-se do futuro pelo
+   traço e não por um separador.
+
+   Não é uma segunda fonte de verdade. As refeições continuam a viver no
+   plano, os treinos no plano de treino e nos registos, os jejuns no jejum:
+   o calendário LÊ tudo isso e desenha-o. O que é seu — e só seu — são os
+   blocos de tempo que nenhum outro separador tinha onde guardar: a ida às
+   compras, a hora de cozinhar, a tarde de preparação, a meia hora ao domingo
+   para planear a semana. Esses ficam em `S.agenda`.
+
+   Exporta para o formato que o Google, a Apple e a Microsoft leem todos
+   (iCalendar), e «sincronizar» é isso: entregar o ficheiro ao calendário que
+   a casa escolheu nas Definições. É uma exportação num sentido só — a app
+   não tem servidor nem conta em lado nenhum, e diz-o em vez de fingir. */
+const CAL_H0=6, CAL_H1=24, CAL_PX=52;   /* a grelha vai das 6h à meia-noite, 52 px por hora */
+function agendaCfg(){ if(!Array.isArray(S.agenda)) S.agenda=[]; return S.agenda; }
+function limparAgenda(a,ids){
+  if(!Array.isArray(a)) return [];
+  const out=[], vistos={};
+  a.slice(0,600).forEach(b=>{
+    if(!b || typeof b!=='object') return;
+    if(!temChave(CAL_TIPOS,b.tipo)) return;
+    if(!dataValida(b.d)) return;
+    const id=limparId(b.id); if(vistos[id]) return; vistos[id]=1;
+    const mid=(b.mid && ids && ids.indexOf(String(b.mid))>=0)? String(b.mid) : '';
+    const o={id, tipo:b.tipo, d:b.d,
+      h:clampNum(Math.round((parseFloat(b.h)||9)*4)/4, 0, 23.75),
+      dur:clampNum(Math.round((parseFloat(b.dur)||1)*4)/4, 0.25, 12),
+      nota:String(b.nota||'').slice(0,160), feito:!!b.feito};
+    if(mid) o.mid=mid;
+    if(b.tipo==='treino' && temChave(SPORT,b.s)) o.s=b.s;
+    /* recorrência semanal até uma data; sem data, um ano — nada se repete
+       para sempre, que um calendário com blocos eternos não se limpa */
+    if(b.rep==='semanal'){ o.rep='semanal'; o.repAte=dataValida(b.repAte)? b.repAte : addDias(b.d,364); }
+    /* aquecimento e alongamentos, em minutos, já dentro da duração */
+    if(b.tipo==='treino'){ o.aq=clampNum(Math.round(parseFloat(b.aq)||0),0,30); o.al=clampNum(Math.round(parseFloat(b.al)||0),0,30); }
+    out.push(o);
+  });
+  return out;
+}
+function calSemana(){
+  if(!dataValida(S.ui.calSemana)) S.ui.calSemana=mondayISO(new Date());
+  return S.ui.calSemana;
+}
+function calIrSemana(n){
+  const d=new Date(calSemana()+'T12:00:00'); d.setDate(d.getDate()+7*n);
+  S.ui.calSemana=mondayISO(d); saveMeta(); render();
+}
+function calHoje(){ S.ui.calSemana=mondayISO(new Date()); saveMeta(); render(); }
+function calCorDe(tok){
+  const map={ok:'exercicio', warn:'refeicao', bad:'jejum', ink:'peso'};
+  const escolhida=map[tok]? corGrafico(map[tok]) : '';
+  return escolhida || corDeToken(tok);
+}
+/* «18h30» de uma fração de hora. */
+function hCal(h){ const t=Math.round(h*60); return String(Math.floor(t/60)%24).padStart(2,'0')+'h'+(t%60? String(t%60).padStart(2,'0'):''); }
+
+/* ---- O coletor ----
+   Uma função para juntar tudo o que cai numa semana. Cada evento sai com a
+   mesma forma, venha de onde vier, e é essa forma que a grelha desenha e que
+   o ficheiro .ics exporta — duas saídas, uma pergunta. */
+function eventosDaSemana(wk){
+  const dias=weekDates(wk), hoje=hojeISO(), ev=[], fundo=[];
+  const agora=new Date(), hAgora=agora.getHours()+agora.getMinutes()/60;
+  const passou=(d,h)=> d<hoje || (d===hoje && h<hAgora);
+  const plano=S.plans[wk]||{};
+  dias.forEach((d,di)=>{
+    /* refeições planeadas, e as registadas por cima delas */
+    MEALK.forEach(mk=>{
+      const meal=(plano[di]||{})[mk];
+      const h=HORA_REF[mk];
+      const regs=(S.regRef||[]).filter(r=>r.d===d && r.mk===mk && r.estado==='feita');
+      if(meal && meal.r){
+        const comem=S.members.filter(m=>(meal.m||[]).includes(m.id));
+        const feito=comem.length>0 && comem.every(m=>regs.some(r=>r.mid===m.id));
+        /* a receita que se abre ao tocar é o par composto quando o há — é
+           esse que tem os passos do acompanhamento e do molho lá dentro */
+        const cbId=idCombo(meal.r, acIds(meal), moId(meal), maId(meal));
+        const cb=(acIds(meal).length||moId(meal)||maId(meal))? RECIPES.find(x=>x.id===cbId) : null;
+        ev.push({id:'ref:'+d+':'+mk, tipo:'refeicao', d, h, dur:0.75, feito,
+          titulo:nomeDaRefeicao(meal), sub:nomeRefeicao(mk)+(comem.length? ' · '+comem.map(nomeCurto).join(', '):''),
+          cor:calCorDe('warn'), fonte:'plano', mk, di, rid:(cb? cb.id : meal.r)});
+      } else if(regs.length){
+        /* comeu-se sem plano: o registo é o único vestígio, e conta */
+        const nomes=[...new Set(regs.map(r=>{ const x=RECIPES.find(y=>y.id===r.r); return x? x.n : null; }).filter(Boolean))];
+        ev.push({id:'reg:'+d+':'+mk, tipo:'refeicao', d, h, dur:0.75, feito:true,
+          titulo:nomes.join(' · ')||nomeRefeicao(mk), sub:nomeRefeicao(mk)+' · registado',
+          cor:calCorDe('warn'), fonte:'registo', mk, di});
+      }
+    });
+    /* treinos do plano semanal, com os registos a marcá-los feitos */
+    const dow=diaSemana(d);
+    const feitos=(S.regAtiv||[]).filter(r=>r.d===d && r.estado==='feita');
+    const cobertos=new Set();
+    S.members.forEach(m=>(m.desportos||[]).forEach(s=>{
+      if(!(s.dias||[]).includes(dow)) return;
+      const sp=SPORT[s.s]; if(!sp) return;
+      const nDias=Math.max(1,(s.dias||[]).length);
+      const dur=s.h? clampNum(s.h/nDias,0.25,4) : (s.km&&s.v? clampNum((s.km/s.v)/nDias,0.25,4) : 1);
+      const reg=feitos.find(r=>r.mid===m.id && r.s===s.s && !cobertos.has(r.id));
+      if(reg) cobertos.add(reg.id);
+      ev.push({id:'tr:'+d+':'+m.id+':'+s.s, tipo:'treino', d, h:18, dur, feito:!!reg,
+        titulo:sp.nome, sub:nomeCurto(m)+(reg? ' · '+reg.min+' min':''),
+        cor:corDesporto(s.s)||calCorDe('ok'), fonte:'planoTreino', mid:m.id, s:s.s});
+    }));
+    feitos.forEach(r=>{ if(cobertos.has(r.id)) return;
+      const sp=SPORT[r.s], m=S.members.find(x=>x.id===r.mid); if(!sp||!m) return;
+      ev.push({id:'ra:'+r.id, tipo:'treino', d, h:18, dur:clampNum((r.min||60)/60,0.25,4), feito:true,
+        titulo:sp.nome, sub:nomeCurto(m)+' · '+r.min+' min · registado',
+        cor:corDesporto(r.s)||calCorDe('ok'), fonte:'registo', mid:m.id, s:r.s});
+    });
+    /* os jejuns registados, cortados ao dia */
+    jejumCfg().pontuais.forEach(j=>{
+      const f=fimDeJejum(j);
+      if(d<j.d || d>f.d) return;
+      const h0=d===j.d? j.inicio : 0, h1=d===f.d? f.h : 24;
+      if(h1<=h0) return;
+      const m=S.members.find(x=>x.id===j.mid); if(!m) return;
+      ev.push({id:'jj:'+j.id+':'+d, tipo:'jejum', d, h:h0, dur:h1-h0, feito:passou(f.d,f.h),
+        titulo:'Jejum '+textoDuracaoJejum(j.horas), sub:nomeCurto(m)+' · '+periodoJejumTexto(j,true)+(j.agua?'':' · seco'),
+        cor:calCorDe('bad'), fonte:'jejum', mid:m.id, jid:j.id});
+    });
+    /* o jejum intermitente: um padrão, desenhado no fundo e não como evento */
+    S.members.forEach(m=>{ const im=imDe(m.id); if(!im) return;
+      const dur=24-im.h, fecha=(im.inicio+dur)%24;
+      fundo.push({d, mid:m.id, fecha, h:im.h, n:protocoloIM(im.h).n, quem:nomeCurto(m)});
+    });
+    /* os blocos da agenda: o que só o calendário guarda. Um bloco recorrente
+       cai em todos os dias da semana iguais ao dele, até à data de fim. */
+    agendaCfg().forEach(b=>{
+      const cai = b.d===d || (b.rep==='semanal' && d>b.d && d<=(b.repAte||'') && diaSemana(d)===diaSemana(b.d));
+      if(!cai) return;
+      const t=CAL_TIPOS[b.tipo], m=b.mid? S.members.find(x=>x.id===b.mid) : null;
+      const sp=b.tipo==='treino' && b.s? SPORT[b.s] : null;
+      const extra=(b.aq||b.al)? ' · '+[b.aq? 'aquec. '+b.aq+' min':'', b.al? 'along. '+b.al+' min':''].filter(Boolean).join(', ') : '';
+      ev.push({id:'ag:'+b.id+(b.d===d?'':':'+d), tipo:b.tipo, d, h:b.h, dur:b.dur,
+        feito:(b.d===d && !!b.feito) || (b.tipo!=='treino' && passou(d,b.h+b.dur)),
+        titulo:(sp? sp.nome : t.n), sub:(m? nomeCurto(m)+(b.nota?' · ':'') : '')+(b.nota||'')+extra+(b.rep? ' · todas as semanas':''),
+        cor:(sp? (corDesporto(b.s)||calCorDe('ok')) : calCorDe(t.tok)), fonte:'agenda', bid:b.id, mid:b.mid||'', s:b.s||''});
+    });
+  });
+  ev.sort((a,b)=> a.d===b.d? a.h-b.h : (a.d<b.d?-1:1));
+  return {ev, fundo, dias};
+}
+/* ---- A grelha ----
+   Sete colunas, as horas à esquerda, e cada evento no seu dia à altura da
+   hora a que acontece. Dois eventos à mesma hora repartem a coluna em
+   pistas, como qualquer calendário faz. O passado fica com o traço mais
+   leve; o que ficou registado leva um visto. Um toque num sítio vazio abre um
+   bloco novo a essa hora; um toque num evento abre-o. */
+function calPistas(lista){
+  /* atribui a cada evento a primeira pista livre; devolve o nº de pistas */
+  const fim=[];
+  lista.forEach(e=>{
+    let p=fim.findIndex(f=>f<=e.h+1e-9);
+    if(p<0){ p=fim.length; fim.push(0); }
+    fim[p]=e.h+e.dur; e.pista=p;
+  });
+  /* quantas pistas se sobrepõem a cada evento, para a largura */
+  lista.forEach(e=>{ e.nPistas=1+lista.filter(o=>o!==e && o.h<e.h+e.dur && e.h<o.h+o.dur).reduce((m,o)=>Math.max(m,o.pista),0);
+    e.nPistas=Math.max(e.nPistas,e.pista+1); });
+  return fim.length;
+}
+function renderCalendario(){
+  const wk=calSemana(), {ev,fundo,dias}=eventosDaSemana(wk), hoje=hojeISO();
+  const alt=(CAL_H1-CAL_H0)*CAL_PX;
+  const pref=calPrefNome();
+  const horas=[]; for(let h=CAL_H0;h<CAL_H1;h++) horas.push(h);
+  const cab=dias.map((d,i)=>`<div class="cal-dia ${d===hoje?'hoje':''} ${d<hoje?'passado':''}" role="columnheader">
+      <span class="cal-dn">${DAYN[i].slice(0,3)}</span><span class="cal-dd">${new Date(d+'T12:00:00').getDate()}</span></div>`).join('');
+  const colunas=dias.map((d,i)=>{
+    const meus=ev.filter(e=>e.d===d);
+    calPistas(meus);
+    const fundos=fundo.filter(f=>f.d===d).map(f=>{
+      /* o jejum intermitente começa quando a janela fecha e dura h horas,
+         atravessando a meia-noite: dois retângulos quando é preciso */
+      const partes=[]; const ini=f.fecha, fim=f.fecha+f.h;
+      partes.push([ini, Math.min(24,fim)]); if(fim>24) partes.push([0, fim-24]);
+      return partes.map(([a,b])=>`<div class="cal-im" style="top:${(a-CAL_H0)*CAL_PX}px;height:${(b-a)*CAL_PX}px;background:${calCorDe('bad')}"
+        title="Jejum intermitente ${esc(f.n)} de ${esc(f.quem)} — sem comer entre as ${hCal(f.fecha)} e as ${hCal((f.fecha+f.h)%24)}"></div>`).join('');
+    }).join('');
+    const blocos=meus.map(e=>{
+      const h0=Math.max(e.h,CAL_H0), h1=Math.min(e.h+e.dur,CAL_H1); if(h1<=h0) return '';
+      const top=(h0-CAL_H0)*CAL_PX, alt=Math.max(18,(h1-h0)*CAL_PX-2);
+      const larg=100/Math.max(1,e.nPistas), esq=larg*e.pista;
+      const ico=e.tipo==='refeicao'? '🍽️' : e.tipo==='jejum'? '⏳' : (CAL_TIPOS[e.tipo]||{}).ico||'';
+      return `<button class="cal-ev ${e.feito?'feito':''} ${e.tipo}" style="top:${top}px;height:${alt}px;left:${esq}%;width:calc(${larg}% - 3px);--ev:${e.cor}"
+        onclick="event.stopPropagation();calAbrirEvento('${e.id}')" title="${esc(e.titulo)}${e.sub?' — '+esc(e.sub):''}"
+        aria-label="${esc(hCal(e.h))}, ${esc(e.titulo)}${e.sub?', '+esc(e.sub):''}${e.feito?', feito':''}">
+        <span class="cal-ev-h">${hCal(e.h)}${e.feito?' ✓':''}</span>
+        <span class="cal-ev-t">${ico} ${esc(e.titulo)}</span>
+        ${alt>34 && e.sub? `<span class="cal-ev-s">${esc(e.sub)}</span>`:''}</button>`;
+    }).join('');
+    return `<div class="cal-col ${d===hoje?'hoje':''} ${d<hoje?'passado':''}" role="gridcell" style="height:${alt}px"
+        onclick="calCliqueColuna(event,'${d}')" aria-label="${esc(DAYN[i])}, ${esc(fmtShort(d))}">
+      ${horas.map(h=>`<div class="cal-linha" style="top:${(h-CAL_H0)*CAL_PX}px"></div>`).join('')}
+      ${fundos}${blocos}
+      ${d===hoje? `<div class="cal-agora" style="top:${(new Date().getHours()+new Date().getMinutes()/60-CAL_H0)*CAL_PX}px"></div>`:''}
+    </div>`;
+  }).join('');
+  const nEv=ev.length, nFeitos=ev.filter(e=>e.feito).length;
+  return `<h2>Calendário ${dica('calendario')}</h2>
+  <p class="sub" style="max-width:70ch">A semana inteira num sítio só: refeições, treinos, jejuns e os blocos de tempo que a casa marca.
+    O que está registado leva um visto; o passado fica mais leve. Toca num espaço vazio para marcar um bloco, ou num evento para o abrir.</p>
+  <div class="card" style="margin-top:12px">
+    <div class="row cal-barra" style="justify-content:space-between;align-items:center;gap:8px">
+      <div class="row" style="gap:6px;align-items:center">
+        <button class="btn ghost small" onclick="calIrSemana(-1)" aria-label="Semana anterior">‹</button>
+        <button class="btn ghost small" onclick="calHoje()">Hoje</button>
+        <button class="btn ghost small" onclick="calIrSemana(1)" aria-label="Semana seguinte">›</button>
+        <b style="margin-left:6px">${esc(fmtShort(dias[0]))} – ${esc(fmtShort(dias[6]))} ${new Date(dias[6]+'T12:00:00').getFullYear()}</b>
+      </div>
+      <div class="row" style="gap:6px">
+        <button class="btn ghost small" onclick="calNovoBloco('${hoje}',null)">+ Bloco</button>
+        <button class="btn ghost small" onclick="exportarCalendarioIcs('semana')">⬇ Exportar .ics</button>
+        <button class="btn small" onclick="sincronizarCalendario()" title="Entregar as próximas semanas ao ${esc(pref)}">🔄 Sincronizar Calendário</button>
+      </div>
+    </div>
+    <div class="row" style="gap:8px;margin-top:8px;flex-wrap:wrap">
+      <span class="sub"><i class="dot" style="background:${calCorDe('warn')}"></i> refeições</span>
+      <span class="sub"><i class="dot" style="background:${calCorDe('ok')}"></i> treinos</span>
+      <span class="sub"><i class="dot" style="background:${calCorDe('bad')}"></i> jejuns · fundo claro, jejum intermitente</span>
+      <span class="sub"><i class="dot" style="background:${calCorDe('accent')}"></i> compras</span>
+      <span class="sub"><i class="dot" style="background:${calCorDe('energy')}"></i> cozinhar e preparação</span>
+      <span class="sub" style="margin-left:auto">${plural(nEv,'evento','eventos')}${nFeitos? ' · '+nFeitos+' com visto':''}</span>
+    </div>
+    <div class="cal-wrap" id="cal-wrap">
+      <div class="cal-grelha" role="grid" aria-label="Semana de ${esc(fmtShort(dias[0]))}">
+        <div class="cal-canto"></div>${cab}
+        <div class="cal-horas" style="height:${alt}px">${horas.map(h=>`<span style="top:${(h-CAL_H0)*CAL_PX}px">${String(h).padStart(2,'0')}h</span>`).join('')}</div>
+        ${colunas}
+      </div>
+    </div>
+    <p class="sub" style="margin-top:8px">Sincronizar entrega as últimas 4 e as próximas 8 semanas ao <b>${esc(pref)}</b> — escolhe-se nas Definições.
+      É uma exportação num sentido só: a app não tem conta nem servidor, e o que mudares lá não volta para cá.</p>
+  </div>`;
+}
+/* depois de desenhar, a grelha aparece já às sete da manhã e não à meia-noite */
+function calRolaParaManha(){
+  const w=document.getElementById('cal-wrap'); if(!w) return;
+  if(w.dataset.rolado===calSemana()) return;
+  w.dataset.rolado=calSemana(); w.scrollTop=Math.max(0,(7-CAL_H0)*CAL_PX-8);
+}
+function calCliqueColuna(e,d){
+  const col=e.currentTarget, r=col.getBoundingClientRect();
+  const h=CAL_H0+Math.floor(((e.clientY-r.top)/CAL_PX)*2)/2;
+  calNovoBloco(d, clampNum(h,CAL_H0,CAL_H1-0.5));
+}
+/* ---- Um bloco novo, ou um evento aberto ---- */
+function calNovoBloco(d,h){
+  if(!S.members.length) return flash('warn','Cria primeiro alguém na Família.');
+  S.ui.modal={tipo:'cal', modo:'novo', b:{tipo:'compras', d:d||hojeISO(), h:h==null? 10 : h, dur:1, mid:'', nota:'', s:'caminhada'}};
+  saveMeta(); render();
+}
+function calAbrirEvento(id){
+  S.ui.modal={tipo:'cal', modo:'ver', evId:id};
+  saveMeta(); render();
+}
+function setBlocoCal(campo,v){
+  const mo=modalAberto(); if(!mo||mo.tipo!=='cal'||!mo.b) return;
+  const b=mo.b;
+  if(campo==='tipo'){ if(temChave(CAL_TIPOS,v)){ b.tipo=v; b.dur=CAL_TIPOS[v].dur; } }
+  else if(campo==='d'){ if(dataValida(v)) b.d=v; }
+  else if(campo==='h'){ const x=horaEmFracao(v); if(x!==null) b.h=x; }
+  else if(campo==='dur'){ b.dur=clampNum(Math.round((parseFloat(v)||1)*4)/4,0.25,12); }
+  else if(campo==='mid'){ b.mid=S.members.some(m=>m.id===v)? v : ''; }
+  else if(campo==='s'){ if(temChave(SPORT,v)) b.s=v; }
+  else if(campo==='nota'){ b.nota=String(v||'').slice(0,160); }
+  else if(campo==='rep'){ b.rep= v==='semanal'? 'semanal' : ''; if(b.rep && !dataValida(b.repAte)) b.repAte=addDias(b.d,7*12-1); }
+  else if(campo==='repAte'){ if(dataValida(v) && v>b.d) b.repAte=v; }
+  else if(campo==='dup'){ if(dataValida(v)) b.dup=v; }
+  else if(campo==='aqal'){
+    /* «sim» põe aquecimento e alongamentos e alarga o bloco; «não» tira-os
+       e devolve o tempo. A duração do treino em si não muda. */
+    const antes=(b.aq||0)+(b.al||0);
+    if(v){ const s=sugestaoAqAl(b.s); b.aq=s.aq; b.al=s.al; }
+    else { b.aq=0; b.al=0; }
+    b.dur=clampNum(Math.round((b.dur - antes/60 + ((b.aq||0)+(b.al||0))/60)*4)/4, 0.25, 12);
+    b.aqalRespondido=true;
+  }
+  render();
+}
+function guardarBlocoCal(){
+  const mo=modalAberto(); if(!mo||mo.tipo!=='cal'||!mo.b) return;
+  const b=mo.b, lista=agendaCfg();
+  const novo=limparAgenda([Object.assign({}, b, {id:b.id||uid()})], S.members.map(m=>m.id))[0];
+  if(!novo) return flash('bad','Não foi possível guardar este bloco.');
+  const i=lista.findIndex(x=>x.id===novo.id);
+  if(i>=0) lista[i]=novo; else lista.push(novo);
+  S.ui.modal=null;
+  save(i>=0? 'bloco alterado' : 'bloco marcado'); render();
+  flash('ok',CAL_TIPOS[novo.tipo].n+' — '+rotuloData(novo.d)+' às '+hCal(novo.h)+'.',{rot:'Anular',fn:'desfazer()'});
+}
+function apagarBlocoCal(id){
+  const lista=agendaCfg(), i=lista.findIndex(x=>x.id===id); if(i<0) return;
+  lista.splice(i,1); S.ui.modal=null;
+  save('bloco apagado'); render();
+  flash('ok','Bloco apagado.',{rot:'Anular',fn:'desfazer()'});
+}
+function marcarBlocoFeito(id,v){
+  const b=agendaCfg().find(x=>x.id===id); if(!b) return;
+  b.feito=!!v;
+  /* um treino pontual feito é um treino registado — entra nas contas do
+     gasto como qualquer outro, e o calendário não guarda registos à parte */
+  if(b.tipo==='treino' && b.feito && b.mid && b.s && b.d<=hojeISO()){
+    if(!Array.isArray(S.regAtiv)) S.regAtiv=[];
+    const ja=S.regAtiv.some(r=>r.d===b.d && r.mid===b.mid && r.s===b.s && r.estado==='feita');
+    if(!ja){ const r=limparRegAtiv({id:uid(), mid:b.mid, d:b.d, s:b.s, min:Math.round(b.dur*60), int:1, estado:'feita'}, S.members.map(m=>m.id));
+      if(r) S.regAtiv.push(r); }
+  }
+  S.ui.modal=null; save(b.feito? 'bloco feito':'bloco por fazer'); render();
+}
+/* Registar um treino do plano como feito NAQUELE dia, e não hoje: o
+   calendário é onde se olha para ontem. */
+function registarTreinoNoDia(mid,sid,min,d){
+  const sp=SPORT[sid], m=S.members.find(x=>x.id===mid); if(!sp||!m) return;
+  if(d>hojeISO()) return flash('warn','Esse treino ainda não aconteceu — marca-o depois de o fazer.');
+  if(!Array.isArray(S.regAtiv)) S.regAtiv=[];
+  const r=limparRegAtiv({id:uid(), mid, d, plano:sid, s:sid, min, int:1, estado:'feita'}, S.members.map(x=>x.id));
+  if(!r) return flash('bad','Não foi possível registar esse treino.');
+  S.regAtiv.push(r); S.ui.modal=null;
+  save('treino registado'); render();
+  flash('ok',sp.nome+' de '+nomeCurto(m)+' registado em '+rotuloData(d)+'.',{rot:'Anular',fn:'desfazer()'});
+}
+function modalCalHtml(mo){
+  const membros=S.members;
+  if(mo.modo==='ver'){
+    const wk=mondayISO(new Date((mo.evId.split(':')[1]||hojeISO())+'T12:00:00'));
+    const e=eventosDaSemana(wk).ev.find(x=>x.id===mo.evId) || eventosDaSemana(calSemana()).ev.find(x=>x.id===mo.evId);
+    if(!e) return `<div class="mfundo" onclick="fundoModal(event)"><div class="modal"><p class="sub">Este evento já não existe.</p>
+      <div class="row" style="justify-content:flex-end"><button class="btn ghost small" onclick="fecharModal()">Fechar</button></div></div></div>`;
+    const b=e.fonte==='agenda'? agendaCfg().find(x=>x.id===e.bid) : null;
+    if(b){ mo.b=Object.assign({}, b); mo.modo='editar'; return modalCalHtml(mo); }
+    const acoes=[];
+    /* uma refeição abre a RECEITA — o par composto, com os passos do
+       acompanhamento e do molho lá dentro — e não só o plano */
+    if(e.tipo==='refeicao' && e.rid) acoes.push(`<button class="btn small" onclick="fecharModal();abrirFicha('${e.rid}')">📖 Abrir a receita</button>`);
+    if(e.tipo==='refeicao') acoes.push(`<button class="btn ghost small" onclick="S.week='${wk}';fecharModal();go('plano')">Abrir no plano</button>`,
+      `<button class="btn ghost small" onclick="fecharModal();abrirFolhaMesa('${e.d}','${e.mk}')">${e.feito?'Ver quem comeu':'Registar quem comeu'}</button>`);
+    if(e.tipo==='treino' && e.fonte==='planoTreino' && !e.feito) acoes.push(`<button class="btn small" onclick="registarTreinoNoDia('${e.mid}','${e.s}',${Math.round(e.dur*60)},'${e.d}')">Marcar como feito</button>`);
+    if(e.tipo==='treino') acoes.push(`<button class="btn ghost small" onclick="fecharModal();go('atividade')">Abrir a Atividade</button>`);
+    const instrucoes = e.tipo==='treino' && e.s? instrucoesTreinoHtml(e.s) : '';
+    if(e.tipo==='jejum') acoes.push(`<button class="btn ghost small" onclick="fecharModal();pickM('${e.mid}');go('nutricao')">Abrir o jejum</button>`,
+      `<button class="btn danger small" onclick="fecharModal();apagarJejumPontual('${e.jid}')">Apagar este jejum</button>`);
+    return `<div class="mfundo" onclick="fundoModal(event)"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="cal-t">
+      <span class="lbl">${esc(rotuloData(e.d))} · ${hCal(e.h)}–${hCal((e.h+e.dur)%24)}</span>
+      <h2 id="cal-t" style="margin-top:2px">${esc(e.titulo)}</h2>
+      ${e.sub? `<p class="sub">${esc(e.sub)}</p>`:''}
+      <p class="sub" style="margin-top:6px">${e.feito? '✓ Feito.' : (e.d<hojeISO()? 'Passou sem registo.' : 'Planeado.')}
+        ${e.fonte==='plano'? ' Vem do plano de refeições.' : e.fonte==='planoTreino'? ' Vem do plano de treino semanal.' : e.fonte==='jejum'? ' Vem dos jejuns.' : e.fonte==='registo'? ' É um registo.' : ''}</p>
+      ${instrucoes}
+      <div class="row" style="margin-top:12px;justify-content:space-between">
+        <button class="btn ghost small" onclick="fecharModal()">Fechar</button>
+        <div class="row" style="gap:6px;flex-wrap:wrap;justify-content:flex-end">${acoes.join('')}</div>
+      </div></div></div>`;
+  }
+  const b=mo.b, t=CAL_TIPOS[b.tipo]||CAL_TIPOS.compras, editar=mo.modo==='editar';
+  return `<div class="mfundo" onclick="fundoModal(event)"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="cal-t">
+    <h2 id="cal-t">${editar? 'Editar bloco' : 'Marcar um bloco'}</h2>
+    <div class="row" style="margin-top:8px;flex-wrap:wrap;gap:6px">${Object.entries(CAL_TIPOS).map(([k,v])=>
+      `<button class="chip ${b.tipo===k?'on':''}" aria-pressed="${b.tipo===k}" onclick="setBlocoCal('tipo','${k}')">${v.ico} ${esc(v.n)}</button>`).join('')}</div>
+    <p class="sub" style="margin-top:4px">${esc(t.d)}</p>
+    <div class="frow" style="margin-top:10px">
+      <div><label class="lbl">Dia</label><input type="date" value="${b.d}" aria-label="Dia do bloco" onchange="setBlocoCal('d',this.value)"></div>
+      <div><label class="lbl">Às</label><input type="time" step="900" value="${hCal(b.h).replace('h',':').padEnd(5,'0')}" aria-label="Hora do bloco" onchange="setBlocoCal('h',this.value)"></div>
+      <div><label class="lbl">Dura</label><select aria-label="Duração do bloco" onchange="setBlocoCal('dur',this.value)">
+        ${[0.25,0.5,0.75,1,1.5,2,3,4].map(x=>`<option value="${x}" ${Math.abs(b.dur-x)<0.01?'selected':''}>${x<1? Math.round(x*60)+' min' : x+' h'}</option>`).join('')}</select></div>
+    </div>
+    <div class="frow" style="margin-top:8px">
+      <div><label class="lbl">Quem</label><select aria-label="Quem faz o bloco" onchange="setBlocoCal('mid',this.value)">
+        <option value="" ${!b.mid?'selected':''}>A casa</option>
+        ${membros.map(m=>`<option value="${m.id}" ${b.mid===m.id?'selected':''}>${esc(m.nome)}</option>`).join('')}</select></div>
+      ${b.tipo==='treino'? `<div style="grid-column:span 2"><label class="lbl">Desporto</label><select aria-label="Desporto" onchange="setBlocoCal('s',this.value)">${opcoesDesporto(b.s||'caminhada')}</select></div>` : ''}
+    </div>
+    ${b.tipo==='treino'? (function(){
+      /* A pergunta faz-se uma vez, ao agendar: aquecer e alongar são parte
+         do treino, e o tempo previsto tem de os incluir — senão o bloco no
+         calendário mente por dez minutos. */
+      const s=sugestaoAqAl(b.s), tem=(b.aq||0)+(b.al||0);
+      return `<div class="aviso ${tem?'ok':''}" style="margin-top:10px">
+        <b>${tem? 'Com aquecimento e alongamentos' : 'Juntar aquecimento e alongamentos?'}</b>
+        <span class="sub" style="display:block;margin-top:2px">${tem
+          ? plural(b.aq,'minuto','minutos')+' de aquecimento antes e '+plural(b.al,'minuto','minutos')+' de alongamentos no fim, já dentro da duração do bloco.'
+          : 'Para '+esc((SPORT[b.s]||{}).nome||'este treino')+': '+plural(s.aq,'minuto','minutos')+' de aquecimento e '+plural(s.al,'minuto','minutos')+' de alongamentos, e o bloco alarga o mesmo.'}</span>
+        <div class="row" style="margin-top:6px;gap:6px">
+          <button class="btn ${tem?'ghost ':''}small" onclick="setBlocoCal('aqal',true)">${tem?'Repor os sugeridos':'Sim, juntar'}</button>
+          ${tem? `<button class="btn ghost small" onclick="setBlocoCal('aqal',false)">Tirar</button>` : `<button class="btn ghost small" onclick="setBlocoCal('aqal',false)">Não, só o treino</button>`}
+        </div></div>
+        <details class="quant" style="margin-top:8px"><summary>Ver os movimentos de aquecimento e os alongamentos</summary>
+          ${instrucoesTreinoHtml(b.s)}</details>`; })() : ''}
+    <label class="lbl" style="margin-top:8px">Nota</label>
+    <input type="text" maxlength="160" value="${esc(b.nota||'')}" placeholder="${b.tipo==='compras'?'Ex.: o que falta para a semana':b.tipo==='prep'?'Ex.: picar as cebolas e demolhar o grão':'opcional'}" aria-label="Nota do bloco" onchange="setBlocoCal('nota',this.value)">
+    <div class="splabel" style="margin-top:12px"><span>Repetir</span></div>
+    <div class="row" style="gap:6px;flex-wrap:wrap;align-items:center">
+      <button class="chip ${!b.rep?'on':''}" aria-pressed="${!b.rep}" onclick="setBlocoCal('rep','')">Só neste dia</button>
+      <button class="chip ${b.rep==='semanal'?'on':''}" aria-pressed="${b.rep==='semanal'}" onclick="setBlocoCal('rep','semanal')">Todas as semanas</button>
+      ${b.rep==='semanal'? `<span class="sub">até</span><input type="date" value="${b.repAte||''}" min="${b.d}" aria-label="Repetir até" style="width:auto" onchange="setBlocoCal('repAte',this.value)">`:''}
+    </div>
+    ${b.rep==='semanal'? `<p class="sub" style="margin-top:4px">Cai em todas as ${DAYN[diaSemana(b.d)].toLowerCase()}s até ${esc(fmtShort(b.repAte||b.d))}. Editar aqui muda a série inteira.</p>`:''}
+    ${editar? `<div class="splabel" style="margin-top:12px"><span>Duplicar para outro dia</span></div>
+    <div class="row" style="gap:6px;align-items:center">
+      <input type="date" id="cal-dup" aria-label="Dia para onde duplicar" style="width:auto" value="${addDias(b.d,7)}">
+      <button class="btn ghost small" onclick="duplicarBlocoCal('${b.id}',document.getElementById('cal-dup').value)">Duplicar</button>
+    </div>`:''}
+    ${b.tipo==='prep'? (function(){ const t=planoFoodPrep(mondayISO(new Date(b.d+'T12:00:00'))).slice(0,6);
+      return t.length? `<p class="sub" style="margin-top:6px">A preparação que a semana pede: ${t.map(x=>esc(x.nome)).join(', ')}${t.length>=6?'…':''}.</p>` : ''; })() : ''}
+    ${b.tipo==='compras'? (function(){ try{ const n=itensEmFalta(shoppingItems().items).length; return n? `<p class="sub" style="margin-top:6px">Há ${plural(n,'item','itens')} em falta na lista desta semana.</p>` : ''; }catch(e){ return ''; } })() : ''}
+    <div class="row" style="margin-top:14px;justify-content:space-between">
+      <div class="row" style="gap:6px">
+        <button class="btn ghost small" onclick="fecharModal()">Cancelar</button>
+        ${editar? `<button class="btn danger small" onclick="apagarBlocoCal('${b.id}')">Apagar</button>`:''}
+      </div>
+      <div class="row" style="gap:6px">
+        ${editar? `<button class="btn ghost small" onclick="marcarBlocoFeito('${b.id}',${b.feito?'false':'true'})">${b.feito?'Desmarcar feito':'✓ Feito'}</button>`:''}
+        <button class="btn" onclick="guardarBlocoCal()">${editar?'Guardar':'Marcar'}</button>
+      </div>
+    </div></div></div>`;
+}
+/* ---- iCalendar ----
+   O formato que o Google, a Apple e a Microsoft leem todos. Horas locais sem
+   fuso («floating»): é como um calendário de parede, e é o que evita que uma
+   refeição às 13h apareça às 12h a quem tenha o computador noutro fuso. */
+function icsEscapa(s){ return String(s||'').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\r?\n/g,'\\n'); }
+function icsDobra(l){ const out=[]; let s=l; while(s.length>73){ out.push(s.slice(0,73)); s=' '+s.slice(73); } out.push(s); return out.join('\r\n'); }
+function icsData(d,h){ const t=Math.round(h*60); return d.replace(/-/g,'')+'T'+String(Math.floor(t/60)%24).padStart(2,'0')+String(t%60).padStart(2,'0')+'00'; }
+function icsDe(eventos){
+  const agora=new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d+Z$/,'Z');
+  const linhas=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Familia Fit//Calendario//PT','CALSCALE:GREGORIAN','METHOD:PUBLISH',
+    'X-WR-CALNAME:Família Fit','X-WR-TIMEZONE:Europe/Lisbon'];
+  eventos.forEach(e=>{
+    const fimH=e.h+e.dur, dFim=fimH>=24? addDias(e.d,Math.floor(fimH/24)) : e.d;
+    const cat=e.tipo==='refeicao'?'Refeição':e.tipo==='treino'?'Treino':e.tipo==='jejum'?'Jejum':(CAL_TIPOS[e.tipo]||{}).n||'Bloco';
+    linhas.push('BEGIN:VEVENT',
+      'UID:'+e.id.replace(/[^A-Za-z0-9_.-]/g,'-')+'@familiafit',
+      'DTSTAMP:'+agora,
+      'DTSTART:'+icsData(e.d,e.h),
+      'DTEND:'+icsData(dFim,fimH%24),
+      'SUMMARY:'+icsEscapa((e.feito?'✓ ':'')+e.titulo),
+      'DESCRIPTION:'+icsEscapa((e.sub?e.sub+'\n':'')+cat+' · Família Fit'),
+      'CATEGORIES:'+icsEscapa(cat),
+      'STATUS:'+(e.feito?'CONFIRMED':'TENTATIVE'),
+      'END:VEVENT');
+  });
+  linhas.push('END:VCALENDAR');
+  return linhas.map(icsDobra).join('\r\n')+'\r\n';
+}
+function eventosParaExportar(alcance){
+  const base=calSemana(), out=[], vistos=new Set();
+  const de = alcance==='semana'? 0 : -4, ate = alcance==='semana'? 0 : 8;
+  for(let i=de;i<=ate;i++){
+    const d=new Date(base+'T12:00:00'); d.setDate(d.getDate()+7*i);
+    eventosDaSemana(mondayISO(d)).ev.forEach(e=>{ if(!vistos.has(e.id)){ vistos.add(e.id); out.push(e); } });
+  }
+  return out;
+}
+function nomeFicheiroIcs(){ return 'familia-fit-calendario-'+calSemana()+'.ics'; }
+function entregarIcs(txt,nome){
+  try{
+    if(podePartilhar()){
+      const f=new File([txt], nome, {type:'text/calendar'});
+      if(navigator.canShare({files:[f]})){ navigator.share({files:[f], title:'Calendário Família Fit'}).catch(()=>{}); return 'partilha'; }
+    }
+    const blob=new Blob([txt],{type:'text/calendar;charset=utf-8'});
+    const url=URL.createObjectURL(blob), a=document.createElement('a');
+    a.href=url; a.download=nome; a.style.display='none';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),4000);
+    return 'ficheiro';
+  }catch(e){ return null; }
+}
+function exportarCalendarioIcs(alcance){
+  const ev=eventosParaExportar(alcance||'semana');
+  if(!ev.length) return flash('warn','Não há nada nesta semana para exportar.');
+  const como=entregarIcs(icsDe(ev), nomeFicheiroIcs());
+  if(!como) return flash('bad','O browser não deixou criar o ficheiro.');
+  flash('ok',plural(ev.length,'evento exportado','eventos exportados')+(como==='partilha'? ' — escolhe o calendário na folha de partilha.' : ' para '+nomeFicheiroIcs()+'. Abre-o no teu calendário, ou importa-o.'));
+}
+/* ---- «Sincronizar» ----
+   Não há conta nem servidor: sincronizar é entregar as próximas semanas ao
+   calendário escolhido, no formato dele, e dizer onde se importa. */
+const CAL_PREFS={
+  google:{n:'Google Calendar', como:'No Google Calendar, na web: Definições ▸ Importar e exportar ▸ Importar, e escolhe o ficheiro. No telemóvel, abre o ficheiro e escolhe o Google Calendar.'},
+  apple:{n:'Calendário da Apple', como:'No iPhone ou no Mac, abrir o ficheiro .ics é o suficiente: o Calendário pergunta em que calendário pôr os eventos.'},
+  outlook:{n:'Outlook', como:'No Outlook, abre o ficheiro .ics e escolhe «Importar». Na web: Adicionar calendário ▸ Carregar a partir de um ficheiro.'},
+  ics:{n:'ficheiro .ics', como:'Guarda o ficheiro e importa-o no calendário que quiseres — todos leem este formato.'}
+};
+function calPref(){ return temChave(CAL_PREFS,S.ui.calPref)? S.ui.calPref : 'ics'; }
+function calPrefNome(){ return CAL_PREFS[calPref()].n; }
+function setCalPref(k){ if(temChave(CAL_PREFS,k)) S.ui.calPref=k; saveMeta(); render(); }
+function sincronizarCalendario(){
+  const ev=eventosParaExportar('tudo');
+  if(!ev.length) return flash('warn','Não há nada planeado nem registado nestas semanas para entregar.');
+  const p=CAL_PREFS[calPref()];
+  const como=entregarIcs(icsDe(ev), 'familia-fit-calendario.ics');
+  if(!como) return flash('bad','O browser não deixou criar o ficheiro.');
+  S.meta.calSincronizadoEm=new Date().toISOString(); saveMeta();
+  flash('ok',plural(ev.length,'evento entregue','eventos entregues')+' ao '+p.n+' (4 semanas para trás, 8 para a frente). '+p.como);
+}
+function cartaoCalendarioPref(){
+  const k=calPref();
+  return `<div class="card" data-col="dados-calendario">
+    <h3>Calendário preferido</h3>
+    <p class="sub" style="margin-top:4px;max-width:70ch">O botão «Sincronizar Calendário» entrega as semanas planeadas a este calendário,
+      no formato que todos leem (iCalendar). Num sentido só: a app não tem conta nem servidor, e o que mudares lá não volta para cá.</p>
+    <div class="row" style="margin-top:8px;flex-wrap:wrap;gap:6px">${Object.entries(CAL_PREFS).map(([kk,v])=>
+      `<button class="chip ${k===kk?'on':''}" aria-pressed="${k===kk}" onclick="setCalPref('${kk}')">${esc(v.n)}</button>`).join('')}</div>
+    <p class="sub" style="margin-top:8px">${esc(CAL_PREFS[k].como)}</p>
+    ${S.meta.calSincronizadoEm? `<p class="sub" style="margin-top:4px">Última entrega: ${esc(dataHora(S.meta.calSincronizadoEm))}.</p>`:''}
+  </div>`;
+}
+/* ---- Aquecimento e alongamentos, por desporto ----
+   As tabelas AQUECE_CAT e ALONGA_CAT já existiam para o plano de treino: três
+   movimentos de aquecimento e três de alongamento por categoria de desporto,
+   cada um com a ficha ilustrada. O calendário reutiliza-as, e converte-as em
+   minutos: cinco para aquecer e cinco para alongar é o que a prática
+   corrente recomenda para uma sessão normal, e é o que se soma ao bloco. */
+function sugestaoAqAl(sid){
+  const sp=SPORT[sid], cat=sp? sp.cat : 'forca';
+  const aq=(AQUECE_CAT[cat]||AQUECE_CAT.forca||[]).length, al=(ALONGA_CAT[cat]||ALONGA_CAT.forca||[]).length;
+  return {aq: aq? Math.max(5, aq*2) : 5, al: al? Math.max(5, al*2) : 5};
+}
+function instrucoesTreinoHtml(sid){
+  const sp=SPORT[sid]; if(!sp) return '';
+  const cat=sp.cat, aq=AQUECE_CAT[cat]||AQUECE_CAT.forca||[], al=ALONGA_CAT[cat]||ALONGA_CAT.forca||[];
+  const dicas=Array.isArray(sp.dicas)? sp.dicas : (sp.dica? [sp.dica] : []);
+  return `<div class="cal-instr" style="margin-top:10px">
+    <div class="splabel"><span>Aquecimento</span><output>${plural(sugestaoAqAl(sid).aq,'minuto','minutos')}</output></div>
+    <p class="sub">Antes de ${esc(sp.nome.toLowerCase())}: subir a temperatura e acordar as articulações que o treino vai usar.</p>
+    ${listaMovs(aq)}
+    ${dicas.length? `<div class="splabel" style="margin-top:10px"><span>${esc(sp.nome)}</span></div>
+      <ul class="lista-acog">${dicas.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:''}
+    <div class="splabel" style="margin-top:10px"><span>Alongamentos</span><output>${plural(sugestaoAqAl(sid).al,'minuto','minutos')}</output></div>
+    <p class="sub">No fim, com o corpo quente: segura cada um trinta segundos, sem ressaltos e sem chegar à dor.</p>
+    ${listaMovs(al)}
+  </div>`;
+}
+/* Duplicar é copiar o bloco para outro dia, independente do original — o
+   contrário de repetir, que é uma série só. Quem quer o mesmo bloco em três
+   dias soltos duplica três vezes; quem o quer todas as semanas repete. */
+function duplicarBlocoCal(id,d){
+  const b=agendaCfg().find(x=>x.id===id); if(!b) return;
+  if(!dataValida(d)) return flash('warn','Escolhe o dia para onde duplicar.');
+  const copia=Object.assign({}, b, {id:uid(), d, feito:false}); delete copia.rep; delete copia.repAte;
+  const lim=limparAgenda([copia], S.members.map(m=>m.id))[0]; if(!lim) return;
+  agendaCfg().push(lim);
+  save('bloco duplicado'); render();
+  flash('ok',CAL_TIPOS[lim.tipo].n+' duplicado para '+rotuloData(d)+'.',{rot:'Anular',fn:'desfazer()'});
+}
 function renderDados(){
   const nSem=Object.keys(S.plans).filter(w=>Object.keys(S.plans[w]||{}).length).length;
   return (msg? `<div class="msg ${msg.kind}">${esc(msg.text)}</div>`:'')+`
@@ -35864,6 +36480,7 @@ function renderDados(){
     ${cartaoTabelas()}
     ${cartaoAspeto()}
     ${cartaoCoresGrafico()}
+    ${cartaoCalendarioPref()}
     ${cartaoFestas()}
 
     <div class="card">
@@ -36428,12 +37045,14 @@ function render(){
     : S.ui.tab==='objetivos'? renderObjetivos()
     : S.ui.tab==='plano'? renderPlano()
     : S.ui.tab==='mercearia'? renderMercearia()
+    : S.ui.tab==='calendario'? renderCalendario()
     : S.ui.tab==='dados'? renderDados()
     : renderFamilia();
   /* semeia os valores que só o atualizador escreve (pill de ritmo, etc.) */
   if(S.ui.tab==='nutricao' && S.members.length && !S.ui.histRef) atualizarNutricao();
   pintaModal();
   montaColapsaveis(); marcaChipsPremidos(); pintaAura(); montaMembrosFixos();
+  calRolaParaManha();
   /* a bancada liga o toque de cotovelo depois de cada desenho, e le o passo
      em voz alta se a voz estiver ligada */
   if(S.ui.cozinha){ ligarCotovelo(); if(S.ui.voz && S.ui.cozinha.vista==='passos') lerPassoAtual(); }
@@ -36573,6 +37192,7 @@ function pintaModal(){
     : mo? (mo.tipo==='peso'? modalPesoHtml(mo) : mo.tipo==='compras'? modalComprasHtml(mo)
          : mo.tipo==='fimVisita'? modalFimVisitaHtml()
          : mo.tipo==='jejum'? modalJejumHtml(mo)
+         : mo.tipo==='cal'? modalCalHtml(mo)
          : mo.tipo==='bandeja'? modalBandejaHtml(mo)
          : mo.tipo==='ingrediente'? modalIngredienteHtml(mo)
          : mo.tipo==='acabou'? modalAcabouHtml(mo)
