@@ -4237,6 +4237,26 @@ R('aclespinafresalho','Espinafres salteados com alho','mediterranica',['mediterr
    agora há uma sem ele e as duas não podem ter o mesmo nome.
    O legume é sempre cozido AL DENTE: o gratinado leva-o ao forno uma segunda
    vez, e um brócolo cozido até ao ponto certo sai de lá desfeito. */
+/* ---- Massa de pastel keto ----
+   Não é um prato — é a massa com que se fazem os pastéis, e a app não tem
+   lugar próprio para uma peça destas. Fica com as mesmas refeições e as
+   mesmas categorias dos pastéis de massa tenra, que é onde ela vai parar, e
+   o primeiro passo diz em voz alta o que ela é para ninguém a planear como
+   jantar. As quantidades dão a massa de uma pessoa: quatro ou cinco pastéis.
+   A técnica é a fathead, a mesma da pizza keto que já cá estava — queijo
+   derretido faz de glúten, que é o que uma massa sem farinha não tem. */
+R('ketomassapastel','Massa de pastel keto','portuguesa',[],0,0,0,0,[['Mozzarella',100,'g'],['Farinha de amêndoa',60,'g'],['Queijo creme',30,'g'],['Ovo',1,'un'],['Fermento em pó',2,'g'],['Flor de sal',1,'g']],['a','j','l'],0,['ent','sn']),
+/* Duas couves-flores que não são gratinados e por isso ficam fora daquela
+   família: uma é o gesto do Bulhão Pato — alho, coentros, azeite e limão —
+   emprestado às amêijoas de onde veio o nome; a outra é panada e frita, que
+   é o que «à milanesa» quer dizer em qualquer legume. */
+R('aclcouveflorbulhao','Couve-flor à Bulhão Pato','portuguesa',['mediterranica'],0,0,0,0,[['Couve-flor',220,'g'],['Alho',3,'dente'],['Coentros',8,'g'],['Azeite',14,'ml'],['Limão',15,'g'],['Vinho branco',25,'ml'],['Flor de sal',0.5,'g']],['ac']),
+R('aclcouveflormilanesa','Couve-flor à milanesa','italiana',[],0,0,0,0,[['Couve-flor',220,'g'],['Ovo',1,'un'],['Pão ralado',30,'g'],['Farinha',15,'g'],['Óleo alimentar',15,'ml'],['Parmesão',12,'g'],['Limão',10,'g'],['Flor de sal',1,'g']],['ac']),
+/* A quiche keto é a mesma de sempre com a massa trocada: a quebrada, que é
+   farinha e manteiga, dá lugar à massa de pastel keto. A conta muda de 55 g
+   de farinha para queijo e amêndoa, e é isso que faz caber uma quiche numa
+   dieta cetogénica sem fingir que a massa não existe. */
+R('ketoquiche','Quiche keto de espinafres e bacon','francesa',[],0,0,0,0,[['Mozzarella',50,'g'],['Farinha de amêndoa',25,'g'],['Queijo creme',15,'g'],['Ovo',2,'un'],['Espinafres',120,'g'],['Nata para bater 35% gordura',40,'ml'],['Bacon',30,'g'],['Queijo gruyère',25,'g'],['Manteiga',8,'g'],['Noz-moscada',0.2,'g'],['Flor de sal',1,'g']],['a','j'],0,['pp']),
 R('aclcouveflorgrat','Couve-flor gratinada','portuguesa',[],0,0,0,0,[['Couve-flor',200,'g'],['Queijo gruyère',35,'g'],['Manteiga',10,'g'],['Noz-moscada',0.2,'g'],['Flor de sal',0.5,'g'],['Pimenta preta',0.2,'g']],['ac']),
 R('aclcouveflorgratbacon','Couve-flor gratinada com bacon','portuguesa',[],0,0,0,0,[['Couve-flor',200,'g'],['Bacon',35,'g'],['Queijo gruyère',30,'g'],['Nata para bater 35% gordura',30,'ml'],['Cebolinho',3,'g'],['Pimenta preta',0.2,'g']],['ac']),
 R('aclbrocolosgrat','Brócolos gratinados','portuguesa',[],0,0,0,0,[['Brócolos',200,'g'],['Queijo gruyère',35,'g'],['Manteiga',10,'g'],['Noz-moscada',0.2,'g'],['Flor de sal',0.5,'g'],['Pimenta preta',0.2,'g']],['ac']),
@@ -7466,6 +7486,30 @@ P('acmvinagreteclassico',[
  ['Mostarda primeiro','Dissolve a mostarda no vinagre com a flor de sal e a pimenta preta moída ANTES do azeite. A mostarda é o que segura a emulsão; deitada no fim, o molho separa-se no prato.',2],
  ['Azeite em fio','Junta o azeite em fio, a bater com um garfo, até ficar turvo e cremoso. Ao contrário do que parece, isto faz-se num frasco com tampa e vinte segundos de agitação.',3],
  ['Só à mesa','Tempera-se a salada à mesa e não antes: cinco minutos com vinagrete e a alface murcha. O que sobrar guarda-se dias, e volta a ligar-se com uma agitação.',1]]);
+P('aclcouveflorbulhao',[
+ ['Cozer al dente e secar','Raminhos de couve-flor três a quatro minutos em água a ferver com sal, escorridos e bem secos. Aqui não se coze até ao fim: ela acaba de cozinhar na frigideira, dentro do molho.',6],
+ ['Alho sem cor','Alho laminado em azeite morno, lume brando, só até ficar louro e cheirar. No Bulhão Pato o alho e os coentros não temperam, são o prato — alourado a sério fica amargo e leva tudo atrás.',3],
+ ['Dourar e refrescar com vinho','Sobe o lume, junta os raminhos e deixa-os ganhar cor nas pontas antes do vinho branco. Depois do vinho, evapora metade: o molho quer-se redondo e não ácido.',7],
+ ['Coentros, limão e servir','Coentros picados grosseiros, sumo de limão e flor de sal fora do lume, e serve logo com o molho todo. Como as amêijoas de que veio o nome, isto pede pão ao lado para não se perder nada.',2]]);
+P('aclcouveflormilanesa',[
+ ['Cortar em fatias, não em raminhos','Corta a couve-flor ao meio pelo caule e depois em fatias de um dedo, mantendo o caule: é ele que segura a fatia inteira na panação. Os raminhos soltos panam-se na mesma, mas partem-se ao virar.',6],
+ ['Escaldar dois minutos','Dois minutos em água a ferver com sal, e depois bem seca em pano. Crua fica dura por dentro no tempo em que a crosta doura; encharcada, a farinha não pega.',6],
+ ['Três pratos, e o parmesão no pão ralado','Farinha, ovo batido, e o pão ralado misturado com o parmesão ralado. A farinha seca a fatia para o ovo agarrar — sem ela a panação solta-se no óleo.',6],
+ ['Fritar e limão à mesa','Óleo alimentar bem quente, dois a três minutos de cada lado, sem encher a frigideira. Escorre em rede e não em papel, e o limão só no prato: posto antes, encharca a crosta que acabaste de fazer.',8]]);
+P('ketoquiche',[
+ ['A massa é a de pastel keto','Derrete a mozzarella com o queijo creme, junta o ovo (só um dos três), a farinha de amêndoa e a flor de sal, e amassa morna. É a mesma massa fathead da receita da massa de pastel — o que muda é que aqui se forra uma tarteira em vez de se cortarem discos.',10],
+ ['Forrar e pré-cozer','Estende a massa entre dois papéis e forra a tarteira, subindo pelas paredes. Vinte minutos a 180 °C SOZINHA, até firmar. Sem este pré-cozimento a massa não aguenta o creme e a quiche fica com o fundo cru.',20],
+ ['Espinafres e bacon','Salteia os espinafres em manteiga até murcharem e ESPREME-OS bem — cento e vinte gramas largam meia chávena de água, e é ela que faz uma quiche chorar. Bacon aos cubos a alourar à parte, escorrido em papel. Com alho-francês em vez de espinafres fica igualmente bom, mas deixa de ser keto: o alho-francês tem quatro vezes mais hidratos.',12],
+ ['Creme de ovo e nata','Bate os ovos que sobraram da massa com a nata, a noz-moscada e a flor de sal. Nada de leite: é a gordura da nata que segura o creme sem farinha nenhuma a ligá-lo.',4],
+ ['Montar e cozer devagar','Espinafres e bacon sobre a base pré-cozida, o creme por cima, o gruyère ralado a rematar. Forno a 170 °C — mais brando do que numa quiche de massa quebrada, porque a de queijo tosta mais depressa — até o meio abanar como gelatina e não como água.',35],
+ ['Descansar antes de cortar','Vinte minutos fora do forno. Uma quiche cortada a quente escorre e desfaz-se; morna, corta-se em fatias inteiras — e é morna que ela sabe melhor.',20]]);
+P('ketomassapastel',[
+ ['Isto é uma massa, não é um jantar','O que sai daqui é a massa de quatro ou cinco pastéis: recheia-se com o que se quiser — carne estufada, bacalhau desfiado, frango — e as calorias do recheio somam-se a estas. Sem farinha não há glúten, e é o queijo derretido que faz o papel dele: chama-se massa fathead e é a mesma da pizza keto.',2],
+ ['Derreter os queijos juntos','Mozzarella ralada e queijo creme no micro-ondas, trinta segundos de cada vez, mexendo entre elas, até formarem uma pasta única e brilhante. Em banho-maria também vai; o que não pode é ferver, ou o queijo separa-se e larga gordura.',3],
+ ['Ovo e farinha de amêndoa, depressa','Fora do lume, junta o ovo batido, a farinha de amêndoa, o fermento em pó e a flor de sal, e amassa com as mãos molhadas enquanto está morna. Arrefecida endurece e deixa de ligar — se isso acontecer, quinze segundos no micro-ondas e volta.',5],
+ ['Descansar no frio','Bola em película, meia hora no frigorífico. É este descanso que a torna esticável: quente agarra-se a tudo, fria estende-se entre duas folhas de papel vegetal sem se rasgar.',30],
+ ['Estender, rechear e fechar','Estende com três milímetros entre dois papéis, corta discos com um copo e recheia com o recheio JÁ FRIO — recheio morno derrete a massa por dentro. Fecha e aperta os bordos com o garfo.',10],
+ ['Forno, e não fritadeira','Vinte minutos a 190 °C até ficarem dourados. Esta massa não se frita por imersão: o queijo derrete no óleo e o pastel desfaz-se. Se quiseres estaladiço, pincela com ovo batido antes de ir ao forno.',20]]);
 P('aclcouveflorgrat',[
  ['Cozer al dente','Raminhos iguais em água a ferver com sal, cinco a seis minutos: a faca tem de entrar com resistência. O forno cozinha-a outra vez, e couve-flor cozida até ao ponto sai de lá em papa.',6],
  ['Secar antes de gratinar','Escorre e deixa-a a largar vapor no tacho quente uns minutos. É a água agarrada aos raminhos que faz o queijo derreter em vez de tostar.',5],
