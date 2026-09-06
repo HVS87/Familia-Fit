@@ -1397,6 +1397,13 @@ input[type=range].com-detentes::-moz-range-track{
 .peso-wrap{position:relative;max-width:420px}
 .svgfx .pt-hit{pointer-events:auto;fill:transparent;cursor:pointer}
 .svgfx .traj-hit{pointer-events:auto;fill:transparent;cursor:crosshair}
+/* A faixa do jejum aceita o rato, mas fica ATRÁS dos pontos: no SVG ganha
+   quem é desenhado por último, e as pesagens vêm depois dela. Quem aponta
+   a uma pesagem continua a ler o peso; só quem aponta ao vazio da faixa
+   é que pergunta pelo jejum. */
+.svgfx .jj-hit{pointer-events:auto;fill:transparent;cursor:help}
+.svgfx .jj-hit:hover,.svgfx .jj-hit:focus-visible{fill:var(--bad);fill-opacity:.14}
+.svgfx .jj-hit:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .svgfx .pt-hit:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .peso-tip{position:absolute;z-index:12;transform:translate(-50%,-100%);
   background:var(--ink);color:var(--card);padding:5px 9px;border-radius:8px;
@@ -22193,8 +22200,24 @@ function graficoPesoSvg(m){
     /* Um jejum que só toca a janela pela ponta ficava com zero de largura e
        desaparecia: dá-se-lhe um pixel, que é o mínimo para se ver. */
     const larg=Math.max(1,b-a);
-    return `<rect x="${a.toFixed(1)}" y="${Y0}" width="${larg.toFixed(1)}" height="${Y1-Y0}"
-      class="f-bad" opacity=".13"><title>Jejum ${periodoJejumTexto(j)} — ${textoDuracaoJejum(j.horas)}</title></rect>`;
+    /* ---- A banda responde ao rato, e cede a vez às pesagens ----
+       A faixa atravessa o gráfico de cima a baixo, e por isso passa por baixo
+       de todas as pesagens. Como os pontos são desenhados DEPOIS dela, é o
+       ponto que apanha o rato quando os dois se sobrepõem — que é o que se
+       quer: quem aponta a um ponto quer o peso daquele dia, e só quem aponta
+       ao vazio da faixa é que está a perguntar pelo jejum.
+       Sem `<title>`: o balão da app diz o mesmo, e os dois juntos apareciam
+       um por cima do outro. O nome acessível fica no `aria-label`. */
+    const resumo=textoDuracaoJejum(j.horas)+'\n'+periodoJejumTexto(j)+(j.agua?'':'\njejum seco');
+    /* A faixa VISÍVEL tem a largura do jejum, que na janela de dois anos são
+       dois dias em 730 — um pixel. O alvo do rato é outro retângulo, sem cor
+       e com seis pixéis no mínimo, centrado nela: a mesma solução que os
+       pontos das pesagens já usavam, e pela mesma razão. */
+    const lHit=Math.max(6,larg), xHit=clampNum(a+larg/2-lHit/2, X0, X1-lHit);
+    return `<rect class="f-bad" x="${a.toFixed(1)}" y="${Y0}" width="${larg.toFixed(1)}" height="${Y1-Y0}" opacity=".13"/>
+      <rect class="jj-hit" x="${xHit.toFixed(1)}" y="${Y0}" width="${lHit.toFixed(1)}" height="${Y1-Y0}"
+        role="img" tabindex="0" aria-label="Jejum de ${esc(textoDuracaoJejum(j.horas))}, ${esc(periodoJejumTexto(j))}"
+        data-jj="${esc(resumo)}"/>`;
   }).join('');
   const svgAtiv=L.ativ? desenhaSerie(serie(d=>regAtivDe(m.id).filter(r=>r.d===d&&r.estado==='feita').reduce((t,r)=>t+kcalRegAtiv(r),0)),'s-energy') : '';
   const svgKcal=L.kcal? desenhaSerie(serie(d=>ingeridoRealDia(m.id,d).k),'s-acc') : '';
@@ -22441,8 +22464,12 @@ function trajSvg(m,fit,c){
     const fj=fimDeJejum(j);
     const xa=X(diasEntre(h,j.d)+j.inicio/24), xb=X(diasEntre(h,fj.d)+fj.h/24);
     const a=Math.min(xa,xb), b=Math.max(xa,xb);
-    return `<rect x="${f(a)}" y="${Y0}" width="${f(Math.max(1,b-a))}" height="${Y1-Y0}"
-      class="f-bad" opacity=".12"><title>Jejum ${periodoJejumTexto(j)}</title></rect>`;
+    const resumoJ=textoDuracaoJejum(j.horas)+'\n'+periodoJejumTexto(j)+(j.agua?'':'\njejum seco');
+    const largJ=Math.max(1,b-a), lHitJ=Math.max(6,largJ), xHitJ=clampNum(a+largJ/2-lHitJ/2, X0, X1-lHitJ);
+    return `<rect class="f-bad" x="${f(a)}" y="${Y0}" width="${f(largJ)}" height="${Y1-Y0}" opacity=".12"/>
+      <rect class="jj-hit" x="${f(xHitJ)}" y="${Y0}" width="${f(lHitJ)}" height="${Y1-Y0}"
+        role="img" tabindex="0" aria-label="Jejum de ${esc(textoDuracaoJejum(j.horas))}, ${esc(periodoJejumTexto(j))}"
+        data-jj="${esc(resumoJ)}"/>`;
   }).join('');
   return `<svg class="svgfx" viewBox="0 0 ${W} ${H}" role="img"
       aria-label="Trajetória do peso de ${esc(m.nome)}: tendência dos últimos ${base} dias e projeção a ${hor} dias">
@@ -36228,6 +36255,23 @@ function mostraBalaoPeso(alvo){
   const meia=tip.offsetWidth/2;
   tip.style.left=Math.round(Math.min(Math.max(meio,meia+2), c.width-meia-2))+'px';
 }
+/* ---- O balão da faixa de jejum ----
+   A mesma caixa das pesagens, com o resumo do jejum em vez do peso. Fica
+   encostada ao topo da faixa e ao meio dela — a faixa é um intervalo e não um
+   ponto, e apontar ao meio é o que corresponde ao que ela representa. */
+function mostraBalaoJejum(rect){
+  const wrap=rect.closest('.peso-wrap'); if(!wrap) return;
+  const tip=wrap.querySelector('.peso-tip'); if(!tip) return;
+  const g=wrap.querySelector('.traj-cursor'); if(g) g.style.display='none';
+  tip.classList.add('tip-traj');   /* multilinha, como o balão da projeção */
+  tip.textContent=rect.getAttribute('data-jj')||'';
+  tip.hidden=false;
+  const a=rect.getBoundingClientRect(), c=wrap.getBoundingClientRect();
+  const meio=a.left-c.left+a.width/2;
+  tip.style.left='0px'; tip.style.top=(a.top-c.top)+'px';
+  const meia=tip.offsetWidth/2;
+  tip.style.left=Math.round(clampNum(meio, meia+2, c.width-meia-2))+'px';
+}
 function escondeBalaoPeso(){
   document.querySelectorAll('.peso-tip').forEach(t=>{ t.hidden=true; });
   document.querySelectorAll('.traj-cursor').forEach(g=>{ g.style.display='none'; });
@@ -36282,20 +36326,38 @@ function mostraBalaoTraj(rect, clientX){
   const meia=tip.offsetWidth/2;
   tip.style.left=Math.round(clampNum(meio, meia+2, c.width-meia-2))+'px';
 }
+/* A ordem destes testes É a regra de prioridade: a pesagem primeiro, a faixa
+   do jejum depois. Quem passa por cima de um ponto que caia dentro de um
+   jejum lê o peso daquele dia, que é a pergunta mais específica das duas. */
 document.addEventListener('pointerover', e=>{
-  const a=e.target.closest && e.target.closest('.pt-hit');
-  if(a) mostraBalaoPeso(a); else if(!(e.target.closest&&e.target.closest('.peso-wrap'))) escondeBalaoPeso();
+  const t=e.target.closest? e.target : null; if(!t) return;
+  const a=t.closest('.pt-hit');
+  if(a) return mostraBalaoPeso(a);
+  const j=t.closest('.jj-hit');
+  if(j) return mostraBalaoJejum(j);
+  if(!t.closest('.peso-wrap')) escondeBalaoPeso();
 });
 document.addEventListener('pointermove', e=>{
   const r=e.target.closest && e.target.closest('.traj-hit');
   if(r) mostraBalaoTraj(r, e.clientX);
 });
 document.addEventListener('pointerdown', e=>{
-  const a=e.target.closest && e.target.closest('.pt-hit');
+  const t=e.target.closest? e.target : null; if(!t) return escondeBalaoPeso();
+  const a=t.closest('.pt-hit');
   if(a){ mostraBalaoPeso(a); return; }
-  const r=e.target.closest && e.target.closest('.traj-hit');
+  const j=t.closest('.jj-hit');
+  if(j){ mostraBalaoJejum(j); return; }
+  const r=t.closest('.traj-hit');
   if(r){ mostraBalaoTraj(r, e.clientX); return; }
   escondeBalaoPeso();
+});
+/* Com teclado: a faixa é focável, e ao receber foco diz o que é. */
+document.addEventListener('focusin', e=>{
+  const j=e.target.closest && e.target.closest('.jj-hit');
+  if(j) mostraBalaoJejum(j);
+});
+document.addEventListener('focusout', e=>{
+  if(e.target.closest && e.target.closest('.jj-hit')) escondeBalaoPeso();
 });
 document.addEventListener('pointerleave', e=>{
   if(e.target.closest && e.target.closest('.peso-wrap')) escondeBalaoPeso();
