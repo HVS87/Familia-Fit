@@ -1591,6 +1591,15 @@ input[type=range].com-detentes::-moz-range-track{
 .quant summary{font-size:12px;color:var(--accent);cursor:pointer;padding:4px 0;min-height:24px;display:flex;align-items:center}
 .quant[open] summary{margin-bottom:3px}
 .quant .sub{font-variant-numeric:tabular-nums;line-height:1.5}
+/* A dobra da massa dentro de uma receita: parece um cartão pequeno, para
+   se ver que aquilo é um bloco à parte e não uma linha da lista. */
+.massa-dobra{border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--bg)}
+.massa-dobra>summary{cursor:pointer;font-weight:600;font-size:13.5px;list-style:none;display:flex;align-items:center;gap:6px;min-height:32px}
+.massa-dobra>summary::-webkit-details-marker{display:none}
+.massa-dobra>summary::before{content:"b8";color:var(--mut);transition:transform .15s}
+.massa-dobra[open]>summary::before{transform:rotate(90deg)}
+.massa-dobra>summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+@media (prefers-reduced-motion:reduce){ .massa-dobra>summary::before{transition:none} }
 select.slot{margin-top:4px}
 .restr{gap:6px;flex-wrap:wrap;margin-top:6px}
 .restr .chip:disabled{opacity:.55;cursor:default}
@@ -12306,6 +12315,37 @@ function listaIngredientesComEstado(r,n){
       <b>${fmtQtdIng(nome,quant*q,u)}</b>${t.via? `<span class="sub"> · tens ${esc(t.via.toLowerCase())}, que serve</span>`:''}</span>`;
   }).join('');
 }
+/* A mesma lista, a partir de linhas soltas em vez de uma receita — para a
+   massa poder ter a sua própria lista sem ser uma receita à parte. */
+function listaIngredientesLinhas(linhas,n){
+  const q=Math.max(1,parseInt(n,10)||1);
+  return linhas.map(([nome,quant,u])=>{
+    const t=temComAlternativa(nome);
+    return `<span class="ingr ${t.tem?'tem':'falta'}"><i aria-hidden="true">${t.tem?'✓':'✗'}</i>${esc(nome)}
+      <b>${fmtQtdIng(nome,quant*q,u)}</b>${t.via? `<span class="sub"> · tens ${esc(t.via.toLowerCase())}, que serve</span>`:''}</span>`;
+  }).join('');
+}
+/* ---- O prato de um lado, a massa do outro ----
+   Numa quiche em massa quebrada, a manteiga aparece uma vez só na lista: doze
+   gramas do recheio somadas a vinte da massa. Para poder dobrar a parte da
+   massa não chega esconder linhas — é preciso saber quais eram. Refaz-se a
+   composição SEM a massa, exatamente como `sincronizaCombos` a faz, e o que
+   sobra é o prato; a massa traz a sua lista própria, que é a que ela sempre
+   teve. Duas listas exatas em vez de uma subtração a adivinhar unidades. */
+function partesDaFicha(r){
+  const ma=(r&&r.maId)? RECIPES.find(x=>x.id===r.maId) : null;
+  if(!ma) return null;
+  const b=pratoBaseDe(r); if(!b) return null;
+  const acs=(r.acIds||[]).map(id=>RECIPES.find(x=>x.id===id)).filter(Boolean);
+  const mo=r.moId? RECIPES.find(x=>x.id===r.moId) : null;
+  const fatia=fatiaAc(acs), ing=b.i.map(l=>l.slice());
+  const somar=(lista,peso)=>lista.forEach(l=>juntaIngrediente(ing,l[0],Math.round(l[1]*peso*100)/100,l[2]));
+  acs.forEach(a=>somar(a.i,fatia));
+  if(mo) somar(mo.i,1);
+  return {ma, prato:ing, massa:ingredientesMassa(ma).map(l=>l.slice())};
+}
+/* Os passos que vieram da massa vêm todos marcados com o mesmo prefixo. */
+function ehPassoDeMassa(p){ return /^Massa: /.test(p&&p.t||''); }
 
 /* ================= ESTADO ================= */
 const KEY='familiaFitV1', APPID='familia-fit', FORMATO=1;
@@ -14283,6 +14323,60 @@ const PROTOCOLOS_IM=[
   {h:20, n:'20:4',  d:'A «dieta do guerreiro». Uma refeição grande e um lanche numa janela de quatro horas.'},
   {h:23, n:'OMAD',  d:'Uma refeição por dia. Fazer caber o dia inteiro numa refeição é difícil sem ficar aquém do que o corpo precisa — vale a pena olhar aos macros com atenção.'},
 ];
+/* ================= OMAD, UMA REFEIÇÃO POR DIA =================
+   O 23:1 é o extremo do intermitente e já estava no slider, mas sem uma
+   palavra sobre o que é. É o protocolo em que a distância entre «comprimir o
+   horário» e «restringir a sério» desaparece: numa janela de uma hora, quase
+   ninguém come o dia inteiro, e o que era um horário passa a ser um défice
+   sem o dizer. Por isso tem secção própria — e a secção diz o que se sabe, o
+   que não se sabe, e o que correu mal em quem o estudou. */
+const OMAD_GUIA={
+  como:[
+    'Escolhe uma hora do dia e mantém-na. O corpo habitua-se ao horário, e a fome deixa de aparecer a meio da tarde ao fim de uma ou duas semanas — mas só se a hora for sempre a mesma.',
+    'A janela é de uma hora, não de um prato. Come devagar, com entrada, prato e sobremesa se for preciso: um dia inteiro de comida não entra em quinze minutos sem desconforto.',
+    'A proteína do dia inteiro tem de caber nesta refeição. É a parte que falha mais: o alvo da app não desce por se comer uma vez, e 100 g de proteína numa refeição pede que ela seja construída à volta dela.',
+    'Sal e água ao longo do dia. As dores de cabeça do fim da tarde em OMAD são quase sempre sódio, não fome.',
+    'Chá e café simples não quebram a janela; com leite ou açúcar, quebram.',
+    'Antes de chegar aqui, passa pelo 16:8 e pelo 18:6 durante algumas semanas. Saltar direto para uma refeição é a forma mais rápida de desistir — ou de compensar.'],
+  bem:[
+    'Simplicidade: uma refeição para planear, comprar e cozinhar. Para quem tem dias sem horas certas, é a razão mais honesta para o fazer.',
+    'Perda de peso comparável à de comer menos todos os dias. As revisões de jejum intermitente são consistentes nisto: o resultado vem do défice, e não do horário.',
+    'Menos decisões sobre comida ao longo do dia, o que a algumas pessoas tira uma carga real.'],
+  mal:[
+    'Chegar aos nutrientes numa refeição é difícil — proteína, cálcio, ferro e fibra são os que ficam para trás. A app mostra os macros do dia; vale a pena olhar para eles todos os dias e não de vez em quando.',
+    'Num ensaio do NIH em adultos saudáveis que comeram uma vez por dia sem perder calorias, a glicemia em jejum subiu, a tolerância à glicose de manhã piorou e o colesterol total e LDL aumentaram. Foram oito semanas e poucas pessoas — não fecha o assunto, mas é o que existe.',
+    'Fome concentrada e comer depressa levam facilmente a comer a mais na janela, e daí a um padrão de restrição-compensação que é o caminho para uma relação estragada com a comida.',
+    'Vinte e três horas sem estimular a vesícula todos os dias é um fator de risco conhecido de cálculos biliares.',
+    'Quem treina a sério tem dificuldade em repartir a proteína e em recuperar: a síntese proteica responde melhor a três ou quatro tomas ao longo do dia do que a uma.',
+    'Medicação que se toma com comida, ou duas vezes ao dia, deixa de ter onde caber.'],
+  nao:[
+    'Grávidas, a amamentar, crianças e adolescentes — a app nem oferece.',
+    'Diabetes, sobretudo com insulina ou sulfonilureias: o risco de hipoglicemia é real e o plano é da equipa de saúde.',
+    'História de perturbação do comportamento alimentar, presente ou passada. Este é o protocolo com maior potencial de a reacender.',
+    'Baixo peso (IMC abaixo de 18,5), pessoas idosas com risco de perda de massa muscular, e quem tem doença renal, hepática ou refluxo grave.',
+    'Quem faz uma vida de esforço físico intenso, por não conseguir repor o que gasta numa só refeição.']
+};
+function ehOMAD(h){ return clampNum(Math.round(parseFloat(h)||16),12,23)>=22; }
+function blocoOMAD(m,h){
+  if(!ehOMAD(h)) return '';
+  const lista=(t,arr,cls)=>`<div class="splabel" style="margin-top:10px"><span>${t}</span></div>
+    <ul class="lista-acog${cls?' '+cls:''}">${arr.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`;
+  return `<div style="margin-top:12px;border-top:1px solid var(--line);padding-top:10px">
+    <div class="splabel"><span>OMAD — uma refeição por dia</span><span class="pill warn">23:1</span></div>
+    <p class="sub" style="margin-top:6px">Vinte e três horas de jejum e uma hora a comer. É o extremo do
+      intermitente, e é onde a diferença entre «mudar o horário» e «comer menos» deixa de existir: numa janela
+      de uma hora quase ninguém come o dia inteiro. <b>Não há recomendação oficial nenhuma para o OMAD</b> —
+      nem a favor nem contra —, e o que se segue é o que a prática e os poucos estudos dizem.</p>
+    ${lista('Como se faz', OMAD_GUIA.como)}
+    ${lista('O que tem de bom', OMAD_GUIA.bem)}
+    ${lista('O que tem de mau', OMAD_GUIA.mal)}
+    <div class="alerta forte" style="margin-top:10px"><span aria-hidden="true">🚨</span><span>
+      <b>Quem não deve fazer OMAD.</b> ${OMAD_GUIA.nao.map(x=>esc(x)).join(' ')}</span></div>
+    <p class="sub" style="margin-top:8px"><i>A app continua a dar-te o mesmo alvo de calorias e os mesmos
+      macros: o jejum intermitente muda quando se come, não quanto. Se o objetivo é comer menos, diz-se isso
+      no alvo e não se esconde dentro do horário.</i></p>
+  </div>`;
+}
 function protocoloIM(h){
   const n=clampNum(Math.round(parseFloat(h)||16),12,23);
   return PROTOCOLOS_IM.reduce((melhor,p)=>Math.abs(p.h-n)<Math.abs(melhor.h-n)? p : melhor, PROTOCOLOS_IM[0]);
@@ -14831,7 +14925,7 @@ const DICAS={
   objJejum:'Porque se jejua muda o que faz sentido fazer: perder peso e procurar autofagia não pedem o mesmo protocolo. Escolher um objetivo muda a sugestão e, no caso da autofagia, abre o que se sabe e o que não se sabe sobre ela — que é o tema do jejum em que mais se afirma o que não está demonstrado.',
   autofagia:'A autofagia existe e a privação de nutrientes ativa-a: isso está demonstrado em levedura, em células e em animais, e valeu o Nobel da Medicina de 2016 a Yoshinori Ohsumi. Em humanos mediu-se muito menos — aumentos de marcadores indiretos em leucócitos e músculo após jejuns de 24 a 72 horas, em amostras pequenas. O que NÃO existe é um limiar horário validado em humanos: as «16 horas» que circulam vêm de extrapolações de roedores, que têm um metabolismo várias vezes mais rápido. Também não está demonstrado que mais autofagia signifique melhor saúde. A app dá as estratégias que a literatura associa a maior ativação e recusa-se a dizer que a certa hora «entraste em autofagia», porque isso não se mede sem uma biópsia.',
   calendarios:'Dois calendários com naturezas diferentes. A Páscoa calcula-se ao dia com o algoritmo de Meeus, e a Quaresma deriva dela — Cinzas 46 dias antes, e são 46 porque os 40 dias não contam os domingos. O Ramadão não se calcula com a mesma certeza: o calendário islâmico é lunar e o início de cada mês depende do avistamento da lua nova, que varia com o país e com a autoridade religiosa. A app dá a conversão tabular, que costuma acertar dentro de um dia, e diz que é uma estimativa. O Ramadão marca-se como jejum diurno repetido e não como um jejum contínuo de trinta dias, que seria outra coisa completamente.',
-  jejumIM:'Comprimir a janela em que se come. As calorias do dia não mudam: o que muda é caberem em menos horas, e repartir o mesmo total por menos refeições é a parte difícil — é aí que vale a pena olhar aos macros. As refeições que ficarem fora da janela aparecem assinaladas no plano semanal, e o protocolo escolhe-se num slider entre 12:12 e OMAD, com os pontos habituais marcados.',
+  jejumIM:'Comprimir a janela em que se come. As calorias do dia não mudam: o que muda é caberem em menos horas, e repartir o mesmo total por menos refeições é a parte difícil — é aí que vale a pena olhar aos macros. As refeições que ficarem fora da janela aparecem assinaladas no plano semanal, e o protocolo escolhe-se num slider entre 12:12 e OMAD, com os pontos habituais marcados. Escolher OMAD abre o que se sabe sobre uma refeição por dia — como se faz, o que tem de bom, o que tem de mau e quem não o deve fazer.',
   jejumPontual:'Um jejum com data marcada, de 12 horas a oito dias. Os dias que cobre por inteiro ficam com alvo zero; os dias em que começa e acaba são parciais e a app conta-os proporcionalmente — arredondar um dia de jejum são duas mil calorias de erro. Acima de 72 horas há uma confirmação explícita de que existe acompanhamento médico, porque a partir daí isto é um procedimento clínico e não uma escolha alimentar.',
   jejumImpacto:'Os jejuns marcados entram nas contas do resto da app: o alvo do dia passa a zero (ou à fração que sobra), o plano de refeições sabe disso, e o défice entra na projeção de peso e no ritmo do objetivo. A conversão para quilos usa as 7 700 kcal por quilo de gordura e é uma estimativa grosseira — boa parte do que a balança mostra num jejum é água e glicogénio, e volta quando se volta a comer.',
   eletrolitos:'O que é factual: nada sem calorias interrompe o estado metabólico do jejum, por isso água, sal, potássio, magnésio, chá e café simples não o quebram. O que a app NÃO faz é calcular doses. As referências que mostra são ingestões diárias da EFSA para pessoas que estão a comer; num jejum prolongado as necessidades mudam e dependem da função renal, da tensão e da medicação. Quanto tomar é decisão de quem acompanha — um excesso de potássio é perigoso e não é o género de erro que dá para corrigir depois.',
@@ -17798,21 +17892,54 @@ function fichaHtml(f){
           disp.pronta?'Pronta a cozinhar':disp.tem+'/'+disp.total+' na despensa'}</span>
       </div>
       ${salDaFicha(r)}
-      <h3 style="margin-top:14px">Ingredientes</h3>
-      <div class="ingr-lista">${listaIngredientesComEstado(r,f.n)}</div>
+      ${''/* Com massa de base, a lista parte-se em duas: o prato e a massa.
+           Quem compra a massa feita não quer ver a farinha nem a manteiga dela
+           no meio do recheio — e quem a faz quer as duas listas à vista. A
+           dobra abre por omissão a quem a faz e fecha a quem a compra, mas é
+           sempre o utilizador a mandar: o `<details>` fica lá nos dois casos. */}
+      ${(function(){
+        const P=partesDaFicha(r);
+        if(!P) return `<h3 style="margin-top:14px">Ingredientes</h3>
+          <div class="ingr-lista">${listaIngredientesComEstado(r,f.n)}</div>`;
+        const comprada=massaComprada(P.ma.id);
+        return `<h3 style="margin-top:14px">Ingredientes do prato</h3>
+          <div class="ingr-lista">${listaIngredientesLinhas(P.prato,f.n)}</div>
+          <details class="massa-dobra" ${comprada?'':'open'} style="margin-top:10px">
+            <summary>${ICO_REF.ma} ${esc(nomeCurtoMassa(P.ma))} — ${plural(P.massa.length,'ingrediente','ingredientes')}${
+              comprada? ' <span class="pill">comprada feita</span>' : ''}</summary>
+            <div class="ingr-lista" style="margin-top:6px">${listaIngredientesLinhas(P.massa,f.n)}</div>
+            <div class="row" style="margin-top:8px">${botaoMassaFeita(P.ma.id,true)}</div>
+          </details>`;
+      })()}
       ${blocoSubstituicoes(r)}
       ${blocoTrocasDieta(r)}
       ${reguasDaReceita(r)}
       <h3 style="margin-top:16px">Preparação ${escritos?'':dica('passosDerivados')}</h3>
       ${linhaTempoReceita(passos)}
       ${escritos? '' : `<p class="sub">Esta receita ainda não tem passos escritos: os que se seguem são <b>derivados dos ingredientes e do género do prato</b>, para servirem de guia. Não são uma receita de livro, e a app diz isso em vez de fingir que são.</p>`}
-      <ol class="passos">${passos.map((p,i)=>`<li>
+      ${''/* Os passos da massa dobram-se em bloco, e ficam ANTES dos do prato
+           porque é essa a ordem em que se cozinha. Quem compra a massa feita
+           dobra-os e fica com a receita do recheio, que é a que lhe interessa
+           — e a numeração do prato recomeça no 1, porque com a massa fechada
+           começar no 6 não diz nada a ninguém. */}
+      ${(function(){
+        const li=(p)=>`<li>
         <b>${esc(p.t)}</b>${!p.min? '' : temTemporizador(p.min)
           ? ` <button class="chip" style="padding:1px 9px"
               onclick="novoTemporizador('${esc(p.t).replace(/'/g,'&#39;')}',${p.min})">⏲ ${duracaoTexto(p.min)}</button>`
           : ` <span class="chip" style="padding:1px 9px">⏳ ${duracaoTexto(p.min)}</span>`}
-        <span style="display:block">${esc(p.d)}</span></li>`).join('')}</ol>
-      <h3 style="margin-top:16px">Guardar e reaquecer</h3>
+        <span style="display:block">${esc(p.d)}</span></li>`;
+        const daMassa=passos.filter(ehPassoDeMassa), doPrato=passos.filter(p=>!ehPassoDeMassa(p));
+        if(!daMassa.length) return `<ol class="passos">${passos.map(li).join('')}</ol>`;
+        const P=partesDaFicha(r), comprada=P&&massaComprada(P.ma.id);
+        const min=daMassa.reduce((t,p)=>t+(p.min||0),0);
+        return `<details class="massa-dobra" ${comprada?'':'open'}>
+            <summary>${ICO_REF.ma} A massa — ${plural(daMassa.length,'passo','passos')}${min? ', '+duracaoTexto(min):''}${
+              comprada? ' <span class="pill">comprada feita</span>':''}</summary>
+            <ol class="passos" style="margin-top:6px">${daMassa.map(li).join('')}</ol>
+          </details>
+          <ol class="passos" style="margin-top:8px">${doPrato.map(li).join('')}</ol>`;
+      })()}
       <p class="sub">${esc(textoConservacao(r))}</p>
       <p class="sub" style="margin-top:4px"><i>Prazos genéricos e conservadores para sobras refrigeradas a 4 °C ou menos. Não substituem o cheiro, o aspeto e o bom senso.</i></p>
       <div class="row" style="margin-top:16px;justify-content:space-between">
@@ -29016,6 +29143,7 @@ function cartaoJejum(m){
           No plano semanal essas refeições aparecem assinaladas, e o alvo de calorias do dia continua o mesmo —
           o jejum intermitente muda <b>quando</b> se come, não <b>quanto</b>. Repartir o mesmo total por menos
           refeições é a parte difícil, e é onde vale a pena olhar aos macros.</p>` : ''; })()}
+      ${blocoOMAD(m,h)}
     </div>`:`<p class="sub" style="margin-top:6px">Comprime as horas em que se come sem mudar o total do dia.
       É um horário, não um défice: o alvo de calorias não desce por causa dele.</p>`}
 
