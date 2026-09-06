@@ -12652,7 +12652,7 @@ function instantaneo(){ return JSON.stringify({members:S.members, cheats:S.cheat
   receitas:S.receitas, ingredientes:S.ingredientes, medicoes:S.medicoes, regAtiv:S.regAtiv, regRef:S.regRef,
   sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa, pausas:S.pausas, diario:S.diario, cozPref:S.cozPref, metodoBMR:S.metodoBMR,
   validades:S.validades, veredictos:S.veredictos, brigada:S.brigada, desperdicio:S.desperdicio,
-  gostos:S.gostos, jejum:S.jejum, combos:S.combos, massaFeita:S.massaFeita, rituais:S.rituais, extras:S.extras, aindaHa:S.aindaHa, basicos:S.basicos,
+  gostos:S.gostos, jejum:S.jejum, combos:S.combos, massaFeita:S.massaFeita, cores:S.cores, rituais:S.rituais, extras:S.extras, aindaHa:S.aindaHa, basicos:S.basicos,
   visitas:S.visitas, ementas:S.ementas, anos:S.anos, provas:S.provas, bebidas:S.bebidas, notasCozinha:S.notasCozinha}); }
 function aplicaInstantaneo(js){
   const d=JSON.parse(js);
@@ -22220,6 +22220,72 @@ function janelaPeso(){ return temChave(JANELAS,S.ui.janelaPeso)? S.ui.janelaPeso
    Um ponto por DIA e não por registo: três refeições de três pessoas num dia
    dariam nove pontos em cima uns dos outros, e o que interessa é se aquele
    dia teve ou não teve. O resumo do dia vai no balão. */
+/* ================= AS CORES DO GRÁFICO =================
+   Por omissão são as da paleta, que muda com o tema e está medida: todas as
+   cores do gráfico ficam entre 9 e 21 de contraste contra o fundo, nos quatro
+   modos. Mas há um limite que a paleta não resolve — o verde, o amarelo e o
+   vermelho têm quase a MESMA LUMINÂNCIA (contraste entre eles: 1,01 a 1,44).
+   Num ecrã mau, numa impressão a preto e branco ou com daltonismo, três
+   pontos de cores diferentes são três pontos iguais.
+   Por isso a leitura nunca depende só da cor: os treinos são círculos na
+   fiada de cima, as refeições são quadrados na de baixo. A cor ajuda quem a
+   vê; a forma e a posição servem quem não a vê. E é também isso que deixa
+   abrir as cores à escolha de cada casa sem partir nada — mudar a cor não
+   muda a forma nem a fiada. */
+const CORES_GRAFICO=[
+  {k:'peso',      n:'Pesagens',   tok:'ink',  d:'A linha e os pontos do peso.'},
+  {k:'exercicio', n:'Exercício',  tok:'ok',   d:'Os círculos dos dias com treino feito.'},
+  {k:'refeicao',  n:'Refeições',  tok:'warn', d:'Os quadrados dos dias com refeições registadas.'},
+  {k:'jejum',     n:'Jejuns',     tok:'bad',  d:'As faixas dos jejuns registados e as listras do jejum intermitente.'},
+];
+function coresCfg(){
+  if(!S.cores || typeof S.cores!=='object') S.cores={};
+  if(!S.cores.porDesporto || typeof S.cores.porDesporto!=='object') S.cores.porDesporto={};
+  return S.cores;
+}
+/* A cor escolhida, ou vazio para deixar a paleta mandar. Vazio é o valor
+   normal e é o que se quer: quem não mexeu continua a acompanhar o tema. */
+function corGrafico(k){
+  const c=coresCfg()[k];
+  return /^#[0-9A-Fa-f]{6}$/.test(String(c||''))? c : '';
+}
+function corDesporto(id){
+  const c=coresCfg().porDesporto[id];
+  return /^#[0-9A-Fa-f]{6}$/.test(String(c||''))? c : '';
+}
+/* O atributo de estilo de um elemento SVG, só quando há cor escolhida. */
+function pinta(k,prop){ const c=corGrafico(k); return c? ' '+(prop||'fill')+'="'+c+'"' : ''; }
+function setCorGrafico(k,v){
+  const c=coresCfg();
+  if(!v || v==='auto') delete c[k]; else c[k]=v;
+  save('cor do gráfico'); render();
+}
+function setCorDesporto(id,v){
+  const c=coresCfg();
+  if(!v || v==='auto') delete c.porDesporto[id]; else c.porDesporto[id]=v;
+  save('cor do desporto'); render();
+}
+function reporCoresGrafico(){
+  S.cores={porDesporto:{}};
+  save('cores repostas'); render();
+  flash('ok','As cores do gráfico voltaram às da paleta, que acompanham o tema.');
+}
+/* Contraste WCAG entre duas cores em hexadecimal. Serve para dizer a quem
+   escolhe uma cor se ela ainda se vê — não para a proibir: é o gráfico de
+   quem o usa. */
+function contrasteHex(a,b){
+  const lum=h=>{ const v=String(h||'').replace('#',''); if(v.length!==6) return null;
+    const p=[0,2,4].map(i=>parseInt(v.slice(i,i+2),16)/255);
+    const f=x=>x<=0.03928? x/12.92 : Math.pow((x+0.055)/1.055,2.4);
+    return 0.2126*f(p[0])+0.7152*f(p[1])+0.0722*f(p[2]); };
+  const l1=lum(a), l2=lum(b);
+  if(l1===null||l2===null) return null;
+  return (Math.max(l1,l2)+0.05)/(Math.min(l1,l2)+0.05);
+}
+function corDeToken(tok){
+  const v=getComputedStyle(document.documentElement).getPropertyValue('--'+tok).trim();
+  return /^#[0-9A-Fa-f]{6}$/.test(v)? v : '#808080';
+}
 function camadasRegistos(mid, dias, iniISO, xDe, larguraDia, Y0, Y1){
   /* Acima de quatro meses nada disto se lê: os pontos empastam-se numa nódoa
      e as listras diárias fundem-se num banho uniforme que não distingue dia
@@ -22239,30 +22305,43 @@ function camadasRegistos(mid, dias, iniISO, xDe, larguraDia, Y0, Y1){
       const x0=xDe(d)+larguraDia*(fecha/24), larg=larguraDia*(im.h/24);
       if(larg<=0) continue;
       listras.push(`<rect x="${x0.toFixed(1)}" y="${Y0}" width="${larg.toFixed(1)}" height="${(Y1-Y0).toFixed(1)}"
-        class="f-bad" opacity=".055"/>`);
+        class="f-bad" opacity=".055"${pinta("jejum")}/>`);
     }
   }
   /* Duas fiadas junto ao eixo: os treinos por cima das refeições, porque é a
-     ordem em que se lê a pergunta — «mexi-me?» antes de «comi?». */
-  const yT=Y1-11, yR=Y1-4, pontos=[];
+     ordem em que se lê a pergunta — «mexi-me?» antes de «comi?». E duas
+     FORMAS, não só duas cores: círculo em cima, quadrado em baixo. É o que
+     mantém o gráfico legível a preto e branco e para quem não distingue o
+     verde do amarelo — e é o que permite deixar as cores à escolha da casa
+     sem que a leitura dependa da escolha. */
+  const yT=Y1-13, yR=Y1-4, pontos=[];
   for(let i=0;i<dias;i++){
     const d=addDias(iniISO,i), x=xDe(d)+larguraDia/2;
     const tre=regAtivDe(mid).filter(r=>r.d===d && r.estado==='feita');
     if(tre.length){
       const kc=Math.round(tre.reduce((t,r)=>t+kcalRegAtiv(r),0));
       const min=Math.round(tre.reduce((t,r)=>t+(parseFloat(r.min)||0),0));
-      const nota=fmtCurto(d)+'\n'+plural(tre.length,'treino','treinos')+(min? ' · '+min+' min':'')+(kc? ' · '+kc+' kcal':'');
-      pontos.push(`<circle cx="${x.toFixed(1)}" cy="${yT}" r="2.4" class="f-ok"/>
+      const sps=[...new Set(tre.map(r=>r.s).filter(Boolean))];
+      const nomes=sps.map(id=>{ const s=SPORTS.find(y=>y.id===id); return s? s.nome : id; });
+      /* Um dia com um desporto só pode levar a cor desse desporto, se a casa
+         lhe deu uma. Com dois ou mais não há cor honesta para os dois: fica
+         a do exercício em geral, e o balão diz quais foram. */
+      const corD=sps.length===1? corDesporto(sps[0]) : '';
+      const cor=corD || corGrafico('exercicio');
+      const nota=fmtCurto(d)+'\n'+plural(tre.length,'treino','treinos')+(min? ' · '+min+' min':'')+(kc? ' · '+kc+' kcal':'')
+        +(nomes.length? '\n'+nomes.join(', ') : '');
+      pontos.push(`<circle cx="${x.toFixed(1)}" cy="${yT}" r="2.6" class="f-ok"${cor? ' fill="'+cor+'"':''}/>
         <circle class="nota-hit" cx="${x.toFixed(1)}" cy="${yT}" r="6" role="img"
-          tabindex="0" aria-label="${esc(nota.replace('\n',': '))}" data-nota="${esc(nota)}"/>`);
+          tabindex="0" aria-label="${esc(nota.replace(/\n/g,': '))}" data-nota="${esc(nota)}"/>`);
     }
     const ref=regRefDe(mid).filter(r=>r.d===d && r.estado==='feita');
     if(ref.length){
       const k=Math.round(ingeridoRealDia(mid,d).k);
+      const cor=corGrafico('refeicao');
       const nota=fmtCurto(d)+'\n'+plural(ref.length,'refeição registada','refeições registadas')+(k? ' · '+k+' kcal':'');
-      pontos.push(`<circle cx="${x.toFixed(1)}" cy="${yR}" r="2.4" class="f-warn"/>
+      pontos.push(`<rect x="${(x-2.3).toFixed(1)}" y="${yR-2.3}" width="4.6" height="4.6" rx="0.6" class="f-warn"${cor? ' fill="'+cor+'"':''}/>
         <circle class="nota-hit" cx="${x.toFixed(1)}" cy="${yR}" r="6" role="img"
-          tabindex="0" aria-label="${esc(nota.replace('\n',': '))}" data-nota="${esc(nota)}"/>`);
+          tabindex="0" aria-label="${esc(nota.replace(/\n/g,': '))}" data-nota="${esc(nota)}"/>`);
     }
   }
   return {listras:listras.join(''), pontos:pontos.join('')};
@@ -22316,7 +22395,7 @@ function graficoPesoSvg(m){
        e com doze pixéis no mínimo, centrado nela: a mesma solução que os
        pontos das pesagens já usavam, e pela mesma razão. */
     const lHit=Math.max(12,larg), xHit=clampNum(a+larg/2-lHit/2, X0, X1-lHit);
-    return `<rect class="f-bad" x="${a.toFixed(1)}" y="${Y0}" width="${larg.toFixed(1)}" height="${Y1-Y0}" opacity=".13"/>
+    return `<rect class="f-bad" x="${a.toFixed(1)}" y="${Y0}" width="${larg.toFixed(1)}" height="${Y1-Y0}" opacity=".13"${pinta("jejum")}/>
       <rect class="jj-hit" x="${xHit.toFixed(1)}" y="${Y0}" width="${lHit.toFixed(1)}" height="${Y1-Y0}"
         role="img" tabindex="0" aria-label="Jejum de ${esc(textoDuracaoJejum(j.horas))}, ${esc(periodoJejumTexto(j))}"
         data-jj="${esc(resumo)}"/>`;
@@ -22333,7 +22412,7 @@ function graficoPesoSvg(m){
       aria-label="Evolução do peso de ${esc(m.nome)} em ${JANELAS[jan][1]}">
     ${cam.listras}${bandasJejum}${grelha}${svgAtiv}${svgKcal}
     ${cam.pontos}
-    ${pts.length>1? `<polyline points="${linha}" fill="none" class="s-ink" stroke-width="2"/>`:''}
+    ${pts.length>1? `<polyline points="${linha}" fill="none" class="s-ink" stroke-width="2"${pinta("peso","stroke")}/>`:''}
     ${/* O ponto visível fica pequeno de propósito — é a leitura da curva que
          interessa —, e por isso o alvo do rato é outro círculo, invisível e
          com dez de raio. Sem ele, acertar num ponto de 1,8 px é sorte.
@@ -22341,7 +22420,7 @@ function graficoPesoSvg(m){
          alvo passa por cima dele, o balão nativo do browser não chega a
          disparar, e não há dois balões a dizer o mesmo com um segundo de
          diferença. */''}
-    ${pts.map(x=>`<circle cx="${X(x.d).toFixed(1)}" cy="${Y(x.p).toFixed(1)}" r="${pts.length>40?1.8:3}" class="f-ink"
+    ${pts.map(x=>`<circle cx="${X(x.d).toFixed(1)}" cy="${Y(x.p).toFixed(1)}" r="${pts.length>40?1.8:3}" class="f-ink"${pinta("peso")}
       ><title>${fmtLongo(x.d)}: ${nPT(x.p,1)} kg</title></circle>`).join('')}
     ${pts.map(x=>`<circle class="pt-hit" cx="${X(x.d).toFixed(1)}" cy="${Y(x.p).toFixed(1)}" r="10"
       data-p="${nPT(x.p,1)}" data-d="${esc(fmtCurto(x.d))}"/>`).join('')}
@@ -22607,7 +22686,7 @@ function trajSvg(m,fit,c){
     const a=Math.min(xa,xb), b=Math.max(xa,xb);
     const resumoJ=textoDuracaoJejum(j.horas)+'\n'+periodoJejumTexto(j)+(j.agua?'':'\njejum seco');
     const largJ=Math.max(1,b-a), lHitJ=Math.max(12,largJ), xHitJ=clampNum(a+largJ/2-lHitJ/2, X0, X1-lHitJ);
-    return `<rect class="f-bad" x="${f(a)}" y="${Y0}" width="${f(largJ)}" height="${Y1-Y0}" opacity=".12"/>
+    return `<rect class="f-bad" x="${f(a)}" y="${Y0}" width="${f(largJ)}" height="${Y1-Y0}" opacity=".12"${pinta("jejum")}/>
       <rect class="jj-hit" x="${f(xHitJ)}" y="${Y0}" width="${f(lHitJ)}" height="${Y1-Y0}"
         role="img" tabindex="0" aria-label="Jejum de ${esc(textoDuracaoJejum(j.horas))}, ${esc(periodoJejumTexto(j))}"
         data-jj="${esc(resumoJ)}"/>`;
@@ -34571,7 +34650,7 @@ function pacote(){
          receitas:S.receitas, ingredientes:S.ingredientes, medicoes:S.medicoes, regAtiv:S.regAtiv, regRef:S.regRef,
          sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa, pausas:S.pausas, diario:S.diario, cozPref:S.cozPref, metodoBMR:S.metodoBMR,
          validades:S.validades, veredictos:S.veredictos, brigada:S.brigada, desperdicio:S.desperdicio,
-         gostos:S.gostos, jejum:S.jejum, combos:S.combos, massaFeita:S.massaFeita, rituais:S.rituais, extras:S.extras, aindaHa:S.aindaHa, basicos:S.basicos,
+         gostos:S.gostos, jejum:S.jejum, combos:S.combos, massaFeita:S.massaFeita, cores:S.cores, rituais:S.rituais, extras:S.extras, aindaHa:S.aindaHa, basicos:S.basicos,
          visitas:S.visitas, ementas:S.ementas, anos:S.anos, provas:S.provas, bebidas:S.bebidas, notasCozinha:S.notasCozinha,
          /* A ordem aprendida do supermercado ficava de fora da cópia e o
             «substituir» apagava-a: meses a corrigir a ordem dos corredores
@@ -34952,9 +35031,19 @@ function lerPacote(txt){
   const massaFeita={};
   if(d.massaFeita && typeof d.massaFeita==='object') Object.keys(d.massaFeita).forEach(k=>{
     if(d.massaFeita[k] && podeComprarMassa(k)) massaFeita[k]=true; });
+  /* cores: só hexadecimais de seis dígitos. Um valor estranho aqui ia parar
+     a um atributo `fill` do SVG e podia levar lá dentro o que não é cor. */
+  const HEX=/^#[0-9A-Fa-f]{6}$/;
+  const cores={porDesporto:{}};
+  if(d.cores && typeof d.cores==='object'){
+    CORES_GRAFICO.forEach(x=>{ if(HEX.test(String(d.cores[x.k]||''))) cores[x.k]=d.cores[x.k]; });
+    const pd=d.cores.porDesporto;
+    if(pd && typeof pd==='object') Object.keys(pd).slice(0,64).forEach(id=>{
+      if(SPORTS.some(s=>s.id===id) && HEX.test(String(pd[id]||''))) cores.porDesporto[id]=pd[id]; });
+  }
   return {d:{ members, cheats, plans, bought, objetivos, despensa, receitas,
               medicoes, regAtiv, regRef, sobras, precos, festas, casa, pausas, diario, cozPref,
-              validades, veredictos, brigada, desperdicio, gostos, jejum, combos, massaFeita, rituais, extras, aindaHa, basicos, visitas, ementas, anos, provas, bebidas, notasCozinha,
+              validades, veredictos, brigada, desperdicio, gostos, jejum, combos, massaFeita, cores, rituais, extras, aindaHa, basicos, visitas, ementas, anos, provas, bebidas, notasCozinha,
               prefCuisine:temChave(CUIS,d.prefCuisine)?d.prefCuisine:'todas',
               /* Cinco estruturas saíam na cópia e nunca voltavam da leitura, o
                  que quer dizer que «substituir» as apagava sem aviso:
@@ -35309,6 +35398,58 @@ function cartaoTabelas(){
       Vale a pena voltar a carregá-las se limpares o browser.</i></p>
   </div>`;
 }
+/* ---- As cores do gráfico, à escolha ----
+   Sai à parte do «Aspeto» porque não é aspeto: é leitura de dados. Quem mexe
+   aqui está a dizer o que quer distinguir num gráfico, e a app responde com o
+   contraste medido em vez de deixar escolher às cegas — sem proibir nada, que
+   o gráfico é de quem o lê. */
+function cartaoCoresGrafico(){
+  const c=coresCfg();
+  const fundo=corDeToken('card');
+  const linha=x=>{
+    const escolhida=corGrafico(x.k), efetiva=escolhida||corDeToken(x.tok);
+    const ct=contrasteHex(efetiva,fundo);
+    const mau=ct!==null && ct<3;
+    return `<div class="row" style="align-items:center;gap:10px;margin-top:8px;flex-wrap:nowrap">
+      <input type="color" value="${efetiva}" aria-label="Cor de ${esc(x.n)} no gráfico"
+        style="width:42px;height:32px;padding:2px;border-radius:8px;border:1px solid var(--line);background:var(--card);flex:none"
+        onchange="setCorGrafico('${x.k}',this.value)">
+      <div style="flex:1;min-width:0"><b style="font-size:13.5px">${esc(x.n)}</b>
+        <span class="sub" style="display:block">${esc(x.d)}</span>
+        <span class="sub" style="display:block">${escolhida? 'escolhida' : 'da paleta'} · contraste ${ct===null?'—':nPT(ct,1)}:1${
+          mau? ' <b class="f-bad-txt">— pouco para se ver</b>' : ''}</span></div>
+      ${escolhida? `<button class="btn ghost small" style="flex:none" onclick="setCorGrafico('${x.k}','')"
+        aria-label="Voltar à cor da paleta para ${esc(x.n)}">Repor</button>`:''}
+    </div>`;
+  };
+  /* Só os desportos que a casa pratica: uma lista das dezenas todas seria um
+     catálogo, e o que interessa é dar cor ao que aparece no gráfico. */
+  const meus=[...new Set(S.members.flatMap(m=>(m.desportos||[]).map(x=>x.s))
+    .concat((S.regAtiv||[]).map(r=>r.s)))].filter(Boolean)
+    .map(id=>SPORTS.find(s=>s.id===id)).filter(Boolean);
+  return `<div class="card" data-col="dados-cores">
+    <h3>Cores do gráfico</h3>
+    <p class="sub" style="margin-top:4px;max-width:70ch">Por omissão são as da paleta e mudam com o tema.
+      A leitura nunca depende só delas: os treinos são <b>círculos</b> na fiada de cima e as refeições
+      <b>quadrados</b> na de baixo, e é a forma que se lê a preto e branco ou sem distinguir cores.</p>
+    ${CORES_GRAFICO.map(linha).join('')}
+    ${meus.length? `<div class="splabel" style="margin-top:14px"><span>Por desporto</span>
+        <output>${plural(meus.length,'praticado','praticados')}</output></div>
+      <p class="sub">Um dia com um só desporto leva a cor dele. Com dois ou mais fica a cor geral do exercício,
+        porque não há cor honesta para dois — e o balão diz quais foram.</p>
+      ${meus.map(s=>{ const cor=corDesporto(s.id), ef=cor||corGrafico('exercicio')||corDeToken('ok');
+        return `<div class="row" style="align-items:center;gap:10px;margin-top:6px;flex-wrap:nowrap">
+          <input type="color" value="${ef}" aria-label="Cor de ${esc(s.nome)} no gráfico"
+            style="width:36px;height:28px;padding:2px;border-radius:8px;border:1px solid var(--line);background:var(--card);flex:none"
+            onchange="setCorDesporto('${s.id}',this.value)">
+          <span style="flex:1;min-width:0;font-size:13.5px">${esc(s.nome)}</span>
+          ${cor? `<button class="btn ghost small" style="flex:none" onclick="setCorDesporto('${s.id}','')">Repor</button>`:''}
+        </div>`; }).join('')}` : ''}
+    <div class="row" style="margin-top:12px">
+      <button class="btn ghost small" onclick="reporCoresGrafico()">Repor todas as cores</button>
+    </div>
+  </div>`;
+}
 function cartaoAspeto(){
   const modo=S.ui.tema||'auto', pal=S.ui.paleta||'azulejo';
   const nFechados=Object.keys(S.ui.colapsados||{}).length;
@@ -35554,6 +35695,7 @@ function renderDados(){
 
     ${cartaoTabelas()}
     ${cartaoAspeto()}
+    ${cartaoCoresGrafico()}
     ${cartaoFestas()}
 
     <div class="card">
