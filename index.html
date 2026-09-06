@@ -1528,7 +1528,22 @@ input[type=range].com-detentes::-moz-range-track{
   .confete span{animation:obj-cair 1.6s ease-in forwards;animation-delay:calc(var(--i) * .1s)}
   @keyframes obj-cair{ to{ transform:translateY(150px) rotate(220deg); opacity:0; } }
 }
-.rc{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--card);display:flex;flex-direction:column;gap:6px}
+/* ---- Quarenta e oito cartões de receita são muito para o motor de layout ----
+   Cada cartão traz a lista de ingredientes, os selos, os avisos e um
+   colapsável: desenhar a grelha inteira levava 371 ms num computador de
+   secretária, e num telemóvel isso é mais de um segundo entre tocar em
+   «Receitas» e ver alguma coisa. `content-visibility:auto` diz ao browser
+   para não fazer o layout do que está fora do ecrã — o cartão continua no
+   DOM, continua a ser encontrado pela procura da página e pelos leitores,
+   e passa a custar zero enquanto ninguém rolar até ele. Medido: 371 → 102 ms.
+   `contain-intrinsic-size` é a altura que o browser assume ANTES de desenhar
+   o cartão pela primeira vez; a mediana medida é 1455 px, e com o `auto` cada
+   cartão passa a lembrar-se da sua altura real depois da primeira vez. Sem
+   uma estimativa próxima, a barra de deslocamento saltaria à medida que se
+   rola — foi a mesma preocupação que pôs esta propriedade na lista de
+   compras. */
+.rc{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--card);display:flex;flex-direction:column;gap:6px;
+  content-visibility:auto;contain-intrinsic-size:auto 1455px}
 .rc h3{font-size:15.5px}
 .tag{display:inline-block;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:1px 7px;font-size:11.5px;color:var(--mut);margin:1px 2px 1px 0}
 /* ---- Um selo que se explica ----
@@ -4200,7 +4215,7 @@ R('aclcogumelosbulhaopato','Cogumelos à Bulhão Pato','portuguesa',['mediterran
    ají). Os que já cá estavam não se repetem — o de tomate, o verde, o
    chimichurri, o ponzu e o holandês têm receita desde sempre. */
 R('acmbechamel','Béchamel, molho branco','francesa',[],0,0,0,0,[['Leite meio gordo, UHT',120,'ml'],['Manteiga',12,'g'],['Farinha',12,'g'],['Noz-moscada',0.1,'g'],['Flor de sal',0.5,'g'],['Pimenta branca',0.1,'g']],['mo']),
-R('acmtartaro','Molho tártaro','francesa',[],0,0,0,0,[['Maionese',60,'g'],['Picles de pepino',20,'g'],['Alcaparras',8,'g'],['Chalota',12,'g'],['Salsa',3,'g'],['Limão',6,'g'],['Mostarda de Dijon',3,'g']],['mo']),
+R('acmtartaro','Molho tártaro','francesa',[],0,0,0,0,[['Maionese',35,'g'],['Picles de pepino',12,'g'],['Alcaparras',5,'g'],['Chalota',8,'g'],['Salsa',2,'g'],['Limão',4,'g'],['Mostarda de Dijon',2,'g']],['mo']),
 R('acmrosa','Molho rosa','portuguesa',[],0,0,0,0,[['Maionese',50,'g'],['Ketchup',20,'g'],['Aguardente',5,'ml'],['Limão',5,'g'],['Pimenta de caiena',0.2,'g']],['mo']),
 R('acmtomateassado','Molho de tomate assado','portuguesa',['mediterranica'],0,0,0,0,[['Tomate',200,'g'],['Alho',3,'dente'],['Azeite',12,'ml'],['Tomilho fresco',2,'g'],['Flor de sal',0.5,'g']],['mo']),
 R('acmpassata','Passata de tomate','italiana',['mediterranica'],0,0,0,0,[['Tomate',300,'g'],['Manjericão',3,'g'],['Flor de sal',0.5,'g']],['mo']),
@@ -4209,7 +4224,7 @@ R('acmabobora','Molho de abóbora','portuguesa',[],0,0,0,0,[['Abóbora',150,'g']
 R('acmbeterrabacenoura','Molho de beterraba e cenoura','mediterranica',['mediterranica'],0,0,0,0,[['Beterraba (raiz) crua',90,'g'],['Cenoura',60,'g'],['Azeite',10,'ml'],['Vinagre de sidra',8,'ml'],['Alho',1,'dente'],['Cominhos',0.5,'g'],['Flor de sal',0.5,'g']],['mo']),
 R('acmajicriollo','Ají criollo','outras',[],0,0,0,0,[['Malagueta',30,'g'],['Coentros',10,'g'],['Cebola verde',25,'g'],['Alho',1,'dente'],['Limão',15,'g'],['Óleo de girassol',10,'ml'],['Flor de sal',0.5,'g']],['mo']),
 R('acmsriracha','Sriracha','asiatica',[],0,0,0,0,[['Malagueta',100,'g'],['Alho',4,'dente'],['Açúcar amarelo',8,'g'],['Vinagre de vinho',20,'ml'],['Flor de sal',3,'g']],['mo']),
-R('acmxo','Molho XO','asiatica',[],0,0,0,0,[['Vieira, crua',30,'g'],['Camarão cozido descascado',30,'g'],['Presunto',25,'g'],['Malagueta seca',4,'g'],['Alho',4,'dente'],['Chalota',30,'g'],['Óleo de amendoim',40,'ml']],['mo']),
+R('acmxo','Molho XO','asiatica',[],0,0,0,0,[['Vieira, crua',25,'g'],['Camarão cozido descascado',25,'g'],['Presunto',15,'g'],['Malagueta seca',3,'g'],['Alho',3,'dente'],['Chalota',20,'g'],['Óleo de amendoim',15,'ml']],['mo']),
 R('acmteriyaki','Molho teriyaki','japonesa',[],0,0,0,0,[['Molho de soja',30,'ml'],['Mirin',30,'ml'],['Açúcar amarelo',8,'g'],['Gengibre',4,'g']],['mo']),
 R('acmranch','Ranch dressing','americana',[],0,0,0,0,[['Buttermilk',40,'ml'],['Maionese',40,'g'],['Endro',2,'g'],['Cebolinho',3,'g'],['Alho em pó',0.5,'g'],['Cebola em pó',0.5,'g'],['Limão',5,'g'],['Flor de sal',0.5,'g']],['mo']),
 R('acmvinagreteclassico','Vinagrete clássico','francesa',['mediterranica'],0,0,0,0,[['Azeite',30,'ml'],['Vinagre de vinho',10,'ml'],['Mostarda de Dijon',3,'g'],['Flor de sal',0.5,'g'],['Pimenta preta',0.2,'g']],['mo']),
@@ -4254,6 +4269,11 @@ R('acmyakitori','Molho yakitori (tare)','japonesa',[],0,0,0,0,[['Molho de soja',
    guarda-se coberto de azeite. */
 R('acmpesto','Pesto genovês','italiana',['vegetariana','mediterranica'],0,0,0,0,[['Manjericão',15,'g'],['Pinhões',7,'g'],['Alho',0.5,'dente'],['Parmesão',8,'g'],['Pecorino romano',4,'g'],['Azeite',18,'ml'],['Flor de sal',0.3,'g']],['mo']),
 R('acmpestocalabrese','Pesto calabrese','italiana',['vegetariana','mediterranica'],0,0,0,0,[['Pimento assado em conserva',35,'g'],['Tomate seco',8,'g'],['Ricotta',20,'g'],['Amêndoa',8,'g'],['Alho',0.5,'dente'],['Malagueta',1,'g'],['Pecorino romano',6,'g'],['Azeite',12,'ml'],['Flor de sal',0.3,'g']],['mo']),
+/* O siciliano é o irmão do calabrese e a diferença cabe numa frase: não leva
+   queijo fresco nenhum. É tomate seco, amêndoa, alho e manjericão — mais
+   seco, mais doce e sem o cremoso da ricotta —, e por isso é o único dos
+   dois que serve quem não come lacticínios se lhe tirarem o pecorino. */
+R('acmpestosiciliano','Pesto vermelho siciliano','italiana',['vegetariana','mediterranica'],0,0,0,0,[['Tomate seco',30,'g'],['Amêndoa',15,'g'],['Alho',0.5,'dente'],['Manjericão',6,'g'],['Pecorino romano',8,'g'],['Azeite',15,'ml'],['Flor de sal',0.3,'g']],['mo']),
 R('acmalho','Molho de alho','portuguesa',['mediterranica'],0,0,0,0,[['Alho',25,'g'],['Azeite',30,'ml'],['Vinagre de vinho',10,'ml'],['Salsa',4,'g'],['Flor de sal',1,'g']],['mo']),
 R('acmalhomanteiga','Molho de alho e manteiga para churrasco','portuguesa',[],0,0,0,0,[['Alho',20,'g'],['Manteiga',40,'g'],['Flor de sal',1,'g'],['Pimenta preta',0.3,'g']],['mo']),
 R('acmalhoervas','Molho de alho e ervas','mediterranica',['mediterranica'],0,0,0,0,[['Alho',15,'g'],['Azeite',35,'ml'],['Salsa',6,'g'],['Coentros',4,'g'],['Tomilho fresco',2,'g'],['Limão',10,'g'],['Flor de sal',1,'g']],['mo']),
@@ -7288,6 +7308,11 @@ P('acmpesto',[
  ['Pinhões tostados a seco','Frigideira sem gordura, lume brando, a abanar, até cheirarem e ganharem cor de palha. Um minuto a mais e ficam amargos, e o amargo do pinhão não se disfarça.',4],
  ['Almofariz, e não varinha','O nome vem de «pestare», pisar. No almofariz esmaga-se primeiro o alho com a flor de sal, depois os pinhões, depois o manjericão aos poucos, em movimento circular. A lâmina da varinha corta e aquece, e o manjericão cortado e quente oxida e fica escuro. Se usares varinha, usa-a aos toques e com o copo frio.',12],
  ['Queijos e azeite no fim','Parmesão e pecorino romano ralados, e o azeite em fio a envolver — não a bater. Nunca vai ao lume: junta-se à massa fora do calor, com uma colher da água da cozedura a soltá-lo.',5]]);
+P('acmpestosiciliano',[
+ ['Demolhar o tomate seco','Dez minutos em água morna se estiver duro, e depois bem espremido. É ele que manda neste pesto — no calabrese o pimento reparte o lugar, aqui não há com quem repartir.',10],
+ ['Amêndoa tostada e pelada','Tosta a amêndoa a seco até cheirar. Com pele fica com um travo áspero que o tomate seco, já intenso, faz sobressair.',5],
+ ['Triturar em pasta grossa','Tomate seco, amêndoa, alho e manjericão na picadora, aos toques, até ficar pasta com textura. Como não leva folha em quantidade, não escurece — e por isso a lâmina aqui não é problema.',4],
+ ['Pecorino e azeite, sem queijo fresco','Envolve o pecorino romano ralado, o azeite e a flor de sal. É esta a diferença para o calabrese: sem ricotta, fica mais seco e mais concentrado, e agarra melhor a massa longa do que à curta.',3]]);
 P('acmpestocalabrese',[
  ['Escorrer o que vem em conserva','Escorre e seca o pimento assado, e demolha o tomate seco dez minutos em água morna se estiver duro. A água que trazem é o que torna este pesto aguado.',10],
  ['Amêndoa tostada','Tosta a amêndoa a seco até cheirar. No calabrese é a amêndoa que faz o corpo, onde o genovês tem o pinhão.',5],
@@ -7412,7 +7437,7 @@ P('acmxo',[
  ['A despensa que se tem','O XO de Hong Kong leva vieira e camarão SECOS, que aqui não há: com vieira e camarão frescos bem picados e secos na frigideira antes do resto, chega-se perto — mais leve, e menos salgado do que o original.',10],
  ['Tudo picado fino','Pica a chalota, o alho e o presunto o mais fino que a paciência der. O XO é um molho de pedacinhos, e o tamanho deles é metade do trabalho.',15],
  ['Fritar por ordem','Óleo morno, chalota e alho primeiro até dourarem devagar; depois o presunto, e por fim o marisco e a malagueta seca desfeita. Cada um entra quando o anterior já cheira.',20],
- ['Coberto de óleo','Guarda em frasco com o óleo a cobrir tudo — é o óleo que o conserva, e é dele que se tira uma colher para pôr no arroz, nos legumes ou num ovo estrelado.',5]]);
+ ['Coberto de óleo','Guarda em frasco e acrescenta óleo de amendoim até cobrir tudo — é o óleo que o conserva. Esse não se come: a dose que a app conta é a colher que se tira, com o que ela leva. Vai no arroz, nos legumes ou num ovo estrelado.',5]]);
 P('acmteriyaki',[
  ['Partes iguais','Molho de soja e mirin em partes iguais, com o açúcar. É esta a base — o resto são variações, e as garrafas compradas levam quase sempre mais açúcar do que soja.',2],
  ['Reduzir a olho','Lume médio até reduzir a pouco mais de metade e ganhar brilho. Está no ponto quando escorre da colher em fio grosso e deixa risco no fundo do tacho.',8],
@@ -20007,6 +20032,10 @@ function pesoCusto(r){
    pratos clássicos distintos. Agrupar por prefixo dava disparates, e um
    disparate na grelha esconde receitas em vez de as organizar. */
 const VARIANTES=[
+  /* Os pestos são uma família como as açordas: a pergunta é «hoje há pesto?»
+     e só depois «de qual». O genovês, o calabrese e o siciliano partilham o
+     gesto — pisar, não cozinhar — e trocam a despensa. */
+  {k:'pestos',   n:'Pestos',       ids:['acmpesto','acmpestocalabrese','acmpestosiciliano']},
   /* Os salgados da pastelaria portuguesa são famílias antes de serem receitas:
      a pergunta à montra é «hoje há rissóis?» e só depois «de quê». */
   /* A açorda é o mesmo gesto com caldos diferentes, e as migas são uma técnica
@@ -33744,10 +33773,17 @@ function lerPacote(txt){
     Object.keys(d.jejum.renutRecusada||{}).forEach(mid0=>{ jejumBruto.renutRecusada[mapa[mid0]||mid0]=d.jejum.renutRecusada[mid0]; });
   }
   const jejum=limpaJejunsInalcancaveis(limparJejum(jejumBruto, idsOk), members);
-  /* combos: além de sanear a forma, exige-se que o prato e pelo menos um dos
-     acompanhamentos existam deste lado — uma variante de uma receita que não
-     veio na cópia não é uma variante, é um id órfão */
-  const combos=limparCombos(d.combos).filter(c=>acha(c.base) && c.ac.some(acha));
+  /* combos: além de sanear a forma, exige-se que o prato e pelo menos uma das
+     partes do lado existam deste lado — uma variante de uma receita que não
+     veio na cópia não é uma variante, é um id órfão.
+     «Pelo menos uma das partes» e não «pelo menos um acompanhamento»: desde
+     que o molho passou a ter lugar próprio, um par pode ser só prato e molho,
+     e `[].some()` é sempre falso. Restaurar uma cópia deitava fora todos
+     esses — e são a maioria, 55 dos pares que a app traz de origem. O bife
+     com cebolada, o tonkatsu com o seu molho, a panna cotta com o coulis:
+     todos desapareciam em silêncio na primeira importação. */
+  const combos=limparCombos(d.combos)
+    .filter(c=>acha(c.base) && ((c.ac||[]).some(acha) || (c.mo && acha(c.mo))));
   return {d:{ members, cheats, plans, bought, objetivos, despensa, receitas,
               medicoes, regAtiv, regRef, sobras, precos, festas, casa, pausas, diario, cozPref,
               validades, veredictos, brigada, desperdicio, gostos, jejum, combos, rituais, extras, aindaHa, basicos, visitas, ementas, anos, provas, bebidas, notasCozinha,
