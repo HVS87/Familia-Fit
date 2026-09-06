@@ -29408,6 +29408,17 @@ const GUIA_DIETA={
       'Batata, batata-doce, mandioca, milho, leguminosas — e a maior parte da fruta, à exceção de frutos vermelhos em pouca quantidade.',
       'Açúcar em qualquer forma, mel, néctares, refrigerantes; leite (a lactose é hidrato) em mais do que um pingo.',
       'Fazer isto na gravidez, na amamentação, em idade de crescimento, com diabetes tipo 1 ou com doença renal ou hepática — a app encosta os macros à faixa recomendada nesses perfis e não propõe a dieta.'],
+    /* O limite que interessa a quem faz keto não é a repartição de macros: é
+       o teto de hidratos, e o que acontece quando se passa dele. Fica num
+       bloco próprio, colado à tabela dos gramas por refeição, porque é ali
+       que a pergunta se faz. Escrito com os números que a app usa, para não
+       haver duas verdades. */
+    cetose:'O teto de hidratos não é uma meta a atingir — é um limite a não passar, e é ele que decide se há cetose ou não. '
+      +'A literatura clínica define a dieta cetogénica de muito baixo teor de hidratos abaixo de 50 g por dia, mas a maioria das pessoas só entra e se mantém em cetose entre 20 e 30 g líquidos por dia; a app usa '+DOSE_DIARIA.keto.dia+' g, que é o valor apertado desse intervalo e o da dieta cetogénica clássica. '
+      +'Passar dos 50 g num dia tira quase toda a gente da cetose, e voltar a entrar leva de um a três dias — por isso um único dia fora custa mais do que o que se comeu nesse dia. '
+      +'Por refeição não há um limite próprio: há o do dia repartido, e é aí que está a armadilha. Uma refeição sozinha pode gastar o dia inteiro, e é por isso que a app só etiqueta como keto as receitas com até '+HC_TETO_EFETIVO.keto+' g — metade do teto diário numa dose. Duas dessas e o dia está cheio, sem contar o que se bebe nem o que se pica entre refeições. '
+      +'E isto é individual: quem treina muito, tem mais massa muscular ou está adaptado há meses aguenta mais hidratos sem sair da cetose do que quem começou esta semana. Estes números são o ponto de partida seguro, não uma medida do teu corpo — quem quiser saber ao certo mede as cetonas.',
+    cetoseFonte:'Não há aqui nenhuma entidade oficial a fixar um limite, ao contrário do que acontece com a fibra (EFSA) ou o sal (OMS): os 20 a 50 g por dia vêm da literatura clínica da dieta cetogénica e dos protocolos usados na epilepsia refratária, e a app diz de onde vêm em vez de os apresentar como norma.',
     compat:(nome,ni,at)=>ni.c<=5 && at.indexOf('alcool')<0,
     limite:'≤ 5 g de hidratos por 100 g',
     fontes:'Epilepsy Foundation e NICE (epilepsia), sobre a dieta cetogénica clássica; Diabetes UK, posição sobre dietas low carb (2021); a definição de ≤ 20 g/dia é a usada na literatura clínica para a dieta cetogénica de muito baixo teor de hidratos.',
@@ -29579,6 +29590,11 @@ function cartaoGuiaDieta(m){
       <tbody>${t.linhas.map(l=>`<tr${l.dia?' class="gj-eu"':''}><td>${esc(l.nome)}</td><td>${l.kcal}</td>
         <td>${t.tetoC!=null?'≤ ':''}${l.c} g</td><td>${l.p} g</td><td>${t.tetoF!=null?'≤ ':''}${l.f} g</td></tr>`).join('')}</tbody></table></div>
     <p class="sub" style="margin-top:8px">${tetoNota} A repartição pelas refeições é a da app (25 / 35 / 10 / 30 %).</p>
+    ${g.cetose? `<div class="alerta" style="margin-top:10px"><span aria-hidden="true">⚠️</span><span>
+      <b>O que para a cetose</b> — ${esc(g.cetose)}
+      ${t.tetoC!=null? ` Para ${nomeCurto(m)}, com o alvo de hoje, isso dá <b>${t.linhas.filter(l=>!l.dia).map(l=>l.c+' g').join(' · ')}</b> nas quatro refeições e <b>${t.tetoC} g no dia</b>.`:''}
+      ${g.cetoseFonte? `<span class="sub" style="display:block;margin-top:6px">${esc(g.cetoseFonte)}</span>`:''}
+    </span></div>`:''}
     ${lista}
     <div class="row" style="margin-top:12px">
       <button class="btn small" onclick="verReceitasDieta('${k}')">🍳 Ver receitas ${esc(nome.toLowerCase())}</button>
