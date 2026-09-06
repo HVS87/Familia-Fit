@@ -4481,6 +4481,11 @@ R('aclcouveflormilanesa','Couve-flor à milanesa','italiana',[],0,0,0,0,[['Couve
 R('ketoquiche','Quiche keto de espinafres e bacon','francesa',[],0,0,0,0,[['Ovo',2,'un'],['Espinafres',120,'g'],['Nata para bater 35% gordura',40,'ml'],['Bacon',30,'g'],['Queijo gruyère',25,'g'],['Manteiga',8,'g'],['Noz-moscada',0.2,'g'],['Flor de sal',1,'g']],['a','j'],0,['pp']),
 R('aclcouveflorgrat','Couve-flor gratinada','portuguesa',[],0,0,0,0,[['Couve-flor',200,'g'],['Queijo gruyère',35,'g'],['Manteiga',10,'g'],['Noz-moscada',0.2,'g'],['Flor de sal',0.5,'g'],['Pimenta preta',0.2,'g']],['ac']),
 R('aclcouveflorgratbacon','Couve-flor gratinada com bacon','portuguesa',[],0,0,0,0,[['Couve-flor',200,'g'],['Bacon',35,'g'],['Queijo gruyère',30,'g'],['Nata para bater 35% gordura',30,'ml'],['Cebolinho',3,'g'],['Pimenta preta',0.2,'g']],['ac']),
+/* O gratinado com molho, para quem conta hidratos: o bechamel do irmão leva
+   farinha e leite, e são eles — não a couve-flor — que lhe põem 17 g de
+   hidrato na dose. Aqui o molho engrossa por redução da nata e pelo queijo
+   fora do lume, que é como se faz um molho branco sem amido. */
+R('aclcouveflorgratnatas','Couve-flor gratinada com molho de natas','portuguesa',[],0,0,0,0,[['Couve-flor',170,'g'],['Nata para bater 35% gordura',45,'ml'],['Queijo gruyère',30,'g'],['Parmesão',8,'g'],['Manteiga',6,'g'],['Noz-moscada',0.3,'g'],['Flor de sal',0.5,'g'],['Pimenta preta',0.2,'g']],['ac']),
 R('aclbrocolosgrat','Brócolos gratinados','portuguesa',[],0,0,0,0,[['Brócolos',200,'g'],['Queijo gruyère',35,'g'],['Manteiga',10,'g'],['Noz-moscada',0.2,'g'],['Flor de sal',0.5,'g'],['Pimenta preta',0.2,'g']],['ac']),
 R('aclbrocolosgratmb','Brócolos gratinados com molho branco','portuguesa',[],0,0,0,0,[['Brócolos',200,'g'],['Leite',80,'ml'],['Farinha',10,'g'],['Manteiga',12,'g'],['Queijo ralado',25,'g'],['Noz-moscada',0.3,'g'],['Flor de sal',0.5,'g']],['ac']),
 R('aclbrocolosgratbacon','Brócolos gratinados com bacon','portuguesa',[],0,0,0,0,[['Brócolos',200,'g'],['Bacon',35,'g'],['Queijo gruyère',30,'g'],['Nata para bater 35% gordura',30,'ml'],['Cebolinho',3,'g'],['Pimenta preta',0.2,'g']],['ac']),
@@ -7813,6 +7818,13 @@ P('aclcouveflorgratbacon',[
  ['Bacon estaladiço primeiro','Bacon aos cubos numa frigideira fria, lume médio, até ficar estaladiço, e escorrido em papel. Começar a frio derrete-lhe a gordura devagar e é isso que o torna estaladiço em vez de queimado por fora e mole por dentro.',8],
  ['Nata a envolver','Envolve os raminhos com a nata e metade do bacon, e leva ao pirex. A nata é pouca de propósito: aqui ela é para ligar, não para afogar.',4],
  ['Gratinar e rematar','Queijo gruyère ralado por cima, pimenta preta moída, e forno a 200 °C na prateleira de cima até tostar. O resto do bacon e o cebolinho picado deitam-se DEPOIS do forno, para não queimarem e para se sentir o estaladiço.',18]]);
+P('aclcouveflorgratnatas',[
+ ['Cozer al dente','Raminhos do mesmo tamanho em água a ferver bem salgada, cinco a seis minutos: a faca tem de entrar com resistência. Vai ao forno a seguir e coze outra vez — no ponto agora, sai de lá desfeita.',6],
+ ['Secar a sério','Escorre e deixa os raminhos a largar vapor no tacho quente, cinco minutos, mexendo uma vez. Aqui isto conta mais do que no gratinado de sempre: sem farinha, não há nada no molho que absorva a água que eles largam, e o que sai do forno é nata aguada por baixo de uma crosta.',5],
+ ['Reduzir a nata','Nata e manteiga num tacho pequeno, lume brando, cinco a seis minutos, sem ferver: quando cobrir as costas da colher e o dedo deixar um risco limpo, está. É a evaporação que engrossa este molho — a farinha do bechamel não faz aqui falta nenhuma, e é ela que põe os hidratos no outro.',6],
+ ['Queijo fora do lume','Tira o tacho do calor, conta meio minuto e só então junta o gruyère ralado, a mexer até desaparecer. Queijo em nata a ferver desfaz-se em fios de gordura e um granulado por baixo; fora do lume, derrete liso. Noz-moscada, flor de sal e pimenta preta moída na hora.'],
+ ['Montar e gratinar','Raminhos num pirex numa camada só, molho por cima a cobrir, parmesão ralado a rematar. Forno a 200 °C na prateleira de cima, quinze a vinte minutos, até tostar e borbulhar nos bordos.',18],
+ ['Descansar','Cinco minutos fora do forno antes de servir. Acabado de sair, o molho escorre da colher e a dose de cada um fica ao acaso; assente, vai inteiro para o prato.',5]]);
 P('aclbrocolosgrat',[
  ['Cozer al dente','Raminhos de brócolo em água a ferver com sal, três a quatro minutos — menos do que a couve-flor, que o brócolo é mais tenro. Ainda tem de estar verde-vivo e firme.',4],
  ['Água fria e secar','Passa-os por água fria para travar a cozedura e fixar o verde, e seca-os bem. Sem este travão, saem do forno acastanhados.',5],
@@ -20695,7 +20707,7 @@ const VARIANTES=[
   /* Os gratinados são o mesmo gesto — cozer al dente, secar, cobrir, forno —
      e o que muda é o que vai por cima. Duas famílias e não uma, porque a
      pergunta em casa é «hoje há couve-flor?» antes de ser «gratinada como?». */
-  {k:'gratcouveflor', n:'Couve-flor gratinada', ids:['aclcouveflorgrat','aclcouveflor','aclcouveflorgratbacon']},
+  {k:'gratcouveflor', n:'Couve-flor gratinada', ids:['aclcouveflorgrat','aclcouveflor','aclcouveflorgratnatas','aclcouveflorgratbacon']},
   {k:'gratbrocolos',  n:'Brócolos gratinados',  ids:['aclbrocolosgrat','aclbrocolosgratmb','aclbrocolosgratbacon']},
   /* Os salgados da pastelaria portuguesa são famílias antes de serem receitas:
      a pergunta à montra é «hoje há rissóis?» e só depois «de quê». */
