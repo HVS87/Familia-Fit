@@ -1627,6 +1627,19 @@ input[type=range].com-detentes::-moz-range-track{
 .cal-col.hoje{background:color-mix(in srgb,var(--accent) 5%,var(--card))}
 .cal-linha{position:absolute;left:0;right:0;height:0;border-top:1px solid var(--line);opacity:.6;pointer-events:none}
 .cal-im{position:absolute;left:0;right:0;opacity:.07;pointer-events:none}
+/* o sombreado de um jejum a sério: a mesma cor do intermitente, com o dobro
+   do peso — a mesma relação que o gráfico do peso já usava */
+.cal-jj{position:absolute;left:0;right:0;opacity:.15;pointer-events:none}
+.cal-jj.feito{opacity:.22}
+/* o que é do dia inteiro tinge a coluna toda, cada um com a sua cor */
+.cal-tinta{position:absolute;inset:0;opacity:.09;pointer-events:none}
+.cal-tinta.recup{opacity:.20}
+/* a etiqueta que abre o jejum: o sombreado sozinho não se toca */
+.cal-tag{position:absolute;left:2px;z-index:2;font:inherit;font-size:10.5px;line-height:1.2;padding:1px 6px;border-radius:999px;
+  cursor:pointer;white-space:nowrap;max-width:calc(100% - 6px);overflow:hidden;text-overflow:ellipsis;color:var(--ink);
+  background:color-mix(in srgb,var(--ev) 22%,var(--card));border:1px solid color-mix(in srgb,var(--ev) 55%,var(--card))}
+.cal-tag:hover,.cal-tag:focus-visible{background:color-mix(in srgb,var(--ev) 34%,var(--card));outline:none}
+.cal-tag:focus-visible{box-shadow:0 0 0 2px var(--accent)}
 .cal-agora{position:absolute;left:0;right:0;height:0;border-top:2px solid var(--accent);pointer-events:none;z-index:1}
 .cal-agora::before{content:'';position:absolute;left:-4px;top:-4px;width:7px;height:7px;border-radius:50%;background:var(--accent)}
 .cal-ev{position:absolute;box-sizing:border-box;margin:1px 0 0 1px;padding:2px 5px;border-radius:6px;text-align:left;overflow:hidden;
@@ -2906,10 +2919,11 @@ function migraRegistos(s){
      não serve ninguém — e é uma superfície de avaria a mais, porque o estado
      vem de um ficheiro que pode estar estragado. A cozinha é a exceção
      deliberada: os tachos ficam a contar e a app tem de voltar para lá. */
-  s.ui.modal=null; s.ui.folha=null; s.ui.ficha=null;
+  s.ui.modal=null; s.ui.folha=null; s.ui.ficha=null; s.ui.sugRec=null;
   s.ui.pesqAberta=false; s.ui.mercado=false;
   if(!s.cheats || typeof s.cheats!=='object' || Array.isArray(s.cheats)) s.cheats={};
   Object.keys(s.cheats).forEach(k=>{ if(!Array.isArray(s.cheats[k])) delete s.cheats[k]; });
+  s.recuperacao = limparRecuperacao(s.recuperacao, ids);
   s.corredores = limparCorredores(s.corredores);
   s.trilhos = limparTrilhos(s.trilhos);
   s.talhoes = limparTalhoes(s.talhoes, ids);
@@ -12480,7 +12494,7 @@ function marcaDesenho(){
   _tickPendente=true;
   Promise.resolve().then(()=>{ _tickPendente=false; _renderTick=0; });
 }
-function blank(){ return {members:[],cheats:{},plans:{},bought:{},prefCuisine:'todas',objetivos:[],despensa:{},
+function blank(){ return {members:[],cheats:{},recuperacao:{},plans:{},bought:{},prefCuisine:'todas',objetivos:[],despensa:{},
   receitas:[],
   /* ingredientes: os que faltavam ao catálogo e alguém escreveu à mão a partir
      do rótulo. Ficam na gaveta «Da casa», que é a de prioridade mais baixa —
@@ -12743,7 +12757,7 @@ window.addEventListener('storage', e=>{
    e num arrasto de slider isso é o estado de antes do gesto começar. */
 const UNDO_MAX=30;
 let pilhaUndo=[], pilhaRedo=[], estadoAnterior=null, ultimaDesc=null;
-function instantaneo(){ return JSON.stringify({members:S.members, cheats:S.cheats, plans:S.plans,
+function instantaneo(){ return JSON.stringify({members:S.members, cheats:S.cheats, recuperacao:S.recuperacao, plans:S.plans,
   bought:S.bought, week:S.week, prefCuisine:S.prefCuisine, objetivos:S.objetivos, despensa:S.despensa,
   corredores:S.corredores, trilhos:S.trilhos, talhoes:S.talhoes,
   receitas:S.receitas, ingredientes:S.ingredientes, medicoes:S.medicoes, regAtiv:S.regAtiv, regRef:S.regRef,
@@ -12753,7 +12767,7 @@ function instantaneo(){ return JSON.stringify({members:S.members, cheats:S.cheat
   visitas:S.visitas, ementas:S.ementas, anos:S.anos, provas:S.provas, bebidas:S.bebidas, notasCozinha:S.notasCozinha}); }
 function aplicaInstantaneo(js){
   const d=JSON.parse(js);
-  S.members=d.members; S.cheats=d.cheats; S.plans=d.plans; S.bought=d.bought;
+  S.members=d.members; S.cheats=d.cheats; S.recuperacao=d.recuperacao||{}; S.plans=d.plans; S.bought=d.bought;
   S.week=d.week; S.prefCuisine=d.prefCuisine; S.objetivos=d.objetivos||[]; S.despensa=d.despensa||{};
   /* outra vez antes das receitas, pela mesma razão do arranque */
   S.ingredientes=limparIngredientes(d.ingredientes);
@@ -13993,6 +14007,9 @@ function minutosSessao(s){ const n=diasPlano(s).length||1; return sportWeeklyH(s
 function kcalSessao(mid,s,d){ return metDe(s)*pesoNaData(mid,d||hojeISO())*minutosSessao(s)/60; }
 /* O que o plano marca para um membro numa data. */
 function planeadasNoDia(m,d){
+  /* num dia de recuperação o plano não marca nada: é a promessa da proposta,
+     e é aqui que se cumpre — nas pendências, no fio do dia e nas contas */
+  if(isRecuperacao(m.id,d)) return [];
   const wd=diaSemana(d);
   return (m.desportos||[]).filter(s=>diasPlano(s).indexOf(wd)>=0)
     .map(s=>({s, min:Math.round(minutosSessao(s)), kcal:Math.round(kcalSessao(m.id,s,d))}));
@@ -21093,6 +21110,8 @@ function confirmarTreinoFio(mid,sid,min,planoId){
   S.regAtiv=S.regAtiv.filter(Boolean);
   save('treino confirmado'); render();
   flash('ok',s.nome+' registado para '+nomeCurto(m)+'.',{rot:'Anular', fn:'desfazer()'});
+  const r=S.regAtiv[S.regAtiv.length-1];
+  if(r && r.mid===mid) depoisDeTreinoForte(mid, sessaoDeRegisto(r), r.d);
 }
 function cartaoFioDoDia(){
   if(!S.members.length) return '';
@@ -21189,7 +21208,7 @@ function abrirBandeja(){
   S.ui.ultimaTriagem=hojeISO();
   saveMeta(); render();
 }
-function fecharBandeja(){ S.ui.modal=null; S.ui.ultimaTriagem=hojeISO(); saveMeta(); render(); }
+function fecharBandeja(){ S.ui.ultimaTriagem=hojeISO(); fecharModal(); }
 function bandejaSeguinte(){
   const mo=modalAberto(); if(!mo||mo.tipo!=='bandeja') return;
   mo.i++; saveMeta(); render();
@@ -22027,12 +22046,18 @@ let jaPerguntouPeso=false, jaPerguntouCompras=false;
    S.ui.modal preenchido sem nada no ecrã: uma camada invisível que engolia o
    Escape, travava o go() e não tinha botão de fechar — só se saía recarregando.
    Recusar em voz alta é melhor do que abrir o nada. */
-const MODAIS=['peso','aviso','compras','ingrediente','acabou','favoritos','cal'];
+const MODAIS=['peso','aviso','compras','ingrediente','acabou','favoritos','cal','recuperacao'];
 function abrirModal(tipo,dados){
   if(MODAIS.indexOf(tipo)<0){ console.warn('Família Fit — modal desconhecido: '+tipo); return; }
   S.ui.modal=Object.assign({tipo},dados||{}); saveMeta(); render();
 }
-function fecharModal(){ S.ui.modal=null; saveMeta(); render(); }
+/* Uma proposta de recuperação que chegou com outra janela aberta espera a vez:
+   fecha-se a que estava, e é a proposta que aparece a seguir. */
+function fecharModal(){
+  const seg=S.ui.sugRec; S.ui.sugRec=null;
+  S.ui.modal = seg && seg.tipo==='recuperacao'? seg : null;
+  saveMeta(); render();
+}
 function fundoModal(e){ if(e && e.target && e.target.classList.contains('mfundo')) fecharModal(); }
 function modalAberto(){ return S.ui.modal&&typeof S.ui.modal==='object'? S.ui.modal : null; }
 /* Quem já não se pesa há uma semana. Não é um alarme: é só a pergunta que
@@ -24313,6 +24338,9 @@ function guardarFormAtiv(){
     ? 'Atividade registada para '+criados.length+' pessoas — '+Math.round(criados.reduce((t,r)=>t+kcalRegAtiv(r),0))+' kcal no total.'
     : 'Atividade registada — '+Math.round(kcalRegAtiv(criados[0]))+' kcal.');
   render();
+  /* uma sessão fora do habitual pede um dia de recuperação e uma refeição com
+     proteína reforçada — propõe-se a uma pessoa de cada vez, não a quatro */
+  criados.some(r=>depoisDeTreinoForte(r.mid, sessaoDeRegisto(r), r.d));
 }
 function apagarRegAtiv(id){
   const r=(S.regAtiv||[]).find(x=>x.id===id); if(!r) return;
@@ -24343,6 +24371,9 @@ function validarAtivFeita(mid,d,sid){
   carimboAlvo='ativ:'+d+':'+sid;
   save('treino confirmado');
   flash('ok', mids.length>1? 'Confirmado para '+mids.length+' pessoas.' : 'Treino confirmado.');
+  /* uma sessão fora do habitual pede recuperação e proteína a seguir */
+  const feito=(S.regAtiv||[]).filter(r=>r.mid===mid&&r.d===d&&r.plano===sid&&r.estado==='feita').pop();
+  if(feito) depoisDeTreinoForte(mid, sessaoDeRegisto(feito), d);
   render();
 }
 function validarAtivFalhou(mid,d,sid,modo,novaData){
@@ -33974,6 +34005,9 @@ function renderPlano(){
         <div class="mtitle" style="color:var(--party)">Cheat day</div>
         <div class="row">${S.members.map(m=>`<button class="chip party ${isCheat(m.id,date)?'on':''}"
           onclick="toggleCheat('${m.id}','${date}')">${avatar(m,20)} ${esc(m.nome.split(' ')[0])}</button>`).join('')}</div>
+        <div class="mtitle" style="color:var(--mut);margin-top:8px">Dia de recuperação</div>
+        <div class="row">${S.members.map(m=>`<button class="chip ${isRecuperacao(m.id,date)?'on':''}"
+          onclick="toggleRecuperacao('${m.id}','${date}')" title="Sem treino nesse dia — o plano não conta as sessões, e o Calendário sombreia-o">${avatar(m,20)} ${esc(m.nome.split(' ')[0])}</button>`).join('')}</div>
       </div>
       ${MEALS.map(([k,rot])=>mealBlock(di,k,rot,date)).join('')}
     </div>`;}).join('')}
@@ -34913,7 +34947,7 @@ function pacote(){
      aqui, para uma cópia nunca sair incoerente. */
   S.members.forEach(sincronizaObjetivo);
   return {app:APPID, formato:FORMATO, exportadoEm:new Date().toISOString(),
-  dados:{members:S.members, cheats:S.cheats, plans:S.plans, bought:S.bought,
+  dados:{members:S.members, cheats:S.cheats, recuperacao:S.recuperacao, plans:S.plans, bought:S.bought,
          prefCuisine:S.prefCuisine, week:S.week, objetivos:S.objetivos, despensa:S.despensa,
          receitas:S.receitas, ingredientes:S.ingredientes, medicoes:S.medicoes, regAtiv:S.regAtiv, regRef:S.regRef,
          sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa, pausas:S.pausas, diario:S.diario, cozPref:S.cozPref, metodoBMR:S.metodoBMR,
@@ -35110,6 +35144,15 @@ function lerPacote(txt){
     if(!alvo || !Array.isArray(arr)) return;
     const dias=arr.filter(dataValida);
     if(dias.length) cheats[alvo]=(cheats[alvo]||[]).concat(dias);
+  });
+  /* os dias de recuperação seguem a mesma regra dos cheat days: datas válidas,
+     de gente que existe neste ficheiro */
+  const recuperacao={};
+  if(d.recuperacao && typeof d.recuperacao==='object') Object.keys(d.recuperacao).forEach(mid=>{
+    const alvo=idOk(mid); const arr=d.recuperacao[mid];
+    if(!alvo || !Array.isArray(arr)) return;
+    const dias=arr.filter(dataValida);
+    if(dias.length) recuperacao[alvo]=(recuperacao[alvo]||[]).concat(dias);
   });
   const visitas=limparVisitas(d.visitas);
   const plans={};
@@ -35321,7 +35364,7 @@ function lerPacote(txt){
     if(pd && typeof pd==='object') Object.keys(pd).slice(0,64).forEach(id=>{
       if(SPORTS.some(s=>s.id===id) && HEX.test(String(pd[id]||''))) cores.porDesporto[id]=pd[id]; });
   }
-  return {d:{ members, cheats, plans, bought, objetivos, despensa, receitas,
+  return {d:{ members, cheats, recuperacao, plans, bought, objetivos, despensa, receitas,
               medicoes, regAtiv, regRef, sobras, precos, festas, casa, pausas, diario, cozPref,
               validades, veredictos, brigada, desperdicio, gostos, jejum, combos, massaFeita, cores, agenda, rituais, extras, aindaHa, basicos, visitas, ementas, anos, provas, bebidas, notasCozinha,
               prefCuisine:temChave(CUIS,d.prefCuisine)?d.prefCuisine:'todas',
@@ -35399,6 +35442,10 @@ function juntar(txt){
   Object.keys(d.cheats).forEach(mid=>{
     const alvo=mapa[mid]||mid; if(!S.cheats[alvo]) S.cheats[alvo]=[];
     (d.cheats[mid]||[]).forEach(dia=>{ if(!S.cheats[alvo].includes(dia)) S.cheats[alvo].push(dia); });
+  });
+  Object.keys(d.recuperacao||{}).forEach(mid=>{
+    const c=recuperacaoCfg(), alvo=mapa[mid]||mid; if(!c[alvo]) c[alvo]=[];
+    (d.recuperacao[mid]||[]).forEach(dia=>{ if(!c[alvo].includes(dia)) c[alvo].push(dia); });
   });
   Object.keys(d.plans).forEach(wk=>{
     if(!S.plans[wk]) S.plans[wk]={};
@@ -36008,8 +36055,10 @@ function eventosDaSemana(wk){
     const dow=diaSemana(d);
     const feitos=(S.regAtiv||[]).filter(r=>r.d===d && r.estado==='feita');
     const cobertos=new Set();
+    /* num dia de recuperação o plano não marca treino nenhum: é o que a
+       proposta prometeu, e é onde tem de ser cumprido */
     S.members.forEach(m=>(m.desportos||[]).forEach(s=>{
-      if(!(s.dias||[]).includes(dow)) return;
+      if(!(s.dias||[]).includes(dow) || isRecuperacao(m.id,d)) return;
       const sp=SPORT[s.s]; if(!sp) return;
       const nDias=Math.max(1,(s.dias||[]).length);
       /* a sessão traz o aquecimento e os alongamentos por omissão, dentro da duração */
@@ -36069,6 +36118,7 @@ function eventosDaSemana(wk){
   dias.forEach((d,di)=>{
     S.members.forEach(m=>{
       if(isCheat(m.id,d)) diaInteiro.push({id:'ch:'+d+':'+m.id, d, tipo:'cheat', titulo:'🎉 Cheat day', sub:nomeCurto(m), cor:calCorDe('party'), mid:m.id});
+      if(isRecuperacao(m.id,d)) diaInteiro.push({id:'rc:'+d+':'+m.id, d, tipo:'recuperacao', titulo:'🛌 Dia de recuperação', sub:nomeCurto(m)+' · sem treino, para o corpo reconstruir', cor:calCorDe('mut'), mid:m.id});
       if(nascValida(m.nasc) && mdDe(m.nasc)===mdDe(d)){
         const anos=anosDesde(m.nasc,d);
         diaInteiro.push({id:'an:'+d+':'+m.id, d, tipo:'aniversario', titulo:'🎂 '+nomeCurto(m)+' faz '+anos, sub:'aniversário', cor:calCorDe('party'), mid:m.id});
@@ -36122,8 +36172,21 @@ function renderCalendario(){
   const cab=dias.map((d,i)=>`<div class="cal-dia ${d===hoje?'hoje':''} ${d<hoje?'passado':''}" role="columnheader">
       <span class="cal-dn">${DAYN[i].slice(0,3)}</span><span class="cal-dd">${new Date(d+'T12:00:00').getDate()}</span></div>`).join('');
   const colunas=dias.map((d,i)=>{
-    const meus=ev.filter(e=>e.d===d);
+    /* ---- O que se sombreia, e o que se desenha como bloco ----
+       Um jejum não é um compromisso às tantas horas: é um estado que dura, e
+       desenha-se como estado — sombra por baixo de tudo, nas horas certas, sem
+       roubar uma pista ao jantar que ali está. O intermitente é a mesma sombra
+       mais clara, como no gráfico do peso. O cheat day e o dia de recuperação
+       não têm hora nenhuma: tingem a coluna toda, cada um com a sua cor. */
+    const meus=ev.filter(e=>e.d===d && e.tipo!=='jejum');
     calPistas(meus);
+    const quemCheat=S.members.filter(m=>isCheat(m.id,d));
+    const quemRec=S.members.filter(m=>isRecuperacao(m.id,d));
+    const tintas=[];
+    if(quemCheat.length) tintas.push(`<div class="cal-tinta cheat" style="background:${calCorDe('party')}"
+      title="Cheat day de ${esc(quemCheat.map(m=>m.nome.split(' ')[0]).join(', '))}"></div>`);
+    if(quemRec.length) tintas.push(`<div class="cal-tinta recup" style="background:${calCorDe('mut')}"
+      title="Dia de recuperação de ${esc(quemRec.map(m=>m.nome.split(' ')[0]).join(', '))} — sem treino, para o corpo reconstruir"></div>`);
     const fundos=fundo.filter(f=>f.d===d).map(f=>{
       /* o jejum intermitente começa quando a janela fecha e dura h horas,
          atravessando a meia-noite: dois retângulos quando é preciso */
@@ -36132,11 +36195,21 @@ function renderCalendario(){
       return partes.map(([a,b])=>`<div class="cal-im" style="top:${(a-CAL_H0)*CAL_PX}px;height:${(b-a)*CAL_PX}px;background:${calCorDe('bad')}"
         title="Jejum intermitente ${esc(f.n)} de ${esc(f.quem)} — sem comer entre as ${hCal(f.fecha)} e as ${hCal((f.fecha+f.h)%24)}"></div>`).join('');
     }).join('');
+    /* os jejuns a sério: a mesma cor, o dobro do peso — e uma etiqueta que
+       se toca, porque um sombreado sozinho não se abre nem se apaga */
+    const sombras=ev.filter(e=>e.d===d && e.tipo==='jejum').map(e=>{
+      const h0=Math.max(e.h,CAL_H0), h1=Math.min(e.h+e.dur,CAL_H1); if(h1<=h0) return '';
+      const top=(h0-CAL_H0)*CAL_PX;
+      return `<div class="cal-jj ${e.feito?'feito':''}" style="top:${top}px;height:${(h1-h0)*CAL_PX}px;background:${e.cor}"
+          title="${esc(e.titulo)} — ${esc(e.sub)}"></div>
+        <button class="cal-tag" style="top:${top+2}px;--ev:${e.cor}" onclick="event.stopPropagation();calAbrirEvento('${e.id}')"
+          title="${esc(e.titulo)} — ${esc(e.sub)}" aria-label="${esc(e.titulo)}, ${esc(e.sub)}${e.feito?', feito':''}">⏳ ${esc(e.titulo.replace('Jejum ',''))}${e.feito?' ✓':''}</button>`;
+    }).join('');
     const blocos=meus.map(e=>{
       const h0=Math.max(e.h,CAL_H0), h1=Math.min(e.h+e.dur,CAL_H1); if(h1<=h0) return '';
       const top=(h0-CAL_H0)*CAL_PX, alt=Math.max(18,(h1-h0)*CAL_PX-2);
       const larg=100/Math.max(1,e.nPistas), esq=larg*e.pista;
-      const ico=e.tipo==='refeicao'? '🍽️' : e.tipo==='jejum'? '⏳' : (CAL_TIPOS[e.tipo]||{}).ico||'';
+      const ico=e.tipo==='refeicao'? '🍽️' : (CAL_TIPOS[e.tipo]||{}).ico||'';
       return `<button class="cal-ev ${e.feito?'feito':''} ${e.tipo}" style="top:${top}px;height:${alt}px;left:${esq}%;width:calc(${larg}% - 3px);--ev:${e.cor}"
         onclick="event.stopPropagation();calAbrirEvento('${e.id}')" title="${esc(e.titulo)}${e.sub?' — '+esc(e.sub):''}"
         aria-label="${esc(hCal(e.h))}, ${esc(e.titulo)}${e.sub?', '+esc(e.sub):''}${e.feito?', feito':''}">
@@ -36144,10 +36217,12 @@ function renderCalendario(){
         <span class="cal-ev-t">${ico} ${esc(e.titulo)}</span>
         ${alt>34 && e.sub? `<span class="cal-ev-s">${esc(e.sub)}</span>`:''}</button>`;
     }).join('');
+    const marcas=[quemCheat.length? 'cheat day de '+quemCheat.map(m=>m.nome.split(' ')[0]).join(', ') : '',
+                  quemRec.length? 'dia de recuperação de '+quemRec.map(m=>m.nome.split(' ')[0]).join(', ') : ''].filter(Boolean).join(', ');
     return `<div class="cal-col ${d===hoje?'hoje':''} ${d<hoje?'passado':''}" role="gridcell" style="height:${alt}px"
-        onclick="calCliqueColuna(event,'${d}')" aria-label="${esc(DAYN[i])}, ${esc(fmtShort(d))}">
+        onclick="calCliqueColuna(event,'${d}')" aria-label="${esc(DAYN[i])}, ${esc(fmtShort(d))}${marcas? ', '+esc(marcas):''}">
       ${horas.map(h=>`<div class="cal-linha" style="top:${(h-CAL_H0)*CAL_PX}px"></div>`).join('')}
-      ${fundos}${blocos}
+      ${tintas.join('')}${fundos}${sombras}${blocos}
       ${d===hoje? `<div class="cal-agora" style="top:${(new Date().getHours()+new Date().getMinutes()/60-CAL_H0)*CAL_PX}px"></div>`:''}
     </div>`;
   }).join('');
@@ -36178,7 +36253,9 @@ function renderCalendario(){
     <div class="row" style="gap:8px;margin-top:8px;flex-wrap:wrap">
       <span class="sub"><i class="dot" style="background:${calCorDe('warn')}"></i> refeições</span>
       <span class="sub"><i class="dot" style="background:${calCorDe('ok')}"></i> treinos</span>
-      <span class="sub"><i class="dot" style="background:${calCorDe('bad')}"></i> jejuns · fundo claro, jejum intermitente</span>
+      <span class="sub"><i class="dot" style="background:${calCorDe('bad')}"></i> jejuns · sombreado mais claro, jejum intermitente</span>
+      <span class="sub"><i class="dot" style="background:${calCorDe('party')}"></i> cheat days</span>
+      <span class="sub"><i class="dot" style="background:${calCorDe('mut')}"></i> dias de recuperação</span>
       <span class="sub"><i class="dot" style="background:${calCorDe('accent')}"></i> compras</span>
       <span class="sub"><i class="dot" style="background:${calCorDe('energy')}"></i> cozinhar e preparação</span>
       <span class="sub" style="margin-left:auto">${plural(nEv,'evento','eventos')}${nFeitos? ' · '+nFeitos+' com visto':''}</span>
@@ -36250,6 +36327,9 @@ function guardarBlocoCal(){
   S.ui.modal=null;
   save(i>=0? 'bloco alterado' : 'bloco marcado'); render();
   flash('ok',CAL_TIPOS[novo.tipo].n+' — '+rotuloData(novo.d)+' às '+hCal(novo.h)+'.',{rot:'Anular',fn:'desfazer()'});
+  /* «ao planear»: um bloco de treino marcado para a frente faz a mesma
+     pergunta que um registado — o dia de recuperação planeia-se antes */
+  if(novo.tipo==='treino' && novo.mid && novo.s){ const ss=sessaoDeBloco(novo); if(ss) depoisDeTreinoForte(novo.mid, ss, novo.d); }
 }
 function apagarBlocoCal(id){
   const lista=agendaCfg(), i=lista.findIndex(x=>x.id===id); if(i<0) return;
@@ -36272,6 +36352,7 @@ function marcarBlocoFeito(id,v){
   /* uma ida às compras feita é uma lista para riscar: abre-se a Mercearia na
      lista, que é onde se marca o que se comprou e passa à despensa */
   if(b.tipo==='compras' && b.feito){ S.ui.mercVista='compras'; go('mercearia'); flash('ok','Compras feitas — marca na lista o que trouxeste, e passa para a despensa.'); }
+  if(b.tipo==='treino' && b.feito && b.mid && b.s){ const ss=sessaoDeBloco(b); if(ss) depoisDeTreinoForte(b.mid, ss, b.d); }
 }
 /* Registar um treino do plano como feito NAQUELE dia, e não hoje: o
    calendário é onde se olha para ontem. */
@@ -36284,6 +36365,9 @@ function registarTreinoNoDia(mid,sid,min,d){
   S.regAtiv.push(r); S.ui.modal=null;
   save('treino registado'); render();
   flash('ok',sp.nome+' de '+nomeCurto(m)+' registado em '+rotuloData(d)+'.',{rot:'Anular',fn:'desfazer()'});
+  /* uma sessão fora do habitual pede um dia de recuperação e proteína a
+     seguir: a app propõe as duas, e só as que ainda não estiverem previstas */
+  depoisDeTreinoForte(mid, sessaoDeRegisto(r), d);
 }
 function modalCalHtml(mo){
   const membros=S.members;
@@ -36486,7 +36570,182 @@ function calAbrirDiaInteiro(id){
   if(t==='ag-tr'){ go('atividade'); return; }
   if(t==='fe'||t==='pa'){ go('plano'); return; }
   if(t==='ob'){ go('objetivos'); return; }
+  if(t==='rc'){ if(mid && S.members.some(m=>m.id===mid)) abrirRecuperacao(mid,id.split(':')[1]); return; }
   if(t==='va'){ S.ui.mercVista='despensa'; S.ui.validades=true; go('mercearia'); return; }
+}
+/* ================= DIAS DE RECUPERAÇÃO =================
+   Um dia de recuperação é uma decisão, não uma ausência: o dia em que não há
+   treino porque se treinou forte na véspera. Guarda-se como os cheat days —
+   uma lista de datas por pessoa —, o plano de treino não conta as sessões
+   desse dia, o Calendário sombreia a coluna, e é o que a app propõe quando
+   uma sessão sai da rotina. */
+function recuperacaoCfg(){ if(!S.recuperacao || typeof S.recuperacao!=='object' || Array.isArray(S.recuperacao)) S.recuperacao={}; return S.recuperacao; }
+function isRecuperacao(mid,d){ return (recuperacaoCfg()[mid]||[]).includes(d); }
+function limparRecuperacao(o,ids){
+  const out={}; if(!o||typeof o!=='object'||Array.isArray(o)) return out;
+  Object.keys(o).forEach(mid=>{ if(ids && ids.indexOf(mid)<0) return;
+    const arr=Array.isArray(o[mid])? o[mid].filter(dataValida) : [];
+    const unicos=arr.filter((v,i,a)=>a.indexOf(v)===i).slice(0,400);
+    if(unicos.length) out[mid]=unicos; });
+  return out;
+}
+function toggleRecuperacao(mid,d){
+  const c=recuperacaoCfg(); if(!c[mid]) c[mid]=[];
+  const i=c[mid].indexOf(d); i>=0? c[mid].splice(i,1) : c[mid].push(d);
+  if(!c[mid].length) delete c[mid];
+  save(i>=0? 'recuperação desmarcada' : 'dia de recuperação'); render();
+}
+/* ---- Uma sessão fora do habitual ----
+   «Habitual» é o que esta pessoa fez nas últimas oito semanas: a mediana das
+   calorias por sessão registada, e — sem três registos — o gasto de uma
+   sessão do plano. Uma sessão conta como forte quando gasta pelo menos metade
+   a mais do que a mediana, ou quando é a nível intenso numa pessoa cujo plano
+   vive no leve ou no moderado. Sem registos nem plano não há habitual que se
+   compare, e a app não inventa um. */
+function nivelDaSessao(s){ const sp=SPORT[s.s]; if(!sp) return 1; return sp.dist? nivelPorMet(sp,metDe(s)) : nivelIndice(s.i); }
+function nivelDoRegisto(r){
+  const sp=SPORT[r.s]; if(!sp) return 1;
+  if(!sp.dist) return nivelIndice(r.i);
+  const met=r.met>0? r.met : metPorVelocidade(sp.dist.curva, clampNum(parseFloat(r.v)||sp.dist.vdef, sp.dist.vmin, sp.dist.vmax));
+  return nivelPorMet(sp,met);
+}
+/* a mesma forma para o que se compara, venha de um registo, do plano ou de um
+   bloco marcado no Calendário */
+function sessaoDeRegisto(r){ const sp=SPORT[r.s]; return {id:r.id, nome:sp? sp.nome : 'Treino', kcal:kcalRegAtiv(r), nivelIdx:nivelDoRegisto(r)}; }
+function sessaoDoPlano(mid,s,d){ const sp=SPORT[s.s]; return {nome:sp? sp.nome : 'Treino', kcal:kcalSessao(mid,s,d||hojeISO()), nivelIdx:nivelDaSessao(s)}; }
+function sessaoDeBloco(b){
+  const sp=b&&b.s? SPORT[b.s] : null; if(!sp||!b.mid) return null;
+  if(!S.members.some(x=>x.id===b.mid)) return null;
+  const met=sp.dist? metPorVelocidade(sp.dist.curva, sp.dist.vdef) : sp.mets[nivelIndice('moderado')];
+  /* o aquecimento e os alongamentos estão dentro da duração do bloco, mas não
+     são o esforço da sessão — descontam-se antes de a comparar com o habitual */
+  const min=Math.max(1, Math.round(b.dur*60)-(b.aq||0)-(b.al||0));
+  return {nome:sp.nome, kcal:met*pesoNaData(b.mid,b.d)*min/60, nivelIdx:sp.dist? nivelPorMet(sp,met) : nivelIndice('moderado')};
+}
+function intensidadeAcimaDoHabitual(mid,sessao){
+  const m=S.members.find(x=>x.id===mid); if(!m||!sessao) return null;
+  const h=hojeISO(), desde=addDias(h,-56);
+  const regs=(S.regAtiv||[]).filter(r=>r.mid===mid && r.estado==='feita' && r.id!==sessao.id && r.d>=desde && r.d<=h)
+    .map(kcalRegAtiv).filter(k=>k>0).sort((a,b)=>a-b);
+  const doPlano=(m.desportos||[]).map(s=>kcalSessao(mid,s,h)).filter(k=>k>0).sort((a,b)=>a-b);
+  const base=regs.length>=3? regs : (doPlano.length? doPlano : null);
+  if(!base) return null;
+  const mediana=base[Math.floor(base.length/2)];
+  const kcal=sessao.kcal||0;
+  const niveis=(m.desportos||[]).map(nivelDaSessao), maxNivel=niveis.length? Math.max(...niveis) : 1;
+  const porNivel = sessao.nivelIdx===2 && maxNivel<2;
+  const porKcal = mediana>0 && kcal>=mediana*1.5;
+  if(!porNivel && !porKcal) return null;
+  return {kcal:Math.round(kcal), mediana:Math.round(mediana), porNivel, porKcal, nRegs:regs.length};
+}
+/* A dose de proteína que se procura numa refeição a seguir ao esforço não é um
+   número redondo igual para toda a gente: a posição conjunta da ACSM, da
+   Academy of Nutrition and Dietetics e dos Dietitians of Canada (2016) aponta
+   0,25 a 0,3 g por quilo de peso, por refeição. */
+function doseProteinaPosTreino(m){ return clampNum(Math.round(0.3*(m.peso||70)),20,40); }
+function proteinaDe(meal){ if(!meal||!meal.r) return 0; return macrosRegRef({r:meal.r, ac:acIds(meal), mo:moId(meal), ma:maId(meal), dose:1}).p; }
+/* O que já está previsto: a refeição com mais proteína daquele dia em que esta
+   pessoa se senta à mesa. */
+function proteinaPrevista(mid,d){
+  const dia=(S.plans[mondayISO(d)]||{})[diaSemana(d)]||{};
+  let melhor=null;
+  MEALK.forEach(mk=>{ const meal=dia[mk]; if(!meal||!meal.r||!(meal.m||[]).includes(mid)) return;
+    const p=proteinaDe(meal); if(!melhor || p>melhor.p) melhor={mk, p:Math.round(p), nome:nomeDaRefeicao(meal)}; });
+  return melhor;
+}
+/* ---- A proposta ----
+   Chamada de todos os sítios onde um treino se planeia ou se regista. Não diz
+   nada quando as duas coisas já estão previstas — «caso ainda não estejam» é
+   uma verificação, não uma formalidade —, e não interrompe outra janela
+   aberta: fica à espera que essa feche. */
+function depoisDeTreinoForte(mid,sessao,d){
+  const m=S.members.find(x=>x.id===mid); if(!m||!sessao) return false;
+  const amanha=addDias(d||hojeISO(),1);
+  if(amanha<hojeISO()) return false;   /* um dia de recuperação não se marca para trás */
+  const forte=intensidadeAcimaDoHabitual(mid,sessao); if(!forte) return false;
+  const temRec=isRecuperacao(mid,amanha);
+  const dose=doseProteinaPosTreino(m), prot=proteinaPrevista(mid,amanha), temProt=!!(prot && prot.p>=dose);
+  if(temRec && temProt) return false;
+  const sug={tipo:'recuperacao', mid, d:amanha, forte, temRec, temProt, prot, dose,
+    sessao:{nome:sessao.nome||'', kcal:Math.round(sessao.kcal||0)}};
+  if(modalAberto()) S.ui.sugRec=sug; else S.ui.modal=sug;
+  saveMeta(); render();
+  return true;
+}
+/* A mesma janela, aberta à mão a partir da etiqueta do Calendário. */
+function abrirRecuperacao(mid,d){
+  const m=S.members.find(x=>x.id===mid); if(!m) return;
+  const dose=doseProteinaPosTreino(m), prot=proteinaPrevista(mid,d);
+  S.ui.modal={tipo:'recuperacao', mid, d, forte:null, temRec:isRecuperacao(mid,d),
+    temProt:!!(prot && prot.p>=dose), prot, dose, sessao:{}};
+  saveMeta(); render();
+}
+function marcarRecuperacao(mid,d){
+  const mo=modalAberto(); if(mo && mo.tipo==='recuperacao') mo.temRec=true;
+  if(!isRecuperacao(mid,d)) toggleRecuperacao(mid,d); else { saveMeta(); render(); }
+  flash('ok','Dia de recuperação marcado para '+rotuloData(d)+' — fica sombreado no Calendário, e o plano de treino não conta as sessões desse dia.',
+    {rot:'Anular',fn:'desfazer()'});
+}
+function desmarcarRecuperacao(mid,d){
+  const mo=modalAberto(); if(mo && mo.tipo==='recuperacao') mo.temRec=false;
+  if(isRecuperacao(mid,d)) toggleRecuperacao(mid,d); else { saveMeta(); render(); }
+  flash('ok','Dia de recuperação desmarcado — as sessões de '+rotuloData(d)+' voltam ao plano.',{rot:'Anular',fn:'desfazer()'});
+}
+/* ---- A refeição rica em proteína ----
+   Entre as receitas que servem esta pessoa — dieta, alergénios, tudo o que o
+   avaliador já sabe —, a que mais proteína tem, para o lugar vazio do dia:
+   jantar primeiro, almoço a seguir. Se os dois estiverem cheios, troca a de
+   menos proteína e diz que trocou; um plano não se reescreve em silêncio. */
+function planearProteina(mid,d){
+  const m=S.members.find(x=>x.id===mid); if(!m) return;
+  const dose=doseProteinaPosTreino(m);
+  const wk=mondayISO(d), di=diaSemana(d);
+  if(!S.plans[wk]) S.plans[wk]={}; if(!S.plans[wk][di]) S.plans[wk][di]={};
+  const dia=S.plans[wk][di];
+  let mk=['j','a'].find(k=>!(dia[k]&&dia[k].r)) || null, trocou=null;
+  if(!mk){ mk= proteinaDe(dia.j)<=proteinaDe(dia.a)? 'j' : 'a'; trocou=nomeDaRefeicao(dia[mk]); }
+  const candidatas=RECIPES.filter(r=>!ehCombo(r)&&!ehMolho(r)&&!ehAcompanhamento(r)&&!ehMassa(r)
+      &&(r.mt||[]).indexOf(mk)>=0 && r.p>=dose && avaliaReceita(r,[m],mk,false).ok)
+    .sort((a,b)=>b.p-a.p || a.k-b.k);
+  if(!candidatas.length) return flash('warn','Não encontrei uma receita de '+nomeRefeicao(mk).toLowerCase()+' com '+dose+' g de proteína que sirva '+nomeCurto(m)+' — vale a pena olhar ao plano à mão.');
+  const escolhida=candidatas[Math.floor(Math.random()*Math.min(5,candidatas.length))];
+  const antes=dia[mk]||{};
+  const mesa=(Array.isArray(antes.m)&&antes.m.length? antes.m.slice() : S.members.map(x=>x.id));
+  if(mesa.indexOf(mid)<0) mesa.push(mid);
+  dia[mk]={r:escolhida.id, ac:[], m:mesa};
+  const mo=modalAberto(); if(mo && mo.tipo==='recuperacao'){ mo.temProt=true; mo.prot={mk, p:escolhida.p, nome:escolhida.n}; }
+  save('refeição de proteína'); render();
+  flash('ok',escolhida.n+' ('+escolhida.p+' g de proteína) '+(trocou? 'no lugar de «'+trocou+'», ' : '')+'ao '+nomeRefeicao(mk).toLowerCase()+' de '+rotuloData(d)+'.',
+    {rot:'Anular',fn:'desfazer()'});
+}
+function modalRecuperacaoHtml(mo){
+  const m=S.members.find(x=>x.id===mo.mid); if(!m) return '';
+  const f=mo.forte, dose=mo.dose||doseProteinaPosTreino(m), s=mo.sessao||{};
+  const porque = !f? 'Um dia sem treino a sério, marcado de propósito: caminhar, alongar, dormir.'
+    : (f.porKcal
+      ? 'Esta sessão gastou '+f.kcal+' kcal, contra uma mediana de '+f.mediana+' kcal por sessão'+(f.nRegs>=3? ' nas '+plural(f.nRegs,'sessão registada','sessões registadas')+' das últimas oito semanas' : ' no plano de treino')
+      : 'Esta sessão foi a nível intenso, num plano que vive no leve ou no moderado')
+      +'. A ACSM recomenda pelo menos 48 horas entre sessões intensas para o mesmo grupo muscular — é nesse intervalo, com descanso e com proteína, que o corpo reconstrói o que o treino desfez.';
+  return `<div class="mfundo" onclick="fundoModal(event)"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="rec-t">
+    <span class="lbl">${nomeCurto(m)}${s.nome? ' · '+esc(s.nome) : ''}${s.kcal? ' · '+s.kcal+' kcal':''}</span>
+    <h2 id="rec-t" style="margin-top:2px">${f? 'Foi mais forte do que o habitual' : 'Dia de recuperação'}</h2>
+    <p class="sub" style="margin-top:4px">${porque}</p>
+    <div class="aviso ${mo.temRec?'ok':'warn'}" style="margin-top:10px"><b>${mo.temRec? '✓ Dia de recuperação marcado' : 'Dia de recuperação'} — ${esc(rotuloData(mo.d))}</b>
+      <span class="sub" style="display:block;margin-top:2px">${mo.temRec
+        ? 'Fica sombreado no Calendário, e o plano de treino não conta as sessões desse dia.'
+        : 'Sem treino marcado: o plano deixa de contar as sessões desse dia, e o Calendário sombreia-o.'}</span>
+      <div class="row" style="margin-top:6px">${mo.temRec
+        ? `<button class="btn ghost small" onclick="desmarcarRecuperacao('${m.id}','${mo.d}')">Desmarcar</button>`
+        : `<button class="btn small" onclick="marcarRecuperacao('${m.id}','${mo.d}')">Marcar dia de recuperação</button>`}</div></div>
+    <div class="aviso ${mo.temProt?'ok':'warn'}" style="margin-top:8px"><b>${mo.temProt? '✓ Proteína reforçada prevista' : 'Refeição com proteína reforçada'}</b>
+      <span class="sub" style="display:block;margin-top:2px">${mo.temProt && mo.prot
+        ? esc(mo.prot.nome)+' ao '+nomeRefeicao(mo.prot.mk).toLowerCase()+' de '+esc(rotuloData(mo.d))+', com '+mo.prot.p+' g de proteína por dose.'
+        : (mo.prot? 'O plano de '+esc(rotuloData(mo.d))+' tem no máximo '+mo.prot.p+' g de proteína numa refeição ('+esc(mo.prot.nome)+'). ' : 'Não há refeição planeada para '+esc(rotuloData(mo.d))+' com '+nomeCurto(m)+' à mesa. ')
+          +'A posição conjunta da ACSM, da Academy of Nutrition and Dietetics e dos Dietitians of Canada aponta 0,25 a 0,3 g de proteína por quilo numa refeição a seguir ao esforço — para '+nomeCurto(m)+', cerca de '+dose+' g.'}</span>
+      ${mo.temProt? '' : `<div class="row" style="margin-top:6px"><button class="btn small" onclick="planearProteina('${m.id}','${mo.d}')">Pôr uma refeição com ${dose} g de proteína no plano</button></div>`}</div>
+    <div class="row" style="margin-top:12px;justify-content:flex-end;gap:6px">
+      <button class="btn ghost small" onclick="fecharModal()">${mo.temRec&&mo.temProt? 'Fechar' : 'Agora não'}</button>
+    </div></div></div>`;
 }
 function cartaoCalendarioPref(){
   const k=calPref();
@@ -37318,6 +37577,7 @@ function pintaModal(){
     : mo? (mo.tipo==='peso'? modalPesoHtml(mo) : mo.tipo==='compras'? modalComprasHtml(mo)
          : mo.tipo==='fimVisita'? modalFimVisitaHtml()
          : mo.tipo==='jejum'? modalJejumHtml(mo)
+         : mo.tipo==='recuperacao'? modalRecuperacaoHtml(mo)
          : mo.tipo==='cal'? modalCalHtml(mo)
          : mo.tipo==='bandeja'? modalBandejaHtml(mo)
          : mo.tipo==='ingrediente'? modalIngredienteHtml(mo)
