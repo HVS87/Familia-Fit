@@ -1344,6 +1344,13 @@ input[type=range].com-detentes::-moz-range-track{
    dá o que faltava — uma explicação de mil caracteres percorre-se com a roda
    ou com o dedo, sem arrastar a página atrás dela. */
 .dica:hover>.dica-bolha,.dica:focus-visible>.dica-bolha,.dica:focus-within>.dica-bolha,.dica.on>.dica-bolha{
+  /* Aberta, a bolha fica presa à janela e não ao marcador. Com position
+     absolute ficava dentro do primeiro antepassado com overflow escondido —
+     o dia do plano, a capa, a janela de um modal, a folha — e aparecia
+     cortada pelo fim do cartão. As coordenadas são medidas no ecrã por
+     posicionaDica(), que também desconta um antepassado com transform, se
+     o houver, porque esse faz de janela para um position:fixed. */
+  position:fixed;left:var(--bx,0px);top:var(--by,0px);
   width:max-content;max-width:min(270px,calc(100vw - 24px));
   height:auto;max-height:min(340px,var(--maxh,340px),calc(100vh - 40px));padding:9px 12px;
   clip-path:none;pointer-events:auto;opacity:1;overflow-y:auto;overscroll-behavior:contain}
@@ -1354,9 +1361,11 @@ input[type=range].com-detentes::-moz-range-track{
   .dica:hover>.dica-bolha,.dica:focus-visible>.dica-bolha,.dica:focus-within>.dica-bolha,.dica.on>.dica-bolha{
     max-width:min(360px,calc(100vw - 24px))} }
 .dica[data-cima]>.dica-bolha{top:auto;bottom:calc(100% + 8px)}
-.dica::before{content:'';position:absolute;left:5px;top:calc(100% + 2px);
+.dica[data-cima]:hover>.dica-bolha,.dica[data-cima]:focus-visible>.dica-bolha,.dica[data-cima]:focus-within>.dica-bolha,.dica[data-cima].on>.dica-bolha{
+  top:auto;bottom:var(--bb,0px)}
+.dica::before{content:'';position:fixed;left:var(--ax,0px);top:var(--ay,0px);
   border:6px solid transparent;border-bottom-color:var(--ink);z-index:31;display:none}
-.dica[data-cima]::before{top:auto;bottom:calc(100% + 2px);
+.dica[data-cima]::before{top:auto;bottom:var(--ab,0px);
   border-bottom-color:transparent;border-top-color:var(--ink)}
 .dica:hover::before,.dica:focus-visible::before,.dica.on::before{display:block}
 /* O tamanho do «i» no toque está mais abaixo, junto das outras regras de dedo
@@ -1589,6 +1598,27 @@ input[type=range].com-detentes::-moz-range-track{
 .selo:hover::after,.selo:hover::before,
 .selo:focus-visible::after,.selo:focus-visible::before,
 .selo.on::after,.selo.on::before{display:block}
+/* Os selos da despensa usam um ::after e não um elemento, mas o problema e a
+   saída são os mesmos das dicas: aberto, fica preso à janela, com as mesmas
+   coordenadas que posicionaDica() escreve no selo — um pseudo-elemento herda
+   as custom properties do elemento a que pertence. */
+.selo:hover::after,.selo:focus-visible::after,.selo.on::after{position:fixed;left:var(--bx,0px);top:var(--by,0px)}
+.selo[data-cima]:hover::after,.selo[data-cima]:focus-visible::after,.selo[data-cima].on::after{top:auto;bottom:var(--bb,0px)}
+.selo:hover::before,.selo:focus-visible::before,.selo.on::before{position:fixed;left:var(--ax,0px);top:var(--ay,0px)}
+.selo[data-cima]:hover::before,.selo[data-cima]:focus-visible::before,.selo[data-cima].on::before{top:auto;bottom:var(--ab,0px)}
+/* ---- O cartão larga a contenção enquanto a bolha está aberta ----
+   Os cartões de receita e as linhas da despensa têm content-visibility:auto,
+   que é o que torna rápidos esses dois separadores: o que está fora do ecrã
+   não custa layout nenhum. Só que essa propriedade contém também a pintura,
+   e tudo o que sai da caixa do cartão deixa de se ver — mesmo em position
+   fixed, porque um elemento com contenção faz de janela para o que tem
+   dentro. As 106 bolhas das Receitas, e os selos da despensa numa linha de
+   34 px, abriam-se cortados pelo fim do cartão. Enquanto uma bolha está
+   aberta, o cartão onde vive larga a contenção; fechada, volta a custar zero.
+   É um cartão de cada vez, e está no ecrã — desenhá-lo por inteiro não custa
+   nada que já não se estivesse a pagar. */
+.rc:has(.dica:hover),.rc:has(.dica:focus-visible),.rc:has(.dica:focus-within),.rc:has(.dica.on),
+.shop li:has(.selo:hover),.shop li:has(.selo:focus-visible),.shop li:has(.selo.on){content-visibility:visible}
 .selo:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .ingr-lista{display:flex;flex-wrap:wrap;gap:5px 10px}
 .ingr{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--mut)}
@@ -14718,7 +14748,10 @@ function limparJejumPontual(x,ids){
   const q=v=>Math.round(v*4)/4;
   const horas=clampNum(q(parseFloat(x.horas)||24),12,JEJUM_MAX_H);
   return {id:limparId(x.id), mid, d:x.d, horas,
-    inicio:clampNum(q(parseFloat(x.inicio)||20),0,23.75),
+    /* `||20` tratava a meia-noite como «sem hora»: um jejum das 0h00 — o dia
+       inteiro que um objetivo ou o plano marcam — passava a começar às 20h e a
+       cair em dois dias, com o dia de jejum a aparecer no dia seguinte. */
+    inicio:clampNum(q(Number.isFinite(parseFloat(x.inicio))? parseFloat(x.inicio) : 20),0,23.75),
     agua: x.agua===false? false : true};
 }
 /* Uma fração de hora escrita como o relógio a mostra. */
@@ -23170,11 +23203,15 @@ function trajParaObjetivo(mid){
     membros:[mid], tipo: alvo<m.peso? 'perder':'ganhar',
     delta:clampNum(Math.round(delta*2)/2, 0.5, 30),
     semanas:clampNum(Math.ceil(dias/7), 2, 52),
-    split:clampNum(split,0,100) });
+    split:clampNum(split,0,100),
+    /* os dias sem comer que se simularam aqui vão com o resto: eram deitados
+       fora, e o objetivo nascia sem eles. Vão sozinhos — o jejum
+       intermitente é outra coisa e fica como estava no formulário. */
+    jejumDias: jejumDesaconselhado(m)? 0 : clampNum(Math.round((c.jsem||0)/24),0,3) });
   saveMeta();
   go('objetivos');
   flash('ok','Objetivo pré-preenchido: '+(f.tipo==='perder'?'perder':'ganhar')+' '+nPT(f.delta,1)+' kg em '+plural(f.semanas,'semana','semanas')
-    +', '+f.split+' % pela dieta. Revê e cria.');
+    +', '+f.split+' % pela dieta'+(f.jejumDias? ', '+plural(f.jejumDias,'dia','dias')+' de jejum completo por semana' : '')+'. Revê e cria.');
 }
 function removerMedicao(mid,d){
   if(!confirm('Apagar a pesagem de '+fmtLongo(d)+'?')) return;
@@ -31074,18 +31111,26 @@ function blocoJejumObjetivo(f){
   const impedidos=escolhidos.map(m=>({m, porque:jejumDesaconselhado(m)})).filter(x=>x.porque);
   const podem=escolhidos.length-impedidos.length;
   const p=protocoloIM(f.jejumH);
+  /* Dois jejuns, e independentes. O intermitente é um horário — as calorias
+     do dia não mudam, muda a janela em que cabem —; o dia completo é um dia
+     sem comida. O cursor dos dias vivia dentro do bloco do intermitente, e
+     quem só queria um dia de 24 horas por semana tinha de ligar primeiro uma
+     janela diária que não pediu, e que ficava depois a mandar no plano. */
+  const algum=!!f.jejum || f.jejumDias>0;
+  const resumo=[f.jejum? p.n : '', f.jejumDias? plural(f.jejumDias,'dia completo','dias completos')+' por semana' : ''].filter(Boolean).join(' · ') || 'sem jejum';
   return `
     <div class="splabel" style="margin-top:16px"><span>Jejum ${dica('jejumIM')}</span>
-      <output style="text-align:right">${f.jejum? p.n : 'sem jejum'}</output></div>
+      <output style="text-align:right">${esc(resumo)}</output></div>
+    ${algum && impedidos.length? `<div class="aviso warn" style="margin-top:8px"><b>Fica de fora:</b> ${impedidos.map(x=>esc(nomeCurto(x.m))).join(', ')}.
+      ${esc(impedidos[0].porque.split('.')[0])}.</div>`:''}
+    ${algum && escolhidos.length && podem<=0? `<p class="sub" style="margin-top:8px">Nenhuma das pessoas escolhidas pode fazer jejum. O objetivo cria-se na mesma, sem esta parte.</p>`:''}
+    <div class="splabel" style="margin-top:10px"><span>Jejum intermitente</span></div>
     <p class="sub" style="margin:2px 0 6px">As calorias do dia não mudam — muda o número de horas em que cabem. O plano da semana assinala as refeições que ficarem fora da janela.</p>
     <div class="row" style="margin:6px 0">
-      <button class="chip ${!f.jejum?'on':''}" onclick="setObjForm('jejum',false)" aria-pressed="${!f.jejum}">Sem jejum</button>
+      <button class="chip ${!f.jejum?'on':''}" onclick="setObjForm('jejum',false)" aria-pressed="${!f.jejum}">Sem janela</button>
       <button class="chip ${f.jejum?'on':''}" onclick="setObjForm('jejum',true)" aria-pressed="${!!f.jejum}">Jejum intermitente</button>
     </div>
     ${f.jejum? `
-      ${impedidos.length? `<div class="aviso warn" style="margin-top:8px"><b>Fica de fora:</b> ${impedidos.map(x=>esc(nomeCurto(x.m))).join(', ')}.
-        ${esc(impedidos[0].porque.split('.')[0])}.</div>`:''}
-      ${podem<=0? `<p class="sub" style="margin-top:8px">Nenhuma das pessoas escolhidas pode fazer jejum. O objetivo cria-se na mesma, sem esta parte.</p>` : `
       <div class="splabel" style="margin-top:10px"><span>Protocolo</span>
         <output id="obj-o-jejum" style="min-width:8ch;text-align:right">${p.n}</output></div>
       <input type="range" min="12" max="23" step="1" value="${f.jejumH}" style="--pct:${Math.round((f.jejumH-12)/11*100)}%"
@@ -31096,13 +31141,14 @@ function blocoJejumObjetivo(f){
       <input type="range" min="0" max="23" step="1" value="${f.jejumIni}" style="--pct:${Math.round(f.jejumIni/23*100)}%"
         aria-label="Hora a que abre a janela de alimentação" oninput="slideObjForm('jejumIni',this)" onchange="saveMeta()">
       <p class="sub" style="margin-top:4px">Come-se entre as ${String(f.jejumIni).padStart(2,'0')}:00 e as ${String((f.jejumIni+(24-p.h))%24).padStart(2,'0')}:00.</p>
+    `:''}
       <div class="splabel" style="margin-top:12px"><span>Dias de jejum completo por semana</span>
         <output id="obj-o-jejumdias" style="min-width:8ch;text-align:right">${f.jejumDias? plural(f.jejumDias,'dia','dias') : 'nenhum'}</output></div>
       <input type="range" min="0" max="3" step="1" value="${f.jejumDias}" style="--pct:${Math.round(f.jejumDias/3*100)}%"
-        aria-label="Dias de jejum completo por semana" oninput="slideObjForm('jejumDias',this)" onchange="saveMeta()">
+        aria-label="Dias de jejum completo por semana" oninput="slideObjForm('jejumDias',this)" onchange="setObjForm('jejumDias',+this.value)">
       <p class="sub" style="margin-top:4px">${f.jejumDias
         ? 'Ficam marcados '+plural(Math.min(120,f.jejumDias*f.semanas),'dia','dias')+' de 24 horas ao longo das '+f.semanas+' semanas, espaçados. Um jejum de 24 horas é um dia sem comida — a app conta-o como tal no gasto e nos macros.'
-        : 'Só a janela diária. Um jejum completo de 24 horas é outra coisa e a app trata-o à parte.'}</p>
+        : 'Nenhum dia sem comer. Não precisa do jejum intermitente: um dia de 24 horas é outro jejum, e marca-se sozinho.'}</p>
       ${f.jejumDias? `<div class="aviso warn" style="margin-top:8px">
         <b>Num jejum só de água, os sais saem na mesma.</b>
         <p class="sub" style="margin-top:4px">Um dia sem comer não é só um dia sem calorias: é um dia sem sódio, sem potássio e sem magnésio a entrar,
@@ -31115,7 +31161,7 @@ function blocoJejumObjetivo(f){
         precisa de o falar com quem o segue: aí a reposição deixa de ser uma pitada de sal e passa a ser assunto clínico.</p>
         <p class="sub" style="margin-top:6px"><b>E não se treina em jejum de 24 horas.</b> Se marcaste treinos, a app espaça-os — mas os dias de jejum completo
         são para descansar, não para somar esforço a um corpo sem substrato nem eletrólitos para o sustentar.</p>
-      </div>`:''}`}`:''}`;
+      </div>`:''}`;
 }
 /* ---- formulário de criação (estado transitório em S.ui.objForm) ---- */
 /* Todos os desportos que a app conhece, e não só quatro fixos mais os que a
@@ -31705,10 +31751,10 @@ function criarObjetivo(){
      por arrasto. As contraindicações do jejum são verificadas outra vez lá
      dentro, porque são diferentes das do défice. */
   let jj={feitos:[],bloqueados:[]};
-  if(f.jejum){
+  if(f.jejum || f.jejumDias>0){
     const entraram=f.membros.filter(mid=>{ const m=S.members.find(x=>x.id===mid);
       return m && !(f.tipo==='perder' && !permiteDefice(m)) && !jaTem.includes(m.nome); });
-    jj=aplicarJejumObjetivo(entraram, f.jejumH, f.jejumIni, diasDeJejumPontual(f.jejumDias,f.semanas));
+    jj=aplicarJejumObjetivo(entraram, f.jejum? f.jejumH : 0, f.jejumIni, diasDeJejumPontual(f.jejumDias,f.semanas));
   }
   /* Repõe o formulário guardando o que é PREFERÊNCIA (desportos, dieta, ritmo
      de treino, jejum) e limpando o que é daquele objetivo (quem, quanto). Quem
@@ -31726,7 +31772,11 @@ function criarObjetivo(){
   const frases=[plural(criados,'Objetivo criado','Objetivos criados')];
   if(dietaMudou.length) frases.push('Dieta de '+enumera(dietaMudou)+' passou a '+DIETS[f.dieta].n+', e os macros do dia já mudaram');
   if(dietaEncostada.length) frases.push('Em '+enumera(dietaEncostada)+' os macros foram encostados à faixa recomendada para a idade');
-  if(jj.feitos.length) frases.push('Jejum '+protocoloIM(f.jejumH).n+' ligado para '+enumera(jj.feitos));
+  if(jj.feitos.length){
+    const oque=[f.jejum? 'jejum '+protocoloIM(f.jejumH).n : '',
+      f.jejumDias? plural(f.jejumDias,'dia de jejum completo','dias de jejum completo')+' por semana ('+plural(diasDeJejumPontual(f.jejumDias,f.semanas).length,'dia marcado','dias marcados')+' no Calendário)' : ''].filter(Boolean).join(' e ');
+    frases.push(oque.charAt(0).toUpperCase()+oque.slice(1)+' para '+enumera(jj.feitos));
+  }
   if(jj.bloqueados.length) frases.push('Sem jejum para '+enumera(jj.bloqueados.map(x=>x.nome))+': o jejum não tem indicação nesta fase');
   if(ignorados.length) frases.push('Sem défice para '+enumera(ignorados)+(ignorados.length===1? ', por estar' : ', por estarem')+' em crescimento ou gravidez');
   if(jaTem.length) frases.push(fraseJaTem);
@@ -32400,6 +32450,36 @@ function toggleEater(di,mk,mid){ const meal=planMeal(di,mk);
 function toggleCheat(mid,date){ if(!S.cheats[mid]) S.cheats[mid]=[];
   const i=S.cheats[mid].indexOf(date); i>=0? S.cheats[mid].splice(i,1) : S.cheats[mid].push(date);
   save('cheat day'); render(); }
+/* ---- Um dia de jejum completo, marcado no próprio dia do plano ----
+   Um dia de 24 horas sem comer não é uma variante do jejum intermitente: é
+   outro jejum, e não depende de haver uma janela diária ligada. Marca-se aqui,
+   onde a semana se decide, e fica o mesmo jejum pontual que o cartão de Jejum,
+   o Registar e o Calendário já conhecem — das 0h às 24h desse dia.
+   Desmarca-se só o que foi marcado assim: um dia que faz parte de um jejum
+   mais longo não se corta ao meio por um toque no plano. */
+function jejumDoDiaCompleto(mid,d){
+  return jejumCfg().pontuais.find(j=>j.mid===mid && j.d===d && j.inicio===0 && j.horas===24) || null;
+}
+function toggleJejumDia(mid,d){
+  const m=S.members.find(x=>x.id===mid); if(!m) return;
+  const c=jejumCfg(), meu=jejumDoDiaCompleto(mid,d);
+  if(meu){
+    c.pontuais=c.pontuais.filter(x=>x.id!==meu.id);
+    save('jejum desmarcado'); render();
+    return flash('ok',nomeCurto(m)+' já não jejua '+rotuloData(d)+'.',{rot:'Anular',fn:'desfazer()'});
+  }
+  if(emJejumPontual(mid,d)) return flash('warn','Esse dia já faz parte de um jejum mais longo de '+nomeCurto(m)+'. Muda-o no cartão de Jejum, na Nutrição.',
+    {rot:'Abrir', fn:"pickM('"+mid+"');go('nutricao')"});
+  const nao=jejumDesaconselhado(m);
+  if(nao) return flash('warn',nao);
+  if(isCheat(mid,d)) return flash('warn','Esse dia é cheat day de '+nomeCurto(m)+'. Um dia livre e um dia de jejum não cabem no mesmo dia — desmarca um deles primeiro.');
+  const j=limparJejumPontual({id:uid(), mid, d, horas:24, inicio:0, agua:true}, S.members.map(x=>x.id));
+  if(!j) return flash('bad','Não foi possível marcar este jejum.');
+  c.pontuais.push(j);
+  save('dia de jejum'); render();
+  flash('ok','Dia de jejum de '+nomeCurto(m)+' '+rotuloData(d)+': 24 horas, só água. O alvo desse dia passa a zero e o Calendário sombreia-o. Num dia sem comer os sais saem na mesma — água com uma pitada de sal, ou caldo sem gordura.',
+    {rot:'Anular',fn:'desfazer()'});
+}
 /* Numa data da casa o dia livre é de todos ao mesmo tempo — marcar um a um
    seria pedir quatro cliques para uma coisa que é uma só decisão. */
 function diaLivreDaCasa(){
@@ -34130,6 +34210,10 @@ function renderPlano(){
         <div class="mtitle" style="color:var(--mut);margin-top:8px">Dia de recuperação</div>
         <div class="row">${S.members.map(m=>`<button class="chip ${isRecuperacao(m.id,date)?'on':''}"
           onclick="toggleRecuperacao('${m.id}','${date}')" title="Sem treino nesse dia — o plano não conta as sessões, e o Calendário sombreia-o">${avatar(m,20)} ${esc(m.nome.split(' ')[0])}</button>`).join('')}</div>
+        <div class="mtitle" style="color:var(--bad);margin-top:8px">Jejum completo</div>
+        <div class="row">${S.members.filter(m=>faseDe(m)!=='bebe').map(m=>{ const nao=jejumDesaconselhado(m), on=emJejumPontual(m.id,date);
+          return `<button class="chip ${on?'on':''}" ${nao&&!on?'disabled':''} aria-pressed="${on}" onclick="toggleJejumDia('${m.id}','${date}')"
+            title="${nao&&!on? esc(nao.split('.')[0]) : on? 'Dia de jejum — toca para o desmarcar' : 'Um dia de 24 horas sem comer, das 0h às 24h. Não precisa do jejum intermitente.'}">${avatar(m,20)} ${esc(m.nome.split(' ')[0])}</button>`; }).join('')}</div>
       </div>
       ${MEALS.map(([k,rot])=>mealBlock(di,k,rot,date)).join('')}
     </div>`;}).join('')}
@@ -38259,6 +38343,25 @@ document.addEventListener('keydown', e=>{
 });
 /* A bolha nasce alinhada ao marcador; se isso a puser fora da janela, desliza
    o necessário para caber. A seta fica onde está, a apontar ao marcador. */
+/* A origem das coordenadas de um position:fixed. É a janela — salvo quando um
+   antepassado tem transform, filter, perspective, contain ou will-change: aí é
+   ele. Sem este desconto, uma bolha dentro de uma fila a deslizar abria-se no
+   sítio errado. */
+function origemFixa(el){
+  let n=el.parentElement;
+  while(n && n!==document.documentElement){
+    const cs=getComputedStyle(n);
+    if((cs.transform&&cs.transform!=='none')||(cs.filter&&cs.filter!=='none')||(cs.perspective&&cs.perspective!=='none')
+      ||(cs.backdropFilter&&cs.backdropFilter!=='none')||/paint|layout|strict|content/.test(cs.contain||'')
+      ||cs.contentVisibility==='auto'||cs.contentVisibility==='hidden'
+      ||/transform|filter|perspective/.test(cs.willChange||'')){
+      const r=n.getBoundingClientRect();
+      return {x:r.left+n.clientLeft, y:r.top+n.clientTop, h:n.clientHeight};
+    }
+    n=n.parentElement;
+  }
+  return {x:0, y:0, h:innerHeight};
+}
 function posicionaDica(d){
   d.style.setProperty('--dx','0px');
   /* clientWidth e não innerWidth: este último inclui a barra de deslocação,
@@ -38285,7 +38388,8 @@ function posicionaDica(d){
   /* E o lado, pela mesma razão estimado: a 12,5 px cabem cerca de 42 letras
      por linha nos 270, e 58 nos 360, a 18,1 px de altura de linha. Basta para
      escolher para que lado abrir; o max-height do CSS trata do resto. */
-  const texto=bolhaEl? (bolhaEl.textContent||'') : '';
+  /* os selos da despensa não têm bolha: o texto está no data-dica */
+  const texto=bolhaEl? (bolhaEl.textContent||'') : (d.getAttribute('data-dica')||'');
   const porLinha=larg>=340? 58 : 42;
   const alt=Math.min(340, 34+Math.ceil(texto.length/porLinha)*18.1);
   const espacoAbaixo=innerHeight-r.bottom-16, espacoAcima=r.top-16;
@@ -38300,6 +38404,17 @@ function posicionaDica(d){
      invisível. Passa a receber o espaço que existe daquele lado, e o resto
      lê-se a rolar dentro dela. */
   d.style.setProperty('--maxh', Math.max(120, Math.round(paraCima? espacoAcima : espacoAbaixo))+'px');
+  /* e onde fica, em coordenadas do ecrã: a bolha aberta é position:fixed */
+  const o=origemFixa(d);
+  d.style.setProperty('--bx', Math.round(r.left-4+dx-o.x)+'px');
+  d.style.setProperty('--ax', Math.round(r.left+5-o.x)+'px');
+  if(paraCima){
+    d.style.setProperty('--bb', Math.round(o.h-(r.top-o.y)+8)+'px');
+    d.style.setProperty('--ab', Math.round(o.h-(r.top-o.y)+2)+'px');
+  } else {
+    d.style.setProperty('--by', Math.round(r.bottom-o.y+8)+'px');
+    d.style.setProperty('--ay', Math.round(r.bottom-o.y+2)+'px');
+  }
 }
 /* mouseenter e não mouseover: o segundo borbulha e volta a disparar sempre que
    o rato passa do «i» para o texto escondido que vive dentro do botão — e cada
@@ -38313,7 +38428,9 @@ function posicionaDica(d){
 const SEL_DICA='.dica, .selo';
 function alternaBolha(d){
   document.querySelectorAll('.dica.on, .selo.on').forEach(x=>{ if(x!==d) x.classList.remove('on'); });
-  if(d){ posicionaDica(d); d.classList.toggle('on'); }
+  /* abre primeiro e mede depois: aberta, a bolha tira a contenção ao cartão
+     onde vive, e é já sem contenção que as coordenadas têm de ser medidas */
+  if(d){ d.classList.toggle('on'); if(d.classList.contains('on')) posicionaDica(d); }
 }
 /* Um tratador só, no documento, em vez de um por marcador.
    Cada desenho refaz o innerHTML do main, portanto os marcadores são elementos
@@ -38330,9 +38447,20 @@ document.addEventListener('mouseover', e=>{
   const d=e.target.closest && e.target.closest(SEL_DICA);
   if(!d) return;
   if(e.relatedTarget && d.contains(e.relatedTarget)) return;
-  posicionaDica(d);
+  posicionaDica(d); reposicionaDicasAbertas();
 });
-document.addEventListener('focusin', e=>{ const d=e.target.closest&&e.target.closest(SEL_DICA); if(d) posicionaDica(d); });
+document.addEventListener('focusin', e=>{ const d=e.target.closest&&e.target.closest(SEL_DICA); if(d){ posicionaDica(d); reposicionaDicasAbertas(); } });
+/* Presa à janela, a bolha ficava no sítio quando se rolava a página, e o «i»
+   seguia viagem. Enquanto houver uma aberta, acompanha-o — um cálculo por
+   fotograma, e só das que estão abertas. */
+let _dicaRaf=0;
+function reposicionaDicasAbertas(){
+  if(_dicaRaf) return;
+  _dicaRaf=requestAnimationFrame(()=>{ _dicaRaf=0;
+    document.querySelectorAll('.dica.on, .selo.on, .dica:hover, .selo:hover, .dica:focus-within, .selo:focus-within').forEach(posicionaDica); });
+}
+window.addEventListener('scroll', reposicionaDicasAbertas, {capture:true, passive:true});
+window.addEventListener('resize', reposicionaDicasAbertas, {passive:true});
 /* ---- O balão das pesagens ----
    Um tratador só, no documento, pela mesma razão das dicas: cada desenho
    refaz o main e os pontos são elementos novos.
