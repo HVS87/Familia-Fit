@@ -58,10 +58,18 @@
      ser o oposto do modo escolhido na app. Era o que punha links azuis-claros
      de modo escuro sobre o fundo claro da paleta Brasa. */
   color-scheme:light;
+  /* A --line é o fio dos separadores: 1,2 a 1,4 contra o cartão, que é o que
+     se quer numa divisória e é pouco para a borda de um controlo. Um campo de
+     texto, um chip ou um botão fantasma não têm fundo próprio que se distinga
+     do cartão — a borda é o que diz onde acaba o controlo, e a WCAG pede-lhe
+     3:1. Esta borda vem do --mut de cada paleta, e por isso acompanha-as
+     todas; medida, dá 3,2 a 5,4 nas catorze combinações. */
+  --linha-forte:var(--mut);
 }
 @supports (background:color-mix(in srgb,red 50%,blue)){
   :root{ --inset:color-mix(in srgb,var(--ink) 4%,var(--bg));
-         --elev:color-mix(in srgb,var(--card) 92%,var(--ink)); }
+         --elev:color-mix(in srgb,var(--card) 92%,var(--ink));
+         --linha-forte:color-mix(in srgb,var(--mut) 84%,var(--card)); }
 }
 html[data-modo="escuro"], :root[data-theme="dark"]{
   --bg:#14181D; --card:#1C2229; --ink:#E8EAED; --mut:#96A0AA; --line:#2A323B;
@@ -352,7 +360,7 @@ html[data-taberna="1"][data-paleta="contraste"] body::before{display:none}
 .fr-tab tbody th{width:64pt;font-size:9pt;text-transform:uppercase;letter-spacing:.04em}
 .fr-prato{display:block;font-size:11pt;line-height:1.25}
 .fr-quem{display:block;font-size:8pt;margin-top:2pt}
-.fr-vazio{color:#999;text-align:center}
+.fr-vazio{color:#666;text-align:center}   /* #999 dava 2,85:1 no papel branco */
 .fr-compras{margin-top:8pt;border:1px solid #000;padding:5pt 7pt;font-size:9pt}
 .fr-compras b{display:block;text-transform:uppercase;letter-spacing:.05em;font-size:8.5pt;margin-bottom:2pt}
 .fr-rodape{margin-top:6pt;font-size:8pt;color:#555;text-align:right}
@@ -491,8 +499,10 @@ html[data-dispositivo="telefone"][data-orient="retrato"] .fab{bottom:calc(84px +
 .desliza{position:relative;touch-action:pan-y}
 .desliza-fundo{position:absolute;inset:0;border-radius:var(--r-sm);display:flex;align-items:center;
   padding:0 16px;font-weight:700;font-size:13px;pointer-events:none;opacity:0}
-.desliza-fundo.sim{background:color-mix(in srgb,var(--ok) 22%,var(--card));color:var(--ok);justify-content:flex-start}
-.desliza-fundo.nao{background:color-mix(in srgb,var(--warn) 22%,var(--card));color:var(--warn);justify-content:flex-end}
+/* 14% e não 22%: a tinta é da mesma cor que a letra que lá vai por cima, e a
+   22% o «Sim»/«Não» ficava em 4,4:1 — por baixo do mínimo, em seis paletas. */
+.desliza-fundo.sim{background:color-mix(in srgb,var(--ok) 14%,var(--card));color:var(--ok);justify-content:flex-start}
+.desliza-fundo.nao{background:color-mix(in srgb,var(--warn) 14%,var(--card));color:var(--warn);justify-content:flex-end}
 .desliza-corpo{position:relative;background:var(--bg);border-radius:var(--r-sm)}
 @media (prefers-reduced-motion: no-preference){ .desliza-corpo.volta{transition:transform .16s ease-out} }
 
@@ -740,8 +750,8 @@ table.marcos thead th:first-child,table.marcos tbody th{text-align:left}
 .cozinha-fundo .btn{min-height:50px}
 /* Um botão inativo diz-se com a cor, não com transparência: assim continua a
    ler-se, e o contraste do texto não depende do estado do botão. */
-.btn.inativo{color:var(--mut);border-color:var(--line);cursor:default}
-.btn.inativo:hover{color:var(--mut);border-color:var(--line)}
+.btn.inativo{color:var(--mut);border-color:var(--linha-forte);cursor:default}
+.btn.inativo:hover{color:var(--mut);border-color:var(--linha-forte)}
 
 /* ===== TEMPORIZADORES ===== */
 .timers{position:fixed;z-index:67;left:0;right:0;bottom:0;display:flex;gap:8px;justify-content:center;
@@ -1173,16 +1183,16 @@ main{max-width:1100px;margin:0 auto;padding:24px 20px}
 .sub{color:var(--mut);font-size:13.5px}
 .lbl{display:block;margin-bottom:3px}
 input[type=text],input[type=number],input[type=date],input[type=search],select{
-  width:100%;background:var(--inset);border:1px solid var(--line);border-radius:var(--r-sm);padding:7px 10px}
+  width:100%;background:var(--inset);border:1px solid var(--linha-forte);border-radius:var(--r-sm);padding:7px 10px}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .frow{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:10px;margin-top:10px}
 .btn{background:var(--accent);color:var(--on-accent);border:none;border-radius:var(--r-sm);padding:9px 16px;font-weight:600;cursor:pointer}
 .btn.ghost{background:none;color:var(--accent);border:1px solid var(--accent)}
 .btn.small{padding:5px 11px;font-size:13px}
-.btn.danger{background:none;border:1px solid var(--line);color:var(--bad)}
+.btn.danger{background:none;border:1px solid var(--linha-forte);color:var(--bad)}
 /* min-height em vez de só padding: com um texto de uma linha curta o chip
    ficava nos 23 px, um abaixo do mínimo da WCAG 2.5.8. */
-.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:4px 12px;background:var(--bg);cursor:pointer;font-size:13.5px;font-weight:600;min-height:24px}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--linha-forte);border-radius:999px;padding:4px 12px;background:var(--bg);cursor:pointer;font-size:13.5px;font-weight:600;min-height:24px}
 /* Os atalhos das doses saltam de 12 para 20; quem cozinha para 14 escreve o
    número, em vez de ficar preso ao salto mais próximo. */
 .doses-num{width:58px;padding:3px 6px;border:1px solid var(--line);border-radius:8px;
@@ -1933,7 +1943,7 @@ select.acomp{min-height:42px}
 .savest.pend .led{background:var(--warn)}
 .savest.err{color:var(--bad)} .savest.err .led{background:var(--bad)}
 .savest.none .led{background:var(--line)}
-textarea{width:100%;min-height:120px;background:var(--inset);border:1px solid var(--line);border-radius:var(--r-sm);
+textarea{width:100%;min-height:120px;background:var(--inset);border:1px solid var(--linha-forte);border-radius:var(--r-sm);
   padding:8px 10px;font:12.5px/1.5 ui-monospace,Consolas,monospace;color:inherit;resize:vertical}
 .toggle{display:flex;align-items:flex-start;gap:9px;cursor:pointer;padding:4px 0}
 .toggle input{margin-top:4px;flex:none}
@@ -15687,8 +15697,8 @@ function scrollSuave(el,bloco){
 const PALETAS={
   azulejo:{n:'Azulejo', d:'Azul de louça e terracota', c:['#2456A6','#C8641E','#C2477C']},
   alecrim:{n:'Alecrim', d:'Verdes de horta', c:['#3F7A46','#B5762A','#A45E86']},
-  figo:{n:'Figo', d:'Roxos e magentas', c:['#6B4396','#C25B45','#B23D74']},
-  mare:{n:'Maré', d:'Azuis-esverdeados de água', c:['#0F6E78','#C2622C','#9A4E8C']},
+  figo:{n:'Figo', d:'Roxos e magentas', c:['#6B4396','#AA4F3C','#B23D74']},
+  mare:{n:'Maré', d:'Azuis-esverdeados de água', c:['#0F6E78','#A85426','#9A4E8C']},
   brasa:{n:'Brasa', d:'Laranjas e vermelhos quentes', c:['#B4501F','#8A6A1C','#B03F5C']},
   tinta:{n:'Tinta', d:'Monocromático, alto contraste', c:['#2B2B2B','#5C5C5C','#9A9A9A']},
   contraste:{n:'Contraste', d:'Máximo contraste, traço grosso', c:['#0033A0','#7A2E00','#6B004B']}
