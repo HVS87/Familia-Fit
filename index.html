@@ -212,6 +212,15 @@ html[data-densidade="cerrado"] .spline{padding:10px 12px}
   html:not([data-imprimir]) .savest,
   html:not([data-imprimir]) .mfundo{display:none !important}
   html:not([data-imprimir]) body{background:#fff;color:#000}
+  /* A tinta preta no body não chegava: .sub, .lbl, os avisos e os cartões pedem
+     as cores pelos tokens, que ficavam com os valores do tema escuro — texto
+     cinzento-claro em papel branco. Os tokens mudam aqui, com !important para
+     ganharem às paletas (html[data-paleta][data-modo] é mais específico). */
+  html:not([data-imprimir]){--bg:#fff !important;--card:#fff !important;--ink:#000 !important;--mut:#444 !important;--line:#bbb !important;color-scheme:light}
+  /* as camadas fixas repetiam-se em todas as folhas */
+  html:not([data-imprimir]) :is(.folha,.mercado,.cozinha,.tour-cartao){display:none !important}
+  html:not([data-imprimir]) .tabela-rolar,
+  html:not([data-imprimir]) body.com-camada{overflow:visible}
   html:not([data-imprimir]) .card{break-inside:avoid; box-shadow:none; border:1px solid #ccc}
   html:not([data-imprimir]) h2,
   html:not([data-imprimir]) h3{break-after:avoid}
@@ -1012,7 +1021,7 @@ header{background:var(--card);border-bottom:1px solid var(--line);position:stick
 html[data-modo="escuro"] .aura{opacity:.34}
 .hwrap{max-width:1100px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;position:relative}
 .brand{display:flex;flex-direction:column;line-height:1.2}
-.brand small{color:var(--mut);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase}
+.brand small{color:var(--mut);text-transform:uppercase}
 nav{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
 nav button{background:none;border:none;padding:8px 14px;border-radius:999px;cursor:pointer;color:var(--mut);
   font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:7px}
@@ -1162,7 +1171,7 @@ main{max-width:1100px;margin:0 auto;padding:24px 20px}
 .g2{grid-template-columns:repeat(auto-fill,minmax(min(320px,100%),1fr))}
 .g3{grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr))}
 .sub{color:var(--mut);font-size:13.5px}
-.lbl{display:block;font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--mut);font-weight:600;margin-bottom:3px}
+.lbl{display:block;margin-bottom:3px}
 input[type=text],input[type=number],input[type=date],input[type=search],select{
   width:100%;background:var(--inset);border:1px solid var(--line);border-radius:var(--r-sm);padding:7px 10px}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
@@ -1186,7 +1195,6 @@ input[type=text],input[type=number],input[type=date],input[type=search],select{
 .av{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;color:#fff;flex:none}
 .stat{display:flex;flex-direction:column;gap:2px;padding:10px 12px;background:var(--inset);border-radius:var(--r-sm);min-width:100px}
 .stat b{font-size:24px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-.stat span{font-size:11.5px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
 /* Uma régua única para todos os micro-rótulos: quatro variantes quase iguais
    de maiúsculas pequenas passam a uma só voz. Os valores dentro de .splabel
    são repostos pela regra própria de .splabel output, que vem depois. */
@@ -1223,7 +1231,7 @@ table{border-collapse:collapse;width:100%}
    linha, em vez de o «50% dieta · 50% exercício» ficar com o último carácter
    cortado contra a margem. */
 .splabel{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:3px;
-  flex-wrap:wrap;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);font-weight:600}
+  flex-wrap:wrap}
 .splabel>span{min-width:0}
 .splabel output{flex:0 0 auto;margin-left:auto}
 .splabel output{font-size:14.5px;font-weight:700;letter-spacing:0;text-transform:none;color:var(--ink);
@@ -1378,7 +1386,7 @@ input[type=range].com-detentes::-moz-range-track{
   cursor:pointer;padding:5px 9px;font-size:14px;line-height:1;min-width:34px}
 .hist button:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
 .hist button:disabled{opacity:.35;cursor:default}
-#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:max(22px,env(safe-area-inset-bottom));
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:max(22px,calc(14px + env(safe-area-inset-bottom)));
   background:var(--ink);color:var(--card);padding:10px 16px;border-radius:999px;font-size:13.5px;
   font-weight:600;z-index:70;box-shadow:0 4px 18px rgba(0,0,0,.28);max-width:90vw;text-align:center;
   display:flex;align-items:center;gap:12px;justify-content:center}
@@ -1620,6 +1628,10 @@ input[type=range].com-detentes::-moz-range-track{
 .rc:has(.dica:hover),.rc:has(.dica:focus-visible),.rc:has(.dica:focus-within),.rc:has(.dica.on),
 .shop li:has(.selo:hover),.shop li:has(.selo:focus-visible),.shop li:has(.selo.on){content-visibility:visible}
 .selo:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* Há dois .selo: o da despensa, com bolha, e o carimbo das conquistas, que não
+   tem data-dica — e a quem o hover desenhava uma bolha vazia com seta. */
+.selo:not([data-dica])::after,.selo:not([data-dica])::before{display:none}
+.selo:not([data-dica]){cursor:default}
 .ingr-lista{display:flex;flex-wrap:wrap;gap:5px 10px}
 .ingr{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--mut)}
 .ingr i{font-style:normal;font-weight:700;width:12px;text-align:center}
@@ -1644,20 +1656,26 @@ input[type=range].com-detentes::-moz-range-track{
    guardar uma largura mínima legível — a página nunca rola na horizontal. */
 .cal-wrap{margin-top:10px;max-height:min(72vh,900px);overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--card);
   overscroll-behavior:contain}
-.cal-grelha{display:grid;grid-template-columns:44px repeat(7,minmax(118px,1fr));min-width:870px;position:relative}
+.cal-grelha{display:grid;grid-template-columns:44px repeat(7,minmax(118px,1fr));min-width:870px;position:relative;
+  /* a altura da fiada dos dias, que é também onde se cola a do dia inteiro:
+     com 44 px escritos à mão e uma fiada de 59, o dia inteiro tapava a data */
+  --cal-cab:59px}
 .cal-canto{position:sticky;top:0;left:0;z-index:4;background:var(--card);border-bottom:1px solid var(--line)}
-.cal-canto-s{top:44px;border-bottom:1px solid var(--line)}
-.cal-strip{position:sticky;top:44px;z-index:3;background:var(--card);border-bottom:1px solid var(--line);border-left:1px solid var(--line);min-height:22px;padding:2px 3px;display:flex;flex-wrap:wrap;gap:2px;align-content:flex-start}
+.cal-canto-s{top:var(--cal-cab);border-bottom:1px solid var(--line)}
+.cal-strip{position:sticky;top:var(--cal-cab);z-index:3;background:var(--card);border-bottom:1px solid var(--line);border-left:1px solid var(--line);min-height:22px;padding:2px 3px;display:flex;flex-wrap:wrap;gap:2px;align-content:flex-start}
 .cal-strip.hoje{background:color-mix(in srgb,var(--accent) 5%,var(--card))}
 .cal-chip{font:inherit;font-size:10.5px;line-height:1.2;padding:1px 6px;border-radius:999px;cursor:pointer;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;color:var(--ink);background:color-mix(in srgb,var(--ev) 18%,var(--card));border:1px solid color-mix(in srgb,var(--ev) 55%,var(--card))}
 .cal-chip:hover,.cal-chip:focus-visible{background:color-mix(in srgb,var(--ev) 30%,var(--card));outline:none}
 .cal-dia{position:sticky;top:0;z-index:3;background:var(--card);border-bottom:1px solid var(--line);border-left:1px solid var(--line);
-  padding:6px 4px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:1px}
+  padding:6px 4px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:1px;height:var(--cal-cab)}
 .cal-dn{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut)}
 .cal-dd{font-size:17px;font-weight:700;line-height:1.1;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center}
 .cal-dia.hoje .cal-dd{background:var(--accent);color:var(--on-accent)}
 .cal-dia.passado .cal-dn,.cal-dia.passado .cal-dd{opacity:.65}
-.cal-horas{position:sticky;left:0;z-index:2;background:var(--card);border-right:1px solid var(--line);position:relative}
+/* Sem um segundo «position» na mesma regra: havia um relative no fim que calava
+   o sticky, e a coluna das horas fugia com os dias quando se rolava para o
+   lado. O sticky já posiciona os <span> absolutos lá dentro. */
+.cal-horas{position:sticky;left:0;z-index:2;background:var(--card);border-right:1px solid var(--line)}
 .cal-horas span{position:absolute;right:6px;transform:translateY(-7px);font-size:10.5px;color:var(--mut);font-variant-numeric:tabular-nums}
 .cal-col{position:relative;border-left:1px solid var(--line);cursor:cell;background:var(--card)}
 .cal-col.passado{background:color-mix(in srgb,var(--ink) 3%,var(--card))}
@@ -1761,7 +1779,7 @@ select.acomp{margin-top:6px;border-style:dashed;font-size:13.5px}
 .mfundo{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:60;display:flex;
   align-items:center;justify-content:center;padding:16px}
 .mcaixa{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--elev);
-  max-width:540px;width:100%;padding:18px 20px;max-height:86vh;overflow:auto}
+  max-width:540px;width:100%;padding:18px 20px;max-height:86vh;max-height:calc(100dvh - 32px);overflow:auto}
 .mcaixa h2{margin:0}
 .med-linha{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
 .med-linha:last-of-type{border-bottom:none}
@@ -1850,10 +1868,12 @@ ul.fora li{margin:2px 0}
 .day{border:1px solid var(--line);border-radius:var(--r);background:var(--card);box-shadow:var(--shadow);overflow:hidden}
 .day.cheat-any{border-color:var(--party)}
 .dhead{padding:10px 14px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;gap:10px;background:var(--bg)}
-.dhead b{font-family:Georgia,serif;font-size:16px}
+.dhead b{font-size:16px}   /* a letra é a de título do tema (--fonte-display); um Georgia fixo aqui calava-a */
 .meal{padding:10px 14px;border-bottom:1px solid var(--line)}
 .meal:last-child{border-bottom:none}
-.mtitle{font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--mut);font-weight:700;margin-bottom:5px}
+/* sem tamanho nem espaçamento próprios: repunham os de antes por cima da voz
+   única dos rótulos, e a unificação nunca chegava aqui nem ao .splabel */
+.mtitle{margin-bottom:5px}
 .shop li{list-style:none;display:flex;align-items:center;gap:10px;padding:6px 4px;border-bottom:1px dashed var(--line);
   /* A despensa tem quase setecentas linhas, e o browser fazia o cálculo de
      layout das setecentas a cada redesenho — 174 ms num portátil, bem mais
@@ -1964,8 +1984,10 @@ select{-webkit-appearance:none;appearance:none;padding-right:28px;
 main{padding-left:max(20px,env(safe-area-inset-left));padding-right:max(20px,env(safe-area-inset-right))}
 body{padding-bottom:max(60px,calc(env(safe-area-inset-bottom) + 44px))}
 
-@media (max-width:760px){
-  /* Seis separadores não cabem em linha: passam a faixa que desliza na horizontal. */
+@media (max-width:1180px){
+  /* Nove separadores não cabem em linha abaixo de ~1180 px: passam a faixa que
+     desliza na horizontal. O limite era 760, dos telemóveis — num tablet
+     embrulhavam em duas filas e o cabeçalho fixo chegava aos 216 px. */
   nav{order:3;width:100%;margin-left:0;flex-wrap:nowrap;overflow-x:auto;
     -webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px}
   nav::-webkit-scrollbar{display:none}
@@ -2017,6 +2039,17 @@ body{padding-bottom:max(60px,calc(env(safe-area-inset-bottom) + 44px))}
   /* As etiquetas dos sombreados do Calendário (jejum, confeção) nasceram do
      tamanho do texto e ficavam com 16 px — metade do que um dedo acerta. */
   .cal-tag{min-height:26px;padding:4px 9px}
+  /* e os chips do dia inteiro, que ficavam com 16 px */
+  .cal-chip{min-height:28px;padding:4px 8px}
+  /* Campos que escapavam aos 16 px de cima: a procura e as horas não estavam
+     na lista, e o preço e o acompanhamento têm regras com classe que ganhavam
+     por especificidade — o iOS fazia zoom a cada toque neles. */
+  input[type=search],input[type=time],.preco input[type=number],select.acomp{font-size:16px}
+  /* Alvos que nasceram para o rato e ficavam pequenos para o dedo. */
+  .hist button{min-width:40px;min-height:40px}
+  .lg-dose,.sobra-chip,.talhao-btn{min-height:40px}
+  .sobra-acao{min-width:40px;min-height:40px}
+  .dia-op{min-width:40px;height:40px}
   .toggle input{width:20px;height:20px}
   textarea{min-height:140px}
   .spline select,.spline input[type=number]{min-height:42px}
@@ -2967,7 +3000,7 @@ function migraRegistos(s){
     nivel: NIVEIS.some(n=>n[0]===fo.nivel)? fo.nivel : 'moderado',
     jejum: !!fo.jejum,
     jejumH: clampNum(Math.round(parseFloat(fo.jejumH)||16), 12, 23),
-    jejumIni: clampNum(Math.round(parseFloat(fo.jejumIni)||12), 0, 23),
+    jejumIni: clampNum(Math.round(numOu(fo.jejumIni,12)), 0, 23),
     jejumDias: clampNum(Math.round(parseFloat(fo.jejumDias)||0), 0, 3),
     banda: clampNum(parseFloat(fo.banda)||2, 0, 20),
     /* a segunda fase viaja no mesmo formulário: planeia-se ao mesmo tempo */
@@ -3207,9 +3240,9 @@ function limparConvidadosEm(s){
         /* Acompanhamento próprio de quem não podia comer o da travessa. Vale só
            para quem continua a sentar-se a esta mesa: tirar alguém da refeição
            tem de tirar também o prato especial que lhe tinha sido dado, senão
-           fica a somar à lista de compras uma pessoa que já lá não está. A
-           validação de que os ids são mesmo acompanhamentos fica para
-           limparAcPor(), que corre com as receitas todas carregadas. */
+           fica a somar à lista de compras uma pessoa que já lá não está. Os ids
+           em si validam-se à entrada de uma cópia (acLimpo, no lerPacote) e
+           saem quando se apaga uma receita (apagarReceita). */
         if(meal.acPor && typeof meal.acPor==='object'){
           Object.keys(meal.acPor).forEach(mid=>{
             if((meal.m||[]).indexOf(mid)<0 || !Array.isArray(meal.acPor[mid])) delete meal.acPor[mid];
@@ -3624,7 +3657,7 @@ R('pizza','Pizza margherita','italiana',['vegetariana'],0,0,0,0,[['Farinha',90,'
 R('minestrone','Sopa minestrone','italiana',['lowfat','vegetariana','mediterranica'],260,40,10,6,[['Feijão branco',60,'g'],['Massa pequena',30,'g'],['Cenoura',50,'g'],['Aipo',30,'g'],['Tomate',1,'un'],['Courgette',60,'g'],['Azeite',5,'ml']],null,0,['sop']),
 R('ratatouille','Ratatouille','francesa',['keto','lowcarb','paleo','lowfat','vegetariana','mediterranica'],220,18,4,14,[['Beringela',100,'g'],['Courgette',100,'g'],['Pimento',0.5,'un'],['Tomate',2,'un'],['Cebola',0.5,'un'],['Alho',2,'dente'],['Ervas de Provença',2,'g'],['Azeite',12,'ml']],null,8),
 R('salmaomanteiga','Salmão salteado com espargos','francesa',['keto','lowcarb'],0,0,0,0,[['Salmão',170,'g'],['Espargos',120,'g']],null,2),
-R('nicoise','Salada de atum, ovo e batata nova','francesa',['lowcarb','mediterranica'],0,0,0,0,[['Atum em conserva',100,'g'],['Ovo',1,'un'],['Batata nova',100,'g'],['Feijão verde',80,'g'],['Azeitonas',20,'g'],['Tomate',1,'un']],null,5),
+R('nicoise','Salada de atum, ovo e batata nova','francesa',['lowcarb','mediterranica'],0,0,0,0,[['Atum em conserva',100,'g'],['Ovo',1,'un'],['Batata nova',100,'g'],['Feijão-verde',80,'g'],['Azeitonas',20,'g'],['Tomate',1,'un']],null,5),
 R('omelete','Omelete de ervas','francesa',['keto','lowcarb','vegetariana'],330,4,20,26,[['Ovo',3,'un'],['Manteiga',10,'g'],['Cebolinho',5,'g']],null,1),
 R('provencal','Frango à provençal','francesa',['paleo','lowcarb','lowfat','mediterranica'],400,14,42,19,[['Coxas de frango',200,'g'],['Tomate',2,'un'],['Azeitonas',25,'g'],['Alho',2,'dente'],['Vinho branco',40,'ml'],['Ervas de Provença',2,'g'],['Azeite',8,'ml']],null,3),
 R('sopacebola','Sopa de cebola gratinada','francesa',['vegetariana'],350,35,14,17,[['Cebola',2,'un'],['Caldo de legumes',300,'ml'],['Vinho branco',40,'ml'],['Pão rústico',40,'g'],['Queijo gruyère',30,'g'],['Manteiga',10,'g']],null,0,['sop']),
@@ -4112,11 +4145,11 @@ R('acllegumes','Legumes grelhados de courgette, beringela e pimento','mediterran
 R('aclbrocolos','Brócolos salteados com alho','portuguesa',['mediterranica'],0,0,0,0,[['Brócolos',150,'g'],['Alho',2,'dente'],['Azeite',10,'ml'],['Limão',0.25,'un']],['ac']),
 R('aclespargos','Espargos grelhados com flor de sal','mediterranica',['mediterranica'],0,0,0,0,[['Espargos',150,'g'],['Azeite',8,'ml'],['Flor de sal',1,'g'],['Limão',0.25,'un']],['ac']),
 R('aclgrelos','Grelos salteados com alho e azeite','portuguesa',['mediterranica'],0,0,0,0,[['Grelos',150,'g'],['Alho',3,'dente'],['Azeite',12,'ml'],['Limão',0.25,'un']],['ac']),
-R('aclfverde','Feijão verde cozido com azeite e vinagre','portuguesa',['mediterranica'],0,0,0,0,[['Feijão verde',150,'g'],['Azeite',8,'ml'],['Vinagre de vinho',5,'ml'],['Alho',1,'dente']],['ac']),
+R('aclfverde','Feijão-verde cozido com azeite e vinagre','portuguesa',['mediterranica'],0,0,0,0,[['Feijão-verde',150,'g'],['Azeite',8,'ml'],['Vinagre de vinho',5,'ml'],['Alho',1,'dente']],['ac']),
 /* O feijão-verde que estava dentro do bife com molho de mostarda. Sai com a
    dose exata que o prato trazia — não com a do feijão-verde de azeite e
    vinagre aqui em cima, que é outro acompanhamento e leva outra coisa. */
-R('aclfverdemanteiga','Feijão-verde salteado em manteiga','francesa',[],0,0,0,0,[['Feijão verde',150,'g'],['Manteiga',12,'g']],['ac']),
+R('aclfverdemanteiga','Feijão-verde salteado em manteiga','francesa',[],0,0,0,0,[['Feijão-verde',150,'g'],['Manteiga',12,'g']],['ac']),
 R('aclcogumelos','Cogumelos salteados com alho e salsa','mediterranica',['mediterranica'],0,0,0,0,[['Cogumelos',150,'g'],['Alho',2,'dente'],['Azeite',10,'ml'],['Salsa',5,'g']],['ac']),
 R('aclsalmista','Salada mista de alface, tomate e cebola','portuguesa',['mediterranica'],0,0,0,0,[['Alface',100,'g'],['Tomate',1,'un'],['Cebola',0.25,'un'],['Azeite',8,'ml'],['Vinagre de vinho',5,'ml']],['ac']),
 R('aclsaltomate','Salada de tomate com orégãos','mediterranica',['mediterranica'],0,0,0,0,[['Tomate',1.5,'un'],['Cebola roxa',0.25,'un'],['Orégãos',3,'g'],['Azeite',8,'ml'],['Vinagre de vinho',5,'ml']],['ac']),
@@ -4132,7 +4165,7 @@ R('acrfeijao','Arroz de feijão','portuguesa',['mediterranica'],0,0,0,0,[['Arroz
 R('acrmanteiga','Arroz de manteiga','portuguesa',[],0,0,0,0,[['Arroz agulha',70,'g'],['Manteiga',15,'g'],['Cebola',0.25,'un'],['Louro',1,'g']],['ac']),
 R('aclesparregado','Esparregado de espinafres','portuguesa',[],0,0,0,0,[['Espinafres',200,'g'],['Alho',3,'dente'],['Farinha',8,'g'],['Leite',60,'ml'],['Azeite',10,'ml'],['Noz-moscada',0.3,'g'],['Vinagre de vinho',3,'ml']],['ac']),
 R('aclespargossalt','Espargos salteados com alho','mediterranica',['mediterranica'],0,0,0,0,[['Espargos',150,'g'],['Alho',2,'dente'],['Azeite',10,'ml'],['Limão',0.25,'un'],['Flor de sal',1,'g']],['ac']),
-R('acllegsalt','Legumes salteados','mediterranica',['mediterranica'],0,0,0,0,[['Courgette',80,'g'],['Cenoura',60,'g'],['Pimento',0.5,'un'],['Feijão verde',60,'g'],['Alho',2,'dente'],['Azeite',12,'ml'],['Salsa',4,'g']],['ac']),
+R('acllegsalt','Legumes salteados','mediterranica',['mediterranica'],0,0,0,0,[['Courgette',80,'g'],['Cenoura',60,'g'],['Pimento',0.5,'un'],['Feijão-verde',60,'g'],['Alho',2,'dente'],['Azeite',12,'ml'],['Salsa',4,'g']],['ac']),
 R('acllegratin','Legumes gratinados','portuguesa',[],0,0,0,0,[['Courgette',90,'g'],['Cenoura',60,'g'],['Brócolos',80,'g'],['Nata',40,'ml'],['Queijo ralado',25,'g'],['Manteiga',8,'g'],['Noz-moscada',0.3,'g']],['ac']),
 R('aclcouveflor','Couve-flor gratinada com molho branco','portuguesa',[],0,0,0,0,[['Couve-flor',180,'g'],['Leite',80,'ml'],['Farinha',10,'g'],['Manteiga',12,'g'],['Queijo ralado',25,'g'],['Noz-moscada',0.3,'g']],['ac']),
 R('aclcenoura','Cenouras salteadas com mel e tomilho','portuguesa',['mediterranica'],0,0,0,0,[['Cenoura',180,'g'],['Mel',8,'g'],['Manteiga',10,'g'],['Tomilho fresco',3,'g'],['Flor de sal',1,'g']],['ac']),
@@ -4440,11 +4473,11 @@ R('aclcogumelosestufados','Cogumelos estufados com molho de soja','asiatica',[],
 R('aclcogumelosbulhaopato','Cogumelos à Bulhão Pato','portuguesa',['mediterranica'],0,0,0,0,[['Cogumelos',150,'g'],['Alho',3,'dente'],['Coentros',8,'g'],['Azeite',12,'ml'],['Limão',15,'g'],['Vinho branco',25,'ml'],['Flor de sal',0.5,'g']],['ac']),
 /* ---- A prateleira dos molhos, arrumada ----
    Catorze molhos que a casa usa e que a app não sabia fazer. Três famílias:
-   os das mães (béchamel e o que dela sai), os das brasas e das frituras
+   os das mães (o bechamel e o que dele sai), os das brasas e das frituras
    (tártaro, rosa, escabeche), e os de fora (XO, sriracha, teriyaki, ranch,
    ají). Os que já cá estavam não se repetem — o de tomate, o verde, o
    chimichurri, o ponzu e o holandês têm receita desde sempre. */
-R('acmbechamel','Béchamel, molho branco','francesa',[],0,0,0,0,[['Leite meio gordo, UHT',120,'ml'],['Manteiga',12,'g'],['Farinha',12,'g'],['Noz-moscada',0.1,'g'],['Flor de sal',0.5,'g'],['Pimenta branca',0.1,'g']],['mo']),
+R('acmbechamel','Bechamel, molho branco','francesa',[],0,0,0,0,[['Leite meio gordo, UHT',120,'ml'],['Manteiga',12,'g'],['Farinha',12,'g'],['Noz-moscada',0.1,'g'],['Flor de sal',0.5,'g'],['Pimenta branca',0.1,'g']],['mo']),
 R('acmtartaro','Molho tártaro','francesa',[],0,0,0,0,[['Maionese',35,'g'],['Picles de pepino',12,'g'],['Alcaparras',5,'g'],['Chalota',8,'g'],['Salsa',2,'g'],['Limão',4,'g'],['Mostarda de Dijon',2,'g']],['mo']),
 R('acmrosa','Molho rosa','portuguesa',[],0,0,0,0,[['Maionese',50,'g'],['Ketchup',20,'g'],['Aguardente',5,'ml'],['Limão',5,'g'],['Pimenta de caiena',0.2,'g']],['mo']),
 R('acmtomateassado','Molho de tomate assado','portuguesa',['mediterranica'],0,0,0,0,[['Tomate',200,'g'],['Alho',3,'dente'],['Azeite',12,'ml'],['Tomilho fresco',2,'g'],['Flor de sal',0.5,'g']],['mo']),
@@ -5076,7 +5109,7 @@ R('pezinhoscoentrada','Pezinhos de coentrada','portuguesa',[],0,0,0,0,[['Porco, 
 R('espargosovos','Espargos com ovos','portuguesa',['vegetariana'],0,0,0,0,[['Espargos',200,'g'],['Ovo',2,'un'],['Alho',2,'dente'],['Pão alentejano',30,'g'],['Azeite',12,'ml'],['Flor de sal',1,'g']],['a','j','l'],0,['ent','pp']),
 R('ovosverdes','Ovos verdes','portuguesa',['vegetariana'],0,0,0,0,[['Ovo',2,'un'],['Salsa',8,'g'],['Cebola',15,'g'],['Pão ralado',20,'g'],['Farinha',10,'g'],['Azeite',4,'ml'],['Óleo alimentar',12,'ml']],['a','j','l'],0,['ent']),
 R('ovosrotos','Ovos rotos','espanhola',[],0,0,0,0,[['Batata',200,'g'],['Ovo',2,'un'],['Presunto',30,'g'],['Pimentão-doce',1,'g'],['Flor de sal',1,'g'],['Óleo alimentar',15,'ml']],['a','j','l'],0,['ent','pp']),
-R('peixinhoshorta','Peixinhos da horta','portuguesa',['vegetariana'],0,0,0,0,[['Feijão verde',180,'g'],['Farinha',45,'g'],['Ovo',0.5,'un'],['Flor de sal',1,'g'],['Óleo alimentar',15,'ml']],['a','j','l'],0,['ent']),
+R('peixinhoshorta','Peixinhos da horta','portuguesa',['vegetariana'],0,0,0,0,[['Feijão-verde',180,'g'],['Farinha',45,'g'],['Ovo',0.5,'un'],['Flor de sal',1,'g'],['Óleo alimentar',15,'ml']],['a','j','l'],0,['ent']),
 R('pasteistentugal','Pastéis de Tentúgal','portuguesa',['vegetariana'],0,0,0,0,[['Massa folhada, congelada',40,'g'],['Gema de ovo de galinha, crua',45,'g'],['Açúcar branco',55,'g'],['Açúcar em pó',4,'g'],['Canela',0.3,'g']],['l'],0,['sob']),
 R('empadavilavicosa','Empadas de galinha à moda de Vila Viçosa','portuguesa',[],0,0,0,0,[['Coxas de frango',60,'g'],['Bacon',10,'g'],['Gema de ovo de galinha, crua',15,'g'],['Cebola',20,'g'],['Banha de porco',5,'g'],['Limão',10,'g'],['Salsa',3,'g'],['Cravinho',0.3,'g'],['Pimenta branca',0.3,'g'],['Vinagre de vinho',5,'ml'],['Azeitonas',8,'g']],['l','a','j'],0,['ent','sn','pp']),
 /* ---- As outras empadas ----
@@ -5477,8 +5510,8 @@ P('croquetesfarinheira',[
  ['Fritar','Óleo bem quente e poucos de cada vez, até dourar. Escorre em papel absorvente. Ficam bem com uma salada de agrião ao lado, que corta a gordura.',5]]);
 P('croquetesespinafres',[
  ['Espinafres','Salteia os espinafres com o alho picado numa frigideira larga, só até murcharem. Escorre-os MUITO bem, apertando entre as mãos ou com as costas de uma colher no passador: a água que ficar é a água que vai amolecer a massa. Pica-os grosseiramente.',10],
- ['Béchamel','Derrete a manteiga, refoga a cebola picada sem a deixar tomar cor, junta a farinha e deixa cozer um minuto. Acrescenta o leite aos poucos, sempre a mexer, até engrossar. Tempera com noz-moscada, sal e pimenta.',10],
- ['Juntar','Mistura os espinafres e o queijo ralado na béchamel e deixa cozinhar mais dois minutos, mexendo, até a massa se descolar do tacho. Espalha num prato, tapa à superfície e leva ao frio duas horas.',125],
+ ['Bechamel','Derrete a manteiga, refoga a cebola picada sem a deixar tomar cor, junta a farinha e deixa cozer um minuto. Acrescenta o leite aos poucos, sempre a mexer, até engrossar. Tempera com noz-moscada, sal e pimenta.',10],
+ ['Juntar','Mistura os espinafres e o queijo ralado no bechamel e deixa cozinhar mais dois minutos, mexendo, até a massa se descolar do tacho. Espalha num prato, tapa à superfície e leva ao frio duas horas.',125],
  ['Moldar, panar e fritar','Molda, passa por ovo e por pão ralado, e frita em óleo bem quente até dourar. Escorre em papel absorvente.',12]]);
 P('rissoiscarne',[
  ['Recheio','Refoga a cebola picada em metade da manteiga, junta a carne picada e deixa-a soltar-se e alourar. Polvilha com uma colher da farinha, deixa cozer um minuto e junta o leite aos poucos, a mexer, até ficar um recheio espesso. Tempera com sal, pimenta, noz-moscada e a salsa picada. Deixa arrefecer completamente.',20],
@@ -5758,7 +5791,7 @@ P('aclespargos',[['Preparar','Dobra cada espargo até partir: parte sozinho onde
 P('aclgrelos',[['Cozer','Grelos em água a ferver com sal, poucos minutos. Escorre bem.',5],
  ['Saltear','Alho laminado a alourar no azeite e os grelos por cima, em lume forte.',4],
  ['Servir','Prova antes de salgar — os grelos já vêm com o sal da cozedura.']]);
-P('aclfverde',[['Cozer','Feijão verde em água a ferver com sal, até estar tenro mas ainda com resistência.',10],
+P('aclfverde',[['Cozer','Feijão-verde em água a ferver com sal, até estar tenro mas ainda com resistência.',10],
  ['Escorrer','Escorre e deixa arrefecer um pouco.'],
  ['Temperar','Azeite, vinagre e sal, ainda morno — é morno que absorve o tempero.']]);
 P('aclfverdemanteiga',[['Cozer al dente','Feijão-verde em água a ferver bem salgada, cinco a sete minutos. Tem de ficar com resistência: vai voltar ao lume na frigideira.',7],
@@ -5802,7 +5835,7 @@ P('aclespargossalt',[['Aparar','Dobra cada espargo: parte sozinho onde deixa de 
  ['Alho','Alho laminado no fim, meio minuto, e fora do lume.',1],
  ['Rematar','Flor de sal e umas gotas de limão à saída.']]);
 P('acllegsalt',[['Cortar','Tudo do mesmo tamanho — é o que faz cozinharem ao mesmo tempo. Cenoura em meias-luas finas, courgette em meias-luas grossas.'],
- ['Ordem','Frigideira bem quente: primeiro a cenoura e o feijão verde, que demoram mais; a courgette e o pimento dois minutos depois.',7],
+ ['Ordem','Frigideira bem quente: primeiro a cenoura e o feijão-verde, que demoram mais; a courgette e o pimento dois minutos depois.',7],
  ['Alho','Alho no fim, para perfumar sem queimar.',1],
  ['Rematar','Sal só agora — antes, puxa a água e os legumes cozem em vez de saltear. Salsa fora do lume.']]);
 P('acllegratin',[['Escaldar','Legumes cortados grossos, dois minutos em água a ferver, e logo escorridos. Crus, largam água no forno e o gratinado fica aguado.',4],
@@ -6651,7 +6684,7 @@ P('cacioepepe',[['Pimenta','Tosta a pimenta em grão, moída grossa, numa frigid
  ['Sem azeite e sem manteiga','São três coisas e mais nada: massa, pecorino e pimenta. Um fio de azeite parece inofensivo e é o que impede o amido de emulsionar com o queijo — a gordura a mais separa o creme em vez de o ligar.'],
  ['Ligar','Massa e creme FORA do lume, mexendo com energia. O erro mais comum é juntar o queijo com a frigideira ainda ao lume: o calor que lá ficou chega e sobra.']]);
 P('panzanella',[['Pão','Pão duro em pedaços, humedecido com água e vinagre e espremido.'],
- ['Tomate','Tomate maduro em pedaços, com sal, a largar o suco.',15],
+ ['Tomate','Tomate maduro em pedaços, com sal, a largar o sumo.',15],
  ['Juntar','Envolve tudo com cebola, manjericão e azeite; repousa antes de servir.',30]]);
 P('acquapazza',[['Base','Alho e tomate cereja a abrir no azeite, em lume médio.',5],
  ['Peixe','Robalo por cima, com água e vinho branco a meia altura.'],
@@ -6837,7 +6870,7 @@ P('pinchos',[['Marinar','Porco em cubos com especiarias moriscas, alho e azeite,
  ['Grelhar','Brasa média-forte, virando várias vezes.',12]]);
 P('manchego',[['Servir','Manchego em cunhas, com marmelada e amêndoas torradas ao lado.']]);
 P('salmorejo',[['Triturar','Tomate, pão, alho e sal, triturados muito bem.'],
- ['Emulsionar','Azeite em fio até ficar espesso e cor-de-laranja — mais denso do que um gaspacho.'],
+ ['Emulsionar','Azeite em fio até ficar espesso e cor de laranja — mais denso do que um gaspacho.'],
  /* O presunto saiu do passo: não estava na lista de ingredientes, não entrava
     nos alergénios nem nos macros, e o prato dá-se por vegetariano. Em Córdova
     leva-o — mas quem o puser deixa de poder confiar no rótulo, e o rótulo é o
@@ -7596,7 +7629,7 @@ P('acmtzatziki',[['Espremer o pepino','Rala o pepino com casca e espreme-o num p
  ['Envolver','Junta o pepino ao iogurte grego com o alho ralado fino e o endro picado. Mexe sem bater, que o iogurte grego perde corpo se for trabalhado de mais.'],
  ['Repousar frio','Meia hora no frigorífico para o alho perfumar o iogurte. Está no ponto quando cheira a alho sem arder na língua; prova o sal só depois deste descanso.',30]]);
 P('acmcoulisframboesa',[['Fruta e limão','Framboesas num tacho, a raspa do limão por cima e o sumo coado — sem grainhas nem pevides.',3],
- ['Ao lume','Junta o açúcar e leva a lume médio, a mexer e a esmagar a fruta com as costas da colher até largar o suco todo.',8],
+ ['Ao lume','Junta o açúcar e leva a lume médio, a mexer e a esmagar a fruta com as costas da colher até largar o sumo todo.',8],
  ['Coar','Passa por um passador fino, a apertar para tirar tudo o que dá. O que fica no passador são as grainhas, e é por elas que se coa.',4],
  ['Arrefecer','Fria por completo antes de ir para cima da sobremesa. Morna, derrete-lhe a superfície e escorre pelos lados.',20]]);
 P('acmcoulismorango',[['Fruta e limão','Morangos sem folhas, aos quartos, num tacho, com a raspa e o sumo coado do limão.',4],
@@ -7735,7 +7768,7 @@ P('acmbitoque',[
  ['Vinho a raspar o fundo','Vinho branco e uma colher de pau a raspar tudo o que está preso, em lume médio, até reduzir a metade e ganhar brilho.',3],
  ['Por cima do bife','Deita-se por cima do bife na altura de servir, com o ovo a cavalo por cima disso. Não se guarda — é um molho de frigideira, e faz-se no momento.',1]]);
 P('acmbechamel',[
- ['Roux, e sem cor','Derrete a manteiga, junta a farinha de uma vez e mexe dois minutos em lume brando. Não deixes tomar cor: um béchamel é branco, e um roux tostado deixa de engrossar tão bem.',3],
+ ['Roux, e sem cor','Derrete a manteiga, junta a farinha de uma vez e mexe dois minutos em lume brando. Não deixes tomar cor: um bechamel é branco, e um roux tostado deixa de engrossar tão bem.',3],
  ['Leite morno, aos poucos','Junta o leite morno em três vezes, batendo bem entre cada uma até ficar liso. Frio e todo de uma vez é a receita dos grumos — e depois só o passador os resolve.',6],
  ['Dez minutos a apurar','Lume brando, mexendo com frequência e chegando ao fundo, até cobrir as costas da colher. O sabor a farinha crua só se vai embora com este tempo.',10],
  ['Noz-moscada no fim','Flor de sal, pimenta branca (a preta ficaria a salpicar o branco) e noz-moscada ralada na hora. Se o guardares, filme em contacto com a superfície ou ganha pele.',2]]);
@@ -8245,7 +8278,7 @@ P('medovik',[['Massa de mel em banho-maria','Mel, açúcar e manteiga numa taça
  ['Aparas em migalha','Coze as aparas até ficarem bem douradas e tritura-as em migalha fina. É a cobertura: tudo o que se corta volta ao bolo.',8],
  ['Creme','Bate as natas bem frias até fazerem picos moles e envolve o leite condensado e o iogurte grego. O original leva smetana, o creme azedo russo; as natas com iogurte grego dão a mesma acidez, que é o que corta o doce do mel.',6],
  ['Montar e esperar uma noite','Disco, creme, disco, até ao fim; cobre o topo e os lados com creme e polvilha com a migalha. Frigorífico pelo menos doze horas: é aí que o creme amolece as camadas duras e o bolo passa a cortar-se inteiro. Comido no próprio dia, é bolacha com creme.',720]]);
-P('financier',[['Manteiga noisette','Derrete a manteiga em lume médio e deixa-a espumar até os sólidos do fundo ficarem cor de avelã e cheirar a bolo. Tira do lume logo — do avelã ao queimado são segundos — e deixa amornar.',6],
+P('financier',[['Manteiga noisette','Derrete a manteiga em lume médio e deixa-a espumar até os sólidos do fundo ficarem cor de avelã e a manteiga cheirar a bolo. Tira do lume logo — do avelã ao queimado são segundos — e deixa amornar.',6],
  ['Secos','Peneira juntos a farinha de amêndoa, o açúcar em pó, a farinha e a flor de sal, para não ficarem grumos de amêndoa.',3],
  ['Claras sem bater','Junta as claras aos secos e mexe só até ligar. Não se batem: um financier não é um pão de ló, e o ar das claras em castelo fazia-o subir e secar.',3],
  ['A manteiga em fio','Verte a manteiga morna em fio, com os sólidos castanhos, a mexer até a massa ficar lisa e brilhante. Os sólidos são o sabor todo.',2],
@@ -8964,7 +8997,7 @@ P('pulpobrasa',[['Assustar','Água a ferver com louro. Segura-se o polvo pela ca
 P('texcostelas',[['Preparar as costelas','Retira a membrana do lado do osso com um pano de cozinha; sem isso o tempero não entra e a peça encolhe. Deixa a capa de gordura. Tempera só com sal grosso e pimenta preta grosseira, meio a meio.',15],
  ['Brasa de carvalho','Carvão aceso até à cinza branca, sem chama, com achas de carvalho ou de azinho. Grelha alta, longe do lume, calor indireto a 135 graus e as costelas com o osso para baixo.',40],
  ['Primeira hora sem tocar','Não abras a tampa na primeira hora, é quando o fumo pega. A partir daí borrifa com água a cada 45 a 60 minutos.',60],
- ['Atravessar o stall','O termómetro para entre os 74 e os 80 graus. Deixa a descoberto para um bark mais fundo, ou embrulha em papel de açougueiro aos 77 graus se quiseres acabar mais depressa.',360],
+ ['Atravessar o stall','O termómetro para entre os 74 e os 80 graus. Deixa a descoberto para um bark mais fundo, ou embrulha em papel de talho aos 77 graus se quiseres acabar mais depressa.',360],
  ['Provar com a sonda','Retira entre os 93 e os 96 graus, quando a sonda entra entre os ossos sem resistência nenhuma. Se puxa, ainda não está, por muito que o termómetro diga.',60],
  ['Descansar e cortar','Uma hora de descanso, até duas. Depois corta entre os ossos: cada osso é uma dose e serve-se sem molho nenhum.',60]]);
 P('santamaria',[['Temperar à Santa Maria','Só sal grosso, pimenta preta, alho em pó e salsa seca. Tempera uma hora antes para o sal entrar e deixa a capa de gordura na peça.',15],
@@ -9270,8 +9303,8 @@ P('empadabacalhau',[
  ['Cozer','Pincela com a gema batida e leva a 190 °C até estarem louras. Desenforma mornas.',30]]);
 P('empadaespinafres',[
  ['Espinafres','Salteia os espinafres com o alho picado só até murcharem e escorre-os MUITO bem, apertando entre as mãos. A água que ficar é a água que vai amolecer a massa por dentro. Pica-os grosseiramente.',10],
- ['Béchamel','Derrete a manteiga, refoga a cebola picada sem a deixar corar, junta a farinha e deixa cozer um minuto. Acrescenta o leite aos poucos, a mexer, até engrossar. Tempera com noz-moscada, sal e pimenta.',10],
- ['Juntar e arrefecer','Envolve os espinafres e o queijo na béchamel e deixa cozinhar mais dois minutos, até a massa se descolar do tacho. Deixa arrefecer por completo. Aqui a manteiga faz o trabalho da banha das outras empadas — é a troca que deixa esta ser vegetariana.',18],
+ ['Bechamel','Derrete a manteiga, refoga a cebola picada sem a deixar corar, junta a farinha e deixa cozer um minuto. Acrescenta o leite aos poucos, a mexer, até engrossar. Tempera com noz-moscada, sal e pimenta.',10],
+ ['Juntar e arrefecer','Envolve os espinafres e o queijo no bechamel e deixa cozinhar mais dois minutos, até a massa se descolar do tacho. Deixa arrefecer por completo. Aqui a manteiga faz o trabalho da banha das outras empadas — é a troca que deixa esta ser vegetariana.',18],
  ['Forrar e rechear','Estende a massa quebrada fina, forra as formas untadas com manteiga, enche com o recheio frio e tapa com um disco de massa. Aperta a borda e faz um furo ao centro.',18],
  ['Cozer','Pincela com a gema batida e leva a 190 °C até estarem louras. Desenforma mornas.',30]]);
 P('domrodrigo',[['Fazer a calda','Leva o açúcar com um pouco de água ao lume até ponto de pérola. É a mesma calda que vai servir para os fios e para tostar.',10],
@@ -9542,7 +9575,7 @@ P('ovosrotos',[
  ['Estrelar','Estrela os ovos em óleo quente, deitando-lhes óleo por cima com a colher, para a clara ficar rendilhada nas bordas e a gema mole. É a gema mole que faz o prato — sem ela não há nada para partir.',4],
  ['Partir à mesa','Monta as batatas no prato, o presunto por cima e os ovos por cima de tudo. Polvilha com pimentão-doce e PARTE as gemas com a faca à frente de quem vai comer, misturando tudo grosseiramente. É daí que vem o nome — huevos rotos são ovos partidos.',2]]);
 P('peixinhoshorta',[
- ['Escaldar o feijão','Arranja o feijão verde tirando-lhe os fios, e escalda-o em água a ferver com sal três minutos. Passa-o logo por água gelada para travar a cozedura e fixar o verde, e seca-o MUITO bem com um pano.',10],
+ ['Escaldar o feijão','Arranja o feijão-verde tirando-lhe os fios, e escalda-o em água a ferver com sal três minutos. Passa-o logo por água gelada para travar a cozedura e fixar o verde, e seca-o MUITO bem com um pano.',10],
  ['O polme','Bate a farinha com o ovo, uma pitada de sal e água gelada aos poucos, até ficar um polme que cubra as costas de uma colher sem escorrer. Deixa-o repousar no frigorífico enquanto o óleo aquece: polme frio em óleo quente é o que dá a crosta leve.',15],
  ['Fritar','Passa cada vagem pelo polme, deixa escorrer o excesso e frita em óleo bem quente, poucas de cada vez, até dourar. Escorre em papel absorvente e sala à saída.',8],
  ['Uma nota de história','Chamam-se peixinhos porque parecem peixe frito sem o ser: eram o que se comia nos dias de abstinência. Os tempura japoneses descendem desta técnica, levada por missionários portugueses no século XVI — este prato é o avô do tempura, e não o contrário.',1]]);
@@ -9900,7 +9933,7 @@ NI('Ervilhas',76,8.6,6.4,0.7,4.7,0,4);
 NI('Espargos',22,2.7,2.1,0,1.5,0,2);
 NI('Espinafres',27,0.8,2.6,0.9,2.6,0,2);
 NI('Favas',80,8.5,7.4,0.5,6.1,0,4);
-NI('Feijão verde',32,3.8,1.9,0.3,3,0,2);
+NI('Feijão-verde',32,3.8,1.9,0.3,3,0,2);
 NI('Figos',79,16.3,0.9,0.5,2.3,0,2);
 NI('Frutos vermelhos',32,6,0.6,0.2,0.6,0,2);
 NI('Gengibre',82,15.8,1.8,0.8,2,0,4);
@@ -10287,7 +10320,7 @@ NI('Carneiro, perna gorda, crua',276,0,19.1,22.2,0,0,1);
 NI('Carneiro, perna magra, crua',130,0,19.8,5.6,0,0,1);
 NI('Caseína',358,0,86.2,1.5,0,0,4);
 NI('Castanha de caju torrada e salgada',613,19.4,19.6,50,3.3,0,4);
-NI('Castanha do Brasil',690,2.6,9.6,66.7,20.5,0,4);
+NI('Castanha-do-brasil',690,2.6,9.6,66.7,20.5,0,4);
 NI('Castanha pilada',341,70,5.1,2,11.3,0,4);
 NI('Cavala em filetes, conserva em azeite',182,0,24,9.6,0,0,0);
 NI('Cavalo, bife de alcatra crua',116,0,21.1,3.5,0,0,1);
@@ -10730,16 +10763,12 @@ NI('Uva passa',301,66.5,2.5,0.6,4.2,0,4);
 /* Leguminosas, cereais e mercearia */
 NI('Feijão preto cozido',114,13.4,8.1,0.6,7.9,0,4);
 NI('Feijão encarnado cozido',118,14.1,8.4,0.6,7.4,0,4);
-NI('Grão-de-bico cozido',139,17.1,8.4,2.9,6.4,0,4);
 NI('Lentilhas cozidas',105,12.9,8.8,0.5,5.1,0,4);
 NI('Favas cozidas',85,9.2,7.4,0.6,5.8,0,4);
-NI('Arroz integral cru',344,71.5,7.9,2.4,3.5,0,4);
 NI('Arroz integral cozido',124,25.8,2.8,0.9,1.3,0,4);
 NI('Massa integral crua',337,62.4,13.2,2.5,8.4,0,4);
 NI('Massa cozida',144,29.9,4.7,0.6,1.8,0,4);
-NI('Aveia em flocos',372,58.7,13.5,7,9.7,0,4);
 NI('Farinha integral de trigo',321,58.9,11.9,2.2,10.7,0,4);
-NI('Farinha de centeio',324,64.1,8.3,1.6,11.7,0,4);
 /* Aqui havia segundas transcrições INSA de Pão de mistura (245/47,1), Pão
    integral (228/41,2) e Pão de centeio (231/43,7) — mortas desde sempre: a
    regra de prioridade fazia ganhar as primeiras (272/53,8 · 232/39,9 ·
@@ -10747,9 +10776,16 @@ NI('Farinha de centeio',324,64.1,8.3,1.6,11.7,0,4);
    ficheiro não afirmar valores que não estão em vigor; se um dia se conferir
    a tabela do INSA linha a linha e a razão estiver do lado destas, é trocar
    os números lá em cima, não ressuscitar linhas mortas. */
+/* E havia sete segundas transcrições que NÃO estavam mortas — o NI() de
+   baixo cala o de cima, e eram estas que as receitas contavam: Grão-de-bico
+   cozido (139), Arroz integral cru (344), Aveia em flocos (372), Farinha de
+   centeio (324), Mel (313), e as sementes de linhaça (534) e de chia (486),
+   estas com números do USDA debaixo da etiqueta da UE. Conferidas contra a
+   tabela do INSA (códigos 536, 401, 444, 60100015, 504, 1900000034 e
+   1900000040), quem batia certo eram as de cima, linha a linha. Removidas em
+   setembro de 2026. */
 NI('Tosta integral',390,63.4,12.4,7.2,9.4,0,4);
 NI('Bolacha de água e sal',419,71.9,10.2,10.4,3.1,0,4);
-NI('Mel',313,77.3,0.4,0,0,0,4);
 NI('Compota de fruta',256,63.1,0.4,0.1,1,0,4);
 /* Segunda transcrição INSA do Chocolate de culinária (516/54,2) removida —
    morta; vale a de cima (502/44, «Chocolate culinária, tablete»). */
@@ -10769,8 +10805,6 @@ NI('Tempeh',192,7.6,20.3,10.8,4.8,0,4);
 NI('Seitan',141,4.2,25.4,1.9,0.6,0,4);
 NI('Proteína de ervilha em pó',380,4,80,5,4,0,4);
 NI('Levedura nutricional',345,15,45,5,25,0,4);
-NI('Sementes de linhaça',534,1.6,18.3,42.2,27.3,0,4);
-NI('Sementes de chia',486,7.7,16.5,30.7,34.4,0,4);
 /* Do USDA, para o que nem o INSA nem as bases europeias cobrem */
 fonte('fda');
 NI('Manteiga de caju',587,25.7,17.6,49.4,2,0,4);
@@ -11048,7 +11082,7 @@ function acucarLivreDeIngredientes(lista,doses){
 const CATS = [
   ['Peixe & Marisco',/bacalhau|salm|sardinha|polvo|camar|atum|dourada|robalo|amêijoa|marisco|peixe|pescada|espadarte|anchova|carapau|cavala|lulas|mexilh|truta|choco/i],
   ['Carne & Ovos',/frango|porco|vaca|picada|peru|chouriço|bife|coxas|ovo|bacon|presunto|borrego|coelho|fiambre|pato|vitela|bresaola|linguiça/i],
-  ['Frutas & Legumes',/cebola|alho|tomate|courgette|beringela|pimento|cenoura|batata|couve|alface|espinafre|brócolo|cogumelo|limão|lima\b|abacate|pepino|salsa|coentro|manjericão|azeitona|feijão verde|espargo|rúcula|abóbora|aipo|rebentos|gengibre|hortelã|cebolinho|endro|passas|edamame|banana|maçã|pera|manga|frutos vermelhos|grelos|salva|louro|ervilha|fava|figo|laranja|melão|milho|nabo|repolho|tâmara|chalota|castanha|malagueta|alecrim|tomilho/i],
+  ['Frutas & Legumes',/cebola|alho|tomate|courgette|beringela|pimento|cenoura|batata|couve|alface|espinafre|brócolo|cogumelo|limão|lima\b|abacate|pepino|salsa|coentro|manjericão|azeitona|feijão-verde|espargo|rúcula|abóbora|aipo|rebentos|gengibre|hortelã|cebolinho|endro|passas|edamame|banana|maçã|pera|manga|frutos vermelhos|grelos|salva|louro|ervilha|fava|figo|laranja|melão|milho|nabo|repolho|tâmara|chalota|castanha|malagueta|alecrim|tomilho/i],
   ['Laticínios',/leite\b|queijo|iogurte|manteiga|mozzarella|parmesão|feta|gruyère|ricotta|requeijão|nata|halloumi|manchego|cheddar/i],
   ['Mercearia & Outros',/./]
 ];
@@ -11106,7 +11140,7 @@ const ALERGENIOS=[
   ['amendoim','Amendoins','🥜','Amendoim e derivados, incluindo o óleo e a manteiga de amendoim. É uma leguminosa: categoria à parte dos frutos de casca rija.'],
   ['soja','Soja','🌱','Grão de soja e derivados: tofu, miso, molho de soja, edamame, rebentos, proteína texturizada.'],
   ['lacticinio','Leite (e lactose)','🥛','Leite de qualquer espécie e derivados: manteiga, natas, queijo, requeijão, iogurte, caseína, soro de leite.'],
-  ['frutosecos','Frutos de casca rija','🌰','Lista fechada de oito: amêndoa, avelã, noz, caju, noz-pecã, castanha do Brasil, pistácio e macadâmia. A castanha portuguesa e o pinhão não pertencem a esta categoria.'],
+  ['frutosecos','Frutos de casca rija','🌰','Lista fechada de oito: amêndoa, avelã, noz, caju, noz-pecã, castanha-do-brasil, pistácio e macadâmia. A castanha portuguesa e o pinhão não pertencem a esta categoria.'],
   ['aipo','Aipo','🥬','Raiz, caule, folhas e sementes de aipo — e o que os leve escondidos, como caldos, sopas e misturas de temperos.'],
   ['mostarda','Mostarda','🫙','Sementes, folhas e rebentos de mostarda e tudo o que deles se faça.'],
   ['sesamo','Sementes de sésamo','⚪','Sementes de sésamo, óleo de sésamo e tahini.'],
@@ -11151,7 +11185,7 @@ const ING_REGRAS=[
      o pinhão ficam de fora de propósito — não são alergénios de declaração
      obrigatória, e alargar a categoria por instinto tornaria o filtro menos
      fiel à lei sem tornar ninguém mais seguro. */
-  ['frutosecos',/amêndoa|avel[ãa]|\bnoz\b|nozes|noz pecan|noz macad|macadâmia|caju|pistá|castanha do brasil/i],
+  ['frutosecos',/amêndoa|avel[ãa]|\bnoz\b|nozes|noz pecan|noz macad|macadâmia|caju|pistá|castanha-do-brasil/i],
   ['amendoim',/amendoim/i],
   ['soja',/soja|tofu|edamame|miso|teriyaki/i],
   ['sesamo',/sésamo|tahini/i],
@@ -11248,7 +11282,7 @@ const ING_EXCECAO={
   'Manteiga de amendoim':['amendoim','leguminosa'], 'Farinha de amêndoa':['frutosecos'],
   'Tortilhas de milho':['cereal'], 'Broa de milho':['gluten','cereal'], 'Molho de peixe':['peixe'],
   'Óleo de sésamo':['sesamo'], 'Sementes de sésamo':['sesamo'],
-  'Pasta de miso':['soja','gluten','leguminosa'], 'Feijão verde':[],
+  'Pasta de miso':['soja','gluten','leguminosa'], 'Feijão-verde':[],
   'Molho de soja':['soja','gluten','leguminosa'], 'Molho teriyaki':['soja','gluten','leguminosa'], 'Algas nori':[],
   'Carne de porco':['carne','porco'], 'Molho barbecue':[], 'Molho picante':['picante'],
   'Chili em pó':['picante'],
@@ -11280,7 +11314,7 @@ const ING_EXCECAO={
   'Polvilho azedo':[], 'Batata, fécula':[],
   'Trigo Sarraceno (grão) cru':['cereal'], 'Millet, cru, seco':['cereal'],
   'Sementes de mostarda':['mostarda'], 'Molho de mostarda':['mostarda'],
-  'Castanha de caju torrada e salgada':['frutosecos'], 'Castanha do Brasil':['frutosecos'],
+  'Castanha de caju torrada e salgada':['frutosecos'], 'Castanha-do-brasil':['frutosecos'],
   /* castanha portuguesa e pinhão: fora da lista fechada dos oito */
   'Castanha cozida sem sal':[], 'Castanha pilada':[], 'Castanha, miolo':[], 'Castanhas':[],
   'Pinhões':[], 'Pinhão, miolo':[],
@@ -11518,7 +11552,7 @@ const ING_EXCECAO={
   'Carneiro, perna magra, crua':110,   /* INSA IS101 Carneiro, perna magra, crua */
   'Caseína':10,   /* INSA 1900000084 Caseína */
   'Castanha de caju torrada e salgada':320,
-  'Castanha do Brasil':3,   /* INSA Castanha do Brasil */
+  'Castanha-do-brasil':3,   /* INSA Castanha-do-brasil */
   'Castanha pilada':17,   /* INSA Castanha pilada */
   'Castanhas':9,   /* INSA Castanha, miolo */
   'Cavala':78,   /* INSA 820 Cavala crua */
@@ -12723,7 +12757,7 @@ function ehPassoDeMassa(p){ return /^Massa: /.test(p&&p.t||''); }
 const KEY='familiaFitV1', APPID='familia-fit', FORMATO=1;
 let saveErr='', msg=null;
 /* ---- Um desenho por gesto ----
-   Quase todas as acções acabavam em `save(); render(); flash(...)` — e o
+   Quase todas as ações acabavam em `save(); render(); flash(...)` — e o
    `flash()` desenhava outra vez. Eram dois desenhos completos por toque: no
    Plano, 1,4 segundos em vez de 0,3, com o segundo a não mudar um pixel.
    O contador diz quantas vezes já se desenhou DENTRO deste gesto, e uma
@@ -13040,6 +13074,11 @@ function aplicaInstantaneo(js){
   S.rituais=limparRituais(d.rituais); S.extras=limparExtras(d.extras); S.aindaHa=limparAindaHa(d.aindaHa); S.basicos=limparBasicos(d.basicos);
   S.visitas=limparVisitas(d.visitas); S.ementas=limparEmentas(d.ementas); S.anos=limparAnos(d.anos); S.provas=limparProvas(d.provas); S.bebidas=limparBebidas(d.bebidas); S.notasCozinha=limparNotasCozinha(d.notasCozinha);
   S.corredores=limparCorredores(d.corredores); S.trilhos=limparTrilhos(d.trilhos); S.talhoes=limparTalhoes(d.talhoes, S.members.map(m=>m.id));
+  /* o calendário, as massas compradas e as cores entravam no instantâneo e não
+     voltavam dele: «Anular» dizia «Desfeito: bloco marcado» e o bloco ficava */
+  S.agenda=limparAgenda(d.agenda, S.members.map(m=>m.id));
+  S.massaFeita=(d.massaFeita && typeof d.massaFeita==='object')? d.massaFeita : {};
+  S.cores=(d.cores && typeof d.cores==='object')? d.cores : {porDesporto:{}};
   S.jejum=limpaJejunsInalcancaveis(limparJejum(d.jejum, S.members.map(m=>m.id)), S.members);
   sincronizaReceitas(); sincronizaCombos();
   S.members.forEach(normalizaMembro);
@@ -13955,6 +13994,19 @@ function sportWeeklyH(s){ const h=horasPeriodo(s);
 function sportsKcalDay(m){ return (m.desportos||[]).reduce((t,s)=> t + metDe(s)*m.peso*sportWeeklyH(s), 0)/7; }
 function commuteKcalDay(m){ return (COMMUTE[m.desloc]?.[1]||0)*m.peso*(5/7); }
 function clampNum(v,a,b){ return Math.min(Math.max(v,a),b); }
+/* `parseFloat(x)||recurso` mata o zero — a meia-noite, uma janela de jejum que
+   abre às 00h00, um bloco às 0h. Nos campos em que 0 é um valor, usa-se isto. */
+function numOu(v,recurso){ const n=parseFloat(v); return Number.isFinite(n)? n : recurso; }
+/* O jejum já registado com que um novo se sobrepõe (da mesma pessoa), ou nada.
+   Estava escrito duas vezes, no balcão rápido e no formulário — e as duas
+   cópias de uma regra de sobreposição acabam sempre por divergir. */
+function jejumQueChoca(j){
+  const emH=x=>{ const f=fimDeJejum(x); return [diasEntre('2000-01-01',x.d)*24+x.inicio, diasEntre('2000-01-01',f.d)*24+f.h]; };
+  const [ja,jb]=emH(j);
+  return jejumCfg().pontuais.find(x=>{ if(x.mid!==j.mid) return false; const [a,b]=emH(x); return ja<b && a<jb; });
+}
+/* O nome do nível de esforço em minúsculas, para caber a meio de uma frase. */
+function nivelNome(n){ const x=NIVEIS.find(y=>y[0]===n); return x? x[1].toLowerCase() : n; }
 /* Validar com OBJ[chave] deixava passar nomes herdados do Object.prototype:
    uma dieta chamada "constructor" passava a lista branca e dava macros NaN. */
 function temChave(o,k){ return typeof k==='string' && Object.prototype.hasOwnProperty.call(o,k); }
@@ -14325,7 +14377,7 @@ function macrosRegRef(r){
           p:(rec.p+somaAc(acs,'p')+m('p'))*dose, f:(rec.f+somaAc(acs,'f')+m('f'))*dose,
           fib:((rec.fib||0)+somaAc(acs,'fib')+m('fib'))*dose};
 }
-/* Gasto real de um dia: o basal e o dia-a-dia não se registam (são o que o
+/* Gasto real de um dia: o basal e o dia a dia não se registam (são o que o
    corpo faz de qualquer maneira), o desporto é o que ficou registado — não o
    que estava planeado. É esta a diferença entre plano e realidade. */
 function gastoRealDia(m,d){
@@ -14862,7 +14914,7 @@ function imDe(mid){
   const c=jejumCfg().im[mid];
   if(!c || !c.ativo) return null;
   return {ativo:true, h:clampNum(Math.round(parseFloat(c.h)||16),12,23),
-          inicio:clampNum(Math.round(parseFloat(c.inicio)||12),0,23)};
+          inicio:clampNum(Math.round(numOu(c.inicio,12)),0,23)};
 }
 /* A janela de alimentação em horas de relógio: começa na hora escolhida e dura
    24 menos as horas de jejum. */
@@ -14946,7 +14998,7 @@ function limparJejum(o,ids){
     if(ids && ids.indexOf(mid)<0) return;
     const c=o.im[mid]; if(!c||typeof c!=='object') return;
     d.im[mid]={ativo:!!c.ativo, h:clampNum(Math.round(parseFloat(c.h)||16),12,23),
-                inicio:clampNum(Math.round(parseFloat(c.inicio)||12),0,23)};
+                inicio:clampNum(Math.round(numOu(c.inicio,12)),0,23)};
     /* O objetivo guarda-se como texto curto e é validado na leitura, por
        objetivoJejumDe(), que já rejeita o que não está na tabela. Validá-lo aqui
        lia OBJETIVOS_JEJUM, que é declarado mil linhas abaixo — e como este
@@ -15269,7 +15321,7 @@ const DICAS={
       +' O método muda-se na ficha de cada pessoa e vale para a casa toda.';
   },
   gasto:'O gasto total do dia: o metabolismo basal multiplicado pelo nível de atividade, mais as deslocações, mais o desporto e, em quem está a crescer, grávida ou a amamentar, a energia dessa fase.',
-  alvo:'O gasto ajustado pelo objetivo. É deste número que saem as gramas de cada macronutriente e as calorias sugeridas por refeição — é ele que liga este separador à Nutrição e ao Plano.',
+  alvo:'O gasto ajustado pelo objetivo. É deste número que saem os gramas de cada macronutriente e as calorias sugeridas por refeição — é ele que liga este separador à Nutrição e ao Plano.',
   fase:'Bebé, criança, adolescente, adulto ou gravidez. A fase escolhe a equação de metabolismo, a faixa de macronutrientes aceitável e os limites de esforço recomendados.',
   bandaImc:'A escala de índice de massa corporal com o valor atual assinalado. As zonas seguem os limites da Organização Mundial da Saúde para adultos.',
   nivelAtiv:'Quanto te mexes fora do desporto: um trabalho de secretária gasta muito menos do que um trabalho em pé ou de carga. Multiplica o metabolismo basal entre 1,2 e 1,65.',
@@ -15306,7 +15358,7 @@ const DICAS={
   terreno:'A curva que converte velocidade em calorias é de terreno plano. Subir muda a conta: as entradas do Compendium para caminhada em subida ficam 30 a 50 por cento acima da caminhada plana ao mesmo passo, e a corrida de trilho acima da de estrada. «Ondulado» soma 15 por cento e «Subida a sério» 35 — aproximações honestas, como toda a estimativa por METs.',
   basicos:'A base da casa é o que nunca pode faltar: azeite, vinagre, cebola, alho, louro — cada casa sabe os seus. São os únicos com reposição automática: quando um sai da despensa, entra sozinho na lista de compras da semana. Para tudo o resto, usar não é esgotar — nada entra na lista sem uma receita planeada o pedir ou sem seres tu a juntá-lo.',
   despensa:'Os ingredientes que marcares aqui como disponíveis passam a contar em todas as receitas e na lista de compras. A lista vem do catálogo, para nunca haver um nome que não bate certo — e quando procuras algo que lá não está, a própria pesquisa oferece o caminho: promover do catálogo alargado ou escrever do rótulo.',
-  faltaComprar:'A lista completa acima tem tudo o que as receitas da semana precisam; esta mostra só o que ainda não está na despensa — é isto que vale a pena exportar ou levar ao supermercado.',
+  faltaComprar:'A lista completa acima tem tudo aquilo de que as receitas da semana precisam; esta mostra só o que ainda não está na despensa — é isto que vale a pena exportar ou levar ao supermercado.',
   suplementos:'Regista o que tomas e quantas doses por dia. Um batido de proteína é comida: as calorias e os macros entram no plano do dia. Os suplementos vão também para a despensa e para a lista de compras, com as doses de sete dias.',
   suplMacros:'Quanto dos macros do dia já vem dos suplementos, e quanto sobra para a comida. É este segundo número que interessa a quem vai cozinhar — se um batido dá 48 g de proteína, faltam menos 48 g no prato.',
   suplMicros:'O que os suplementos dão de cada micronutriente, comparado com a dose diária de referência e com o limite superior tolerável do Institute of Medicine. Passar o limite deixa de ser inócuo — sobretudo em crianças e na gravidez.',
@@ -15331,7 +15383,7 @@ const DICAS={
   foodprep:'Preparação de ingredientes, não pratos feitos: descascar, picar, demolhar, lavar, marinar, porcionar. Cada tarefa diz que dias serve e quanto tempo leva, com as quantidades já somadas de toda a semana. Enquanto estiver ligado, as receitas que aproveitam uma preparação já planeada têm vantagem nas sugestões — é assim que uma tarde de domingo poupa cinco jantares à pressa.',
   genero:'Um gaspacho e uma feijoada não apetecem no mesmo dia. A app lê o género do prato do nome e dos ingredientes e pesa-o na sugestão: no verão os pratos frios ganham vantagem, sobretudo ao almoço; fora dele, os quentes.',
   sugDespensa:'Uma pergunta muito mais curta do que a do plano semanal: o que é que dá para fazer agora, com o que está aí. Ordena as receitas que servem toda a gente à mesa — dietas e alergias já contadas — pela percentagem de ingredientes que já tens em casa, e diz o que falta nas que não estão completas. A percentagem é sobre o número de ingredientes e não sobre o peso: para quem está à frente do frigorífico às sete da tarde, o que conta é quantas coisas faltam ir buscar. As que se podem cozinhar já ficam com uma barra verde à esquerda.',
-  variantes:'Sete tacos e cinco burritos ocupavam sete e cinco lugares na grelha, como se fossem doze pratos diferentes. São o mesmo prato com recheios diferentes, e o que a casa decide é «hoje é taco?» e não «qual dos sete tacos?». As variantes passam a partilhar um cartão, que mostra a que melhor serve os gostos desta mesa — pelo saldo de favoritas e não-gostas, depois por quem já se pode cozinhar com o que há em casa — e as outras ficam a um toque na ficha. O agrupamento é uma tabela explícita e não uma regra sobre os nomes: uma sopa de legumes e uma vichyssoise começam ambas por «Sopa» e não são variantes uma da outra. Numa pesquisa não se agrupa nada, porque quem escreve «taco de camarão» quer aquele taco.',
+  variantes:'Sete tacos e cinco burritos ocupavam sete e cinco lugares na grelha, como se fossem doze pratos diferentes. São o mesmo prato com recheios diferentes, e o que a casa decide é «hoje é taco?» e não «qual dos sete tacos?». As variantes passam a partilhar um cartão, que mostra a que melhor serve os gostos desta mesa — pelo saldo de favoritas e não-gostas, depois pela que já se pode cozinhar com o que há em casa — e as outras ficam a um toque na ficha. O agrupamento é uma tabela explícita e não uma regra sobre os nomes: uma sopa de legumes e uma vichyssoise começam ambas por «Sopa» e não são variantes uma da outra. Numa pesquisa não se agrupa nada, porque quem escreve «taco de camarão» quer aquele taco.',
   favoritas:'A estrela de cada cartão marca a receita como favorita, e pergunta logo de quem — porque uma favorita não é da casa, é de alguém: o mesmo arroz de pato é o prato preferido de um e indiferente a outro. Podem ser vários, e é a mesma marca que a ficha da receita mostra em «Quem gosta». O filtro tem três estados: sem filtro, as favoritas de qualquer pessoa cá de casa, ou as de uma pessoa em concreto — que é a pergunta que se faz mesmo, «o que é que ele gosta de jantar». As variantes contam como uma: marcar um taco marca a família toda, senão procurar favoritas devolvia lista vazia por o cartão que representa o grupo ser outro. Marcar como favorita por cima de um «não gosto» apaga-o, e a app di-lo em vez de o fazer calada.',
   gostos:'Diferente do veredicto, que é sobre uma refeição que aconteceu: isto é a preferência estável de cada pessoa sobre o prato, e não muda com o jantar de ontem. Pesa nas sugestões automáticas — o que alguém não gosta pesa mais a descer do que um gosto a subir, porque um prato que alguém detesta serve pior a mesa do que um prato de que mais um gosta — e é o que decide qual das variantes de um prato aparece primeiro. A estrela aparece quando toda a gente que pode comer o prato o marcou como favorito, e são pelo menos duas pessoas: quem não o pode comer por alergia ou dieta não conta nem a favor nem contra, porque não lhe foi dada a hipótese.',
   acog:'Tudo o que este cartão diz vem do Committee Opinion n.º 804 do American College of Obstetricians and Gynecologists (2020) — a recomendação de 150 minutos por semana, as modalidades seguras, as que se desaconselham e porquê, as contraindicações absolutas e os sinais para parar. Nem um número nem uma modalidade foram decididos pela app. E nada disto substitui a consulta: há contraindicações que só uma consulta identifica, e são elas que mandam. No pós-parto a orientação não dá um calendário fixo — diz que se retoma gradualmente assim que for clinicamente seguro, conforme o tipo de parto e as complicações que tenha havido — e é isso que a app repete, em vez de inventar uma semana a partir da qual se pode correr.',
@@ -15347,7 +15399,7 @@ const DICAS={
   naArea:'Para quem está de férias ou em viagem e quer manter o ritmo. Além de ginásios e piscinas para um dia solto, procura o que não precisa de inscrição nenhuma: trilhos e percursos pedestres, ciclovias e ecopistas, equipamentos de manutenção ao ar livre e polidesportivos. Funciona da mesma forma — a app monta a ligação, o browser é que a abre, e a posição fica só nesta sessão.',
   renutricao:'Sair de um jejum longo é o momento de maior risco de todo o processo — mais do que o jejum em si. Quando a insulina volta a subir de repente, puxa fosfato, potássio e magnésio para dentro das células e esvazia-os do sangue: chama-se síndrome de realimentação e pode ser grave. A app propõe-se sozinha porque é precisamente o momento em que ninguém se lembra de o fazer, e faz o alvo de calorias subir por degraus ao longo de vários dias em vez de saltar de zero para o normal — quanto mais longo o jejum, mais lenta a subida. Os critérios de risco elevado são os do NICE (guideline CG32), escritos para doentes internados em desnutrição: se algum se aplicar, a saída do jejum é assunto de consulta e não de app. Acima de 72 horas, com acompanhamento médico e análises, sempre.',
   manutencao:'A fase de perda tem fim, e o que vem a seguir decide-se melhor no dia em que se planeia do que no dia em que a balança chega ao número. A manutenção pode divergir em tudo da perda: outra dieta, outro jejum ou nenhum, outra banda de oscilação. Quando a perda acabar — por chegar ao alvo ou ao prazo — a app propõe a passagem com o que vai mudar escrito por extenso, e espera pela confirmação: quem decide que aquilo acabou é quem lá está.',
-  calendario:'A semana inteira num sitio so — refeicoes do plano, treinos do plano semanal e os registados, jejuns, e os blocos de tempo que so aqui se marcam: compras, cozinhar, preparacao de vespera, meia hora para planear a semana. Nao e uma segunda fonte de verdade: le o que os outros separadores guardam e desenha-o. O que registares aqui vai para onde pertence. Exporta em iCalendar, que o Google, a Apple e a Microsoft leem todos.',
+  calendario:'A semana inteira num sítio só — refeições do plano, treinos do plano semanal e os registados, jejuns, e os blocos de tempo que só aqui se marcam: compras, cozinhar, preparação de véspera, meia hora para planear a semana. Não é uma segunda fonte de verdade: lê o que os outros separadores guardam e desenha-o. O que registares aqui vai para onde pertence. Exporta em iCalendar, que o Google, a Apple e a Microsoft leem todos.',
   objJejum:'Porque se jejua muda o que faz sentido fazer: perder peso e procurar autofagia não pedem o mesmo protocolo. Escolher um objetivo muda a sugestão e, no caso da autofagia, abre o que se sabe e o que não se sabe sobre ela — que é o tema do jejum em que mais se afirma o que não está demonstrado.',
   autofagia:'A autofagia existe e a privação de nutrientes ativa-a: isso está demonstrado em levedura, em células e em animais, e valeu o Nobel da Medicina de 2016 a Yoshinori Ohsumi. Em humanos mediu-se muito menos — aumentos de marcadores indiretos em leucócitos e músculo após jejuns de 24 a 72 horas, em amostras pequenas. O que NÃO existe é um limiar horário validado em humanos: as «16 horas» que circulam vêm de extrapolações de roedores, que têm um metabolismo várias vezes mais rápido. Também não está demonstrado que mais autofagia signifique melhor saúde. A app dá as estratégias que a literatura associa a maior ativação e recusa-se a dizer que a certa hora «entraste em autofagia», porque isso não se mede sem uma biópsia.',
   calendarios:'Dois calendários com naturezas diferentes. A Páscoa calcula-se ao dia com o algoritmo de Meeus, e a Quaresma deriva dela — Cinzas 46 dias antes, e são 46 porque os 40 dias não contam os domingos. O Ramadão não se calcula com a mesma certeza: o calendário islâmico é lunar e o início de cada mês depende do avistamento da lua nova, que varia com o país e com a autoridade religiosa. A app dá a conversão tabular, que costuma acertar dentro de um dia, e diz que é uma estimativa. O Ramadão marca-se como jejum diurno repetido e não como um jejum contínuo de trinta dias, que seria outra coisa completamente.',
@@ -15377,17 +15429,17 @@ const DICAS={
   validades:'A data que vem impressa na embalagem, escrita por ti. A app não a calcula nem a adivinha: só ordena o que está mais perto de acabar e o põe à frente, no «Hoje» e na Despensa. Nas sugestões de receitas, quem usa o que está a acabar ganha vantagem — é a forma mais direta de não deitar comida fora.',
   desperdicio:'Quando uma sobra passa o prazo, a app pergunta uma vez o que lhe aconteceu: comeu-se, congelou-se ou foi para o lixo. Só a terceira conta como desperdício. Serve para haver espelho em vez de amnésia — ao fim de um mês vê-se quanto foi para o lixo e em que dias, e isso muda mais comportamentos do que qualquer aviso.',
   fibra:'A fibra de cada ingrediente vem da tabela do INSA e sempre esteve na app — o que passou a haver é a soma ao dia. A referência é a Ingestão Adequada da EFSA: 25 g por dia num adulto e 2 g por cada MJ de energia numa criança, que é como a EFSA a define nessas idades. Julga-se à média da semana, porque um dia de sopa e outro de bife não são um problema. Abaixo de um ano não há referência e a app não inventa nenhuma.',
-  hortofruticolas:'A OMS recomenda pelo menos 400 g de fruta e hortícolas por dia «a partir dos 10 anos» — a idade vem escrita na própria recomendação, e por isso abaixo dela a aplicação mostra o número mas não dá veredicto. A batata, a batata-doce, a mandioca e o inhame não contam para esses 400 g — é a própria recomendação que exclui as raízes ricas em amido, e é o erro que mais se faz nesta conta. As gramas saem do peso real dos ingredientes de cada receita registada, já com a dose.',
+  hortofruticolas:'A OMS recomenda pelo menos 400 g de fruta e hortícolas por dia «a partir dos 10 anos» — a idade vem escrita na própria recomendação, e por isso abaixo dela a aplicação mostra o número mas não dá veredicto. A batata, a batata-doce, a mandioca e o inhame não contam para esses 400 g — é a própria recomendação que exclui as raízes ricas em amido, e é o erro que mais se faz nesta conta. Os gramas saem do peso real dos ingredientes de cada receita registada, já com a dose.',
   conserva:'Quanto tempo a comida aguenta no frigorífico e como se reaquece, por família de prato — o arroz é o que tem menos folga, as sopas e os cozidos os que têm mais. São prazos genéricos e conservadores para sobras refrigeradas a 4 °C ou menos: servem de referência, não substituem o cheiro, o aspeto e o bom senso.',
   descobertas:'Detetores que correm sobre os teus registos das últimas oito semanas — o jantar que nunca se cumpre, o dia com mais treinos ignorados, o prato que domina. Cada sinal só aparece se passar um mínimo de amostra, vem com os números à vista e traz um gesto ao lado. Sem sinais fiáveis, a app di-lo em vez de inventar um.',
   leque:'A tendência das pesagens das últimas oito semanas prolongada num intervalo, nunca numa data única: a largura vem da dispersão real da tua balança. Precisa de seis pesagens ao longo de quatro semanas, e nunca aparece em bebés, crianças ou gravidez — nessas fases o peso muda porque o corpo está a crescer.',
   passaporte:'Os ingredientes que esta pessoa já provou, contados das refeições confirmadas. «Provou mas não gostou» não risca o sabor para sempre: faz a app voltar a propô-lo mais tarde noutra receita. A neofobia alimentar passa a jogo de descoberta em vez de guerra à mesa.',
-  palpite:'Da cadência das tuas compras («leite: a cada 7±2 dias») sai um palpite do que já devia ter acabado. É um palpite e diz-se que é: aparece à parte do inventário real da despensa, e silencia-se com um toque se já não usarem.',
+  palpite:'Da cadência das tuas compras («leite: a cada 7±2 dias») sai um palpite do que já devia ter acabado. É um palpite e diz-se que é: aparece à parte do inventário real da despensa, e silencia-se com um toque se já não o usares.',
   sequencia:'Semanas em que se cumpriu pelo menos 80% do que estava planeado, contadas só de validações reais. Doença, férias ou lesão marcam-se como pausa: a sequência congela em vez de partir. Nem fogo, nem troféus, nem contadores agressivos — uma gripe não apaga dois meses de esforço.',
   sobras:'O jantar de hoje é o almoço de amanhã em quase todas as casas. Ao confirmar uma refeição, a app pergunta se sobrou: a sobra fica guardada com os macros que já se sabiam da receita e come-se com um toque — sem cozinhar, sem comprar e sem duplicar contas. O prazo é o do prato e não um número redondo para todos: um risotto aguenta um dia no frigorífico, uma sopa de legumes aguenta quatro. Quem congela leva a tabela do congelador em vez da do frigorífico, e o que de lá sair volta com dois dias, porque comida descongelada não recupera o prazo que tinha.',
   marmitas:'Qualquer almoço se pode marcar «em marmita», pessoa a pessoa. Na véspera à noite o cartão «Hoje» lembra-o, com a dose já escalada a cada um, os alergénios da escola assinalados e as sobras disponíveis para a encher.',
   epoca:'Que ingredientes estão na época em Portugal, este mês — carapau no verão, grelos no inverno, cereja em junho. A tabela é local e o selo muda sozinho com o calendário: comprar na época é mais barato, mais fresco e mais saboroso.',
-  custo:'Os preços são os do teu talão — a app nunca inventa um cêntimo. Com eles estima o custo por dose de cada receita, o da semana e o talão previsto da lista de compras, dizendo sempre quantos itens ficaram por preço. Cada preço escrito fica com a data: ao fim de três, aparece ao lado uma linha com a história dele, e a app passa a saber dizer se o preço de hoje está abaixo ou acima do costume desta casa.',
+  custo:'Os preços são os do teu talão — a app nunca inventa um cêntimo. Com eles estima o custo por dose de cada receita, o da semana e o talão previsto da lista de compras, dizendo sempre quantos itens ficaram sem preço. Cada preço escrito fica com a data: ao fim de três, aparece ao lado uma linha com a história dele, e a app passa a saber dizer se o preço de hoje está abaixo ou acima do costume desta casa.',
   oral:'As receitas dos avós não vêm em gramas. Vêm em «um fio de azeite», «um punhado de farinha», «sal q.b.», «farinha até dar ponto» — e a exigência de só aceitar ingredientes do catálogo com quantidades obrigava a traduzir no momento e a perder o original. A versão oral É a receita; os números são só a conta que a app precisa de fazer para a despensa e para os macros. Guardam-se as duas: os gramas alimentam o cálculo, a versão oral aparece na ficha, no modo cozinha e imprime-se no Livro da casa tal e qual foi ditada.',
   espera:'A espera é onde os jantares descarrilam — é quando se abre o telemóvel e o refogado queima — e é também o único tempo livre que uma casa tem para adiantar a semana. Quando um passo liberta as mãos por oito minutos ou mais, a app propõe o que cabe nessa janela, por ordem de valor: primeiro o que serve este jantar (o passo seguinte, o acompanhamento que ainda não começou), depois o que adianta a semana (uma tarefa do food prep de domingo que caiba no tempo), e por fim pôr a mesa com quem está de brigada hoje. Cada sugestão traz o tempo que pede.',
   maestro:'Um jantar são dois ou três tachos, não uma receita de cada vez. Escolhe-se a hora de servir e o Maestro funde os passos do prato e dos acompanhamentos numa sequência única, calculada de trás para a frente: o prato mais demorado começa primeiro, e os passos ativos dos outros encaixam-se dentro das esperas dele. Os passos que libertam as mãos aparecem esbatidos — é dentro deles que o resto avança. Cada linha traz a hora a que se começa e o temporizador a um toque.',
@@ -15425,7 +15477,7 @@ const DICAS={
   pesoIdeal:'Não é uma fórmula de tabela nem uma prescrição: é o centro da faixa que a OMS chama saudável — IMC 22 — para a tua altura. Dentro da faixa 18,5 a 25 qualquer peso é saudável, e se já lá estás o plano é manter. «Criar plano» faz tudo num clique: um objetivo a meio quilo por semana (o mais lento do intervalo de 0,5 a 1 kg que o NHS aponta como seguro), com o exercício repartido pelas modalidades que já praticas — ou tudo pela dieta, se não houver treinos no plano —, e a semana preenchida dentro do novo alvo de calorias. Uma distância grande faz-se por etapas: a primeira cabe num ano, e a app diz o que fica para depois. Em crescimento ou gravidez não há peso ideal nem plano, porque o peso muda por o corpo estar a mudar.',
   trajetoria:'Para onde o peso vai se nada mudar, e para onde iria se mudasse. Passar o cursor — ou o dedo — por cima de uma pesagem diz o peso e o dia dela; por cima da projeção, diz em que dia se estaria em que peso, com o leque a dizer quanto vale essa conta. A tendência assenta nas pesagens dos últimos 7, 14 ou 30 dias — quanto mais curta a janela, mais depressa reage e menos vale — e projeta-se a 7, 14, 30, 60 ou 90 dias, com um leque que é a dispersão real da balança. Os dois cursores mudam a linha à frente dos olhos: comer menos ou mais, mexer-se mais. O peso desejado desenha-se, e a app diz em que dia lá chegas com o planeado, ou quantas calorias por dia faltam para chegar no prazo. «Levar para os Objetivos» transforma o exercício em plano — dieta, treinos marcados e alvo de calorias —, e o plano da semana passa a ser sugerido dentro desse alvo. A conta é a de 7700 kcal por quilo: honesta e grosseira.',
   pesoHist:'Cada pesagem fica com a sua data. O peso do perfil é sempre a medição mais recente que já aconteceu, para os cálculos e a balança nunca contarem histórias diferentes. Podem registar-se medições passadas, se as tiveres anotadas.',
-  acompanhamento:'O que vai ao lado do prato: batatas, arroz, legumes ou salada. As calorias somam-se às do prato no total do dia, os ingredientes somam-se à lista de compras, mas não conta como uma refeição — um arroz de coentros não é um jantar. O 🔀 troca por outro que sirva a mesma mesa, e o «juntar» põe mais um ao lado: como o lugar do acompanhamento é um só, os que lá estiverem repartem-no entre si — meia dose de batatas e meia de salada, e as calorias, os macros e as quantidades a comprar seguem essa divisão. O preenchimento automático escolhe um para cada almoço e jantar, respeitando as mesmas dietas e exclusões. Escolher ou trocar cria também uma variante com o nome inteiro — «Bife com batatas fritas» —, com os ingredientes somados e o passo-a-passo dos dois escrito de seguida, arrumada no cartão do prato de origem.',
+  acompanhamento:'O que vai ao lado do prato: batatas, arroz, legumes ou salada. As calorias somam-se às do prato no total do dia, os ingredientes somam-se à lista de compras, mas não conta como uma refeição — um arroz de coentros não é um jantar. O 🔀 troca por outro que sirva a mesma mesa, e o «juntar» põe mais um ao lado: como o lugar do acompanhamento é um só, os que lá estiverem repartem-no entre si — meia dose de batatas e meia de salada, e as calorias, os macros e as quantidades a comprar seguem essa divisão. O preenchimento automático escolhe um para cada almoço e jantar, respeitando as mesmas dietas e exclusões. Escolher ou trocar cria também uma variante com o nome inteiro — «Bife com batatas fritas» —, com os ingredientes somados e o passo a passo dos dois escrito de seguida, arrumada no cartão do prato de origem.',
   guiaDieta:'Um guia por dieta: o que é, como se cumpre à mesa, o que fica de fora, e quanto cabe em cada refeição. Duas partes não são escritas à mão — são calculadas. A lista de ingredientes compatíveis sai da tabela de composição da app com as MESMAS regras que etiquetam as receitas (os vetos por ingrediente, as expressões do paleo, os tetos de hidratos e de gordura), por isso nunca se desalinha delas. Os gramas por refeição saem do teu alvo de calorias e da repartição da dieta, cortados pelo limite absoluto onde ele existe: 20 g de hidratos por dia no keto, 100 g no low carb, 30 % da energia em gordura no low fat. Onde não há limite absoluto, a tabela chama-lhe orientação e não teto — porque é isso que é. Podes ler o guia de qualquer dieta, não só o da tua; a que está a ser seguida tem um ponto ao lado do nome.',
   vegan:'Cada dieta é uma repartição diferente de hidratos, proteína e gordura; a «Personalizada» abre três sliders que somam sempre 100 %. Vegetariana e vegan são dietas diferentes: a vegetariana come ovos, lacticínios e mel, a vegan não come nada de origem animal — e as duas etiquetas são lidas dos ingredientes de cada receita, nunca escritas à mão.'
 };
@@ -16584,8 +16636,10 @@ function chaveEpocaDe(nome){
   if(_epocaCache.has(bruto)) return _epocaCache.get(bruto);
   /* O hífen conta como espaço dos dois lados da comparação: a tabela escreve
      «Couve-galega» e «Feijão-verde» (que é a grafia certa em português para
-     estes nomes de variedade) e o catálogo escreve-os sem hífen. Sem esta
-     normalização, seis receitas de couve galega e seis de feijão verde nunca
+     estes nomes de variedade) e o catálogo escrevia-os sem hífen — o
+     feijão-verde já o tem desde setembro de 2026, a couve galega ainda não, e
+     a normalização fica para os dois lados continuarem a casar. Sem esta
+     normalização, seis receitas de couve galega e seis de feijão-verde nunca
      eram marcadas como de época — nem no selo, nem no filtro, nem nas
      sugestões —, e ninguém dava por isso porque falhar é ficar calado. */
   const norm=s=>semAcentos(s).toLowerCase().replace(/-/g,' ');
@@ -16696,7 +16750,7 @@ function reguasDaReceita(r){
 
 /* ================= CUSTO =================
    Os preços são do talão de quem usa a app; a app não inventa um cêntimo, e
-   diz sempre quantos itens ficaram por preço. */
+   diz sempre quantos itens ficaram sem preço. */
 function precoDe(nome){ const p=(S.precos||{})[nome];
   return p&&p.v>0? {v:p.v, u:unidadeDe(nome)} : null; }
 /* ===== MEMÓRIA DE TALÃO =====
@@ -17462,27 +17516,19 @@ function folhaFrigorificoHtml(){
 function imprimirLivro(){
   const minhas=RECIPES.filter(r=>r.u);
   if(!minhas.length) return flash('warn','O livro faz-se com as receitas da casa — ainda não há nenhuma.');
-  const velho=document.getElementById('livro'); if(velho) velho.remove();
-  const no=document.createElement('div');
-  no.id='livro'; no.className='livro';
-  no.innerHTML=livroHtml();
-  document.body.appendChild(no);
-  document.documentElement.setAttribute('data-imprimir','livro');
-  const limpar=()=>{ document.documentElement.removeAttribute('data-imprimir');
-    const n=document.getElementById('livro'); if(n) n.remove();
-    window.removeEventListener('afterprint',limpar); };
-  window.addEventListener('afterprint',limpar);
-  try{ window.print(); }catch(e){ limpar(); flash('bad','O browser não deixou abrir a impressão.'); }
-  /* alguns browsers não disparam afterprint: uma rede de segurança */
-  setTimeout(()=>{ if(document.getElementById('livro')) limpar(); }, 60000);
+  /* o mesmo caminho das outras folhas — era uma cópia dele, linha a linha */
+  imprimirFolha('livro','livro',livroHtml(),'livro');
 }
 /* ================= FALTA UM? TROCA-SE =================
    As trocas são de cozinha, não de tabela nutricional: servem para salvar um
    jantar quando falta um ingrediente, e a app diz sempre o que muda. Nenhuma
    troca é sugerida se trouxer um alergénio que alguém da casa tem — é a única
-   regra que não se negoceia aqui. */
+   regra que não se negoceia aqui.
+   Os «de» casam com os nomes EXATOS do catálogo, e os «por» também: uma
+   regra «^Natas$» ou «^Feijão$» não casava com ingrediente nenhum, e um
+   «Peito de peru» que não existe era deitado fora — calados, os três. */
 const SUBSTITUICOES=[
-  {de:/^Natas$/i, por:['Leite de coco','Iogurte grego','Requeijão'], nota:'Fica menos gordo e mais leve; o leite de coco muda o sabor.'},
+  {de:/^Nata$|^Natas? (para culinária|pasteurizada|para bater|maturada)/i, por:['Leite de coco','Iogurte grego','Requeijão'], nota:'Fica menos gordo e mais leve; o leite de coco muda o sabor, e nenhum dos três se bate em chantili.'},
   {de:/^Manteiga$/i, por:['Azeite','Óleo alimentar'], nota:'Em refogados troca-se a peso; em bolos a textura muda.'},
   {de:/^Leite$/i, por:['Leite de coco','Bebida de aveia'], nota:'Para quem evita lactose; o doce natural sobe um pouco.'},
   {de:/^Iogurte natural$/i, por:['Iogurte grego','Requeijão'], nota:'Fica mais espesso e com mais proteína.'},
@@ -17491,8 +17537,8 @@ const SUBSTITUICOES=[
   {de:/^Arroz$/i, por:['Quinoa','Couscous','Bulgur'], nota:'O couscous e o bulgur levam glúten; a quinoa não.'},
   {de:/^Esparguete$/i, por:['Massa de arroz','Gnocchi de batata'], nota:'A massa de arroz não leva glúten.'},
   {de:/^Batata$/i, por:['Batata-doce crua','Abóbora'], nota:'Ficam mais doces e com menos amido.'},
-  {de:/^Feijão$/i, por:['Grão-de-bico','Lentilhas'], nota:'Trocam-se a peso, com tempos de cozedura diferentes.'},
-  {de:/^Frango|^Peito de frango$/i, por:['Bifes de peru','Peito de peru'], nota:'O peru é mais magro e seca mais depressa.'},
+  {de:/^Feijão (branco|encarnado|preto)( cozido)?$|^Feijão-frade cozido$/i, por:['Grão-de-bico cozido','Lentilhas'], nota:'Trocam-se a peso, com tempos de cozedura diferentes.'},
+  {de:/^Frango|^Peito de frango$/i, por:['Bifes de peru'], nota:'O peru é mais magro e seca mais depressa.'},
   {de:/^Bacalhau/i, por:['Pescada','Maruca crua'], nota:'Sem o sal do bacalhau — vale a pena provar antes de temperar.'},
   {de:/^Queijo ralado|^Parmesão$/i, por:['Queijo flamengo','Queijo da ilha'], nota:'Derretem mais e sabem menos a curado.'},
   {de:/^Stracciatella$/i, por:['Burrata'], nota:'O miolo da burrata é stracciatella: rasga-a inteira, ou usa só o interior — a casca de mozzarella dá mais corpo.'},
@@ -17509,7 +17555,7 @@ function substitutosDe(nome, membros){
   if(!regra) return null;
   const veta=[]; (membros||S.members).forEach(m=>restricoesDe(m).forEach(k=>{ if(veta.indexOf(k)<0) veta.push(k); }));
   const opcoes=regra.por
-    .filter(n=>temChave(NUTRI,n))
+    .filter(n=>!!composicaoDe(n))   /* o catálogo oculto também conta: a bebida de aveia vive lá */
     .filter(n=>!atributosIng(n).some(t=>veta.indexOf(t)>=0))
     .map(n=>({n, tem:temNaDespensa(n)}))
     .sort((a,b)=>(b.tem?1:0)-(a.tem?1:0));
@@ -17651,7 +17697,7 @@ function trocasBaratas(dates){
     const p=precoDe(nome); if(!p){ semPreco++; return; }
     const regra=SUBSTITUICOES.find(s=>s.de.test(nome)); if(!regra) return;
     regra.por.forEach(alt=>{
-      if(!temChave(NUTRI,alt)) return;
+      if(!composicaoDe(alt)) return;
       if(unidadeDe(alt)!==un) return;                     /* só troca o que se mede igual */
       if(atributosIng(alt).some(t=>veta.indexOf(t)>=0)) return;   /* nunca um alergénio da casa */
       const pa=precoDe(alt); if(!pa || pa.v>=p.v) return;
@@ -21548,7 +21594,7 @@ function modalBandejaHtml(mo){
    Quem sai da balança com o número na cabeça quer despejá-lo em três segundos.
    Parser local de meia dúzia de padrões: sem NLP, sem rede, e nunca grava sem
    mostrar antes o que entendeu. */
-/* Como cada desporto se diz no dia-a-dia. A ordem dentro de cada lista não
+/* Como cada desporto se diz no dia a dia. A ordem dentro de cada lista não
    importa; a ordem dos desportos em SPORTS é que decide os empates, e é por
    isso que «corri» está só na corrida e a caminhada tem «andei» e «caminhei».
    Prefixos: apanham «corri», «corria», «corremos» de uma vez. */
@@ -21612,10 +21658,7 @@ function interpretarBalcao(txt){
       const lim=limparJejumPontual(j, S.members.map(x=>x.id));
       if(!lim) return flash('bad','Não foi possível registar esse jejum.');
       const c=jejumCfg();
-      const emH=x=>{ const f=fimDeJejum(x); return [diasEntre('2000-01-01',x.d)*24+x.inicio,
-                                                 diasEntre('2000-01-01',f.d)*24+f.h]; };
-      const [ja,jb]=emH(lim);
-      if(c.pontuais.some(x=>{ if(x.mid!==lim.mid) return false; const [a,b]=emH(x); return ja<b && a<jb; }))
+      if(jejumQueChoca(lim))
         return flash('warn','Esse período sobrepõe-se a um jejum já registado.');
       c.pontuais.push(lim); save('jejum registado'); render();
       flash('ok','Jejum de '+textoDuracaoJejum(horas)+' registado — aparece sombreado no gráfico do peso.',
@@ -21972,7 +22015,7 @@ function mercadoHtml(){
       <button class="chip ${!fil?'on':''}" onclick="setFiltroTalhao('')">Tudo</button>
       ${S.members.map(m=>`<button class="chip ${fil===m.id?'on':''}" onclick="setFiltroTalhao('${m.id}')">${esc(nomeCurto(m))}</button>`).join('')}
     </div>`:''}
-    ${!falta.length? `<div style="padding:40px 20px;text-align:center" class="sub">${fil? 'Este talhão está despachado.' : 'Não falta nada — a despensa já tem tudo o que a semana precisa.'}</div>`
+    ${!falta.length? `<div style="padding:40px 20px;text-align:center" class="sub">${fil? 'Este talhão está despachado.' : 'Não falta nada — a despensa já tem tudo aquilo de que a semana precisa.'}</div>`
     : secs.map((g,i)=>`<div class="mercado-sec" id="sec-${i}">${icoCat(g)} ${esc(g)}</div>
       <ul>${grupos[g].map(it=>{ const chave=it.n+'|'+it.u, on=!!marcados[chave];
         const dono=talhaoDe(chave), mDono=dono? S.members.find(m=>m.id===dono) : null;
@@ -23454,8 +23497,8 @@ function delMember(id){
   S.members=S.members.filter(x=>x.id!==id); delete S.cheats[id];
   Object.values(S.plans).forEach(w=>Object.values(w).forEach(d=>MEALK.forEach(k=>{ if(!d[k]) return;
     d[k].m=d[k].m.filter(x=>x!==id);
-    /* e o prato individual dessa pessoa, que ficava para tras a somar a lista
-       de compras alguem que ja nao se senta a mesa */
+    /* e o prato individual dessa pessoa, que ficava para trás a somar à lista
+       de compras alguém que já não se senta à mesa */
     if(d[k].acPor && d[k].acPor[id]){ delete d[k].acPor[id];
       if(!Object.keys(d[k].acPor).length) delete d[k].acPor; }
     if(Array.isArray(d[k].marmita)) d[k].marmita=d[k].marmita.filter(x=>x!==id);
@@ -23465,6 +23508,19 @@ function delMember(id){
   delete S.medicoes[id];
   S.regAtiv=(S.regAtiv||[]).filter(r=>r.mid!==id);
   S.regRef=(S.regRef||[]).filter(r=>r.mid!==id);
+  /* e o que ficava a apontar para ninguém: os objetivos dela continuavam a
+     contar como ativos no resumo do mês, e os jejuns, os dias de recuperação,
+     os gostos e os blocos pessoais do calendário ficavam gravados sem dono.
+     Os blocos pessoais saem — passados pelo saneador, virariam blocos da casa. */
+  const ids=S.members.map(x=>x.id);
+  S.objetivos=(S.objetivos||[]).filter(o=>o.membroId!==id);
+  S.jejum=limpaJejunsInalcancaveis(limparJejum(S.jejum, ids), S.members);
+  S.recuperacao=limparRecuperacao(S.recuperacao, ids);
+  S.gostos=limparGostos(S.gostos, ids);
+  S.veredictos=limparVeredictos(S.veredictos, ids);
+  S.brigada=limparBrigada(S.brigada, ids);
+  S.talhoes=limparTalhoes(S.talhoes, ids);
+  S.agenda=(S.agenda||[]).filter(b=>b.mid!==id);
   if(S.ui.histAtiv===id) S.ui.histAtiv=null;
   if(S.ui.histRef===id) S.ui.histRef=null;
   save('remoção de '+m.nome); render();
@@ -25477,7 +25533,6 @@ function blocoAqueceAlonga(m,s,i){
 function cartaoJejumAtiv(m){
   const conf=treinosNoJejum(m); if(!conf.length) return '';
   const maus=conf.filter(x=>x.excede);
-  const nivelNome=n=>{ const x=NIVEIS.find(y=>y[0]===n); return x? x[1].toLowerCase() : n; };
   /* o teto a mostrar é o mais apertado de todos os jejuns em causa: com dois
      jejuns marcados, quem manda é o mais longo */
   const tetos=conf.map(x=>x.g.teto);
@@ -25530,8 +25585,8 @@ function renderAtividade(){
     ${cartaoCiatica()}
     ${cartaoPartilhaAtiv()}
     <div class="card ${temPlano?'':'card--capa'}" data-col="atv-diaadia">
-      <h2>Dia-a-dia de ${esc(m.nome)}</h2>
-      <div class="frow" style="grid-template-columns:1fr 1fr">
+      <h2>Dia a dia de ${esc(m.nome)}</h2>
+      <div class="frow" style="grid-template-columns:repeat(auto-fit,minmax(min(180px,100%),1fr))">
         <div><label class="lbl">Nível de atividade diária ${dica('nivelAtiv')}</label>
           <select aria-label="Nível de atividade diária" onchange="upd('${m.id}','atividade',this.value)">${Object.entries(BASE_ACT).map(([k,v])=>
             `<option value="${k}" ${m.atividade===k?'selected':''}>${v[0]}</option>`).join('')}</select></div>
@@ -25546,7 +25601,7 @@ function renderAtividade(){
         <button class="btn small" onclick="addSport('${m.id}')">+ Adicionar desporto</button></div>
       <p class="sub" style="margin-top:4px">Isto é o plano — o que está marcado para a frente, e o que a app usa para estimar o gasto.
         ${temPlano? 'O que aconteceu de facto regista-se lá em cima, e as duas coisas comparam-se no gráfico da atividade passada.'
-          : 'Assim que houver um plano, este cartão recolhe e o destaque passa para o registo do dia-a-dia.'}</p>
+          : 'Assim que houver um plano, este cartão recolhe e o destaque passa para o registo do dia a dia.'}</p>
       ${m.desportos.length? `<div class="splist" style="margin-top:10px">${m.desportos.map((s,i)=>blocoDesporto(m,s,i)).join('')}</div>`
         : `<p class="sub" style="margin-top:8px">Sem desportos no plano — adiciona os treinos para contarem no gasto calórico e passarem a poder ser confirmados dia a dia.</p>`}
       ${cartaoEsforco(m)}
@@ -25572,13 +25627,13 @@ function renderAtividade(){
         <div id="ga-alvo" style="position:absolute;top:-6px;bottom:-6px;width:0;border-left:2px dashed var(--ink);left:${X}%"></div>
       </div>
       <div class="mleg"><span><i class="dot" style="background:var(--mut);opacity:.5"></i>Basal</span>
-        <span><i class="dot" style="background:var(--accent)"></i>Dia-a-dia</span>
+        <span><i class="dot" style="background:var(--accent)"></i>Dia a dia</span>
         <span><i class="dot" style="background:var(--ok)"></i>Deslocações</span>
         <span><i class="dot" style="background:var(--energy)"></i>Desporto</span>
         ${gp.extra>0? `<span><i class="dot" style="background:var(--party)"></i>${gravida(m)?'Gravidez':amamenta(m)?'Amamentar':'Crescimento'}</span>`:''}</div>
       <div class="row" style="margin-top:12px">
         <div class="stat"><b>${Math.round(gp.basal)}</b><span>Basal</span></div>
-        <div class="stat"><b>+${Math.round(gp.dia)}</b><span>Dia-a-dia</span></div>
+        <div class="stat"><b>+${Math.round(gp.dia)}</b><span>Dia a dia</span></div>
         <div class="stat"><b>+${cK}</b><span>Deslocações</span></div>
         <div class="stat"><b id="tot-desporto">+${sK}</b><span>Desporto</span></div>
         ${gp.extra>0? `<div class="stat"><b>+${Math.round(gp.extra)}</b><span>${gravida(m)?'Gravidez':amamenta(m)?'Amamentar':'Crescimento'}</span></div>`:''}
@@ -25976,7 +26031,7 @@ function receitaPorId(id){ return RECIPES.find(r=>r.id===id); }
    dizer: escolher o acompanhamento deixa de ser um ajuste solto por baixo do
    prato e passa a criar uma variante com nome próprio — «Bife com batatas
    fritas» —, arrumada no mesmo cartão das outras, com os ingredientes todos
-   somados e o passo-a-passo dos dois lados da mesa escrito de seguida.
+   somados e o passo a passo dos dois lados da mesa escrito de seguida.
 
    O combo é derivado, nunca escolhido: o plano continua a guardar o prato e
    os acompanhamentos em campos separados, como sempre guardou, e o combo é a
@@ -26121,7 +26176,7 @@ const AC_CURTO={
   acrtomate:'arroz de tomate', acrcoentros:'arroz de coentros', acracafrao:'arroz de açafrão',
   acrfeijao:'arroz de feijão', acrmanteiga:'arroz de manteiga',
   acllegumes:'legumes grelhados', aclbrocolos:'brócolos', aclespargos:'espargos grelhados',
-  aclgrelos:'grelos', aclfverde:'feijão verde', aclcogumelos:'cogumelos salteados',
+  aclgrelos:'grelos', aclfverde:'feijão-verde', aclcogumelos:'cogumelos salteados',
   aclesparregado:'esparregado', aclespargossalt:'espargos salteados',
   acllegsalt:'legumes salteados', acllegratin:'legumes gratinados',
   aclcouveflor:'couve-flor com molho branco', aclcenoura:'cenouras salteadas',
@@ -26524,7 +26579,7 @@ function nomeComposto(prato,acs,mo,ma){
   /* Três casos, e cada um lê-se de maneira diferente em voz alta:
      «Bife» + batatas          → «Bife com batatas fritas»
      «Pisto manchego com ovo»  → «… com ovo e espargos» (o segundo «com» seria feio)
-     «Salada de polvo com grão e coentros» → «…, e feijão verde», porque um
+     «Salada de polvo com grão e coentros» → «…, e feijão-verde», porque um
        terceiro «e» seguido do segundo empilhava-se e deixava de se perceber
        onde acaba o prato e começa o que vai ao lado. */
   const n=prato.n;
@@ -26633,7 +26688,7 @@ function juntaIngrediente(lista,nome,q,u){
   lista.push([nome,q,u]);
 }
 function minutosDe(id){ return (PASSOS[id]||[]).reduce((t,p)=>t+(p[2]||0),0); }
-/* O passo-a-passo composto. Não é uma colagem: entre o prato e cada
+/* O passo a passo composto. Não é uma colagem: entre o prato e cada
    acompanhamento entra uma nota com o tempo que ele leva ao todo, que é a
    única pergunta que interessa a quem tem duas panelas ao lume — quando é que
    se começa este para chegar ao mesmo tempo que o outro. */
@@ -29387,7 +29442,7 @@ function setJejumIM(mid,campo,v){
   if(!c.im[mid]) c.im[mid]={ativo:false,h:16,inicio:12};
   if(campo==='ativo') c.im[mid].ativo=!!v;
   else if(campo==='h') c.im[mid].h=clampNum(Math.round(parseFloat(v)||16),12,23);
-  else if(campo==='inicio') c.im[mid].inicio=clampNum(Math.round(parseFloat(v)||12),0,23);
+  else if(campo==='inicio') c.im[mid].inicio=clampNum(Math.round(numOu(v,12)),0,23);
   save('jejum intermitente'); render();
 }
 /* Contrato de live update: o slider muta o estado e reescreve por id, sem
@@ -29476,10 +29531,7 @@ function guardarNovoJejum(){
   /* Agora que um jejum tem duas pontas, a regra é a sobreposição e não o dia:
      um jejum que acaba na quarta de manhã e outro que começa na quarta à noite
      são dois jejuns legítimos, e o teste antigo recusava o segundo. */
-  const emH=x=>{ const f=fimDeJejum(x); return [diasEntre('2000-01-01',x.d)*24+x.inicio,
-                                              diasEntre('2000-01-01',f.d)*24+f.h]; };
-  const [ja,jb]=emH(j);
-  const choca=c.pontuais.find(x=>{ if(x.mid!==j.mid) return false; const [a,b]=emH(x); return ja<b && a<jb; });
+  const choca=jejumQueChoca(j);
   if(choca) return flash('warn','Esse período sobrepõe-se a um jejum já registado — '
     +periodoJejumTexto(choca)+'. Apaga o antigo ou ajusta as horas.');
   c.pontuais.push(j);
@@ -29901,7 +29953,7 @@ function cartaoJejum(m){
       <div class="frow" style="margin-top:10px">
         <div><label class="lbl">A janela abre às</label>
           <select onchange="setJejumIM('${m.id}','inicio',this.value)">
-            ${[...Array(24).keys()].map(x=>`<option value="${x}" ${(im.inicio||12)===x?'selected':''}>${String(x).padStart(2,'0')}h00</option>`).join('')}</select></div>
+            ${[...Array(24).keys()].map(x=>`<option value="${x}" ${numOu(im.inicio,12)===x?'selected':''}>${String(x).padStart(2,'0')}h00</option>`).join('')}</select></div>
         <div style="grid-column:span 2"><label class="lbl">Fica a comer entre</label>
           <div class="pill ok" style="margin-top:4px">${String(j.inicio).padStart(2,'0')}h00 — ${String(j.fim).padStart(2,'0')}h00</div></div>
       </div>
@@ -30198,7 +30250,6 @@ function blocoGuiaJejum(m){
   const g=guiaJejum(horas);
   const rampa=rampaRenutricao(horas);
   const tem=id=>(m.suplementos||[]).some(x=>x.s===id);
-  const nivelNome=n=>{ const x=NIVEIS.find(y=>y[0]===n); return x? x[1].toLowerCase() : n; };
   const conf=treinosNoJejum(m), maus=conf.filter(x=>x.excede);
 
   const supl=g.supl.filter(id=>SUPL[id]).map(id=>`<li><b>${esc(SUPL[id].nome)}</b>
@@ -30526,7 +30577,6 @@ function renderReceitas(){
   const n=porcoesAtuais(), minhas=RECIPES.filter(r=>r.u).length;
   /* As variantes colapsam num cartão só. A pesquisa é a exceção: quem escreve
      «taco de camarão» quer aquele taco, não a família toda. */
-  const totalAntes=list.length;
   let colapsadas=0;
   if(!q && !S.ui.verVariantes){
     const vistas={}, out=[];
@@ -30750,7 +30800,7 @@ function validacaoObjetivo(o){
     ingeridoMedio=soma/diasComRegisto;
   }
   /* O gasto medido é o mesmo que o cartão «Gasto real hoje» usa, mas em média
-     do período: basal + dia-a-dia + deslocações + fase, mais o desporto que
+     do período: basal + dia a dia + deslocações + fase, mais o desporto que
      ficou REGISTADO (e não o que estava planeado). */
   let gastoMedido=null;
   if(ingeridoMedio!=null){
@@ -32309,7 +32359,7 @@ function passarAManutencao(oid){
   const c=jejumCfg();
   if(man.jejum && !jejumDesaconselhado(m)){
     c.im[m.id]={ativo:true, h:clampNum(Math.round(man.jejumH||16),12,23),
-      inicio:clampNum(Math.round(man.jejumIni||12),0,23)};
+      inicio:clampNum(Math.round(numOu(man.jejumIni,12)),0,23)};
   } else if(c.im[m.id]) c.im[m.id].ativo=false;
   /* O objetivo não se apaga: transforma-se. Guarda o que foi a fase de perda
      para o histórico poder contar a coisa toda. */
@@ -32415,7 +32465,6 @@ function balancaObjetivo(o,m){
   const x2=cx+Math.cos(rad)*br, y2=cy-Math.sin(rad)*br;
   const prato=(x,y,rot)=>`<path d="M${(x-22).toFixed(1)} ${y.toFixed(1)} q22 15 44 0" class="s-ink" fill="none"/>
     <line x1="${x.toFixed(1)}" y1="${y.toFixed(1)}" x2="${x.toFixed(1)}" y2="${(y-9).toFixed(1)}" class="s-line"/>`;
-  const xAlvo=cx-Math.cos(0)*br*((alvo-50)/50)*0;
   return `<div style="margin-top:12px;border-top:1px solid var(--line);padding-top:10px">
     <div class="splabel"><span>De onde veio o esforço ${dica('balanca')}</span>
       <output>${temDados? 'plano: '+alvo+'% da mesa' : 'sem dados'}</output></div>
@@ -32608,6 +32657,9 @@ function setAcomp(di,mk,i,rid){
   save('acompanhamento'); render();
   if(combo) flash('ok','Agora é «'+combo.n+'» — ficou guardado como variante, com os passos dos dois.',
     {rot:'Ver a receita', fn:"irReceita('"+combo.id+"')"});
+  /* o que vai ao lado também vai ao prato de quem se senta: a mesma pergunta
+     que se faz ao prato, e o aviso ganha ao toast da variante */
+  if(rid) avisaDietaAoAgendar(di,mk);
 }
 function toggleEater(di,mk,mid){ const meal=planMeal(di,mk);
   const entrou=!meal.m.includes(mid);
@@ -32885,19 +32937,6 @@ function acsPara(meal,mid){
   return acIds(meal);
 }
 function temAcProprio(meal,mid){ return !!(meal && meal.acPor && Array.isArray(meal.acPor[mid])); }
-function limparAcPor(o,ids){
-  if(!o || typeof o!=='object') return undefined;
-  const out={};
-  Object.keys(o).slice(0,32).forEach(mid=>{
-    if(ids && ids.indexOf(mid)<0) return;
-    if(!Array.isArray(o[mid])) return;
-    const lista=[];
-    o[mid].forEach(id=>{ const r=RECIPES.find(x=>x.id===id);
-      if(r && ehAcompanhamento(r) && lista.indexOf(id)<0 && lista.length<MAX_AC) lista.push(id); });
-    out[mid]=lista;
-  });
-  return Object.keys(out).length? out : undefined;
-}
 /* Resolve de uma vez: a cada pessoa a quem o acompanhamento não serve, dá-lhe
    o substituto mais próximo em calorias que lhe sirva. Escreve em `acPor`, que
    é lido pelas quantidades, pelos macros do dia e pela lista de compras. */
@@ -32988,7 +33027,7 @@ function trocarAcomp(di,mk,i){
   ids[i]=nova.id; meal.ac=ids;
   const combo=registaCombo(meal.r, meal.ac, moId(meal), maId(meal));
   save('acompanhamento trocado'); render();
-  if(combo) flash('ok','Agora é «'+combo.n+'» — variante guardada, com o passo-a-passo já refeito.',
+  if(combo) flash('ok','Agora é «'+combo.n+'» — variante guardada, com o passo a passo já refeito.',
     {rot:'Ver a receita', fn:"irReceita('"+combo.id+"')"});
   else flash('ok','Agora com '+nova.n.toLowerCase()+'.');
 }
@@ -33020,6 +33059,7 @@ function setMolho(di,mk,rid){
   save('molho'); render();
   if(combo) flash('ok','Agora é «'+combo.n+'» — ficou guardado como variante, com os passos do molho já dentro.',
     {rot:'Ver a receita', fn:"irReceita('"+combo.id+"')"});
+  if(rid) avisaDietaAoAgendar(di,mk);
 }
 /* Como no acompanhamento: anda para o seguinte da lista em vez de sortear,
    para carregar duas vezes dar dois molhos diferentes. */
@@ -33035,7 +33075,7 @@ function trocarMolho(di,mk){
   meal.mo=nova.id;
   const combo=registaCombo(meal.r, acIds(meal), meal.mo, maId(meal));
   save(p+' trocada'); render();
-  if(combo) flash('ok','Agora é «'+combo.n+'» — variante guardada, com o passo-a-passo já refeito.',
+  if(combo) flash('ok','Agora é «'+combo.n+'» — variante guardada, com o passo a passo já refeito.',
     {rot:'Ver a receita', fn:"irReceita('"+combo.id+"')"});
   else flash('ok','Agora com '+nova.n.toLowerCase()+'.');
 }
@@ -33060,6 +33100,7 @@ function setMassa(di,mk,rid){
   save('massa de base'); render();
   if(combo) flash('ok','Agora é «'+combo.n+'» — ficou guardado como variante, com os passos da massa já dentro.',
     {rot:'Ver a receita', fn:"irReceita('"+combo.id+"')"});
+  if(rid) avisaDietaAoAgendar(di,mk);
 }
 /* Como no molho: anda para a seguinte da lista em vez de sortear. */
 function trocarMassa(di,mk){
@@ -33072,7 +33113,7 @@ function trocarMassa(di,mk){
   meal.ma=nova.id;
   const combo=registaCombo(meal.r, acIds(meal), moId(meal), meal.ma);
   save('massa trocada'); render();
-  if(combo) flash('ok','Agora é «'+combo.n+'» — variante guardada, com o passo-a-passo já refeito.',
+  if(combo) flash('ok','Agora é «'+combo.n+'» — variante guardada, com o passo a passo já refeito.',
     {rot:'Ver a receita', fn:"irReceita('"+combo.id+"')"});
   else flash('ok','Agora com '+nomeCurtoMassa(nova)+'.');
 }
@@ -33653,7 +33694,7 @@ function mealBlock(di,mk,label,date){
       /* Com acompanhamento escolhido, o que vai à mesa já não é «Bife»: é
          «Bife com batatas fritas». O cartão diz o nome inteiro, e o nome
          leva à variante — que existe, tem os ingredientes somados e o
-         passo-a-passo dos dois lados escrito de seguida. */
+         passo a passo dos dois lados escrito de seguida. */
       if(!r || !acs.length) return '';
       const cb=RECIPES.find(x=>x.id===idCombo(r.id,acs.map(a=>a.id)));
       const nome=esc(nomeDaRefeicao(meal));
@@ -34148,7 +34189,6 @@ function planearPartilhaRef(rid,mk,dir){
 function cartaoLote(){
   const bases=planoDeLote();
   if(!bases.length) return '';
-  const custoTotal=bases.reduce((t,b)=>{ const p=precoDe(b.base.n); return t; },0);
   return `<div class="card" id="lote" data-col="pla-lote" style="margin-bottom:16px">
     <h2>Cozinhar em lote ${dica('lote')}</h2>
     <p class="sub" style="margin-top:4px">Preparações que a semana repete em dois ou mais dias. Feitas de uma vez, ao domingo, os dias em que servem passam de «cozinhar» a «aquecer».</p>
@@ -34494,7 +34534,10 @@ function shoppingItems(){
     /* e a massa de base, pela mesma razão: quem escolheu fazer a empada em
        massa folhada precisa da farinha e da manteiga na lista */
     const ma=massaDe(meal);
-    if(ma) junta(ingredientesMassa(ma),1);
+    /* segue o prato: num dia de aquecer não se faz massa nova, e num dia de
+       dobrar faz-se a dobrar — com 1 fixo, a empada aquecida na terça voltava
+       a pôr a farinha e a manteiga na lista */
+    if(ma && fPrato>0) junta(ingredientesMassa(ma),fPrato);
   }
   /* Os suplementos consomem-se todos os dias, não por refeição planeada:
      entram na lista pelas doses de sete dias, para a compra da semana
@@ -35581,6 +35624,13 @@ function lerPacote(txt){
         if(Array.isArray(r.vis)){
           const vs=r.vis.filter(id=>typeof id==='string' && visitas.some(v=>v.id===id)).slice(0,8);
           if(vs.length) o.vis=vs; }
+        /* e o acompanhamento próprio de quem não come o da travessa: sem ele, a
+           cópia restaurada sentava essa pessoa à travessa, e a lista de compras
+           deixava de comprar o prato dela */
+        if(r.acPor && typeof r.acPor==='object'){ const ap={};
+          Object.keys(r.acPor).forEach(k=>{ const mid=idOk(k); if(!mid || mm.indexOf(mid)<0) return;
+            const ids=acLimpo(r.acPor[k]); if(ids.length) ap[mid]=ids; });
+          if(Object.keys(ap).length) o.acPor=ap; }
         or[mk]=o; });
       if(Object.keys(or).length) od[di]=or;
     });
@@ -35639,7 +35689,7 @@ function lerPacote(txt){
         dieta: temChave(DIETS,o.man.dieta)? o.man.dieta : '',
         jejum: !!o.man.jejum,
         jejumH: clampNum(Math.round(parseFloat(o.man.jejumH)||16),12,23),
-        jejumIni: clampNum(Math.round(parseFloat(o.man.jejumIni)||12),0,23),
+        jejumIni: clampNum(Math.round(numOu(o.man.jejumIni,12)),0,23),
         semanas: clampNum(Math.round(parseFloat(o.man.semanas)||0),0,52),
         banda: clampNum(parseFloat(o.man.banda)||2,0.5,10),
         feita: !!o.man.feita} : null,
@@ -35849,6 +35899,14 @@ function juntar(txt){
         if(ref.dobro>1) novo.dobro=ref.dobro;
         if(Array.isArray(ref.marmita)) novo.marmita=ref.marmita.map(x=>mapa[x]||x).filter(x=>novo.m.indexOf(x)>=0);
         if(Array.isArray(ref.conv)&&ref.conv.length) novo.conv=ref.conv;
+        /* o molho, a massa e o acompanhamento próprio vêm com a refeição, como
+           na cópia inteira — juntar deixava o bife sem o chimichurri */
+        if(ref.mo) novo.mo=ref.mo;
+        if(ref.ma) novo.ma=ref.ma;
+        if(ref.acPor && typeof ref.acPor==='object'){ const ap={};
+          Object.keys(ref.acPor).forEach(k=>{ const mid=mapa[k]||k;
+            if(novo.m.indexOf(mid)>=0 && Array.isArray(ref.acPor[k])) ap[mid]=ref.acPor[k].slice(); });
+          if(Object.keys(ap).length) novo.acPor=ap; }
         S.plans[wk][di][mk]=novo;
         if(ref.r) refeicoes++;
       });
@@ -36004,6 +36062,8 @@ function juntar(txt){
     [conta(d.provas),'as provas'],
     [conta(d.bebidas),'as bebidas'],
     [conta(d.notasCozinha),'as notas de cozinha'],
+    [conta(d.agenda),'os blocos do calendário'],
+    [conta(d.massaFeita),'as massas compradas feitas'],
     [conta(d.corredores)||conta(d.trilhos)||conta(d.talhoes),'a ordem do supermercado'],
     [casaDif,'o nome, o lema e o orçamento da casa'],
     [difMapa(d.cozPref,S.cozPref)&&difMapa(d.cozPref,limparCozPref(null)),'as preferências de cozinha'],
@@ -36378,7 +36438,7 @@ function limparAgenda(a,ids){
     const id=limparId(b.id); if(vistos[id]) return; vistos[id]=1;
     const mid=(b.mid && ids && ids.indexOf(String(b.mid))>=0)? String(b.mid) : '';
     const o={id, tipo:b.tipo, d:b.d,
-      h:clampNum(Math.round((parseFloat(b.h)||9)*4)/4, 0, 23.75),
+      h:clampNum(Math.round(numOu(b.h,9)*4)/4, 0, 23.75),
       dur:clampNum(Math.round((parseFloat(b.dur)||1)*4)/4, 0.25, 12),
       nota:String(b.nota||'').slice(0,160), feito:!!b.feito};
     if(mid) o.mid=mid;
@@ -36512,7 +36572,7 @@ function eventosDaSemana(wk){
      horas, como qualquer calendário faz. Sem elas o Calendário dizia que a
      semana era só refeições e treinos, e não era. */
   const diaInteiro=[];
-  const anoDe=d=>d.slice(0,4), mdDe=d=>d.slice(5);
+  const mdDe=d=>d.slice(5);
   dias.forEach((d,di)=>{
     S.members.forEach(m=>{
       if(isCheat(m.id,d)) diaInteiro.push({id:'ch:'+d+':'+m.id, d, tipo:'cheat', titulo:'🎉 Cheat day', sub:nomeCurto(m), cor:calCorDe('party'), mid:m.id});
@@ -36737,8 +36797,8 @@ function calRolaParaOQueHa(){
      tarde. Enquanto se está na mesma semana, manda quem está a ver; entrar no
      separador ou mudar de semana volta a apontar. */
   if(!w.dataset.ouve){ w.dataset.ouve='1';
-    w.addEventListener('scroll',()=>{ _calRolo={wk:calSemana(), top:w.scrollTop}; },{passive:true}); }
-  if(_calRolo && _calRolo.wk===wk){ w.scrollTop=_calRolo.top; return; }
+    w.addEventListener('scroll',()=>{ _calRolo={wk:calSemana(), top:w.scrollTop, left:w.scrollLeft}; },{passive:true}); }
+  if(_calRolo && _calRolo.wk===wk){ w.scrollTop=_calRolo.top; w.scrollLeft=_calRolo.left||0; return; }
   const f=faixaDaSemana(wk);
   /* A coluna das horas não começa no topo do que rola: por cima dela estão a
      fiada dos dias e a do dia inteiro, que são pegajosas. Sem descontar essa
@@ -36752,6 +36812,10 @@ function calRolaParaOQueHa(){
      mostrar o meio da tarde não serve ninguém, e o resto está a um deslize. */
   const alvo=desvio+((fundo-topo<=vista)? (topo+fundo)/2-vista/2 : topo-8);
   w.scrollTop=clampNum(Math.round(alvo),0,maximo);
+  /* E para o lado: no telemóvel cabem dois dias e meio, e a grelha abria
+     sempre na segunda-feira — numa sexta, o dia de hoje estava fora do ecrã. */
+  const hj=w.querySelector('.cal-dia.hoje');
+  if(hj && w.scrollWidth>w.clientWidth) w.scrollLeft=Math.max(0, hj.offsetLeft-(hs? hs.offsetWidth : 44));
   _calRolo={wk, top:w.scrollTop};
 }
 function calCliqueColuna(e,d){
@@ -36829,8 +36893,10 @@ function marcarBlocoFeito(id,v){
      lista, que é onde se marca o que se comprou e passa à despensa */
   /* uma pesagem marcada como feita é uma pergunta: qual foi o número */
   if(b.tipo==='pesagem' && b.feito){
-    const quem=b.mid || (S.members.filter(m=>faseDe(m)!=='bebe')[0]||{}).id;
-    if(quem) return abrirPesagemMarcada(quem,b.d);
+    /* a da casa pergunta, numa janela só, a toda a gente que ainda não tem o
+       número escrito — perguntava só à primeira pessoa */
+    const quem=(b.mid? [b.mid] : S.members.filter(m=>faseDe(m)!=='bebe').map(m=>m.id)).filter(mid=>!pesagemFeita(mid,b.d));
+    if(quem.length) return abrirPesagemMarcada(quem,b.d);
   }
   if(b.tipo==='compras' && b.feito){ S.ui.mercVista='compras'; go('mercearia'); flash('ok','Compras feitas — marca na lista o que trouxeste, e passa para a despensa.'); }
   if(b.tipo==='treino' && b.feito && b.mid && b.s){ const ss=sessaoDeBloco(b); if(ss) depoisDeTreinoForte(b.mid, ss, b.d); }
@@ -37287,7 +37353,10 @@ function pesagensMarcadas(dias){
     blocos.forEach(b=>{ if(!cai(b,d)) return;
       const alvo=b.mid? [b.mid] : S.members.filter(m=>faseDe(m)!=='bebe').map(m=>m.id);
       alvo.forEach(mid=>{ if(!S.members.some(m=>m.id===mid)) return;
-        doDia.push({d, h:b.h, mid, fonte:'agenda', bid:b.id, feito:(b.d===d&&!!b.feito)||pesagemFeita(mid,d)}); });
+        doDia.push({d, h:b.h, mid, fonte:'agenda', bid:b.id,
+          /* numa pesagem da casa, está feita para quem tem o número escrito: o
+             «feito» do bloco é um toque só, e fechava a pergunta a toda a gente */
+          feito:(b.mid && b.d===d && !!b.feito) || pesagemFeita(mid,d)}); });
     });
     (S.objetivos||[]).forEach(o=>{
       if(o.concluido) return;
@@ -37310,7 +37379,8 @@ function pesagensPorResponder(){
 }
 function abrirPesagemMarcada(mid,d){
   jaPerguntouPeso=true;
-  const quem=S.members.filter(m=>m.id===mid && faseDe(m)!=='bebe');
+  const lista=Array.isArray(mid)? mid : [mid];
+  const quem=S.members.filter(m=>lista.indexOf(m.id)>=0 && faseDe(m)!=='bebe');
   if(!quem.length) return flash('warn','Esse perfil já não existe.');
   abrirModal('peso',{mids:quem.map(m=>m.id), d:(d && d<=hojeISO())? d : hojeISO(), vals:{}});
   setTimeout(()=>{ const c=document.querySelector('.campo-peso'); if(c){ c.focus(); c.select(); } },0);
@@ -37348,23 +37418,51 @@ function marcosDeObjetivos(dias){
    que a decisão se toma, que é quando ainda custa nada mudar. Só conta quem
    está mesmo marcado naquela refeição, e não quem tem cheat day nesse dia —
    um dia livre é precisamente a licença para isto. */
+/* O que contraria a mesa, pessoa a pessoa. Não é só o prato: o acompanhamento,
+   o molho e a massa vão todos ao prato de quem se senta — um arroz ao lado de
+   quem está em keto, ou um pesto com pinhões a quem é alérgico, contrariam
+   tanto como o prato, e o aviso só olhava para o prato. */
+function conflitosDaMesa(meal,comem){
+  const pecas=pecasDaRefeicao(meal).map(p=>p.r);
+  const out={alergia:[], dieta:[], ingredientes:[]};
+  comem.forEach(m=>{
+    const als=[], dietaEm=[], vetos=[];
+    pecas.forEach(p=>{
+      alergenicosDe(p,m).forEach(a=>{ const ja=als.find(x=>x.nome===a.nome);
+        if(ja) a.itens.forEach(i=>{ if(ja.itens.indexOf(i)<0) ja.itens.push(i); });
+        else als.push({nome:a.nome, itens:a.itens.slice()}); });
+      if(!compat(p,chaveDieta(m))) dietaEm.push(p);
+      ingredientesVetados(p,m).forEach(i=>{ if(vetos.indexOf(i)<0) vetos.push(i); });
+    });
+    if(als.length) out.alergia.push({m, als});
+    if(dietaEm.length) out.dieta.push({m, pecas:dietaEm});
+    if(vetos.length) out.ingredientes.push({m, itens:vetos});
+  });
+  return out;
+}
 function avisaDietaAoAgendar(di,mk,dates){
   const meal=((S.plans[S.week]||{})[di]||{})[mk];
   const r=meal&&meal.r? RECIPES.find(x=>x.id===meal.r) : null; if(!r) return;
   const d=(dates||weekDates(S.week))[di];
   const comem=S.members.filter(m=>(meal.m||[]).indexOf(m.id)>=0 && !isCheat(m.id,d));
   if(!comem.length) return;
-  const av=avaliaReceita(r,comem,mk,false);
-  if(av.ok) return;
+  const cf=conflitosDaMesa(meal,comem);
+  if(!cf.alergia.length && !cf.dieta.length && !cf.ingredientes.length) return;
   /* uma alergia e uma escolha não se dizem no mesmo tom: a primeira tem
      consequência para a saúde, e por isso é ela que manda na cor e na voz */
-  const comAlergia=comem.filter(m=>alergenicosDe(r,m).length);
-  const porDieta=av.fora.dieta.map(nomeCurto);
-  const porIng=av.fora.ingredientes.filter(x=>!comAlergia.some(m=>m.id===x.m.id))
-    .map(x=>nomeCurto(x.m)+' ('+x.itens.slice(0,3).map(esc).join(', ')+')');
+  const comAlergia=cf.alergia;
+  /* peça a peça: o arroz pode falhar a uma pessoa e o prato a outra, e juntar
+     toda a gente com todas as peças dizia mais do que é verdade */
+  const porPeca=new Map();
+  cf.dieta.forEach(x=>x.pecas.forEach(p=>{ if(!porPeca.has(p)) porPeca.set(p,[]); porPeca.get(p).push(x.m); }));
+  /* o flash escapa o texto ao desenhar — aqui vai cru */
+  const porIng=cf.ingredientes.filter(x=>!comAlergia.some(a=>a.m.id===x.m.id))
+    .map(x=>nomeCurto(x.m)+' ('+x.itens.slice(0,3).join(', ')+')');
   const partes=[];
-  if(comAlergia.length) partes.push('🚨 '+enumera(comAlergia.map(m=>nomeCurto(m)+' — '+alergenicosDe(r,m).map(a=>a.nome.toLowerCase()+' ('+a.itens.map(esc).join(', ')+')').join('; '))));
-  if(porDieta.length) partes.push(enumera(porDieta)+' '+(porDieta.length===1?'segue':'seguem')+' uma dieta que este prato não respeita');
+  if(comAlergia.length) partes.push('🚨 '+enumera(comAlergia.map(x=>nomeCurto(x.m)+' — '+x.als.map(a=>a.nome.toLowerCase()+' ('+a.itens.join(', ')+')').join('; '))));
+  if(porPeca.size===1 && porPeca.has(r)){ const ms=porPeca.get(r);
+    partes.push(enumera(ms.map(nomeCurto))+' '+(ms.length===1?'segue':'seguem')+' uma dieta que este prato não respeita'); }
+  else porPeca.forEach((ms,p)=>partes.push('«'+p.n+'» não respeita '+(ms.length===1?'a dieta de ':'as dietas de ')+enumera(ms.map(nomeCurto))));
   if(porIng.length) partes.push('traz o que '+(porIng.length===1?'não come':'não comem')+': '+enumera(porIng));
   flash(comAlergia.length?'bad':'warn',
     '«'+r.n+'» ao '+nomeRefeicao(mk).toLowerCase()+' de '+DAYN[di].toLowerCase()+': '+partes.join('; ')+'.'
@@ -37376,8 +37474,11 @@ function tirarQuemNaoPode(di,mk){
   const meal=((S.plans[S.week]||{})[di]||{})[mk];
   const r=meal&&meal.r? RECIPES.find(x=>x.id===meal.r) : null; if(!r) return;
   const d=weekDates(S.week)[di];
-  const fora=S.members.filter(m=>(meal.m||[]).indexOf(m.id)>=0 && !isCheat(m.id,d)
-    && !avaliaReceita(r,[m],mk,false).ok);
+  /* a mesma pergunta do aviso — o prato e tudo o que vai com ele */
+  const cand=S.members.filter(m=>(meal.m||[]).indexOf(m.id)>=0 && !isCheat(m.id,d));
+  const cf=conflitosDaMesa(meal,cand);
+  const idsFora=[].concat(cf.alergia,cf.dieta,cf.ingredientes).map(x=>x.m.id);
+  const fora=cand.filter(m=>idsFora.indexOf(m.id)>=0);
   if(!fora.length) return flash('ok','Já não há ninguém à mesa a quem este prato não sirva.');
   meal.m=(meal.m||[]).filter(id=>!fora.some(m=>m.id===id));
   save('mesa da refeição'); render();
@@ -37778,7 +37879,7 @@ const TOUR=[
    d:'Cada pessoa tem aqui o seu perfil. A idade vem da data de nascimento e envelhece sozinha; a altura escreve-se uma vez. O que se mexe todos os dias é o peso, e o slider dele mexe em direto no índice de massa corporal, no metabolismo basal e no gasto diário. A fase da vida (bebé, criança, adolescente, adulto ou gravidez) escolhe as fórmulas certas para cada idade.'},
   {tab:'familia', sel:'#peso-hist',
    t:'O peso ao longo do tempo',
-   d:'Cada pesagem fica com a sua data — as de hoje e as antigas que tenhas anotadas. A app pergunta por medições novas quando abre, e aqui vês a linha em 14 dias, 8 semanas, 6 meses ou 2 anos, com a atividade registada e as calorias ingeridas sobrepostas em toggles, para veres a forma de umas ao lado da outra.'},
+   d:'Cada pesagem fica com a sua data — as de hoje e as antigas que tenhas anotadas. A app pergunta por medições novas quando abre, e aqui vês a linha em 14 dias, 8 semanas, 6 meses ou 2 anos, com a atividade registada e as calorias ingeridas sobrepostas em toggles, para veres a forma de umas ao lado das outras.'},
   /* O botão de registo desaparece quando há uma camada por cima — e a bandeja
      da manhã pode estar aberta quando a visita começa. A visita manda no ecrã
      enquanto durar: fecha o que estiver à frente antes de apontar. */
@@ -37845,7 +37946,7 @@ const TOUR=[
    d:'Quando duas pessoas cá de casa já têm a mesma modalidade no plano e o objetivo a apontar para o mesmo lado, a app junta-as. Saem à mesma hora e cada uma faz o seu tempo e o seu ritmo: correr juntos não é correr ao mesmo ritmo. Confirmar a atividade confirma-a para todos os que a partilharam.'},
   {tab:'atividade', sel:'#ga-basal',
    t:'De onde vem o gasto do dia',
-   d:'A barra reparte o gasto entre metabolismo basal, dia-a-dia, deslocações e desporto — e ganha um quinto segmento a quem está a crescer, grávida ou a amamentar, porque essa energia existe e não é treino. A linha tracejada marca o alvo alimentar: a distância entre o fim da barra e a linha é o défice ou o excedente do plano.'},
+   d:'A barra reparte o gasto entre metabolismo basal, dia a dia, deslocações e desporto — e ganha um quinto segmento a quem está a crescer, grávida ou a amamentar, porque essa energia existe e não é treino. A linha tracejada marca o alvo alimentar: a distância entre o fim da barra e a linha é o défice ou o excedente do plano.'},
   {base:1, tab:'nutricao', sel:'#nu-r-obj',
    t:'Nutrição — objetivo e macros',
    d:'O objetivo é um slider contínuo de −25 % a +20 % do gasto, com o ritmo em quilos por semana e um aviso a vermelho quando o alvo desce abaixo do metabolismo basal — a app avisa com mais força, não trava: quem decide é quem come. A dieta escolhida — incluindo vegetariana e vegan, que a app distingue — vira gramas de hidratos, proteína e gordura.'},
@@ -37940,7 +38041,7 @@ const TOUR=[
   {tab:'plano', sel:'.prato-composto', quando:()=>{ const w=S.plans[S.week]||{};
      for(let d=0;d<7;d++) for(const k of MEALK) if(acIds((w[d]||{})[k]).length) return true; return false; },
    t:'«Bife com batatas fritas» é um prato',
-   d:'Escolher o acompanhamento não é um ajuste solto por baixo do prato: um bife com batatas fritas e um bife com arroz de tomate não são o mesmo jantar. Por isso, assim que se escolhe ou se troca, a app <b>cria a variante sozinha</b> e dá-lhe o nome inteiro — «Bife com batatas fritas» —, que passa a ser o que o cartão mostra. Toca no nome e abre-se a receita: os ingredientes dos dois somados, as calorias somadas, e o <b>passo-a-passo refeito</b>, com os passos do prato primeiro e os do acompanhamento a seguir, cada um com o tempo que leva e uma nota a dizer quando o pôr ao lume para os dois chegarem juntos à mesa. A variante fica arrumada no mesmo cartão do prato de origem, ao lado das outras maneiras de o servir. Se juntares dois acompanhamentos, eles repartem o lugar do lado e as quantidades da variante já vêm a meia dose de cada.'},
+   d:'Escolher o acompanhamento não é um ajuste solto por baixo do prato: um bife com batatas fritas e um bife com arroz de tomate não são o mesmo jantar. Por isso, assim que se escolhe ou se troca, a app <b>cria a variante sozinha</b> e dá-lhe o nome inteiro — «Bife com batatas fritas» —, que passa a ser o que o cartão mostra. Toca no nome e abre-se a receita: os ingredientes dos dois somados, as calorias somadas, e o <b>passo a passo refeito</b>, com os passos do prato primeiro e os do acompanhamento a seguir, cada um com o tempo que leva e uma nota a dizer quando o pôr ao lume para os dois chegarem juntos à mesa. A variante fica arrumada no mesmo cartão do prato de origem, ao lado das outras maneiras de o servir. Se juntares dois acompanhamentos, eles repartem o lugar do lado e as quantidades da variante já vêm a meia dose de cada.'},
   {tab:'plano', sel:'.meal .conv-linha', quando:()=>{ const w=S.plans[S.week]||{};
      for(let d=0;d<7;d++) for(const k of MEALK) if((w[d]||{})[k] && (w[d][k]||{}).r) return true; return false; },
    t:'Convidados, porções e marmitas',
