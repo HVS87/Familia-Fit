@@ -1182,6 +1182,7 @@ main{max-width:1100px;margin:0 auto;padding:24px 20px}
 .g3{grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr))}
 .sub{color:var(--mut);font-size:13.5px}
 .lbl{display:block;margin-bottom:3px}
+input[type=color]{border:1px solid var(--linha-forte);border-radius:var(--r-sm)}
 input[type=text],input[type=number],input[type=date],input[type=search],select{
   width:100%;background:var(--inset);border:1px solid var(--linha-forte);border-radius:var(--r-sm);padding:7px 10px}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
@@ -1722,9 +1723,14 @@ input[type=range].com-detentes::-moz-range-track{
 .cal-ev.feito .cal-ev-t{text-decoration:none}
 .cal-col.passado .cal-ev:not(.feito){opacity:.55;border-left-style:dashed}
 .cal-ev.jejum{background:color-mix(in srgb,var(--ev) 12%,var(--card))}
-.cal-ev-h{display:block;font-size:10px;color:var(--mut);font-variant-numeric:tabular-nums}
+/* A hora e o subtítulo de um evento não vivem sobre o cartão: vivem sobre a
+   tinta do próprio evento, e aí o cinzento dos textos secundários cai para
+   3,5:1 — medido nas catorze combinações. Continuam a ler-se como secundários,
+   mas com tinta que chega (5,5:1 no pior caso). Quem não tiver color-mix fica
+   com a tinta cheia, que é sempre mais do que suficiente. */
+.cal-ev-h{display:block;font-size:10px;color:var(--ink);color:color-mix(in srgb,var(--ink) 82%,var(--card));font-variant-numeric:tabular-nums}
 .cal-ev-t{display:block;font-weight:600;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
-.cal-ev-s{display:block;color:var(--mut);white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+.cal-ev-s{display:block;color:var(--ink);color:color-mix(in srgb,var(--ink) 82%,var(--card));white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
 .cal-instr .mov{margin-top:6px}
 /* A legenda do Calendário é material de consulta, não coisa que se leia todos
    os dias: no telemóvel ao alto ocupava 157 px — a grelha começava a meio do
@@ -36200,7 +36206,7 @@ function cartaoCoresGrafico(){
     const mau=ct!==null && ct<3;
     return `<div class="row" style="align-items:center;gap:10px;margin-top:8px;flex-wrap:nowrap">
       <input type="color" value="${efetiva}" aria-label="Cor de ${esc(x.n)} no gráfico"
-        style="width:42px;height:32px;padding:2px;border-radius:8px;border:1px solid var(--line);background:var(--card);flex:none"
+        style="width:42px;height:32px;padding:2px;border-radius:8px;background:var(--card);flex:none"
         onchange="setCorGrafico('${x.k}',this.value)">
       <div style="flex:1;min-width:0"><b style="font-size:13.5px">${esc(x.n)}</b>
         <span class="sub" style="display:block">${esc(x.d)}</span>
@@ -36228,7 +36234,7 @@ function cartaoCoresGrafico(){
       ${meus.map(s=>{ const cor=corDesporto(s.id), ef=cor||corGrafico('exercicio')||corDeToken('ok');
         return `<div class="row" style="align-items:center;gap:10px;margin-top:6px;flex-wrap:nowrap">
           <input type="color" value="${ef}" aria-label="Cor de ${esc(s.nome)} no gráfico"
-            style="width:36px;height:28px;padding:2px;border-radius:8px;border:1px solid var(--line);background:var(--card);flex:none"
+            style="width:36px;height:28px;padding:2px;border-radius:8px;background:var(--card);flex:none"
             onchange="setCorDesporto('${s.id}',this.value)">
           <span style="flex:1;min-width:0;font-size:13.5px">${esc(s.nome)}</span>
           ${cor? `<button class="btn ghost small" style="flex:none" onclick="setCorDesporto('${s.id}','')">Repor</button>`:''}
