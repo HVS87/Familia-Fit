@@ -26116,7 +26116,7 @@ function combosCfg(){ if(!Array.isArray(S.combos)) S.combos=[]; return S.combos;
 const AC_CURTO={
   acbcoz:'batatas cozidas', acbforno:'batatas assadas', acbfritas:'batatas fritas',
   acbairfry:'batatas fritas na airfryer', acbmurro:'batatas a murro',
-  acbpure:'puré', acbdoce:'batata-doce assada',
+  acbboulangere:'batatas boulangère', acbpure:'puré', acbdoce:'batata-doce assada',
   acrbranco:'arroz branco', acrbasmati:'arroz basmati', acrcarolino:'arroz malandrinho',
   acrtomate:'arroz de tomate', acrcoentros:'arroz de coentros', acracafrao:'arroz de açafrão',
   acrfeijao:'arroz de feijão', acrmanteiga:'arroz de manteiga',
@@ -26491,6 +26491,10 @@ const COMBOS_BASE=[
   {base:'peixecrosta', ac:['acllegumes'], mo:''},
   {base:'aclcouveflorgrelhada', ac:[], mo:'acmtahini'},
   {base:'aclcouveflorgrelhada', ac:[], mo:'acmbeterrabacenoura'},
+  /* As batatas boulangère são o lado clássico do borrego no forno em França
+     (gigot aux pommes boulangère), e cozem no mesmo forno que o frango. */
+  {base:'borregoervas', ac:['acbboulangere','aclfverde'], mo:''},
+  {base:'frangoassado', ac:['acbboulangere','aclsalverde'], mo:''},
 ];
 function nomeCombo(baseId,acs,mo,ma){
   const k=idCombo(baseId,acs,mo,ma);
