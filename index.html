@@ -1488,7 +1488,7 @@ input[type=range].com-detentes::-moz-range-track{
    min-height fica nos 24 px que a WCAG 2.5.8 pede, e mais folgada ainda num
    ecrã tátil, onde acertar numa lista de duzentos ingredientes custa. */
 .shop label{display:flex;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer;min-height:24px}
-@media (hover:none) and (pointer:coarse){ .shop label{min-height:30px} }   /* o padding dos itens no toque está no bloco grande de alvos, mais abaixo: estava aqui uma segunda regra, morta, a pedir menos */
+/* (a altura da etiqueta no toque está no bloco grande de alvos, mais abaixo: estava aqui uma segunda regra, morta, a pedir menos */
 @media (prefers-reduced-motion: no-preference){
   #co-bar{transition:width .2s,background-color .2s}
   .anel-arco{transition:stroke-dashoffset .6s ease, stroke .3s ease}
@@ -1716,6 +1716,9 @@ input[type=range].com-detentes::-moz-range-track{
 /* o que é do dia inteiro tinge a coluna toda, cada um com a sua cor */
 .cal-tinta{position:absolute;inset:0;opacity:.09;pointer-events:none}
 .cal-tinta.recup{opacity:.20}
+/* o dia livre tinha classe própria e nenhuma regra: ficava na opacidade base,
+   mais apagado do que o dia de recuperação ao lado */
+.cal-tinta.cheat{opacity:.16}
 /* a etiqueta que abre o jejum: o sombreado sozinho não se toca */
 .cal-tag{position:absolute;left:2px;z-index:2;font:inherit;font-size:10.5px;line-height:1.2;padding:1px 6px;border-radius:999px;
   cursor:pointer;white-space:nowrap;max-width:calc(100% - 6px);overflow:hidden;text-overflow:ellipsis;color:var(--ink);
@@ -16804,7 +16807,6 @@ function reguaEpoca(nome){
   const meses=EPOCA[k], agora=new Date().getMonth()+1;
   const larg=13, alt=16;
   const cel=meses.length? meses : [];
-  const ultimo=cel.indexOf(agora)>=0 && cel.indexOf(agora+1)<0 && cel.indexOf(agora)>=0;
   return `<span class="regua-epoca" title="${esc(nome)} — de época em ${meses.map(x=>['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'][x-1]).join(', ')}">
     <svg viewBox="0 0 ${larg*12} ${alt+9}" width="${larg*12}" height="${alt+9}" role="img"
       aria-label="${esc(nome)}: de época em ${meses.length} meses do ano, ${cel.indexOf(agora)>=0? 'incluindo este' : 'não este'}">
@@ -17612,7 +17614,7 @@ function imprimirFolha(id,classe,html,modo,pagina){
   setTimeout(()=>{ if(document.getElementById(id)) limpar(); }, 60000);
 }
 function imprimirFrigorifico(){
-  const dates=weekDates(S.week), w=S.plans[S.week]||{};
+  const w=S.plans[S.week]||{};
   let n=0; for(let di=0;di<7;di++) for(const mk of MEALK) if((w[di]||{})[mk]?.r) n++;
   if(!n) return flash('warn','A semana está vazia — não há nada para pôr na porta.');
   /* No telemóvel a impressão é quase sempre um beco: não há impressora à
@@ -18441,7 +18443,6 @@ function blocoLadosFicha(r,f){
 function fichaHtml(f){
   const r=RECIPES.find(x=>x.id===f.r); if(!r) return '';
   const passos=passosDaReceita(r,f.n), escritos=temPassosEscritos(r);
-  const ing=escalaIngredientes(r,f.n);
   const disp=disponibilidadeReceita(r);
   const c=conservacaoDe(r), custo=custoReceita(r,f.n);
   const daEp=ingredientesDaEpoca(r);
@@ -19213,7 +19214,6 @@ function pintaTemporizadores(){
   cx.innerHTML=temporizadores.map(t=>{
     const falta=Math.max(0,Math.round((t.fim-agora)/1000));
     const mm=Math.floor(falta/60), ss=falta%60;
-    const total=Math.max(1,(t.fim-(t.inicio||t.fim-1))/1000);
     return `<button class="timer ${t.tocou?'pronto':''}" onclick="pararTemporizador('${t.id}')"
       aria-label="${esc(t.n)}: ${t.tocou?'pronto':mm+' minutos e '+ss+' segundos'}. Tocar para parar.">
       <b>${t.tocou? 'pronto' : mm+':'+String(ss).padStart(2,'0')}</b><span>${esc(t.n)}</span></button>`;
@@ -19304,7 +19304,7 @@ function cartaoCapa(){
   if(!S.members.length) return '';
   const nome=nomeDaCasa(), lema=(S.casa||{}).lema, ini=primeiroRegisto();
   const aberto=S.ui.capaAberta;
-  return `<section class="card card--capa capa" id="capa" style="margin-bottom:16px">
+  return `<section class="card card--capa" id="capa" style="margin-bottom:16px">
     <div class="row" style="gap:16px;align-items:center">
       <span style="color:var(--sazonal,var(--accent));flex:none">${monogramaSvg(64)}</span>
       <div style="flex:1;min-width:0">
@@ -19676,7 +19676,6 @@ function cartaoDiario(){
    Trinta e um passos de visita guiada é peso a mais para uma família ao
    jantar. Cinco marcos, com o visto verificado pelos próprios dados. */
 function marcosIniciais(){
-  const m=S.members[0];
   return [
     {k:'perfis', t:'Criar os perfis da casa', ok:S.members.length>0, fn:"go('familia')",
      d:'Cada pessoa com a sua fase da vida — as fórmulas mudam com ela.'},
@@ -23324,7 +23323,14 @@ function trajSvg(m,fit,c){
     if(a0>b0) return '';
     const a=clampNum(X(diasEntre(h,a0))-largDiaT/2, X0, X1), b=clampNum(X(diasEntre(h,b0))+largDiaT/2, X0, X1);
     const larg=Math.max(3, Math.min(b-a, X1-a));
-    return `<rect class="f-party" x="${f(a)}" y="${Y0}" width="${f(larg)}" height="${Y1-Y0}" opacity=".16"/>`;
+    /* com alvo e nome, como as faixas de jejum ao lado: sem isto a faixa era
+       cor e mais nada, invisível ao teclado e ao leitor de ecrã */
+    const lHit=Math.max(12,larg), xHit=clampNum(a+larg/2-lHit/2, X0, X1-lHit);
+    const txt=c.dias===1? 'Dia livre\n'+fmtLongo(c.ini)
+      : plural(c.dias,'dia livre','dias livres')+'\n'+fmtCurto(c.ini)+' a '+fmtLongo(c.fim);
+    return `<rect class="f-party" x="${f(a)}" y="${Y0}" width="${f(larg)}" height="${Y1-Y0}" opacity=".16"/>
+      <rect class="nota-hit" x="${f(xHit)}" y="${Y0}" width="${f(lHit)}" height="${Y1-Y0}"
+        role="img" tabindex="0" aria-label="${esc(txt.replace('\n',', '))}" data-nota="${esc(txt)}"/>`;
   }).join('');
   const bandasJ=jejunsNaJanela(m.id, addDias(h,-base), h).map(j=>{
     const fj=fimDeJejum(j);
@@ -26505,7 +26511,6 @@ const NOME_COMBO={
   'c:tacopeixe+~acmbaja':'Tacos de peixe à Baja',
   'c:tacocamarao+~acmmaionesepicante':'Tacos de camarão com molho picante',
   'c:caesar+~acmcaesar':'Salada Caesar com frango',
-  'c:ovosbenedict+~acmholandes':'Ovos Benedict',
   'c:chickenparm+~acmtomatemanjericao':'Chicken Parmesan',
   'c:pannacotta+~acmcoulisframboesa':'Panna cotta com coulis de framboesa',
   'c:pannacotta+~acmcoulismorango':'Panna cotta com coulis de morango',
@@ -27330,7 +27335,6 @@ function painelMacrosEditor(){
 }
 function cartaoEditor(){
   const e=edCfg(); if(!e) return '';
-  const cat=catalogoCompleto();
   const erro=edValido();
   return `<div class="card" id="editor" style="margin-bottom:16px;border-color:var(--accent)">
     <div class="row" style="justify-content:space-between">
@@ -31758,7 +31762,7 @@ function addBlocoObj(sid){
   saveMeta(); render();
 }
 function removerBlocoObj(k){
-  const f=S.ui.objForm, blocos=blocosForm();
+  const blocos=blocosForm();
   const i=blocos.findIndex(b=>b.k===k); if(i<0) return;
   blocos.splice(i,1);
   sincronizaFormComBlocos();
@@ -34712,7 +34716,6 @@ function usarComoBase(){
   const src=S.plans[origem]||{};
   let copiadas=0, vetadas=0;
   const alvo=S.plans[destino]||(S.plans[destino]={});
-  const datas=weekDates(destino);
   for(let di=0;di<7;di++){
     const dia=src[di]; if(!dia) continue;
     MEALK.forEach(mk=>{
@@ -36569,7 +36572,6 @@ function cartaoTabelas(){
    contraste medido em vez de deixar escolher às cegas — sem proibir nada, que
    o gráfico é de quem o lê. */
 function cartaoCoresGrafico(){
-  const c=coresCfg();
   const fundo=corDeToken('card');
   const linha=x=>{
     const escolhida=corGrafico(x.k), efetiva=escolhida||corDeToken(x.tok);
@@ -37447,19 +37449,11 @@ function eventosParaExportar(alcance){
   return out;
 }
 function nomeFicheiroIcs(){ return 'familia-fit-calendario-'+calSemana()+'.ics'; }
+/* O .ics entrega-se pelo mesmo caminho de qualquer ficheiro — partilha no
+   telemóvel, transferência no computador. Era uma cópia linha a linha de
+   entregarFicheiro(), e duas cópias da mesma entrega acabam por divergir. */
 function entregarIcs(txt,nome){
-  try{
-    if(podePartilhar()){
-      const f=new File([txt], nome, {type:'text/calendar'});
-      if(navigator.canShare({files:[f]})){ navigator.share({files:[f], title:'Calendário Família Fit'}).catch(()=>{}); return 'partilha'; }
-    }
-    const blob=new Blob([txt],{type:'text/calendar;charset=utf-8'});
-    const url=URL.createObjectURL(blob), a=document.createElement('a');
-    a.href=url; a.download=nome; a.style.display='none';
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(()=>URL.revokeObjectURL(url),4000);
-    return 'ficheiro';
-  }catch(e){ return null; }
+  return entregarFicheiro(new Blob([txt],{type:'text/calendar;charset=utf-8'}), nome);
 }
 function exportarCalendarioIcs(alcance){
   const ev=eventosParaExportar(alcance||'semana');
