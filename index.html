@@ -1877,6 +1877,10 @@ select.acomp{margin-top:6px;border-style:dashed;font-size:13.5px}
 .reg-linha .rl-corpo{flex:1;min-width:0}
 .reg-acoes{display:flex;gap:4px;flex:none}
 .val-item{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:8px;background:var(--bg)}
+/* uma tarefa de véspera já feita continua à vista — quem a fez quer vê-la
+   riscada, e quem se enganou quer poder voltar atrás */
+.val-item.feito{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 7%,var(--bg))}
+.val-item.feito b{text-decoration:line-through;text-decoration-color:var(--ok)}
 .ac-linha{display:flex;gap:6px;align-items:center}
 select.acomp.cheio{border-style:solid;background-color:var(--card);color:var(--ink);font-weight:600}
 .ac-linha select.acomp{flex:1;min-width:0}
@@ -3093,6 +3097,7 @@ function migraRegistos(s){
      deliberada: os tachos ficam a contar e a app tem de voltar para lá. */
   s.ui.modal=null; s.ui.folha=null; s.ui.ficha=null; s.ui.sugRec=null;
   s.ui.pesqAberta=false; s.ui.mercado=false;
+  s.prepFeito = limparPrepFeito(s.prepFeito);
   if(!s.cheats || typeof s.cheats!=='object' || Array.isArray(s.cheats)) s.cheats={};
   Object.keys(s.cheats).forEach(k=>{ if(!Array.isArray(s.cheats[k])) delete s.cheats[k]; });
   s.recuperacao = limparRecuperacao(s.recuperacao, ids);
@@ -12956,6 +12961,11 @@ function blank(){ return {members:[],cheats:{},recuperacao:{},plans:{},bought:{}
      compra a folhada congelada compra-a para a empada e para o folhado,
      e é isso que a lista de compras passa a pedir. */
   massaFeita:{},
+  /* prepFeito: {semana:['picar|Cebola',…]} — as tarefas do prep de véspera que
+     já foram feitas. É por semana porque é isso que elas são: o que se picou
+     no domingo serve esta semana e não a próxima. Quem as marca poupa esse
+     tempo em todas as refeições planeadas que usam o ingrediente. */
+  prepFeito:{},
   /* agenda: os blocos de tempo que so o Calendario guarda — compras, cozinhar,
      preparacao, planear a semana, treinos pontuais. */
   agenda:[],
@@ -13192,7 +13202,7 @@ function instantaneo(){ return JSON.stringify({members:S.members, cheats:S.cheat
   receitas:S.receitas, ingredientes:S.ingredientes, medicoes:S.medicoes, regAtiv:S.regAtiv, regRef:S.regRef,
   sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa, pausas:S.pausas, diario:S.diario, cozPref:S.cozPref, metodoBMR:S.metodoBMR,
   validades:S.validades, veredictos:S.veredictos, brigada:S.brigada, desperdicio:S.desperdicio,
-  gostos:S.gostos, jejum:S.jejum, combos:S.combos, massaFeita:S.massaFeita, cores:S.cores, agenda:S.agenda, rituais:S.rituais, extras:S.extras, aindaHa:S.aindaHa, basicos:S.basicos,
+  gostos:S.gostos, jejum:S.jejum, combos:S.combos, massaFeita:S.massaFeita, prepFeito:S.prepFeito, cores:S.cores, agenda:S.agenda, rituais:S.rituais, extras:S.extras, aindaHa:S.aindaHa, basicos:S.basicos,
   visitas:S.visitas, ementas:S.ementas, anos:S.anos, provas:S.provas, bebidas:S.bebidas, notasCozinha:S.notasCozinha}); }
 function aplicaInstantaneo(js){
   const d=JSON.parse(js);
@@ -13226,6 +13236,7 @@ function aplicaInstantaneo(js){
      voltavam dele: «Anular» dizia «Desfeito: bloco marcado» e o bloco ficava */
   S.agenda=limparAgenda(d.agenda, S.members.map(m=>m.id));
   S.massaFeita=(d.massaFeita && typeof d.massaFeita==='object')? d.massaFeita : {};
+  S.prepFeito=limparPrepFeito(d.prepFeito);
   S.cores=(d.cores && typeof d.cores==='object')? d.cores : {porDesporto:{}};
   S.jejum=limpaJejunsInalcancaveis(limparJejum(d.jejum, S.members.map(m=>m.id)), S.members);
   sincronizaReceitas(); sincronizaCombos();
@@ -15528,7 +15539,8 @@ const DICAS={
   categorias:'O lugar de uma receita na mesa, que é uma pergunta diferente de «em que refeição encaixa»: uma entrada e um prato principal cabem os dois ao jantar, e uma sobremesa também. Quando a receita não declara a categoria, ela deriva-se do que já se sabe — pequeno-almoço é brunch, lanche é snack, almoço ou jantar é prato principal.',
   cozPref:'Cinco escolhas que mudam o que a app sugere e o que a lista de compras conta. «Repetir receitas» faz o preenchimento automático repetir pratos em vez de os evitar; «cozinhar em dobro» faz a primeira vez render duas refeições, e a segunda passa a «aquecer» sem voltar à lista de compras; «só ingredientes de época» prefere o que está na época em Portugal; «preparar de véspera» dá vantagem às receitas que aproveitam uma preparação já planeada; e o cartão de receita da época pode desligar-se.',
   dobro:'Cozinhar a dobrar dá para dois dias. Dobra o PRATO — as quantidades dele sobem já na lista de compras, e o dia que só aquece não volta a comprá-lo. Os acompanhamentos ficam de fora da conta porque se fazem frescos em cada dia: ninguém reaquece uma salada. O prazo de guardar e a forma de reaquecer vêm por baixo, e são diferentes de prato para prato.',
-  foodprep:'Preparação de ingredientes, não pratos feitos: descascar, picar, demolhar, lavar, marinar, porcionar. Cada tarefa diz que dias serve e quanto tempo leva, com as quantidades já somadas de toda a semana. Enquanto estiver ligado, as receitas que aproveitam uma preparação já planeada têm vantagem nas sugestões — é assim que uma tarde de domingo poupa cinco jantares à pressa.',
+  foodprep:'Preparação de ingredientes, não pratos feitos: descascar, picar, demolhar, lavar, marinar, porcionar. Cada tarefa diz que dias serve e quanto tempo leva, com as quantidades já somadas de toda a semana. Enquanto estiver ligado, as receitas que aproveitam uma preparação já planeada têm vantagem nas sugestões — é assim que uma tarde de domingo poupa cinco jantares à pressa. Cada tarefa tem um «Feito»: marcada, o tempo dela sai do tempo das refeições da semana que usam esse ingrediente.',
+  mise:'O tempo de cortar, descascar, picar, lavar e amanhar, estimado ingrediente a ingrediente pela quantidade que a receita leva para esta mesa — é a parte do trabalho que as receitas costumam calar e onde se perde meia hora sem dar por ela. Os ingredientes que já têm um passo escrito a tratar deles (por exemplo «Amanhar as lulas») não levam minutos aqui, para não contarem duas vezes: o tempo deles já está no passo. E o que ficou pronto no prep de véspera desta semana aparece riscado e sai da conta — o que se picou no domingo não se pica outra vez na terça.',
   genero:'Um gaspacho e uma feijoada não apetecem no mesmo dia. A app lê o género do prato do nome e dos ingredientes e pesa-o na sugestão: no verão os pratos frios ganham vantagem, sobretudo ao almoço; fora dele, os quentes.',
   sugDespensa:'Uma pergunta muito mais curta do que a do plano semanal: o que é que dá para fazer agora, com o que está aí. Ordena as receitas que servem toda a gente à mesa — dietas e alergias já contadas — pela percentagem de ingredientes que já tens em casa, e diz o que falta nas que não estão completas. A percentagem é sobre o número de ingredientes e não sobre o peso: para quem está à frente do frigorífico às sete da tarde, o que conta é quantas coisas faltam ir buscar. As que se podem cozinhar já ficam com uma barra verde à esquerda.',
   variantes:'Sete tacos e cinco burritos ocupavam sete e cinco lugares na grelha, como se fossem doze pratos diferentes. São o mesmo prato com recheios diferentes, e o que a casa decide é «hoje é taco?» e não «qual dos sete tacos?». As variantes passam a partilhar um cartão, que mostra a que melhor serve os gostos desta mesa — pelo saldo de favoritas e não-gostas, depois pela que já se pode cozinhar com o que há em casa — e as outras ficam a um toque na ficha. O agrupamento é uma tabela explícita e não uma regra sobre os nomes: uma sopa de legumes e uma vichyssoise começam ambas por «Sopa» e não são variantes uma da outra. Numa pesquisa não se agrupa nada, porque quem escreve «taco de camarão» quer aquele taco.',
@@ -18542,6 +18554,29 @@ function fichaHtml(f){
       ${blocoSubstituicoes(r)}
       ${blocoTrocasDieta(r)}
       ${reguasDaReceita(r)}
+      ${(function(){
+        /* ---- Antes dos passos: o que há a cortar ----
+           Uma receita não começa no primeiro passo, começa na tábua. Esta
+           secção conta esse tempo, ingrediente a ingrediente — e risca o que
+           já ficou pronto no prep de véspera desta semana, porque nesse caso
+           não se faz outra vez. */
+        const tp=tempoReceita(r, f.n, S.week);
+        if(!tp.itens.length) return '';
+        const feitos=tp.itens.filter(x=>ingredientePreparado(x.nome,S.week));
+        return `<h3 style="margin-top:16px">Preparar os ingredientes ${dica('mise')}</h3>
+          <p class="sub">O que se descasca, pica, lava ou amanha antes de acender o lume, para ${plural(f.n,'pessoa','pessoas')}.
+            ${tp.poupado>0? '' : 'Conta para o tempo total.'}</p>
+          <div class="row" style="gap:6px;flex-wrap:wrap;margin-top:6px">
+            ${tp.itens.map(x=>{ const feito=ingredientePreparado(x.nome,S.week);
+              return `<span class="chip${feito?' livre on':''}" style="cursor:default"${feito? ' title="Já preparado no prep desta semana"':''}>${feito?'✓ ':''}${esc(x.nome)} <span class="sub">· ${esc(x.verbo)}${x.nosPassos? '' : ' · '+duracaoTexto(x.min)}</span></span>`;
+            }).join('')}
+          </div>
+          <p class="sub" style="margin-top:8px">
+            ${tp.poupado>0
+              ? '<b>−'+duracaoTexto(tp.poupado)+'</b> porque '+(feitos.length===1? 'este ingrediente já está preparado' : 'estes '+feitos.length+' ingredientes já estão preparados')+' no prep desta semana. Total com o desconto: <b>'+duracaoTexto(tp.total)+'</b>.'
+              : 'Preparação <b>'+duracaoTexto(tp.prep)+'</b> · lume e forno <b>'+duracaoTexto(tp.cozinha)+'</b> · total <b>'+duracaoTexto(tp.total)+'</b>.'}
+            ${tp.itens.some(x=>x.nosPassos)? ' Os ingredientes sem minutos ao lado já têm o seu tempo contado num passo escrito.' : ''}</p>`;
+      })()}
       <h3 style="margin-top:16px">Preparação ${escritos?'':dica('passosDerivados')}</h3>
       ${linhaTempoReceita(passos)}
       ${escritos? '' : `<p class="sub">Esta receita ainda não tem passos escritos: os que se seguem são <b>derivados dos ingredientes e do género do prato</b>, para servirem de guia. Não são uma receita de livro, e a app diz isso em vez de fingir que são.</p>`}
@@ -21039,6 +21074,118 @@ function planoFoodPrep(wk){
     .sort((a,b)=>a.p.ordem-b.p.ordem || b.dias.length-a.dias.length);
 }
 function horasFoodPrep(l){ return l.reduce((t,x)=>t+x.p.h,0); }
+/* ================= O QUE SE CORTA ANTES DE ACENDER O LUME =================
+   O tempo de uma receita nunca foi só o dos passos: antes deles há descascar,
+   picar, lavar e amanhar, que é onde se perde meia hora sem dar por ela. Esta
+   tabela põe números nisso, por ingrediente e pela quantidade — não é uma
+   opinião sobre a receita, é aritmética sobre o que está na lista.
+
+   Duas cautelas. A primeira: muitas receitas já têm esse trabalho escrito num
+   passo («Amanhar as lulas», 15 min), e somar por cima seria contar duas
+   vezes — por isso, um ingrediente que um passo de preparação já nomeia não
+   leva estimativa nenhuma: o tempo dele é o do passo. A segunda: isto é uma
+   estimativa de cozinha de casa, com faca de cozinha e não com brigada, e por
+   isso tem teto por ingrediente. */
+const MISE=[
+  {re:/^(cebola|cebolinha|chalota)/i,               v:'descascar e picar',        m:2.2, un:100},
+  {re:/^alho(?!-franc)/i,                            v:'descascar e picar',        m:0.4, un:'un'},
+  {re:/^alho-franc/i,                                v:'lavar e cortar',           m:2,   un:100},
+  {re:/^(batata|batata-doce|cenoura|nabo|beterraba|ab[oó]bora|mandioca|inhame)/i, v:'descascar e cortar', m:2, un:100},
+  {re:/^(courgette|curgete|beringela|pimento|pepino|tomate|curgete)/i, v:'lavar e cortar', m:1.4, un:100},
+  {re:/^(couve|br[oó]colos|couve-flor|grelos|espinafres|alface|r[uú]cula|agri[aã]o|feij[aã]o-verde)/i, v:'lavar e cortar', m:1.8, un:100},
+  {re:/^cogumelo/i,                                  v:'limpar e fatiar',          m:1.5, un:100},
+  {re:/^(salsa|coentros|manjeric[aã]o|hortel[aã]|cebolinho|endro|tomilho|alecrim|or[eé]g[aã]os|louro)/i, v:'picar', m:1.2, un:10},
+  {re:/^(peito de frango|coxas de frango|frango|peru|bifes de peru)/i, v:'aparar e cortar', m:1.2, un:100},
+  {re:/^(vaca|porco|borrego|vitela|cabrito|coelho|bife|carne picada|lombo|entrecosto|secretos|plumas|costeletas)/i, v:'aparar e cortar', m:1.2, un:100},
+  {re:/^(pescada|robalo|dourada|salm[aã]o|bacalhau|cavala|carapau|sardinha|tamboril|maruca|peixe)/i, v:'limpar e porcionar', m:1.5, un:100},
+  {re:/^(lulas|chocos|polvo|choco)/i,                v:'amanhar',                  m:3,   un:100},
+  {re:/^(camar[aã]o|am[eê]ijoas|mexilh[oõ]es|berbig[aã]o)/i, v:'lavar e descascar', m:2, un:100},
+  {re:/^(queijo|parmes[aã]o|mozzarella|gruy|flamengo|pecorino)/i, v:'ralar ou fatiar', m:1, un:100},
+  {re:/^(lim[aã]o|lima|laranja)/i,                    v:'espremer ou raspar',       m:0.8, un:'un'},
+  {re:/^(gr[aã]o|feij[aã]o (?!verde)|lentilha)/i,     v:'escorrer e passar por água', m:0.5, un:100},
+];
+const MISE_TETO_ING=8;      /* nenhum ingrediente sozinho leva mais do que isto */
+function regraMise(nome){ return MISE.find(x=>x.re.test(String(nome||''))) || null; }
+function minutosMiseIng(nome,q,un){
+  const r=regraMise(nome); if(!r) return 0;
+  if(un==='ml') return 0;                       /* o que se mede em líquido não se corta */
+  const m = r.un==='un'? r.m*(parseFloat(q)||1) : r.m*((parseFloat(q)||0)/r.un);
+  return Math.min(MISE_TETO_ING, Math.round(m*2)/2);
+}
+/* Um passo é de preparação quando o que ele faz é aprontar o ingrediente. O
+   título chega para saber: nesta casa os títulos dizem o gesto. */
+const RE_PASSO_PREP=/^(amanhar|descascar|picar|cortar|lavar|limpar|preparar|marinar|temperar|panar|abrir|escaldar|ralar|fatiar|demolhar|reunir|arranjar|golpes?)/i;
+function passoEhPrep(p){ return RE_PASSO_PREP.test(String((p&&p.t)||'').trim()); }
+function raizNome(s){ return semAcentos(String(s||'').toLowerCase()).split(/[ ,(]/)[0].slice(0,5); }
+/* A preparação de uma receita, ingrediente a ingrediente: o que já está
+   escrito num passo (e quanto esse passo leva) e o que falta estimar. */
+function misePorReceita(r,n){
+  if(!r) return {itens:[], passos:0, estimado:0, total:0};
+  const ing=escalaIngredientes(r, n||1);
+  const passos=(PASSOS[r.id]||[]).map(p=>({t:p[0], d:p[1], min:p[2]||0}));
+  const dePrep=passos.filter(passoEhPrep);
+  const minPassos=dePrep.reduce((t,p)=>t+p.min,0);
+  const txtPrep=semAcentos(dePrep.map(p=>p.t+' '+p.d).join(' ').toLowerCase());
+  const itens=[];
+  ing.forEach(x=>{
+    const reg=regraMise(x.n); if(!reg) return;
+    const min=minutosMiseIng(x.n, x.q, x.u); if(!min) return;
+    const naPreparacaoEscrita = txtPrep.indexOf(raizNome(x.n))>=0;
+    itens.push({nome:x.n, verbo:reg.v, min, nosPassos:naPreparacaoEscrita});
+  });
+  const estimado=itens.filter(x=>!x.nosPassos).reduce((t,x)=>t+x.min,0);
+  return {itens, passos:minPassos, estimado, total:Math.round(minPassos+estimado)};
+}
+/* ---- E o que já está feito ----
+   O prep de domingo marca-se tarefa a tarefa, por semana. Um ingrediente que
+   ficou picado no domingo não se pica outra vez na terça: o tempo dele sai da
+   conta da refeição planeada, e a ficha di-lo em vez de o esconder. */
+function prepFeitoCfg(){ if(!S.prepFeito || typeof S.prepFeito!=='object' || Array.isArray(S.prepFeito)) S.prepFeito={}; return S.prepFeito; }
+function prepFeitoDaSemana(wk){ const l=prepFeitoCfg()[wk||S.week]; return Array.isArray(l)? l : []; }
+function prepEstaFeito(chave,wk){ return prepFeitoDaSemana(wk).indexOf(chave)>=0; }
+/* Pelo índice da lista e não pelo nome: é a regra da casa para os handlers
+   escritos no HTML, porque o esc() não escapa apóstrofos. */
+function togglePrepFeitoIdx(i){
+  const l=planoFoodPrep(); const t=l[i]; if(!t) return;
+  togglePrepFeito(t.p.k+'|'+t.nome);
+}
+function togglePrepFeito(chave,wk){
+  const c=prepFeitoCfg(), w=wk||S.week;
+  if(!Array.isArray(c[w])) c[w]=[];
+  const i=c[w].indexOf(chave);
+  if(i>=0) c[w].splice(i,1); else c[w].push(chave);
+  if(!c[w].length) delete c[w];
+  save('food prep'); render();
+}
+/* Um ingrediente está preparado se alguma tarefa feita desta semana lhe toca.
+   A tarefa guarda-se como «picar|Cebola», e é o nome que interessa aqui. */
+function ingredientePreparado(nome,wk){
+  return prepFeitoDaSemana(wk).some(k=>k.slice(k.indexOf('|')+1)===nome);
+}
+function limparPrepFeito(o){
+  const out={};
+  if(!o || typeof o!=='object' || Array.isArray(o)) return out;
+  Object.keys(o).slice(0,60).forEach(wk=>{
+    if(!dataValida(wk) || !Array.isArray(o[wk])) return;
+    const l=o[wk].filter(x=>typeof x==='string' && x.length<80 && x.indexOf('|')>0)
+      .filter((v,i,a)=>a.indexOf(v)===i).slice(0,80);
+    if(l.length) out[wk]=l;
+  });
+  return out;
+}
+/* O tempo de uma receita com as três parcelas separadas, e já com o desconto
+   do que ficou feito de véspera. `wk` é a semana onde se procura esse prep;
+   sem ela, não se desconta nada (uma ficha aberta fora do plano é a receita
+   inteira, do princípio). */
+function tempoReceita(r,n,wk){
+  const mise=misePorReceita(r,n);
+  const passosTotal=minutosDe(r.id);
+  const cozinha=Math.max(0, passosTotal-mise.passos);
+  let poupado=0;
+  if(wk) mise.itens.forEach(x=>{ if(ingredientePreparado(x.nome,wk)) poupado+=x.min; });
+  poupado=Math.min(Math.round(poupado), mise.total);
+  return {prep:mise.total, cozinha, poupado, total:Math.max(0, mise.total+cozinha-poupado), itens:mise.itens};
+}
 /* Quantas tarefas de preparação esta receita partilha com o que já está
    planeado na semana: é o que faz uma sugestão «encaixar» no food prep. */
 function encaixaNoPrep(r,tarefas){
@@ -34644,19 +34791,28 @@ function cartaoFoodPrep(){
   const l=planoFoodPrep();
   if(!l.length) return '';
   const h=horasFoodPrep(l);
+  const feitas=l.filter(t=>prepEstaFeito(t.p.k+'|'+t.nome));
+  const porFazer=horasFoodPrep(l.filter(t=>!prepEstaFeito(t.p.k+'|'+t.nome)));
   return `<div class="card" id="foodprep" data-col="pla-prep" style="margin-bottom:16px">
     <div class="row" style="justify-content:space-between">
       <h2>Preparar de véspera ${dica('foodprep')}</h2>
-      <span class="pill">~${hmm(h)}</span></div>
+      <span class="pill${feitas.length? ' ok':''}">${feitas.length? feitas.length+' de '+l.length+' · falta ~'+hmm(porFazer) : '~'+hmm(h)}</span></div>
+    ${feitas.length? `<p class="sub" style="margin-top:4px">O que está riscado já não conta no tempo das refeições da semana: a app desconta-o de cada uma que use esse ingrediente.</p>`:''}
     <p class="sub" style="margin-top:4px">Preparação de ingredientes, não pratos feitos: o que se descasca, pica, demolha, lava ou marinha uma vez e serve a semana toda. As quantidades já contam com quem se senta a cada mesa.</p>
-    ${l.map(t=>`<div class="val-item">
+    ${l.map((t,i)=>`<div class="val-item${prepEstaFeito(t.p.k+'|'+t.nome)?' feito':''}">
       <div class="row" style="justify-content:space-between;gap:8px">
         <div style="min-width:0">
           <b>${esc(t.p.t)}: ${esc(t.nome)}</b> <span class="sub">· ${fmtQtd(t.q,t.un)}</span>
           <span class="sub" style="display:block">${esc(t.p.d)}</span>
           <span class="sub" style="display:block">serve ${t.dias.map(d=>DAYN[d].slice(0,3).toLowerCase()).join(', ')} · ${t.receitas.slice(0,2).map(esc).join(' · ')}${t.receitas.length>2? ' e mais '+(t.receitas.length-2):''}</span>
         </div>
-        <span class="pill" style="flex:none">${hmm(t.p.h)}</span>
+        <div class="row" style="flex:none;gap:6px;align-items:center">
+          <span class="pill">${hmm(t.p.h)}</span>
+          <button class="btn ${prepEstaFeito(t.p.k+'|'+t.nome)?'':'ghost '}small"
+            aria-pressed="${prepEstaFeito(t.p.k+'|'+t.nome)}"
+            title="${prepEstaFeito(t.p.k+'|'+t.nome)? 'Desmarcar — volta a contar nas refeições' : 'Marcar como feito — o tempo sai das refeições que o usam'}"
+            onclick="togglePrepFeitoIdx(${i})">${prepEstaFeito(t.p.k+'|'+t.nome)? '✓ feito' : 'Feito'}</button>
+        </div>
       </div></div>`).join('')}
     <p class="sub" style="margin-top:10px">Uma tarde de domingo poupa cinco jantares à pressa. As receitas que aproveitam estas preparações têm prioridade nas sugestões enquanto «preparar de véspera» estiver ligado.</p>
   </div>`;
@@ -35789,7 +35945,7 @@ function pacote(){
          receitas:S.receitas, ingredientes:S.ingredientes, medicoes:S.medicoes, regAtiv:S.regAtiv, regRef:S.regRef,
          sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa, pausas:S.pausas, diario:S.diario, cozPref:S.cozPref, metodoBMR:S.metodoBMR,
          validades:S.validades, veredictos:S.veredictos, brigada:S.brigada, desperdicio:S.desperdicio,
-         gostos:S.gostos, jejum:S.jejum, combos:S.combos, massaFeita:S.massaFeita, cores:S.cores, agenda:S.agenda, rituais:S.rituais, extras:S.extras, aindaHa:S.aindaHa, basicos:S.basicos,
+         gostos:S.gostos, jejum:S.jejum, combos:S.combos, massaFeita:S.massaFeita, prepFeito:S.prepFeito, cores:S.cores, agenda:S.agenda, rituais:S.rituais, extras:S.extras, aindaHa:S.aindaHa, basicos:S.basicos,
          visitas:S.visitas, ementas:S.ementas, anos:S.anos, provas:S.provas, bebidas:S.bebidas, notasCozinha:S.notasCozinha,
          /* A ordem aprendida do supermercado ficava de fora da cópia e o
             «substituir» apagava-a: meses a corrigir a ordem dos corredores
@@ -36211,6 +36367,9 @@ function lerPacote(txt){
   const massaFeita={};
   if(d.massaFeita && typeof d.massaFeita==='object') Object.keys(d.massaFeita).forEach(k=>{
     if(d.massaFeita[k] && podeComprarMassa(k)) massaFeita[k]=true; });
+  /* o prep já feito viaja com a cópia: sem ele, restaurar punha a semana toda
+     a pedir outra vez o que já estava picado */
+  const prepFeito=limparPrepFeito(d.prepFeito);
   /* cores: só hexadecimais de seis dígitos. Um valor estranho aqui ia parar
      a um atributo `fill` do SVG e podia levar lá dentro o que não é cor. */
   const HEX=/^#[0-9A-Fa-f]{6}$/;
@@ -36225,7 +36384,7 @@ function lerPacote(txt){
   }
   return {d:{ members, cheats, recuperacao, plans, bought, objetivos, despensa, receitas,
               medicoes, regAtiv, regRef, sobras, precos, festas, casa, pausas, diario, cozPref,
-              validades, veredictos, brigada, desperdicio, gostos, jejum, combos, massaFeita, cores, agenda, rituais, extras, aindaHa, basicos, visitas, ementas, anos, provas, bebidas, notasCozinha,
+              validades, veredictos, brigada, desperdicio, gostos, jejum, combos, massaFeita, prepFeito, cores, agenda, rituais, extras, aindaHa, basicos, visitas, ementas, anos, provas, bebidas, notasCozinha,
               prefCuisine:temChave(CUIS,d.prefCuisine)?d.prefCuisine:'todas',
               /* Cinco estruturas saíam na cópia e nunca voltavam da leitura, o
                  que quer dizer que «substituir» as apagava sem aviso:
@@ -36482,6 +36641,7 @@ function juntar(txt){
     [conta(d.notasCozinha),'as notas de cozinha'],
     [conta(d.agenda),'os blocos do calendário'],
     [conta(d.massaFeita),'as massas compradas feitas'],
+    [conta(d.prepFeito),'o prep de véspera já feito'],
     [conta(d.corredores)||conta(d.trilhos)||conta(d.talhoes),'a ordem do supermercado'],
     [casaDif,'o nome, o lema e o orçamento da casa'],
     [difMapa(d.cozPref,S.cozPref)&&difMapa(d.cozPref,limparCozPref(null)),'as preferências de cozinha'],
@@ -36913,7 +37073,7 @@ function eventosDaSemana(wk){
           cor:calCorDe('warn'), fonte:'plano', mk, di, rid:(cb? cb.id : meal.r)});
         /* o tempo que ela leva a fazer, encostado à hora da mesa: é sombreado
            e não bloco, porque metade dele é forno e não é preciso lá estar */
-        const minCoz=minutosConfecao(meal);
+        const minCoz=minutosConfecao(meal,wk);
         if(minCoz>0) confecao.push({d, h0:Math.max(0,h-minCoz/60), h1:h, min:minCoz,
           nome:nomeDaRefeicao(meal), mk, rid:(cb? cb.id : meal.r), feito});
       } else if(regs.length){
@@ -37732,8 +37892,12 @@ function receitaServida(meal){
   }
   return RECIPES.find(x=>x.id===meal.r) || null;
 }
-function minutosConfecao(meal){
+function minutosConfecao(meal,wk){
   const r=receitaServida(meal); if(!r) return 0;
+  /* O tempo à frente de uma refeição planeada é o da receita mais o que há a
+     cortar e a picar — menos o que já ficou feito no prep de véspera. */
+  const t=tempoReceita(r, Math.max(1,(meal.m||[]).length+nExtraMesa(meal)), wk||S.week);
+  if(t.total>0) return clampNum(Math.round(t.total),0,300);
   let min=minutosDe(r.id);
   /* um par que ainda não foi composto conta o prato e o que vai ao lado, que
      é o que se vai mesmo cozinhar */
