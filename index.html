@@ -34,6 +34,11 @@
   --bg:#F6F5F1; --card:#FFFFFF; --ink:#232930; --mut:#646C76; --line:#E4E1D8;
   --accent:#2456A6; --accent-soft:#E8EEF8; --energy:#AA541A; --energy-soft:#F8EDE2;
   --party:#BC4578; --party-soft:#FCF2F7;
+  /* O dia livre tinha a cor das festas — e a cor das festas é uma framboesa que,
+     ao lado do vermelho dos jejuns, se confunde com ele no gráfico do peso
+     (#BC4578 contra #AD392E; no escuro, #E38AA8 contra #E88C7D). Passa a ter
+     token próprio, roxo, que nenhuma outra coisa usa. */
+  --livre:#6B3FA0; --livre-soft:#EFE7FA;
   --ok:#297047; --warn:#7F5C0E; --bad:#AD392E;
   --mc:#8E6020; --mp:#2456A6; --mf:#7C5CB0;
   /* A tinta que assenta POR CIMA do acento. Em claro o acento é escuro e pede
@@ -75,6 +80,7 @@ html[data-modo="escuro"], :root[data-theme="dark"]{
   --bg:#14181D; --card:#1C2229; --ink:#E8EAED; --mut:#96A0AA; --line:#2A323B;
   --accent:#7BA7E8; --accent-soft:#22304A; --energy:#E09550; --energy-soft:#3A2C1D;
   --party:#E38AA8; --party-soft:#3D2430;
+  --livre:#B79BE8; --livre-soft:#2B2340;
   --ok:#5FBF8A; --warn:#D9B04A; --bad:#E88C7D;
   --mc:#DCA84F; --mp:#7BA7E8; --mf:#A98BD8;
   --on-accent:#10151B;
@@ -97,11 +103,14 @@ html[data-paleta="figo"]{
   --bg:#F6F3F6; --card:#FFFFFF; --ink:#28222C; --mut:#6D6672; --line:#E5DEE6;
   --accent:#6B4396; --accent-soft:#EDE6F6; --energy:#AA4F3C; --energy-soft:#F8E9E5;
   --party:#B23D74; --party-soft:#F8E6EE; --mp:#6B4396; --mf:#B23D74;
+  /* nesta paleta o acento já é roxo: o dia livre puxa para o índigo */
+  --livre:#3F3BA8; --livre-soft:#E7E7F8;
 }
 html[data-paleta="figo"][data-modo="escuro"]{
   --bg:#17141A; --card:#211C25; --ink:#EAE5EC; --mut:#9F97A6; --line:#332C38;
   --accent:#B392E0; --accent-soft:#2C2140; --energy:#E08A72; --energy-soft:#3A2823;
   --party:#DE86AF; --party-soft:#3C2432; --mp:#B392E0; --mf:#DE86AF;
+  --livre:#9FA6F0; --livre-soft:#222642;
 }
 /* --- Maré: azuis-esverdeados de água, neutros frios --- */
 html[data-paleta="mare"]{
@@ -130,11 +139,14 @@ html[data-paleta="tinta"]{
   --bg:#F4F4F4; --card:#FFFFFF; --ink:#1A1A1A; --mut:#666666; --line:#DEDEDE;
   --accent:#2B2B2B; --accent-soft:#E6E6E6; --energy:#5C5C5C; --energy-soft:#EDEDED;
   --party:#6F6F6F; --party-soft:#F6F6F6; --mc:#707070; --mp:#2B2B2B; --mf:#5C5C5C;
+  /* a paleta monocromática não abre exceção para o dia livre */
+  --livre:#4A4A4A; --livre-soft:#EFEFEF;
 }
 html[data-paleta="tinta"][data-modo="escuro"]{
   --bg:#121212; --card:#1C1C1C; --ink:#F0F0F0; --mut:#9A9A9A; --line:#2E2E2E;
   --accent:#E4E4E4; --accent-soft:#2E2E2E; --energy:#B0B0B0; --energy-soft:#282828;
   --party:#9A9A9A; --party-soft:#262626; --mc:#9A9A9A; --mp:#E4E4E4; --mf:#B0B0B0;
+  --livre:#C4C4C4; --livre-soft:#2A2A2A;
 }
 /* --- Contraste: para quem vê mal ou vê pouca cor. Todos os pares de texto
        chegam a 7:1 (AAA), o traço dos ícones engrossa e as séries dos
@@ -143,6 +155,7 @@ html[data-paleta="contraste"]{
   --bg:#FFFFFF; --card:#FFFFFF; --ink:#000000; --mut:#3A3A3A; --line:#6E6E6E;
   --accent:#0033A0; --accent-soft:#DCE4F7; --energy:#7A2E00; --energy-soft:#F6E6DC;
   --party:#6B004B; --party-soft:#F7DFEF;
+  --livre:#40007A; --livre-soft:#EDE3F7;
   --ok:#00552B; --warn:#5F4200; --bad:#960000;
   --mc:#5F4200; --mp:#0033A0; --mf:#6B004B;
   --on-accent:#FFFFFF; --shadow:0 0 0 1px #6E6E6E;
@@ -151,6 +164,7 @@ html[data-paleta="contraste"][data-modo="escuro"]{
   --bg:#000000; --card:#0E0E0E; --ink:#FFFFFF; --mut:#CFCFCF; --line:#7A7A7A;
   --accent:#9CC4FF; --accent-soft:#141F31; --energy:#FFB870; --energy-soft:#2B1E12;
   --party:#FFA5C8; --party-soft:#2E1520;
+  --livre:#D6B0FF; --livre-soft:#251A33;
   --ok:#71E8A4; --warn:#FFD75E; --bad:#FF9E8E;
   --mc:#FFD75E; --mp:#9CC4FF; --mf:#FFA5C8;
   --on-accent:#000000; --shadow:0 0 0 1px #7A7A7A;
@@ -1218,6 +1232,8 @@ input[type=text],input[type=number],input[type=date],input[type=search],select{
 .chip.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
 .chip.party{border-color:var(--party);color:var(--party)}
 .chip.party.on{background:var(--party-soft)}
+.chip.livre{border-color:var(--livre);color:var(--livre)}
+.chip.livre.on{background:var(--livre-soft)}
 .av{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;color:#fff;flex:none}
 .stat{display:flex;flex-direction:column;gap:2px;padding:10px 12px;background:var(--inset);border-radius:var(--r-sm);min-width:100px}
 .stat b{font-size:24px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
@@ -1469,7 +1485,7 @@ input[type=range].com-detentes::-moz-range-track{
 .peso-tip.tip-traj{white-space:pre-line;text-align:center;width:max-content;max-width:min(250px,84vw)}
 .f-ok{fill:var(--ok)} .f-warn{fill:var(--warn)} .f-bad{fill:var(--bad)}
 .f-mut{fill:var(--mut)} .f-line{fill:var(--line)} .f-ink{fill:var(--ink)}
-.f-acc{fill:var(--accent)} .f-energy{fill:var(--energy)} .f-party{fill:var(--party)}
+.f-acc{fill:var(--accent)} .f-energy{fill:var(--energy)} .f-party{fill:var(--party)} .f-livre{fill:var(--livre)}
 .s-ok{stroke:var(--ok)} .s-line{stroke:var(--line)} .s-ink{stroke:var(--ink)}
 .s-acc{stroke:var(--accent)} .s-energy{stroke:var(--energy)} .s-mut{stroke:var(--mut)}
 .s-warn{stroke:var(--warn)} .s-bad{stroke:var(--bad)}
@@ -1482,7 +1498,7 @@ input[type=range].com-detentes::-moz-range-track{
 .traj-tab td{padding:5px 6px;border-bottom:1px solid var(--line)}
 .traj-tab tr.traj-eu td{background:var(--accent-soft);font-weight:600}
 .dt-ok{background:var(--ok)} .dt-warn{background:var(--warn)}
-.dt-line{background:var(--line)} .dt-party{background:var(--party)}
+.dt-line{background:var(--line)} .dt-party{background:var(--party)} .dt-livre{background:var(--livre)}
 .day{scroll-margin-top:calc(var(--hh,58px) + 68px)}
 /* A linha inteira é o alvo do toque, e não apenas a caixinha de 13 px: com
    min-height fica nos 24 px que a WCAG 2.5.8 pede, e mais folgada ainda num
@@ -1905,7 +1921,7 @@ ul.fora{margin:4px 0 0 0;padding-left:18px;font-size:13px}
 ul.fora li{margin:2px 0}
 .kcal{color:var(--energy);font-weight:700;font-variant-numeric:tabular-nums}
 .day{border:1px solid var(--line);border-radius:var(--r);background:var(--card);box-shadow:var(--shadow);overflow:hidden}
-.day.cheat-any{border-color:var(--party)}
+.day.cheat-any{border-color:var(--livre)}
 .dhead{padding:10px 14px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;gap:10px;background:var(--bg)}
 .dhead b{font-size:16px}   /* a letra é a de título do tema (--fonte-display); um Georgia fixo aqui calava-a */
 .meal{padding:10px 14px;border-bottom:1px solid var(--line)}
@@ -19427,7 +19443,7 @@ function blocoFestas(){
           <p style="font-family:var(--fonte-display);font-size:17px;margin:0;flex:1;min-width:0;display:flex;align-items:center;gap:8px">
             <span class="viana-cor">${coracaoViana(28)}</span> Hoje é ${esc(f.n)}.</p>
           ${!gente.length? '' : jaTodos
-            ? '<span class="pill" style="background:var(--party-soft);color:var(--party)">dia livre ✓</span>'
+            ? '<span class="pill" style="background:var(--livre-soft);color:var(--livre)">dia livre ✓</span>'
             : `<button class="chip" onclick="diaLivreDaCasa()">🎉 Dia livre para a casa</button>`}
         </div>`;
       }
@@ -19439,7 +19455,7 @@ function blocoFestas(){
             <span class="viana-cor">${coracaoViana(26)}</span> Hoje ${esc(f.m.nome.split(' ')[0])} faz ${plural(f.anos,'ano','anos')}.</p>
           ${favs.length? `<span class="sub">o que mais comeu este ano: ${favs.map(x=>esc(x.r.n)).join(', ')}</span>`:''}
         </div>
-        ${isCheat(f.m.id,hojeISO())? '<span class="pill" style="background:var(--party-soft);color:var(--party)">dia livre ✓</span>'
+        ${isCheat(f.m.id,hojeISO())? '<span class="pill" style="background:var(--livre-soft);color:var(--livre)">dia livre ✓</span>'
           : `<button class="chip" onclick="toggleCheat('${f.m.id}','${hojeISO()}')">🎉 Marcar dia livre</button>`}
       </div>`;}).join('')}
     ${proximos.length? `<p class="sub" style="margin-top:6px">${proximos.slice(0,3).map(x=>
@@ -22786,7 +22802,11 @@ function modalPesoHtml(mo){
    O peso ao longo do tempo, com a atividade e as calorias por cima quando se
    quer perceber porquê. Sem inventar pontos: entre duas pesagens a linha liga
    o que foi medido, e onde não há medição não há linha. */
-const JANELAS={dias:[14,'14 dias'], semanas:[56,'8 semanas'], mes:[182,'6 meses'], ano:[730,'2 anos']};
+/* O mês entre as duas semanas e as oito: é a janela em que uma mudança de
+   hábitos já se vê e o ruído do dia a dia ainda não a afoga — e é a que se
+   pede quando alguém pergunta «como é que correu este mês?». Abaixo dos 120
+   dias, o gráfico ainda desenha as listras e os pontos de cada dia. */
+const JANELAS={dias:[14,'14 dias'], mes1:[30,'30 dias'], semanas:[56,'8 semanas'], mes:[182,'6 meses'], ano:[730,'2 anos']};
 function setJanelaPeso(k){ if(temChave(JANELAS,k)) S.ui.janelaPeso=k; saveMeta(); render(); }
 function toggleLinhaPeso(k){
   if(!S.ui.linhasPeso||typeof S.ui.linhasPeso!=='object') S.ui.linhasPeso={ativ:false,kcal:false};
@@ -22828,6 +22848,7 @@ const CORES_GRAFICO=[
   {k:'exercicio', n:'Exercício',  tok:'ok',   d:'Os círculos dos dias com treino feito.'},
   {k:'refeicao',  n:'Refeições',  tok:'warn', d:'Os quadrados dos dias com refeições registadas.'},
   {k:'jejum',     n:'Jejuns',     tok:'bad',  d:'As faixas dos jejuns registados e as listras do jejum intermitente.'},
+  {k:'cheat',     n:'Dias livres',tok:'livre',d:'As faixas dos dias livres no gráfico do peso e a tinta deles no Calendário.'},
 ];
 function coresCfg(){
   if(!S.cores || typeof S.cores!=='object') S.cores={};
@@ -23011,7 +23032,7 @@ function graficoPesoSvg(m){
     const lHit=Math.max(12,larg), xHit=clampNum(a+larg/2-lHit/2, X0, X1-lHit);
     const txt=c.dias===1? 'Dia livre\n'+fmtLongo(c.ini)
       : plural(c.dias,'dia livre','dias livres')+'\n'+fmtCurto(c.ini)+' a '+fmtLongo(c.fim);
-    return `<rect class="f-party" x="${a.toFixed(1)}" y="${Y0}" width="${larg.toFixed(1)}" height="${Y1-Y0}" opacity=".16"/>
+    return `<rect class="f-livre" x="${a.toFixed(1)}" y="${Y0}" width="${larg.toFixed(1)}" height="${Y1-Y0}" opacity=".16"${pinta("cheat")}/>
       <rect class="nota-hit" x="${xHit.toFixed(1)}" y="${Y0}" width="${lHit.toFixed(1)}" height="${Y1-Y0}"
         role="img" tabindex="0" aria-label="${esc(txt.replace('\n',', '))}" data-nota="${esc(txt)}"/>`;
   }).join('');
@@ -23074,7 +23095,7 @@ function cartaoPeso(){
         <button class="chip ${L.kcal?'on':''}" onclick="toggleLinhaPeso('kcal')" aria-pressed="${!!L.kcal}">🍽️ Calorias ingeridas</button>
       </div>
       ${(L.ativ||L.kcal)? `<p class="sub" style="margin-top:6px">As linhas sobrepostas têm escala própria: servem para ver a <i>forma</i> ao lado da do peso, não para comparar quilos com calorias.</p>`:''}
-      <p class="sub" style="margin-top:6px"><span class="f-ok-txt">●</span> treinos feitos · <span class="f-warn-txt">●</span> refeições registadas · faixa vermelha clara, as horas de jejum intermitente de cada dia · faixa vermelha forte, um jejum registado · faixa clara de um dia ou mais, os dias livres. Passa o cursor por cima de qualquer um para ver o resumo.</p>
+      <p class="sub" style="margin-top:6px"><span class="f-ok-txt">●</span> treinos feitos · <span class="f-warn-txt">●</span> refeições registadas · faixa vermelha clara, as horas de jejum intermitente de cada dia · faixa vermelha forte, um jejum registado · faixa roxa de um dia ou mais, os dias livres. Passa o cursor por cima de qualquer um para ver o resumo.</p>
       <div class="row" style="margin-top:12px">
         <div class="stat"><b>${nPT(pts[pts.length-1].p,1)} kg</b><span>Última · ${fmtShort(pts[pts.length-1].d)}</span></div>
         <div class="stat"><b>${pts.length}</b><span>Pesagens</span></div>
@@ -23328,7 +23349,7 @@ function trajSvg(m,fit,c){
     const lHit=Math.max(12,larg), xHit=clampNum(a+larg/2-lHit/2, X0, X1-lHit);
     const txt=c.dias===1? 'Dia livre\n'+fmtLongo(c.ini)
       : plural(c.dias,'dia livre','dias livres')+'\n'+fmtCurto(c.ini)+' a '+fmtLongo(c.fim);
-    return `<rect class="f-party" x="${f(a)}" y="${Y0}" width="${f(larg)}" height="${Y1-Y0}" opacity=".16"/>
+    return `<rect class="f-livre" x="${f(a)}" y="${Y0}" width="${f(larg)}" height="${Y1-Y0}" opacity=".16"${pinta("cheat")}/>
       <rect class="nota-hit" x="${f(xHit)}" y="${Y0}" width="${f(lHit)}" height="${Y1-Y0}"
         role="img" tabindex="0" aria-label="${esc(txt.replace('\n',', '))}" data-nota="${esc(txt)}"/>`;
   }).join('');
@@ -34355,7 +34376,7 @@ function cartaoSemana(dates){
       const yAlvo=yDe(alvo);
       const barras=dias.map((x,di)=>{
         const bx=30+di*44;
-        if(x.st==='cheat') return `<rect x="${bx}" y="20" width="30" height="28" rx="3" class="f-party" fill-opacity=".35"/><circle cx="${bx+15}" cy="15" r="2.5" class="f-party"/>`;
+        if(x.st==='cheat') return `<rect x="${bx}" y="20" width="30" height="28" rx="3" class="f-livre" fill-opacity=".35"${pinta("cheat")}/><circle cx="${bx+15}" cy="15" r="2.5" class="f-party"/>`;
         if(x.st==='vazio') return `<rect x="${bx}" y="46" width="30" height="2" class="f-line"/>`;
         const h=Math.max(2,sx(x.kcal,0,teto,0,40)), by=48-h;
         if(x.st==='incompleto') return `<rect x="${bx}" y="${by.toFixed(1)}" width="30" height="${h.toFixed(1)}" rx="3" class="f-line" opacity=".6"/>
@@ -34794,7 +34815,7 @@ function renderPlano(){
     const alertas=alertasDoDia(di,date);
     const ehHoje=date===iso(new Date());
     const pontos=S.members.map(m=>{ const e=estadoDia(m,di,dates);
-      const cls=e.st==='cheat'?'dt-party': e.st==='vazio'||e.st==='incompleto'?'dt-line':'dt-'+e.st;
+      const cls=e.st==='cheat'?'dt-livre': e.st==='vazio'||e.st==='incompleto'?'dt-line':'dt-'+e.st;
       const tt=e.st==='cheat'? esc(m.nome.split(' ')[0])+': cheat day'
         : esc(m.nome.split(' ')[0])+': '+e.kcal+' kcal ('+e.refs+'/4, alvo '+Math.round(targetKcal(m))+')';
       return `<i class="dot ${cls}" title="${tt}"></i>`; }).join('');
@@ -34802,10 +34823,10 @@ function renderPlano(){
       <div class="dhead"><b>${DAYN[di]}</b><span class="sub">${fmtShort(date)}</span>
         <span style="margin-left:auto;display:inline-flex;align-items:center">${pontos}</span>
         ${alertas.length? `<button class="pill bad dia-alerta" onclick="scrollSuave(document.getElementById('meal-${di}-${alertas[0]}'),'center')">🚨 ${alertas.length===1?'1 alerta':alertas.length+' alertas'}</button>`:''}
-        ${anyCheat?'<span class="pill" style="background:var(--party-soft);color:var(--party)">🎉</span>':''}</div>
+        ${anyCheat?'<span class="pill" style="background:var(--livre-soft);color:var(--livre)">🎉</span>':''}</div>
       <div class="meal" style="background:var(--bg)">
-        <div class="mtitle" style="color:var(--party)">Cheat day</div>
-        <div class="row">${S.members.map(m=>`<button class="chip party ${isCheat(m.id,date)?'on':''}"
+        <div class="mtitle" style="color:var(--livre)">Cheat day</div>
+        <div class="row">${S.members.map(m=>`<button class="chip livre ${isCheat(m.id,date)?'on':''}"
           onclick="toggleCheat('${m.id}','${date}')">${avatar(m,20)} ${esc(m.nome.split(' ')[0])}</button>`).join('')}</div>
         <div class="mtitle" style="color:var(--mut);margin-top:8px">Dia de recuperação</div>
         <div class="row">${S.members.map(m=>`<button class="chip ${isRecuperacao(m.id,date)?'on':''}"
@@ -36851,7 +36872,7 @@ function calIrSemana(n){
 }
 function calHoje(){ S.ui.calSemana=mondayISO(new Date()); saveMeta(); render(); }
 function calCorDe(tok){
-  const map={ok:'exercicio', warn:'refeicao', bad:'jejum', ink:'peso'};
+  const map={ok:'exercicio', warn:'refeicao', bad:'jejum', ink:'peso', livre:'cheat'};
   const escolhida=map[tok]? corGrafico(map[tok]) : '';
   return escolhida || corDeToken(tok);
 }
@@ -36964,7 +36985,7 @@ function eventosDaSemana(wk){
   const mdDe=d=>d.slice(5);
   dias.forEach((d,di)=>{
     S.members.forEach(m=>{
-      if(isCheat(m.id,d)) diaInteiro.push({id:'ch:'+d+':'+m.id, d, tipo:'cheat', titulo:'🎉 Cheat day', sub:nomeCurto(m), cor:calCorDe('party'), mid:m.id});
+      if(isCheat(m.id,d)) diaInteiro.push({id:'ch:'+d+':'+m.id, d, tipo:'cheat', titulo:'🎉 Cheat day', sub:nomeCurto(m), cor:calCorDe('livre'), mid:m.id});
       if(isRecuperacao(m.id,d)) diaInteiro.push({id:'rc:'+d+':'+m.id, d, tipo:'recuperacao', titulo:'🛌 Dia de recuperação', sub:nomeCurto(m)+' · sem treino, para o corpo reconstruir', cor:calCorDe('mut'), mid:m.id});
       if(nascValida(m.nasc) && mdDe(m.nasc)===mdDe(d)){
         const anos=anosDesde(m.nasc,d);
@@ -37042,7 +37063,7 @@ function renderCalendario(){
     const quemCheat=S.members.filter(m=>isCheat(m.id,d));
     const quemRec=S.members.filter(m=>isRecuperacao(m.id,d));
     const tintas=[];
-    if(quemCheat.length) tintas.push(`<div class="cal-tinta cheat" style="background:${calCorDe('party')}"
+    if(quemCheat.length) tintas.push(`<div class="cal-tinta cheat" style="background:${calCorDe('livre')}"
       title="Cheat day de ${esc(quemCheat.map(m=>m.nome.split(' ')[0]).join(', '))}"></div>`);
     if(quemRec.length) tintas.push(`<div class="cal-tinta recup" style="background:${calCorDe('mut')}"
       title="Dia de recuperação de ${esc(quemRec.map(m=>m.nome.split(' ')[0]).join(', '))} — sem treino, para o corpo reconstruir"></div>`);
@@ -37127,7 +37148,7 @@ function renderCalendario(){
       <span class="sub"><i class="dot" style="background:${calCorDe('ok')}"></i> treinos</span>
       <span class="sub"><i class="dot" style="background:${calCorDe('ink')}"></i> pesagens</span>
       <span class="sub"><i class="dot" style="background:${calCorDe('bad')}"></i> jejuns · sombreado mais claro, jejum intermitente</span>
-      <span class="sub"><i class="dot" style="background:${calCorDe('party')}"></i> cheat days</span>
+      <span class="sub"><i class="dot" style="background:${calCorDe('livre')}"></i> cheat days</span>
       <span class="sub"><i class="dot" style="background:${calCorDe('mut')}"></i> dias de recuperação</span>
       <span class="sub"><i class="dot" style="background:${calCorDe('accent')}"></i> compras e blocos da casa</span>
       </div>
@@ -37889,7 +37910,7 @@ function svgDaSemana(wk){
   const {ev,fundo,confecao,dias,diaInteiro}=eventosDaSemana(wk);
   const hoje=hojeISO();
   const cores={ok:corResolvida('ok'), warn:corResolvida('warn'), bad:corResolvida('bad'),
-    accent:corResolvida('accent'), energy:corResolvida('energy'), party:corResolvida('party'),
+    accent:corResolvida('accent'), energy:corResolvida('energy'), party:corResolvida('party'), livre:corResolvida('livre'),
     mut:corResolvida('mut'), ink:corResolvida('ink')};
   const tinta='#1d2229', linha='#d8dce1', fraco='#6c757d';
   const colW=(IMG_W-IMG_HORAS)/7;
@@ -37904,7 +37925,7 @@ function svgDaSemana(wk){
   /* cabeçalho dos dias, e a tinta do dia inteiro por baixo dele */
   dias.forEach((d,i)=>{
     const x=X(i), meu=d===hoje;
-    if(S.members.some(m=>isCheat(m.id,d))) p.push(`<rect x="${x}" y="${IMG_CAB}" width="${colW}" height="${alt-IMG_CAB-34}" fill="${cores.party}" opacity=".08"/>`);
+    if(S.members.some(m=>isCheat(m.id,d))) p.push(`<rect x="${x}" y="${IMG_CAB}" width="${colW}" height="${alt-IMG_CAB-34}" fill="${cores.livre}" opacity=".10"/>`);
     else if(S.members.some(m=>isRecuperacao(m.id,d))) p.push(`<rect x="${x}" y="${IMG_CAB}" width="${colW}" height="${alt-IMG_CAB-34}" fill="${cores.mut}" opacity=".16"/>`);
     if(meu) p.push(`<rect x="${x}" y="${IMG_CAB-30}" width="${colW}" height="${alt-IMG_CAB-4}" fill="${cores.accent}" opacity=".06"/>`);
     p.push(`<text x="${x+8}" y="${IMG_CAB-12}" font-size="13" font-weight="${meu?'700':'600'}" fill="${meu?cores.accent:tinta}">${esc(DAYN[i])} ${new Date(d+'T12:00:00').getDate()}</text>`);
@@ -37946,7 +37967,7 @@ function svgDaSemana(wk){
   });
   /* legenda, no rodapé, com as mesmas cores do ecrã */
   const leg=[['refeições',cores.warn],['cozinhar',cores.energy],['treinos',cores.ok],['jejuns',cores.bad],
-    ['pesagens',cores.ink],['cheat days',cores.party],['recuperação',cores.mut],['blocos da casa',cores.accent]];
+    ['pesagens',cores.ink],['cheat days',cores.livre],['recuperação',cores.mut],['blocos da casa',cores.accent]];
   let lx=16;
   leg.forEach(([t,c])=>{ p.push(`<circle cx="${lx+4}" cy="${alt-14}" r="4" fill="${c}"/>`);
     p.push(`<text x="${lx+13}" y="${alt-10}" font-size="10.5" fill="${fraco}">${esc(t)}</text>`);
