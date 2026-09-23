@@ -4800,6 +4800,22 @@ R('gelatocaramelo','Gelato de caramelo salgado','italiana',[],0,0,0,0,[['Leite g
 R('gelatococo','Gelato de coco','italiana',[],0,0,0,0,[['Leite de coco',50,'ml'],['Leite gordo, pasteurizado',35,'ml'],['Açúcar branco',16,'g'],['Coco ralado',6,'g'],['Leite magro, pó',2,'g']],['l'],0,['sob']),
 /* Pommes boulangère: batata em telhas, cebola e caldo, no forno. O nome vem de
    se cozerem no forno do padeiro, depois do pão, com o calor a descer. */
+/* ---- Peixe e moluscos: brasa, forno e papelote ----
+   A pijaminha é a fatia de bolo de bolacha com a mousse por cima: as duas
+   receitas da casa servidas na mesma colher, e por isso uma receita só.
+   Os dois «à lagareiro» trazem o azeite e o alho, e as batatas assadas vão
+   ao lado como par — assim quem quiser trocá-las por outra coisa troca. */
+R('pijaminha','Pijaminha, bolo de bolacha com mousse de chocolate','portuguesa',[],0,0,0,0,[['Bolacha Maria',20,'g'],['Café expresso',15,'ml'],['Manteiga',16,'g'],['Açúcar branco',16,'g'],['Gema de ovo de galinha, crua',5,'g'],['Chocolate de culinária',22,'g'],['Ovo',0.55,'un']],['l'],0,['sob']),
+R('pxpescadalagareiro','Lombos de pescada à lagareiro','portuguesa',['mediterranica'],0,0,0,0,[['Pescada',200,'g'],['Azeite',22,'ml'],['Alho',3,'dente'],['Coentros',4,'g'],['Limão',0.25,'un'],['Flor de sal',1.5,'g'],['Pimenta preta',0.2,'g']],['a','j'],0,['pp']),
+R('pxrobalolagareiro','Lombos de robalo à lagareiro','portuguesa',['mediterranica'],0,0,0,0,[['Robalo',200,'g'],['Azeite',22,'ml'],['Alho',3,'dente'],['Coentros',4,'g'],['Limão',0.25,'un'],['Flor de sal',1.5,'g'],['Pimenta preta',0.2,'g']],['a','j'],0,['pp']),
+R('salmaopapelote','Salmão no forno em papelote','francesa',['mediterranica'],0,0,0,0,[['Salmão',180,'g'],['Courgette',60,'g'],['Cenoura',40,'g'],['Alho-francês',30,'g'],['Limão',0.25,'un'],['Endro',2,'g'],['Azeite',8,'ml'],['Vinho branco',15,'ml'],['Flor de sal',1,'g'],['Pimenta preta',0.2,'g']],['a','j'],0,['pp']),
+R('chlulasbrasa','Lulas grelhadas na brasa','portuguesa',['mediterranica'],0,0,0,0,[['Lulas',250,'g'],['Azeite',14,'ml'],['Pimentão-doce',2,'g'],['Alho',2,'dente'],['Raspa de limão',1,'g'],['Flor de sal',1.5,'g'],['Pimenta preta',0.3,'g']],['a','j'],0,['pp']),
+R('chchocosbrasa','Chocos grelhados na brasa','portuguesa',['mediterranica'],0,0,0,0,[['Choco cru',280,'g'],['Azeite',14,'ml'],['Pimentão-doce',2,'g'],['Alho',2,'dente'],['Flor de sal',1.5,'g'],['Pimenta preta',0.3,'g']],['a','j'],0,['pp']),
+R('acmcoentroslimao','Molho de coentros e limão','portuguesa',['mediterranica'],0,0,0,0,[['Azeite',18,'ml'],['Cebola',25,'g'],['Coentros',6,'g'],['Limão',0.5,'un'],['Flor de sal',0.5,'g'],['Pimenta preta',0.2,'g']],['mo']),
+R('acmcebolapaprica','Molho de cebola e páprica fumada','portuguesa',['mediterranica'],0,0,0,0,[['Azeite',18,'ml'],['Cebola',30,'g'],['Alho',1,'dente'],['Vinagre de sidra',10,'ml'],['Páprica fumada',1.5,'g'],['Flor de sal',0.5,'g'],['Pimenta preta',0.2,'g']],['mo']),
+R('frangocogumelosbrandy','Peitos de frango com molho de cogumelos e aguardente','francesa',[],0,0,0,0,[['Peito de frango',180,'g'],['Azeite',10,'ml'],['Chalota',30,'g'],['Louro',0.2,'g'],['Alho',1,'dente'],['Aguardente',25,'ml'],['Molho inglês',5,'ml'],['Mostarda de Dijon',6,'g'],['Cogumelos',150,'g'],['Caldo de galinha',60,'ml'],['Nata para bater 35% gordura',35,'ml'],['Manteiga',8,'g'],['Salsa',3,'g'],['Flor de sal',1,'g'],['Pimenta preta',0.3,'g']],['a','j'],0,['pp']),
+R('aclcouveflorvapor','Couve-flor ao vapor','portuguesa',['mediterranica'],0,0,0,0,[['Couve-flor',200,'g'],['Azeite',6,'ml'],['Flor de sal',1,'g'],['Pimenta preta',0.1,'g']],['ac']),
+R('aclbrocolosvapor','Brócolos ao vapor','portuguesa',['mediterranica'],0,0,0,0,[['Brócolos',200,'g'],['Azeite',6,'ml'],['Flor de sal',1,'g'],['Pimenta preta',0.1,'g']],['ac']),
 R('acbboulangere','Batatas boulangère','francesa',[],0,0,0,0,[['Batata',200,'g'],['Cebola',50,'g'],['Caldo de galinha',70,'ml'],['Manteiga',8,'g'],['Tomilho fresco',1,'g'],['Alho',0.5,'dente'],['Flor de sal',1,'g'],['Pimenta preta',0.2,'g']],['ac']),
 /* ---- O pequeno-almoço de todos os dias ----
    A biblioteca tinha papas de aveia e tostas de centeio e não tinha nada do
@@ -8380,6 +8396,74 @@ P('gelatocaramelo',[['Caramelo seco','Açúcar sozinho num tacho largo, em lume 
 P('gelatococo',[['Coco torrado em infusão','Torra o coco ralado numa frigideira seca até dourar e deixa-o em infusão no leite quente dez minutos; depois coa, a espremer bem. O coco torrado dá o sabor; o leite de coco dá a gordura.',12],
  ['Base a 85 °C','Leite com o coco, leite de coco, leite em pó e açúcar a 85 °C, sem ferver.',8],
  GELATO_FRIO.slice(),GELATO_BATER.slice()]);
+/* ===== Setembro de 2026: peixe e moluscos na brasa, papelote e uma pijaminha =====
+   Os molhos das lulas e dos chocos ficam em receitas próprias: fazem-se à
+   parte, na tigela, enquanto a brasa trabalha, e assim trocam-se um pelo
+   outro. O do frango é o contrário — nasce na frigideira onde o frango
+   esteve, do que lá ficou agarrado, e sem isso não é o mesmo molho. */
+P('pijaminha',[['Creme de manteiga','Bate a manteiga amolecida com metade do açúcar até ficar claro e fofo, e junta a gema. É este creme que cola as camadas.',8],
+ ['Café para embeber','Faz o café e deixa amornar num prato fundo. Frio demais não embebe, a ferver desfaz a bolacha.'],
+ ['As camadas','Passa cada bolacha pelo café — um segundo de cada lado, não mais — e alterna camadas de bolacha e creme num tabuleiro pequeno, acabando em creme.'],
+ ['Frio, de um dia para o outro','Tapado, no frigorífico. A bolacha tem de se desfazer em bolo, e isso leva horas, não minutos.',480],
+ ['A mousse, no dia','Derrete o chocolate em banho-maria, sem uma gota de água lá dentro. Junta a gema fora do lume e envolve.',8],
+ ['Claras em castelo','Bate as claras em castelo firme com o resto do açúcar. Um terço para soltar a massa do chocolate, o resto com movimentos largos de baixo para cima — o ar que se perde aqui não volta.',6],
+ ['Montar a fatia','Corta o bolo em fatias e serve cada uma com a mousse por cima, ou em taça com o bolo no fundo e a mousse a cobrir. É esta a pijaminha: as duas camadas na mesma colher.'],
+ ['Ovo cru, quem não deve','A mousse não vai ao lume. Ovos muito frescos, ou pasteurizados. Na gravidez, nas crianças pequenas e em quem tenha as defesas em baixo, o ovo cru evita-se.']]);
+P('pxpescadalagareiro',[['Lombos secos e temperados','Seca bem os lombos com papel. Sal e pimenta dos dois lados e deixa-os tomar tempero enquanto o forno aquece a 200 °C.',10],
+ ['Alho em lascas no azeite','Lâminas finas de alho num tacho pequeno com o azeite, em lume brando, até começarem a corar. Tira do lume aí: o alho continua a cozinhar no azeite quente e queimado amarga tudo.',6],
+ ['Ao forno, regado','Lombos num tabuleiro, regados com o azeite e o alho. Vinte minutos a 200 °C, regando-os a meio com o azeite do tabuleiro — é a rega que faz o lagareiro, e não a quantidade de azeite.',20],
+ ['Ponto do peixe','Está pronto quando a carne se separa em lascas ao toque do garfo e deixou de estar translúcida no meio. Mais tempo seca-a.'],
+ ['À mesa','Coentros picados e um esguicho de limão fora do forno. As batatas assadas vão ao lado, para irem buscar o azeite do tabuleiro.']]);
+P('pxrobalolagareiro',[['Lombos secos e temperados','Seca bem os lombos com papel e tempera com sal e pimenta dos dois lados. Se tiverem pele, faz-lhe dois golpes rasos para não encolher no forno.',10],
+ ['Alho em lascas no azeite','Lâminas de alho no azeite em lume brando, até louro claro. Fora do lume antes de escurecerem.',6],
+ ['Ao forno, regado','Dezoito minutos a 200 °C, com uma rega a meio. O robalo é mais fino do que a pescada e passa do ponto mais depressa.',18],
+ ['Ponto do peixe','Lasca ao garfo e sem transparência no meio. Se a pele ficou por baixo, ela protege a carne e pode servir-se de qualquer lado.'],
+ ['À mesa','Coentros e limão fora do forno, e as batatas assadas ao lado.']]);
+P('salmaopapelote',[['Legumes em juliana','Corta a courgette, a cenoura e o alho-francês em tiras finas do mesmo tamanho. São elas que fazem a cama e cozem no mesmo tempo do peixe.',10],
+ ['Montar o embrulho','Folha grande de papel vegetal: legumes no meio, o salmão por cima, sal, pimenta, endro, rodelas de limão, o azeite e o vinho branco. Sem vinho — em casa com quem não bebe álcool, ou numa gravidez — vai um fio de caldo ou só o sumo do limão: o que o vinho faz aqui é dar vapor com cheiro, e isso o caldo também dá.'],
+ ['Fechar bem','Dobra o papel sobre si próprio e enrola as pontas com força. O papelote cozinha a vapor com o que está lá dentro — aberto, é só um peixe seco no forno.'],
+ ['Forno','Quinze minutos a 200 °C. O papel incha, e é esse o sinal de que o vapor está a trabalhar.',15],
+ ['Abrir à mesa','Leva o embrulho fechado ao prato e abre-o à frente de quem come: o cheiro que sai é metade da receita. Cuidado com o vapor.']]);
+P('chlulasbrasa',[['Amanhar as lulas','Puxa a cabeça para fora do manto e com ela sai o interior. Tira a pena transparente, os olhos e o bico, e puxa a pele arroxeada. Guarda os tentáculos inteiros e lava tudo em água fria.',15],
+ ['Golpes em xadrez','Abre o manto ao meio e, com a faca quase deitada, faz golpes rasos em xadrez do lado de dentro, sem cortar até ao fim. Assim a lula não enrola na grelha e a marinada entra.',8],
+ ['Marinada','Azeite, pimentão-doce, alho picado, raspa de limão, sal e pimenta. Envolve as lulas e deixa tomar gosto meia hora no frigorífico, tapadas.',30],
+ ['Brasa pronta','Brasa com cinza branca e sem chama, grelha bem quente e untada. Lula em brasa fraca cozinha em vez de tostar, e larga água.'],
+ ['Tentáculos primeiro','Os tentáculos demoram mais do que o manto: põe-nos a grelhar três a quatro minutos antes, e só depois as cabeças abertas, com os golpes virados para baixo.',4],
+ ['Pouco tempo, e está','Dois a três minutos de cada lado, até marcar. Passar do ponto é o único erro que não tem volta: a lula fica dura e não amolece mais.',6],
+ ['O molho por cima','Serve com o molho de coentros e limão, deitado por cima já no prato.']]);
+P('chchocosbrasa',[['Amanhar os chocos','Puxa a cabeça, tira o osso branco, a tinta e o interior. Tira a pele escura e o bico, e lava muito bem — o choco esconde areia nas dobras.',15],
+ ['Abrir e golpear','Abre o manto ao meio para ficar uma peça plana e, se for grosso, faz-lhe golpes rasos em xadrez do lado de dentro.',6],
+ ['Marinada','Azeite, pimentão-doce, alho picado, sal e pimenta. Meia hora no frigorífico, tapado.',30],
+ ['Brasa pronta','Cinza branca, sem chama, grelha quente e untada.'],
+ ['Tentáculos primeiro','Os tentáculos levam mais uns minutos do que o manto: entram primeiro, e o manto vai depois.',5],
+ ['Ponto','Três a quatro minutos de cada lado, conforme a grossura. Demasiado tempo e fica borracha — e daí não se volta atrás.',7],
+ ['O molho por cima','Serve com o molho de cebola e páprica fumada, por cima do choco já cortado em tiras.']]);
+P('acmcoentroslimao',[['Cebola bem picada','Pica a cebola o mais fino que conseguires. Crua e grossa, domina tudo o resto.',5],
+ ['Juntar a frio','Azeite, cebola, coentros picados, o sumo do limão, sal e pimenta. Bate com um garfo até ligar — não vai ao lume, é isso que lhe dá a frescura.',4],
+ ['Descansar','Dez minutos antes de servir chega para a cebola perder a aresta e o molho ganhar corpo.',10]]);
+P('acmcebolapaprica',[['Cebola e alho picados','Cebola e alho picados finos. Este molho é para cortar a gordura do choco, e por isso quer-se áspero, não cremoso.',5],
+ ['Emulsionar','Azeite, vinagre de sidra, páprica fumada, sal e pimenta, batidos com um garfo até ficar ligado. Junta a cebola e o alho no fim.',4],
+ ['Descansar','Um quarto de hora e a páprica já tingiu o azeite. Mexe outra vez antes de deitar por cima.',15]]);
+P('frangocogumelosbrandy',[['Peitos temperados','Sal e pimenta nos dois lados. Se forem muito grossos, abre-os ao meio na horizontal: um peito grosso seca por fora antes de estar feito por dentro.',5],
+ ['Lume brando, sem pressa','Azeite numa frigideira larga e o frango em lume brando, oito a dez minutos de cada lado. Em lume forte a superfície fecha e o interior seca — aqui quer-se o contrário.',18],
+ ['Tirar e deixar descansar','Retira os peitos para um prato e tapa-os sem apertar. Descansam enquanto o molho se faz, e o que largam vai para o molho no fim.'],
+ ['A base do molho','Na mesma frigideira, sem a lavar, mais um fio de azeite, a chalota picada, o louro e o alho. Dois minutos, mexendo, sem deixar queimar o alho.',3],
+ ['Deglaçar','Metade da aguardente para levantar o tostado do fundo, raspando com a colher de pau. É ali que está o sabor do frango todo.',2],
+ ['Molho inglês e mostarda','Junta o molho inglês e a mostarda de Dijon e envolve.'],
+ ['Flamejar, com respeito','Fora do exaustor e com a cara afastada, junta o resto da aguardente e acende. Deixa arder até a chama se apagar sozinha — é o álcool a ir-se embora, e é isso que se quer. Quem preferir não acender deixa ferver dois minutos: dá quase o mesmo.',2],
+ ['Cogumelos a suar','Cogumelos em fatias, lume médio, sem sal ainda. Largam água, e só depois de ela evaporar é que começam a tostar. Tempera aí com sal e pimenta.',8],
+ ['Caldo a reduzir','Caldo de galinha, e deixa reduzir a metade em lume médio. Sem esta redução o molho fica aguado.',6],
+ ['Natas a reduzir','Natas, e mais três a quatro minutos até o molho cobrir as costas da colher.',4],
+ ['Montar com manteiga','Fora do lume, a manteiga em cubos, a envolver até derreter. É o que dá brilho e liga o molho — com o lume aceso, talha.',2],
+ ['Servir','Salsa picada, o frango de volta à frigideira com o sumo que largou no prato, e uma volta para se aquecer no molho.']]);
+P('aclcouveflorvapor',[['Raminhos iguais','Separa a couve-flor em raminhos do mesmo tamanho, que é o que faz cozerem ao mesmo tempo.',5],
+ ['Vapor, não água','Cesto sobre água a ferver, tapado, oito a dez minutos. Cozida dentro de água perde o sabor para a água e fica encharcada.',10],
+ ['Ponto','Está quando a faca entra sem esforço mas o raminho ainda se aguenta inteiro. Passar disto é puré.'],
+ ['Temperar no fim','Azeite, flor de sal e pimenta fora do lume. Temperada antes, o vapor leva o tempero.']]);
+P('aclbrocolosvapor',[['Raminhos e talos','Separa em raminhos e não deites o talo fora: descascado e em rodelas, coze no mesmo tempo e sabe ao melhor dos brócolos.',5],
+ ['Vapor','Cesto sobre água a ferver, tapado, seis a oito minutos. O verde fica vivo — quando começa a acinzentar, já passou.',8],
+ ['Ponto','A faca entra no talo sem esforço e o raminho mantém-se firme.'],
+ ['Temperar no fim','Azeite, flor de sal e pimenta fora do lume.']]);
 P('acbboulangere',[['Batatas finas e iguais','Descasca e corta as batatas em rodelas de 3 mm, de preferência na mandolina. Iguais, cozem ao mesmo tempo. Não as laves depois de cortar: o amido que fica ajuda o caldo a engrossar.',10],
  ['Cebola a amolecer','Cebola em meias-luas finas, cinco minutos em metade da manteiga com o alho e o tomilho, sem ganhar cor.',6],
  ['Camadas','Num tabuleiro untado, camadas de batata sobrepostas como telhas e cebola entre elas, sal e pimenta a cada duas camadas. A última é só de batata, bem arrumada: é a que fica à vista.',10],
@@ -21066,6 +21150,7 @@ const VARIANTES=[
   {k:'iscas',n:'Iscas de cebolada',  ids:['c:iscascebolada+~acmceboladaiscas','c:iscascebolada+~acmceboladaketo']},
   {k:'sopatomate',n:'Sopa de tomate',    ids:['sopatomate','sopatomategratinada','sopatomategruyere','sopatomategrilled']},
   {k:'peixeaosal',n:'Peixe ao sal',   ids:['peixeaosal','peixesaldourada','peixesalbesugo']},
+  {k:'lagareiro', n:'À lagareiro',    ids:['polvo','pxpescadalagareiro','pxrobalolagareiro']},
   {k:'paoketo', n:'Pão sem farinha',   ids:['ketopaonuvem','ketopaoamendoa']},
   /* ---- O mesmo prato, molho diferente ----
      Estas são o caso mais puro de variante: a mesma peça de carne ou de peixe
@@ -26251,6 +26336,7 @@ const AC_CURTO={
   acllegsalt:'legumes salteados', acllegratin:'legumes gratinados',
   aclcouveflor:'couve-flor com molho branco', aclcenoura:'cenouras salteadas',
   aclcouveflorgrat:'couve-flor gratinada', aclcouveflorgratbacon:'couve-flor com bacon',
+  aclcouveflorvapor:'couve-flor ao vapor', aclbrocolosvapor:'brócolos ao vapor',
   aclbrocolosgrat:'brócolos gratinados', aclbrocolosgratmb:'brócolos com molho branco',
   aclbrocolosgratbacon:'brócolos com bacon',
   aclaipofritas:'palitos de aipo-rábano e rabanete',
@@ -26620,6 +26706,14 @@ const COMBOS_BASE=[
      (gigot aux pommes boulangère), e cozem no mesmo forno que o frango. */
   {base:'borregoervas', ac:['acbboulangere','aclfverde'], mo:''},
   {base:'frangoassado', ac:['acbboulangere','aclsalverde'], mo:''},
+  /* O lagareiro pede as batatas ao lado, e os moluscos da brasa pedem o molho
+     que se faz enquanto eles grelham. */
+  {base:'pxpescadalagareiro', ac:['acbforno'], mo:''},
+  {base:'pxrobalolagareiro', ac:['acbforno'], mo:''},
+  {base:'chlulasbrasa', ac:[], mo:'acmcoentroslimao'},
+  {base:'chchocosbrasa', ac:[], mo:'acmcebolapaprica'},
+  {base:'chlulasbrasa', ac:['aclbrocolosvapor'], mo:'acmcoentroslimao'},
+  {base:'frangocogumelosbrandy', ac:['aclcouveflorvapor'], mo:''},
 ];
 function nomeCombo(baseId,acs,mo,ma){
   const k=idCombo(baseId,acs,mo,ma);
