@@ -22887,16 +22887,20 @@ function graficoPesoSvg(m){
      marca feita à mão, como um jejum registado, e essas veem-se em qualquer
      janela — nem que seja com o pixel do mínimo. */
   const largDia=(X1-X0)/(dias-1||1);
-  const faixasCheat=(S.cheats[m.id]||[]).filter(d=>dataValida(d)&&d>=ini&&d<=h).sort().map(d=>{
-    const a=clampNum(X(d)-largDia/2, X0, X1);
-    /* Três píxeis de mínimo, e não um: um dia livre é sempre um dia só, e numa
+  const faixasCheat=corridasCheat(m.id).map(c=>{
+    const a0=c.ini<ini? ini : c.ini, b0=c.fim>h? h : c.fim;
+    if(a0>b0) return '';
+    const a=clampNum(X(a0)-largDia/2, X0, X1), b=clampNum(X(b0)+largDia/2, X0, X1);
+    /* Três píxeis de mínimo, e não um: um dia livre pode ser um dia só, e numa
        janela de seis meses isso são 1,6 px — um risco que não se lê como
-       sombra. O jejum pode durar dias e não precisa deste chão. */
-    const larg=Math.max(3, Math.min(largDia, X1-a));
+       sombra. Um período de três dias já se desenha pela largura que tem. */
+    const larg=Math.max(3, Math.min(b-a, X1-a));
     const lHit=Math.max(12,larg), xHit=clampNum(a+larg/2-lHit/2, X0, X1-lHit);
+    const txt=c.dias===1? 'Dia livre\n'+fmtLongo(c.ini)
+      : plural(c.dias,'dia livre','dias livres')+'\n'+fmtCurto(c.ini)+' a '+fmtLongo(c.fim);
     return `<rect class="f-party" x="${a.toFixed(1)}" y="${Y0}" width="${larg.toFixed(1)}" height="${Y1-Y0}" opacity=".16"/>
       <rect class="nota-hit" x="${xHit.toFixed(1)}" y="${Y0}" width="${lHit.toFixed(1)}" height="${Y1-Y0}"
-        role="img" tabindex="0" aria-label="Dia livre, ${esc(fmtLongo(d))}" data-nota="${esc('Dia livre\n'+fmtLongo(d))}"/>`;
+        role="img" tabindex="0" aria-label="${esc(txt.replace('\n',', '))}" data-nota="${esc(txt)}"/>`;
   }).join('');
   const svgAtiv=L.ativ? desenhaSerie(serie(d=>regAtivDe(m.id).filter(r=>r.d===d&&r.estado==='feita').reduce((t,r)=>t+kcalRegAtiv(r),0)),'s-energy') : '';
   const svgKcal=L.kcal? desenhaSerie(serie(d=>ingeridoRealDia(m.id,d).k),'s-acc') : '';
@@ -22957,7 +22961,7 @@ function cartaoPeso(){
         <button class="chip ${L.kcal?'on':''}" onclick="toggleLinhaPeso('kcal')" aria-pressed="${!!L.kcal}">🍽️ Calorias ingeridas</button>
       </div>
       ${(L.ativ||L.kcal)? `<p class="sub" style="margin-top:6px">As linhas sobrepostas têm escala própria: servem para ver a <i>forma</i> ao lado da do peso, não para comparar quilos com calorias.</p>`:''}
-      <p class="sub" style="margin-top:6px"><span class="f-ok-txt">●</span> treinos feitos · <span class="f-warn-txt">●</span> refeições registadas · faixa vermelha clara, as horas de jejum intermitente de cada dia · faixa vermelha forte, um jejum registado · faixa de um dia inteiro, um dia livre. Passa o cursor por cima de qualquer um para ver o resumo.</p>
+      <p class="sub" style="margin-top:6px"><span class="f-ok-txt">●</span> treinos feitos · <span class="f-warn-txt">●</span> refeições registadas · faixa vermelha clara, as horas de jejum intermitente de cada dia · faixa vermelha forte, um jejum registado · faixa clara de um dia ou mais, os dias livres. Passa o cursor por cima de qualquer um para ver o resumo.</p>
       <div class="row" style="margin-top:12px">
         <div class="stat"><b>${nPT(pts[pts.length-1].p,1)} kg</b><span>Última · ${fmtShort(pts[pts.length-1].d)}</span></div>
         <div class="stat"><b>${pts.length}</b><span>Pesagens</span></div>
@@ -22991,16 +22995,18 @@ function cartaoPeso(){
         /* E os dias livres, pela mesma razão: a lista é a legenda da faixa.
            Marcam-se aqui, nas Refeições ou no Calendário — é sempre a mesma
            marca, e desaparece dos três sítios quando se apaga num deles. */
-        const cs=(S.cheats[m.id]||[]).filter(dataValida).slice().sort().reverse();
-        if(!cs.length) return '';
-        const naJan=cs.filter(d=>d>=ini && d<=hojeISO()).length;
-        return `<details class="quant" style="margin-top:8px"><summary>Dias livres registados (${cs.length}${naJan?', '+naJan+' nesta janela':''})</summary>
-          <p class="sub" style="margin-top:6px">A subida do dia seguinte a um dia livre é quase toda água e glicogénio, e desfaz-se em dois ou três dias.
-            Está aqui para a linha se ler — não para pedir contas a ninguém.</p>
-          <div style="margin-top:6px">${cs.map(d=>`<div class="reg-linha">
-            <div class="rl-corpo"><b>🎉 ${esc(fmtLongo(d))}</b>${d>hojeISO()? ' <span class="sub">· ainda por vir</span>':''}</div>
-            <div class="reg-acoes"><button class="btn danger small" aria-label="Apagar o dia livre de ${esc(fmtShort(d))}"
-              onclick="toggleCheat('${m.id}','${d}')">✕</button></div></div>`).join('')}</div>
+        const cor=corridasCheat(m.id);
+        if(!cor.length) return '';
+        const totalDias=cor.reduce((t,c)=>t+c.dias,0);
+        const naJan=cor.reduce((t,c)=>{ const a=c.ini<ini? ini : c.ini, b=c.fim>hojeISO()? hojeISO() : c.fim;
+          return t + (a<=b? diasEntre(a,b)+1 : 0); },0);
+        return `<details class="quant" style="margin-top:8px"><summary>Dias livres registados (${plural(totalDias,'dia','dias')}${naJan?', '+naJan+' nesta janela':''})</summary>
+          <p class="sub" style="margin-top:6px">A subida a seguir a um dia livre é quase toda água e glicogénio, e desfaz-se em dois ou três dias.
+            Está aqui para a linha se ler — não para pedir contas a ninguém. Dias seguidos contam-se como um período só.</p>
+          <div style="margin-top:6px">${cor.slice().reverse().map(c=>`<div class="reg-linha">
+            <div class="rl-corpo"><b>🎉 ${esc(textoCorridaCheat(c))}</b>${c.ini>hojeISO()? ' <span class="sub">· ainda por vir</span>':''}</div>
+            <div class="reg-acoes"><button class="btn danger small" aria-label="Apagar ${c.dias===1? 'o dia livre de '+esc(fmtShort(c.ini)) : 'os '+c.dias+' dias livres de '+esc(fmtShort(c.ini))+' a '+esc(fmtShort(c.fim))}"
+              onclick="apagarCorridaCheat('${m.id}','${c.ini}','${c.fim}')">✕</button></div></div>`).join('')}</div>
         </details>`;
       })()}
     ${pts.length? blocoTrajetoria(m):''}
@@ -23198,9 +23204,12 @@ function trajSvg(m,fit,c){
   /* e os dias livres, pela mesma razão: a reta assenta nestas pesagens, e uma
      subida no dia a seguir a um deles não vale como tendência. */
   const largDiaT=X(1)-X(0);
-  const bandasC=(S.cheats[m.id]||[]).filter(d=>dataValida(d) && d>=addDias(h,-base) && d<=h).sort().map(d=>{
-    const a=clampNum(X(diasEntre(h,d))-largDiaT/2, X0, X1);
-    const larg=Math.max(3, Math.min(largDiaT, X1-a));
+  const iniT=addDias(h,-base);
+  const bandasC=corridasCheat(m.id).map(c=>{
+    const a0=c.ini<iniT? iniT : c.ini, b0=c.fim>h? h : c.fim;
+    if(a0>b0) return '';
+    const a=clampNum(X(diasEntre(h,a0))-largDiaT/2, X0, X1), b=clampNum(X(diasEntre(h,b0))+largDiaT/2, X0, X1);
+    const larg=Math.max(3, Math.min(b-a, X1-a));
     return `<rect class="f-party" x="${f(a)}" y="${Y0}" width="${f(larg)}" height="${Y1-Y0}" opacity=".16"/>`;
   }).join('');
   const bandasJ=jejunsNaJanela(m.id, addDias(h,-base), h).map(j=>{
@@ -32739,48 +32748,138 @@ function toggleCheat(mid,date){ if(!S.cheats[mid]) S.cheats[mid]=[];
    no sábado?». Não é uma segunda marca: é a mesma, e apaga-se de qualquer um
    dos três sítios. Aqui só se olha para trás, porque é disso que o gráfico
    trata; planear um dia livre continua a ser nas Refeições. */
+/* A duração conta-se em DIAS, e não em horas como a do jejum. Não é falta de
+   simetria: um dia livre é um dia inteiro em todo o resto da app — é o dia que
+   muda o alvo de calorias, que liga o chip nas Refeições e que tinge a coluna
+   no Calendário. Por isso «dois dias» não é um dado novo a inventar: são dois
+   dias marcados, e tudo o que já sabia ler um dia livre lê estes sem saber que
+   houve uma duração pelo meio. Acima de uma semana já não é um dia livre, é
+   outra coisa — e para isso a app tem as pausas. */
+const CHEAT_MAX_D=7;
 function abrirCheat(mid,d){
   const m=S.members.find(x=>x.id===mid); if(!m) return;
-  abrirModal('cheat',{mid, d:(d && dataValida(d) && d<=hojeISO())? d : hojeISO()});
+  abrirModal('cheat',{mid, d:(d && dataValida(d) && d<=hojeISO())? d : hojeISO(), dias:1});
 }
-function setCheatData(v){
+/* Quantos dias cabem a partir do dia escolhido: isto regista o que já
+   aconteceu, e por isso não passa de hoje. */
+function cheatMaxDias(d){ return clampNum(diasEntre(d,hojeISO())+1, 1, CHEAT_MAX_D); }
+function diasDoCheat(mo){
+  const n=clampNum(Math.round(parseFloat(mo.dias)||1), 1, cheatMaxDias(mo.d));
+  const out=[]; for(let i=0;i<n;i++) out.push(addDias(mo.d,i));
+  return out;
+}
+function setCheat(campo,v){
   const mo=modalAberto(); if(!mo||mo.tipo!=='cheat') return;
-  if(!dataValida(v)) return;
-  mo.d = v>hojeISO()? hojeISO() : v;
+  if(campo==='d'){
+    if(!dataValida(v)) return;
+    mo.d = v>hojeISO()? hojeISO() : v;
+    mo.dias = clampNum(Math.round(parseFloat(mo.dias)||1), 1, cheatMaxDias(mo.d));
+  } else if(campo==='dias'){
+    mo.dias = clampNum(Math.round(parseFloat(v)||1), 1, cheatMaxDias(mo.d));
+  } else if(campo==='fimD'){
+    /* mexer no fim muda a duração e deixa o início onde está — como no jejum */
+    if(!dataValida(v)) return;
+    const fim = v>hojeISO()? hojeISO() : v;
+    if(fim<mo.d) return;
+    mo.dias = clampNum(diasEntre(mo.d,fim)+1, 1, cheatMaxDias(mo.d));
+  } else return;
   saveMeta(); render();
+}
+/* O cursor mexe ao vivo sem redesenhar a app inteira: só o número e o fim. */
+function slideCheat(el){
+  const mo=modalAberto(); if(!mo||mo.tipo!=='cheat') return;
+  const n=clampNum(Math.round(parseFloat(el.value)||1), 1, cheatMaxDias(mo.d));
+  põe('cheat-out', plural(n,'dia','dias'));
+  const f=document.getElementById('cheat-fim'); if(f) f.value=addDias(mo.d,n-1);
 }
 function guardarCheat(){
   const mo=modalAberto(); if(!mo||mo.tipo!=='cheat') return;
   const m=S.members.find(x=>x.id===mo.mid); if(!m) return fecharModal();
-  const d=mo.d;
-  if(isCheat(mo.mid,d)) return flash('warn','Esse dia já está marcado como dia livre.');
+  const dias=diasDoCheat(mo);
   /* Um dia sem comer e um dia a comer o que apetece são a mesma data a dizer
      duas coisas opostas. O plano já recusa jejuar num dia livre; aqui recusa-se
-     o contrário, pela mesma razão. */
-  if(emJejumPontual(mo.mid,d)) return flash('warn',nomeCurto(m)+' tem um jejum registado '+rotuloData(d)+'. Apaga o jejum primeiro, na lista por baixo do gráfico.');
+     o contrário, pela mesma razão — mas só nesse dia, e não na marcação
+     inteira: num fim de semana com um jejum à mistura, marca-se o que se pode
+     e diz-se o que ficou de fora. */
+  const comJejum=dias.filter(d=>emJejumPontual(mo.mid,d));
+  const novos=dias.filter(d=>!isCheat(mo.mid,d) && !emJejumPontual(mo.mid,d));
+  if(!novos.length){
+    return flash('warn', comJejum.length===dias.length
+      ? nomeCurto(m)+' tem jejum registado '+(dias.length===1? rotuloData(dias[0]) : 'nesses dias')+'. Apaga o jejum primeiro, na lista por baixo do gráfico.'
+      : (dias.length===1? 'Esse dia já está marcado como dia livre.' : 'Esses dias já estão marcados como livres.'));
+  }
+  if(!S.cheats[mo.mid]) S.cheats[mo.mid]=[];
+  novos.forEach(d=>S.cheats[mo.mid].push(d));
   S.ui.modal=null;
-  toggleCheat(mo.mid,d);
-  flash('ok',nomeCurto(m)+' teve dia livre '+rotuloData(d)+' — fica no plano, no Calendário e na linha do peso.',
+  save('dias livres'); render();
+  /* «de 19 a 21» só quando são mesmo seguidos: com um jejum pelo meio, os dias
+     marcados têm um buraco, e dizer «de» seria dizer que o buraco também foi. */
+  const seguidos = novos.length===diasEntre(novos[0],novos[novos.length-1])+1;
+  const periodo = novos.length===1? rotuloData(novos[0])
+    : (seguidos? 'de ' : 'entre ')+fmtCurto(novos[0])+' a '+fmtCurto(novos[novos.length-1]);
+  flash('ok', nomeCurto(m)+': '+plural(novos.length,'dia livre','dias livres')+' '+periodo
+    +(comJejum.length? ' — '+plural(comJejum.length,'dia ficou','dias ficaram')+' de fora, por ter jejum registado.'
+                     : ' — fica no plano, no Calendário e na linha do peso.'),
     {rot:'Anular',fn:'desfazer()'});
+}
+/* Dias livres seguidos são um registo só aos olhos de quem lê: o fim de semana
+   que se esticou, as festas de dezembro. A lista e o sombreado agrupam-nos; o
+   dado por baixo continua a ser um dia de cada vez, que é o que o plano e o
+   Calendário sabem ler. */
+function corridasCheat(mid){
+  const out=[];
+  (S.cheats[mid]||[]).filter(dataValida).slice().sort().forEach(d=>{
+    const ult=out[out.length-1];
+    if(ult && diasEntre(ult.fim,d)===1){ ult.fim=d; ult.dias++; }
+    else out.push({ini:d, fim:d, dias:1});
+  });
+  return out;
+}
+function textoCorridaCheat(c){
+  return c.dias===1? fmtLongo(c.ini) : fmtCurto(c.ini)+' a '+fmtLongo(c.fim)+' · '+plural(c.dias,'dia','dias');
+}
+function apagarCorridaCheat(mid,ini,fim){
+  S.cheats[mid]=(S.cheats[mid]||[]).filter(d=>d<ini || d>fim);
+  save('dias livres apagados'); render();
 }
 function modalCheatHtml(mo){
   const m=S.members.find(x=>x.id===mo.mid); if(!m) return '';
-  const ja=isCheat(mo.mid,mo.d), jj=!ja && emJejumPontual(mo.mid,mo.d);
-  return `<div class="mfundo" onclick="fundoModal(event)"><div class="mcaixa" role="dialog" aria-modal="true" aria-labelledby="cheat-t">
+  const maxD=cheatMaxDias(mo.d), dias=diasDoCheat(mo), n=dias.length, fim=dias[n-1];
+  const comJejum=dias.filter(d=>emJejumPontual(mo.mid,d));
+  const jaLa=dias.filter(d=>isCheat(mo.mid,d) && comJejum.indexOf(d)<0);
+  const novos=dias.filter(d=>!isCheat(mo.mid,d) && !emJejumPontual(mo.mid,d));
+  const atalhos=[1,2,3,7].filter(x=>x<=maxD);
+  return `<div class="mfundo" onclick="fundoModal(event)"><div class="mcaixa" role="dialog" aria-modal="true" aria-labelledby="cheat-t" style="max-width:560px">
     <span class="lbl">${esc(nomeCurto(m))}</span>
-    <h2 id="cheat-t" style="margin-top:2px">🎉 Registar um dia livre</h2>
-    <p class="sub" style="margin-top:4px">Um dia em que se comeu o que apeteceu, marcado para a linha do peso se poder ler:
-      o que a balança mostra no dia seguinte é quase tudo água e glicogénio, e desfaz-se em dois ou três dias.
+    <h2 id="cheat-t" style="margin-top:2px">🎉 Registar dias livres</h2>
+    <p class="sub" style="margin-top:4px">Dias em que se comeu o que apeteceu, marcados para a linha do peso se poder ler:
+      o que a balança mostra a seguir é quase tudo água e glicogénio, e desfaz-se em dois ou três dias.
       É a mesma marca que aparece nas Refeições e no Calendário.</p>
-    <label class="lbl" for="cheat-d" style="margin-top:12px">Dia</label>
-    <input type="date" id="cheat-d" value="${esc(mo.d)}" max="${hojeISO()}" onchange="setCheatData(this.value)">
-    <p class="sub" style="margin-top:6px">${esc(rotuloData(mo.d))}</p>
-    ${ja? `<div class="aviso warn" style="margin-top:8px">Este dia já está marcado como dia livre. Para o desmarcar, usa o ✕ na lista por baixo do gráfico.</div>`
-      : jj? `<div class="aviso warn" style="margin-top:8px">${esc(nomeCurto(m))} tem um jejum registado neste dia, e as duas coisas não cabem na mesma data. Apaga primeiro o jejum, na lista por baixo do gráfico.</div>`
-      : ''}
+
+    <div class="splabel" style="margin-top:12px"><span>Duração</span><output id="cheat-out">${plural(n,'dia','dias')}</output></div>
+    <input type="range" id="cheat-sl" min="1" max="${Math.max(2,maxD)}" step="1" value="${n}"${maxD<2?' disabled':''}
+      aria-label="Duração em dias" oninput="slideCheat(this)" onchange="setCheat('dias',this.value)">
+    <div class="row" style="margin-top:4px">${atalhos.map(x=>
+      `<button class="chip ${n===x?'on':''}" onclick="setCheat('dias',${x})">${x===1? '1 dia' : x+' dias'}</button>`).join('')}</div>
+
+    <div class="frow" style="margin-top:12px">
+      <div><label class="lbl" for="cheat-d">Começa a</label>
+        <input type="date" id="cheat-d" value="${esc(mo.d)}" max="${hojeISO()}" onchange="setCheat('d',this.value)"></div>
+      <div><label class="lbl" for="cheat-fim">Acaba a</label>
+        <input type="date" id="cheat-fim" value="${esc(fim)}" min="${esc(mo.d)}" max="${hojeISO()}" onchange="setCheat('fimD',this.value)"></div>
+    </div>
+    <p class="sub" style="margin-top:6px">${n===1? esc(rotuloData(mo.d))
+      : esc(fmtLongo(mo.d))+' a '+esc(fmtLongo(fim))+' — '+plural(n,'dia','dias')}.</p>
+    ${maxD===1? `<p class="sub">Não há mais dias para marcar a partir daqui: isto regista o que já aconteceu, e por isso não passa de hoje.</p>`:''}
+    ${n===CHEAT_MAX_D? `<p class="sub">Uma semana é o máximo. Mais do que isso não é um dia livre — é uma pausa, e essa marca-se nos Objetivos.</p>`:''}
+    ${comJejum.length? `<div class="aviso warn" style="margin-top:8px">${comJejum.length===1
+        ? esc(fmtCurto(comJejum[0]))+' tem um jejum registado e fica de fora'
+        : plural(comJejum.length,'dia tem','dias têm')+' jejum registado e '+(comJejum.length===1?'fica':'ficam')+' de fora'} — as duas coisas não cabem na mesma data.</div>`:''}
+    ${jaLa.length? `<div class="aviso warn" style="margin-top:8px">${plural(jaLa.length,'dia já estava','dias já estavam')} marcado${jaLa.length===1?'':'s'} como livre${jaLa.length===1?'':'s'}. Fica${jaLa.length===1?'':'m'} como está${jaLa.length===1?'':'ão'}.</div>`:''}
     <div class="row" style="margin-top:12px;justify-content:flex-end;gap:6px">
       <button class="btn ghost small" onclick="fecharModal()">Cancelar</button>
-      <button class="btn small"${(ja||jj)?' disabled':''} onclick="guardarCheat()">Marcar dia livre</button>
+      <button class="btn small"${novos.length?'':' disabled'} onclick="guardarCheat()">${novos.length
+        ? 'Marcar '+plural(novos.length,'dia livre','dias livres') : 'Marcar dia livre'}</button>
     </div></div></div>`;
 }
 /* ---- Um dia de jejum completo, marcado no próprio dia do plano ----
