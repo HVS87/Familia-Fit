@@ -22389,7 +22389,7 @@ let jaPerguntouPeso=false, jaPerguntouCompras=false;
    S.ui.modal preenchido sem nada no ecrã: uma camada invisível que engolia o
    Escape, travava o go() e não tinha botão de fechar — só se saía recarregando.
    Recusar em voz alta é melhor do que abrir o nada. */
-const MODAIS=['peso','aviso','compras','ingrediente','acabou','favoritos','cal','recuperacao','exportarCal'];
+const MODAIS=['peso','aviso','compras','ingrediente','acabou','favoritos','cal','recuperacao','exportarCal','cheat'];
 function abrirModal(tipo,dados){
   if(MODAIS.indexOf(tipo)<0){ console.warn('Família Fit — modal desconhecido: '+tipo); return; }
   S.ui.modal=Object.assign({tipo},dados||{}); saveMeta(); render();
@@ -22878,6 +22878,26 @@ function graficoPesoSvg(m){
         role="img" tabindex="0" aria-label="Jejum de ${esc(textoDuracaoJejum(j.horas))}, ${esc(periodoJejumTexto(j))}"
         data-jj="${esc(resumo)}"/>`;
   }).join('');
+  /* ---- Os dias livres, pela mesma razão dos jejuns ----
+     Uma subida no dia a seguir a um cheat day é quase toda água, glicogénio e
+     conteúdo intestinal, e desfaz-se em dois ou três dias. O gráfico mostrava
+     os jejuns e calava os dias livres — e assim a linha parecia um desmentido
+     ao plano quando era só um sábado. Fica aqui, e não nas listras diárias,
+     porque as listras desligam-se acima de quatro meses: um dia livre é uma
+     marca feita à mão, como um jejum registado, e essas veem-se em qualquer
+     janela — nem que seja com o pixel do mínimo. */
+  const largDia=(X1-X0)/(dias-1||1);
+  const faixasCheat=(S.cheats[m.id]||[]).filter(d=>dataValida(d)&&d>=ini&&d<=h).sort().map(d=>{
+    const a=clampNum(X(d)-largDia/2, X0, X1);
+    /* Três píxeis de mínimo, e não um: um dia livre é sempre um dia só, e numa
+       janela de seis meses isso são 1,6 px — um risco que não se lê como
+       sombra. O jejum pode durar dias e não precisa deste chão. */
+    const larg=Math.max(3, Math.min(largDia, X1-a));
+    const lHit=Math.max(12,larg), xHit=clampNum(a+larg/2-lHit/2, X0, X1-lHit);
+    return `<rect class="f-party" x="${a.toFixed(1)}" y="${Y0}" width="${larg.toFixed(1)}" height="${Y1-Y0}" opacity=".16"/>
+      <rect class="nota-hit" x="${xHit.toFixed(1)}" y="${Y0}" width="${lHit.toFixed(1)}" height="${Y1-Y0}"
+        role="img" tabindex="0" aria-label="Dia livre, ${esc(fmtLongo(d))}" data-nota="${esc('Dia livre\n'+fmtLongo(d))}"/>`;
+  }).join('');
   const svgAtiv=L.ativ? desenhaSerie(serie(d=>regAtivDe(m.id).filter(r=>r.d===d&&r.estado==='feita').reduce((t,r)=>t+kcalRegAtiv(r),0)),'s-energy') : '';
   const svgKcal=L.kcal? desenhaSerie(serie(d=>ingeridoRealDia(m.id,d).k),'s-acc') : '';
   const grelha=[0,0.5,1].map(t=>{ const p=pmin+(pmax-pmin)*t;
@@ -22888,7 +22908,7 @@ function graficoPesoSvg(m){
   const cam=camadasRegistos(m.id, dias, ini, d=>X(d)-((X1-X0)/(dias-1||1))/2, (X1-X0)/(dias-1||1), Y0, Y1);
   return {pts:pts.length, svg:`<svg class="svgfx" viewBox="0 0 ${W} ${H}" role="img"
       aria-label="Evolução do peso de ${esc(m.nome)} em ${JANELAS[jan][1]}">
-    ${cam.listras}${bandasJejum}${grelha}${svgAtiv}${svgKcal}
+    ${cam.listras}${faixasCheat}${bandasJejum}${grelha}${svgAtiv}${svgKcal}
     ${cam.pontos}
     ${pts.length>1? `<polyline points="${linha}" fill="none" class="s-ink" stroke-width="2"${pinta("peso","stroke")}/>`:''}
     ${/* O ponto visível fica pequeno de propósito — é a leitura da curva que
@@ -22921,6 +22941,7 @@ function cartaoPeso(){
       <div class="row" style="gap:6px">
       <button class="btn small" onclick="abrirPesagens('${m.id}')">+ Registar pesagem</button>
         ${jejumDesaconselhado(m)? '' : `<button class="btn ghost small" onclick="abrirNovoJejum('${m.id}')">⏳ Registar jejum</button>`}
+        <button class="btn ghost small" onclick="abrirCheat('${m.id}')">🎉 Registar cheat day</button>
       </div></div>
     <div class="row" style="margin-top:10px">${S.members.map(x=>`<button class="chip ${x.id===m.id?'on':''}"
       onclick="pickM('${x.id}')">${avatar(x,20)} ${esc(x.nome.split(' ')[0])}</button>`).join('')}</div>
@@ -22936,7 +22957,7 @@ function cartaoPeso(){
         <button class="chip ${L.kcal?'on':''}" onclick="toggleLinhaPeso('kcal')" aria-pressed="${!!L.kcal}">🍽️ Calorias ingeridas</button>
       </div>
       ${(L.ativ||L.kcal)? `<p class="sub" style="margin-top:6px">As linhas sobrepostas têm escala própria: servem para ver a <i>forma</i> ao lado da do peso, não para comparar quilos com calorias.</p>`:''}
-      <p class="sub" style="margin-top:6px"><span class="f-ok-txt">●</span> treinos feitos · <span class="f-warn-txt">●</span> refeições registadas · faixa vermelha clara, as horas de jejum intermitente de cada dia · faixa vermelha forte, um jejum registado. Passa o cursor por cima de qualquer um para ver o resumo.</p>
+      <p class="sub" style="margin-top:6px"><span class="f-ok-txt">●</span> treinos feitos · <span class="f-warn-txt">●</span> refeições registadas · faixa vermelha clara, as horas de jejum intermitente de cada dia · faixa vermelha forte, um jejum registado · faixa de um dia inteiro, um dia livre. Passa o cursor por cima de qualquer um para ver o resumo.</p>
       <div class="row" style="margin-top:12px">
         <div class="stat"><b>${nPT(pts[pts.length-1].p,1)} kg</b><span>Última · ${fmtShort(pts[pts.length-1].d)}</span></div>
         <div class="stat"><b>${pts.length}</b><span>Pesagens</span></div>
@@ -22964,6 +22985,22 @@ function cartaoPeso(){
             <div class="rl-corpo"><b>${textoDuracaoJejum(j.horas)}</b> <span class="sub">· ${periodoJejumTexto(j)}${j.agua?'':' · seco'}</span></div>
             <div class="reg-acoes"><button class="btn danger small" aria-label="Apagar o jejum ${esc(periodoJejumTexto(j,true))}"
               onclick="apagarJejumPontual('${j.id}')">✕</button></div></div>`).join('')}</div>
+        </details>`;
+      })()}
+      ${(function(){
+        /* E os dias livres, pela mesma razão: a lista é a legenda da faixa.
+           Marcam-se aqui, nas Refeições ou no Calendário — é sempre a mesma
+           marca, e desaparece dos três sítios quando se apaga num deles. */
+        const cs=(S.cheats[m.id]||[]).filter(dataValida).slice().sort().reverse();
+        if(!cs.length) return '';
+        const naJan=cs.filter(d=>d>=ini && d<=hojeISO()).length;
+        return `<details class="quant" style="margin-top:8px"><summary>Dias livres registados (${cs.length}${naJan?', '+naJan+' nesta janela':''})</summary>
+          <p class="sub" style="margin-top:6px">A subida do dia seguinte a um dia livre é quase toda água e glicogénio, e desfaz-se em dois ou três dias.
+            Está aqui para a linha se ler — não para pedir contas a ninguém.</p>
+          <div style="margin-top:6px">${cs.map(d=>`<div class="reg-linha">
+            <div class="rl-corpo"><b>🎉 ${esc(fmtLongo(d))}</b>${d>hojeISO()? ' <span class="sub">· ainda por vir</span>':''}</div>
+            <div class="reg-acoes"><button class="btn danger small" aria-label="Apagar o dia livre de ${esc(fmtShort(d))}"
+              onclick="toggleCheat('${m.id}','${d}')">✕</button></div></div>`).join('')}</div>
         </details>`;
       })()}
     ${pts.length? blocoTrajetoria(m):''}
@@ -23158,6 +23195,14 @@ function trajSvg(m,fit,c){
   /* Os jejuns já registados, sombreados também aqui: é sobre estas pesagens
      que a reta é ajustada, e uma tendência puxada por dois dias sem comer não
      se lê da mesma maneira quando se projeta para a frente. */
+  /* e os dias livres, pela mesma razão: a reta assenta nestas pesagens, e uma
+     subida no dia a seguir a um deles não vale como tendência. */
+  const largDiaT=X(1)-X(0);
+  const bandasC=(S.cheats[m.id]||[]).filter(d=>dataValida(d) && d>=addDias(h,-base) && d<=h).sort().map(d=>{
+    const a=clampNum(X(diasEntre(h,d))-largDiaT/2, X0, X1);
+    const larg=Math.max(3, Math.min(largDiaT, X1-a));
+    return `<rect class="f-party" x="${f(a)}" y="${Y0}" width="${f(larg)}" height="${Y1-Y0}" opacity=".16"/>`;
+  }).join('');
   const bandasJ=jejunsNaJanela(m.id, addDias(h,-base), h).map(j=>{
     const fj=fimDeJejum(j);
     const xa=X(diasEntre(h,j.d)+j.inicio/24), xb=X(diasEntre(h,fj.d)+fj.h/24);
@@ -23175,7 +23220,7 @@ function trajSvg(m,fit,c){
   const camT=camadasRegistos(m.id, base+1, addDias(h,-base), d=>X(diasEntre(h,d))-largDia/2, largDia, Y0, Y1);
   return `<svg class="svgfx" viewBox="0 0 ${W} ${H}" role="img"
       aria-label="Trajetória do peso de ${esc(m.nome)}: tendência dos últimos ${base} dias e projeção a ${hor} dias">
-    ${camT.listras}${bandasJ}${grelha}${lequeSvg}${camT.pontos}
+    ${camT.listras}${bandasC}${bandasJ}${grelha}${lequeSvg}${camT.pontos}
     <line x1="${f(X(0))}" y1="${Y0}" x2="${f(X(0))}" y2="${Y1}" class="s-line" stroke-dasharray="3 3"/>
     <line x1="${f(X(-base))}" y1="${f(Y(yObs(-base)))}" x2="${f(X(0))}" y2="${f(Y(p0))}" class="s-ink" stroke-width="1.6" opacity=".7"/>
     <line x1="${f(X(0))}" y1="${f(Y(p0))}" x2="${f(X(hor))}" y2="${f(Y(yObs(hor)))}" class="s-mut" stroke-width="1.6" stroke-dasharray="5 4"/>
@@ -32687,6 +32732,57 @@ function toggleEater(di,mk,mid){ const meal=planMeal(di,mk);
 function toggleCheat(mid,date){ if(!S.cheats[mid]) S.cheats[mid]=[];
   const i=S.cheats[mid].indexOf(date); i>=0? S.cheats[mid].splice(i,1) : S.cheats[mid].push(date);
   save('cheat day'); render(); }
+/* ---- Marcar um dia livre a partir do Peso ----
+   O cheat day marcava-se nas Refeições, no dia e à frente de quem o faz, e
+   aparecia no Calendário. Faltava marcá-lo onde ele se explica: ao lado da
+   linha do peso, que é onde a pergunta nasce — «porque é que subi um quilo
+   no sábado?». Não é uma segunda marca: é a mesma, e apaga-se de qualquer um
+   dos três sítios. Aqui só se olha para trás, porque é disso que o gráfico
+   trata; planear um dia livre continua a ser nas Refeições. */
+function abrirCheat(mid,d){
+  const m=S.members.find(x=>x.id===mid); if(!m) return;
+  abrirModal('cheat',{mid, d:(d && dataValida(d) && d<=hojeISO())? d : hojeISO()});
+}
+function setCheatData(v){
+  const mo=modalAberto(); if(!mo||mo.tipo!=='cheat') return;
+  if(!dataValida(v)) return;
+  mo.d = v>hojeISO()? hojeISO() : v;
+  saveMeta(); render();
+}
+function guardarCheat(){
+  const mo=modalAberto(); if(!mo||mo.tipo!=='cheat') return;
+  const m=S.members.find(x=>x.id===mo.mid); if(!m) return fecharModal();
+  const d=mo.d;
+  if(isCheat(mo.mid,d)) return flash('warn','Esse dia já está marcado como dia livre.');
+  /* Um dia sem comer e um dia a comer o que apetece são a mesma data a dizer
+     duas coisas opostas. O plano já recusa jejuar num dia livre; aqui recusa-se
+     o contrário, pela mesma razão. */
+  if(emJejumPontual(mo.mid,d)) return flash('warn',nomeCurto(m)+' tem um jejum registado '+rotuloData(d)+'. Apaga o jejum primeiro, na lista por baixo do gráfico.');
+  S.ui.modal=null;
+  toggleCheat(mo.mid,d);
+  flash('ok',nomeCurto(m)+' teve dia livre '+rotuloData(d)+' — fica no plano, no Calendário e na linha do peso.',
+    {rot:'Anular',fn:'desfazer()'});
+}
+function modalCheatHtml(mo){
+  const m=S.members.find(x=>x.id===mo.mid); if(!m) return '';
+  const ja=isCheat(mo.mid,mo.d), jj=!ja && emJejumPontual(mo.mid,mo.d);
+  return `<div class="mfundo" onclick="fundoModal(event)"><div class="mcaixa" role="dialog" aria-modal="true" aria-labelledby="cheat-t">
+    <span class="lbl">${esc(nomeCurto(m))}</span>
+    <h2 id="cheat-t" style="margin-top:2px">🎉 Registar um dia livre</h2>
+    <p class="sub" style="margin-top:4px">Um dia em que se comeu o que apeteceu, marcado para a linha do peso se poder ler:
+      o que a balança mostra no dia seguinte é quase tudo água e glicogénio, e desfaz-se em dois ou três dias.
+      É a mesma marca que aparece nas Refeições e no Calendário.</p>
+    <label class="lbl" for="cheat-d" style="margin-top:12px">Dia</label>
+    <input type="date" id="cheat-d" value="${esc(mo.d)}" max="${hojeISO()}" onchange="setCheatData(this.value)">
+    <p class="sub" style="margin-top:6px">${esc(rotuloData(mo.d))}</p>
+    ${ja? `<div class="aviso warn" style="margin-top:8px">Este dia já está marcado como dia livre. Para o desmarcar, usa o ✕ na lista por baixo do gráfico.</div>`
+      : jj? `<div class="aviso warn" style="margin-top:8px">${esc(nomeCurto(m))} tem um jejum registado neste dia, e as duas coisas não cabem na mesma data. Apaga primeiro o jejum, na lista por baixo do gráfico.</div>`
+      : ''}
+    <div class="row" style="margin-top:12px;justify-content:flex-end;gap:6px">
+      <button class="btn ghost small" onclick="fecharModal()">Cancelar</button>
+      <button class="btn small"${(ja||jj)?' disabled':''} onclick="guardarCheat()">Marcar dia livre</button>
+    </div></div></div>`;
+}
 /* ---- Um dia de jejum completo, marcado no próprio dia do plano ----
    Um dia de 24 horas sem comer não é uma variante do jejum intermitente: é
    outro jejum, e não depende de haver uma janela diária ligada. Marca-se aqui,
@@ -38561,6 +38657,7 @@ function pintaModal(){
          : mo.tipo==='fimVisita'? modalFimVisitaHtml()
          : mo.tipo==='jejum'? modalJejumHtml(mo)
          : mo.tipo==='recuperacao'? modalRecuperacaoHtml(mo)
+         : mo.tipo==='cheat'? modalCheatHtml(mo)
          : mo.tipo==='exportarCal'? modalExportarCalHtml()
          : mo.tipo==='cal'? modalCalHtml(mo)
          : mo.tipo==='bandeja'? modalBandejaHtml(mo)
