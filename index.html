@@ -229,6 +229,11 @@ html[data-densidade="cerrado"] .spline{padding:10px 12px}
   html:not([data-imprimir]) :is(.folha,.mercado,.cozinha,.tour-cartao){display:none !important}
   html:not([data-imprimir]) .tabela-rolar,
   html:not([data-imprimir]) body.com-camada{overflow:visible}
+  /* Um Ctrl+P no Calendário imprimia a grelha com os seus 824 px de largura
+     mínima, e um dia e pouco saíam fora da folha. No papel as colunas dividem
+     o que há. (O botão de imprimir a semana usa o SVG, e esse já cabe.) */
+  html:not([data-imprimir]) .cal-wrap{max-height:none;overflow:visible}
+  html:not([data-imprimir]) .cal-grelha{min-width:0;grid-template-columns:32px repeat(7,minmax(0,1fr))}
   html:not([data-imprimir]) .card{break-inside:avoid; box-shadow:none; border:1px solid #ccc}
   html:not([data-imprimir]) h2,
   html:not([data-imprimir]) h3{break-after:avoid}
@@ -435,7 +440,7 @@ html[data-taberna="1"][data-paleta="contraste"] body::before{display:none}
    ecrã: é com o telemóvel numa mão e a travessa na outra que se usam. */
 .folha{position:fixed;inset:auto 0 0 0;z-index:62;background:var(--card);
   border-top:1px solid var(--line);border-radius:var(--r) var(--r) 0 0;box-shadow:var(--elev);
-  padding:16px 18px calc(18px + env(safe-area-inset-bottom));max-height:82vh;overflow:auto;
+  padding:16px 18px calc(18px + env(safe-area-inset-bottom));max-height:82vh;max-height:82dvh;overflow:auto;
   max-width:560px;margin:0 auto}
 .folha-pega{width:38px;height:4px;border-radius:2px;background:var(--line);margin:-6px auto 12px}
 /* Com uma camada aberta, a página por baixo não rola: no telemóvel, chegar ao
@@ -483,10 +488,13 @@ html[data-dispositivo="telefone"][data-orient="retrato"] .fab{bottom:calc(84px +
 .mercado{position:fixed;inset:0;z-index:64;background:var(--bg);overflow:auto;
   padding:0 0 calc(24px + env(safe-area-inset-bottom))}
 .mercado-topo{position:sticky;top:0;z-index:2;background:var(--card);border-bottom:1px solid var(--line);
-  padding:12px 16px calc(12px);display:flex;align-items:center;gap:10px}
+  padding:12px max(16px,env(safe-area-inset-right)) 12px max(16px,env(safe-area-inset-left));display:flex;align-items:center;gap:10px}
 .mercado-sec{position:sticky;top:56px;z-index:1;background:var(--bg);padding:12px 16px 6px;
   font:700 13px/1 var(--fonte-ui);letter-spacing:.06em;text-transform:uppercase;color:var(--mut)}
-.mercado ul{list-style:none;padding:0 12px;margin:0}
+/* O supermercado e a cozinha ocupam o ecrã todo, e são os dois modos que se
+   usam com o telemóvel deitado — que é quando o «notch» come 47 px de um dos
+   lados. O resto da app já descontava essa margem; estes dois não. */
+.mercado ul{list-style:none;padding:0 max(12px,env(safe-area-inset-right)) 0 max(12px,env(safe-area-inset-left));margin:0}
 .mercado li{margin:0 0 6px}
 .mercado label{display:flex;align-items:center;gap:14px;width:100%;min-height:60px;padding:10px 14px;
   border:1px solid var(--line);border-radius:var(--r-sm);background:var(--card);cursor:pointer;font-size:17px}
@@ -586,6 +594,13 @@ html[data-dispositivo="telefone"][data-orient="retrato"] .fab{bottom:calc(84px +
 /* A última coluna abriria o balão para fora da janela: ancora-se à direita. */
 .metodo-ops .metodo-op:last-child::after{left:auto;right:0}
 @media (max-width:560px){ .metodo-op::after{left:0;right:0;max-width:none} }
+/* Sem rato não há hover, e a explicação de cada equação — os limites e a fonte
+   — ficava inalcançável: o próprio texto dizia «passa o rato por cima». Ao
+   toque deixa de ser balão e passa a ler-se debaixo da opção. */
+@media (hover:none){
+  .metodo-op::after{display:block;position:static;width:auto;max-width:none;margin-top:8px;
+    background:var(--inset);color:var(--ink);box-shadow:none}
+}
 @media print{ .metodo-op::after{display:none !important} }
 
 /* ===== A CALCULADORA DOS PEQUENOS =====
@@ -671,7 +686,7 @@ table.marcos thead th:first-child,table.marcos tbody th{text-align:left}
 /* ---- A bancada ----
    Três vistas do mesmo momento: os passos em letra grande, o Maestro com dois
    tachos numa linha do tempo, e o relógio para ler a dois metros. */
-.coz-vistas{display:flex;gap:6px;padding:8px 16px;background:var(--card);border-bottom:1px solid var(--line);flex:none}
+.coz-vistas{display:flex;gap:6px;padding:8px max(16px,env(safe-area-inset-right)) 8px max(16px,env(safe-area-inset-left));background:var(--card);border-bottom:1px solid var(--line);flex:none}
 /* metade tocada acende meio segundo: sem isto, o toque cego não confirma nada.
    A confirmação tem de existir mesmo para quem pediu menos movimento — o que
    muda é ela apagar-se sozinha ou ficar até ao toque seguinte. Era a única
@@ -725,7 +740,7 @@ table.marcos thead th:first-child,table.marcos tbody th{text-align:left}
 .coz-tranca-caixa{text-align:center;max-width:320px}
 .coz-tranca-caixa p{margin-top:10px}
 .cozinha.trancada .cozinha-fundo,.cozinha.trancada .coz-vistas{opacity:.35;pointer-events:none}
-.cozinha-topo{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--card);
+.cozinha-topo{display:flex;align-items:center;gap:10px;padding:12px max(16px,env(safe-area-inset-right)) 12px max(16px,env(safe-area-inset-left));background:var(--card);
   border-bottom:1px solid var(--line);flex:none}
 /* `justify-content:center` só centra enquanto o conteúdo couber. Quando não
    cabe — um passo com lista comprida de ingredientes num telemóvel deitado —
@@ -734,7 +749,7 @@ table.marcos thead th:first-child,table.marcos tbody th{text-align:left}
    respeitado por parte dos motores, por isso a regra centra apenas quando há
    espaço a sobrar, e nunca quando falta. A primeira declaração é o recuo para
    quem não conheça `safe`. */
-.cozinha-corpo{flex:1;overflow:auto;padding:22px 20px;display:flex;flex-direction:column;
+.cozinha-corpo{flex:1;overflow:auto;padding:22px max(20px,env(safe-area-inset-right)) 22px max(20px,env(safe-area-inset-left));display:flex;flex-direction:column;
   justify-content:flex-start;justify-content:safe center;
   max-width:640px;margin:0 auto;width:100%}
 .coz-t{font-size:clamp(24px,6vw,34px);margin-bottom:10px}
@@ -1371,7 +1386,8 @@ input[type=range].com-detentes::-moz-range-track{
      o houver, porque esse faz de janela para um position:fixed. */
   position:fixed;left:var(--bx,0px);top:var(--by,0px);
   width:max-content;max-width:min(270px,calc(100vw - 24px));
-  height:auto;max-height:min(340px,var(--maxh,340px),calc(100vh - 40px));padding:9px 12px;
+  height:auto;max-height:min(340px,var(--maxh,340px),calc(100vh - 40px));
+  max-height:min(340px,var(--maxh,340px),calc(100dvh - 40px));padding:9px 12px;
   clip-path:none;pointer-events:auto;opacity:1;overflow-y:auto;overscroll-behavior:contain}
 /* Num ecrã largo a coluna pode ser mais larga: as mesmas mil letras passam de
    trinta e tal linhas para vinte e poucas, e a maioria das explicações deixa
@@ -1665,7 +1681,7 @@ input[type=range].com-detentes::-moz-range-track{
    Uma grelha de sete colunas com as horas à esquerda. No telemóvel as sete
    não cabem: a grelha rola para o lado dentro do cartão, com cada dia a
    guardar uma largura mínima legível — a página nunca rola na horizontal. */
-.cal-wrap{margin-top:10px;max-height:min(72vh,900px);overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--card);
+.cal-wrap{margin-top:10px;max-height:min(72vh,900px);max-height:min(72dvh,900px);overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--card);
   overscroll-behavior:contain}
 .cal-grelha{display:grid;grid-template-columns:44px repeat(7,minmax(118px,1fr));min-width:870px;position:relative;
   /* a altura da fiada dos dias, que é também onde se cola a do dia inteiro:
@@ -1745,7 +1761,11 @@ input[type=range].com-detentes::-moz-range-track{
   .cal-barra>.row{justify-content:space-between}
   .cal-grelha{grid-template-columns:40px repeat(7,minmax(112px,1fr));min-width:824px}
 }
-@media (pointer:coarse){ .cal-ev{min-height:26px} }
+/* Num dia com três coisas à mesma hora, cada evento fica com um terço da
+   coluna — 15 px no telemóvel, que não se acerta com o dedo. Ao toque dá-se-lhe
+   uma largura mínima: sobrepõem-se um pouco, e quem recebe o toque sobe ao
+   cimo pelo z-index que o :hover/:focus já lhe dá. */
+@media (pointer:coarse){ .cal-ev{min-height:26px;min-width:34px} }
 @media (prefers-reduced-motion:reduce){ .cal-ev{transition:none} }
 @media print{ .cal-wrap{max-height:none;overflow:visible} .cal-barra button{display:none} }
 .massa-dobra{border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--bg)}
@@ -1876,7 +1896,7 @@ select.acomp.cheio{border-style:solid;background-color:var(--card);color:var(--i
 .ed-linha{display:grid;grid-template-columns:minmax(0,1fr) 88px 34px 40px;gap:8px;align-items:center}
 .ed-linha input{text-align:right}
 .ed-linha .sub{font-size:12px}
-@media (max-width:520px){ .ed-linha{grid-template-columns:minmax(0,1fr) 72px 28px 38px;gap:6px} }
+@media (max-width:520px){ .ed-linha{grid-template-columns:minmax(0,1fr) 72px 28px 44px;gap:6px} }
 .fora-box{margin-top:12px;border-top:1px solid var(--line);padding-top:8px}
 ul.fora{margin:4px 0 0 0;padding-left:18px;font-size:13px}
 ul.fora li{margin:2px 0}
@@ -2000,10 +2020,13 @@ select{-webkit-appearance:none;appearance:none;padding-right:28px;
 main{padding-left:max(20px,env(safe-area-inset-left));padding-right:max(20px,env(safe-area-inset-right))}
 body{padding-bottom:max(60px,calc(env(safe-area-inset-bottom) + 44px))}
 
-@media (max-width:1180px){
-  /* Nove separadores não cabem em linha abaixo de ~1180 px: passam a faixa que
-     desliza na horizontal. O limite era 760, dos telemóveis — num tablet
-     embrulhavam em duas filas e o cabeçalho fixo chegava aos 216 px. */
+@media (max-width:1499px){
+  /* Nove separadores não cabem em linha: passam a faixa que desliza na
+     horizontal. O limite era 760 (telemóveis) e depois 1180, mas a régua certa
+     não é a janela — é o `.hwrap`, que só passa de 1100 px de largura aos
+     1500. Entre 1181 e 1499 a barra voltava a embrulhar, e era logo na largura
+     mais comum dos portáteis: cabeçalho de 175 px em vez de 124, com tudo o
+     que se pendura no --hh a descer com ele. */
   nav{order:3;width:100%;margin-left:0;flex-wrap:nowrap;overflow-x:auto;
     -webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px}
   nav::-webkit-scrollbar{display:none}
@@ -2037,8 +2060,14 @@ body{padding-bottom:max(60px,calc(env(safe-area-inset-bottom) + 44px))}
   .btn,nav button{min-height:44px}
   .chip{min-height:42px;padding:7px 14px}
   .btn.small{min-height:40px;padding:8px 13px}
-  .savest{min-height:40px}
+  .savest{min-height:40px;min-width:40px;justify-content:center}
   .shop li{padding:12px 6px;min-height:48px}
+  /* A linha tem 48 px, mas quem recebe o toque é a etiqueta, que tinha 24: o
+     dedo acertava na linha e não acontecia nada. Passa a encher a linha. */
+  .shop label{min-height:44px}
+  /* O botão de dobrar um cartão tinha 24×24 — o mínimo da norma, e no dedo
+     pouco. Aqui há espaço de sobra no cabeçalho do cartão. */
+  .col-btn{min-width:40px;min-height:40px}
   .shop input[type=checkbox]{width:24px;height:24px}
   /* As pastilhas que são botões (itens por comprar, alerta do dia) nasceram
      como etiquetas e ficaram com altura de etiqueta — no dedo precisam de
@@ -2078,7 +2107,7 @@ body{padding-bottom:max(60px,calc(env(safe-area-inset-bottom) + 44px))}
 }
 /* Tablet em vertical: duas colunas confortáveis em vez de três apertadas. */
 @media (min-width:700px) and (max-width:1024px){
-  .g3{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+  .g3{grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr))}
 }
 
 /* ============ ORIENTAÇÃO ============ */
@@ -2130,7 +2159,7 @@ html[data-orient="retrato"][data-dispositivo="tablet"] .gdias{grid-template-colu
 
 /* Tablet deitado: aproveita a largura toda, mais dias e receitas por linha. */
 html[data-orient="paisagem"][data-dispositivo="tablet"] main{max-width:1280px}
-html[data-orient="paisagem"][data-dispositivo="tablet"] .g3{grid-template-columns:repeat(auto-fill,minmax(268px,1fr))}
+html[data-orient="paisagem"][data-dispositivo="tablet"] .g3{grid-template-columns:repeat(auto-fill,minmax(min(268px,100%),1fr))}
 html[data-orient="paisagem"][data-dispositivo="tablet"] .gdias{grid-template-columns:repeat(auto-fill,minmax(min(252px,100%),1fr))}
 </style>
 </head>
@@ -3002,7 +3031,7 @@ function migraRegistos(s){
     tipo: ['perder','manter','ganhar'].indexOf(fo.tipo)>=0? fo.tipo : 'perder',
     delta: clampNum(parseFloat(fo.delta)||5, 0, 100),
     semanas: clampNum(Math.round(parseFloat(fo.semanas)||12), 1, 104),
-    split: clampNum(Math.round(parseFloat(fo.split)||50), 0, 100),
+    split: clampNum(Math.round(numOu(fo.split,50)), 0, 100),
     /* O desporto do objetivo passou de um para vários: quem quer perder peso a
        correr e a levantar pesos não escolhe entre os dois. Um estado guardado
        com o campo antigo (uma string) entra como lista de um. */
@@ -6787,13 +6816,13 @@ P('iogurtecompota',[['Montar','Iogurte natural com os frutos vermelhos por cima,
 P('bourguignon',[['A carne','Acém em cubos de bocado, bem secos com papel. Molhados não seguram, cozem em vez de corar, e a crosta é metade do prato.',10],
  ['Suar o bacon, devagar','Bacon fatiado numa frigideira em lume brando com o ghee — manteiga clarificada aguenta o calor da selagem que se segue, e a normal queimaria. Sem pressa: quer-se a gordura derretida e o bacon estaladiço, não tostado à força. Retira o bacon e guarda.',12],
  ['Selar a carne nessa gordura','Carne na gordura do bacon, em lume forte e em duas ou três vezes. Amontoada, larga água e ferve. Corada de todos os lados, retira e guarda com o bacon.',12],
- ['Primeiro deglaze','Um pouco de vinho tinto na frigideira ainda quente, a raspar o fundo com a colher de pau até tudo o que estava agarrado se soltar. Guarda esse líquido: é o primeiro dos dois caldos que vão dar corpo ao molho.',3],
- ['Cebolinhas caramelizadas','Cebolinhas brancas inteiras, na mesma frigideira, a rolar em lume médio até ficarem douradas de todos os lados. Retira e guarda. Deglaze outra vez com vinho, e junta esse líquido ao primeiro.',12],
+ ['Primeiro deglace','Um pouco de vinho tinto na frigideira ainda quente, a raspar o fundo com a colher de pau até tudo o que estava agarrado se soltar. Guarda esse líquido: é o primeiro dos dois caldos que vão dar corpo ao molho.',3],
+ ['Cebolinhas caramelizadas','Cebolinhas brancas inteiras, na mesma frigideira, a rolar em lume médio até ficarem douradas de todos os lados. Retira e guarda. Deglaça outra vez com vinho, e junta esse líquido ao primeiro.',12],
  ['Chalotas no tacho','Num tacho que possa ir ao forno, mais ghee, e as chalotas às rodelas a caramelizar em lume médio — cebola serve, mas a chalota é mais doce e menos aguada, e nota-se num molho que vai reduzir três horas.',10],
  ['Cogumelos até perderem a água','Cogumelos brancos em quartos por cima, em lume alto, até largarem a água toda e ela evaporar. Só depois é que douram — postos em lume brando, estufam e ficam borracha.',10],
  ['Cenoura e alho','Cenoura às rodelas, e o alho picado só a seguir: o alho queima em muito menos tempo do que a cenoura precisa, e queimado amarga o tacho inteiro.',6],
  ['Carne, vinho e bacon','Volta a carne ao tacho com o bacon, e o resto do vinho tinto até cobrir. Levanta fervura e deixa reduzir descoberto — é aqui que sai o álcool e fica o vinho.',12],
- ['Cebolinhas, batatinhas e caldo','Junta as cebolinhas caramelizadas e as batatinhas, e cobre com o líquido dos dois deglaces. Se não chegar, completa com caldo de carne — a carne tem de ficar coberta, ou a parte de fora seca no forno.',4],
+ ['Cebolinhas, batatinhas e caldo','Junta as cebolinhas caramelizadas e as batatinhas, e cobre com o líquido das duas deglaçagens. Se não chegar, completa com caldo de carne — a carne tem de ficar coberta, ou a parte de fora seca no forno.',4],
  ['Espessar, se quiseres','Uma colher de farinha cozinhada em manteiga até ganhar cor de avelã, desfeita depois num pouco do molho quente e devolvida ao tacho. É opcional e leva glúten, e por isso não está na lista de ingredientes: três horas de forno já espessam o molho sozinhas.',6],
  ['Tomilho e os caules da salsa','Tomilho e os CAULES da salsa picados — é neles que está o sabor, e aguentam as três horas que as folhas não aguentam. As folhas ficam para o fim.',3],
  ['Forno a 150 °C, tapado','Tampa posta e ao forno, três horas. A esta temperatura o colagénio do acém desfaz-se sem a carne se desfiar, que é o que acontece se se apressar o lume.',180],
@@ -8428,10 +8457,10 @@ P('chlulasbrasa',[['Amanhar as lulas','Puxa a cabeça para fora do manto e com e
  ['Golpes em xadrez','Abre o manto ao meio e, com a faca quase deitada, faz golpes rasos em xadrez do lado de dentro, sem cortar até ao fim. Assim a lula não enrola na grelha e a marinada entra.',8],
  ['Marinada','Azeite, pimentão-doce, alho picado, raspa de limão, sal e pimenta. Envolve as lulas e deixa tomar gosto meia hora no frigorífico, tapadas.',30],
  ['Brasa pronta','Brasa com cinza branca e sem chama, grelha bem quente e untada. Lula em brasa fraca cozinha em vez de tostar, e larga água.'],
- ['Tentáculos primeiro','Os tentáculos demoram mais do que o manto: põe-nos a grelhar três a quatro minutos antes, e só depois as cabeças abertas, com os golpes virados para baixo.',4],
+ ['Tentáculos primeiro','Os tentáculos demoram mais do que o manto: põe-nos a grelhar três a quatro minutos antes, e só depois os mantos abertos, com os golpes virados para baixo.',4],
  ['Pouco tempo, e está','Dois a três minutos de cada lado, até marcar. Passar do ponto é o único erro que não tem volta: a lula fica dura e não amolece mais.',6],
  ['O molho por cima','Serve com o molho de coentros e limão, deitado por cima já no prato.']]);
-P('chchocosbrasa',[['Amanhar os chocos','Puxa a cabeça, tira o osso branco, a tinta e o interior. Tira a pele escura e o bico, e lava muito bem — o choco esconde areia nas dobras.',15],
+P('chchocosbrasa',[['Amanhar os chocos','Puxa a cabeça, tira o osso branco, a tinta e o interior. Tira a pele escura e o bico, guarda os tentáculos inteiros, e lava tudo muito bem — o choco esconde areia nas dobras.',15],
  ['Abrir e golpear','Abre o manto ao meio para ficar uma peça plana e, se for grosso, faz-lhe golpes rasos em xadrez do lado de dentro.',6],
  ['Marinada','Azeite, pimentão-doce, alho picado, sal e pimenta. Meia hora no frigorífico, tapado.',30],
  ['Brasa pronta','Cinza branca, sem chama, grelha quente e untada.'],
@@ -8450,7 +8479,7 @@ P('frangocogumelosbrandy',[['Peitos temperados','Sal e pimenta nos dois lados. S
  ['A base do molho','Na mesma frigideira, sem a lavar, mais um fio de azeite, a chalota picada, o louro e o alho. Dois minutos, mexendo, sem deixar queimar o alho.',3],
  ['Deglaçar','Metade da aguardente para levantar o tostado do fundo, raspando com a colher de pau. É ali que está o sabor do frango todo.',2],
  ['Molho inglês e mostarda','Junta o molho inglês e a mostarda de Dijon e envolve.'],
- ['Flamejar, com respeito','Fora do exaustor e com a cara afastada, junta o resto da aguardente e acende. Deixa arder até a chama se apagar sozinha — é o álcool a ir-se embora, e é isso que se quer. Quem preferir não acender deixa ferver dois minutos: dá quase o mesmo.',2],
+ ['Flamejar, com respeito','Com o exaustor desligado e a cara afastada, junta o resto da aguardente e acende. Deixa arder até a chama se apagar sozinha — é o álcool a ir-se embora, e é isso que se quer. Quem preferir não acender deixa ferver dois minutos: dá quase o mesmo.',2],
  ['Cogumelos a suar','Cogumelos em fatias, lume médio, sem sal ainda. Largam água, e só depois de ela evaporar é que começam a tostar. Tempera aí com sal e pimenta.',8],
  ['Caldo a reduzir','Caldo de galinha, e deixa reduzir a metade em lume médio. Sem esta redução o molho fica aguado.',6],
  ['Natas a reduzir','Natas, e mais três a quatro minutos até o molho cobrir as costas da colher.',4],
@@ -12200,7 +12229,7 @@ function sodioDe(nome){
   if(temChave(NA_TABELA,nome)) return NA_TABELA[nome];
   if(temChave(NA_ESTIMADO,nome)) return NA_ESTIMADO[nome];
   /* O que a casa escreveu à mão. O rótulo europeu dá SAL em gramas e a app
-     conta SÓDIO em miligramas: 1 g de sal são 400 mg de sódio (o factor é
+     conta SÓDIO em miligramas: 1 g de sal são 400 mg de sódio (o fator é
      2,5 no sentido contrário). Sem esta linha, o campo do sal no formulário
      era um campo que não fazia nada — e um alimento salgado entrava no dia
      como se não tivesse sal nenhum. */
@@ -23731,8 +23760,11 @@ function dadosMes(){
     }
   });
   const limite=new Date(hoje); limite.setDate(limite.getDate()-30);
+  /* comparação por data e não por instante: `hoje` é a hora a que se abriu a
+     app, e um dia livre marcado hoje de manhã ficava de fora até ao meio-dia */
+  const limISO=iso(limite), hojeD=hojeISO();
   Object.values(S.cheats||{}).forEach(arr=>(arr||[]).forEach(d=>{
-    const dt=new Date(d+'T12:00:00'); if(dt>=limite&&dt<=hoje) cheats++; }));
+    if(d>=limISO && d<=hojeD) cheats++; }));
   const topo=Object.entries(porReceita).sort((a,b)=>b[1]-a[1]).slice(0,3)
     .map(([id,n])=>{ const r=RECIPES.find(x=>x.id===id); return r? {nome:r.n,n}:null; }).filter(Boolean);
   const concluidos=(S.objetivos||[]).filter(o=>o.concluido&&o.dataConclusao
@@ -29698,6 +29730,11 @@ function guardarNovoJejum(){
   const choca=jejumQueChoca(j);
   if(choca) return flash('warn','Esse período sobrepõe-se a um jejum já registado — '
     +periodoJejumTexto(choca)+'. Apaga o antigo ou ajusta as horas.');
+  /* e não se jejua num dia livre: é a mesma regra do plano, agora também aqui */
+  const fimJ=fimDeJejum(j), livres=[];
+  for(let d=j.d; d<=fimJ.d; d=addDias(d,1)) if(isCheat(j.mid,d)) livres.push(d);
+  if(livres.length) return flash('warn',(livres.length===1? 'O dia '+fmtCurto(livres[0])+' está marcado' : livres.length+' dos dias estão marcados')
+    +' como dia livre. As duas coisas não cabem na mesma data — desmarca o dia livre primeiro, na lista por baixo do gráfico do peso.');
   c.pontuais.push(j);
   S.ui.modal=null;
   save('jejum marcado');
@@ -32833,7 +32870,15 @@ function toggleEater(di,mk,mid){ const meal=planMeal(di,mk);
   if(entrou && meal.r) avisaDietaAoAgendar(di,mk);
 }
 function toggleCheat(mid,date){ if(!S.cheats[mid]) S.cheats[mid]=[];
-  const i=S.cheats[mid].indexOf(date); i>=0? S.cheats[mid].splice(i,1) : S.cheats[mid].push(date);
+  const i=S.cheats[mid].indexOf(date);
+  /* A mesma regra dos dois lados: o plano recusa jejuar num dia livre, o
+     registo do Peso recusa um dia livre num dia de jejum, e este toque — que
+     é a porta mais usada das três — recusava-o só num sentido. */
+  if(i<0 && emJejumPontual(mid,date)){
+    const m=S.members.find(x=>x.id===mid);
+    return flash('warn',(m? nomeCurto(m) : 'Esta pessoa')+' tem um jejum registado nesse dia. As duas coisas não cabem na mesma data.');
+  }
+  i>=0? S.cheats[mid].splice(i,1) : S.cheats[mid].push(date);
   save('cheat day'); render(); }
 /* ---- Marcar um dia livre a partir do Peso ----
    O cheat day marcava-se nas Refeições, no dia e à frente de quem o faz, e
@@ -32857,6 +32902,9 @@ function abrirCheat(mid,d){
 /* Quantos dias cabem a partir do dia escolhido: isto regista o que já
    aconteceu, e por isso não passa de hoje. */
 function cheatMaxDias(d){ return clampNum(diasEntre(d,hojeISO())+1, 1, CHEAT_MAX_D); }
+/* «hoje», «ontem» e «amanhã» dispensam preposição; uma data pede-a. Sem isto
+   saía «teve dia livre sáb, 19/09», que se lê como telegrama. */
+function emData(d){ const r=rotuloData(d); return /^(hoje|ontem|amanhã)$/.test(r)? r : 'em '+r; }
 function diasDoCheat(mo){
   const n=clampNum(Math.round(parseFloat(mo.dias)||1), 1, cheatMaxDias(mo.d));
   const out=[]; for(let i=0;i<n;i++) out.push(addDias(mo.d,i));
@@ -32899,7 +32947,7 @@ function guardarCheat(){
   const novos=dias.filter(d=>!isCheat(mo.mid,d) && !emJejumPontual(mo.mid,d));
   if(!novos.length){
     return flash('warn', comJejum.length===dias.length
-      ? nomeCurto(m)+' tem jejum registado '+(dias.length===1? rotuloData(dias[0]) : 'nesses dias')+'. Apaga o jejum primeiro, na lista por baixo do gráfico.'
+      ? nomeCurto(m)+' tem jejum registado '+(dias.length===1? emData(dias[0]) : 'nesses dias')+'. Apaga o jejum primeiro, na lista por baixo do gráfico.'
       : (dias.length===1? 'Esse dia já está marcado como dia livre.' : 'Esses dias já estão marcados como livres.'));
   }
   if(!S.cheats[mo.mid]) S.cheats[mo.mid]=[];
@@ -32909,7 +32957,7 @@ function guardarCheat(){
   /* «de 19 a 21» só quando são mesmo seguidos: com um jejum pelo meio, os dias
      marcados têm um buraco, e dizer «de» seria dizer que o buraco também foi. */
   const seguidos = novos.length===diasEntre(novos[0],novos[novos.length-1])+1;
-  const periodo = novos.length===1? rotuloData(novos[0])
+  const periodo = novos.length===1? emData(novos[0])
     : (seguidos? 'de ' : 'entre ')+fmtCurto(novos[0])+' a '+fmtCurto(novos[novos.length-1]);
   flash('ok', nomeCurto(m)+': '+plural(novos.length,'dia livre','dias livres')+' '+periodo
     +(comJejum.length? ' — '+plural(comJejum.length,'dia ficou','dias ficaram')+' de fora, por ter jejum registado.'
@@ -32945,7 +32993,7 @@ function modalCheatHtml(mo){
   const atalhos=[1,2,3,7].filter(x=>x<=maxD);
   return `<div class="mfundo" onclick="fundoModal(event)"><div class="mcaixa" role="dialog" aria-modal="true" aria-labelledby="cheat-t" style="max-width:560px">
     <span class="lbl">${esc(nomeCurto(m))}</span>
-    <h2 id="cheat-t" style="margin-top:2px">🎉 Registar dias livres</h2>
+    <h2 id="cheat-t" style="margin-top:2px">🎉 Registar cheat day</h2>
     <p class="sub" style="margin-top:4px">Dias em que se comeu o que apeteceu, marcados para a linha do peso se poder ler:
       o que a balança mostra a seguir é quase tudo água e glicogénio, e desfaz-se em dois ou três dias.
       É a mesma marca que aparece nas Refeições e no Calendário.</p>
@@ -32968,8 +33016,8 @@ function modalCheatHtml(mo){
     ${n===CHEAT_MAX_D? `<p class="sub">Uma semana é o máximo. Mais do que isso não é um dia livre — é uma pausa, e essa marca-se nos Objetivos.</p>`:''}
     ${comJejum.length? `<div class="aviso warn" style="margin-top:8px">${comJejum.length===1
         ? esc(fmtCurto(comJejum[0]))+' tem um jejum registado e fica de fora'
-        : plural(comJejum.length,'dia tem','dias têm')+' jejum registado e '+(comJejum.length===1?'fica':'ficam')+' de fora'} — as duas coisas não cabem na mesma data.</div>`:''}
-    ${jaLa.length? `<div class="aviso warn" style="margin-top:8px">${plural(jaLa.length,'dia já estava','dias já estavam')} marcado${jaLa.length===1?'':'s'} como livre${jaLa.length===1?'':'s'}. Fica${jaLa.length===1?'':'m'} como está${jaLa.length===1?'':'ão'}.</div>`:''}
+        : comJejum.length+' dias têm jejum registado e ficam de fora'} — as duas coisas não cabem na mesma data.</div>`:''}
+    ${jaLa.length? `<div class="aviso warn" style="margin-top:8px">${plural(jaLa.length,'dia já estava marcado como livre. Fica como está','dias já estavam marcados como livres. Ficam como estão')}.</div>`:''}
     <div class="row" style="margin-top:12px;justify-content:flex-end;gap:6px">
       <button class="btn ghost small" onclick="fecharModal()">Cancelar</button>
       <button class="btn small"${novos.length?'':' disabled'} onclick="guardarCheat()">${novos.length
@@ -33012,10 +33060,16 @@ function diaLivreDaCasa(){
   const hoje=hojeISO();
   const gente=S.members.filter(m=>faseDe(m)!=='bebe');
   if(!gente.length) return;
-  gente.forEach(m=>{ if(!S.cheats[m.id]) S.cheats[m.id]=[];
+  /* quem está a jejuar hoje fica de fora, e diz-se */
+  const jejua=gente.filter(m=>emJejumPontual(m.id,hoje));
+  const vao=gente.filter(m=>!emJejumPontual(m.id,hoje));
+  if(!vao.length) return flash('warn','Toda a gente tem jejum registado para hoje.');
+  vao.forEach(m=>{ if(!S.cheats[m.id]) S.cheats[m.id]=[];
     if(S.cheats[m.id].indexOf(hoje)<0) S.cheats[m.id].push(hoje); });
   save('dia livre da casa'); render();
-  flash('ok','Hoje é dia livre para '+plural(gente.length,'pessoa','pessoas')+'.',{rot:'Anular',fn:'desfazer()'});
+  flash('ok','Hoje é dia livre para '+plural(vao.length,'pessoa','pessoas')+'.'
+    +(jejua.length? ' '+enumera(jejua.map(nomeCurto))+' '+(jejua.length===1?'ficou':'ficaram')+' de fora, por ter jejum registado.' : ''),
+    {rot:'Anular',fn:'desfazer()'});
 }
 function clearWeek(){ if(confirm('Limpar todas as refeições desta semana?')){ delete S.plans[S.week]; delete S.bought[S.week]; save('limpeza da semana'); render(); } }
 /* Os acompanhamentos vivem à parte: não aparecem nas listas de pratos nem nas
@@ -34000,8 +34054,12 @@ function mealBlock(di,mk,label,date){
          «Bife com batatas fritas». O cartão diz o nome inteiro, e o nome
          leva à variante — que existe, tem os ingredientes somados e o
          passo a passo dos dois lados escrito de seguida. */
-      if(!r || !acs.length) return '';
-      const cb=RECIPES.find(x=>x.id===idCombo(r.id,acs.map(a=>a.id)));
+      /* O molho e a massa contam para o nome composto tanto como o
+         acompanhamento: sem eles na chave, um prato que só leva molho não
+         tinha link nenhum, e um que leva molho e acompanhamento procurava uma
+         variante que não existe — o nome saía certo e sem botão. */
+      if(!r || (!acs.length && !moId(meal) && !maId(meal))) return '';
+      const cb=RECIPES.find(x=>x.id===idCombo(r.id,acs.map(a=>a.id),moId(meal),maId(meal)));
       const nome=esc(nomeDaRefeicao(meal));
       return `<p class="prato-composto">${cb
         ? `<button class="linkish" onclick="irReceita('${cb.id}')" title="Abrir a variante, com os passos dos dois">🍽️ ${nome}</button>`
@@ -34132,7 +34190,13 @@ function equilibrioSemana(m,dates){
     /* Um dia de jejum não é um dia com o alvo por cumprir: é um dia sem alvo.
        Contá-lo como falha faria a semana toda parecer um desastre. */
     if(horasDeJejumNoDia(m.id,date)>0){ diasJejum++; deficeJejum+=deficeDoJejum(m,date); }
-    if(e.st==='cheat'){ cheats++; alvo+=alvoDoDia(m,date); return; }
+    /* E um dia livre não é um alvo por cumprir: é um dia fora da conta. Somar
+       o alvo e não somar as calorias (que `kcalPlaneadasDia` devolve a zero
+       num cheat day) punha a semana em défice de 14% por um sábado — no
+       cartão que existe precisamente para dizer que um cheat day não estraga
+       a semana. Com a marcação de vários dias seguidos, um fim de semana
+       esticado chegava aos -43% e à barra vermelha. */
+    if(e.st==='cheat'){ cheats++; return; }
     alvo+=alvoDoDia(m,date);
     if(e.refs){ planeado+=e.kcal; diasComPlano++; }
   });
@@ -34662,7 +34726,22 @@ function usarComoBase(){
       if(!comem.length){ vetadas++; return; }
       if(comem.length<(meal.m||[]).length) vetadas++;
       if(!alvo[di]) alvo[di]={};
-      alvo[di][mk]={r:meal.r, ac:acIds(meal), m:comem};
+      /* A refeição vai inteira, como no restaurar e no juntar de uma cópia: o
+         molho, a massa de base, o dobro, as marmitas e o acompanhamento
+         próprio de quem não come o da travessa. Copiar só o prato e os
+         acompanhamentos deixava o bife sem o chimichurri — e devolvia à
+         travessa quem tinha prato à parte, logo na função cujo propósito é
+         não herdar decisões velhas. */
+      const novo={r:meal.r, ac:acIds(meal), m:comem};
+      if(meal.mo) novo.mo=meal.mo;
+      if(meal.ma) novo.ma=meal.ma;
+      if(meal.dobro>1) novo.dobro=meal.dobro;
+      if(Array.isArray(meal.marmita)){ const mar=meal.marmita.filter(x=>comem.indexOf(x)>=0);
+        if(mar.length) novo.marmita=mar; }
+      if(meal.acPor && typeof meal.acPor==='object'){ const ap={};
+        Object.keys(meal.acPor).forEach(k=>{ if(comem.indexOf(k)>=0 && Array.isArray(meal.acPor[k])) ap[k]=meal.acPor[k].slice(); });
+        if(Object.keys(ap).length) novo.acPor=ap; }
+      alvo[di][mk]=novo;
       copiadas++;
     });
   }
@@ -35881,8 +35960,11 @@ function lerPacote(txt){
   if(d.cheats && typeof d.cheats==='object') Object.keys(d.cheats).forEach(mid=>{
     const alvo=idOk(mid); const arr=d.cheats[mid];
     if(!alvo || !Array.isArray(arr)) return;
+    /* sem repetidos: dois ficheiros com o mesmo sábado davam dois dias livres
+       no mesmo dia, e a lista do Peso passava a mostrar dois períodos de um
+       dia em vez de um */
     const dias=arr.filter(dataValida);
-    if(dias.length) cheats[alvo]=(cheats[alvo]||[]).concat(dias);
+    if(dias.length) cheats[alvo]=(cheats[alvo]||[]).concat(dias).filter((v,i,a)=>a.indexOf(v)===i);
   });
   /* os dias de recuperação seguem a mesma regra dos cheat days: datas válidas,
      de gente que existe neste ficheiro */
@@ -37583,7 +37665,7 @@ function modalRecuperacaoHtml(mo){
   const porque = !f? 'Um dia sem treino a sério, marcado de propósito: caminhar, alongar, dormir.'
     : (f.porKcal
       ? 'Esta sessão gastou '+f.kcal+' kcal, contra uma mediana de '+f.mediana+' kcal por sessão'+(f.nRegs>=3? ' nas '+plural(f.nRegs,'sessão registada','sessões registadas')+' das últimas oito semanas' : ' no plano de treino')
-      : 'Esta sessão foi a nível intenso, num plano que vive no leve ou no moderado')
+      : 'Esta sessão foi de nível intenso, num plano que vive no leve ou no moderado')
       +'. A ACSM recomenda pelo menos 48 horas entre sessões intensas para o mesmo grupo muscular — é nesse intervalo, com descanso e com proteína, que o corpo reconstrói o que o treino desfez.';
   return `<div class="mfundo" onclick="fundoModal(event)"><div class="mcaixa" role="dialog" aria-modal="true" aria-labelledby="rec-t">
     <span class="lbl">${nomeCurto(m)}${s.nome? ' · '+esc(s.nome) : ''}${s.kcal? ' · '+s.kcal+' kcal':''}</span>
