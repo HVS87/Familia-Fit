@@ -4735,6 +4735,18 @@ R('bolocenoura','Bolo de cenoura','portuguesa',['vegetariana'],0,0,0,0,[['Cenour
 R('bolorei','Bolo-rei','portuguesa',['vegetariana'],0,0,0,0,[['Farinha',38,'g'],['Fruta cristalizada',18,'g'],['Passas',8,'g'],['Nozes',6,'g'],['Amêndoa',5,'g'],['Pinhões',3,'g'],['Manteiga',10,'g'],['Açúcar branco',12,'g'],['Ovo',0.3,'un'],['Leite',15,'ml'],['Fermento seco de padeiro',2,'g'],['Vinho do Porto',8,'ml'],['Raspa de limão',1,'g']],['l','p'],0,['sob','sn']),
 R('moussemanga','Mousse de manga','brasileira',[],0,0,0,0,[['Manga',110,'g'],['Nata para bater 35% gordura',50,'ml'],['Leite condensado açucarado',35,'g'],['Gelatina em folhas',2,'g'],['Lima',0.25,'un']],['l'],0,['sob']),
 R('mousselima','Mousse de lima','portuguesa',[],0,0,0,0,[['Lima',0.75,'un'],['Leite condensado açucarado',45,'g'],['Nata para bater 35% gordura',50,'ml'],['Clara de ovo de galinha, crua',25,'g'],['Açúcar branco',10,'g']],['l'],0,['sob']),
+/* Esta mousse não leva gelatina nem claras, e não é esquecimento: o
+   mascarpone dá-lhe corpo, as natas batidas dão-lhe ar e o ácido do maracujá
+   engrossa o leite condensado sozinho — é o mesmo princípio da mousse de lima
+   que está aqui ao lado. Não leva ovo cru, e o mascarpone pasteurizado — o
+   de compra é-o — está na lista do NHS dos queijos que se podem comer na
+   gravidez; por isso não entra nos avisos dos crus, ao contrário da de
+   chocolate e da de lima. Às crianças pequenas não serve na mesma, mas por
+   outra razão: o leite condensado é açúcar adicionado, que antes dos dois
+   anos não se dá. O maracujá entra em dois tempos, metade dentro e metade por cima:
+   batidas no creme, as sementes perdem o estaladiço, que é metade do que se
+   come. */
+R('moussemascarponemaracuja','Mousse de mascarpone e maracujá','portuguesa',[],0,0,0,0,[['Queijo Mascarpone',45,'g'],['Nata para bater 35% gordura',35,'ml'],['Leite condensado açucarado',30,'g'],['Maracujá',55,'g']],['l'],0,['sob']),
 /* ---- Cheesecake: duas bases, e os coulis como variantes ----
    O de Nova Iorque é queijo creme cozido no forno sobre base de bolacha, denso
    e alto. O japonês é outra coisa: leva claras batidas, um terço do queijo, e
@@ -4904,6 +4916,20 @@ R('paomisto','Papo-seco com queijo e fiambre','portuguesa',[],0,0,0,0,[['Papo-se
 R('paointegralqueijo','Pão integral com queijo fresco','portuguesa',['vegetariana','lowfat'],0,0,0,0,[['Pão integral',65,'g'],['Queijo fresco',60,'g']],['p','l'],0,['sn','br']),
 R('paocenteiofiambre','Pão de centeio com fiambre','portuguesa',[],0,0,0,0,[['Pão de centeio',65,'g'],['Fiambre',40,'g'],['Manteiga',6,'g']],['p','l'],0,['sn','br']),
 R('paoleitemanteiga','Pão de leite com manteiga','portuguesa',['vegetariana'],0,0,0,0,[['Pão de leite (trigo)',55,'g'],['Manteiga',10,'g']],['p'],0,['sn','br']),
+/* ---- Sanduíches de chá, as que se cortam sem côdea ----
+   São finger sandwiches, e o formato faz parte da receita: pão de forma
+   fresco — torrado não serve, estas não vão ao lume —, recheio fino, côdea
+   cortada DEPOIS de montar e não antes, e quatro dedos ou dois triângulos
+   por fatia. A dose é de duas fatias por pessoa, que é o que as põe no
+   lanche e não no almoço.
+   A manteiga do pepino e do salmão não é gordura a mais: é a camada que
+   impede a humidade de passar para o pão. Sem ela a sandes desfaz-se em
+   vinte minutos, e é por isso que ela entra nos ingredientes das duas.
+   A de morango é prima do fruit sando japonês, que é o mesmo gesto com mais
+   natas e pão de leite — aqui fica a versão do chá, com chantilly firme. */
+R('sandpepino','Sanduíches de pepino','britanica',[],0,0,0,0,[['Pão de forma',55,'g'],['Manteiga',12,'g'],['Pepino',80,'g'],['Vinagre de vinho',4,'ml'],['Flor de sal',0.5,'g'],['Pimenta preta',0.3,'g']],['l'],0,['sn','ent']),
+R('sandsalmaofumado','Sanduíches de salmão fumado','britanica',[],0,0,0,0,[['Pão de forma',55,'g'],['Manteiga',10,'g'],['Salmão fumado',55,'g'],['Limão',0.25,'un'],['Endro',2,'g'],['Pimenta preta',0.3,'g']],['l'],0,['sn','ent']),
+R('sandmorango','Sanduíches de morango','britanica',[],0,0,0,0,[['Pão de forma',55,'g'],['Morango',80,'g'],['Nata para bater 35% gordura',45,'ml'],['Açúcar em pó',7,'g']],['l'],0,['sn','sob']),
 /* Pão sem glúten, de forno de casa. Toda a biblioteca de pães desta app é de
    trigo, de centeio ou de mistura, e quem tem doença celíaca ficava com o
    catálogo inteiro fechado ao pequeno-almoço. Isto é doença e não dieta: uma
@@ -8249,6 +8275,23 @@ P('moussemanga',[['Gelatina','Gelatina a demolhar em água fria.',10],
  ['Ligar','Um pouco de polpa aquecida dissolve a gelatina escorrida; volta ao resto da polpa com o leite condensado.',5],
  ['Natas','Natas batidas envolvidas no fim, sem bater.',6],
  ['Frio','Frigorífico quatro horas. Serve-se com cubinhos de manga por cima.',240]]);
+P('moussemascarponemaracuja',[['Abrir os maracujás','Abre os maracujás e recolhe a polpa. Metade fica para dentro da mousse, metade para cima no fim.',6],
+ ['Creme','Mascarpone à temperatura ambiente, mexido com o leite condensado só até ficar liso. Frio não envolve; batido de mais talha e fica granuloso — o mascarpone é creme e não nata.',5],
+ ['O maracujá por dentro','Metade da polpa envolvida no creme. O ácido engrossa o leite condensado sozinho, e é por isso que esta mousse não precisa de gelatina nem de claras.',3],
+ ['Natas','Natas bem frias batidas em chantilly firme e envolvidas com movimentos largos de baixo para cima. Perder ar aqui é perder a mousse.',6],
+ ['Frio','Taças ao frigorífico três horas. A polpa que ficou de parte vai por cima só na hora de servir: as sementes amolecem se esperarem dentro do creme.',180]]);
+P('sandpepino',[['Cortar o pepino','Pepino descascado e cortado em lâminas finas, de descascador ou mandolina. Grossas abrem a sandes ao meio na primeira dentada.',6],
+ ['Tirar a água','Lâminas numa peneira com o sal e o vinagre, vinte minutos, e depois bem escorridas e secas em papel — a maior parte do sal vai-se com a água. É o passo que separa esta sandes de uma sandes molhada: o pepino é quase só água, e ela sai agora ou sai dentro do pão.',20],
+ ['Barrar','Manteiga amolecida à temperatura ambiente, barrada até às bordas das duas fatias. A camada de gordura é o que impede o pão de encharcar — e é por isso que ela vai até ao canto e não só ao meio.',4],
+ ['Montar','Pepino em duas camadas que se sobrepõem, pimenta moída na hora, fecha e carrega de leve com a palma da mão.',4],
+ ['Cortar','Côdea fora com faca de serrilha, depois de montar e não antes, e corta em quatro dedos ou dois triângulos. Servem-se logo; se tiverem de esperar, vão tapadas com um pano húmido no frigorífico, no máximo duas horas.',4]]);
+P('sandsalmaofumado',[['Barrar','Manteiga amolecida nas duas fatias, até às bordas. No chá a sandes de salmão leva manteiga e não queijo creme: o queijo creme é o do bagel, e tapa o fumo que aqui é o prato todo.',4],
+ ['Montar','Salmão fumado a cobrir o pão inteiro, em fatias lisas e sem buracos. Sumo de limão espremido por cima, endro picado e pimenta moída na hora. Sal não leva — o salmão fumado já é curado em sal.',5],
+ ['Cortar','Côdea fora depois de montar, e corta em quatro dedos. Comem-se no dia: de um dia para o outro o limão vai curando o salmão e a textura muda.',4]]);
+P('sandmorango',[['Lavar e laminar os morangos','Morangos lavados, sem o pé e secos em papel — molhados, a água solta-se dentro das natas. Corta-os em lâminas de três ou quatro milímetros, que é o que os faz ficar quietos quando a sandes é cortada.',6],
+ ['Chantilly','Natas muito frias batidas com o açúcar em pó até ficarem firmes, de picos que não caem. Moles, escorrem por fora assim que a faca passa.',6],
+ ['Montar','Chantilly nas duas fatias, os morangos em fila ao meio e mais chantilly a tapar os buracos entre eles. Fecha, embrulha em película e deixa meia hora no frigorífico: é esse descanso que faz o corte sair limpo.',35],
+ ['Cortar','Côdea fora e corta na diagonal, limpando a faca entre cada corte. Serve-se com a fatia de lado, a mostrar os morangos — e é essa a razão de eles irem alinhados ao meio.',4]]);
 P('mousselima',[['Sumo','Sumo e raspa de lima. A raspa tira-se antes de espremer, sempre.',5],
  ['Ligar','Leite condensado e sumo de lima batidos juntos: o ácido engrossa o leite condensado sozinho, sem lume nem gelatina.',5],
  ['Claras','Claras em castelo com o açúcar, firmes.',6],
@@ -21030,7 +21073,8 @@ function memoriaDoDia(){
    picar, demolhar, marinar, lavar. As tarefas são uma lista explícita ligada a
    famílias de ingredientes — a app não inventa técnica de cozinha. */
 const PREPS=[
-  {k:'demolhar', re:/^(gr[aã]o|feij[aã]o (?!verde)|lentilha|favas)/i, t:'Demolhar de véspera',
+  /* sem as favas: as do catálogo são as frescas da primavera, que não se demolham */
+  {k:'demolhar', re:/^(gr[aã]o|feij[aã]o (?!verde)|lentilha)/i, t:'Demolhar de véspera',
    d:'Ficam de molho na noite anterior; cozem em metade do tempo e ficam mais macios.', h:12, ordem:1},
   {k:'cozer',    re:/^(gr[aã]o|feij[aã]o (?!verde)|lentilha)/i, t:'Cozer e guardar em porções',
    d:'Cozidos e divididos por saquinhos, guardam quatro dias no frigorífico ou três meses no congelador.', h:1.5, ordem:2},
@@ -21047,6 +21091,16 @@ const PREPS=[
   {k:'ovos',     re:/^ovo/i, t:'Cozer ovos',
    d:'Cozidos com casca guardam uma semana no frigorífico; resolvem lanches e saladas.', h:0.3, ordem:8},
 ];
+/* Uma tarefa só serve a um ingrediente que ainda está por preparar. O grão
+   «cozido» já foi demolhado e cozido por alguém — o cartão mandava pô-lo de
+   molho —, e o salmão fumado não se porciona para congelar. As leguminosas
+   são a exceção à regra do que vem pronto: as secas são precisamente as que
+   se demolham. */
+function prepServe(p,nome){
+  if(!p.re.test(nome)) return false;
+  if(p.k==='demolhar' || p.k==='cozer') return !/cozid|conserva|enlatad|em molho|lata/i.test(nome);
+  return !RE_MISE_PRONTO.test(nome) && !/fumad|cozid/i.test(nome);
+}
 function planoFoodPrep(wk){
   const semana=wk||S.week, dates=weekDates(semana), w=S.plans[semana]||{};
   const tarefas={};
@@ -21057,7 +21111,7 @@ function planoFoodPrep(wk){
     if(!n) return;
     const acs=acompsDe(meal), q=acs.length?1/acs.length:0, dob=fatorDobro(meal);
     const junta=(lista,fator)=>lista.forEach(([nome,quant,un])=>{
-      PREPS.forEach(p=>{ if(!p.re.test(nome)) return;
+      PREPS.forEach(p=>{ if(!prepServe(p,nome)) return;
         const k=p.k+'|'+nome;
         if(!tarefas[k]) tarefas[k]={p, nome, q:0, un, dias:[], receitas:[]};
         tarefas[k].q+=quant*n*fator*dob;
@@ -21097,15 +21151,27 @@ const MISE=[
   {re:/^(salsa|coentros|manjeric[aã]o|hortel[aã]|cebolinho|endro|tomilho|alecrim|or[eé]g[aã]os|louro)/i, v:'picar', m:1.2, un:10},
   {re:/^(peito de frango|coxas de frango|frango|peru|bifes de peru)/i, v:'aparar e cortar', m:1.2, un:100},
   {re:/^(vaca|porco|borrego|vitela|cabrito|coelho|bife|carne picada|lombo|entrecosto|secretos|plumas|costeletas)/i, v:'aparar e cortar', m:1.2, un:100},
-  {re:/^(pescada|robalo|dourada|salm[aã]o|bacalhau|cavala|carapau|sardinha|tamboril|maruca|peixe)/i, v:'limpar e porcionar', m:1.5, un:100},
-  {re:/^(lulas|chocos|polvo|choco)/i,                v:'amanhar',                  m:3,   un:100},
+  /* o fumado, o de conserva e o desfiado já vêm prontos da loja */
+  {re:/^(?!.*(fumado|conserva|desfiado|ovas))(pescada|robalo|dourada|salm[aã]o|bacalhau|cavala|carapau|sardinha|tamboril|maruca|peixe)/i, v:'limpar e porcionar', m:1.5, un:100},
+  /* «choco» com fronteira: sem ela, o chocolate em pó era para amanhar */
+  {re:/^(lulas|chocos?\b|polvo)/i,                   v:'amanhar',                  m:3,   un:100},
   {re:/^(camar[aã]o|am[eê]ijoas|mexilh[oõ]es|berbig[aã]o)/i, v:'lavar e descascar', m:2, un:100},
-  {re:/^(queijo|parmes[aã]o|mozzarella|gruy|flamengo|pecorino)/i, v:'ralar ou fatiar', m:1, un:100},
+  /* os de barrar e de colher não se ralam nem se fatiam, e o ralado já vem ralado */
+  {re:/^(?!queijo (mascarpone|creme|fresco|quark|fundido|ralado|minas frescal))(queijo|parmes[aã]o|mozzarella|gruy|flamengo|pecorino)/i, v:'ralar ou fatiar', m:1, un:100},
   {re:/^(lim[aã]o|lima|laranja)/i,                    v:'espremer ou raspar',       m:0.8, un:'un'},
   {re:/^(gr[aã]o|feij[aã]o (?!verde)|lentilha)/i,     v:'escorrer e passar por água', m:0.5, un:100},
 ];
 const MISE_TETO_ING=8;      /* nenhum ingrediente sozinho leva mais do que isto */
-function regraMise(nome){ return MISE.find(x=>x.re.test(String(nome||''))) || null; }
+/* O que vem pronto da loja não se descasca nem se pica, mesmo quando o nome
+   começa como o do produto fresco: o alho em pó, o tomate concentrado, o
+   pepino de conserva. As leguminosas secas também saem daqui — o que elas
+   pedem é demolhar, e isso é tarefa da véspera, no cartão do food prep. */
+const RE_MISE_PRONTO=/(^|[\s,])pó|\bsec[oa]s?\b|concentrad|conserva|enlatad|em molho/i;
+function regraMise(nome){
+  const s=String(nome||'');
+  if(RE_MISE_PRONTO.test(s)) return null;
+  return MISE.find(x=>x.re.test(s)) || null;
+}
 function minutosMiseIng(nome,q,un){
   const r=regraMise(nome); if(!r) return 0;
   if(un==='ml') return 0;                       /* o que se mede em líquido não se corta */
@@ -21116,6 +21182,24 @@ function minutosMiseIng(nome,q,un){
    título chega para saber: nesta casa os títulos dizem o gesto. */
 const RE_PASSO_PREP=/^(amanhar|descascar|picar|cortar|lavar|limpar|preparar|marinar|temperar|panar|abrir|escaldar|ralar|fatiar|demolhar|reunir|arranjar|golpes?)/i;
 function passoEhPrep(p){ return RE_PASSO_PREP.test(String((p&&p.t)||'').trim()); }
+/* Mas o verbo sozinho engana, e enganava em 155 passos. O último passo nunca é
+   preparação — uma receita não acaba a picar cebola, acaba a cortar à mesa ou
+   a temperar a salada. Um título que fala do serviço («à mesa», «fora do
+   lume», «no fim») também não é. E «abrir» e «escaldar» valem para os dois
+   lados: abrir um peixe é preparação, abrir as amêijoas é cozinhá-las; por
+   isso só contam enquanto ainda nenhum passo de lume passou. */
+const RE_PASSO_SERVICO=/servir|à mesa|fora do lume|no fim|à saída|aos poucos|quando |tostar|espeto|contra o veio|morna|manter|provar|assentar/i;
+const RE_PASSO_AMBIGUO=/^(abrir|escaldar)/i;
+function passosDePrep(passos){
+  let aindaNoInicio=true;
+  return passos.filter((p,i)=>{
+    const t=String(p.t||'').trim();
+    const prep = passoEhPrep(p) && i<passos.length-1 && !RE_PASSO_SERVICO.test(t)
+              && (aindaNoInicio || !RE_PASSO_AMBIGUO.test(t));
+    if(!prep) aindaNoInicio=false;
+    return prep;
+  });
+}
 function raizNome(s){ return semAcentos(String(s||'').toLowerCase()).split(/[ ,(]/)[0].slice(0,5); }
 /* A preparação de uma receita, ingrediente a ingrediente: o que já está
    escrito num passo (e quanto esse passo leva) e o que falta estimar. */
@@ -21123,7 +21207,7 @@ function misePorReceita(r,n){
   if(!r) return {itens:[], passos:0, estimado:0, total:0};
   const ing=escalaIngredientes(r, n||1);
   const passos=(PASSOS[r.id]||[]).map(p=>({t:p[0], d:p[1], min:p[2]||0}));
-  const dePrep=passos.filter(passoEhPrep);
+  const dePrep=passosDePrep(passos);
   const minPassos=dePrep.reduce((t,p)=>t+p.min,0);
   const txtPrep=semAcentos(dePrep.map(p=>p.t+' '+p.d).join(' ').toLowerCase());
   const itens=[];
@@ -21192,7 +21276,7 @@ function encaixaNoPrep(r,tarefas){
   if(!tarefas.length) return 0;
   const chaves=new Set(tarefas.map(t=>t.p.k+'|'+t.nome));
   let n=0;
-  (r.i||[]).forEach(l=>PREPS.forEach(p=>{ if(p.re.test(l[0]) && chaves.has(p.k+'|'+l[0])) n++; }));
+  (r.i||[]).forEach(l=>PREPS.forEach(p=>{ if(prepServe(p,l[0]) && chaves.has(p.k+'|'+l[0])) n++; }));
   return n;
 }
 /* Uma receita que gasta o que está prestes a acabar vale mais do que uma que
@@ -21294,7 +21378,7 @@ const VARIANTES=[
   {k:'bowlatum', n:'Bowl de atum', ids:['atumcouveflor','ketobowlatum']},
   {k:'rojoes',   n:'Rojões',       ids:['rojoes','rojoesminho']},
   {k:'caldeirada',n:'Caldeirada',  ids:['caldeirada','caldeiradarica','caldeiradaenguias']},
-  {k:'mousse',   n:'Mousse',       ids:['moussechoc','moussemanga','mousselima','ketomoussechoc']},
+  {k:'mousse',   n:'Mousse',       ids:['moussechoc','moussemanga','mousselima','moussemascarponemaracuja','ketomoussechoc']},
   {k:'pannacotta',n:'Panna cotta',  ids:['pannacotta','ketopannacotta']},
   {k:'arrozdoce',n:'Arroz doce',    ids:['arrozdoce','ketoarrozdoce']},
   /* O folhado de camembert é a mesma roda de queijo dentro da mesma massa: o
@@ -21327,6 +21411,9 @@ const VARIANTES=[
   {k:'torradas', n:'Torradas',     ids:['torradaformaleite','torradaformasem','torradaformagalao','torradamistura','torradaintegral','torradaalentejano','torradadoce','torradasqueijo','torradapresunto']},
   {k:'croissant',n:'Croissant',    ids:['croissantmisto','croissantmistomant','croissantqueijo','croissantfiambre','croissantmanteiga','croissantdoce','croissantsimples']},
   {k:'paosandes',n:'Pão com…',     ids:['paomanteiga','paomanteigagalao','paoqueijo','paofiambre','paomisto','paointegralqueijo','paocenteiofiambre','paoleitemanteiga']},
+  /* As três do chá ficam juntas porque quem as faz está a fazer uma bandeja,
+     e não uma sandes: escolhem-se umas ao lado das outras. */
+  {k:'sandcha',  n:'Sanduíches de chá', ids:['sandpepino','sandsalmaofumado','sandmorango']},
   {k:'arrozprato',n:'Arroz de…',   ids:['arrozfrango','arrozlampreia','arroztamboril','arrozmarisco','arrozpato','arrozpolvo','ketoarrozpato']},
   {k:'rolo',     n:'Rolo de carne',ids:['rolocarne','roloport']},
   /* Cinco maneiras de tratar a mesma posta. Não são o mesmo prato, mas quem
