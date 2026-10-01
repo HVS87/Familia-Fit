@@ -14219,10 +14219,23 @@ function dataValida(s){
   const d=new Date(s+'T12:00:00');
   return !isNaN(d.getTime()) && iso(d)===s;
 }
-/* Objetivo em percentagem contínua do gasto (−25…+20). Para dados antigos,
+/* Objetivo em percentagem contínua do gasto (−75…+20). Para dados antigos,
    deriva-se dos fatores de GOALS — perder=−15, manter=0, ganhar=+10 — pelo
    que o alvo calórico migrado fica bit a bit igual ao anterior. */
-function objetivoPct(m){ return Number.isFinite(m.objetivoPct)? clampNum(Math.round(m.objetivoPct),-25,20)
+/* ---- Até onde a app deixa ir ----
+   O teto era −25 %, e era ele, calado, que travava os planos: um objetivo de
+   dois quilos por semana pedia à dieta −88 %, ficava com −25 % e entregava
+   meio quilo — enquanto o cartão continuava a prometer os dois. A casa decidiu
+   poder planear até 3,5 kg por semana; a app avisa com o que o NHS diz e não
+   tranca. O que fica é um chão, e é físico antes de ser clínico: abaixo das
+   800 kcal por dia o NHS chama-lhe dieta de muito baixas calorias, que só se
+   faz com acompanhamento médico e no máximo doze semanas — e uma app que
+   planeia as refeições de uma família não planeia isso. Quando o chão impede o
+   ritmo pedido, o plano di-lo com o ritmo que consegue entregar, em vez de
+   prometer o outro. */
+const OBJ_PCT_MIN=-75, KCAL_MIN_DIA=800;
+const RITMO_MAX_KG_SEM=3.5, RITMO_NHS_KG_SEM=1;
+function objetivoPct(m){ return Number.isFinite(m.objetivoPct)? clampNum(Math.round(m.objetivoPct),OBJ_PCT_MIN,20)
   : Math.round((GOALS[m.objetivo]?.[1]||0)*100); }
 function rotuloObjetivo(m){ const p=objetivoPct(m);
   if(p===0) return 'Manter peso';
@@ -14232,7 +14245,8 @@ function targetKcal(m){
   let p=objetivoPct(m);
   if(!permiteDefice(m) && p<0) p=0;   /* sem défice em crianças e na gravidez */
   if(p<0 && amamenta(m)) p=Math.max(p,-DEFICE_MAX_LACTACAO);   /* a amamentar, o défice é travado */
-  return tdee(m)*(1+p/100); }
+  const g=tdee(m), t=g*(1+p/100);
+  return p<0? Math.max(Math.min(g,KCAL_MIN_DIA), t) : t; }
 /* A dieta lida SEMPRE por aqui: para presets devolve o objeto de DIETS
    (gramas inalteradas); «personalizada» usa os macros do próprio membro. */
 function dietaDe(m){
@@ -14350,11 +14364,20 @@ function deficeJejumNaSemana(m,wkInicio){
   for(let i=0;i<7;i++) soma+=deficeDoJejum(m, addDias(wkInicio,i));
   return soma;
 }
+/* A água do glicogénio entra na projeção quando há um objetivo de perda a
+   correr: é dele que se sabe a dieta e há quantos dias começou, e portanto
+   quanta água ainda falta sair. Sem objetivo não se inventa — a app não sabe
+   se a dieta de hoje começou ontem ou há um ano. */
 function projecaoPeso(m,sem){ sem=sem||12; const out=[Math.round(m.peso*10)/10]; const c=Object.assign({},m);
   const h=hojeISO();
+  const o=(S.objetivos||[]).find(x=>!x.concluido && x.membroId===m.id && x.tipo==='perder' && x.agua);
+  const d0=o? Math.max(0,(Date.now()-new Date(o.dataInicio).getTime())/864e5) : 0;
+  let aguaAntes=o? aguaJaSaiu(o.agua,d0) : 0;
   for(let i=0;i<sem;i++){
     const extra=deficeJejumNaSemana(m, addDias(h, i*7));
-    c.peso=Math.max(30, c.peso+((targetKcal(c)-tdee(c))*7-extra)/7700);
+    const aguaDepois=o? aguaJaSaiu(o.agua,d0+(i+1)*7) : 0;
+    c.peso=Math.max(30, c.peso+((targetKcal(c)-tdee(c))*7-extra)/7700-(aguaDepois-aguaAntes));
+    aguaAntes=aguaDepois;
     out.push(Math.round(c.peso*10)/10); }
   return out; }
 /* Escala linear com clamp — o utilitário de todos os gráficos. */
@@ -15533,7 +15556,7 @@ const DICAS={
   distancia:'A distância e a velocidade dão as horas de treino, que é como um corredor ou um ciclista pensa. Para a mesma distância, ir mais depressa demora menos tempo e gasta calorias parecidas.',
   barraGasto:'De onde vem o gasto do dia, parcela a parcela. A linha tracejada marca o alvo alimentar: a distância entre o fim da barra e a linha é o défice ou o excedente do plano.',
   objetivo:'Quanto queres comer acima ou abaixo do que gastas. Um défice de 15 % é um ritmo comum de perda; abaixo de −20 % a app avisa, e se o alvo cair abaixo do metabolismo basal avisa com mais força.',
-  ritmo:'A perda ou ganho de peso que o objetivo implica, a 7 700 kcal por quilo. Acima de 0,75 kg por semana passa a amarelo, acima de 1 kg a vermelho.',
+  ritmo:'A perda ou ganho de peso que o objetivo implica, a 7 700 kcal por quilo. Acima de 0,75 kg por semana passa a amarelo, acima de 1 kg a vermelho — o NHS aponta 0,5 a 1 kg por semana como o ritmo seguro. A app deixa ir mais longe e diz porquê não; o alvo é que nunca desce das 800 kcal por dia.',
   macros:'Quanto do total calórico vem de cada macronutriente, e a tradução em gramas. Um grama de hidratos ou de proteína dá 4 kcal, um de gordura dá 9.',
   amdr:'A faixa de distribuição de macronutrientes considerada aceitável nesta fase da vida. Em crianças e na gravidez, uma dieta que saia da faixa é encostada aos limites; num adulto é apenas referência.',
   proteinaKg:'A proteína recomendada por quilo de peso muda com a idade e com a fase: um bebé precisa de quase o dobro de um adulto, na gravidez sobe para 1,1 g por quilo e a amamentar para 1,3 g.',
@@ -15552,7 +15575,7 @@ const DICAS={
   bebeLeite:'A conta parte de 67 kcal por 100 ml — o valor clássico de 20 kcal/onça, dentro do intervalo de 60 a 70 kcal/100 ml do Codex Alimentarius para fórmulas de início e próximo do leite materno maduro. O volume por omissão sai das necessidades de energia; a referência de ml por quilo desce com a idade, à medida que entram os sólidos.',
   bebeHorario:'O intervalo e a hora da primeira tomada geram a grelha do dia. As zonas sombreadas são a noite — tomadas nesse período aparecem com a lua. Serve de apoio, não de relógio: sinais de fome mandam mais do que horários.',
   bebeRef:'A partir dos 6 meses a energia divide-se entre o leite e os sólidos. A repartição sugerida segue o padrão habitual da diversificação em Portugal: papa ou fruta a meio da manhã, sopa e prato ao almoço, e por aí em diante.',
-  objCriar:'A partir de quantos quilos e de quanto tempo, a app calcula o défice ou o excedente diário necessário e reparte-o entre a dieta e o exercício. Ao criar, isso é logo aplicado ao objetivo da Nutrição e ao desporto escolhido — não fica só no papel.',
+  objCriar:'A partir de quantos quilos e de quanto tempo, a app calcula o défice ou o excedente diário necessário e reparte-o entre a dieta e o exercício. Ao criar, isso é logo aplicado ao objetivo da Nutrição e ao desporto escolhido — não fica só no papel. Planeia-se até 3,5 kg por semana; acima de 1 kg aparece o aviso do NHS. Numa perda, a conta separa a água do glicogénio da gordura: a água sai na primeira semana (cerca de 2 kg numa cetogénica, 1 kg numa dieta pobre em hidratos, até meio quilo nas outras) e volta quando os hidratos voltam. Por isso a app aponta um peso de fim de dieta um pouco abaixo do alvo — é lá que a balança tem de chegar para o peso assentar no alvo depois. Se a manutenção for cetogénica, a água fica fora e o alvo conta com ela.',
   objDieta:'A dieta escolhida aqui passa a ser a de quem entra neste objetivo, e com ela mudam os alvos de hidratos, proteína e gordura do dia, o que o plano da semana sugere e aceita, e a lista de compras que sai desse plano. Em crianças, adolescentes e grávidas a app encosta os macros à faixa recomendada para a idade e diz que o fez — uma dieta cetogénica não se aplica tal e qual a quem está a crescer. «Não mudar» deixa cada um com a dieta que já tinha.',
   objDesportos:'Escolhe os que quiseres: o tempo extra que o objetivo pede reparte-se por igual entre eles, e o gasto por hora é a média dos gastos de cada um — correr e fazer ioga meia hora de cada dá o mesmo que uma hora a meio caminho dos dois. Os que já praticas aparecem primeiro, marcados com uma estrela; os outros entram no teu plano quando os escolheres aqui.',
   objEstrategia:'Quanto do ajuste diário vem de comer menos (ou mais) e quanto vem de gastar mais a fazer desporto. Mais dieta pede menos esforço físico extra; mais exercício permite comer com menos restrição para o mesmo ritmo.',
@@ -27765,7 +27788,7 @@ function sincronizaObjetivo(m){ const p=objetivoPct(m);
   m.objetivo = p<=-8? 'perder' : p>=5? 'ganhar' : 'manter'; }
 function slideObjetivo(mid,el){
   const m=S.members.find(x=>x.id===mid); if(!m) return;
-  m.objetivoPct=clampNum(Math.round(parseFloat(el.value)||0),-25,20);
+  m.objetivoPct=clampNum(Math.round(parseFloat(el.value)||0),OBJ_PCT_MIN,20);
   pintaRange(el);
   aoVivo('nut', atualizarNutricao);
 }
@@ -27825,10 +27848,15 @@ function barraRefeicoes(k){
   }).join('');
   return `<svg class="svgfx" viewBox="0 0 340 44" aria-hidden="true" style="margin-top:10px">${segs}</svg>`;
 }
-/* Projeção iterativa a 12 semanas. O domínio Y é fixo por render e dimensionado
-   para o pior caso do slider (−25%) — o eixo nunca reescala durante o arrasto. */
+/* Projeção iterativa a 12 semanas. O domínio Y é fixo por render — o eixo
+   nunca reescala durante o arrasto — e cobre −25 % ou o défice de hoje, o
+   que for maior: dimensionado para o fundo do cursor (o chão das 800 kcal),
+   o gráfico ficava achatado para toda a gente que perde meio quilo. Quem
+   arrasta para lá do que o eixo mostra vê a linha encostar ao fundo, e ao
+   largar o gráfico redesenha-se com o eixo certo. */
 function geomProjecao(m){
-  const meia=Math.max(2.5, Math.ceil(tdee(m)*0.25*7*12/7700));
+  const def=Math.max(tdee(m)*0.25, tdee(m)-targetKcal(m));
+  const meia=Math.max(2.5, Math.ceil(def*7*12/7700)+2.5);
   const yMin=m.peso-meia, yMax=m.peso+meia;
   return {yMin,yMax, X:i=>sx(i,0,12,40,330), Y:v=>sx(v,yMin,yMax,130,12)};
 }
@@ -27895,7 +27923,17 @@ function atualizarNutricao(){
       rp.textContent=(a<0.005?'peso estável':(kg>0?'−':'+')+nPT(a,2)+' kg/semana');
       rp.setAttribute('class','pill '+(a<=0.75?'ok':a<=1?'warn':'bad')); }
   }
-  const av=document.getElementById('nu-aviso'); if(av) av.style.visibility=p<=-20?'visible':'hidden';
+  /* Acima de 1 kg por semana o aviso passa a ser o do NHS, com o porquê;
+     no chão das 800 kcal diz-se que o cursor já não desce o alvo. */
+  const av=document.getElementById('nu-aviso');
+  if(av){
+    const kgS=ritmoSemanal(m);
+    av.innerHTML = alvo<=KCAL_MIN_DIA+1 && p<0
+        ? 'o alvo está no chão das '+KCAL_MIN_DIA+' kcal por dia: abaixo disto o NHS chama-lhe dieta de muito baixas calorias, que só se faz com acompanhamento médico e no máximo 12 semanas'
+      : kgS>RITMO_NHS_KG_SEM+0.005 ? AVISO_NHS_RITMO
+      : 'défice agressivo — acompanha este plano com um profissional de saúde';
+    av.style.visibility=p<=-20?'visible':'hidden';
+  }
   const d=mk.pct;
   const bc=document.getElementById('nu-bar-c');
   if(bc){ bc.style.width=d.c+'%';
@@ -30914,13 +30952,14 @@ function renderNutricao(){
       <h2 style="margin-top:2px">Plano de ${esc(m.nome)}</h2>
       <div style="margin-top:10px">
         <div class="splabel"><span>Objetivo ${dica('objetivo')}</span><output id="nu-obj" style="min-width:22ch;text-align:right">${textoObjetivo(m)}</output></div>
-        <input type="range" id="nu-r-obj" min="${permiteDefice(m)?-25:0}" max="20" step="1" value="${clampNum(pct,permiteDefice(m)?-25:0,20)}" style="--pct:${Math.round((clampNum(pct,permiteDefice(m)?-25:0,20)-(permiteDefice(m)?-25:0))/(permiteDefice(m)?45:20)*100)}%"
+        <input type="range" id="nu-r-obj" min="${permiteDefice(m)?OBJ_PCT_MIN:0}" max="20" step="1" value="${clampNum(pct,permiteDefice(m)?OBJ_PCT_MIN:0,20)}" style="--pct:${Math.round((clampNum(pct,permiteDefice(m)?OBJ_PCT_MIN:0,20)-(permiteDefice(m)?OBJ_PCT_MIN:0))/(permiteDefice(m)?20-OBJ_PCT_MIN:20)*100)}%"
           aria-label="Objetivo calórico em percentagem do gasto diário"
           oninput="slideObjetivo('${m.id}',this)" onchange="commitObjetivo('${m.id}',this)">
         ${permiteDefice(m)? `<div style="position:relative;height:15px;font-size:11px;color:var(--mut)">
-          <span style="position:absolute;left:${(10/45*100).toFixed(1)}%;transform:translateX(-50%)">perder −15</span>
-          <span style="position:absolute;left:${(25/45*100).toFixed(1)}%;transform:translateX(-50%)">0</span>
-          <span style="position:absolute;left:${(35/45*100).toFixed(1)}%;transform:translateX(-50%)">ganhar +10</span>
+          <span style="position:absolute;left:${((-50-OBJ_PCT_MIN)/(20-OBJ_PCT_MIN)*100).toFixed(1)}%;transform:translateX(-50%)">−50</span>
+          <span style="position:absolute;left:${((-15-OBJ_PCT_MIN)/(20-OBJ_PCT_MIN)*100).toFixed(1)}%;transform:translateX(-50%)">−15</span>
+          <span style="position:absolute;left:${((0-OBJ_PCT_MIN)/(20-OBJ_PCT_MIN)*100).toFixed(1)}%;transform:translateX(-50%)">0</span>
+          <span style="position:absolute;left:${((10-OBJ_PCT_MIN)/(20-OBJ_PCT_MIN)*100).toFixed(1)}%;transform:translateX(-50%)">+10</span>
         </div>`
         : `<p class="sub" style="margin-top:4px">${gravida(m)?'Na gravidez':'Em idade de crescimento'} não se planeia défice calórico — o slider começa na manutenção.</p>`}
         ${deficeTravadoPelaLactacao(m)? `<div class="msg warn-msg" style="margin-top:8px">Escolheste ${Math.round(Math.abs(parseFloat(m.objetivoPct)||0))} % abaixo do gasto,
@@ -31240,7 +31279,15 @@ function validacaoObjetivo(o){
   if(dias<DIAS_MIN_CALIBRACAO) return {estado:'cedo', dias, faltam:DIAS_MIN_CALIBRACAO-dias};
   /* o que a balança diz */
   const kgReal=a.p-b.p;                       /* positivo = perdeu */
-  const kcalReal=kgReal*7700;
+  /* A água do glicogénio que saiu neste intervalo não é défice: um quilo e
+     meio de água na primeira semana de uma cetogénica faz a balança parecer
+     o dobro do previsto, e a conta concluía que a pessoa gasta mais 1500 kcal
+     por dia do que gasta — e a seguir propunha subir-lhe o alvo. Tira-se à
+     balança antes de a converter em calorias, e soma-se à previsão para as
+     duas se mostrarem na mesma moeda. */
+  const aguaIntervalo = (o.tipo==='perder' && o.agua)
+    ? aguaJaSaiu(o.agua, diasEntre(ini,b.d)) - aguaJaSaiu(o.agua, diasEntre(ini,a.d)) : 0;
+  const kcalReal=(kgReal-aguaIntervalo)*7700;
   /* ---- O que se comeu MESMO, e não o que estava planeado ----
      A conta anterior comparava a balança com o alvo do plano, e por isso não
      conseguia distinguir as duas explicações que ela própria enumerava: «gasta
@@ -31303,7 +31350,7 @@ function validacaoObjetivo(o){
   if(Math.abs(kcalPrevisto)<1) return {estado:'sem-plano'};
   const razao=kcalReal/kcalPrevisto;          /* 1 = a previsão acertou */
   const desvio=razao-1;
-  const kgPrevisto=kcalPrevisto/7700;
+  const kgPrevisto=kcalPrevisto/7700+aguaIntervalo;
   /* Onde é que o erro está? Se o peso mudou MENOS do que o previsto, ou o gasto
      real é menor do que a app estima, ou entrou mais comida do que a registada.
      A app não pode distinguir as duas — e diz isso em vez de escolher uma. */
@@ -31311,7 +31358,7 @@ function validacaoObjetivo(o){
      se comeu ficou acima do alvo, parte do desvio é isso e não o metabolismo. */
   const acimaDoAlvo = (ingeridoMedio!=null)? ingeridoMedio-targetKcal(m) : null;
   return {estado: Math.abs(desvio)<DESVIO_QUE_INTERESSA? 'confirma' : (desvio<0? 'aquem':'alem'),
-    dias, kgReal:Math.round(kgReal*100)/100, kgPrevisto:Math.round(kgPrevisto*100)/100,
+    dias, kgReal:Math.round(kgReal*100)/100, aguaIntervalo:Math.round(aguaIntervalo*100)/100, kgPrevisto:Math.round(kgPrevisto*100)/100,
     razao, desvio, deficeDiarioPlano:Math.round(deficeDiarioPlano),
     /* o que sustenta a conta: registos ou plano */
     usouRegistos, cobertura:Math.round(cobertura*100), diasComRegisto,
@@ -31350,15 +31397,27 @@ function progressoObjetivo(o){
     return {pct:pctTempo, dentroBanda:dentro, atingido:terminou&&dentro, terminouFora:terminou&&!dentro,
       semanasDecorridas, bandaKg, tone:dentro?'ok':'warn', pctTempo};
   }
-  const total=Math.abs(o.pesoInicial-o.pesoAlvo);
-  const atingido = o.tipo==='perder'? m.peso<=o.pesoAlvo+0.05 : m.peso>=o.pesoAlvo-0.05;
+  /* Numa perda, a meta da balança é o peso de FIM DE DIETA — abaixo do alvo
+     pela água que volta depois —, e é aí que a fase acaba. */
+  const meta = pesoFimDieta(o);
+  const total=Math.abs(o.pesoInicial-meta);
+  const atingido = o.tipo==='perder'? m.peso<=meta+0.05 : m.peso>=meta-0.05;
   if(total<0.05) return {pct:100, atingido:true, tone:'ok', pctTempo, semanasDecorridas};
   const feito = o.tipo==='ganhar'? (m.peso-o.pesoInicial) : (o.pesoInicial-m.peso);
   const pct=clampNum(feito/total*100,0,100);
+  /* O que se esperava a esta altura não é uma reta: a água sai quase toda na
+     primeira semana e o tecido vai ao ritmo do défice. Julgar a primeira
+     semana pela reta dava «muito adiantado», e a terceira, quando a água já
+     não ajuda, «atrasado» — sem nada ter mudado. */
+  const agua=(o.tipo==='perder' && o.agua)? o.agua : null;
+  const esperado = agua
+    ? aguaJaSaiu(agua, semanasDecorridas*7) + Math.max(0,total-(agua.ini||0))*Math.min(1, pctTempo/100)
+    : total*pctTempo/100;
+  const pctEsperado=clampNum(esperado/total*100,0,100);
   /* pctTempo<1: objetivo acabado de criar, sem tempo real decorrido — mostra-se
      "no bom caminho" em vez de julgar um ritmo que ainda não existe. */
-  const tone = atingido||pctTempo<1? 'ok' : pct>=pctTempo*0.85? 'ok' : pct>=pctTempo*0.5? 'warn' : 'bad';
-  return {pct, atingido, feito, total, kgRestante:o.pesoAlvo-m.peso, tone, pctTempo, semanasDecorridas};
+  const tone = atingido||pctTempo<1? 'ok' : pct>=pctEsperado*0.85? 'ok' : pct>=pctEsperado*0.5? 'warn' : 'bad';
+  return {pct, atingido, feito, total, kgRestante:meta-m.peso, tone, pctTempo, pctEsperado, semanasDecorridas, meta};
 }
 /* MET de referência para um desporto ainda não registado: a velocidade por
    omissão do catálogo, ou intensidade moderada. Se o membro já o pratica,
@@ -31448,13 +31507,98 @@ function metCombinado(m,ids,nivel){
   const soma=lista.reduce((t,id)=>t+(metParaSugestao(m,id,nivel)||0),0);
   return soma/lista.length;
 }
-function calcEstrategia(m,pesoAlvo,semanasRestantes,tipo,splitDieta,desportoId,nivel){
-  const kgRestante=pesoAlvo-m.peso;
-  const kcalTotal=Math.abs(kgRestante)*7700;
+/* ================= A ÁGUA DO GLICOGÉNIO =================
+   O corpo guarda os hidratos como glicogénio — cerca de 600 g num adulto,
+   500 no músculo e uns 80 no fígado —, e cada grama vem com pelo menos 3 g de
+   água (Murray e Rosenbloom, Nutrition Reviews, 2018). Quando os hidratos
+   descem, o glicogénio esvazia e a água sai com ele: é a primeira semana que
+   «corre tão bem» e que não é gordura. Na cetogénica é o grosso da descida
+   inicial, a que se soma o sódio que as cetonas levam na urina — 2 a 3 kg nas
+   primeiras semanas. E é a mesma água que volta, em poucos dias, quando os
+   hidratos voltam: o peso «recuperado» logo a seguir à dieta, que desanima
+   quem não sabia que ele vinha (Kreitzman, Coxon e Szaz, AJCN, 1992).
+
+   Os números são uma estimativa de população, e dizem-se como tal:
+     · cetogénica (≤ 10 % de hidratos): 2,0 kg — o glicogénio quase todo, e
+       algum sódio;
+     · pobre em hidratos (≤ 25 %): 1,0 kg — esvazia a meio;
+     · qualquer outra dieta com défice: até 0,5 kg, proporcional ao corte, a
+       0,5 com um défice de 25 % ou mais — come-se menos, e menos hidratos.
+   Escalados pelo peso (o glicogénio está quase todo no músculo), entre 0,8 e
+   1,3 vezes o de um adulto de 70 kg. */
+function aguaGlicogenio(m,dieta,defPct){
+  const d = dieta==='personalizada'? dietaDe(m) : (temChave(DIETS,dieta)? DIETS[dieta] : DIETS.equilibrada);
+  const c=parseFloat(d.c)||50;
+  const kg = c<=10? 2.0 : c<=25? 1.0 : 0.5*Math.min(1, Math.max(0,-(parseFloat(defPct)||0))/25);
+  return kg*clampNum((parseFloat(m.peso)||70)/70, 0.8, 1.3);
+}
+/* O que a água faz a um plano, em três patamares: o de antes (L0), o durante
+   a dieta (L1) e o depois (L2). Sai `ini`, a água que vai na primeira ou
+   segunda semana, e `volta`, a que regressa quando a dieta acaba.
+   O «depois» é a dieta da manutenção, se houver uma planeada; sem ela, a de
+   antes — é a ela que se volta. E a diferença conta: quem perde em
+   cetogénica e mantém em cetogénica não recupera a água enquanto lá ficar,
+   e o alvo pode contar com ela; quem volta aos hidratos recupera-a toda, e
+   tem de acabar a dieta abaixo do alvo para lá assentar. */
+function aguaDoPlano(m,ctx,defPct){
+  const antes=ctx.antes||m.dieta, dieta=ctx.dieta||m.dieta, depois=ctx.depois||antes;
+  const L0=aguaGlicogenio(m,antes, ctx.pctAntes!=null? ctx.pctAntes : objetivoPct(m));
+  const L1=aguaGlicogenio(m,dieta,defPct);
+  const L2=aguaGlicogenio(m,depois,0);
+  const r1=x=>Math.round(x*10)/10;
+  return {ini:r1(L1-L0), volta:r1(L1-L2), tau: (dietaDe(Object.assign({},m,{dieta})).c<=25)? 3 : 7};
+}
+/* Quanto da água inicial já saiu ao fim de `dias`: o glicogénio do fígado vai
+   num dia e o do músculo em poucos, por isso é uma curva e não uma reta. */
+function aguaJaSaiu(agua,dias){
+  if(!agua || !agua.ini) return 0;
+  return agua.ini*(1-Math.exp(-Math.max(0,dias)/(agua.tau||7)));
+}
+/* O contexto de dieta de um plano novo, a partir do formulário. */
+function ctxDoForm(m,f){
+  return {antes:m.dieta, dieta:(f.dieta && temChave(DIETS,f.dieta))? f.dieta : m.dieta,
+    depois: f.manAtiva? ((f.manDieta && temChave(DIETS,f.manDieta))? f.manDieta : ((f.dieta && temChave(DIETS,f.dieta))? f.dieta : m.dieta)) : m.dieta};
+}
+/* E de um objetivo já a correr: a água foi calculada quando ele nasceu, e o
+   que interessa agora é quanto dela ainda falta sair. */
+function ctxDoObjetivo(o){
+  const dias=Math.max(0,(Date.now()-new Date(o.dataInicio).getTime())/864e5);
+  return o.agua? {agua:o.agua, jaSaiu:aguaJaSaiu(o.agua,dias)} : {agua:{ini:0,volta:0,tau:7}, jaSaiu:0};
+}
+/* O peso a que a balança deve chegar no fim da dieta, para assentar no alvo
+   depois de a água voltar. */
+function pesoFimDieta(o){
+  if(!o || o.tipo!=='perder') return o? o.pesoAlvo : 0;
+  return Number.isFinite(o.pesoFim)? o.pesoFim : o.pesoAlvo;
+}
+function calcEstrategia(m,pesoAlvo,semanasRestantes,tipo,splitDieta,desportoId,nivel,ctx){
   const dias=Math.max(1,semanasRestantes*7);
-  const deficitDiario=kcalTotal/dias;
   const sinal=tipo==='ganhar'?1:-1;
   const tdeeAtual=tdee(m);
+  /* ---- A água entra na conta da perda ----
+     O que custa 7700 kcal por quilo é o tecido, não a água. Por isso a água
+     que sai no início não se paga em défice, e a que volta no fim tem de ser
+     descontada antes: a balança tem de chegar a `pesoFim`, abaixo do alvo, e
+     o défice é o do tecido que separa o peso de hoje desse número, tirando a
+     água que ainda vai sair sozinha. Num objetivo a correr, a água conhecida
+     é a do objetivo e só conta a que ainda não saiu. */
+  let agua={ini:0,volta:0,tau:7}, aguaPorSair=0, pesoFim=pesoAlvo;
+  if(tipo==='perder'){
+    const c=ctx||{};
+    if(c.agua){ agua=c.agua; aguaPorSair=Math.max(0,(agua.ini||0)-(c.jaSaiu||0)); }
+    else {
+      /* a água depende do défice e o défice da água; uma volta chega, porque
+         a parte que depende do défice é meio quilo no máximo */
+      const pctPalpite=-Math.abs(pesoAlvo-m.peso)*7700/dias*(splitDieta/100)/Math.max(1,tdeeAtual)*100;
+      agua=aguaDoPlano(m,c,pctPalpite);
+      aguaPorSair=agua.ini;
+    }
+    pesoFim=Math.round((pesoAlvo-agua.volta)*10)/10;
+  }
+  const kgRestante=pesoFim-m.peso;
+  const kgTecido = tipo==='perder'? Math.max(0, (m.peso-pesoFim)-aguaPorSair) : Math.abs(kgRestante);
+  const kcalTotal=kgTecido*7700;
+  const deficitDiario=kcalTotal/dias;
   let viaDieta=deficitDiario, viaExercicio=0, horasExtraSemana=0;
   if(tipo==='perder'){
     viaDieta=deficitDiario*splitDieta/100;
@@ -31464,16 +31608,77 @@ function calcEstrategia(m,pesoAlvo,semanasRestantes,tipo,splitDieta,desportoId,n
     const met=metCombinado(m,ids,nivel);
     horasExtraSemana = met>0? (viaExercicio*7)/(met*m.peso) : 0;
   }
-  let objetivoPctSugerido = tipo==='manter'? 0 : Math.round(sinal*viaDieta/tdeeAtual*100);
-  objetivoPctSugerido = tipo==='manter'?0 : clampNum(objetivoPctSugerido, tipo==='perder'?-25:0, tipo==='ganhar'?20:0);
+  /* ---- O exercício do objetivo não se come de volta ----
+     O alvo é uma percentagem do gasto, e o gasto SOBE com o exercício que o
+     objetivo acrescenta. A conta antiga era `−viaDieta/gasto de hoje`, e o
+     alvo novo subia com o exercício todo: o défice ficava só na parte da
+     dieta. Medido: um plano «100 % exercício» dava défice zero — a pessoa
+     treinava mais e a app mandava-a comer exatamente o que o treino gastava —,
+     e num 50/50 metade do ritmo prometido desaparecia. A percentagem certa é a
+     do défice inteiro sobre o gasto que vai haver: o alvo fica no gasto de
+     hoje menos a parte da dieta, e o treino soma ao défice em vez de o pagar. */
+  let objetivoPctSugerido = tipo==='manter'? 0
+    : tipo==='perder'? Math.round(-(viaDieta+viaExercicio)/Math.max(1,tdeeAtual+viaExercicio)*100)
+    : Math.round(sinal*viaDieta/tdeeAtual*100);
+  /* O piso da dieta é o das 800 kcal, e não uma percentagem: em quem gasta
+     muito, −40 % ainda é comida a sério; em quem gasta pouco, já não é. */
+  const gastoComExer=tdeeAtual+viaExercicio;
+  const pctChao = Math.min(0, Math.ceil((Math.min(gastoComExer,KCAL_MIN_DIA)/Math.max(1,gastoComExer)-1)*100));
+  const pctPedido=objetivoPctSugerido;
+  objetivoPctSugerido = tipo==='manter'?0 : clampNum(objetivoPctSugerido, tipo==='perder'?Math.max(OBJ_PCT_MIN,pctChao):0, tipo==='ganhar'?20:0);
   /* o alvo que vai ficar conta com o exercício que este objetivo acrescenta —
      é ele que sobe o gasto; sem isto o aviso «abaixo do basal» disparava por
      um alvo que nunca chegava a existir */
-  const targetKcalNovo=(tdeeAtual+viaExercicio)*(1+objetivoPctSugerido/100);
+  const targetKcalNovo=gastoComExer*(1+objetivoPctSugerido/100);
+  /* O ritmo que se mostra é o da balança durante a dieta — tecido e água —,
+     porque é esse que a pessoa vai ver. */
   const ritmoKgSemana=Math.abs(kgRestante)/Math.max(semanasRestantes,0.001);
+  /* E o que o plano consegue mesmo entregar, se o piso cortou a dieta: o
+     tecido ao défice que ficou, mais a água, que essa sai na mesma. */
+  const limitado = tipo==='perder' && objetivoPctSugerido>pctPedido;
+  const deficeEntregue = limitado? -objetivoPctSugerido/100*gastoComExer : deficitDiario;
+  const ritmoEntregue = limitado? (deficeEntregue*dias/7700 + aguaPorSair)/Math.max(semanasRestantes,0.001) : ritmoKgSemana;
   return {kgRestante, deficitDiario, viaDieta, viaExercicio, horasExtraSemana, minutosExtraSemana:horasExtraSemana*60,
     objetivoPctSugerido, abaixoBasal: targetKcalNovo<bmr(m), ritmoKgSemana,
-    toneRitmo: ritmoKgSemana<=0.75?'ok':ritmoKgSemana<=1?'warn':'bad', tdeeAtual, targetKcalNovo};
+    toneRitmo: ritmoKgSemana<=0.75?'ok':ritmoKgSemana<=RITMO_NHS_KG_SEM?'warn':'bad', tdeeAtual, targetKcalNovo,
+    agua, aguaPorSair, pesoFim, kgTecido, limitado, ritmoEntregue,
+    acimaNHS: tipo==='perder' && ritmoKgSemana>RITMO_NHS_KG_SEM+0.005,
+    noChao: tipo==='perder' && targetKcalNovo<=KCAL_MIN_DIA+1};
+}
+/* O que o NHS diz, escrito uma vez só e usado onde o ritmo passa de 1 kg. */
+const AVISO_NHS_RITMO='O NHS aponta <b>0,5 a 1 kg por semana</b> como o ritmo seguro e sustentável — cerca de 600 kcal a menos por dia. Acima disso perde-se mais músculo, aumenta o risco de pedra na vesícula e quase sempre se recupera o peso. Um plano assim pede acompanhamento de um profissional de saúde.';
+/* As linhas de um plano de perda que falam da água e do ritmo, para o
+   formulário e para o ajuste dizerem o mesmo. */
+function linhasAguaRitmo(calc,pesoAlvo){
+  if(!calc || !calc.agua) return '';
+  const out=[];
+  const a=calc.agua;
+  if(calc.aguaPorSair>=0.1) out.push(`na primeira semana saem cerca de <b>${nPT(calc.aguaPorSair,1)} kg de água</b> do glicogénio — não é gordura, e não se paga em défice`);
+  if(a.volta>=0.1) out.push(`a balança deve chegar a <b>${nPT(calc.pesoFim,1)} kg</b> no fim da dieta: ${nPT(a.volta,1)} kg dessa água voltam nos dias a seguir, e o peso assenta nos ${nPT(pesoAlvo,1)}`);
+  else if(a.volta<=-0.1) out.push(`a dieta da manutenção tem menos hidratos do que esta: a balança pode parar nos <b>${nPT(calc.pesoFim,1)} kg</b>, e desce o resto sozinha`);
+  else if(a.ini>=0.1) out.push(`a manutenção mantém os hidratos baixos, e a água fica fora enquanto ela durar — o alvo conta com ela`);
+  let html=out.length? `<div class="sub" style="margin-top:4px">💧 ${out.join('; ')}.</div>` : '';
+  if(calc.limitado) html+=`<div class="sub" style="margin-top:4px;color:var(--warn)">A dieta parou nas ${KCAL_MIN_DIA} kcal por dia, e com o exercício escolhido este plano entrega cerca de <b>${nPT(calc.ritmoEntregue,2)} kg/semana</b>, não os ${nPT(calc.ritmoKgSemana,2)} pedidos — passa mais para o exercício ou alarga o prazo.</div>`;
+  if(calc.acimaNHS) html+=`<div class="sub" style="margin-top:4px;color:var(--bad)">${AVISO_NHS_RITMO}</div>`;
+  return html;
+}
+/* O prazo mínimo para um plano de perda não passar dos 3,5 kg por semana na
+   balança — água incluída, porque é a balança que se vê. */
+function semanasMinimasPerda(m,f){
+  if(!m || f.tipo!=='perder') return 1;
+  const agua=aguaDoPlano(m, ctxDoForm(m,f), -25);
+  return Math.ceil((f.delta+Math.max(0,agua.volta))/RITMO_MAX_KG_SEM - 1e-9);
+}
+/* Se os quilos e o prazo pedem mais do que 3,5 kg por semana, é o prazo que
+   cede — os quilos foram a decisão, o prazo é a consequência. Devolve true
+   quando mexeu. */
+function respeitaRitmoMax(f){
+  if(!f || f.tipo!=='perder' || !Array.isArray(f.membros)) return false;
+  const min=f.membros.map(mid=>S.members.find(x=>x.id===mid)).filter(Boolean)
+    .reduce((mx,m)=>Math.max(mx, semanasMinimasPerda(m,f)), Math.ceil(f.delta/RITMO_MAX_KG_SEM - 1e-9));
+  const alvo=clampNum(Math.max(2,min),2,52);
+  if((f.semanas||0)<alvo){ f.semanas=alvo; return true; }
+  return false;
 }
 /* Acrescenta o exercício extra ao desporto escolhido — a um que já pratica
    (soma às horas semanais existentes) ou, se não tiver nenhum, cria um
@@ -31764,7 +31969,7 @@ function blocoRecuperacao(f){
   if(!escolhidos.length || !f.desportos.length) return '';
   const m=escolhidos[0];
   const pesoAlvo = f.tipo==='ganhar'? m.peso+f.delta : f.tipo==='perder'? Math.max(1,m.peso-f.delta) : m.peso;
-  const calc=calcEstrategia(m,pesoAlvo,f.semanas,f.tipo,f.split,f.desportos,f.nivel);
+  const calc=calcEstrategia(m,pesoAlvo,f.semanas,f.tipo,f.split,f.desportos,f.nivel,ctxDoForm(m,f));
   /* ---- O aviso mede a semana composta, não a média que a estratégia pediu ----
      Dividir os minutos da estratégia pelo número de sessões dava a sessão
      MÉDIA, e quem tem uma corrida de vinte quilómetros ao sábado e três de oito
@@ -32142,7 +32347,7 @@ function balancoSemanaHtml(){
   if(!m) return '<p class="sub">Escolhe quem treina para ver quantas calorias esta semana gasta.</p>';
   if(f.tipo!=='perder') return '';
   const pesoAlvo=Math.max(1,Math.round((m.peso-f.delta)*10)/10);
-  const calc=calcEstrategia(m,pesoAlvo,f.semanas,f.tipo,f.split,f.desportos,f.nivel);
+  const calc=calcEstrategia(m,pesoAlvo,f.semanas,f.tipo,f.split,f.desportos,f.nivel,ctxDoForm(m,f));
   const pedido=calc.viaExercicio*7;                    /* kcal/semana que o objetivo espera do exercício */
   const dado=kcalSemanaBlocos(m,blocos);
   if(pedido<=1) return `<p class="sub">Com a estratégia toda na dieta, esta semana de treino é ganho extra: mais ${Math.round(dado)} kcal por semana do que o objetivo contava.</p>`;
@@ -32165,7 +32370,7 @@ function ajustarVolumesAoObjetivo(){
   const m=(f.membros||[]).map(mid=>S.members.find(x=>x.id===mid)).filter(Boolean)[0];
   if(!m || !blocos.length) return;
   const pesoAlvo=Math.max(1,Math.round((m.peso-f.delta)*10)/10);
-  const calc=calcEstrategia(m,pesoAlvo,f.semanas,f.tipo,f.split,f.desportos,f.nivel);
+  const calc=calcEstrategia(m,pesoAlvo,f.semanas,f.tipo,f.split,f.desportos,f.nivel,ctxDoForm(m,f));
   const pedido=calc.viaExercicio*7, dado=kcalSemanaBlocos(m,blocos);
   if(pedido<=1 || dado<=1) return flash('warn','Sem exercício pedido a este objetivo, não há nada para ajustar.');
   const fator=pedido/dado;
@@ -32340,8 +32545,28 @@ function setObjForm(campo,val){
   S.ui.objForm[campo]= campo==='delta'||campo==='semanas'||campo==='split'||campo==='banda'? parseFloat(val)||0 : val;
   saveMeta(); render();
 }
+/* A frase debaixo dos dois cursores: quanto dá por semana, e porque é que o
+   prazo não desce mais. */
+function textoRitmoMax(f){
+  const ms=(f.membros||[]).map(mid=>S.members.find(x=>x.id===mid)).filter(Boolean);
+  const min=Math.max(2, ...ms.map(m=>semanasMinimasPerda(m,f)), Math.ceil(f.delta/RITMO_MAX_KG_SEM-1e-9));
+  /* o ritmo da balança, com a água que vai e volta — o mesmo número do resumo */
+  const volta=ms.length? Math.max(0, ...ms.map(m=>aguaDoPlano(m,ctxDoForm(m,f),-25).volta)) : 0;
+  const r=(f.delta+volta)/Math.max(1,f.semanas);
+  return 'Em média '+nPT(r,2)+' kg por semana na balança'+(volta>=0.1? ', com '+nPT(volta,1)+' kg de água que voltam depois' : '')+'. '
+    +(f.semanas<=min && min>2? 'É o prazo mais curto para estes quilos: a app planeia até '+nPT(RITMO_MAX_KG_SEM,1)+' kg por semana, água incluída.'
+      : r>RITMO_NHS_KG_SEM? 'Acima de 1 kg por semana — o NHS aponta 0,5 a 1 como o ritmo seguro, e o resumo aqui em baixo diz porquê.'
+      : 'Dentro do ritmo que o NHS aponta como seguro, 0,5 a 1 kg por semana.');
+}
 function slideObjForm(campo,el){
   S.ui.objForm[campo]=parseFloat(el.value)||0; pintaRange(el);
+  /* o prazo cede ao vivo quando os quilos pedem mais do que 3,5 kg/semana,
+     e o cursor do prazo não desce abaixo do mínimo */
+  if((campo==='delta'||campo==='semanas') && respeitaRitmoMax(S.ui.objForm)){
+    const rs=document.getElementById('obj-r-semanas');
+    if(rs){ rs.value=S.ui.objForm.semanas; pintaRange(rs); }
+  }
+  põe('obj-ritmo-max', S.ui.objForm.tipo==='perder'? textoRitmoMax(S.ui.objForm) : '');
   aoVivo('objform', ()=>{
     const f=S.ui.objForm;
     põe('obj-o-delta', nPT(f.delta,1)+' kg');
@@ -32364,11 +32589,12 @@ function gerarPreviewHtml(){
     if(f.tipo==='manter')
       return `<div class="kv"><span>${esc(m.nome)}</span><b>manter ${nPT(m.peso,1)} kg ± ${nPT(m.peso*f.banda/100,1)} kg</b></div>`;
     const pesoAlvo = f.tipo==='ganhar'? Math.round((m.peso+f.delta)*10)/10 : Math.max(1,Math.round((m.peso-f.delta)*10)/10);
-    const calc=calcEstrategia(m,pesoAlvo,f.semanas,f.tipo,f.split,f.desportos,f.nivel);
+    const calc=calcEstrategia(m,pesoAlvo,f.semanas,f.tipo,f.split,f.desportos,f.nivel,ctxDoForm(m,f));
     return `<div class="kv"><span>${esc(m.nome)} · alvo ${nPT(pesoAlvo,1)} kg</span>
       <b><span class="pill ${calc.toneRitmo}" style="margin-right:6px">${nPT(calc.ritmoKgSemana,2)} kg/sem</span>
       ${calc.objetivoPctSugerido>0?'+':''}${calc.objetivoPctSugerido}%${f.tipo==='perder'&&calc.minutosExtraSemana>1?' · +'+Math.round(calc.minutosExtraSemana)+' min/sem':''}</b></div>
-      ${calc.abaixoBasal?'<div class="sub" style="color:var(--bad)">o alvo diário ficaria abaixo do metabolismo basal — reduz os quilos ou alarga o prazo</div>':''}`;
+      ${calc.abaixoBasal?`<div class="sub" style="color:var(--bad)">o alvo diário ficaria em ${Math.round(calc.targetKcalNovo)} kcal, abaixo do metabolismo basal — reduz os quilos ou alarga o prazo</div>`:''}
+      ${f.tipo==='perder'? linhasAguaRitmo(calc,pesoAlvo) : ''}`;
   }).join('');
 }
 function criarObjetivo(){
@@ -32396,6 +32622,10 @@ function criarObjetivo(){
        objetivo, para o cartão poder dizer o que mudou e para quem remover o
        objetivo saber ao que voltar. */
     const dietaAntes=m.dieta;
+    /* a água lê-se com a dieta e o défice de ANTES de o objetivo mexer neles */
+    const ctxAgua=ctxDoForm(m,f);
+    ctxAgua.pctAntes=objetivoPct(m);
+    const semanasM = f.tipo==='perder'? clampNum(Math.max(f.semanas, semanasMinimasPerda(m,f)),2,52) : f.semanas;
     if(f.dieta && temChave(DIETS,f.dieta) && m.dieta!==f.dieta){
       m.dieta=f.dieta;
       dietaMudou.push(nomeCurto(m));
@@ -32405,7 +32635,7 @@ function criarObjetivo(){
       if(macrosAjustados(m).ajustado) dietaEncostada.push(nomeCurto(m));
     }
     const o={id:uid(), membroId:mid, tipo:f.tipo, pesoInicial:m.peso, pesoAlvo,
-      semanas:f.semanas, dataInicio:new Date().toISOString(),
+      semanas:semanasM, dataInicio:new Date().toISOString(),
       splitDieta:f.split, desportosEscolhidos:f.tipo==='perder'?f.desportos.slice():[],
       dieta:f.dieta||null, dietaAnterior:dietaAntes,
       /* guarda-se o que o plano consegue mesmo marcar, e não o que foi pedido:
@@ -32424,7 +32654,11 @@ function criarObjetivo(){
         jejum:!!f.manJejum, jejumH:f.manJejumH, jejumIni:f.jejumIni,
         semanas:f.manSemanas||0, banda:f.banda||2, feita:false} : null,
       bandaManter:f.banda||2, concluido:false, celebrado:false, dataConclusao:null};
-    const calc=calcEstrategia(m,pesoAlvo,f.semanas,f.tipo,f.split,o.desportosEscolhidos,f.nivel);
+    const calc=calcEstrategia(m,pesoAlvo,semanasM,f.tipo,f.split,o.desportosEscolhidos,f.nivel,ctxAgua);
+    /* A água e o peso de fim de dieta viajam com o objetivo: é por eles que o
+       progresso, a passagem à manutenção e a calibração pela balança contam
+       a água em vez de a confundirem com gordura. */
+    if(f.tipo==='perder'){ o.agua=calc.agua; o.pesoFim=calc.pesoFim; }
     aplicarEstrategia(mid,calc,o);
     S.objetivos.push(o); criados++;
   });
@@ -32492,7 +32726,8 @@ function previewAjusteHtml(calc){
     <div class="stat" style="background:var(--accent-soft)"><b style="color:var(--accent)">${calc.objetivoPctSugerido>0?'+':''}${calc.objetivoPctSugerido}%</b><span>Novo objetivo</span></div>
   </div>
   <div class="row" style="margin-top:8px"><span class="pill ${calc.toneRitmo}">${nPT(calc.ritmoKgSemana,2)} kg/semana</span>
-    ${calc.abaixoBasal?'<span class="pill bad">alvo abaixo do basal</span>':''}</div>`;
+    ${calc.abaixoBasal?'<span class="pill bad">alvo abaixo do basal</span>':''}</div>
+  ${calc.agua? linhasAguaRitmo(calc, calc.pesoFim+(calc.agua.volta||0)) : ''}`;
 }
 function adjPadrao(){ return {split:50, desportos:[], sessoes:3, agendar:true}; }
 function slideObjAdj(oid,campo,el){
@@ -32503,7 +32738,7 @@ function slideObjAdj(oid,campo,el){
     if(!o||!m) return;
     /* a mesma linha de base que «Gravar» vai usar, senão o número que se vê
        a arrastar o cursor não é o que fica */
-    const calc=calcEstrategia(semAplicado(m,o),o.pesoAlvo,semanasRestantesDe(o),o.tipo,S.ui.objAdj.split,S.ui.objAdj.desportos,S.ui.objAdj.nivel);
+    const calc=calcEstrategia(semAplicado(m,o),o.pesoAlvo,semanasRestantesDe(o),o.tipo,S.ui.objAdj.split,S.ui.objAdj.desportos,S.ui.objAdj.nivel,ctxDoObjetivo(o));
     const el2=document.getElementById('obj-adj-preview-'+oid); if(el2) el2.innerHTML=previewAjusteHtml(calc);
     põe('obj-adj-split-o-'+oid, S.ui.objAdj.split+'% dieta · '+(100-S.ui.objAdj.split)+'% exercício');
     põe('obj-adj-sessoes-o-'+oid, plural(S.ui.objAdj.sessoes,'treino','treinos'));
@@ -32547,7 +32782,7 @@ function reajustarObjetivo(oid){
      partia de um TDEE inflacionado pela primeira. Devolvendo primeiro, o
      reajuste parte da mesma linha de base que a criação. */
   retirarAplicado(m,o);
-  const calc=calcEstrategia(m,o.pesoAlvo,semanasRestantesDe(o),o.tipo,o.splitDieta,o.desportosEscolhidos,o.nivel);
+  const calc=calcEstrategia(m,o.pesoAlvo,semanasRestantesDe(o),o.tipo,o.splitDieta,o.desportosEscolhidos,o.nivel,ctxDoObjetivo(o));
   aplicarEstrategia(o.membroId,calc,o);
   S.ui.objExpandido=null;
   save('ajuste de estratégia de '+m.nome);
@@ -32649,8 +32884,8 @@ function esticarPrazo(oid){
   const v=validacaoObjetivo(o);
   if(!v || !v.razao || v.razao<=0.05) return flash('warn','Sem ritmo medido que permita estimar um prazo novo.');
   /* o prazo que o ritmo REAL pediria para chegar ao mesmo alvo */
-  const kgFalta=Math.abs(m.peso-o.pesoAlvo);
-  const kgPorDia=Math.abs(v.kgReal)/Math.max(v.dias,1);
+  const kgFalta=Math.abs(m.peso-pesoFimDieta(o));
+  const kgPorDia=Math.abs(v.kgReal-(v.aguaIntervalo||0))/Math.max(v.dias,1);
   if(kgPorDia<0.001) return flash('warn','O peso não se mexeu o suficiente para estimar um prazo novo.');
   const decorridas=Math.max(0,(Date.now()-new Date(o.dataInicio).getTime())/(7*24*3600*1000));
   const semanasNovas=Math.ceil(decorridas + kgFalta/(kgPorDia*7));
@@ -32660,7 +32895,7 @@ function esticarPrazo(oid){
      o plano ou o que está a ser registado, e propor «mais dezoito meses» seria
      a app a fingir que a aritmética resolve tudo. */
   const exagero = semanasNovas > o.semanas*2 || semanasNovas > 78;
-  if(exagero) return flash('warn','Ao ritmo medido, chegar aos '+nPT(o.pesoAlvo,1)+' kg levaria cerca de '
+  if(exagero) return flash('warn','Ao ritmo medido, chegar aos '+nPT(pesoFimDieta(o),1)+' kg levaria cerca de '
     +Math.round(semanasNovas/4.345)+' meses — muito mais do que as '+o.semanas+' semanas combinadas. '
     +'Esticar o prazo até aí não é resposta: vale mais corrigir o gasto pela balança, rever o que está a ser registado, '
     +'ou baixar o alvo para uma meta que este ritmo alcance.', {rot:'Rever a estratégia', fn:"toggleObjExpandido('"+o.id+"')"});
@@ -32686,7 +32921,7 @@ function painelAjuste(o,m){
      abrir o cartão — a caminhada passava de 8,3 para 3,3 horas semanais e o
      alvo descia 130 kcal sem ninguém carregar em «Gravar». E como o registo do
      que fora aplicado ficava vazio, fechar o painel já não recuperava nada. */
-  const calc=calcEstrategia(semAplicado(m,o),o.pesoAlvo,semanasRestantesDe(o),o.tipo,adj.split,adj.desportos,adj.nivel);
+  const calc=calcEstrategia(semAplicado(m,o),o.pesoAlvo,semanasRestantesDe(o),o.tipo,adj.split,adj.desportos,adj.nivel,ctxDoObjetivo(o));
   /* todos, com os que esta pessoa já pratica à frente */
   const pratica=new Set((m.desportos||[]).map(s=>s.s));
   const todos=SPORTS.map(s=>s.id).filter(id=>temChave(SPORT,id));
@@ -32772,8 +33007,8 @@ function graficoObjetivo(o,m){
      ficar espremido e um teto para não desenhar um ano de nada */
   const fim=addDias(iso(new Date(o.dataInicio)), Math.round((o.semanas||12)*7));
   const restam=clampNum(diasEntre(h,fim), 14, 180);
-  const mContrato=(o.pesoAlvo-fit.p0)/restam;
-  const c={base:30, hor:restam, alvo:o.pesoAlvo, exer:0, jsem:0, exN:0,
+  const mContrato=(pesoFimDieta(o)-fit.p0)/restam;
+  const c={base:30, hor:restam, alvo:pesoFimDieta(o), exer:0, jsem:0, exN:0,
     dieta:(mContrato-fit.m)*7700};
   return `<div class="peso-wrap" style="margin-top:10px">${trajSvg(m,fit,c)}
     <div class="peso-tip" hidden aria-hidden="true"></div></div>
@@ -32796,7 +33031,7 @@ function fasePerdaTerminou(o){
   if(!o || o.tipo!=='perder' || (o.man && o.man.feita)) return null;
   const m=S.members.find(x=>x.id===o.membroId); if(!m) return null;
   const fim=addDias(iso(new Date(o.dataInicio)), Math.round((o.semanas||12)*7));
-  const chegou=m.peso<=o.pesoAlvo+0.15;
+  const chegou=m.peso<=pesoFimDieta(o)+0.15;
   const prazo=hojeISO()>=fim;
   if(!chegou && !prazo) return null;
   return {porque: chegou? 'alvo' : 'prazo', fim, m};
@@ -32812,6 +33047,7 @@ function textoPassagem(o){
   else if(imAgora) partes.push('o jejum intermitente <b>desliga-se</b>');
   else partes.push('continua sem jejum');
   partes.push('o alvo de calorias sobe para a manutenção');
+  if(o.agua && o.agua.volta>=0.1) partes.push('e a balança sobe cerca de <b>'+nPT(o.agua.volta,1)+' kg</b> nos dias a seguir — a água do glicogénio a voltar, já contada');
   return partes.join(', ')+'.';
 }
 function passarAManutencao(oid){
@@ -32830,11 +33066,20 @@ function passarAManutencao(oid){
   } else if(c.im[m.id]) c.im[m.id].ativo=false;
   /* O objetivo não se apaga: transforma-se. Guarda o que foi a fase de perda
      para o histórico poder contar a coisa toda. */
+  /* ---- A água que volta já conta na manutenção ----
+     Quem acabou a dieta abaixo do alvo de propósito vai ver a balança subir
+     nos dias seguintes, à medida que os hidratos voltam e o glicogénio enche.
+     Se a manutenção se centrasse no peso deste dia, essa subida — prevista,
+     e que não é gordura — saía da banda e a app acusava um desvio. O centro
+     fica onde o peso vai assentar: o de hoje mais a água que falta voltar. */
+  const volta=(o.agua && o.agua.volta>0)? o.agua.volta : 0;
   o.perda={pesoInicial:o.pesoInicial, pesoAlvo:o.pesoAlvo, semanas:o.semanas,
-    dataInicio:o.dataInicio, dieta:o.dieta||null, atingido:m.peso<=o.pesoAlvo+0.15};
+    dataInicio:o.dataInicio, dieta:o.dieta||null, atingido:m.peso<=pesoFimDieta(o)+0.15,
+    pesoFim:pesoFimDieta(o), aguaVolta:volta};
   o.tipo='manter';
-  o.pesoInicial=Math.round(m.peso*10)/10;
+  o.pesoInicial=Math.round((m.peso+volta)*10)/10;
   o.pesoAlvo=o.pesoInicial;
+  delete o.pesoFim; delete o.agua;
   o.dataInicio=new Date().toISOString();
   o.semanas=man.semanas||12;
   o.bandaManter=man.banda||2;
@@ -32843,6 +33088,7 @@ function passarAManutencao(oid){
   if(o.man) o.man.feita=true;
   save('passagem à manutenção'); render();
   flash('ok','Passou à manutenção em '+nPT(o.pesoInicial,1)+' kg. '
+    +(volta>=0.1? 'Nos próximos dias a balança sobe cerca de '+nPT(volta,1)+' kg — é a água do glicogénio a voltar com os hidratos, não é gordura, e a manutenção já está centrada onde o peso vai assentar. ' : '')
     +(man.dieta? 'Dieta '+((DIETS[man.dieta]||{}).n||'').toLowerCase()+'. ':'')
     +(man.jejum? 'Jejum '+protocoloIM(man.jejumH).n+'.' : 'Sem jejum.'),
     {rot:'Anular', fn:'desfazer()'});
@@ -32874,7 +33120,7 @@ function cartaoObjetivo(o){
         ${anelSvg(p.pct,p.tone)}
         <div>
           <div class="row" style="gap:8px">${avatar(m,26)}<b>${esc(m.nome)}</b></div>
-          <div class="sub">${rotuloTipo}${o.tipo==='manter'?'':' · '+nPT(o.pesoInicial,1)+' → '+nPT(o.pesoAlvo,1)+' kg'}</div>
+          <div class="sub">${rotuloTipo}${o.tipo==='manter'?'':' · '+nPT(o.pesoInicial,1)+' → '+nPT(o.pesoAlvo,1)+' kg'}${(o.tipo==='perder' && Math.abs(pesoFimDieta(o)-o.pesoAlvo)>=0.1)? ' · <span title="A balança chega aqui no fim da dieta; a água do glicogénio volta nos dias seguintes e o peso assenta no alvo.">💧 fim da dieta a '+nPT(pesoFimDieta(o),1)+' kg</span>' : ''}</div>
           ${o.tipo!=='manter'
             ? `<div class="sub" style="font-variant-numeric:tabular-nums">peso atual ${nPT(m.peso,1)} kg${p.atingido?'':' · faltam '+nPT(Math.abs(p.kgRestante),1)+' kg'}</div>`
             : `<div class="sub">dentro da banda: ${p.dentroBanda?'sim':'não, atenção'}</div>`}
@@ -32979,6 +33225,7 @@ function formCriacaoHtml(){
     S.ui.objForm={membros:[],tipo:'perder',delta:5,semanas:12,split:50,desportos:[],dieta:'',
       sessoes:3,agendar:true,nivel:'moderado',jejum:false,jejumH:16,jejumIni:12,jejumDias:0,banda:2,blocos:[]};
   const f=S.ui.objForm, elegiveis=membrosElegiveisObjetivo();
+  respeitaRitmoMax(f);
   if(!elegiveis.length) return `<div class="card"><p class="sub">Ainda não há membros elegíveis para objetivos de peso —
     bebés acompanham-se pelo percentil, no separador Nutrição, e gestações de trigémeos não têm alvo calórico estimado.</p></div>`;
   const podePerder = f.membros.some(mid=>{ const m=S.members.find(x=>x.id===mid); return m&&permiteDefice(m); });
@@ -33000,9 +33247,10 @@ function formCriacaoHtml(){
         <input type="range" min="0.5" max="30" step="0.5" value="${f.delta}" style="--pct:${Math.round((f.delta-0.5)/29.5*100)}%"
           aria-label="Quantos quilos" oninput="slideObjForm('delta',this)" onchange="saveMeta()"></div>
       <div><div class="splabel"><span>Prazo</span><output id="obj-o-semanas" style="min-width:10ch;text-align:right">${f.semanas} semanas</output></div>
-        <input type="range" min="2" max="52" step="1" value="${f.semanas}" style="--pct:${Math.round((f.semanas-2)/50*100)}%"
+        <input type="range" id="obj-r-semanas" min="2" max="52" step="1" value="${f.semanas}" style="--pct:${Math.round((f.semanas-2)/50*100)}%"
           aria-label="Prazo em semanas" oninput="slideObjForm('semanas',this)" onchange="saveMeta()"></div>
-    </div>` : `<div class="spgrid" style="margin-top:14px">
+    </div>
+    ${f.tipo==='perder'? `<p class="sub" id="obj-ritmo-max" style="margin-top:4px">${textoRitmoMax(f)}</p>` : ''}` : `<div class="spgrid" style="margin-top:14px">
       <div><div class="splabel"><span>Durante quanto tempo</span><output id="obj-o-semanas" style="min-width:10ch;text-align:right">${f.semanas} semanas</output></div>
         <input type="range" min="1" max="52" step="1" value="${f.semanas}" style="--pct:${Math.round((f.semanas-1)/51*100)}%"
           aria-label="Duração em semanas" oninput="slideObjForm('semanas',this)" onchange="saveMeta()"></div>
@@ -36129,7 +36377,7 @@ function limparMembro(m){
     atividade: temChave(BASE_ACT,m.atividade)? m.atividade:'sedentario',
     desloc: temChave(COMMUTE,m.desloc)? m.desloc:'nenhum',
     dieta, objetivo,
-    objetivoPct: Number.isFinite(pctBruto)? clampNum(Math.round(pctBruto),-25,20) : Math.round((GOALS[objetivo][1])*100),
+    objetivoPct: Number.isFinite(pctBruto)? clampNum(Math.round(pctBruto),OBJ_PCT_MIN,20) : Math.round((GOALS[objetivo][1])*100),
     meses: Number.isFinite(parseFloat(m.meses))? clampNum(Math.round(parseFloat(m.meses)),0,24) : undefined,
     gravida: !!m.gravida && (m.sexo==='f'),
     trimestre: clampNum(Math.round(parseFloat(m.trimestre)||1),1,3),
@@ -36344,6 +36592,16 @@ function lerPacote(txt){
           if(temChave(SPORT,k)) h[k]=clampNum(parseFloat(o.horasAplicadas[k])||0,0,40); });
         return h; })() : {},
       bandaManter: clampNum(parseFloat(o.bandaManter)||2,0.5,10),
+      /* A água do glicogénio e o peso de fim de dieta. Sem eles, uma cópia
+         restaurada voltava a acabar a dieta no alvo, e a água que regressa
+         na manutenção aparecia como desvio. O fim de dieta só vale perto do
+         alvo — três quilos para cada lado é mais do que qualquer glicogénio. */
+      agua: (o.tipo==='perder' && o.agua && typeof o.agua==='object')? {
+        ini: clampNum(parseFloat(o.agua.ini)||0,-4,4),
+        volta: clampNum(parseFloat(o.agua.volta)||0,-4,4),
+        tau: parseFloat(o.agua.tau)===3? 3 : 7} : undefined,
+      pesoFim: (o.tipo==='perder' && Number.isFinite(parseFloat(o.pesoFim)) && Math.abs(parseFloat(o.pesoFim)-pesoAlvo)<=4)
+        ? Math.round(parseFloat(o.pesoFim)*10)/10 : undefined,
       /* a segunda fase, saneada como o resto: sem ela, restaurar uma cópia
          deitava fora a manutenção planeada e o objetivo acabava sem plano */
       man: (o.man && typeof o.man==='object' && o.man.ativa)? {ativa:true,
@@ -38609,7 +38867,7 @@ const TOUR=[
    d:'A barra reparte o gasto entre metabolismo basal, dia a dia, deslocações e desporto — e ganha um quinto segmento a quem está a crescer, grávida ou a amamentar, porque essa energia existe e não é treino. A linha tracejada marca o alvo alimentar: a distância entre o fim da barra e a linha é o défice ou o excedente do plano.'},
   {base:1, tab:'nutricao', sel:'#nu-r-obj',
    t:'Nutrição — objetivo e macros',
-   d:'O objetivo é um slider contínuo de −25 % a +20 % do gasto, com o ritmo em quilos por semana e um aviso a vermelho quando o alvo desce abaixo do metabolismo basal — a app avisa com mais força, não trava: quem decide é quem come. A dieta escolhida — incluindo vegetariana e vegan, que a app distingue — vira gramas de hidratos, proteína e gordura.'},
+   d:'O objetivo é um slider contínuo de −75 % a +20 % do gasto, com o ritmo em quilos por semana, um aviso a vermelho quando o alvo desce abaixo do metabolismo basal e o aviso do NHS quando o ritmo passa de 1 kg por semana — a app avisa com mais força, não trava: quem decide é quem come. O único chão são as 800 kcal por dia, abaixo das quais o NHS só admite dieta com acompanhamento médico. A dieta escolhida — incluindo vegetariana e vegan, que a app distingue — vira gramas de hidratos, proteína e gordura.'},
   {tab:'nutricao', sel:'#fr-cartao', quando:()=>S.members.length&&temPlanoNut(curM()),
    t:'Registar o que se comeu',
    d:'Tal como na Atividade Física: definido o plano, o destaque passa para o registo. As refeições planeadas que ficaram por confirmar aparecem em cima ao entrar no perfil — «comi», «comi outra coisa» (e regista-se o que foi) ou «rever o plano», quando um prato nunca se cumpre. Uma refeição partilhada confirma-se de uma vez para todos os que estavam à mesa.'},
