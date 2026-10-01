@@ -2083,7 +2083,9 @@ body{padding-bottom:max(60px,calc(env(safe-area-inset-bottom) + 44px))}
 /* Ecrãs de toque: alvos de 44 px e campos a 16 px, que é o mínimo para o
    iOS não fazer zoom automático ao tocar num campo. */
 @media (hover:none) and (pointer:coarse){
-  input[type=text],input[type=number],input[type=date],select,textarea{font-size:16px}
+  /* input:not([type]) é um campo de texto como os outros — o nome do batido
+     não declarava tipo e ficava nos 15 px, que fazem o iOS ampliar ao tocar */
+  input:not([type]),input[type=text],input[type=search],input[type=number],input[type=date],input[type=time],select,textarea{font-size:16px}
   .btn,nav button{min-height:44px}
   .chip{min-height:42px;padding:7px 14px}
   .btn.small{min-height:40px;padding:8px 13px}
@@ -3059,6 +3061,10 @@ function aplicaNascimento(m){
   if(meses<24){ m.meses=meses; m.idade=meses/12; }
   else { delete m.meses; m.idade=anosDesde(m.nasc); }
 }
+/* Os limites do défice (explicados em «Até onde a app deixa ir»): aqui em
+   cima porque normalizaMembro() já os lê no arranque. */
+const OBJ_PCT_MIN=-75, KCAL_MIN_DIA=800;
+const RITMO_MAX_KG_SEM=3.5, RITMO_NHS_KG_SEM=1;
 function normalizaMembro(m){
   if(m && Array.isArray(m.desportos)) m.desportos=m.desportos.map(normalizaDesporto).filter(Boolean);
   /* Os números do corpo ficam dentro das faixas dos próprios cursores, mesmo
@@ -5256,7 +5262,6 @@ R('batidomorango','Batido de morango','portuguesa',[],0,0,0,0,[['Morango',150,'g
 R('batidobananasemlactose','Batido de banana e canela sem lactose','portuguesa',[],0,0,0,0,[['Banana',1,'un'],['Leite sem lactose meio gordo',250,'g'],['Canela',1,'g']],['p','l'],0,['sn','br']),
 R('batidocafe','Batido gelado de café com bebida de soja','outras',[],0,0,0,0,[['Café expresso',60,'ml'],['Bebida de soja sem açúcar',200,'ml'],['Tâmaras',15,'g'],['Cacau em pó',3,'g']],['p','l'],0,['sn','br']),
 R('batidoketochoc','Batido keto de chocolate e amendoim','outras',[],0,0,0,0,[['Bebida de amêndoa sem açúcar',220,'ml'],['Cacau em pó',10,'g'],['Manteiga de amendoim',15,'g'],['Eritritol',8,'g']],['p','l'],0,['sn']),
-R('lassimanga','Lassi de manga','indiana',[],0,0,0,0,[['Manga',150,'g'],['Iogurte natural',150,'g'],['Leite magro, UHT',50,'ml'],['Canela',0.5,'g']],['p','l'],0,['sn','br']),
 R('granizadolimao','Granizado de limão','portuguesa',[],0,0,0,0,[['Sumo de limão',50,'ml'],['Açúcar branco',30,'g']],['l'],0,['sn','sob']),
 R('granizadolimaoketo','Granizado de limão sem açúcar','portuguesa',[],0,0,0,0,[['Sumo de limão',50,'ml'],['Eritritol',20,'g'],['Hortelã',2,'g']],['l'],0,['sn','sob']),
 R('granizadocafe','Granizado de café','italiana',[],0,0,0,0,[['Café expresso',100,'ml'],['Açúcar branco',15,'g']],['l'],0,['sn','sob']),
@@ -8617,7 +8622,6 @@ P('batidobananasemlactose',[['Triturar','A banana madura, o leite sem lactose e 
 P('batidocafe',[['Café','Dois cafés tirados e arrefecidos — quentes, cortam a bebida de soja.',5],
  ['Triturar','O café frio, a bebida de soja, as tâmaras sem caroço (são o que adoça) e o cacau, com gelo.',3]]);
 P('batidoketochoc',[['Triturar','A bebida de amêndoa fria, o cacau, a manteiga de amendoim e o eritritol, com gelo. Cerca de 4 g de hidratos.',3]]);
-P('lassimanga',[['Triturar','A manga, o iogurte, o leite e uma pitada de canela (na Índia é cardamomo). Frio.',3]]);
 P('granizadolimao',[['Xarope','O açúcar em 200 ml de água quente; junta o sumo de limão e deixa arrefecer.',5],
  ['Congelar','Num tabuleiro largo, ao congelador. A cada meia hora raspa com um garfo, três ou quatro vezes, até ficar em cristais soltos.',150]]);
 P('granizadolimaoketo',[['Xarope','O eritritol em 200 ml de água quente, até dissolver; junta o sumo de limão e a hortelã picada.',5],
@@ -14680,9 +14684,9 @@ function dataValida(s){
    faz com acompanhamento médico e no máximo doze semanas — e uma app que
    planeia as refeições de uma família não planeia isso. Quando o chão impede o
    ritmo pedido, o plano di-lo com o ritmo que consegue entregar, em vez de
-   prometer o outro. */
-const OBJ_PCT_MIN=-75, KCAL_MIN_DIA=800;
-const RITMO_MAX_KG_SEM=3.5, RITMO_NHS_KG_SEM=1;
+   prometer o outro. As constantes vivem lá em cima, antes de normalizaMembro():
+   o arranque passa por objetivoPct() ao sanear os perfis, e uma const lida
+   antes da sua linha deixava a app em branco a quem tivesse um objetivo. */
 function objetivoPct(m){ return Number.isFinite(m.objetivoPct)? clampNum(Math.round(m.objetivoPct),OBJ_PCT_MIN,20)
   : Math.round((GOALS[m.objetivo]?.[1]||0)*100); }
 function rotuloObjetivo(m){ const p=objetivoPct(m);
@@ -15324,9 +15328,6 @@ function semanaDeAtaques(mid){
 const ETANOL_DENSIDADE=0.789, ETANOL_KCAL_G=7, UNIDADE_ETANOL_G=10;
 /* O catálogo das bebidas está lá em cima: é lido por um saneador de
    arranque e daqui ainda estaria na zona morta temporal. */
-function etanolDe(ml,abv){ return ml*(abv/100)*ETANOL_DENSIDADE; }
-function unidadesDe(ml,abv){ return etanolDe(ml,abv)/UNIDADE_ETANOL_G; }
-function kcalAlcool(ml,abv){ return Math.round(etanolDe(ml,abv)*ETANOL_KCAL_G); }
 function bebidasCfg(){ if(!Array.isArray(S.bebidas)) S.bebidas=[]; return S.bebidas; }
 function bebidasCasaCfg(){ if(!Array.isArray(S.bebidasCasa)) S.bebidasCasa=[]; return S.bebidasCasa; }
 /* ---- Uma bebida, venha do catálogo ou da casa ----
@@ -15494,8 +15495,11 @@ function abrirBebida(mid,d){
 }
 function setBeb(campo,v){
   const mo=modalAberto(); if(!mo||mo.tipo!=='bebida') return;
-  if(campo==='cat'){ mo.cat=v; mo.k=null; mo.med=null; mo.cl=''; }
-  else if(campo==='k'){ const b=bebidaDef(v); if(!b) return; mo.k=v; mo.med=b.def; mo.cl=''; }
+  /* as categorias com álcool não se mostram a quem não pode beber; também não
+     se escolhem por outra porta */
+  const m=S.members.find(x=>x.id===mo.mid), pode=!m || podeBeber(m);
+  if(campo==='cat'){ const c=CAT_BEB.find(x=>x[0]===v); if(!c || (c[3] && !pode)) return; mo.cat=v; mo.k=null; mo.med=null; mo.cl=''; }
+  else if(campo==='k'){ const b=bebidaDef(v); if(!b || (ehAlcoolica(v) && !pode)) return; mo.k=v; mo.med=b.def; mo.cl=''; }
   else if(campo==='med'){ mo.med=v; mo.cl=''; }
   else if(campo==='cl'){ mo.cl=String(v||'').replace(',','.'); }
   else if(campo==='n'){ mo.n=clampNum(parseInt(v,10)||1,1,12); }
@@ -24990,6 +24994,14 @@ function delMember(id){
   S.brigada=limparBrigada(S.brigada, ids);
   S.talhoes=limparTalhoes(S.talhoes, ids);
   S.agenda=(S.agenda||[]).filter(b=>b.mid!==id);
+  /* As bebidas, as pausas, as notas do diário, os anos e as provas também são
+     de alguém: o arranque já os varria pelos ids, mas até lá ficavam a somar
+     no resumo da casa e iam na cópia de segurança com um dono que não existe. */
+  S.bebidas=limparBebidas(S.bebidas, ids);
+  S.pausas=limparPausas(S.pausas, ids);
+  S.diario=limparDiario(S.diario, ids);
+  S.anos=limparAnos(S.anos, ids);
+  S.provas=limparProvas(S.provas, ids);
   if(S.ui.histAtiv===id) S.ui.histAtiv=null;
   if(S.ui.histRef===id) S.ui.histRef=null;
   save('remoção de '+m.nome); render();
@@ -25100,7 +25112,7 @@ function narrativaMes(){
   });
   if(d.concluidos.length){
     const q=d.concluidos.map(o=>{ const m=S.members.find(x=>x.id===o.membroId); return m? nomeCurto(m):null; }).filter(Boolean);
-    frases.push(`🏆 ${plural(d.concluidos.length,'Um objetivo foi atingido','Objetivos atingidos')} neste período${q.length?', por '+lista(q):''}. Fica registado nas Conquistas.`);
+    frases.push(`🏆 ${d.concluidos.length===1? 'Um objetivo atingido' : d.concluidos.length+' objetivos atingidos'} neste período${q.length?', por '+lista(q):''}. Fica registado nas Conquistas.`);
   }
   const semDespensa=Object.keys(S.despensa||{}).length;
   if(semDespensa) frases.push(`Na despensa há <b>${plural(semDespensa,'item marcado','itens marcados')}</b> como disponíveis, o que já poupa passos na lista de compras.`);
@@ -32477,6 +32489,23 @@ function renderNutricao(){
 }
 
 /* ================= RECEITAS ================= */
+/* Os acompanhamentos que saíram de dentro de um prato têm dose e passos
+   próprios para esse prato (os grelos do polvo, o arroz das tripas) e o mesmo
+   nome do acompanhamento geral. Na biblioteca apareciam lado a lado, três
+   «Arroz branco solto» iguais à vista; fica o geral, e os dedicados vivem no
+   par a que pertencem. O geral é o de id mais curto — os dedicados são o id
+   dele mais o sufixo do prato. */
+let _dosesDedicadas=null;
+function doseDedicada(r){
+  if(!_dosesDedicadas){
+    _dosesDedicadas=new Set(); const porNome={};
+    RECIPES.filter(x=>ehAcompanhamento(x)).forEach(x=>{ const k=x.n.toLowerCase(); (porNome[k]=porNome[k]||[]).push(x); });
+    Object.values(porNome).forEach(g=>{ if(g.length<2) return;
+      const geral=g.slice().sort((a,b)=>a.id.length-b.id.length)[0];
+      g.forEach(x=>{ if(x!==geral && x.id.indexOf(geral.id)===0) _dosesDedicadas.add(x.id); }); });
+  }
+  return _dosesDedicadas.has(r.id);
+}
 function renderReceitas(){
   const m = S.members.length? curM() : null;
   /* «Todas as refeições» mostra os pratos; os acompanhamentos e os molhos têm
@@ -32493,7 +32522,7 @@ function renderReceitas(){
   /* o filtro de cozinha usa TODAS as cozinhas da receita: um melão com
      presunto é português e espanhol, e tem de aparecer nas duas listas */
   const _q0=semAcentos(S.ui.busca||'').trim();
-  let list=RECIPES.filter(r=> (S.ui.cuis==='todas'||ehDaCozinha(r,S.ui.cuis))
+  let list=RECIPES.filter(r=> (S.ui.cuis==='todas'||ehDaCozinha(r,S.ui.cuis)) && !doseDedicada(r)
     && (S.ui.mealF==='todas'? (!!_q0 || !(ehAcompanhamento(r)||ehMolho(r)||ehMassa(r))) : r.mt.indexOf(S.ui.mealF)>=0));
   /* cumulativos: a receita tem de cumprir todas as dietas marcadas e estar
      livre de todos os alergénios marcados ao mesmo tempo */
@@ -33470,19 +33499,6 @@ function horasJejumAte(mid,fim){
   let t=0; for(let d=hojeISO(); d<fim; d=addDias(d,1)) t+=horasDeJejumNoDia(mid,d);
   return t;
 }
-/* Os dias de jejum pontual que o objetivo vai marcar: n por semana, espaçados,
-   a partir da próxima segunda-feira e durante as semanas do objetivo. */
-function diasDeJejumPontual(nPorSemana,semanas){
-  const n=clampNum(Math.round(nPorSemana)||0,0,3);
-  if(!n) return [];
-  const out=[], ini=addDias(mondayISO(hojeISO()),7), sem=clampNum(Math.round(semanas)||4,1,52);
-  const dias=diasEspacados(n,1);   /* começa à terça, para não calhar sempre à segunda */
-  for(let w=0; w<sem; w++) dias.forEach(wd=>{
-    /* diasEspacados devolve 0=segunda; addDias anda a partir da segunda */
-    out.push(addDias(ini, w*7 + wd));
-  });
-  return out.slice(0,120);
-}
 /* O que o corpo precisa por causa do que se lhe vai pedir: descanso e, quando
    as sessões passam de uma hora a suar, reposição de sais. Aparece com os
    números do próprio objetivo — minutos por sessão calculados a partir das
@@ -34161,7 +34177,6 @@ function slideObjForm(campo,el){
     põe('obj-o-banda', '±'+nPT(f.banda,1)+'%');
     põe('obj-o-jejum', protocoloIM(f.jejumH).n);
     põe('obj-o-jejumini', String(f.jejumIni).padStart(2,'0')+':00');
-    põe('obj-o-jejumdias', f.jejumDias? plural(f.jejumDias,'dia','dias') : 'nenhum');
     põe('obj-o-split', f.split+'% dieta · '+(100-f.split)+'% exercício');
     const pv=document.getElementById('obj-preview'); if(pv) pv.innerHTML=gerarPreviewHtml();
   });
@@ -34289,13 +34304,13 @@ function criarObjetivo(){
   /* Cada aviso é uma frase inteira, e junta-se com ponto e espaço — antes
      concatenavam-se com espaço só, e «Objetivo criado Em Ana os macros…»
      saía sem ponto sempre que a primeira frase opcional não era a da dieta. */
-  const frases=[plural(criados,'Objetivo criado','Objetivos criados')];
+  const frases=[criados===1? 'Objetivo criado' : criados+' objetivos criados'];
   if(dietaMudou.length) frases.push('Dieta de '+enumera(dietaMudou)+' passou a '+DIETS[f.dieta].n+', e os macros do dia já mudaram');
   if(dietaEncostada.length) frases.push('Em '+enumera(dietaEncostada)+' os macros foram encostados à faixa recomendada para a idade');
   if(jj.feitos.length) frases.push('Jejum '+protocoloIM(f.jejumH).n+' para '+enumera(jj.feitos));
   if(jejumMarcados.length) frases.push('No Calendário ficaram os jejuns do plano: '+enumera(jejumMarcados));
   const semJejum=[...new Set(jj.bloqueados.map(x=>x.nome).concat(jejumFora))];
-  if(semJejum.length) frases.push('Sem jejum para '+enumera(semJejum)+': o jejum não tem indicação nesta fase');
+  if(semJejum.length) frases.push('Sem jejum para '+enumera(semJejum)+': há no perfil uma razão para não o marcar (idade, gravidez, amamentação ou diabetes) — o cartão do Jejum diz qual');
   if(ignorados.length) frases.push('Sem défice para '+enumera(ignorados)+(ignorados.length===1? ', por estar' : ', por estarem')+' em crescimento ou gravidez');
   if(jaTem.length) frases.push(fraseJaTem);
   flash('ok', frases.join('. ')+'.', {rot:'Anular', fn:'desfazer()'});
@@ -39136,8 +39151,12 @@ function eventosDaSemana(wk){
       const dur=clampNum(base+extraMin/60,0.25,5);
       const reg=feitos.find(r=>r.mid===m.id && r.s===s.s && !cobertos.has(r.id));
       if(reg) cobertos.add(reg.id);
+      /* a linha de um plano de força diz que plano é e que sessão toca nesse
+         dia — «Calistenia» sozinho não dizia se era a A ou a B */
+      const pg=s.prog? forcaCfg().progs.find(x=>x.id===s.prog) : null;
+      const titulo= pg && d>=pg.inicio? pg.nome+(pg.ses.length>1? ' · sessão '+pg.ses[sessaoDoDia(pg,d)].n : '') : sp.nome;
       ev.push({id:'tr:'+d+':'+m.id+':'+s.s, tipo:'treino', d, h:18, dur, feito:!!reg,
-        titulo:sp.nome, sub:nomeCurto(m)+(reg? ' · '+reg.min+' min':'')+(s.semAlonga? ' · sem alongar' : ' · aquec. '+ALONGA_MIN.aq+' + along. '+ALONGA_MIN.al+' min'),
+        titulo, sub:nomeCurto(m)+(reg? ' · '+reg.min+' min':'')+(s.semAlonga? ' · sem alongar' : ' · aquec. '+ALONGA_MIN.aq+' + along. '+ALONGA_MIN.al+' min'),
         cor:corDesporto(s.s)||calCorDe('ok'), fonte:'planoTreino', mid:m.id, s:s.s});
     }));
     feitos.forEach(r=>{ if(cobertos.has(r.id)) return;
@@ -40906,7 +40925,7 @@ function semearFamiliaExemplo(){
   autoFill();   /* já grava */
   S.objetivos.push({id:uid(), membroId:S.members[1].id, tipo:'perder',
     pesoInicial:88, pesoAlvo:82, semanas:12, dataInicio:new Date(Date.now()-21*24*3600*1000).toISOString(),
-    splitDieta:60, desportoEscolhido:'ciclismo', bandaManter:2,
+    splitDieta:60, desportosEscolhidos:['ciclismo'], bandaManter:2,
     concluido:false, celebrado:false, dataConclusao:null});
   /* O exemplo também tem passado: sem pesagens e sem registos, os cartões de
      evolução e de histórico apareciam vazios logo na visita guiada, e quem
