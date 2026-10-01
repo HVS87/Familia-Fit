@@ -3722,7 +3722,7 @@ const MEDIDAS_BEB={
   meiagarrafa:['Meia garrafa',375], garrafa:['Garrafa',750], flute:['Flute',125],
   prova:['Copo de prova',50], calice:['Cálice',75],
   shot:['Shot',30], calicedest:['Cálice',30], dose:['Dose de bar',40], dupla:['Dose dupla',80],
-  receita:['Um copo',0],
+  receita:['Uma dose',0],
   copo:['Copo',200], copogr3:['Copo grande',300], gf20:['Garrafinha de 20 cl',200], gf25:['Garrafinha de 25 cl',250],
   lata25:['Lata de 25 cl',250], lata:['Lata de 33 cl',330], lata47:['Lata de 47,3 cl',473],
   gf50:['Garrafa de 50 cl',500], gf1l:['Garrafa de 1 L',1000], gf15:['Garrafa de 1,5 L',1500]
@@ -3738,11 +3738,11 @@ const MED_GRUPO={
   refri:['copo','g25','lata','gf50','gf1l','gf15'],
   energetica:['lata25','lata','lata47'],
   agua:['copo','g25','gf50','gf1l','gf15'],
-  casa:['copo','copogr3','gf50']
+  casa:['receita','copo','copogr3','gf50']
 };
 const CAT_BEB=[['cerveja','Cerveja','🍺',true],['vinho','Vinhos','🍷',true],['generoso','Generosos','🥃',true],
   ['destilado','Destilados','🥃',true],['cocktail','Cocktails','🍸',true],['sumo','Sumos','🍊',false],
-  ['refri','Refrigerantes','🥤',false],['energetica','Energéticas','⚡',false],['agua','Águas','💧',false],['casa','Os meus batidos','🥤',false]];
+  ['refri','Refrigerantes','🥤',false],['energetica','Energéticas','⚡',false],['agua','Águas','💧',false],['casa','Batidos da casa','🥤',false]];
 const BEB=[
   /* ---- cerveja ---- */
   {k:'cerveja', n:'Cerveja (5 %)', cat:'cerveja', g:'cerveja', def:'imperial', abv:5, c:3.6, acu:0.2, i:'🍺', fonte:'INSA'},
@@ -5227,6 +5227,41 @@ R('iogurtebanana','Iogurte natural com banana','portuguesa',['vegetariana','lowf
 R('iogurtemorango','Iogurte natural com morango','portuguesa',['vegetariana','lowfat'],0,0,0,0,[['Iogurte natural',180,'g'],['Morango',120,'g']],['p','l'],0,['sn','br']),
 R('iogurtevermelhos','Iogurte natural com frutos vermelhos','portuguesa',['vegetariana','lowfat'],0,0,0,0,[['Iogurte natural',180,'g'],['Frutos vermelhos',100,'g']],['p','l'],0,['sn','br']),
 R('tigelacereais','Tigela de granola com leite','portuguesa',['vegetariana'],0,0,0,0,[['Granola',50,'g'],['Leite meio gordo, UHT',200,'ml'],['Banana',0.5,'un']],['p'],0,['br']),
+/* ---- Sumos, smoothies, batidos e granizados, para cada dieta e alergia ----
+   Vinte e uma receitas pensadas para que cada pessoa da casa tenha várias que
+   lhe sirvam: keto e low carb (com eritritol ou só com o que a fruta tem),
+   vegan e sem lactose (bebidas vegetais e água de coco), paleo (sem açúcar,
+   sem adoçantes, sem laticínios), low fat, e opções sem nenhum dos alergénios
+   comuns — sem leite, sem frutos de casca rija, sem amendoim, sem soja, sem
+   glúten (a aveia conta como glúten nesta casa, e por isso há sempre outra).
+   As dietas e os alergénios não se escrevem aqui: derivam-se dos
+   ingredientes, como em toda a biblioteca.
+   Nos SUMOS, o ingrediente é o sumo em mililitros e não a fruta inteira: o
+   bagaço fica no espremedor, e contar a laranja inteira punha no copo as
+   calorias e a fibra do que foi para o lixo. Os passos dizem quanta fruta dá
+   esse sumo. A água e o gelo não entram na lista — não têm nada a contar —,
+   mas os passos dizem quanta. */
+R('sumolarcenoura','Sumo de laranja, cenoura e gengibre','outras',[],0,0,0,0,[['Sumo de laranja natural',150,'ml'],['Sumo de cenoura',100,'ml'],['Gengibre',3,'g']],['p','l'],0,['sn','br']),
+R('sumoverde','Sumo verde de maçã, pepino e espinafres','outras',[],0,0,0,0,[['Sumo de maçã natural',120,'ml'],['Pepino',100,'g'],['Espinafres',30,'g'],['Sumo de limão',15,'ml'],['Hortelã',3,'g']],['p','l'],0,['sn','br']),
+R('sumomelancia','Sumo de melancia e hortelã','outras',[],0,0,0,0,[['Melancia',350,'g'],['Lima',0.5,'un'],['Hortelã',4,'g']],['l'],0,['sn']),
+R('limonadaketo','Limonada sem açúcar, com eritritol','portuguesa',[],0,0,0,0,[['Sumo de limão',40,'ml'],['Eritritol',15,'g'],['Hortelã',3,'g']],['l'],0,['sn']),
+R('limonada','Limonada caseira','portuguesa',[],0,0,0,0,[['Sumo de limão',40,'ml'],['Açúcar branco',20,'g'],['Hortelã',3,'g']],['l'],0,['sn']),
+R('smoothievermelhos','Smoothie de frutos vermelhos e iogurte','outras',[],0,0,0,0,[['Frutos vermelhos',150,'g'],['Banana',0.5,'un'],['Iogurte natural',125,'g']],['p','l'],0,['sn','br']),
+R('smoothiemangaaveia','Smoothie de manga e maracujá com bebida de aveia','outras',[],0,0,0,0,[['Manga',150,'g'],['Maracujá',40,'g'],['Bebida de aveia',200,'ml']],['p','l'],0,['sn','br']),
+R('smoothietropical','Smoothie tropical com água de coco','outras',[],0,0,0,0,[['Ananás',120,'g'],['Manga',100,'g'],['Água de coco',200,'ml'],['Lima',0.5,'un']],['p','l'],0,['sn','br']),
+R('smoothieverdeketo','Smoothie verde de abacate e espinafres','outras',[],0,0,0,0,[['Abacate',70,'g'],['Espinafres',40,'g'],['Pepino',100,'g'],['Bebida de amêndoa sem açúcar',200,'ml'],['Sumo de limão',10,'ml'],['Eritritol',8,'g']],['p','l'],0,['sn','br']),
+R('smoothieproteico','Smoothie proteico de banana, cacau e amendoim','outras',[],0,0,0,0,[['Banana',1,'un'],['Manteiga de amendoim',15,'g'],['Cacau em pó',8,'g'],['Bebida de soja sem açúcar',250,'ml'],['Proteína de ervilha em pó',20,'g']],['p','l'],0,['sn','br']),
+R('smoothiemirtilo','Smoothie de mirtilo, aveia e iogurte grego','outras',[],0,0,0,0,[['Mirtilo',120,'g'],['Aveia em flocos',25,'g'],['Iogurte grego magro natural',150,'g'],['Leite magro, UHT',80,'ml']],['p'],0,['br']),
+R('batidomorango','Batido de morango','portuguesa',[],0,0,0,0,[['Morango',150,'g'],['Leite meio gordo, UHT',200,'ml'],['Mel',8,'g']],['p','l'],0,['sn','br']),
+R('batidobananasemlactose','Batido de banana e canela sem lactose','portuguesa',[],0,0,0,0,[['Banana',1,'un'],['Leite sem lactose meio gordo',250,'g'],['Canela',1,'g']],['p','l'],0,['sn','br']),
+R('batidocafe','Batido gelado de café com bebida de soja','outras',[],0,0,0,0,[['Café expresso',60,'ml'],['Bebida de soja sem açúcar',200,'ml'],['Tâmaras',15,'g'],['Cacau em pó',3,'g']],['p','l'],0,['sn','br']),
+R('batidoketochoc','Batido keto de chocolate e amendoim','outras',[],0,0,0,0,[['Bebida de amêndoa sem açúcar',220,'ml'],['Cacau em pó',10,'g'],['Manteiga de amendoim',15,'g'],['Eritritol',8,'g']],['p','l'],0,['sn']),
+R('lassimanga','Lassi de manga','indiana',[],0,0,0,0,[['Manga',150,'g'],['Iogurte natural',150,'g'],['Leite magro, UHT',50,'ml'],['Canela',0.5,'g']],['p','l'],0,['sn','br']),
+R('granizadolimao','Granizado de limão','portuguesa',[],0,0,0,0,[['Sumo de limão',50,'ml'],['Açúcar branco',30,'g']],['l'],0,['sn','sob']),
+R('granizadolimaoketo','Granizado de limão sem açúcar','portuguesa',[],0,0,0,0,[['Sumo de limão',50,'ml'],['Eritritol',20,'g'],['Hortelã',2,'g']],['l'],0,['sn','sob']),
+R('granizadocafe','Granizado de café','italiana',[],0,0,0,0,[['Café expresso',100,'ml'],['Açúcar branco',15,'g']],['l'],0,['sn','sob']),
+R('granizadomelancia','Granizado de melancia e lima','outras',[],0,0,0,0,[['Melancia',300,'g'],['Lima',1,'un'],['Hortelã',3,'g']],['l'],0,['sn','sob']),
+R('granizadomorango','Granizado de morango com stévia','outras',[],0,0,0,0,[['Morango',200,'g'],['Sumo de limão',10,'ml'],['Adoçante de stévia',0.3,'g']],['l'],0,['sn','sob']),
 /* ---- Carne: panados, rolo e wellington ----
    Três pratos que pedem acompanhamento, e é isso que os põe aqui: são a
    melhor demonstração de que o prato e o que vai ao lado são uma escolha só.
@@ -8553,6 +8588,46 @@ P('moussemanga',[['Gelatina','Gelatina a demolhar em água fria.',10],
  ['Ligar','Um pouco de polpa aquecida dissolve a gelatina escorrida; volta ao resto da polpa com o leite condensado.',5],
  ['Natas','Natas batidas envolvidas no fim, sem bater.',6],
  ['Frio','Frigorífico quatro horas. Serve-se com cubinhos de manga por cima.',240]]);
+P('sumolarcenoura',[['Espremer','Três laranjas no espremedor dão cerca de 150 ml; duas cenouras grandes na centrifugadora, uns 100 ml. O gengibre descascado vai à centrifugadora com as cenouras.',8],
+ ['Servir','Mexe e bebe logo: a vitamina C da laranja perde-se com o ar e com o tempo. O NHS aponta 150 ml por dia de sumos e smoothies, todos juntos — este copo é um dia inteiro.']]);
+P('sumoverde',[['Lavar','Espinafres e hortelã bem lavados; o pepino com casca, se for de agricultura biológica.',3],
+ ['Centrifugar','Duas maçãs dão cerca de 120 ml na centrifugadora. Passa a seguir o pepino, os espinafres e a hortelã, e junta o sumo de meio limão — é ele que impede o verde de escurecer.',6],
+ ['Servir','Com gelo, logo. Quem tem pedras nos rins de oxalato fala com quem o segue antes de fazer disto hábito: os espinafres crus são ricos em oxalato.']]);
+P('sumomelancia',[['Cortar','Meio quilo de melancia com casca dá os 350 g de polpa; as sementes pretas saem, as brancas podem ficar.',4],
+ ['Triturar e coar','Tritura com a hortelã e o sumo da lima e passa por um passador fino. A melancia é quase só água: não precisa de mais nenhuma.',3]]);
+P('limonadaketo',[['Dissolver','O eritritol em 50 ml de água morna, que a frio custa a dissolver e fica areento no fundo.',3],
+ ['Juntar','O sumo de um limão grande (40 ml), 250 ml de água fria e a hortelã esmagada. Gelo a gosto.',2],
+ ['A conta','15 g de eritritol por copo; a EFSA (2023) fixou a dose diária aceitável em 0,5 g por kg de peso — dois copos para quem pesa 60 kg já são 30 dos 30 g.']]);
+P('limonada',[['Xarope','O açúcar em 50 ml de água quente, até desaparecer.',3],
+ ['Juntar','O sumo de um limão grande, 250 ml de água fria, a hortelã esmagada e gelo. 20 g de açúcar são cinco colheres de chá — todo açúcar livre.',2]]);
+P('smoothievermelhos',[['Triturar','Frutos vermelhos (podem ser congelados — dispensam o gelo), meia banana e o iogurte, até ficar liso.',3],
+ ['Servir','Logo, enquanto está espesso. A fruta triturada continua a ter a fibra toda, mas os açúcares passam a contar como livres.']]);
+P('smoothiemangaaveia',[['Triturar','A manga em cubos, a polpa dos maracujás (as sementes trituram-se ou coam-se, a gosto) e a bebida de aveia fria.',3],
+ ['Nota','Sem leite e sem soja. A aveia, nesta casa, conta como glúten — para quem não pode, o smoothie tropical com água de coco é a alternativa.']]);
+P('smoothietropical',[['Triturar','Ananás e manga em cubos, a água de coco e o sumo de meia lima. Com fruta congelada não leva gelo.',3],
+ ['Nota','Sem leite, sem glúten, sem frutos de casca rija, sem soja e sem açúcar adicionado: serve quase toda a gente da casa, paleo incluída.']]);
+P('smoothieverdeketo',[['Triturar','Abacate, espinafres, pepino, a bebida de amêndoa, o limão e o eritritol, até ficar cremoso. Gelo para refrescar.',3],
+ ['Nota','Menos de 5 g de hidratos por copo: é o smoothie da keto. Leva amêndoa — para quem não pode, troca-se por bebida de aveia (mas deixa de ser keto) ou por água de coco (idem).']]);
+P('smoothieproteico',[['Triturar','A banana, a manteiga de amendoim, o cacau, a proteína de ervilha e a bebida de soja fria.',3],
+ ['Nota','Cerca de 30 g de proteína, toda vegetal — é o batido de depois do treino de força. Leva amendoim e soja.']]);
+P('smoothiemirtilo',[['Demolhar','A aveia no leite, cinco minutos: tritura mais fina e o smoothie não fica com grumos.',5],
+ ['Triturar','Junta os mirtilos e o iogurte grego e tritura. É um pequeno-almoço inteiro num copo.',2]]);
+P('batidomorango',[['Triturar','Morangos sem o pé, o leite frio e o mel. Com morangos congelados fica um batido espesso, sem gelo.',3]]);
+P('batidobananasemlactose',[['Triturar','A banana madura, o leite sem lactose e a canela. Sem lactose não quer dizer sem leite: quem é alérgico às proteínas do leite não o pode beber.',3]]);
+P('batidocafe',[['Café','Dois cafés tirados e arrefecidos — quentes, cortam a bebida de soja.',5],
+ ['Triturar','O café frio, a bebida de soja, as tâmaras sem caroço (são o que adoça) e o cacau, com gelo.',3]]);
+P('batidoketochoc',[['Triturar','A bebida de amêndoa fria, o cacau, a manteiga de amendoim e o eritritol, com gelo. Cerca de 4 g de hidratos.',3]]);
+P('lassimanga',[['Triturar','A manga, o iogurte, o leite e uma pitada de canela (na Índia é cardamomo). Frio.',3]]);
+P('granizadolimao',[['Xarope','O açúcar em 200 ml de água quente; junta o sumo de limão e deixa arrefecer.',5],
+ ['Congelar','Num tabuleiro largo, ao congelador. A cada meia hora raspa com um garfo, três ou quatro vezes, até ficar em cristais soltos.',150]]);
+P('granizadolimaoketo',[['Xarope','O eritritol em 200 ml de água quente, até dissolver; junta o sumo de limão e a hortelã picada.',5],
+ ['Congelar','No tabuleiro, raspando a cada meia hora. O eritritol recristaliza mais do que o açúcar: os cristais ficam maiores e mais duros, raspa-se mais vezes.',150]]);
+P('granizadocafe',[['Café','Cafés fortes, acabados de tirar, com o açúcar dissolvido. É a granita di caffè da Sicília.',5],
+ ['Congelar','No tabuleiro, raspando a cada meia hora até ficar granulado. Serve-se num copo pequeno.',150]]);
+P('granizadomelancia',[['Triturar','A melancia sem sementes com o sumo da lima e a hortelã. Não leva açúcar nenhum: a melancia chega.',4],
+ ['Congelar','No tabuleiro, raspando a cada meia hora.',150]]);
+P('granizadomorango',[['Triturar','Os morangos, o limão e a stévia, e passa pelo passador para tirar as sementes.',4],
+ ['Congelar','No tabuleiro, raspando a cada meia hora. A stévia adoça sem dar corpo: o granizado fica mais solto do que com açúcar.',150]]);
 P('moussemascarponemaracuja',[['Abrir os maracujás','Abre os maracujás e recolhe a polpa. Metade fica para dentro da mousse, metade para cima no fim.',6],
  ['Creme','Mascarpone à temperatura ambiente, mexido com o leite condensado só até ficar liso. Frio não envolve; batido de mais talha e fica granuloso — o mascarpone é creme e não nata.',5],
  ['O maracujá por dentro','Metade da polpa envolvida no creme. O ácido engrossa o leite condensado sozinho, e é por isso que esta mousse não precisa de gelatina nem de claras.',3],
@@ -11293,6 +11368,12 @@ NI('Alulose',40,0,0,0,0,0,4);
 NI('Xilitol',240,0,0,0,0,0,4);
 NI('Kefir',41,4.5,3.8,1,0,0,3,'ml');
 NI('Água de coco',19,3.7,0.7,0.2,1.1,0,4,'ml');
+/* Os sumos como ingrediente das receitas de sumo: o que vai ao copo é o sumo,
+   não a fruta inteira. USDA FoodData Central, sumos crus sem açúcar. */
+NI('Sumo de laranja natural',45,10.4,0.7,0.2,0.2,0,2,'ml');
+NI('Sumo de maçã natural',46,11.3,0.1,0.1,0.2,0,2,'ml');
+NI('Sumo de limão',22,6.6,0.4,0.2,0.3,0,2,'ml');
+NI('Sumo de cenoura',40,9.3,1,0.2,0.8,0,2,'ml');
 /* ---- Dois minerais que passam a ser INGREDIENTE e não só suplemento ----
    Já existiam na lista de suplementos, e lá continuam: um comprimido de
    magnésio é outra coisa. Aqui entram como o que se compra na mercearia e se
@@ -12625,6 +12706,8 @@ function sodioEstimado(nome){ return temChave(NA_ESTIMADO,nome); }
    quantitativa e não um simples sim/não. */
 const ACUCAR_LIVRE={
   'Açúcar branco':100, 'Açúcar amarelo':100, 'Mel':82, 'Mel de cana':75, 'Melaço':60,
+  /* os açúcares de um sumo contam como livres mesmo sendo 100 % fruta (OMS, 2015) */
+  'Sumo de laranja natural':8.4, 'Sumo de maçã natural':9.6, 'Sumo de limão':2.5, 'Sumo de cenoura':3.9,
   'Xarope de ácer':60, 'Leite condensado açucarado':56, 'Marmelada':60,
   'Chocolate de leite, tablete':52, 'Chocolate de culinária':45, 'Chocolate, pó':60,
   'Ketchup':22, 'Molho barbecue':35, 'Molho teriyaki':16, 'Molho de vinagrete':8,
@@ -15249,7 +15332,28 @@ function bebidasCasaCfg(){ if(!Array.isArray(S.bebidasCasa)) S.bebidasCasa=[]; r
 /* ---- Uma bebida, venha do catálogo ou da casa ----
    As da casa são os batidos, sumos e smoothies que alguém montou no criador:
    guardam já o valor por 100 ml, calculado dos ingredientes. */
+/* ---- As receitas de bebidas, registáveis como bebidas ----
+   O volume de uma dose de cada uma (o copo que a receita dá). Os açúcares
+   livres contam os da fruta triturada ou espremida, que o NHS conta como
+   livres, mais o açúcar e o mel. */
+const BEB_REC_ML={sumolarcenoura:250, sumoverde:250, sumomelancia:300, limonadaketo:340, limonada:340,
+  smoothievermelhos:300, smoothiemangaaveia:330, smoothietropical:350, smoothieverdeketo:350, smoothieproteico:330, smoothiemirtilo:300,
+  batidomorango:330, batidobananasemlactose:350, batidocafe:300, batidoketochoc:260, lassimanga:330,
+  granizadolimao:300, granizadolimaoketo:300, granizadocafe:150, granizadomelancia:300, granizadomorango:250,
+  batido:350, licuado:350};
+function livreDaReceitaBebida(r){
+  const frutas=FRUTAS_BAT.map(x=>x[0]);
+  let g=acucarLivreDeIngredientes(r.i,1);
+  r.i.forEach(l=>{ if(frutas.indexOf(l[0])<0) return; const gr=gramasDe(l[0],l[1],l[2]), c=composicaoDe(l[0]); if(gr&&c) g+=c.c*gr/100; });
+  return g;
+}
 function bebidaDef(k){
+  if(typeof k==='string' && k.indexOf('rec:')===0){
+    const id=k.slice(4), r=RECIPES.find(x=>x.id===id); if(!r || !BEB_REC_ML[id]) return null;
+    const ml=BEB_REC_ML[id], f=100/ml;
+    return {k, n:r.n, cat:'casa', g:'casa', def:'receita', abv:0, c:r.c*f, acu:r.c*f, livre:livreDaReceitaBebida(r)*f, kcal:r.k*f,
+      p:r.p*f, f:r.f*f, fib:(r.fib||0)*f, i:/granizad/.test(id)? '🧊' : /sumo|limonada/.test(id)? '🍋' : '🥤', fonte:'receita da biblioteca', ml, rec:id};
+  }
   if(typeof k==='string' && k.indexOf('casa:')===0){
     const b=bebidasCasaCfg().find(x=>'casa:'+x.id===k); if(!b) return null;
     const v=b.p100||{};
@@ -15292,7 +15396,7 @@ function nutrBebida(k,ml){
 function mlDaMedida(k,med){
   const b=bebidaDef(k); if(!b) return 0;
   if(med==='receita' && b.comp) return Math.round(compBebida(b).ml);
-  if(b.cat==='casa' && med==='receita') return b.ml||250;
+  if(b.cat==='casa' && med==='receita') return Math.round(b.ml||250);
   return (MEDIDAS_BEB[med]||[0,0])[1];
 }
 function ehAlcoolica(k){ const b=bebidaDef(k); if(!b) return false; return b.comp? compBebida(b).alc>0.5 : (b.abv||0)>=0.5; }
@@ -15322,7 +15426,7 @@ function limparBebidas(a,ids){
     if(ids && ids.indexOf(x.mid)<0) return null;
     let k=String(x.k||''), ml=parseFloat(x.ml);
     if(!(ml>0) && temChave(BEB_ANTIGAS,k)){ ml=BEB_ANTIGAS[k][1]; k=BEB_ANTIGAS[k][0]; }
-    const existe = BEB.some(b=>b.k===k) || /^casa:[A-Za-z0-9_-]{1,32}$/.test(k);
+    const existe = BEB.some(b=>b.k===k) || /^casa:[A-Za-z0-9_-]{1,32}$/.test(k) || /^rec:[a-z0-9]{2,40}$/.test(k);
     if(!existe || !(ml>0)) return null;
     return {id:limparId(x.id), mid:x.mid, d:x.d, k, ml:clampNum(Math.round(ml),5,5000), n:clampNum(parseInt(x.n,10)||1,1,12)};
   }).filter(Boolean);
@@ -15455,6 +15559,12 @@ function modalBebidaHtml(mo){
   const lista= mo.cat==='casa'
     ? bebidasCasaCfg().map(b=>bebidaDef('casa:'+b.id)).filter(Boolean)
     : BEB.filter(b=>b.cat===mo.cat);
+  /* As receitas da biblioteca que servem esta pessoa: a dieta dela e nenhum
+     alergénio ou ingrediente que tenha marcado — o mesmo critério do filtro
+     «Só compatíveis» das Receitas. */
+  const recs=Object.keys(BEB_REC_ML).map(id=>RECIPES.find(r=>r.id===id)).filter(Boolean);
+  const servem=recs.filter(r=>compat(r,chaveDieta(m)) && !ingredientesVetados(r,m).length);
+  const propostas= mo.cat==='casa'? servem.map(r=>bebidaDef('rec:'+r.id)).filter(Boolean) : [];
   const b=mo.k? bebidaDef(mo.k) : null;
   const meds=b? (MED_GRUPO[b.g]||['copo']) : [];
   const ml=b? mlDoModalBeb(mo) : 0;
@@ -15470,8 +15580,12 @@ function modalBebidaHtml(mo){
     <div class="row" style="margin-top:8px;flex-wrap:wrap;gap:4px">${lista.length? lista.map(x=>
       `<button class="chip ${mo.k===x.k?'on':''}" aria-pressed="${mo.k===x.k}" onclick="setBeb('k','${x.k}')">${x.i} ${esc(x.n)}</button>`).join('')
       : (mo.cat==='casa'? `<p class="sub">Ainda não há batidos da casa. <button class="btn small" onclick="abrirBatido(null,'${m.id}')">+ Criar um batido, sumo ou smoothie</button></p>` : '')}</div>
+    ${mo.cat==='casa'? `<div class="splabel" style="margin-top:10px"><span>Propostas que servem ${esc(nomeCurto(m))}</span><output>${servem.length} de ${recs.length}</output></div>
+      <p class="sub" style="margin:2px 0 6px">Sumos, smoothies, batidos e granizados da biblioteca que cabem na dieta ${esc((DIETS[chaveDieta(m)]||{n:'de casa'}).n.toLowerCase())} e não levam nada marcado nas alergias${recs.length>servem.length? ' — '+plural(recs.length-servem.length,'fica de fora','ficam de fora') : ''}.</p>
+      <div class="row" style="flex-wrap:wrap;gap:4px">${propostas.map(x=>`<button class="chip ${mo.k===x.k?'on':''}" aria-pressed="${mo.k===x.k}" onclick="setBeb('k','${x.k}')">${x.i} ${esc(x.n)}</button>`).join('')}</div>` : ''}
+    ${mo.cat==='casa' && b && b.rec? `<div class="row" style="margin-top:6px"><button class="btn ghost small" onclick="fecharModal(); irReceita('${b.rec}')">Ver a receita</button></div>` : ''}
     ${mo.cat==='casa' && lista.length? `<div class="row" style="margin-top:6px"><button class="btn ghost small" onclick="abrirBatido(null,'${m.id}')">+ Criar outro</button>
-      ${b? `<button class="btn ghost small" onclick="abrirBatido('${b.k.slice(5)}','${m.id}')">Editar «${esc(b.n)}»</button>` : ''}</div>` : ''}
+      ${b && !b.rec? `<button class="btn ghost small" onclick="abrirBatido('${b.k.slice(5)}','${m.id}')">Editar «${esc(b.n)}»</button>` : ''}</div>` : ''}
     ${b? `
     <div class="splabel" style="margin-top:12px"><span>Quanto</span><output>${nPT(ml/10,1).replace(',0','')} cl${(mo.n||1)>1? ' × '+mo.n : ''}</output></div>
     <div class="row" style="margin-top:4px;flex-wrap:wrap;gap:4px">${meds.map(k=>{ const v=mlDaMedida(mo.k,k);
@@ -15494,7 +15608,7 @@ function modalBebidaHtml(mo){
         const c=bebidaDef(x[0]); return c? esc(c.n.toLowerCase())+' ('+nPT(x[1]/10,1).replace(',0','')+' cl)' : ''; }).filter(Boolean).join(', ')}.</p>` : ''}
     ${b.nota? `<p class="sub" style="margin-top:6px">${esc(b.nota)}</p>` : ''}
     ${t.caf>0.5 && crianca? `<div class="aviso warn" style="margin-top:8px">Bebidas com cafeína não são para crianças: a EFSA aponta como teto 3 mg por quilo de peso por dia — cerca de ${tetoCafeina(m)} mg para ${esc(nomeCurto(m))}.</div>` : ''}
-    <p class="sub" style="margin-top:6px"><i>${b.cat==='casa'? 'Valores calculados dos ingredientes do batido' : b.comp? 'Valores somados do que leva, cada um com a sua fonte' : 'Valores por 100 ml — fonte: '+esc(b.fonte||'')}.</i></p>
+    <p class="sub" style="margin-top:6px"><i>${b.rec? 'Valores da receita, por dose, calculados dos ingredientes' : b.cat==='casa'? 'Valores calculados dos ingredientes do batido' : b.comp? 'Valores somados do que leva, cada um com a sua fonte' : 'Valores por 100 ml — fonte: '+esc(b.fonte||'')}.</i></p>
     ` : `<p class="sub" style="margin-top:10px">Escolhe uma bebida.</p>`}
     <div class="row" style="margin-top:12px;justify-content:flex-end;gap:6px">
       <button class="btn ghost small" onclick="fecharModal()">Cancelar</button>
@@ -22270,7 +22384,12 @@ const VARIANTES=[
   {k:'feijoada', n:'Feijoada',     ids:['feijoada','feijoadatransmontana','feijoadabr','vgfeijoada']},
   {k:'ovosmex',  n:'Ovos mexidos', ids:['ovosmex','ovoscebolinho','ovosmexidosbacon']},
   {k:'iogurte',  n:'Iogurte com…', ids:['iogurtenatural','iogurtebanana','iogurtemorango','iogurtevermelhos','iogurtegranola','iogurtecompota','iogurtemaca','iogurtefigos','ketoiogurtesementes']},
-  {k:'batido',   n:'Batido',       ids:['batido','licuado']},
+  {k:'batido',   n:'Batido',       ids:['batido','licuado','batidomorango','batidobananasemlactose','batidocafe','batidoketochoc','lassimanga']},
+  /* As bebidas da casa em três cartões: escolhe-se entre elas pela dieta e pelo
+     que há na fruteira, e o cartão mostra a que serve melhor a mesa. */
+  {k:'sumos',    n:'Sumos naturais', ids:['sumolarcenoura','sumoverde','sumomelancia','limonada','limonadaketo']},
+  {k:'smoothies',n:'Smoothies',     ids:['smoothievermelhos','smoothiemangaaveia','smoothietropical','smoothieverdeketo','smoothieproteico','smoothiemirtilo']},
+  {k:'granizados',n:'Granizados',   ids:['granizadolimao','granizadolimaoketo','granizadocafe','granizadomelancia','granizadomorango']},
   {k:'tosta',    n:'Tosta',        ids:['ricotta','tostaatum','tostatomate']},
   {k:'espetada', n:'Espetadas',    ids:['espetadas','espetadavaca','espetadinhas','pinchos','cgespetada']},
   {k:'caril',    n:'Caril',        ids:['caril','tikka']},
