@@ -3087,7 +3087,7 @@ function migraRegistos(s){
   });
   s.rituais = limparRituais(s.rituais); s.extras = limparExtras(s.extras); s.aindaHa = limparAindaHa(s.aindaHa); s.basicos = limparBasicos(s.basicos);
   s.visitas = limparVisitas(s.visitas); s.ementas = limparEmentas(s.ementas);
-  s.anos = limparAnos(s.anos, ids); s.provas = limparProvas(s.provas, ids); s.bebidas = limparBebidas(s.bebidas, ids);
+  s.anos = limparAnos(s.anos, ids); s.provas = limparProvas(s.provas, ids); s.bebidas = limparBebidas(s.bebidas, ids); s.bebidasCasa = limparBebidasCasa(s.bebidasCasa);
   /* notasCozinha era o único campo com saneador que não passava por aqui: era
      chamado no desfazer e na leitura de uma cópia, mas não no arranque a partir
      do localStorage — que é justamente por onde entram gravações truncadas e
@@ -3612,27 +3612,160 @@ const OPCOES_DOSES=(()=>{ const a=[]; for(let v=1;v<=MAX_DOSES;v++) if(v<=12||v%
    corre no fim de cada desenho, incluindo o primeiro, e a declaração vive no
    bloco do botão voltar, muito mais abaixo. */
 let _camadas=0, _recuando=false, _camadaAntes=false;
-/* A tabela das bebidas vive aqui pela mesma razão: limparBebidas() valida
-   cada registo contra ela e corre no arranque. Deixada lá em baixo, junto ao
-   resto do módulo do álcool, dava ecrã em branco a quem tivesse uma bebida
-   guardada. Os volumes são as medidas de casa e de café em Portugal; a
-   graduação é a corrente de cada categoria. */
-const BEBIDAS=[
-  {k:'imperial', n:'Imperial / fino', ml:200, abv:5.0,  i:'🍺'},
-  {k:'cerveja',  n:'Cerveja 33 cl',   ml:330, abv:5.0,  i:'🍺'},
-  {k:'vinho',    n:'Copo de vinho',   ml:150, abv:12.5, i:'🍷'},
-  {k:'vinhogr',  n:'Copo grande de vinho', ml:250, abv:12.5, i:'🍷'},
-  {k:'porto',    n:'Cálice de Porto', ml:75,  abv:19.0, i:'🥃'},
-  {k:'shot',     n:'Shot de destilado', ml:40, abv:40.0, i:'🥃'},
-  {k:'gt',       n:'Gin tónico',      ml:50,  abv:40.0, i:'🍸'},
-  /* A bagaceira ao balcão e o cálice de conhaque ao fim do jantar são as duas
-     bebidas que faltavam a uma lista portuguesa, e nenhuma cabia no «shot»: o
-     shot bebe-se de uma vez, estas bebem-se devagar e num cálice maior. A
-     aguardente vinícola e a bagaceira andam nos 40 %, e o conhaque e o brandy
-     nos 40 % também — o que muda é a dose habitual, e é isso que a app conta. */
-  {k:'aguardente', n:'Cálice de aguardente / bagaço', ml:30, abv:40.0, i:'🥃'},
-  {k:'conhaque',   n:'Conhaque / brandy',             ml:50, abv:40.0, i:'🥃'},
+/* ================= O CATÁLOGO DAS BEBIDAS =================
+   Vive aqui em cima pela mesma razão de antes: limparBebidas() valida cada
+   registo contra ele e corre no arranque — deixado lá em baixo, junto ao
+   resto do módulo, dava ecrã em branco a quem tivesse uma bebida guardada.
+
+   Tudo por 100 ml. Duas regras de conta, e nenhuma é estimativa nossa:
+     · o álcool pesa volume × graduação × 0,789 (a densidade do etanol) e
+       rende 7 kcal por grama;
+     · os hidratos rendem 4 kcal por grama.
+   Nas bebidas de marca, a energia é a do RÓTULO, porque é a que a marca
+   declara e a que a pessoa vê na garrafa — e em Portugal mudou muito desde o
+   imposto sobre o açúcar de 2017: o Sumol, a Fanta e a Sprite foram
+   reformuladas, e algumas trocaram açúcar por adoçante. As marcas
+   reformulam; o valor de cada uma diz de onde vem, e a garrafa manda.
+
+   As fontes, campo a campo:
+     · cerveja, vinho do Porto, vinhos de mesa, aguardente — Tabela da
+       Composição de Alimentos do INSA e USDA FoodData Central;
+     · graduação e doçura dos generosos — IVDP (Porto entre 18 e 22 %, e as
+       classes de doçura), e os produtores de Moscatel de Setúbal (cerca de
+       17 %, 130 a 220 g/l de açúcar);
+     · marcas — rótulos de 2026: Super Bock e Sagres (fabricante), Compal e
+       Sprite (sítio da marca), Coca-Cola, Fanta, Sumol, 7Up, Guaraná,
+       Schweppes, Lipton, Pedras, Frize e Aquarius (rótulos transcritos no
+       Open Food Facts), Red Bull (sítio da marca: 27 g de açúcar e 80 mg
+       de cafeína por lata de 250 ml);
+     · Água das Pedras — análise do rótulo, 577 mg de sódio por litro;
+     · sumos naturais — USDA FoodData Central (sumo de laranja, de ananás e
+       de maçã, sem açúcar).
+   Os cocktails não têm valor próprio: são a soma do que levam, e por isso
+   dizem o que levam.
+
+   Campos: abv (% vol), c (hidratos), acu (açúcares), kcal (do rótulo, quando
+   o há), na (sódio mg), caf (cafeína mg), p, f — tudo por 100 ml. g é o
+   grupo de medidas; def a medida por omissão. */
+const MEDIDAS_BEB={
+  lambreta:['Lambreta',150], imperial:['Imperial / fino',200], tulipa:['Tulipa / príncipe',330],
+  caneca40:['Caneca de 40 cl',400], caneca50:['Caneca de 50 cl',500], girafa:['Girafa',1000],
+  g20:['Garrafa de 20 cl',200], g25:['Garrafa de 25 cl',250], g33:['Garrafa ou lata de 33 cl',330],
+  g50:['Garrafa ou lata de 50 cl',500], g100:['Garrafa de 1 L (litrosa)',1000],
+  copovinho:['Copo',150], copogr:['Copo grande',250], jarro:['Jarro de meio litro',500],
+  meiagarrafa:['Meia garrafa',375], garrafa:['Garrafa',750], flute:['Flute',125],
+  prova:['Copo de prova',50], calice:['Cálice',75],
+  shot:['Shot',30], calicedest:['Cálice',30], dose:['Dose de bar',40], dupla:['Dose dupla',80],
+  receita:['Um copo',0],
+  copo:['Copo',200], copogr3:['Copo grande',300], gf20:['Garrafinha de 20 cl',200], gf25:['Garrafinha de 25 cl',250],
+  lata25:['Lata de 25 cl',250], lata:['Lata de 33 cl',330], lata47:['Lata de 47,3 cl',473],
+  gf50:['Garrafa de 50 cl',500], gf1l:['Garrafa de 1 L',1000], gf15:['Garrafa de 1,5 L',1500]
+};
+const MED_GRUPO={
+  cerveja:['lambreta','imperial','tulipa','caneca40','caneca50','girafa','g20','g25','g33','g50','g100'],
+  vinho:['copovinho','copogr','jarro','meiagarrafa','garrafa'],
+  espumante:['flute','copovinho','meiagarrafa','garrafa'],
+  generoso:['prova','calice','meiagarrafa','garrafa'],
+  destilado:['shot','calicedest','dose','dupla'],
+  cocktail:['receita'],
+  sumo:['copo','copogr3','gf20','gf25','gf1l'],
+  refri:['copo','g25','lata','gf50','gf1l','gf15'],
+  energetica:['lata25','lata','lata47'],
+  agua:['copo','g25','gf50','gf1l','gf15'],
+  casa:['copo','copogr3','gf50']
+};
+const CAT_BEB=[['cerveja','Cerveja','🍺',true],['vinho','Vinhos','🍷',true],['generoso','Generosos','🥃',true],
+  ['destilado','Destilados','🥃',true],['cocktail','Cocktails','🍸',true],['sumo','Sumos','🍊',false],
+  ['refri','Refrigerantes','🥤',false],['energetica','Energéticas','⚡',false],['agua','Águas','💧',false],['casa','Os meus batidos','🥤',false]];
+const BEB=[
+  /* ---- cerveja ---- */
+  {k:'cerveja', n:'Cerveja (5 %)', cat:'cerveja', g:'cerveja', def:'imperial', abv:5, c:3.6, acu:0.2, i:'🍺', fonte:'INSA'},
+  {k:'cervejapreta', n:'Cerveja preta (Sagres Preta, 4,1 %)', cat:'cerveja', g:'cerveja', def:'g33', abv:4.1, c:2.4, acu:0, kcal:33, i:'🍺', fonte:'rótulo Sagres'},
+  {k:'cervejasem', n:'Cerveja sem álcool 0,0 %', cat:'cerveja', g:'cerveja', def:'g33', abv:0, c:6, acu:0.4, kcal:26, i:'🍺', fonte:'rótulo Super Bock 0,0',
+   nota:'Sem álcool não quer dizer sem calorias: os hidratos do malte ficam todos — mais do que numa cerveja normal.'},
+  {k:'sidra', n:'Sidra (4,5 %)', cat:'cerveja', g:'cerveja', def:'g33', abv:4.5, c:4.5, acu:4, i:'🍏', fonte:'valor típico da categoria'},
+  {k:'panache', n:'Panaché (cerveja com gasosa)', cat:'cerveja', g:'cocktail', def:'receita', i:'🍺', comp:[['cerveja',150],['seteup',150]]},
+  /* ---- vinhos ---- */
+  {k:'vinhotinto', n:'Vinho tinto (13 %)', cat:'vinho', g:'vinho', def:'copovinho', abv:13, c:2.6, acu:0.6, i:'🍷', fonte:'USDA'},
+  {k:'vinhobranco', n:'Vinho branco (12 %)', cat:'vinho', g:'vinho', def:'copovinho', abv:12, c:2.6, acu:1, i:'🥂', fonte:'USDA'},
+  {k:'vinhoverde', n:'Vinho verde (10,5 %)', cat:'vinho', g:'vinho', def:'copovinho', abv:10.5, c:2, acu:0.8, i:'🥂', fonte:'valor típico da categoria'},
+  {k:'rose', n:'Vinho rosé (12 %)', cat:'vinho', g:'vinho', def:'copovinho', abv:12, c:3, acu:1.5, i:'🍷', fonte:'valor típico da categoria'},
+  {k:'espumante', n:'Espumante / champanhe bruto', cat:'vinho', g:'espumante', def:'flute', abv:12, c:1.2, acu:1.2, i:'🍾', fonte:'bruto: até 12 g/l de açúcar (regra da UE)'},
+  {k:'espumantedoce', n:'Espumante meio-seco', cat:'vinho', g:'espumante', def:'flute', abv:11, c:4, acu:4, i:'🍾', fonte:'meio-seco: 32 a 50 g/l (regra da UE)'},
+  {k:'sangria', n:'Sangria', cat:'vinho', g:'cocktail', def:'receita', i:'🍷', comp:[['vinhotinto',120],['seteup',80],['conhaque',15],['ing:Açúcar branco',10,'g'],['ing:Laranja',25,'g']],
+   nota:'Cada sangria é uma; esta é a de casa — vinho, gasosa, um fio de brandy, açúcar e fruta.'},
+  /* ---- generosos ---- */
+  {k:'portotinto', n:'Vinho do Porto tinto (ruby, tawny)', cat:'generoso', g:'generoso', def:'calice', abv:20, c:10, acu:10, i:'🍷', fonte:'IVDP e INSA',
+   nota:'Entre 18 e 22 % de álcool e cerca de 100 g de açúcar por litro: um cálice são as calorias de uma cerveja de 33 cl.'},
+  {k:'portobranco', n:'Vinho do Porto branco', cat:'generoso', g:'generoso', def:'calice', abv:19.5, c:8, acu:8, i:'🥂', fonte:'IVDP',
+   nota:'O branco seco tem menos açúcar; o lágrima, mais.'},
+  {k:'madeira', n:'Vinho da Madeira', cat:'generoso', g:'generoso', def:'calice', abv:19, c:8.5, acu:8.5, i:'🍷', fonte:'valor típico (meio-doce)'},
+  {k:'moscatel', n:'Moscatel de Setúbal', cat:'generoso', g:'generoso', def:'calice', abv:17, c:15, acu:15, i:'🍯', fonte:'produtores: 17 %, ~150 g/l'},
+  {k:'licor', n:'Licor (ginjinha, Beirão, amêndoa amarga)', cat:'generoso', g:'destilado', def:'calicedest', abv:22, c:25, acu:25, i:'🍒', fonte:'valor típico da categoria'},
+  /* ---- destilados ---- */
+  {k:'aguardente', n:'Aguardente vínica / bagaceira', cat:'destilado', g:'destilado', def:'calicedest', abv:40, c:0, acu:0, i:'🥃', fonte:'INSA'},
+  {k:'conhaque', n:'Conhaque / brandy', cat:'destilado', g:'destilado', def:'dose', abv:40, c:0, acu:0, i:'🥃', fonte:'INSA'},
+  {k:'whisky', n:'Whisky', cat:'destilado', g:'destilado', def:'dose', abv:40, c:0, acu:0, i:'🥃', fonte:'INSA'},
+  {k:'gin', n:'Gin', cat:'destilado', g:'destilado', def:'dose', abv:40, c:0, acu:0, i:'🍸', fonte:'INSA'},
+  {k:'vodka', n:'Vodka', cat:'destilado', g:'destilado', def:'dose', abv:40, c:0, acu:0, i:'🍸', fonte:'INSA'},
+  {k:'rum', n:'Rum', cat:'destilado', g:'destilado', def:'dose', abv:40, c:0, acu:0, i:'🥃', fonte:'INSA'},
+  {k:'tequila', n:'Tequila', cat:'destilado', g:'destilado', def:'shot', abv:38, c:0, acu:0, i:'🥃', fonte:'USDA'},
+  {k:'cachaca', n:'Cachaça', cat:'destilado', g:'destilado', def:'dose', abv:40, c:0, acu:0, i:'🥃', fonte:'USDA'},
+  /* ---- cocktails: a soma do que levam ---- */
+  {k:'gintonico', n:'Gin tónico', cat:'cocktail', g:'cocktail', def:'receita', i:'🍸', comp:[['gin',50],['tonica',200]]},
+  {k:'gintonicozero', n:'Gin tónico com tónica zero', cat:'cocktail', g:'cocktail', def:'receita', i:'🍸', comp:[['gin',50],['tonicazero',200]]},
+  {k:'vodkasumo', n:'Vodka com sumo de laranja', cat:'cocktail', g:'cocktail', def:'receita', i:'🍹', comp:[['vodka',50],['sumolaranja',150]]},
+  {k:'vodkaredbull', n:'Vodka com Red Bull', cat:'cocktail', g:'cocktail', def:'receita', i:'⚡', comp:[['vodka',50],['redbull',250]],
+   nota:'Álcool e cafeína juntos: a cafeína disfarça a embriaguez, mas não a reduz — bebe-se mais sem dar por isso.'},
+  {k:'whiskycola', n:'Whisky com cola', cat:'cocktail', g:'cocktail', def:'receita', i:'🥃', comp:[['whisky',50],['cocacola',150]]},
+  {k:'cubalivre', n:'Rum com cola (cuba livre)', cat:'cocktail', g:'cocktail', def:'receita', i:'🥃', comp:[['rum',50],['cocacola',150],['ing:Lima',0.25,'un']]},
+  {k:'caipirinha', n:'Caipirinha', cat:'cocktail', g:'cocktail', def:'receita', i:'🍋', comp:[['cachaca',60],['ing:Açúcar branco',20,'g'],['ing:Lima',1,'un']]},
+  {k:'mojito', n:'Mojito', cat:'cocktail', g:'cocktail', def:'receita', i:'🌿', comp:[['rum',50],['ing:Açúcar branco',15,'g'],['ing:Lima',0.5,'un'],['agua',100]]},
+  /* ---- sumos ---- */
+  {k:'sumolaranja', n:'Sumo de laranja natural', cat:'sumo', g:'sumo', def:'copo', abv:0, c:10.4, acu:8.4, kcal:45, p:0.7, f:0.2, i:'🍊', fonte:'USDA'},
+  {k:'sumoananas', n:'Sumo de ananás natural', cat:'sumo', g:'sumo', def:'copo', abv:0, c:12.9, acu:10, kcal:53, p:0.4, f:0.1, i:'🍍', fonte:'USDA'},
+  {k:'sumomaca', n:'Sumo de maçã natural', cat:'sumo', g:'sumo', def:'copo', abv:0, c:11.3, acu:9.6, kcal:46, p:0.1, f:0.1, i:'🍏', fonte:'USDA'},
+  {k:'limonada', n:'Limonada caseira (com açúcar)', cat:'sumo', g:'sumo', def:'copogr3', abv:0, c:9.6, acu:9.2, kcal:38, i:'🍋', fonte:'receita típica: 1 limão e 25 g de açúcar por 300 ml',
+   nota:'Cada limonada é uma. Para a tua, com o açúcar ou o adoçante que usas, cria-a em «Os meus batidos».'},
+  {k:'compallaranja', n:'Compal Clássico laranja (néctar)', cat:'sumo', g:'sumo', def:'gf20', abv:0, c:7.7, acu:7.6, kcal:32, i:'🍊', fonte:'compal.pt'},
+  {k:'compalpessego', n:'Compal Clássico pêssego (néctar)', cat:'sumo', g:'sumo', def:'gf20', abv:0, c:11.7, acu:10.5, kcal:48, i:'🍑', fonte:'compal.pt'},
+  {k:'compalmanga', n:'Compal Clássico manga (néctar)', cat:'sumo', g:'sumo', def:'gf20', abv:0, c:9.4, acu:8.8, kcal:39, i:'🥭', fonte:'compal.pt'},
+  {k:'compalananas', n:'Compal Clássico ananás (néctar)', cat:'sumo', g:'sumo', def:'gf20', abv:0, c:9, acu:9, kcal:36, i:'🍍', fonte:'compal.pt'},
+  {k:'compal100laranja', n:'Compal 100 % laranja', cat:'sumo', g:'sumo', def:'gf20', abv:0, c:8.7, acu:8.7, kcal:40, p:0.7, i:'🍊', fonte:'compal.pt'},
+  {k:'compal100maca', n:'Compal 100 % maçã', cat:'sumo', g:'sumo', def:'gf20', abv:0, c:11.1, acu:10.4, kcal:46, i:'🍏', fonte:'compal.pt'},
+  {k:'achocolatado', n:'Leite achocolatado', cat:'sumo', g:'sumo', def:'gf20', abv:0, c:9.7, acu:9.7, livre:4.9, kcal:65, p:3.4, f:1.3, i:'🥛', fonte:'INSA',
+   nota:'Metade do açúcar é a lactose do leite, que não conta como açúcar livre; a outra metade é adicionada.'},
+  /* ---- refrigerantes ---- */
+  {k:'cocacola', n:'Coca-Cola', cat:'refri', g:'refri', def:'lata', abv:0, c:10.6, acu:10.6, kcal:42, caf:10, i:'🥤', fonte:'rótulo'},
+  {k:'cocazero', n:'Coca-Cola Zero', cat:'refri', g:'refri', def:'lata', abv:0, c:0, acu:0, kcal:0.2, caf:10, i:'🥤', fonte:'rótulo'},
+  {k:'seteup', n:'7Up', cat:'refri', g:'refri', def:'lata', abv:0, c:7.3, acu:7.3, kcal:30, i:'🥤', fonte:'rótulo (lima-limão)'},
+  {k:'seteupzero', n:'7Up zero açúcar', cat:'refri', g:'refri', def:'lata', abv:0, c:0, acu:0, kcal:0.6, i:'🥤', fonte:'rótulo'},
+  {k:'sprite', n:'Sprite', cat:'refri', g:'refri', def:'lata', abv:0, c:2, acu:2, kcal:9, i:'🥤', fonte:'rótulo (com adoçantes)'},
+  {k:'fanta', n:'Fanta laranja', cat:'refri', g:'refri', def:'lata', abv:0, c:4.5, acu:4.5, kcal:19, i:'🥤', fonte:'rótulo'},
+  {k:'sumollaranja', n:'Sumol laranja', cat:'refri', g:'refri', def:'lata', abv:0, c:7.5, acu:7.3, kcal:30, i:'🥤', fonte:'rótulo'},
+  {k:'sumolananas', n:'Sumol ananás', cat:'refri', g:'refri', def:'lata', abv:0, c:7.5, acu:7.5, kcal:30, i:'🥤', fonte:'rótulo'},
+  {k:'guarana', n:'Guaraná Antarctica', cat:'refri', g:'refri', def:'lata', abv:0, c:10, acu:10, kcal:40, i:'🥤', fonte:'rótulo'},
+  {k:'gingerale', n:'Ginger ale (Schweppes)', cat:'refri', g:'refri', def:'g25', abv:0, c:4.6, acu:4.6, kcal:19, i:'🥤', fonte:'rótulo'},
+  {k:'tonica', n:'Água tónica (Schweppes)', cat:'refri', g:'refri', def:'g25', abv:0, c:5.8, acu:5.8, kcal:25, i:'🥤', fonte:'rótulo'},
+  {k:'tonicazero', n:'Água tónica zero', cat:'refri', g:'refri', def:'g25', abv:0, c:0, acu:0, kcal:2, i:'🥤', fonte:'rótulo'},
+  {k:'icetea', n:'Ice tea (Lipton limão ou pêssego)', cat:'refri', g:'refri', def:'lata', abv:0, c:3.1, acu:3, kcal:13, i:'🧋', fonte:'rótulo'},
+  {k:'isotonica', n:'Bebida isotónica (Aquarius)', cat:'refri', g:'refri', def:'gf50', abv:0, c:4.5, acu:4.5, kcal:19, na:20, i:'🥤', fonte:'rótulo'},
+  /* ---- energéticas ---- */
+  {k:'redbull', n:'Red Bull', cat:'energetica', g:'energetica', def:'lata25', abv:0, c:11, acu:10.8, kcal:45, caf:32, i:'⚡', fonte:'redbull.com: 27 g de açúcar e 80 mg de cafeína por lata'},
+  {k:'redbullzero', n:'Red Bull sem açúcar', cat:'energetica', g:'energetica', def:'lata25', abv:0, c:0, acu:0, kcal:3, caf:32, i:'⚡', fonte:'rótulo'},
+  /* ---- águas ---- */
+  {k:'agua', n:'Água', cat:'agua', g:'agua', def:'copo', abv:0, c:0, acu:0, kcal:0, i:'💧', fonte:'—'},
+  {k:'aguapedras', n:'Água das Pedras', cat:'agua', g:'agua', def:'g25', abv:0, c:0, acu:0, kcal:0, na:57.7, i:'💧', fonte:'rótulo: 577 mg de sódio por litro',
+   nota:'Zero calorias, mas não zero sal: uma garrafa de 25 cl tem cerca de 144 mg de sódio, perto de um quinto do pão de um pequeno-almoço.'},
+  {k:'pedraslimao', n:'Pedras limão', cat:'agua', g:'agua', def:'g25', abv:0, c:7.6, acu:6.1, kcal:30, i:'🍋', fonte:'rótulo'},
+  {k:'frizelimao', n:'Frize limão', cat:'agua', g:'agua', def:'g25', abv:0, c:0.2, acu:0.2, kcal:1, na:6.4, i:'🍋', fonte:'rótulo'},
+  {k:'pedrasvermelhos', n:'Água das Pedras com frutos vermelhos', cat:'agua', g:'agua', def:'g25', abv:0, c:0.5, acu:0.5, kcal:5, i:'🍓', fonte:'rótulo'}
 ];
+/* Os registos guardados antes de o catálogo crescer apontavam para nove
+   bebidas fixas, cada uma com o seu volume. Continuam a valer: cada uma
+   passa para a bebida nova e para o volume que tinha. */
+const BEB_ANTIGAS={imperial:['cerveja',200], cerveja:['cerveja',330], vinho:['vinhotinto',150], vinhogr:['vinhotinto',250],
+  porto:['portotinto',75], shot:['vodka',40], gt:['gintonico',250], aguardente:['aguardente',30], conhaque:['conhaque',50]};
 function nomeRefeicao(k){ if(k==='ac') return 'Acompanhamento';
   if(k==='mo') return 'Molho';
   if(k==='ma') return 'Massa de base';
@@ -11087,6 +11220,13 @@ NI('Manteiga de amêndoa',614,10.5,21,55.5,10.3,0,4);
 NI('Xarope de agave',310,76.4,0.1,0.5,0.2,0,4);
 NI('Eritritol',20,0,0,0,0,0,4);
 NI('Adoçante de stévia',0,0,0,0,0,0,4);
+/* A alulose a 0,4 kcal/g, o fator da FDA (2020) — a UE não tem fator porque não
+   a autorizou. O xilitol a 2,4 kcal/g, o dos polióis no regulamento europeu
+   da rotulagem. O kefir e a água de coco, para o criador de batidos. */
+NI('Alulose',40,0,0,0,0,0,4);
+NI('Xilitol',240,0,0,0,0,0,4);
+NI('Kefir',41,4.5,3.8,1,0,0,3,'ml');
+NI('Água de coco',19,3.7,0.7,0.2,1.1,0,4,'ml');
 /* ---- Dois minerais que passam a ser INGREDIENTE e não só suplemento ----
    Já existiam na lista de suplementos, e lá continuam: um comprimido de
    magnésio é outra coisa. Aqui entram como o que se compra na mercearia e se
@@ -13106,6 +13246,9 @@ function blank(){ return {members:[],cheats:{},recuperacao:{},plans:{},bought:{}
   visitas:[], ementas:{}, anos:{}, provas:{},
   /* bebidas: o alcool registado, que nao vem de receita nenhuma. */
   bebidas:[],
+  /* bebidasCasa: os batidos, sumos e smoothies criados em casa, com o valor
+     por 100 ml calculado dos ingredientes */
+  bebidasCasa:[],
   /* notasCozinha: o que esta casa aprendeu sobre o proprio forno. */
   notasCozinha:{},
   /* corredores: a ordem por que esta casa percorre o seu supermercado.
@@ -13331,7 +13474,7 @@ function instantaneo(){ return JSON.stringify({members:S.members, cheats:S.cheat
   sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa, pausas:S.pausas, diario:S.diario, cozPref:S.cozPref, metodoBMR:S.metodoBMR,
   validades:S.validades, veredictos:S.veredictos, brigada:S.brigada, desperdicio:S.desperdicio,
   gostos:S.gostos, jejum:S.jejum, combos:S.combos, massaFeita:S.massaFeita, prepFeito:S.prepFeito, cores:S.cores, agenda:S.agenda, rituais:S.rituais, extras:S.extras, aindaHa:S.aindaHa, basicos:S.basicos,
-  visitas:S.visitas, ementas:S.ementas, anos:S.anos, provas:S.provas, bebidas:S.bebidas, notasCozinha:S.notasCozinha}); }
+  visitas:S.visitas, ementas:S.ementas, anos:S.anos, provas:S.provas, bebidas:S.bebidas, bebidasCasa:S.bebidasCasa, notasCozinha:S.notasCozinha}); }
 function aplicaInstantaneo(js){
   const d=JSON.parse(js);
   S.members=d.members; S.cheats=d.cheats; S.recuperacao=d.recuperacao||{}; S.plans=d.plans; S.bought=d.bought;
@@ -13360,7 +13503,7 @@ function aplicaInstantaneo(js){
   S.gostos=d.gostos&&typeof d.gostos==='object'? d.gostos : {};
   S.combos=limparCombos(d.combos);
   S.rituais=limparRituais(d.rituais); S.extras=limparExtras(d.extras); S.aindaHa=limparAindaHa(d.aindaHa); S.basicos=limparBasicos(d.basicos);
-  S.visitas=limparVisitas(d.visitas); S.ementas=limparEmentas(d.ementas); S.anos=limparAnos(d.anos); S.provas=limparProvas(d.provas); S.bebidas=limparBebidas(d.bebidas); S.notasCozinha=limparNotasCozinha(d.notasCozinha);
+  S.visitas=limparVisitas(d.visitas); S.ementas=limparEmentas(d.ementas); S.anos=limparAnos(d.anos); S.provas=limparProvas(d.provas); S.bebidas=limparBebidas(d.bebidas); S.bebidasCasa=limparBebidasCasa(d.bebidasCasa); S.notasCozinha=limparNotasCozinha(d.notasCozinha);
   S.corredores=limparCorredores(d.corredores); S.trilhos=limparTrilhos(d.trilhos); S.talhoes=limparTalhoes(d.talhoes, S.members.map(m=>m.id));
   /* o calendário, as massas compradas e as cores entravam no instantâneo e não
      voltavam dele: «Anular» dizia «Desfeito: bloco marcado» e o bloco ficava */
@@ -14805,10 +14948,13 @@ function ingeridoRealDia(mid,d){
   const t=regRefDe(mid).filter(r=>r.d===d&&r.estado==='feita')
     .reduce((t,r)=>{ const x=macrosRegRef(r);
       return {k:t.k+x.k,c:t.c+x.c,p:t.p+x.p,f:t.f+x.f,fib:t.fib+(x.fib||0)}; },{k:0,c:0,p:0,f:0,fib:0});
-  /* O álcool não é um macronutriente e não entra em nenhuma das três barras —
-     mas são calorias que o corpo conta, a 7 kcal por grama. Somam-se ao total
-     do dia e ficam de fora dos macros, que é exatamente o que ele é. */
-  t.k += kcalAlcoolDia(mid,d);
+  /* As bebidas: o álcool não é um macronutriente e não entra em nenhuma das
+     três barras — mas são calorias que o corpo conta, a 7 kcal por grama, e
+     somam-se ao total. Os hidratos, a proteína e a gordura delas (o açúcar de
+     um refrigerante, o leite de um batido) entram nos macros como os de
+     qualquer comida. */
+  const bb=bebidasDiaTotais(mid,d);
+  t.k += bb.kcal; t.c += bb.c; t.p += bb.p; t.f += bb.f; t.fib += bb.fib;
   return t;
 }
 /* ================= FIBRA =================
@@ -14974,8 +15120,11 @@ function acucarLivreMedia(mid,dias){
   const h=hojeISO(); let g=0, kcal=0, n=0;
   for(let i=0;i<(dias||7);i++){ const d=addDias(h,-i);
     const refs=regRefDe(mid).filter(r=>r.d===d&&r.estado==='feita');
-    if(!refs.length) continue;
+    const bebL=acucarLivreBebidasDia(mid,d);
+    if(!refs.length && !bebL) continue;
     refs.forEach(r=>{ g+=acucarLivreRegRef(r); });
+    /* o sumo, o refrigerante e o batido: açúcar livre que não vem em receita nenhuma */
+    g+=bebL;
     kcal+=ingeridoRealDia(mid,d).k; n++;
   }
   if(!n||!kcal) return null;
@@ -14997,6 +15146,9 @@ function ataquesDeAcucar(mid,d){
     if(acucarLivreRegRef(r)<1) return;      /* vestígio de tempero não é ataque */
     if(r.mk==='l') entre++; else refeicao++;
   });
+  /* Uma bebida com açúcar é um ataque, e a app não sabe se foi à mesa: conta-se
+     fora da refeição, que é o lado prudente e é quase sempre o caso. */
+  bebidasDoDia(mid,d).forEach(x=>{ const t=nutrRegisto(x); if(t && t.livre>=2) entre+=x.n; });
   return {total:refeicao+entre, refeicao, entre};
 }
 function semanaDeAtaques(mid){
@@ -15021,11 +15173,63 @@ function semanaDeAtaques(mid){
    nível de consumo isento de risco.
    Em gravidez, amamentação e menores a ferramenta não aparece, como o jejum. */
 const ETANOL_DENSIDADE=0.789, ETANOL_KCAL_G=7, UNIDADE_ETANOL_G=10;
-/* A tabela BEBIDAS está lá em cima, com o MAX_AC: é lida por um saneador de
+/* O catálogo das bebidas está lá em cima: é lido por um saneador de
    arranque e daqui ainda estaria na zona morta temporal. */
 function etanolDe(ml,abv){ return ml*(abv/100)*ETANOL_DENSIDADE; }
 function unidadesDe(ml,abv){ return etanolDe(ml,abv)/UNIDADE_ETANOL_G; }
 function kcalAlcool(ml,abv){ return Math.round(etanolDe(ml,abv)*ETANOL_KCAL_G); }
+function bebidasCfg(){ if(!Array.isArray(S.bebidas)) S.bebidas=[]; return S.bebidas; }
+function bebidasCasaCfg(){ if(!Array.isArray(S.bebidasCasa)) S.bebidasCasa=[]; return S.bebidasCasa; }
+/* ---- Uma bebida, venha do catálogo ou da casa ----
+   As da casa são os batidos, sumos e smoothies que alguém montou no criador:
+   guardam já o valor por 100 ml, calculado dos ingredientes. */
+function bebidaDef(k){
+  if(typeof k==='string' && k.indexOf('casa:')===0){
+    const b=bebidasCasaCfg().find(x=>'casa:'+x.id===k); if(!b) return null;
+    const v=b.p100||{};
+    return {k, n:b.nome, cat:'casa', g:'casa', def:'copo', abv:0, c:v.c||0, acu:v.acu||0, livre:v.livre||0, kcal:v.kcal||0,
+      p:v.p||0, f:v.f||0, fib:v.fib||0, i:({sumo:'🍊',smoothie:'🥤',batido:'🥛',granizado:'🧊'})[b.modo]||'🥤', fonte:'criado em casa', ml:b.ml};
+  }
+  return BEB.find(x=>x.k===k)||null;
+}
+/* Os componentes de um cocktail: outra bebida do catálogo, ou um ingrediente
+   do catálogo de alimentos (o açúcar e a lima da caipirinha). */
+function compBebida(b){
+  const out={ml:0, kcal:0, c:0, acu:0, livre:0, alc:0, caf:0, na:0, p:0, f:0, fib:0};
+  (b.comp||[]).forEach(x=>{
+    if(String(x[0]).indexOf('ing:')===0){
+      const nome=x[0].slice(4), g=gramasDe(nome,x[1],x[2]||'g'), n=composicaoDe(nome); if(g==null||!n) return;
+      out.kcal+=n.k*g/100; out.c+=n.c*g/100; out.p+=n.p*g/100; out.f+=n.f*g/100; out.fib+=n.fib*g/100;
+      const al=acucarLivreDe(nome)*g/100; out.acu+=al; out.livre+=al;
+      if(x[2]!=='un') out.ml+=g*0.6;   /* o açúcar dissolve-se e ocupa pouco */
+      return;
+    }
+    const d=nutrBebida(x[0], x[1]); if(!d) return;
+    ['ml','kcal','c','acu','livre','alc','caf','na','p','f','fib'].forEach(k=>out[k]+=d[k]);
+  });
+  return out;
+}
+/* O que uma quantidade de uma bebida traz, em ml. */
+function nutrBebida(k,ml){
+  const b=bebidaDef(k); if(!b) return null;
+  if(b.comp){
+    const t=compBebida(b), f=t.ml>0? ml/t.ml : 0;
+    const out={}; Object.keys(t).forEach(x=>out[x]=t[x]*f); out.ml=ml; return out;
+  }
+  const r=ml/100;
+  const alc=(b.abv||0)*ETANOL_DENSIDADE*r;
+  const kcal= b.kcal!=null? b.kcal*r : alc*ETANOL_KCAL_G+((b.c||0)+(b.p||0))*4*r+(b.f||0)*9*r;
+  const acu=(b.acu||0)*r;
+  return {ml, kcal, c:(b.c||0)*r, acu, livre: b.livre!=null? b.livre*r : acu, alc, caf:(b.caf||0)*r, na:(b.na||0)*r, p:(b.p||0)*r, f:(b.f||0)*r, fib:(b.fib||0)*r};
+}
+/* O volume de uma medida para esta bebida: o cocktail é a receita inteira. */
+function mlDaMedida(k,med){
+  const b=bebidaDef(k); if(!b) return 0;
+  if(med==='receita' && b.comp) return Math.round(compBebida(b).ml);
+  if(b.cat==='casa' && med==='receita') return b.ml||250;
+  return (MEDIDAS_BEB[med]||[0,0])[1];
+}
+function ehAlcoolica(k){ const b=bebidaDef(k); if(!b) return false; return b.comp? compBebida(b).alc>0.5 : (b.abv||0)>=0.5; }
 function podeBeber(m){
   if(!m) return false;
   const fase=faseDe(m);
@@ -15034,70 +15238,424 @@ function podeBeber(m){
   /* Quem amamenta diz-o no perfil, e é isso que manda. O teste era um proxy
      — «pós-parto com menos de 26 semanas, amamentação provável» —, e a partir
      das 26 semanas a ferramenta do álcool aparecia a quem estava a amamentar
-     em exclusivo, contra o que a dica promete em voz alta («em gravidez,
-     amamentação e menores de idade a ferramenta nem aparece»). O jejum já
-     tinha sido corrigido para ler o campo explícito; isto ficou para trás.
-     O proxy fica, para o pós-parto recente de quem não declarou nada. */
+     em exclusivo, contra o que a dica promete em voz alta. O proxy fica, para
+     o pós-parto recente de quem não declarou nada. */
   if(amamenta(m)) return false;
   if(posparto(m)&&semanasPosParto(m)<26) return false;
   return true;
 }
-function bebidasCfg(){ if(!Array.isArray(S.bebidas)) S.bebidas=[]; return S.bebidas; }
-function registarBebida(mid,k,n){
-  const b=BEBIDAS.find(x=>x.k===k); if(!b) return;
-  const m=S.members.find(x=>x.id===mid); if(!podeBeber(m)) return;
+/* ---- O saneador ----
+   Corre no arranque. Um registo de antes do catálogo crescer (com uma das
+   nove bebidas antigas e sem ml) passa para a bebida nova e para o volume
+   que tinha; um que aponte para uma bebida que já não existe sai. */
+function limparBebidas(a,ids){
+  if(!Array.isArray(a)) return [];
+  const h=hojeISO();
+  return a.slice(-2000).map(x=>{
+    if(!x||typeof x!=='object'||!dataValida(x.d)||x.d>h) return null;
+    if(ids && ids.indexOf(x.mid)<0) return null;
+    let k=String(x.k||''), ml=parseFloat(x.ml);
+    if(!(ml>0) && temChave(BEB_ANTIGAS,k)){ ml=BEB_ANTIGAS[k][1]; k=BEB_ANTIGAS[k][0]; }
+    const existe = BEB.some(b=>b.k===k) || /^casa:[A-Za-z0-9_-]{1,32}$/.test(k);
+    if(!existe || !(ml>0)) return null;
+    return {id:limparId(x.id), mid:x.mid, d:x.d, k, ml:clampNum(Math.round(ml),5,5000), n:clampNum(parseInt(x.n,10)||1,1,12)};
+  }).filter(Boolean);
+}
+function limparBebidasCasa(a){
+  if(!Array.isArray(a)) return [];
+  const num=(v,max)=>clampNum(Math.round((parseFloat(v)||0)*100)/100,0,max);
+  return a.slice(0,80).map(b=>{
+    if(!b||typeof b!=='object'||!/^[A-Za-z0-9_-]{1,32}$/.test(String(b.id||''))) return null;
+    const v=b.p100||{};
+    return {id:b.id, nome:String(b.nome||'Batido da casa').slice(0,60),
+      modo:['sumo','smoothie','batido','granizado'].indexOf(b.modo)>=0? b.modo : 'smoothie',
+      ml:clampNum(Math.round(parseFloat(b.ml)||250),20,5000),
+      p100:{kcal:num(v.kcal,900), c:num(v.c,100), acu:num(v.acu,100), livre:num(v.livre,100), p:num(v.p,100), f:num(v.f,100), fib:num(v.fib,100)},
+      itens:limparItensBatido(b.itens)};
+  }).filter(Boolean);
+}
+/* Os ingredientes de um batido são índices nas listas do criador e uma
+   quantidade: só isso passa, com os índices dentro das listas. A validação
+   dos índices fica para o desenho — no arranque, as listas ainda não existem. */
+function limparItensBatido(it){
+  const out={fr:[], ex:[], lq:[], ad:[], gelo:0};
+  if(!it || typeof it!=='object' || Array.isArray(it)) return out;
+  ['fr','ex','lq','ad'].forEach(k=>{
+    out[k]=(Array.isArray(it[k])? it[k] : []).slice(0,20)
+      .filter(x=>Array.isArray(x) && Number.isInteger(x[0]) && x[0]>=0 && x[0]<60)
+      .map(x=>[x[0], clampNum(parseFloat(x[1])||0,0,2000)]);
+  });
+  out.gelo=clampNum(parseFloat(it.gelo)||0,0,1000);
+  return out;
+}
+function bebidasDoDia(mid,d){ return bebidasCfg().filter(x=>x.mid===mid&&x.d===d); }
+function nutrRegisto(x){ const t=nutrBebida(x.k, x.ml*x.n); return t; }
+/* Tudo o que as bebidas de um dia somam. */
+function totaisBebidas(lista){
+  const out={ml:0, kcal:0, c:0, acu:0, livre:0, alc:0, caf:0, na:0, p:0, f:0, fib:0};
+  (lista||[]).forEach(x=>{ const t=nutrRegisto(x); if(!t) return; Object.keys(out).forEach(k=>out[k]+=t[k]||0); });
+  return out;
+}
+function bebidasDiaTotais(mid,d){ return totaisBebidas(bebidasDoDia(mid,d)); }
+function kcalBebidasDia(mid,d){ return Math.round(bebidasDiaTotais(mid,d).kcal); }
+function acucarLivreBebidasDia(mid,d){ return bebidasDiaTotais(mid,d).livre; }
+/* As unidades de álcool contam-se só nas alcoólicas — e são as gramas de
+   etanol a dividir por dez, o padrão português (SICAD). */
+function unidadesDaSemana(mid){
+  const h=hojeISO(), ini=addDias(h,-6);
+  return totaisBebidas(bebidasCfg().filter(x=>x.mid===mid&&x.d>=ini&&x.d<=h)).alc/UNIDADE_ETANOL_G;
+}
+/* ---- Cafeína ----
+   EFSA (2015, Scientific Opinion on the safety of caffeine): até 400 mg por
+   dia num adulto saudável, 200 mg de uma vez; 200 mg por dia na gravidez e a
+   amamentar; 3 mg por kg nas crianças e adolescentes. A app só conta a
+   cafeína das bebidas que a declaram — o café das refeições conta-se lá. */
+function tetoCafeina(m){
+  if(!m) return 400;
+  if(faseDe(m)!=='adulto') return Math.round(3*(parseFloat(m.peso)||30));
+  if(gravida(m)||amamenta(m)) return 200;
+  return 400;
+}
+/* ---- Registar ---- */
+function abrirBebida(mid,d){
+  const m=S.members.find(x=>x.id===mid); if(!m) return;
+  const cat=podeBeber(m)? 'cerveja' : 'sumo';
+  abrirModal('bebida',{mid, d:(d&&dataValida(d)&&d<=hojeISO())? d : hojeISO(), cat, k:null, med:null, cl:'', n:1});
+}
+function setBeb(campo,v){
+  const mo=modalAberto(); if(!mo||mo.tipo!=='bebida') return;
+  if(campo==='cat'){ mo.cat=v; mo.k=null; mo.med=null; mo.cl=''; }
+  else if(campo==='k'){ const b=bebidaDef(v); if(!b) return; mo.k=v; mo.med=b.def; mo.cl=''; }
+  else if(campo==='med'){ mo.med=v; mo.cl=''; }
+  else if(campo==='cl'){ mo.cl=String(v||'').replace(',','.'); }
+  else if(campo==='n'){ mo.n=clampNum(parseInt(v,10)||1,1,12); }
+  else if(campo==='d'){ if(dataValida(v)&&v<=hojeISO()) mo.d=v; }
+  saveMeta(); render();
+}
+/* Os ml da escolha: o que se escreveu em cl, ou a medida. */
+function mlDoModalBeb(mo){
+  const cl=parseFloat(mo.cl);
+  if(cl>0) return Math.round(cl*10);
+  return mo.k? mlDaMedida(mo.k, mo.med||bebidaDef(mo.k).def) : 0;
+}
+function guardarBebida(){
+  const mo=modalAberto(); if(!mo||mo.tipo!=='bebida'||!mo.k) return;
+  const m=S.members.find(x=>x.id===mo.mid); if(!m) return;
+  if(ehAlcoolica(mo.k) && !podeBeber(m)) return flash('warn','A ferramenta do álcool não se usa nesta fase — gravidez, amamentação ou menos de 18 anos.');
+  const ml=mlDoModalBeb(mo);
+  if(!(ml>=5 && ml<=5000)) return flash('warn','Escreve a quantidade em centilitros, entre 0,5 e 500 cl.');
   const l=bebidasCfg();
-  l.push({id:uid(), mid, d:hojeISO(), k, n:clampNum(parseInt(n,10)||1,1,12)});
-  while(l.length>800) l.shift();
-  save('bebida registada'); render();
-  const u=unidadesDe(b.ml,b.abv)*(parseInt(n,10)||1);
-  flash('ok', b.n+' — '+nPT(u,1)+' '+(u<1.05?'unidade':'unidades')+', '+kcalAlcool(b.ml,b.abv)*(parseInt(n,10)||1)+' kcal.',
-    {rot:'Anular', fn:'desfazer()'});
+  const x={id:uid(), mid:mo.mid, d:mo.d, k:mo.k, ml, n:clampNum(mo.n||1,1,12)};
+  l.push(x); while(l.length>2000) l.shift();
+  const t=nutrRegisto(x), b=bebidaDef(mo.k);
+  S.ui.modal=null;
+  save('bebida registada');
+  flash('ok', (x.n>1? x.n+' × ':'')+b.n+' ('+nPT(ml/10,1).replace(',0','')+' cl) — '+Math.round(t.kcal)+' kcal'
+    +(t.alc>0.5? ', '+nPT(t.alc/UNIDADE_ETANOL_G,1)+' '+(t.alc/UNIDADE_ETANOL_G<1.05?'unidade':'unidades')+' de álcool' : '')
+    +(t.livre>=1? ', '+Math.round(t.livre)+' g de açúcar livre' : '')+'.', {rot:'Anular', fn:'desfazer()'});
+  render();
 }
 function apagarBebida(id){
   S.bebidas=bebidasCfg().filter(x=>x.id!==id);
   save('bebida apagada'); render();
 }
-/* Anular o dia inteiro, e não só o último registo. O desfazer da app anda um
-   passo de cada vez, e quem registou cinco copos ao longo de um jantar tinha
-   de carregar cinco vezes — ou pior, tinha de se lembrar de quantos foram. É
-   uma correção que se faz no dia seguinte, quando a conta já não bate certo
-   com o que se lembra, e a essa altura o desfazer já anda longe. Fica um só
+/* Anular o dia inteiro, e não só o último registo. Quem registou cinco copos
+   ao longo de um jantar não tem de carregar cinco vezes no anular. Fica um só
    passo de desfazer, para o próprio apagar se poder anular de uma vez. */
 function limparBebidasDoDia(mid,d){
   const dia=d||hojeISO();
   const alvo=bebidasDoDia(mid,dia);
   if(!alvo.length) return;
-  const m=S.members.find(x=>x.id===mid);
-  const u=alvo.reduce((t,x)=>{ const b=BEBIDAS.find(y=>y.k===x.k); return t+(b? unidadesDe(b.ml,b.abv)*x.n : 0); },0);
-  const quantos=alvo.reduce((t,x)=>t+x.n,0);
+  const m=S.members.find(x=>x.id===mid), t=totaisBebidas(alvo);
+  const quantos=alvo.reduce((s,x)=>s+x.n,0);
   if(!confirm('Apagar '+plural(quantos,'bebida registada','bebidas registadas')
-    +(m? ' de '+nomeCurto(m):'')+' em '+rotuloData(dia)+'?\n\nSão '+nPT(u,1)+' unidades. O botão de anular repõe tudo.')) return;
+    +(m? ' de '+nomeCurto(m):'')+' em '+rotuloData(dia)+'?\n\nSão '+Math.round(t.kcal)+' kcal'
+    +(t.alc>0.5? ' e '+nPT(t.alc/UNIDADE_ETANOL_G,1)+' unidades de álcool' : '')+'. O botão de anular repõe tudo.')) return;
   S.bebidas=bebidasCfg().filter(x=>!(x.mid===mid&&x.d===dia));
   save('bebidas de '+rotuloData(dia)+' apagadas');
   flash('ok', plural(quantos,'bebida apagada','bebidas apagadas')+'.', {rot:'Anular', fn:'desfazer()'});
   render();
 }
-function limparBebidas(a,ids){
-  if(!Array.isArray(a)) return [];
-  const h=hojeISO();
-  return a.slice(-800).map(x=>{
-    if(!x||typeof x!=='object'||!dataValida(x.d)||x.d>h) return null;
-    if(ids && ids.indexOf(x.mid)<0) return null;
-    if(!BEBIDAS.some(b=>b.k===x.k)) return null;
-    return {id:limparId(x.id), mid:x.mid, d:x.d, k:x.k, n:clampNum(parseInt(x.n,10)||1,1,12)};
-  }).filter(Boolean);
+function chipBebida(x){
+  const b=bebidaDef(x.k); if(!b) return '';
+  return `${x.n>1? x.n+'× ':''}${esc(b.n)} <span class="sub">${nPT(x.ml/10,1).replace(',0','')} cl</span> <button
+    style="background:none;border:none;cursor:pointer;color:inherit;padding:0 2px"
+    onclick="apagarBebida('${x.id}')" aria-label="Apagar ${esc(b.n)}">✕</button>`;
 }
-function bebidasDoDia(mid,d){ return bebidasCfg().filter(x=>x.mid===mid&&x.d===d); }
-function kcalAlcoolDia(mid,d){
-  return bebidasDoDia(mid,d).reduce((t,x)=>{ const b=BEBIDAS.find(y=>y.k===x.k);
-    return t+(b? kcalAlcool(b.ml,b.abv)*x.n : 0); },0);
+function modalBebidaHtml(mo){
+  const m=S.members.find(x=>x.id===mo.mid); if(!m) return '';
+  const pode=podeBeber(m);
+  const cats=CAT_BEB.filter(c=>pode || !c[3]);
+  const lista= mo.cat==='casa'
+    ? bebidasCasaCfg().map(b=>bebidaDef('casa:'+b.id)).filter(Boolean)
+    : BEB.filter(b=>b.cat===mo.cat);
+  const b=mo.k? bebidaDef(mo.k) : null;
+  const meds=b? (MED_GRUPO[b.g]||['copo']) : [];
+  const ml=b? mlDoModalBeb(mo) : 0;
+  const t=b&&ml? nutrBebida(mo.k, ml*(mo.n||1)) : null;
+  const crianca=faseDe(m)!=='adulto';
+  return `<div class="mfundo" onclick="fundoModal(event)"><div class="mcaixa" role="dialog" aria-modal="true" aria-labelledby="beb-t" style="max-width:620px">
+    <span class="lbl">${esc(nomeCurto(m))}</span>
+    <h2 id="beb-t" style="margin-top:2px">🥤 Registar bebida</h2>
+    <p class="sub" style="margin-top:4px">As bebidas não estão em receita nenhuma, e são muitas vezes as calorias que faltam na conta do dia.
+      Escolhe a bebida e a medida — ou escreve os centilitros.${pode? '' : ' <b>As bebidas alcoólicas não aparecem nesta fase</b> (gravidez, amamentação ou menos de 18 anos).'}</p>
+    <div class="row" style="margin-top:10px;flex-wrap:wrap;gap:4px">${cats.map(c=>
+      `<button class="chip ${mo.cat===c[0]?'on':''}" aria-pressed="${mo.cat===c[0]}" onclick="setBeb('cat','${c[0]}')">${c[2]} ${esc(c[1])}</button>`).join('')}</div>
+    <div class="row" style="margin-top:8px;flex-wrap:wrap;gap:4px">${lista.length? lista.map(x=>
+      `<button class="chip ${mo.k===x.k?'on':''}" aria-pressed="${mo.k===x.k}" onclick="setBeb('k','${x.k}')">${x.i} ${esc(x.n)}</button>`).join('')
+      : (mo.cat==='casa'? `<p class="sub">Ainda não há batidos da casa. <button class="btn small" onclick="abrirBatido(null,'${m.id}')">+ Criar um batido, sumo ou smoothie</button></p>` : '')}</div>
+    ${mo.cat==='casa' && lista.length? `<div class="row" style="margin-top:6px"><button class="btn ghost small" onclick="abrirBatido(null,'${m.id}')">+ Criar outro</button>
+      ${b? `<button class="btn ghost small" onclick="abrirBatido('${b.k.slice(5)}','${m.id}')">Editar «${esc(b.n)}»</button>` : ''}</div>` : ''}
+    ${b? `
+    <div class="splabel" style="margin-top:12px"><span>Quanto</span><output>${nPT(ml/10,1).replace(',0','')} cl${(mo.n||1)>1? ' × '+mo.n : ''}</output></div>
+    <div class="row" style="margin-top:4px;flex-wrap:wrap;gap:4px">${meds.map(k=>{ const v=mlDaMedida(mo.k,k);
+      const on=!(parseFloat(mo.cl)>0) && mo.med===k;
+      return `<button class="chip ${on?'on':''}" aria-pressed="${on}" onclick="setBeb('med','${k}')">${esc(MEDIDAS_BEB[k][0])} · ${nPT(v/10,1).replace(',0','')} cl</button>`; }).join('')}</div>
+    <div class="frow" style="grid-template-columns:repeat(auto-fit,minmax(min(130px,100%),1fr));margin-top:8px">
+      <div><label class="lbl" for="beb-cl">Ou em cl</label><input type="number" id="beb-cl" inputmode="decimal" step="0.5" min="0.5" max="500" value="${esc(mo.cl||'')}" placeholder="${nPT(ml/10,1).replace(',0','')}" onchange="setBeb('cl',this.value)"></div>
+      <div><label class="lbl" for="beb-n">Quantas</label><input type="number" id="beb-n" inputmode="numeric" min="1" max="12" value="${mo.n||1}" onchange="setBeb('n',this.value)"></div>
+      <div><label class="lbl" for="beb-d">Dia</label><input type="date" id="beb-d" value="${esc(mo.d)}" max="${hojeISO()}" onchange="setBeb('d',this.value)"></div>
+    </div>
+    <div class="row" style="margin-top:10px;flex-wrap:wrap">
+      <div class="stat" style="background:var(--accent-soft)"><b style="color:var(--accent)">${Math.round(t.kcal)}</b><span>kcal</span></div>
+      ${t.alc>0.5? `<div class="stat"><b>${nPT(t.alc,1)} g</b><span>álcool · ${nPT(t.alc/UNIDADE_ETANOL_G,1)} un.</span></div>` : ''}
+      <div class="stat"><b>${nPT(t.livre,1)} g</b><span>açúcar livre</span></div>
+      ${t.caf>0.5? `<div class="stat"><b>${Math.round(t.caf)} mg</b><span>cafeína</span></div>` : ''}
+      ${t.na>=20? `<div class="stat"><b>${Math.round(t.na)} mg</b><span>sódio</span></div>` : ''}
+    </div>
+    ${t.alc>0.5? `<p class="sub" style="margin-top:6px">Do total, ${Math.round(t.alc*ETANOL_KCAL_G)} kcal são do álcool (7 kcal por grama) e ${Math.round(t.kcal-t.alc*ETANOL_KCAL_G)} kcal do resto — açúcares e o que a bebida leva.</p>` : ''}
+    ${b.comp? `<p class="sub" style="margin-top:6px">Leva: ${b.comp.map(x=>{ if(String(x[0]).indexOf('ing:')===0) return esc(x[0].slice(4).toLowerCase())+(x[2]==='un'? ' ('+nPT(x[1],2).replace(/,?0+$/,'')+' un.)' : ' ('+x[1]+' g)');
+        const c=bebidaDef(x[0]); return c? esc(c.n.toLowerCase())+' ('+nPT(x[1]/10,1).replace(',0','')+' cl)' : ''; }).filter(Boolean).join(', ')}.</p>` : ''}
+    ${b.nota? `<p class="sub" style="margin-top:6px">${esc(b.nota)}</p>` : ''}
+    ${t.caf>0.5 && crianca? `<div class="aviso warn" style="margin-top:8px">Bebidas com cafeína não são para crianças: a EFSA aponta como teto 3 mg por quilo de peso por dia — cerca de ${tetoCafeina(m)} mg para ${esc(nomeCurto(m))}.</div>` : ''}
+    <p class="sub" style="margin-top:6px"><i>${b.cat==='casa'? 'Valores calculados dos ingredientes do batido' : b.comp? 'Valores somados do que leva, cada um com a sua fonte' : 'Valores por 100 ml — fonte: '+esc(b.fonte||'')}.</i></p>
+    ` : `<p class="sub" style="margin-top:10px">Escolhe uma bebida.</p>`}
+    <div class="row" style="margin-top:12px;justify-content:flex-end;gap:6px">
+      <button class="btn ghost small" onclick="fecharModal()">Cancelar</button>
+      <button class="btn small"${b? '' : ' disabled'} onclick="guardarBebida()">Registar</button>
+    </div></div></div>`;
 }
-function unidadesDaSemana(mid){
-  const h=hojeISO(), ini=addDias(h,-6);
-  return bebidasCfg().filter(x=>x.mid===mid&&x.d>=ini&&x.d<=h)
-    .reduce((t,x)=>{ const b=BEBIDAS.find(y=>y.k===x.k);
-      return t+(b? unidadesDe(b.ml,b.abv)*x.n : 0); },0);
+/* ================= O CRIADOR DE BATIDOS, SUMOS, SMOOTHIES E GRANIZADOS =================
+   Quatro coisas diferentes, e a diferença conta nas contas:
+     · SUMO natural — espremido ou centrifugado: só passa o líquido. A fibra
+       fica quase toda no bagaço e o açúcar vai com o sumo. O rendimento de
+       cada fruta (quanto sumo dá um quilo) é uma estimativa de cozinha, e
+       diz-se: uma laranja dá cerca de 45 % do peso em sumo, uma maçã na
+       centrifugadora 60 %, uma melancia 80 %. A banana e o abacate não dão
+       sumo — só se triturar.
+     · SMOOTHIE — a fruta inteira triturada: fica tudo, fibra incluída.
+     · BATIDO — com leite, iogurte ou bebida vegetal.
+     · GRANIZADO — com gelo picado: o gelo dá volume e frio, e zero calorias.
+   Para a OMS e para o NHS, os açúcares de um sumo ou de um smoothie são
+   açúcares LIVRES, mesmo sendo 100 % fruta: triturar ou espremer liberta-os
+   das células. A lactose do leite não é. O NHS acrescenta um teto prático:
+   150 ml por dia de sumos e smoothies, todos juntos. */
+const FRUTAS_BAT=[['Laranja',0.45],['Tangerina',0.45],['Toranja',0.45],['Limão',0.3],['Lima',0.35],['Ananás',0.55],
+  ['Maçã',0.6],['Pera',0.6],['Melancia',0.8],['Melão',0.65],['Uva de mesa (branca e tinta)',0.65],['Romã',0.4],
+  ['Banana',0],['Morango',0.55],['Frutos vermelhos',0.5],['Mirtilo',0.5],['Framboesa',0.5],['Manga',0.35],['Papaia',0.4],
+  ['Quivi, "Kiwi"',0.5],['Pêssego (2 variedades)',0.5],['Nectarina',0.5],['Alperce',0.45],['Cereja',0.5],['Maracujá',0.35],
+  ['Abacate',0],['Cenoura',0.4],['Beterraba (raiz) crua',0.45],['Pepino',0.75],['Aipo',0.65],['Espinafres',0.3],['Gengibre',0.4],['Hortelã',0]];
+const EXTRAS_BAT=['Aveia em flocos','Sementes de chia','Sementes de linhaça','Manteiga de amendoim','Cacau em pó','Canela','Tâmaras','Proteína de ervilha em pó'];
+const LIQ_BAT=['Água','Leite meio gordo, UHT','Leite magro, UHT','Leite gordo, UHT','Bebida de aveia','Bebida de soja sem açúcar',
+  'Bebida de amêndoa sem açúcar','Iogurte natural','Iogurte grego natural','Kefir','Água de coco','Café expresso'];
+/* ---- Os adoçantes ----
+   pod é o poder adoçante face ao açúcar (1 = igual); kg as kcal por grama;
+   un a unidade em que se mede. Os de mesa (stévia, sucralose, aspartame)
+   contam-se em saquetas ou pastilhas, cada uma a adoçar como uma colher de
+   chá de açúcar (4 g) — é o que os fabricantes declaram. ue diz se é um
+   aditivo ou alimento autorizado na União Europeia. */
+const ADOC_BAT=[
+  {k:'acucar', n:'Açúcar', ing:'Açúcar branco', pod:1, kg:4, un:'g', acu:1, ue:true},
+  {k:'amarelo', n:'Açúcar amarelo', ing:'Açúcar amarelo', pod:1, kg:3.9, un:'g', acu:0.975, ue:true},
+  {k:'mel', n:'Mel', ing:'Mel', pod:1.1, kg:3.14, un:'g', acu:0.78, ue:true},
+  {k:'agave', n:'Xarope de agave', ing:'Xarope de agave', pod:1.3, kg:3.1, un:'g', acu:0.76, ue:true},
+  {k:'acer', n:'Xarope de ácer', ing:'Xarope de ácer', pod:0.8, kg:2.6, un:'g', acu:0.67, ue:true},
+  {k:'eritritol', n:'Eritritol', pod:0.7, kg:0, un:'g', acu:0, ue:true,
+   nota:'Adoça cerca de 70 % do açúcar e conta 0 kcal no rótulo europeu. Recristaliza a frio e arrefece na boca. A EFSA (2023) fixou a dose diária aceitável em 0,5 g por kg de peso — acima disso, efeito laxante.'},
+  {k:'alulose', n:'Alulose', pod:0.7, kg:0.4, un:'g', acu:0, ue:false,
+   nota:'Adoça cerca de 70 % do açúcar, a 0,4 kcal por grama (FDA). Não recristaliza nem arrefece na boca. NÃO está autorizada na UE: é um novo alimento sem autorização, e em 2025 a EFSA concluiu que a segurança não pôde ser estabelecida com os dados entregues.'},
+  {k:'xilitol', n:'Xilitol', pod:1, kg:2.4, un:'g', acu:0, ue:true,
+   nota:'Adoça como o açúcar, com 40 % menos calorias (2,4 kcal/g, regra da UE para os polióis). Laxante em quantidade — e muito tóxico para cães.'},
+  {k:'stevia', n:'Stévia (saquetas)', pod:0, kg:0, un:'saqueta', eq:4, acu:0, ue:true,
+   nota:'Glicosídeos de esteviol (E 960). Cada saqueta adoça como uma colher de chá de açúcar.'},
+  {k:'sucralose', n:'Sucralose (pastilhas)', pod:0, kg:0, un:'pastilha', eq:4, acu:0, ue:true,
+   nota:'E 955. Cada pastilha adoça como uma colher de chá de açúcar.'},
+  {k:'aspartame', n:'Aspartame (pastilhas)', pod:0, kg:0, un:'pastilha', eq:4, acu:0, ue:true,
+   nota:'E 951. Contém uma fonte de fenilalanina: proibido a quem tem fenilcetonúria. A dose diária aceitável é 40 mg por kg (EFSA e JECFA).'}
+];
+const MODOS_BAT=[['smoothie','Smoothie','a fruta inteira triturada'],['sumo','Sumo natural','espremido ou centrifugado'],
+  ['batido','Batido','com leite, iogurte ou bebida vegetal'],['granizado','Granizado','com gelo picado']];
+function abrirBatido(id,mid){
+  const b=id? bebidasCasaCfg().find(x=>x.id===id) : null;
+  const it=(b&&b.itens)||{};
+  abrirModal('batido',{id:b? b.id : null, mid:mid||null, nome:b? b.nome : '', modo:b? b.modo : 'smoothie',
+    fr:Array.isArray(it.fr)? it.fr.map(x=>x.slice()) : [], ex:Array.isArray(it.ex)? it.ex.map(x=>x.slice()) : [],
+    lq:Array.isArray(it.lq)? it.lq.map(x=>x.slice()) : [], gelo:parseFloat(it.gelo)||0, ad:Array.isArray(it.ad)? it.ad.map(x=>x.slice()) : []});
+}
+/* Os índices e não os nomes: «Quivi, "Kiwi"» tem aspas, e os handlers
+   escritos no HTML não as aguentam — é a regra da casa. */
+function batAdd(lista,i){
+  const mo=modalAberto(); if(!mo||mo.tipo!=='batido') return;
+  if(lista==='fr'){ const nome=(FRUTAS_BAT[i]||[])[0], c=composicaoDe(nome); if(!c) return;
+    mo.fr.push([i, c.un>0? Math.round(c.un) : 100]); }
+  else if(lista==='ex'){ if(!EXTRAS_BAT[i]) return; mo.ex.push([i, 15]); }
+  else if(lista==='lq'){ if(!LIQ_BAT[i]) return; mo.lq.push([i, LIQ_BAT[i].indexOf('Iogurte')===0? 125 : 200]); }
+  else if(lista==='ad'){ const a=ADOC_BAT[i]; if(!a) return; mo.ad.push([i, a.un==='g'? 10 : 1]); }
+  saveMeta(); render();
+}
+function batSet(lista,j,v){
+  const mo=modalAberto(); if(!mo||mo.tipo!=='batido') return;
+  if(lista==='nome'){ mo.nome=String(v||'').slice(0,60); saveMeta(); return; }
+  if(lista==='modo'){ if(MODOS_BAT.some(x=>x[0]===v)) mo.modo=v; saveMeta(); render(); return; }
+  if(lista==='gelo'){ mo.gelo=clampNum(parseFloat(String(v).replace(',','.'))||0,0,1000); saveMeta(); render(); return; }
+  const l=mo[lista]; if(!Array.isArray(l)||!l[j]) return;
+  l[j][1]=clampNum(parseFloat(String(v).replace(',','.'))||0,0,2000); saveMeta(); render();
+}
+function batTira(lista,j){ const mo=modalAberto(); if(!mo||mo.tipo!=='batido') return; mo[lista].splice(j,1); saveMeta(); render(); }
+/* A conta: o que cada coisa traz, e o volume que ocupa. */
+function calcBatido(mo){
+  const t={ml:0, kcal:0, c:0, acu:0, livre:0, p:0, f:0, fib:0, adocEq:0, semSumo:[], eritritolG:0, aluloseG:0};
+  const sumo=mo.modo==='sumo';
+  (mo.fr||[]).forEach(([i,g])=>{
+    const fr=FRUTAS_BAT[i]; if(!fr) return; const c=composicaoDe(fr[0]); if(!c) return;
+    const r= sumo? fr[1] : 1;
+    if(sumo && !r){ t.semSumo.push(fr[0]); return; }
+    t.kcal+=c.k*g/100*r; t.c+=c.c*g/100*r; t.p+=c.p*g/100*r; t.f+=c.f*g/100*r;
+    t.fib+=c.fib*g/100*(sumo? r*0.1 : 1);
+    /* os hidratos da fruta madura são quase só açúcares; triturados ou
+       espremidos, contam como livres */
+    t.acu+=c.c*g/100*r; t.livre+=c.c*g/100*r;
+    t.ml+=g*r;
+  });
+  (mo.ex||[]).forEach(([i,g])=>{ const nome=EXTRAS_BAT[i], c=composicaoDe(nome); if(!c) return;
+    t.kcal+=c.k*g/100; t.c+=c.c*g/100; t.p+=c.p*g/100; t.f+=c.f*g/100; t.fib+=c.fib*g/100;
+    const al=acucarLivreDe(nome)*g/100; t.acu+=al; t.livre+=al; t.ml+=g*0.5; });
+  (mo.lq||[]).forEach(([i,q])=>{ const nome=LIQ_BAT[i]; if(!nome) return; t.ml+=q;
+    if(nome==='Água') return; const c=composicaoDe(nome); if(!c) return;
+    t.kcal+=c.k*q/100; t.c+=c.c*q/100; t.p+=c.p*q/100; t.f+=c.f*q/100; t.fib+=c.fib*q/100;
+    /* a lactose do leite e do iogurte é açúcar, mas não é livre */
+    const lact=/Leite|Iogurte|Kefir/.test(nome); t.acu+=c.c*q/100*(lact? 1 : 0.5);
+    if(!lact) t.livre+=acucarLivreDe(nome)*q/100 + (nome==='Água de coco'? c.c*q/100 : 0); });
+  t.ml+=parseFloat(mo.gelo)||0;
+  (mo.ad||[]).forEach(([i,q])=>{ const a=ADOC_BAT[i]; if(!a) return;
+    if(a.un==='g'){ t.kcal+=q*a.kg; t.acu+=q*a.acu; t.livre+=q*a.acu; if(a.acu) t.c+=q*a.acu; t.adocEq+=q*a.pod; t.ml+=q*0.6;
+      if(a.k==='eritritol') t.eritritolG+=q; if(a.k==='alulose') t.aluloseG+=q; }
+    else t.adocEq+=q*(a.eq||4);
+  });
+  t.ml=Math.max(0,Math.round(t.ml));
+  return t;
+}
+function modalBatidoHtml(mo){
+  const t=calcBatido(mo), p100=k=>t.ml>0? t[k]/t.ml*100 : 0;
+  const m=mo.mid? S.members.find(x=>x.id===mo.mid) : curM();
+  const linhaItem=(lista,j,nome,q,un)=>`<div class="row" style="justify-content:space-between;gap:6px;margin-top:4px">
+      <span class="sub" style="min-width:0">${esc(nome)}</span>
+      <span class="row" style="gap:4px;flex:none"><input type="number" inputmode="decimal" min="0" max="2000" step="${un==='g'||un==='ml'?5:1}" value="${q}" style="width:6em"
+        aria-label="${esc(nome)}, quantidade em ${un}" onchange="batSet('${lista}',${j},this.value)"> <span class="sub">${un}</span>
+      <button class="btn ghost small" aria-label="Tirar ${esc(nome)}" onclick="batTira('${lista}',${j})">✕</button></span></div>`;
+  const temErit=t.eritritolG>0, temAlul=t.aluloseG>0;
+  const kgPessoa=parseFloat(m&&m.peso)||70;
+  return `<div class="mfundo" onclick="fundoModal(event)"><div class="mcaixa" role="dialog" aria-modal="true" aria-labelledby="bat-t" style="max-width:660px">
+    <h2 id="bat-t">🥤 ${mo.id? 'Editar' : 'Criar'} batido, sumo ou smoothie ${dica('batido')}</h2>
+    <div class="frow" style="margin-top:8px"><div><label class="lbl" for="bat-n">Nome</label>
+      <input id="bat-n" maxlength="60" value="${esc(mo.nome||'')}" placeholder="Ex.: smoothie de manhã" onchange="batSet('nome',0,this.value)"></div></div>
+    <div class="row" style="margin-top:10px;flex-wrap:wrap;gap:4px">${MODOS_BAT.map(x=>
+      `<button class="chip ${mo.modo===x[0]?'on':''}" aria-pressed="${mo.modo===x[0]}" onclick="batSet('modo',0,'${x[0]}')" title="${esc(x[2])}">${esc(x[1])}</button>`).join('')}</div>
+    <p class="sub" style="margin-top:4px">${esc((MODOS_BAT.find(x=>x[0]===mo.modo)||[])[2]||'')}.${mo.modo==='sumo'? ' A fibra fica quase toda no bagaço; o açúcar vai com o sumo.' : ''}</p>
+
+    <div class="splabel" style="margin-top:12px"><span>Fruta e legumes</span><output>${plural((mo.fr||[]).length,'ingrediente','ingredientes')}</output></div>
+    ${(mo.fr||[]).map((x,j)=>linhaItem('fr',j,(FRUTAS_BAT[x[0]]||[''])[0].replace('Quivi, "Kiwi"','Kiwi').replace(' (2 variedades)','').replace(' (branca e tinta)','').replace(' (raiz) crua',''),x[1],'g')).join('')}
+    <div class="row" style="margin-top:6px;flex-wrap:wrap;gap:4px">${FRUTAS_BAT.map((x,i)=>composicaoDe(x[0])? `<button class="chip" onclick="batAdd('fr',${i})">+ ${esc(x[0].replace('Quivi, "Kiwi"','Kiwi').replace(' (2 variedades)','').replace(' (branca e tinta)','').replace(' (raiz) crua',''))}</button>` : '').join('')}</div>
+    ${t.semSumo.length? `<p class="sub" style="color:var(--warn);margin-top:4px">${esc(enumera(t.semSumo))} não ${t.semSumo.length>1?'dão':'dá'} sumo — só triturado. Num sumo ficam de fora; muda para smoothie para contarem.</p>` : ''}
+
+    <div class="splabel" style="margin-top:12px"><span>Base líquida e gelo</span></div>
+    ${(mo.lq||[]).map((x,j)=>linhaItem('lq',j,LIQ_BAT[x[0]]||'',x[1], (LIQ_BAT[x[0]]||'').indexOf('Iogurte')===0? 'g' : 'ml')).join('')}
+    <div class="row" style="margin-top:6px;flex-wrap:wrap;gap:4px">${LIQ_BAT.map((n,i)=>(n==='Água'||composicaoDe(n))? `<button class="chip" onclick="batAdd('lq',${i})">+ ${esc(n)}</button>` : '').join('')}</div>
+    <div class="row" style="justify-content:space-between;margin-top:6px"><span class="sub">Gelo</span>
+      <span class="row" style="gap:4px"><input type="number" inputmode="numeric" min="0" max="1000" step="10" value="${mo.gelo||0}" style="width:6em" aria-label="Gelo em gramas" onchange="batSet('gelo',0,this.value)"> <span class="sub">g</span></span></div>
+
+    <div class="splabel" style="margin-top:12px"><span>Extras</span></div>
+    ${(mo.ex||[]).map((x,j)=>linhaItem('ex',j,EXTRAS_BAT[x[0]]||'',x[1],'g')).join('')}
+    <div class="row" style="margin-top:6px;flex-wrap:wrap;gap:4px">${EXTRAS_BAT.map((n,i)=>composicaoDe(n)? `<button class="chip" onclick="batAdd('ex',${i})">+ ${esc(n)}</button>` : '').join('')}</div>
+
+    <div class="splabel" style="margin-top:12px"><span>Açúcar ou adoçante ${dica('adocantes')}</span></div>
+    ${(mo.ad||[]).map((x,j)=>{ const a=ADOC_BAT[x[0]]||{}; return linhaItem('ad',j,a.n||'',x[1],a.un==='g'?'g':(a.un+'s'))
+      +(a.nota? `<p class="sub" style="margin:2px 0 0;${a.ue===false?'color:var(--warn)':''}">${esc(a.nota)}</p>` : ''); }).join('')}
+    <div class="row" style="margin-top:6px;flex-wrap:wrap;gap:4px">${ADOC_BAT.map((a,i)=>`<button class="chip" onclick="batAdd('ad',${i})">+ ${esc(a.n)}${a.ue===false?' ⚠':''}</button>`).join('')}</div>
+    ${t.adocEq>0? `<p class="sub" style="margin-top:4px">Adoça como cerca de <b>${Math.round(t.adocEq)} g de açúcar</b>.</p>` : ''}
+    ${temErit && t.eritritolG>0.5*kgPessoa*0.5? `<div class="aviso warn" style="margin-top:6px">${Math.round(t.eritritolG)} g de eritritol são ${Math.round(t.eritritolG/(0.5*kgPessoa)*100)} % da dose diária aceitável da EFSA para ${esc(m? nomeCurto(m) : 'quem pesa 70 kg')} (0,5 g por kg, ${Math.round(0.5*kgPessoa)} g por dia).</div>` : ''}
+    ${temAlul? `<div class="aviso warn" style="margin-top:6px">A alulose não está autorizada na UE. ${t.aluloseG>0.4*kgPessoa? 'E '+Math.round(t.aluloseG)+' g de uma vez passam o que os ensaios toleraram sem queixas intestinais (0,4 g por kg).' : ''}</div>` : ''}
+
+    <div class="splabel" style="margin-top:14px"><span>O que dá</span><output>${t.ml? nPT(t.ml/10,1).replace(',0','')+' cl' : '—'}</output></div>
+    ${t.ml? `<div class="row" style="margin-top:6px;flex-wrap:wrap">
+      <div class="stat" style="background:var(--accent-soft)"><b style="color:var(--accent)">${Math.round(t.kcal)}</b><span>kcal no total</span></div>
+      <div class="stat"><b>${Math.round(p100('kcal'))}</b><span>kcal por 100 ml</span></div>
+      <div class="stat"><b>${nPT(t.livre,1)} g</b><span>açúcar livre</span></div>
+      <div class="stat"><b>${nPT(t.fib,1)} g</b><span>fibra</span></div>
+      <div class="stat"><b>${nPT(t.p,1)} g</b><span>proteína</span></div>
+    </div>
+    <p class="sub" style="margin-top:6px">Um copo de 25 cl: <b>${Math.round(p100('kcal')*2.5)} kcal</b> e ${nPT(p100('livre')*2.5,1)} g de açúcar livre.
+      ${mo.modo==='sumo'||mo.modo==='smoothie'? 'O NHS aponta no máximo <b>150 ml por dia</b> de sumos e smoothies, todos juntos: os açúcares da fruta espremida ou triturada contam como livres.' : ''}</p>` : '<p class="sub" style="margin-top:6px">Junta fruta, uma base ou gelo para ver as contas.</p>'}
+    <div class="row" style="margin-top:12px;justify-content:space-between;gap:6px">
+      <span>${mo.id? `<button class="btn danger small" onclick="apagarBatido('${mo.id}')">Apagar</button>` : ''}</span>
+      <span class="row" style="gap:6px"><button class="btn ghost small" onclick="fecharModal()">Cancelar</button>
+      <button class="btn small"${t.ml>=20? '' : ' disabled'} onclick="guardarBatido()">Guardar</button></span>
+    </div></div></div>`;
+}
+function guardarBatido(){
+  const mo=modalAberto(); if(!mo||mo.tipo!=='batido') return;
+  const el=document.getElementById('bat-n'); if(el) mo.nome=String(el.value||'').slice(0,60);
+  const t=calcBatido(mo); if(t.ml<20) return flash('warn','Junta pelo menos fruta ou uma base.');
+  const p=k=>Math.round(t[k]/t.ml*100*100)/100;
+  const nomeAuto=(MODOS_BAT.find(x=>x[0]===mo.modo)||['','Batido'])[1]+' de '+((mo.fr||[]).map(x=>(FRUTAS_BAT[x[0]]||[''])[0].split(/[ ,(]/)[0].toLowerCase()).slice(0,2).join(' e ')||'casa');
+  const reg={id:mo.id||uid(), nome:(mo.nome||'').trim()||nomeAuto, modo:mo.modo, ml:t.ml,
+    p100:{kcal:p('kcal'), c:p('c'), acu:p('acu'), livre:p('livre'), p:p('p'), f:p('f'), fib:p('fib')},
+    itens:limparItensBatido({fr:mo.fr, ex:mo.ex, lq:mo.lq, ad:mo.ad, gelo:mo.gelo})};
+  const l=bebidasCasaCfg(), i=l.findIndex(x=>x.id===reg.id);
+  if(i>=0) l[i]=reg; else l.push(reg);
+  const mid=mo.mid;
+  save('batido da casa');
+  if(mid){ abrirModal('bebida',{mid, d:hojeISO(), cat:'casa', k:'casa:'+reg.id, med:'copo', cl:'', n:1}); }
+  else { S.ui.modal=null; render(); }
+  flash('ok','«'+reg.nome+'» guardado: '+Math.round(reg.p100.kcal*2.5)+' kcal por copo de 25 cl. Fica em «Os meus batidos».', {rot:'Anular', fn:'desfazer()'});
+}
+function apagarBatido(id){
+  if(!confirm('Apagar este batido da casa? Os registos que já o usaram deixam de ter valor.')) return;
+  S.bebidasCasa=bebidasCasaCfg().filter(x=>x.id!==id);
+  S.ui.modal=null; save('batido apagado'); render();
+}
+/* ---- O cartão das bebidas, na Nutrição ----
+   A barra do álcool não pinta veredicto: a OMS (2023) diz que não há nível de
+   consumo isento de risco, e a app conta e mostra sem aprovar. */
+function cartaoBebidas(m){
+  const pode=podeBeber(m);
+  const hoje=bebidasDoDia(m.id,hojeISO()), t=totaisBebidas(hoje);
+  const ont=bebidasDoDia(m.id,addDias(hojeISO(),-1));
+  const u=pode? unidadesDaSemana(m.id) : 0;
+  const tc=tetoCafeina(m);
+  return `<div class="card" data-col="nu-alcool" style="margin-top:16px">
+    <div class="row" style="justify-content:space-between">
+      <h2>As bebidas do dia ${dica('alcool')}</h2>
+      <button class="btn small" onclick="abrirBebida('${m.id}')">+ Registar bebida</button></div>
+    <p class="sub">${pode? 'O vinho do jantar, a imperial e o refrigerante' : 'O sumo, o refrigerante e o batido'} não estão em receita nenhuma — e são muitas vezes as calorias que faltam à conta. Aqui contam-se.</p>
+    ${hoje.length? `<p class="sub" style="margin-top:10px"><b>Hoje:</b> ${hoje.map(chipBebida).join(' · ')}</p>
+      <div class="row" style="margin-top:8px;flex-wrap:wrap">
+        <div class="stat" style="background:var(--accent-soft)"><b style="color:var(--accent)">${Math.round(t.kcal)}</b><span>kcal somadas ao dia</span></div>
+        <div class="stat"><b>${nPT(t.livre,1)} g</b><span>açúcar livre</span></div>
+        ${t.alc>0.5? `<div class="stat"><b>${nPT(t.alc/UNIDADE_ETANOL_G,1)}</b><span>unidades de álcool</span></div>` : ''}
+        ${t.caf>0.5? `<div class="stat"><b class="${t.caf>tc?'f-warn-txt':''}">${Math.round(t.caf)} mg</b><span>cafeína · teto ${tc}</span></div>` : ''}
+      </div>
+      <div class="row" style="margin-top:6px"><button class="btn ghost small" onclick="limparBebidasDoDia('${m.id}')">Apagar as bebidas de hoje</button></div>`
+      : `<p class="sub" style="margin-top:8px">Nada registado hoje.</p>`}
+    ${ont.length? `<p class="sub" style="margin-top:8px"><b>Ontem:</b> ${ont.map(chipBebida).join(' · ')}
+        <button class="btn ghost small" style="margin-left:6px" onclick="limparBebidasDoDia('${m.id}','${addDias(hojeISO(),-1)}')">Apagar as bebidas de ontem</button></p>` : ''}
+    <div class="row" style="margin-top:8px"><button class="btn ghost small" onclick="abrirBatido(null,'${m.id}')">🥤 Criar batido, sumo ou smoothie</button></div>
+    ${pode? `<div class="splabel" style="margin-top:12px"><span>Unidades de álcool nos últimos 7 dias</span><output>${nPT(u,1)}</output></div>
+    <div class="mbar" style="height:12px"><div style="width:${Math.min(100,u/20*100).toFixed(1)}%;background:var(--mut)"></div></div>
+    <p class="sub" style="margin-top:8px">Uma unidade são cerca de 10 g de etanol (SICAD). As calorias do álcool entram no dia a 7 kcal por grama, e as dos açúcares a 4.</p>
+    <p class="sub" style="margin-top:8px"><i><b>A OMS é explícita (2023): não existe um nível de consumo de álcool isento de risco para a saúde.</b>
+      A app conta e mostra; não define um limite «seguro», porque não há nenhum que uma fonte oficial sustente como tal.</i></p>` : ''}
+  </div>`;
 }
 const AMILACEAS=/batata|mandioca|inhame|farinha de pau|tapioca|milho, grão|batata doce/i;
 function gramasHortofruticolas(r){
@@ -15863,7 +16421,9 @@ const DICAS={
   salacucar:'Duas contas que os ingredientes sempre tiveram e que nunca eram somadas ao dia. O sódio vem de uma tabela do INSA que é «deliberadamente parcial»: estão lá os alimentos onde o sal português mora — pão, queijo, fumeiro, conservas, molhos — e a app diz quando há ingredientes sem valor, porque uma conta por baixo com a omissão declarada é mais honesta do que um total inventado. O limite é o da OMS (2012): menos de 2 g de sódio por dia, que são 5 g de sal; nas crianças ajusta-se em baixa pela necessidade energética, como a própria guideline manda. O açúcar livre segue a definição da OMS (2015) — a fruta inteira e a lactose do leite não contam, o açúcar de adição, o mel, os xaropes e os sumos contam — e compara-se com os 10% da energia, com o benefício adicional abaixo dos 5%.',
   acucarLivre:'«Açúcares livres» não são todos os açúcares: são os adicionados pelo fabricante, pelo cozinheiro ou por quem come, mais os que estão naturalmente no mel, nos xaropes e nos sumos de fruta. Uma maçã não conta; um sumo de maçã conta, mesmo sendo 100% fruta. É a distinção que quase todas as apps erram, e a app faz a conta a partir dos próprios ingredientes de cada receita registada.',
   dentes:'Para a cárie, a frequência conta tanto como a quantidade: cada exposição a açúcar livre deixa o esmalte em meia hora de pH ácido. Os pais controlam «quanto açúcar»; ninguém controla «quantas vezes» — e é essa a variável que a orientação oficial manda vigiar, com o conselho concreto de guardar o doce para a refeição em vez do intervalo. A app conta apenas o que está registado, e di-lo: um doce que não passou pelo registo também não aparece aqui. Fontes: OMS (2015) e o Programa Nacional de Promoção da Saúde Oral da DGS. Não substitui o dentista.',
-  alcool:'O vinho do jantar e a imperial do fim de semana não estão em receita nenhuma — logo a app não os via, e o défice do objetivo saía furado sem se perceber porquê. Uma unidade-padrão portuguesa são cerca de 10 g de etanol (SICAD); o etanol calcula-se por volume × graduação × 0,789, que é a densidade do etanol, e rende 7 kcal por grama. Essas calorias somam-se ao total do dia mas ficam fora das três barras de macros, porque o álcool não é um macronutriente. A app escreve por extenso a posição da OMS de 2023 — não há nível de consumo isento de risco — e por isso não define nenhum limite «seguro». Em gravidez, amamentação e menores de idade a ferramenta nem aparece.',
+  alcool:'As bebidas não estão em receita nenhuma — logo a app não as via, e o défice do objetivo saía furado sem se perceber porquê. Regista-se a bebida e a medida (a imperial, a tulipa, a caneca, o cálice, a lata, a garrafa) ou os centilitros. As calorias somam o álcool (volume × graduação × 0,789, a 7 kcal por grama) e os açúcares (a 4 kcal por grama): um cálice de Porto tem quase as de uma cerveja de 33 cl, e um gin tónico deve um terço das calorias à tónica. Nas marcas, a energia é a do rótulo de 2026; nos cocktails, a soma do que levam. Os açúcares de sumos e refrigerantes contam como açúcares livres (OMS, 2015), e a cafeína conta-se contra o teto da EFSA (400 mg por dia num adulto, 200 na gravidez, 3 mg por kg nas crianças). Uma unidade de álcool são cerca de 10 g de etanol (SICAD), e a OMS (2023) diz que não há nível de consumo isento de risco. Em gravidez, amamentação e menores de idade as bebidas alcoólicas não aparecem.',
+  batido:'Sumo natural, smoothie, batido ou granizado, com a fruta, a base, o gelo e o adoçante que usas. Num sumo, só passa o líquido: o rendimento de cada fruta é uma estimativa de cozinha (a laranja dá cerca de 45 % do peso em sumo), a fibra fica quase toda no bagaço e o açúcar vai com o sumo. Num smoothie fica tudo. Os açúcares da fruta espremida ou triturada contam como livres para a OMS e para o NHS; a lactose do leite não. O NHS aponta no máximo 150 ml por dia de sumos e smoothies, todos juntos. O que criares fica em «Os meus batidos», para registar como qualquer bebida.',
+  adocantes:'O açúcar, o mel e os xaropes contam como açúcar livre. O eritritol (0 kcal no rótulo europeu) e a alulose (0,4 kcal/g) adoçam cerca de 70 % do açúcar; o xilitol adoça como ele, a 2,4 kcal/g; a stévia, a sucralose e o aspartame contam-se em saquetas ou pastilhas, cada uma como uma colher de chá de açúcar. O eritritol tem uma dose diária aceitável de 0,5 g por kg (EFSA, 2023). A alulose não está autorizada na União Europeia: em 2025 a EFSA concluiu que a segurança não pôde ser estabelecida com os dados entregues. O aspartame é proibido a quem tem fenilcetonúria, e o xilitol é muito tóxico para cães.',
   visitas:'Os convidados de uma refeição criam-se e deitam-se fora — servem para quem vem uma vez só. O livro de visitas é para quem volta sempre: a avó do almoço de domingo, o padrinho, o melhor amigo do filho. A alergia dela fica escrita uma vez, em vez de se reescrever todas as semanas com o risco de um dia ficar por marcar. Uma visita não é um membro: não tem alvos, nem pesagens, nem nutrição — tem nome, cara, o que não pode comer e um hábito de aparecer. Marcada numa refeição, conta nas doses, nas compras e sobretudo nos alertas de alergénio, como qualquer pessoa da casa.',
   festas:'O calendário gastronómico português — Reis, Carnaval, Páscoa, os Santos Populares, S. Martinho, a Consoada, o Ano Novo — e, por cima dele, a ementa que ESTA casa repete em cada um. Há casas de bacalhau cozido e casas de polvo, e essa memória perde-se quando quem a guardava já cá não está. As datas móveis saem do mesmo cálculo astronómico que já serve a Quaresma: o Carnaval são 47 dias antes da Páscoa. No ano seguinte a app pergunta se se repete.',
   pratoAnos:'Em Portugal quem faz anos escolhe o jantar, e a app passa a honrar essa lei não escrita. A data de nascimento já cá estava a envelhecer o perfil sozinha; agora avisa uma semana antes. A lista respeita as alergias e as dietas de quem se senta à mesa — o teto de calorias é que fica de fora, que é festa — e a escolha entra no jantar desse dia no plano, onde o preenchimento automático não lhe toca, porque ele nunca escreve por cima de uma refeição já escolhida. Ano após ano, o perfil ganha a linha dos anos: uma infância contada em jantares.',
@@ -18003,6 +18563,16 @@ const TROCAS_DIETA=[
    nota:'Adoça cerca de 70 % do açúcar, por isso leva-se um terço a mais. Não carameliza nem tosta, e arrefece na boca — nota-se mais numa mousse fria do que num bolo. Em quantidade dá desconforto intestinal a algumas pessoas.'},
   {de:'Açúcar amarelo', por:'Eritritol', dietas:['keto','lowcarb'], razao:'açúcar',
    nota:'Perde-se o travo a melaço do açúcar amarelo, que é metade do sabor em bolos escuros. Não carameliza.'},
+  {de:'Açúcar em pó', por:'Eritritol', dietas:['keto','lowcarb'], razao:'açúcar',
+   nota:'Moído até ficar pó, polvilha como o açúcar em pó. Leva-se um terço a mais, e arrefece na boca.'},
+  /* A alulose ao lado do eritritol, nas mesmas receitas: a app compara-as
+     receita a receita (veredictoAdocante) e diz qual se pode comprar cá. */
+  {de:'Açúcar branco', por:'Alulose', dietas:['keto','lowcarb'], razao:'açúcar',
+   nota:'Adoça cerca de 70 % do açúcar, como o eritritol: leva-se um terço a mais. Ao contrário dele, carameliza e doura (mais depressa — forno 10 a 15 °C abaixo), não recristaliza e não arrefece na boca. Não está autorizada na União Europeia.'},
+  {de:'Açúcar amarelo', por:'Alulose', dietas:['keto','lowcarb'], razao:'açúcar',
+   nota:'Doura e carameliza, mas sem o travo a melaço do açúcar amarelo. Não está autorizada na União Europeia.'},
+  {de:'Açúcar em pó', por:'Alulose', dietas:['keto','lowcarb'], razao:'açúcar',
+   nota:'Moída, polvilha sem arrefecer na boca. Não está autorizada na União Europeia.'},
   {de:'Mel', por:'Xarope de agave', dietas:['vegan'], razao:'origem animal',
    nota:'O agave é de planta e é o substituto de sempre em pastelaria vegan. Adoça mais do que o mel: usa-se cerca de três quartos.'},
   {de:'Mel', por:'Adoçante de stévia', dietas:['keto','lowcarb'], razao:'açúcar',
@@ -18059,6 +18629,59 @@ function aplicarTrocaDieta(rid, de, por){
   flash('ok','Feita a variante com '+por.toLowerCase()+'. A receita original ficou como estava.',
     {rot:'Anular', fn:'desfazer()'});
 }
+/* ================= ERITRITOL OU ALULOSE? =================
+   Os dois adoçam cerca de 70 % do açúcar, e por isso trocam-se na mesma
+   medida. Na cozinha não são iguais, e a diferença depende da receita:
+     · a alulose comporta-se como açúcar — carameliza, doura (e mais depressa:
+       pede o forno 10 a 15 °C abaixo), não recristaliza e baixa o ponto de
+       congelação, por isso um gelado fica macio; não arrefece na boca;
+     · o eritritol não carameliza nem doura, recristaliza a frio (o gelado
+       endurece e fica com areia) e deixa uma frescura na boca.
+   Mas há uma coisa que não depende da receita: a alulose NÃO está autorizada
+   na União Europeia. É um «novo alimento» sem lugar na lista da UE, e em 2025
+   a EFSA concluiu que a segurança não pôde ser estabelecida com os dados que
+   o requerente entregou (EFSA Journal 2025;23:9468) — falta de dados, não um
+   perigo demonstrado. Enquanto for assim, não se vende legalmente como
+   alimento em Portugal. O eritritol (E 968) está autorizado, com a dose diária
+   aceitável que a EFSA lhe fixou em 2023: 0,5 g por kg de peso, por causa do
+   efeito laxante. Um estudo observacional de 2023 associou níveis altos no
+   sangue a eventos cardiovasculares; não prova causa, e é mais uma razão para
+   o usar com conta.
+   A app diz qual se porta melhor naquela receita, e recomenda a que se pode
+   comprar cá. */
+function perfilDoce(r){
+  const txt=semAcentos(((r.n||'')+' '+(typeof passosTexto==='function'? passosTexto(r) : '')).toLowerCase());
+  if(/gelad|gelato|sorvet|semifri|granizad|parfait|congela/.test(txt)) return 'frio';
+  if(/caramel|pudim|flan|leite-creme|leite creme|brulee|queimad|toffee|calda/.test(txt)) return 'caramelo';
+  /* com fronteira: «massa» tem «assa» lá dentro, e a mousse saía a ir ao forno */
+  if(/\bforno|\bassa(r|do|da|dos|das|m)?\b|\btost|\bdour|\bdoir|\bbolos?\b|\bbiscoit|\bbolacha|\btarte|\bqueque|\bmuffin|\bfinancier/.test(txt)) return 'forno';
+  return 'frio_cru';
+}
+function veredictoAdocante(r){
+  const p=perfilDoce(r);
+  const tecnico = p==='frio'
+    ? {melhor:'alulose', porque:'Num gelado, a alulose baixa o ponto de congelação como o açúcar e não recristaliza: fica macio a sair do congelador. O eritritol cristaliza e deixa-o duro e com areia.'}
+    : p==='caramelo'
+    ? {melhor:'alulose', porque:'A alulose carameliza e dá cor; o eritritol não carameliza de todo — um caramelo ou uma calda não se fazem com ele.'}
+    : p==='forno'
+    ? {melhor:'alulose', porque:'No forno, a alulose doura como o açúcar — até mais depressa, por isso o forno desce 10 a 15 °C. O eritritol não doura, e à superfície pode recristalizar ao arrefecer.'}
+    : {melhor:'igual', porque:'Numa sobremesa que não vai ao lume nem ao congelador, as duas comportam-se de forma parecida; o eritritol deixa uma frescura na boca que a alulose não tem.'};
+  /* quanto eritritol leva uma dose, para o comparar com a dose diária aceitável */
+  const acucar=(r.i||[]).filter(l=>/^Açúcar (branco|amarelo|em pó)$/.test(l[0]) && l[2]==='g').reduce((t,l)=>t+(parseFloat(l[1])||0),0);
+  const erit=Math.round(acucar/0.7);
+  return Object.assign(tecnico, {erit, pctAdi:Math.round(erit/(0.5*70)*100)});
+}
+function blocoEritritolAlulose(r,trocas){
+  const temE=trocas.some(x=>x.por==='Eritritol'), temA=trocas.some(x=>x.por==='Alulose');
+  if(!temE || !temA) return '';
+  const v=veredictoAdocante(r);
+  return `<div class="aviso ${v.melhor==='alulose'?'warn':'ok'}" style="margin-top:12px">
+    <b>Eritritol ou alulose?</b> ${v.melhor==='alulose'? 'Na cozinha, nesta receita, a <b>alulose</b> porta-se melhor.' : 'Nesta receita, tanto faz na cozinha.'} ${esc(v.porque)}
+    <span class="sub" style="display:block;margin-top:6px"><b>A recomendada é o eritritol</b>: a alulose não está autorizada na União Europeia — em 2025 a EFSA
+      concluiu que a segurança não pôde ser estabelecida com os dados entregues, e não se vende legalmente como alimento em Portugal.
+      ${v.erit? 'Com eritritol, uma dose desta receita leva cerca de <b>'+v.erit+' g</b> — '+v.pctAdi+' % da dose diária aceitável de quem pesa 70 kg (EFSA, 2023: 0,5 g por kg).' : ''}</span>
+  </div>`;
+}
 function blocoTrocasDieta(r){
   const t=trocasDietaDe(r);
   if(!t.length) return '';
@@ -18076,6 +18699,7 @@ function blocoTrocasDieta(r){
       </div>
       <button class="chip" style="flex:none" onclick="aplicarTrocaDieta('${esc(r.id)}','${esc(x.de)}','${esc(x.por)}')">Trocar</button>
     </div>`).join('')}
+    ${blocoEritritolAlulose(r,t)}
     <p class="sub" style="margin-top:10px"><i>Trocar cria uma variante da casa, com os macros recalculados do catálogo.
       A receita original fica como está.</i></p>
   </div>`;
@@ -22964,7 +23588,7 @@ let jaPerguntouPeso=false, jaPerguntouCompras=false;
    S.ui.modal preenchido sem nada no ecrã: uma camada invisível que engolia o
    Escape, travava o go() e não tinha botão de fechar — só se saía recarregando.
    Recusar em voz alta é melhor do que abrir o nada. */
-const MODAIS=['peso','aviso','compras','ingrediente','acabou','favoritos','cal','recuperacao','exportarCal','cheat'];
+const MODAIS=['peso','aviso','compras','ingrediente','acabou','favoritos','cal','recuperacao','exportarCal','cheat','bebida','batido'];
 function abrirModal(tipo,dados){
   if(MODAIS.indexOf(tipo)<0){ console.warn('Família Fit — modal desconhecido: '+tipo); return; }
   S.ui.modal=Object.assign({tipo},dados||{}); saveMeta(); render();
@@ -23526,6 +24150,7 @@ function cartaoPeso(){
       <button class="btn small" onclick="abrirPesagens('${m.id}')">+ Registar pesagem</button>
         ${jejumDesaconselhado(m)? '' : `<button class="btn ghost small" onclick="abrirNovoJejum('${m.id}')">⏳ Registar jejum</button>`}
         <button class="btn ghost small" onclick="abrirCheat('${m.id}')">🎉 Registar cheat day</button>
+        <button class="btn ghost small" onclick="abrirBebida('${m.id}')">🥤 Registar bebida</button>
       </div></div>
     <div class="row" style="margin-top:10px">${S.members.map(x=>`<button class="chip ${x.id===m.id?'on':''}"
       onclick="pickM('${x.id}')">${avatar(x,20)} ${esc(x.nome.split(' ')[0])}</button>`).join('')}</div>
@@ -30128,50 +30753,6 @@ function cartaoDentes(m){
       Programa Nacional de Promoção da Saúde Oral. Isto não substitui a consulta no dentista.</i></p>
   </div>`;
 }
-/* ---- O copo às claras ----
-   O chip sai para função própria: montar um onclick com aspas dentro de uma
-   string dentro de um template é como se parte um ficheiro de 1,4 MB, e já
-   aconteceu duas vezes nesta sessão. */
-function chipBebida(x){
-  const b=BEBIDAS.find(y=>y.k===x.k); if(!b) return '';
-  return `${x.n>1? x.n+'× ':''}${esc(b.n)} <button
-    style="background:none;border:none;cursor:pointer;color:inherit;padding:0 2px"
-    onclick="apagarBebida('${x.id}')" aria-label="Apagar ${esc(b.n)}">✕</button>`;
-}
-/* A barra do álcool não pinta veredicto. As primeiras dez unidades da semana
-   estavam a verde — a mesma cor com que a app diz «dentro do recomendado» na
-   fibra, no sódio e nos açúcares livres — três linhas acima de um rodapé que
-   garante que a app não define limite «seguro» porque a OMS diz que não existe
-   nenhum. Não havia fonte para o 10 nem para o 20, a cor é a primeira coisa que
-   se lê, e estava a desmentir o texto no mesmo ecrã. Conta-se e mostra-se, sem
-   aprovar. */
-function cartaoAlcool(m){
-  if(!podeBeber(m)) return '';
-  const u=unidadesDaSemana(m.id);
-  const hoje=bebidasDoDia(m.id,hojeISO());
-  const kcalHoje=kcalAlcoolDia(m.id,hojeISO());
-  return `<div class="card" data-col="nu-alcool" style="margin-top:16px">
-    <h2>O copo às claras ${dica('alcool')}</h2>
-    <p class="sub">O vinho do jantar e a imperial não estão em receita nenhuma — e são a maior fonte de calorias invisíveis de um adulto. Aqui contam-se.</p>
-    <div class="row" style="margin-top:10px">
-      ${BEBIDAS.map(b=>`<button class="chip" onclick="registarBebida('${m.id}','${b.k}',1)"
-        title="${b.ml} ml a ${nPT(b.abv,1)}% — ${nPT(unidadesDe(b.ml,b.abv),1)} unidades, ${kcalAlcool(b.ml,b.abv)} kcal">${b.i} ${esc(b.n)}</button>`).join('')}
-    </div>
-    ${hoje.length? `<p class="sub" style="margin-top:10px"><b>Hoje:</b> ${
-      hoje.map(chipBebida).join(' · ')} — ${kcalHoje} kcal somadas ao dia.</p>
-      <div class="row" style="margin-top:6px">
-        <button class="btn ghost small" onclick="limparBebidasDoDia('${m.id}')">Apagar as bebidas de hoje</button>
-      </div>`:''}
-    ${(function(){ const ont=bebidasDoDia(m.id,addDias(hojeISO(),-1));
-      return ont.length? `<p class="sub" style="margin-top:8px"><b>Ontem:</b> ${ont.map(chipBebida).join(' · ')}
-        <button class="btn ghost small" style="margin-left:6px" onclick="limparBebidasDoDia('${m.id}','${addDias(hojeISO(),-1)}')">Apagar as bebidas de ontem</button></p>`:''; })()}
-    <div class="splabel" style="margin-top:12px"><span>Unidades nos últimos 7 dias</span><output>${nPT(u,1)}</output></div>
-    <div class="mbar" style="height:12px"><div style="width:${Math.min(100,u/20*100).toFixed(1)}%;background:var(--mut)"></div></div>
-    <p class="sub" style="margin-top:8px">Uma unidade são cerca de 10 g de etanol (SICAD). As calorias entram no dia a 7 kcal por grama — o fator que quase ninguém aplica.</p>
-    <p class="sub" style="margin-top:8px"><i><b>A OMS é explícita (2023): não existe um nível de consumo de álcool isento de risco para a saúde.</b>
-      A app conta e mostra; não define um limite «seguro», porque não há nenhum que uma fonte oficial sustente como tal.</i></p>
-  </div>`;
-}
 function cartaoGraficoRef(m){
   if(!regRefDe(m.id).length) return `<div class="card" data-col="nu-historico">
     <h2>Alimentação passada</h2>
@@ -31694,7 +32275,7 @@ function renderNutricao(){
   ${definido? cartaoFibra(m) : ''}
   ${definido? cartaoSalAcucar(m) : ''}
   ${definido? cartaoDentes(m) : ''}
-  ${definido? cartaoAlcool(m) : ''}
+  ${cartaoBebidas(m)}
   ${cartaoProvas(m)}
   ${definido? `<div class="grid g2" style="margin-top:16px">${cartaoDescobertas(m)}${cartaoPassaporte(m)}</div>` : ''}
   ${cartaoFase(m)}
@@ -31976,7 +32557,7 @@ function validacaoObjetivo(o){
     let soma=0;
     const porDia={};
     regs.forEach(r=>{ porDia[r.d]=(porDia[r.d]||0)+macrosRegRef(r).k; });
-    Object.keys(porDia).forEach(d=>{ soma+=porDia[d]+kcalAlcoolDia(m.id,d); });
+    Object.keys(porDia).forEach(d=>{ soma+=porDia[d]+kcalBebidasDia(m.id,d); });
     ingeridoMedio=soma/diasComRegisto;
   }
   /* O gasto medido é o mesmo que o cartão «Gasto real hoje» usa, mas em média
@@ -37175,7 +37756,7 @@ function pacote(){
          sobras:S.sobras, precos:S.precos, festas:S.festas, casa:S.casa, pausas:S.pausas, diario:S.diario, cozPref:S.cozPref, metodoBMR:S.metodoBMR,
          validades:S.validades, veredictos:S.veredictos, brigada:S.brigada, desperdicio:S.desperdicio,
          gostos:S.gostos, jejum:S.jejum, combos:S.combos, massaFeita:S.massaFeita, prepFeito:S.prepFeito, cores:S.cores, agenda:S.agenda, rituais:S.rituais, extras:S.extras, aindaHa:S.aindaHa, basicos:S.basicos,
-         visitas:S.visitas, ementas:S.ementas, anos:S.anos, provas:S.provas, bebidas:S.bebidas, notasCozinha:S.notasCozinha,
+         visitas:S.visitas, ementas:S.ementas, anos:S.anos, provas:S.provas, bebidas:S.bebidas, bebidasCasa:S.bebidasCasa, notasCozinha:S.notasCozinha,
          /* A ordem aprendida do supermercado ficava de fora da cópia e o
             «substituir» apagava-a: meses a corrigir a ordem dos corredores
             desapareciam ao restaurar um ficheiro de ontem. Entra no
@@ -37567,6 +38148,7 @@ function lerPacote(txt){
     Object.keys(o||{}).forEach(mid0=>{ out[mapa[mid0]||mid0]=o[mid0]; }); return out; };
   const anos=limparAnos(remapMapa(d.anos), idsOk, acha), provas=limparProvas(remapMapa(d.provas), idsOk);
   const bebidas=limparBebidas((Array.isArray(d.bebidas)? d.bebidas:[]).map(remapa), idsOk);
+  const bebidasCasa=limparBebidasCasa(d.bebidasCasa);
   const notasCozinha=limparNotasCozinha(d.notasCozinha, acha);
   /* As estruturas novas passam pelo mesmo crivo das antigas: datas verificadas,
      ids remapeados para os perfis que sobreviveram à importação, e receitas
@@ -37631,7 +38213,7 @@ function lerPacote(txt){
   }
   return {d:{ members, cheats, recuperacao, plans, bought, objetivos, despensa, receitas,
               medicoes, alturas, forca, regAtiv, regRef, sobras, precos, festas, casa, pausas, diario, cozPref,
-              validades, veredictos, brigada, desperdicio, gostos, jejum, combos, massaFeita, prepFeito, cores, agenda, rituais, extras, aindaHa, basicos, visitas, ementas, anos, provas, bebidas, notasCozinha,
+              validades, veredictos, brigada, desperdicio, gostos, jejum, combos, massaFeita, prepFeito, cores, agenda, rituais, extras, aindaHa, basicos, visitas, ementas, anos, provas, bebidas, bebidasCasa, notasCozinha,
               prefCuisine:temChave(CUIS,d.prefCuisine)?d.prefCuisine:'todas',
               /* Cinco estruturas saíam na cópia e nunca voltavam da leitura, o
                  que quer dizer que «substituir» as apagava sem aviso:
@@ -37900,6 +38482,7 @@ function juntar(txt){
     [conta(d.anos),'os anos'],
     [conta(d.provas),'as provas'],
     [conta(d.bebidas),'as bebidas'],
+    [conta(d.bebidasCasa),'os batidos da casa'],
     [conta(d.notasCozinha),'as notas de cozinha'],
     [conta(d.agenda),'os blocos do calendário'],
     [conta(d.massaFeita),'as massas compradas feitas'],
@@ -40381,6 +40964,8 @@ function pintaModal(){
          : mo.tipo==='jejum'? modalJejumHtml(mo)
          : mo.tipo==='recuperacao'? modalRecuperacaoHtml(mo)
          : mo.tipo==='cheat'? modalCheatHtml(mo)
+         : mo.tipo==='bebida'? modalBebidaHtml(mo)
+         : mo.tipo==='batido'? modalBatidoHtml(mo)
          : mo.tipo==='exportarCal'? modalExportarCalHtml()
          : mo.tipo==='cal'? modalCalHtml(mo)
          : mo.tipo==='bandeja'? modalBandejaHtml(mo)
