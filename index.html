@@ -4218,7 +4218,12 @@ R('carnitas','Carnitas de porco','mexicana',['keto','lowcarb','paleo'],480,12,42
 R('saladafeijaopreto','Salada de feijão preto, milho e abacate','mexicana',['vegetariana'],420,48,16,18,[['Feijão preto',130,'g'],['Milho',80,'g'],['Abacate',0.5,'un'],['Tomate',1,'un'],['Cebola roxa',0.25,'un'],['Lima',0.5,'un'],['Coentros',6,'g'],['Azeite',8,'ml']],['a','j','l'],15),
 R('tacospeixe','Tacos de pescada grelhada com repolho','mexicana',[],0,0,0,0,[['Pescada',160,'g'],['Tortilhas de milho',2,'un'],['Repolho',80,'g'],['Lima',0.23,'un'],['Coentros',6,'g'],['Azeite',6,'ml']],null,7),
 R('quesadilla','Quesadilla de legumes e queijo','mexicana',['vegetariana'],480,46,22,24,[['Tortilhas de trigo',2,'un'],['Queijo cheddar',50,'g'],['Pimento',0.5,'un'],['Courgette',80,'g'],['Cebola',0.5,'un'],['Azeite',8,'ml']],['a','j','l'],5,['pp']),
-R('picodegallo','Pico de gallo com tortilhas','mexicana',['vegetariana'],220,30,6,9,[['Tomate',2,'un'],['Cebola roxa',0.25,'un'],['Tortilhas de milho',1,'un'],['Lima',0.5,'un'],['Coentros',6,'g'],['Azeite',6,'ml']],['l'],5),
+/* O pico de gallo era um lanche com uma tortilha ao lado. Na mesa mexicana é
+   a entrada que se põe no centro com totopos — os triângulos de tortilha de
+   milho, aqui no forno com um pincel de azeite em vez de fritos. Fica também
+   como snack, que é o que é a meio da tarde. O mesmo id, para os planos já
+   feitos continuarem a apontar para ele. */
+R('picodegallo','Pico de gallo com totopos de forno','mexicana',[],0,0,0,0,[['Tomate',200,'g'],['Cebola roxa',40,'g'],['Malagueta',3,'g'],['Coentros',8,'g'],['Lima',0.5,'un'],['Flor de sal',1,'g'],['Tortilhas de milho',60,'g'],['Azeite',5,'ml']],['a','j','l'],0,['ent','sn']),
 R('esquites','Milho salteado com lima e queijo','mexicana',['vegetariana'],260,34,8,11,[['Milho',150,'g'],['Queijo feta',25,'g'],['Maionese',10,'g'],['Lima',0.5,'un'],['Chili em pó',2,'g']],['l'],5),
 R('licuado','Batido de banana, aveia e canela','mexicana',['vegetariana','lowfat'],340,56,14,7,[['Leite',250,'ml'],['Banana',1,'un'],['Aveia em flocos',30,'g'],['Mel',8,'g'],['Canela',1,'g']],['p','l'],5),
 
@@ -4720,6 +4725,10 @@ R('aclalface','Salada de alface com azeite','francesa',[],0,0,0,0,[['Alface',50,
 R('acllentilhas','Lentilhas estufadas com cenoura','mediterranica',[],0,0,0,0,[['Lentilhas',90,'g'],['Cenoura',60,'g'],['Louro',0.5,'g']],['ac']),
 R('aclcourgette','Courgette grelhada','mediterranica',[],0,0,0,0,[['Courgette',150,'g'],['Azeite',4,'ml']],['ac']),
 R('acsaladarepolho','Salada de repolho com lima','mexicana',[],0,0,0,0,[['Repolho',100,'g'],['Lima',8,'g'],['Flor de sal',0.5,'g']],['ac']),
+/* O pico de gallo como lugar no prato: uma dose de salada de tomate ao lado da
+   carne ou do peixe grelhado, e não a colherada de molho — essa é a salsa
+   fresca, que tem o seu lugar nos molhos. Sem tortilha, cabe na cetogénica. */
+R('acpicodegallo','Pico de gallo','mexicana',[],0,0,0,0,[['Tomate',130,'g'],['Cebola roxa',25,'g'],['Malagueta',2,'g'],['Coentros',5,'g'],['Lima',10,'g'],['Flor de sal',0.5,'g']],['ac']),
 R('acmilhocozido','Espiga de milho com manteiga','americana',[],0,0,0,0,[['Milho',150,'g'],['Manteiga',8,'g']],['ac']),
 R('accoleslawdpull','Coleslaw','americana',[],0,0,0,0,[['Repolho',100,'g'],['Cenoura',50,'g'],['Maionese',15,'g'],['Vinagre de vinho',5,'ml'],['Açúcar branco',6,'g'],['Mostarda',3,'g'],['Pimenta preta',0.3,'g']],['ac']),
 R('acbpuredrolo','Puré de batata','americana',[],0,0,0,0,[['Batata',180,'g'],['Leite',50,'ml'],['Manteiga',15,'g'],['Noz-moscada',0.3,'g'],['Flor de sal',1,'g']],['ac']),
@@ -7413,9 +7422,11 @@ P('tacospeixe',[['Grelhar o peixe','Tempera a pescada com sal e grelha-a com um 
 P('quesadilla',[['Legumes','Legumes salteados até perderem a água.',8],
  ['Montar','Tortilha, queijo, legumes, queijo, e dobra.'],
  ['Tostar','Frigideira seca, virando uma vez, até o queijo derreter.',6]]);
-P('picodegallo',[['Cortar','Tomate, cebola e coentros picados finos e iguais.'],
- ['Temperar','Lima e sal; deixa repousar dez minutos.',10],
- ['Servir','Tortilhas aquecidas ao lado.']]);
+P('picodegallo',[['Tirar a água ao tomate','Corta o tomate ao meio e tira as sementes e o líquido antes de o picar. Com eles, o pico de gallo vira caldo no fundo da taça e amolece os totopos.'],
+ ['Picar tudo do mesmo tamanho','Tomate em cubos de meio centímetro, cebola roxa e malagueta mais finas, coentros picados com os talos tenros. A malagueta sem sementes, se não quiseres que arda.',8],
+ ['Temperar e deixar assentar','Sumo de lima e flor de sal, envolve e deixa repousar dez minutos, enquanto os totopos estão no forno. Passada meia hora o tomate perde o estaladiço.',10],
+ ['Totopos no forno','Corta as tortilhas de milho em oito triângulos, pincela com o azeite e espalha num tabuleiro sem se sobreporem. Forno a 190 °C até estalarem e ganharem cor nas pontas — tiram-se quando ainda parecem um pouco moles, porque endurecem ao arrefecer.',10],
+ ['Servir','O pico de gallo numa taça ao centro e os totopos à volta, já frios. Quem precisa de comer sem glúten confirma no rótulo que as tortilhas são só de milho.']]);
 P('esquites',[['Milho','Salteia o milho em lume forte até ganhar manchas tostadas.',8],
  ['Temperar','Lima, queijo esmigalhado e chili em pó, fora do lume.']]);
 P('licuado',[['Triturar','Banana, aveia, leite e canela até ficar liso.',1]]);
@@ -7909,6 +7920,9 @@ P('acllentilhas',[['Cozer com louro','Lentilhas em água fria a cobrir bem, com 
 P('aclcourgette',[['Cortar ao alto','Fatias de cerca de um centímetro, todas iguais. Mais finas queimam antes de cozer, mais grossas ficam cruas por dentro.'],
  ['Grelhar','Grelha bem quente com um fio de azeite, sem mexer, até marcar de um lado; só depois vira.',6],
  ['Temperar à saída','Sal só agora — salgada antes, larga água e coze em vez de tostar. Está no ponto quando cede ao garfo mas ainda se segura na fatia.']]);
+P('acpicodegallo',[['Tirar a água ao tomate','Corta o tomate ao meio e tira as sementes e o líquido antes de o picar. Ao lado de um prato quente, o líquido escorre para o prato e leva o tempero com ele.'],
+ ['Picar tudo do mesmo tamanho','Tomate em cubos de meio centímetro, cebola roxa e malagueta mais finas, e os coentros. A malagueta sem sementes para quem não gosta de picante — e de fora no prato das crianças.',6],
+ ['Temperar e servir','Sumo de lima e flor de sal, envolve e deixa assentar dez minutos. Serve à temperatura ambiente, ao lado, e faz-se no próprio dia: no frigorífico de um dia para o outro a cebola azeda.',10]]);
 P('acsaladarepolho',[['Cortar em juliana fina','Repolho em tiras finas, com faca bem afiada ou mandolina. Cortado grosso fica duro e não deixa entrar o tempero.',5],
  ['Amaciar com lima e sal','Sumo de lima e flor de sal esfregados com as mãos. O ácido e o sal murcham o repolho o suficiente para deixar de saber a cru sem lhe tirar o estalar.',10],
  ['Escorrer antes de levar à mesa','Escorre a água que largou. Se a deixares, a salada fica a nadar e aguada dentro do prato.']]);
@@ -12988,7 +13002,10 @@ const ALIAS_BUSCA={
      espetada de cubos. São pratos diferentes, e a regra deste bloco é só o que
      é a mesma coisa com outro nome. */
   souvlaki:'espetada espetadas',
-  arrozwok:'fried rice arroz chines chau chau min wok ceboleto'
+  arrozwok:'fried rice arroz chines chau chau min wok ceboleto',
+  /* pico de gallo, salsa mexicana e salsa bandera são o mesmo prato */
+  picodegallo:'salsa mexicana salsa bandera',
+  acpicodegallo:'salsa mexicana salsa bandera'
 };
 /* Um id de receita declarado duas vezes não dá erro nenhum: ficam dois cartões
    na grelha, `find()` devolve sempre o primeiro, e o P() do segundo apaga em
@@ -17582,7 +17599,7 @@ function folhaSobraHtml(f){
    Ao almoço de agosto ninguém quer uma feijoada. A app deixa de tratar todos
    os pratos como iguais: o género lê-se do nome e dos ingredientes, e pesa nas
    sugestões conforme a estação e a refeição. */
-const RE_FRIO=/salada|gaspacho|ceviche|carpaccio|tártaro|tartar|iogurte|smoothie|batido|papaia|melancia|melão|fruta|wrap|sandes|sanduíche|tost|hummus|guacamole|salmorejo|vichyssoise|panna|gelado|sorvete|overnight|poke/i;
+const RE_FRIO=/salada|gaspacho|ceviche|pico de gallo|carpaccio|tártaro|tartar|iogurte|smoothie|batido|papaia|melancia|melão|fruta|wrap|sandes|sanduíche|tost|hummus|guacamole|salmorejo|vichyssoise|panna|gelado|sorvete|overnight|poke/i;
 const RE_QUENTE=/sopa|caldo|caldeirada|cozid|assad|estufad|guisad|forno|grelhad|frit|refoga|risoto|risott|feijoada|açorda|migas|arroz de|bacalhau à|carne de|bife|costelet|posta|picanha|frango|omelet|ovos mexidos|panquec|gratin|lasanha|massa|esparguete|curry|chili|tagine|sauté|salteado|brasa|espetada|hambúrguer|almôndega|rancho|jardineira|escondidinho/i;
 function generoPrato(r){
   if(!r) return 'neutro';
@@ -19165,6 +19182,9 @@ const RE_ESPERA=/forno|assar|assa\b|cozer|cozinhar em lume brando|apurar|levedar
    espera, mesmo que o texto não o diga por essas palavras — foi assim que a
    hora de sal das sardinhas deixou de contar como trabalho. */
 const MIN_ESPERA_IMPLICITA=25;
+/* Há lume ou forno num passo? Serve para dizer «espera» e não «lume e forno»
+   aos minutos de uma receita que não vai ao fogo. */
+const RE_LUME=/lume|forno|ferv|frigideira|fritar|frit[ao]s?\b|grelh|\bassar|\bassad|\bcoz|\btost|\btorr|escalf|tacho|panela|sertã|\bwok|°C|óleo quente|salte|refog|aquec|brasa|vapor|escald|branque|micro-ondas|airfryer|fritadeira|chapa|gratin|derret|caramel|selar|alour|estufar|guisar/i;
 const RE_ATIVO=/mexer|mexendo|bater|amassar|picar|cortar|fatiar|ralar|descascar|montar|empratar|refogar|saltear|virar|regar|temperar e servir/i;
 function passoDeEspera(p){
   const txt=(p.t||'')+' '+(p.d||'');
@@ -19625,6 +19645,10 @@ function fichaHtml(f){
            não se faz outra vez. */
         const tp=tempoReceita(r, f.n, S.week);
         if(!tp.itens.length) return '';
+        /* Os minutos que não são de tábua são de lume, de forno ou de espera. Num
+           prato cru — um pico de gallo, um ceviche — são só a espera de o
+           tempero assentar, e chamar-lhes «lume e forno» era descrever outro prato. */
+        const comLume=passos.some(p=>RE_LUME.test((p.t||'')+' '+(p.d||'')));
         const feitos=tp.itens.filter(x=>ingredientePreparado(x.nome,S.week));
         return `<h3 style="margin-top:16px">Preparar os ingredientes ${dica('mise')}</h3>
           <p class="sub">O que se descasca, pica, lava ou amanha antes de acender o lume, para ${plural(f.n,'pessoa','pessoas')}.
@@ -19637,7 +19661,7 @@ function fichaHtml(f){
           <p class="sub" style="margin-top:8px">
             ${tp.poupado>0
               ? '<b>−'+duracaoTexto(tp.poupado)+'</b> porque '+(feitos.length===1? 'este ingrediente já está preparado' : 'estes '+feitos.length+' ingredientes já estão preparados')+' no prep desta semana. Total com o desconto: <b>'+duracaoTexto(tp.total)+'</b>.'
-              : 'Preparação <b>'+duracaoTexto(tp.prep)+'</b> · lume e forno <b>'+duracaoTexto(tp.cozinha)+'</b> · total <b>'+duracaoTexto(tp.total)+'</b>.'}
+              : 'Preparação <b>'+duracaoTexto(tp.prep)+'</b>'+(tp.cozinha>0? ' · '+(comLume? 'lume e forno' : 'espera')+' <b>'+duracaoTexto(tp.cozinha)+'</b>' : '')+' · total <b>'+duracaoTexto(tp.total)+'</b>.'}
             ${tp.itens.some(x=>x.nosPassos)? ' Os ingredientes sem minutos ao lado já têm o seu tempo contado num passo escrito.' : ''}</p>`;
       })()}
       <h3 style="margin-top:16px">Preparação ${escritos?'':dica('passosDerivados')}</h3>
@@ -28125,6 +28149,7 @@ const NOME_COMBO={
   'c:bacmigas+aclmigasfrade':'Bacalhau com migas de feijão-frade e couve',
   'c:bacbroa+aclgrelosdbacb':'Bacalhau com broa',
   'c:carnitas+acsaladarepolho':'Carnitas de porco com salada de repolho',
+  'c:fajitas+acpicodegallo':'Fajitas de vaca com pico de gallo',
   'c:bifecebolada+~acmcebolada':'Bife de vaca com cebolada',
   'c:francesinha+~acmfrancesinha':'Francesinha',
   'c:iscascebolada+~acmceboladaiscas':'Iscas de cebolada',
@@ -28231,6 +28256,7 @@ const COMBOS_BASE=[
   {base:'salmaolentilhas', ac:['acllentilhas'], mo:''},
   {base:'borregoervas', ac:['aclcourgette'], mo:''},
   {base:'carnitas', ac:['acsaladarepolho'], mo:''},
+  {base:'fajitas', ac:['acpicodegallo'], mo:''},
   {base:'bbqfrango', ac:['acmilhocozido'], mo:''},
   {base:'pulledpork', ac:['accoleslawdpull'], mo:''},
   {base:'rolocarne', ac:['acbpuredrolo'], mo:''},
