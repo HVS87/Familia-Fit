@@ -2062,6 +2062,15 @@ body{padding-bottom:max(60px,calc(env(safe-area-inset-bottom) + 44px))}
   .savest{margin-left:auto}
 }
 @media (max-width:640px){
+  /* Numa janela estreita sem toque (um portátil com a janela encostada a um
+     lado, um dobrável em modo de secretária) o cabeçalho não passava pelo modo
+     telemóvel e empilhava marca, desfazer, estado e separadores em quatro
+     linhas: 183 px fixos no topo. Leva o mesmo emagrecimento do telemóvel. */
+  .brand small{display:none}
+  .brand h1{font-size:19px}
+  .savest-txt{display:none}
+  .savest{padding:8px}
+  .hist{margin-left:auto}
   .hwrap{padding:10px 14px}
   main{padding:16px 12px}
   .hwrap{padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env(safe-area-inset-right))}
@@ -2277,7 +2286,7 @@ const CATS_SPORT=[['corrida','Corrida e caminhada'],['ciclismo','Ciclismo'],['ag
 const ICO_SPORT={corrida:'🏃',ciclismo:'🚴',agua:'🏊',forca:'🏋️',corpo:'🧘',bola:'⚽',
   raquete:'🎾',combate:'🥊',natureza:'⛰️',danca:'💃'};
 const ICO_CAT={'Peixe & Marisco':'🐟','Carne & Ovos':'🥩','Frutas & Legumes':'🥦',
-  'Laticínios':'🥛','Mercearia & Outros':'🫙','Suplementos':'💊'};
+  'Lacticínios':'🥛','Mercearia & Outros':'🫙','Suplementos':'💊'};
 const ICO_REF={p:'🌅',a:'🍽️',l:'🍎',j:'🌙',ac:'🍚',mo:'🥄',ma:'🥧'};
 /* Os ícones são pratos e ingredientes, não bandeiras — a portuguesa é a
    exceção porque é a cozinha da casa. O feijão vale pela feijoada, que é o
@@ -3798,7 +3807,7 @@ const BEB=[
   {k:'sumoananas', n:'Sumo de ananás natural', cat:'sumo', g:'sumo', def:'copo', abv:0, c:12.9, acu:10, kcal:53, p:0.4, f:0.1, i:'🍍', fonte:'USDA'},
   {k:'sumomaca', n:'Sumo de maçã natural', cat:'sumo', g:'sumo', def:'copo', abv:0, c:11.3, acu:9.6, kcal:46, p:0.1, f:0.1, i:'🍏', fonte:'USDA'},
   {k:'limonada', n:'Limonada caseira (com açúcar)', cat:'sumo', g:'sumo', def:'copogr3', abv:0, c:9.6, acu:9.2, kcal:38, i:'🍋', fonte:'receita típica: 1 limão e 25 g de açúcar por 300 ml',
-   nota:'Cada limonada é uma. Para a tua, com o açúcar ou o adoçante que usas, cria-a em «Os meus batidos».'},
+   nota:'Cada limonada é uma. Para a tua, com o açúcar ou o adoçante que usas, cria-a em «Batidos da casa».'},
   {k:'compallaranja', n:'Compal Clássico laranja (néctar)', cat:'sumo', g:'sumo', def:'gf20', abv:0, c:7.7, acu:7.6, kcal:32, i:'🍊', fonte:'compal.pt'},
   {k:'compalpessego', n:'Compal Clássico pêssego (néctar)', cat:'sumo', g:'sumo', def:'gf20', abv:0, c:11.7, acu:10.5, kcal:48, i:'🍑', fonte:'compal.pt'},
   {k:'compalmanga', n:'Compal Clássico manga (néctar)', cat:'sumo', g:'sumo', def:'gf20', abv:0, c:9.4, acu:8.8, kcal:39, i:'🥭', fonte:'compal.pt'},
@@ -3925,7 +3934,10 @@ function cozinhasDe(r){
 function ehDaCozinha(r,k){ return cozinhasDe(r).indexOf(k)>=0; }
 function categoriasDe(r){
   if(!r) return [];
-  if(Array.isArray(r.cg) && r.cg.length) return r.cg.filter(k=>temChave(CATEG,k));
+  /* uma categoria mal escrita não deixa a receita sem categoria nenhuma: cai
+     para a derivação, como se não tivesse declarado (foi o caso de um «pa») */
+  const decl=Array.isArray(r.cg)? r.cg.filter(k=>temChave(CATEG,k)) : [];
+  if(decl.length) return decl;
   if(CATEG_EXTRA[r.id]) return CATEG_EXTRA[r.id];
   /* derivação: o acompanhamento não é categoria nenhuma; o pequeno-almoço é
      brunch, o lanche é snack, e o que serve almoço ou jantar é prato principal */
@@ -4298,7 +4310,7 @@ R('pxgoraz','Goraz assado no forno com batatas e limão','portuguesa',['mediterr
 R('salsichascouve','Salsichas enroladas em couve lombarda','portuguesa',[],0,0,0,0,[['Salsicha fresca crua',130,'g'],['Couve lombarda crua',100,'g'],['Chouriço',15,'g'],['Cebola',40,'g'],['Cenoura',50,'g'],['Tomate pelado',100,'g'],['Alho',1,'dente'],['Louro',1,'g'],['Vinho branco',25,'ml'],['Azeite',10,'ml']],['a','j'],0,['pp']),
 R('cavalacouve','Cavala em cama de couve salteada','portuguesa',['mediterranica'],0,0,0,0,[['Cavala',180,'g'],['Couve-branca crua',200,'g'],['Alho',3,'dente'],['Coentros',8,'g'],['Azeite',18,'ml'],['Flor de sal',2,'g']],['a','j'],0,['pp']),
 R('saladaburrata','Salada de burrata com pesto e croutons','italiana',['vegetariana','mediterranica'],0,0,0,0,[['Burrata',80,'g'],['Tomate',120,'g'],['Tomate cereja',80,'g'],['Pesto',25,'g'],['Pão rústico',30,'g'],['Orégãos',1,'g'],['Manjericão',5,'g'],['Azeite',10,'ml']],['a','j'],0,['ent']),
-R('courgettebaconovo','Courgette com bacon, ovo escalfado e nozes','portuguesa',[],0,0,0,0,[['Courgette',200,'g'],['Bacon',50,'g'],['Ovo',1,'un'],['Nozes',15,'g'],['Azeite',10,'ml']],['p'],0,['pa']),
+R('courgettebaconovo','Courgette com bacon, ovo escalfado e nozes','portuguesa',[],0,0,0,0,[['Courgette',200,'g'],['Bacon',50,'g'],['Ovo',1,'un'],['Nozes',15,'g'],['Azeite',10,'ml']],['p'],0,['br']),
 R('carbonaracouve','Carbonara de couve coração','italiana',[],0,0,0,0,[['Couve-branca crua',170,'g'],['Bacon',60,'g'],['Nata',60,'ml'],['Mozzarella',50,'g'],['Parmesão',20,'g'],['Azeite',10,'ml'],['Pimenta preta',1,'g']],['a','j'],0,['pp']),
 R('lasanhacourgette','Lasanha de courgette sem massa','italiana',[],0,0,0,0,[['Courgette',200,'g'],['Carne picada de vaca',85,'g'],['Mozzarella',85,'g'],['Parmesão',17,'g'],['Bacon',17,'g'],['Tomate pelado',80,'g'],['Cebola',25,'g'],['Cenoura',20,'g'],['Aipo',15,'g'],['Cogumelos',30,'g'],['Alho',1,'dente'],['Vinho branco',20,'ml'],['Azeite',8,'ml'],['Manjericão',2,'g']],['a','j'],0,['pp']),
 R('pxcavala','Cavala no forno com cebolada','portuguesa',['mediterranica'],0,0,0,0,[['Cavala',300,'g'],['Cebola',0.5,'un'],['Tomate',1,'un'],['Pimento',0.25,'un'],['Azeite',10,'ml'],['Alho',1,'dente'],['Louro',1,'g']],['a','j']),
@@ -5246,7 +5258,7 @@ R('tigelacereais','Tigela de granola com leite','portuguesa',['vegetariana'],0,0
    Vinte e uma receitas pensadas para que cada pessoa da casa tenha várias que
    lhe sirvam: keto e low carb (com eritritol ou só com o que a fruta tem),
    vegan e sem lactose (bebidas vegetais e água de coco), paleo (sem açúcar,
-   sem adoçantes, sem laticínios), low fat, e opções sem nenhum dos alergénios
+   sem adoçantes, sem lacticínios), low fat, e opções sem nenhum dos alergénios
    comuns — sem leite, sem frutos de casca rija, sem amendoim, sem soja, sem
    glúten (a aveia conta como glúten nesta casa, e por isso há sempre outra).
    As dietas e os alergénios não se escrevem aqui: derivam-se dos
@@ -10640,7 +10652,7 @@ NI('Lulas',71,0,15.8,0.9,0,0,0);
 NI('Polvo',73,0,15.6,1.2,0,0,0);
 NI('Leite',47,4.9,3.3,1.6,0,0,3);
 NI('Nata',335,3.1,1.8,35,0,0,3);
-NI('Manteiga',739,0.7,0.1,81.8,0,0,3);   /* laticínios, como o leite e as natas */
+NI('Manteiga',739,0.7,0.1,81.8,0,0,3);   /* lacticínios, como o leite e as natas */
 NI('Iogurte natural',54,5,4.2,1.8,0,0,3);
 NI('Iogurte grego',85,4.8,1.4,6.6,0,0,3);
 NI('Queijo fresco',156,2.7,9.2,11.9,0,0,3);
@@ -11289,7 +11301,7 @@ NI('Cabrito, cabeça crua',119,0,18.4,4.9,0,0,1);
 NI('Presunto de porco preto',322,0,30.4,22.2,0,0,1);
 NI('Morcela de arroz',298,14.6,10.1,22.7,0.6,0,1);
 NI('Chouriço de sangue',335,3.5,12.4,30.5,0,0,1);
-/* Laticínios e ovos */
+/* Lacticínios e ovos */
 NI('Iogurte grego natural',115,3.9,5.6,8.7,0,0,3);
 NI('Iogurte de aroma',88,13.8,3.3,2.3,0,0,3);
 NI('Leite meio gordo, UHT',46,4.8,3.2,1.6,0,0,3);
@@ -11663,7 +11675,7 @@ const CATS = [
   ['Peixe & Marisco',/bacalhau|salm|sardinha|polvo|camar|atum|dourada|robalo|amêijoa|marisco|peixe|pescada|espadarte|anchova|carapau|cavala|lulas|mexilh|truta|choco/i],
   ['Carne & Ovos',/frango|porco|vaca|picada|peru|chouriço|bife|coxas|ovo|bacon|presunto|borrego|coelho|fiambre|pato|vitela|bresaola|linguiça/i],
   ['Frutas & Legumes',/cebola|alho|tomate|courgette|beringela|pimento|cenoura|batata|couve|alface|espinafre|brócolo|cogumelo|limão|lima\b|abacate|pepino|salsa|coentro|manjericão|azeitona|feijão-verde|espargo|rúcula|abóbora|aipo|rebentos|gengibre|hortelã|cebolinho|endro|passas|edamame|banana|maçã|pera|manga|frutos vermelhos|grelos|salva|louro|ervilha|fava|figo|laranja|melão|milho|nabo|repolho|tâmara|chalota|castanha|malagueta|alecrim|tomilho/i],
-  ['Laticínios',/leite\b|queijo|iogurte|manteiga|mozzarella|parmesão|feta|gruyère|ricotta|requeijão|nata|halloumi|manchego|cheddar/i],
+  ['Lacticínios',/leite\b|queijo|iogurte|manteiga|mozzarella|parmesão|feta|gruyère|ricotta|requeijão|nata|halloumi|manchego|cheddar/i],
   ['Mercearia & Outros',/./]
 ];
 /* Um s fora da gama de CATS não parte nada: cai calado na classificação por
@@ -11776,7 +11788,7 @@ const ING_REGRAS=[
      não pode dizer. O que se assinala aqui são os alimentos onde é habitual
      estarem — vinho, vinagre, fruta desidratada, batata processada, conservas
      — para quem os evita saber onde olhar. O rótulo é que manda. */
-  ['sulfitos',/\bvinho\b|vinagre|cerveja|sidra|\bpassas\b|sultana|alperce seco|ameixa seca|figo seco|desidratad|batata palha|picles|chucrute|tomate seco|bagas goji|melaço/i],
+  ['sulfitos',/\bvinho\b|vinagre|cerveja|sidra|\bpassas\b|sultana|alperce seco|damasco seco|uva passa|fruta cristalizada|ameixa seca|figo seco|desidratad|batata palha|picles|chucrute|tomate seco|bagas goji|melaço/i],
   ['carne',/frango|porco|vaca|picada|peru|chouri|bife|coxas|bacon|presunto|borrego|coelho|pato|vitela|bresaola|asas|fiambre|bochechas|linguiça|carne|cabrito|carneiro|cavalo|codorniz|galinha|javali|lebre|perdiz|pombo|veado|paio|salame|salpicão|mortadela|salsicha|toucinho|banha|entrecosto|costeleta|lombo|chambão|cachaço|jarrete|chispe|grilo/i],
   ['porco',/porco|chouri|bacon|presunto|fiambre|bochechas|linguiça|paio|salame|salpicão|mortadela|salsicha|toucinho|banha|entrecosto|javali/i],
   ['alcool',/vinho|cerveja|licor|aguardente|madeira\b|porto\b|sidra/i],
@@ -11977,7 +11989,7 @@ const ING_EXCECAO={
      lacticínio apanha a palavra e marcava leite onde não há nenhum — e um
      alergénio inventado tira credibilidade a todos os outros. */
   'Manteiga de caju':['frutosecos'], 'Manteiga de amêndoa':['frutosecos'],
-  /* Iogurte e leite de soja, aveia ou coco não são laticínios: é precisamente
+  /* Iogurte e leite de soja, aveia ou coco não são lacticínios: é precisamente
      por isso que existem. */
   'Iogurte de soja natural':['soja','leguminosa'], 'Leite de coco light':[],
   /* Farinha de coco e de grão-de-bico não têm glúten nem são cereais — são o
@@ -15818,7 +15830,7 @@ function guardarBatido(){
   save('batido da casa');
   if(mid){ abrirModal('bebida',{mid, d:hojeISO(), cat:'casa', k:'casa:'+reg.id, med:'copo', cl:'', n:1}); }
   else { S.ui.modal=null; render(); }
-  flash('ok','«'+reg.nome+'» guardado: '+Math.round(reg.p100.kcal*2.5)+' kcal por copo de 25 cl. Fica em «Os meus batidos».', {rot:'Anular', fn:'desfazer()'});
+  flash('ok','«'+reg.nome+'» guardado: '+Math.round(reg.p100.kcal*2.5)+' kcal por copo de 25 cl. Fica em «Batidos da casa».', {rot:'Anular', fn:'desfazer()'});
 }
 function apagarBatido(id){
   if(!confirm('Apagar este batido da casa? Os registos que já o usaram deixam de ter valor.')) return;
@@ -16492,7 +16504,7 @@ const DICAS={
       +' O método muda-se na ficha de cada pessoa e vale para a casa toda.';
   },
   gasto:'O gasto total do dia: o metabolismo basal multiplicado pelo nível de atividade, mais as deslocações, mais o desporto e, em quem está a crescer, grávida ou a amamentar, a energia dessa fase.',
-  alvo:'O gasto ajustado pelo objetivo. É deste número que saem os gramas de cada macronutriente e as calorias sugeridas por refeição — é ele que liga este separador à Nutrição e ao Plano.',
+  alvo:'O gasto ajustado pelo objetivo. É deste número que saem os gramas de cada macronutriente e as calorias sugeridas por refeição — é ele que liga este separador à Nutrição e às Refeições.',
   fase:'Bebé, criança, adolescente, adulto ou gravidez. A fase escolhe a equação de metabolismo, a faixa de macronutrientes aceitável e os limites de esforço recomendados.',
   bandaImc:'A escala de índice de massa corporal com o valor atual assinalado. As zonas seguem os limites da Organização Mundial da Saúde para adultos.',
   nivelAtiv:'Quanto te mexes fora do desporto: um trabalho de secretária gasta muito menos do que um trabalho em pé ou de carga. Multiplica o metabolismo basal entre 1,2 e 1,65.',
@@ -16623,7 +16635,7 @@ const DICAS={
   acucarLivre:'«Açúcares livres» não são todos os açúcares: são os adicionados pelo fabricante, pelo cozinheiro ou por quem come, mais os que estão naturalmente no mel, nos xaropes e nos sumos de fruta. Uma maçã não conta; um sumo de maçã conta, mesmo sendo 100% fruta. É a distinção que quase todas as apps erram, e a app faz a conta a partir dos próprios ingredientes de cada receita registada.',
   dentes:'Para a cárie, a frequência conta tanto como a quantidade: cada exposição a açúcar livre deixa o esmalte em meia hora de pH ácido. Os pais controlam «quanto açúcar»; ninguém controla «quantas vezes» — e é essa a variável que a orientação oficial manda vigiar, com o conselho concreto de guardar o doce para a refeição em vez do intervalo. A app conta apenas o que está registado, e di-lo: um doce que não passou pelo registo também não aparece aqui. Fontes: OMS (2015) e o Programa Nacional de Promoção da Saúde Oral da DGS. Não substitui o dentista.',
   alcool:'As bebidas não estão em receita nenhuma — logo a app não as via, e o défice do objetivo saía furado sem se perceber porquê. Regista-se a bebida e a medida (a imperial, a tulipa, a caneca, o cálice, a lata, a garrafa) ou os centilitros. As calorias somam o álcool (volume × graduação × 0,789, a 7 kcal por grama) e os açúcares (a 4 kcal por grama): um cálice de Porto tem quase as de uma cerveja de 33 cl, e um gin tónico deve um terço das calorias à tónica. Nas marcas, a energia é a do rótulo de 2026; nos cocktails, a soma do que levam. Os açúcares de sumos e refrigerantes contam como açúcares livres (OMS, 2015), e a cafeína conta-se contra o teto da EFSA (400 mg por dia num adulto, 200 na gravidez, 3 mg por kg nas crianças). Uma unidade de álcool são cerca de 10 g de etanol (SICAD), e a OMS (2023) diz que não há nível de consumo isento de risco. Em gravidez, amamentação e menores de idade as bebidas alcoólicas não aparecem.',
-  batido:'Sumo natural, smoothie, batido ou granizado, com a fruta, a base, o gelo e o adoçante que usas. Num sumo, só passa o líquido: o rendimento de cada fruta é uma estimativa de cozinha (a laranja dá cerca de 45 % do peso em sumo), a fibra fica quase toda no bagaço e o açúcar vai com o sumo. Num smoothie fica tudo. Os açúcares da fruta espremida ou triturada contam como livres para a OMS e para o NHS; a lactose do leite não. O NHS aponta no máximo 150 ml por dia de sumos e smoothies, todos juntos. O que criares fica em «Os meus batidos», para registar como qualquer bebida.',
+  batido:'Sumo natural, smoothie, batido ou granizado, com a fruta, a base, o gelo e o adoçante que usas. Num sumo, só passa o líquido: o rendimento de cada fruta é uma estimativa de cozinha (a laranja dá cerca de 45 % do peso em sumo), a fibra fica quase toda no bagaço e o açúcar vai com o sumo. Num smoothie fica tudo. Os açúcares da fruta espremida ou triturada contam como livres para a OMS e para o NHS; a lactose do leite não. O NHS aponta no máximo 150 ml por dia de sumos e smoothies, todos juntos. O que criares fica em «Batidos da casa», para registar como qualquer bebida.',
   adocantes:'O açúcar, o mel e os xaropes contam como açúcar livre. O eritritol (0 kcal no rótulo europeu) e a alulose (0,4 kcal/g) adoçam cerca de 70 % do açúcar; o xilitol adoça como ele, a 2,4 kcal/g; a stévia, a sucralose e o aspartame contam-se em saquetas ou pastilhas, cada uma como uma colher de chá de açúcar. O eritritol tem uma dose diária aceitável de 0,5 g por kg (EFSA, 2023). A alulose não está autorizada na União Europeia: em 2025 a EFSA concluiu que a segurança não pôde ser estabelecida com os dados entregues. O aspartame é proibido a quem tem fenilcetonúria, e o xilitol é muito tóxico para cães.',
   visitas:'Os convidados de uma refeição criam-se e deitam-se fora — servem para quem vem uma vez só. O livro de visitas é para quem volta sempre: a avó do almoço de domingo, o padrinho, o melhor amigo do filho. A alergia dela fica escrita uma vez, em vez de se reescrever todas as semanas com o risco de um dia ficar por marcar. Uma visita não é um membro: não tem alvos, nem pesagens, nem nutrição — tem nome, cara, o que não pode comer e um hábito de aparecer. Marcada numa refeição, conta nas doses, nas compras e sobretudo nos alertas de alergénio, como qualquer pessoa da casa.',
   festas:'O calendário gastronómico português — Reis, Carnaval, Páscoa, os Santos Populares, S. Martinho, a Consoada, o Ano Novo — e, por cima dele, a ementa que ESTA casa repete em cada um. Há casas de bacalhau cozido e casas de polvo, e essa memória perde-se quando quem a guardava já cá não está. As datas móveis saem do mesmo cálculo astronómico que já serve a Quaresma: o Carnaval são 47 dias antes da Páscoa. No ano seguinte a app pergunta se se repete.',
@@ -17283,7 +17295,7 @@ function glifo(k,tam){
 /* O glifo entra onde há um, e o emoji fica onde não há: nenhuma categoria
    perde símbolo por esta mudança ser parcial. */
 const GLIFO_CAT={'Sopas':'sopa','Peixe & Marisco':'peixe','Carne & Ovos':'carne',
-  'Frutas & Legumes':'legumes','Laticínios':'leite','Mercearia & Outros':'cesto','Suplementos':'gota'};
+  'Frutas & Legumes':'legumes','Lacticínios':'leite','Mercearia & Outros':'cesto','Suplementos':'gota'};
 function icoCat(cat,tam){ const g=GLIFO_CAT[cat]; return g? glifo(g,tam) : (ICO_CAT[cat]||''); }
 function estadoVazio(ilus,titulo,texto,botoes){
   /* h2 e não h3: em seis separadores este cartão é o conteúdo inteiro de quem
@@ -20833,7 +20845,7 @@ function cartaoPrimeirosPassos(){
   if(feitos===m.length){ return `<div class="card" style="margin-bottom:16px;border-left:4px solid var(--ok)">
     <div class="row" style="justify-content:space-between">
       <div><b>✓ Primeiros passos completos</b>
-        <span class="sub" style="display:block">A casa está organizada. A visita guiada fica sempre em Dados, se quiseres ver o resto.</span></div>
+        <span class="sub" style="display:block">A casa está organizada. A visita guiada fica sempre nas Definições, se quiseres ver o resto.</span></div>
       <button class="chip" onclick="arrumarPrimeirosPassos()">Arrumar</button></div></div>`; }
   return `<div class="card card--capa" id="primeiros" style="margin-bottom:16px" data-col="fam-primeiros">
     <span class="lbl">Primeiros passos · ${feitos} de ${m.length}</span>
@@ -23511,7 +23523,7 @@ function reporCorredores(){
 }
 /* ===== APRENDER O PERCURSO REAL =====
    Cada ida ao supermercado deixa um trilho: a ordem por que as secções foram
-   riscadas. Com três idas já dá para votar par a par — «os laticínios vieram
+   riscadas. Com três idas já dá para votar par a par — «os lacticínios vieram
    antes da mercearia em 3 de 4 idas» — e ordenar por número de vitórias.
 
    Ordenar por vitórias, e não por ordenação topológica, é de propósito: as
@@ -25457,7 +25469,7 @@ function cartaoHoje(){
           aria-pressed="${emPausa}">${emPausa? '✓ semana passada em pausa' : 'declarar pausa na semana passada'}</button></p>
         ${mosaicoDoAno()}`; })()}
     ${linhas.length? `<div class="hoje-lista">${linhas.join('')}</div>`
-      : `<p class="sub" style="margin-top:4px">O dia de hoje está por planear — duas escolhas no Plano e a cozinha sabe o que a espera.</p>`}
+      : `<p class="sub" style="margin-top:4px">O dia de hoje está por planear — duas escolhas nas Refeições e a cozinha sabe o que a espera.</p>`}
     <div class="row" style="margin-top:12px">
       <button class="btn small" onclick="irHojePlano()">${linhas.length? 'Ver o plano de hoje':'Abrir o plano'}</button>
       ${pend? `<button class="pill warn hoje-pend" onclick="abrirMercado()">🛒 ${pend} ${pend===1?'item':'itens'} por comprar</button>`:''}
@@ -29679,7 +29691,16 @@ const EVITAR_SINAL={
           /* o kibbeh nayyeh é borrego cru pisado, e os próprios passos o dizem
              na primeira linha — mas quem lê a lista da criança à mesa não
              chega a abrir a receita */
-          'kibbehnayyeh']},
+          'kibbehnayyeh',
+          /* Gema e clara que nunca vão ao lume, ou que só apanham o calor que a
+             massa ou o banho-maria lhes dão. O bolo de bolacha e o pijaminha batem
+             a gema crua na manteiga; a baba de camelo leva as gemas e as claras
+             cruas no doce de leite frio; a carbonara coze o ovo FORA do lume, só
+             com o calor da massa, e o holandês fica nos 65 °C — é a lista que a
+             DGS dá para a gravidez («ovos crus ou mal cozinhados») e que o NHS dá
+             para as crianças pequenas. */
+          'bolobolacha','pijaminha','babacamelo','carbonara','konjaccarbonara',
+          'ketocarbonara','acmholandes']},
   'Leite e queijos não pasteurizados; queijos de pasta mole com bolor':
     /* A frase que a app mostra ao lado nomeia «queijo de cabra curado com
        casca» e a expressão não o conhecia — nem conhecia um único queijo de
@@ -29761,7 +29782,10 @@ function perigosIdade(r,m){
     }
     /* pratos que são crus por definição, identificados pelo id — a base do
        prato composto conta, para o combo herdar o aviso da receita de origem */
-    if(s.ids && (s.ids.indexOf(r.id)>=0 || (r.base && s.ids.indexOf(r.base)>=0))) itens=['o modo de preparação'];
+    /* num prato composto conta cada parte — a base, os acompanhamentos, o
+       molho e a massa: os espargos com holandês herdam o aviso do molho */
+    const partes=[r.id, r.base, r.moId, r.maId].concat(Array.isArray(r.acIds)? r.acIds : []).filter(Boolean);
+    if(s.ids && partes.some(id=>s.ids.indexOf(id)>=0)) itens=['o modo de preparação'];
     if(itens.length) out.push({e, itens:[...new Set(itens)], limite});
   });
   return out;
@@ -32718,7 +32742,7 @@ function renderReceitas(){
   ${S.members.length>1? `<div class="secgap">
     <h2>Compatíveis com toda a família</h2>
     <p class="sub" style="margin-bottom:10px">${fam.length? '<b>'+fam.length+'</b> receitas servem':'Nenhuma receita serve'} as dietas e as exclusões de todos os ${S.members.length} membros — ideais para a mesma panela.${fam.length>12? ' Ficam aqui doze; para as ver todas e escolher quem se senta à mesa, vai ao ':' Para escolher quem se senta à mesa e planear a semana, vai ao '}<a href="#" onclick="go('plano');return false">Plano</a>.</p>
-    <div class="grid g3">${fam.slice(0,12).map(r=>recipeCard(r,n)).join('')||'<p class="sub">Considerem aproximar os planos alimentares — ou usem as sugestões do Plano, que dizem exatamente o que está a excluir cada receita.</p>'}</div>
+    <div class="grid g3">${fam.slice(0,12).map(r=>recipeCard(r,n)).join('')||'<p class="sub">Considerem aproximar os planos alimentares — ou usem as sugestões das Refeições, que dizem exatamente o que está a excluir cada receita.</p>'}</div>
   </div>`:''}`;
 }
 
@@ -32762,7 +32786,7 @@ function validacaoObjetivo(o){
   if(!m || o.tipo==='manter') return null;
   const med=medicoesDe(m.id);
   if(med.length<2) return {estado:'sem-dados', porque:'poucas pesagens'};
-  const ini=(o.dataInicio||'').slice(0,10);
+  const ini=o.dataInicio? iso(new Date(o.dataInicio)) : '';
   if(!dataValida(ini)) return null;
   /* a primeira pesagem a partir do arranque do objetivo, e a última de todas */
   const dentro=med.filter(x=>x.d>=ini);
@@ -35742,6 +35766,15 @@ function autoFill(){
     /* «Só ingredientes de época» é um filtro que pode esvaziar a lista: se
        esvaziar, cede — mais vale um jantar fora de época do que nenhum. */
     if(querSazonal()){ const ep=pool.filter(receitaDaEpoca); if(ep.length) pool=ep; }
+    /* Com uma criança pequena ou uma grávida à mesa, o gerador escolhia
+       pratos com aviso (o tomate cereja inteiro, a carbonara) e depois
+       pintava o dia de vermelho por causa da escolha que ele próprio fez. Os
+       sem perigo para quem come passam à frente; o aviso fica para o que se
+       escolhe à mão. Se não houver nenhum, cede, como os filtros de cima. */
+    if(eaters.some(m=>faseDe(m)!=='adulto' || gravida(m))){
+      const semPerigo=pool.filter(r=>!eaters.some(m=>perigosIdade(r,m).length));
+      if(semPerigo.length) pool=semPerigo;
+    }
     /* Num dia frágil — daqueles em que o plano quase nunca se cumpre — a
        ambição sai e entra a resistência: pouco trabalho de mãos e despensa
        quase completa. Se não houver nenhum assim, cede, como tudo o resto:
@@ -40518,7 +40551,7 @@ const TOUR=[
    d:'A app abre pela capa: o nome da casa, um lema se quiseres, o monograma desenhado das iniciais e a data em que o caderno começou. Personaliza-se em «✎ Personalizar» e tudo fica neste dispositivo, como o resto.'},
   {tab:'familia', sel:'#primeiros', quando:()=>!S.ui.passosFeitos && marcosIniciais().some(x=>!x.ok),
    t:'Primeiros passos',
-   d:'Cinco marcos para montar a casa — perfis, alergias, objetivo, plano e despensa. Os vistos aparecem sozinhos quando os dados existem: não é uma lista para riscar à mão. A visita completa fica sempre em Dados.'},
+   d:'Cinco marcos para montar a casa — perfis, alergias, objetivo, plano e despensa. Os vistos aparecem sozinhos quando os dados existem: não é uma lista para riscar à mão. A visita completa fica sempre nas Definições.'},
   {tab:'familia', sel:'#hoje',
    t:'O dia de hoje, primeiro',
    d:'A app abre a responder à pergunta do dia: o que está planeado para hoje, para quem, e o que falta comprar. Um toque leva ao plano de hoje ou às compras — sem procurar nada.'},
