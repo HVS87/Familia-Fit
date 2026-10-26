@@ -1812,6 +1812,7 @@ select.slot{margin-top:4px}
 /* «sem valor» não é bom nem mau: é a cor do texto secundário, para não sugerir
    um juízo onde só há uma lacuna na tabela */
 .f-mut-txt{color:var(--mut)}
+.nota-lote{margin-top:12px;padding:10px 12px;background:var(--inset);border-radius:var(--r-sm);border-left:3px solid var(--accent);line-height:1.5}
 .alerta{background:color-mix(in srgb,var(--bad) 12%,var(--card));border:1px solid var(--bad);border-radius:8px;
   padding:6px 9px;font-size:12.5px;font-weight:600;color:var(--bad);display:flex;gap:6px;align-items:flex-start}
 /* ---- O aviso, que era texto solto ----
@@ -3888,6 +3889,10 @@ const CATEG={
   br: {n:'Brunch',          i:'🥐'},
   sn: {n:'Snack',           i:'🍎'},
   sob:{n:'Sobremesa',       i:'🍮'},
+  /* Esta não é um lugar na mesa: é uma maneira de cozinhar. Não se declara
+     em receita nenhuma — deriva-se de aptoLote(), que lê o tipo de prato, o
+     que leva e como se faz. `t` é o selo curto dos cartões. */
+  lote:{n:'Bons para fazer em quantidade e congelar', i:'🧊', t:'Congela bem'},
 };
 const CATEG_K=Object.keys(CATEG);
 /* Receitas anteriores às categorias que ganham uma marca explícita. */
@@ -3932,13 +3937,28 @@ function cozinhasDe(r){
   return [r.coz].concat(COZ_EXTRA[r.id]||[]).filter((v,i,a)=>a.indexOf(v)===i);
 }
 function ehDaCozinha(r,k){ return cozinhasDe(r).indexOf(k)>=0; }
+/* As categorias de mesa, mais a de lote quando a receita a merece. A de lote
+   guarda-se por objeto de receita (WeakMap): editar uma receita da casa cria
+   outro objeto, e a resposta antiga vai com o velho. */
+const _loteCache=new WeakMap();
 function categoriasDe(r){
+  const out=categoriasBase(r);
+  if(!r) return out;
+  let l=_loteCache.get(r);
+  if(l===undefined){
+    /* no arranque, antes de a tabela da conservação existir, não se decide:
+       devolve-se sem lote e não se guarda, para a próxima leitura decidir */
+    try{ l=aptoLote(r).ok; _loteCache.set(r,l); }catch(e){ l=false; }
+  }
+  return l? out.concat('lote') : out;
+}
+function categoriasBase(r){
   if(!r) return [];
   /* uma categoria mal escrita não deixa a receita sem categoria nenhuma: cai
      para a derivação, como se não tivesse declarado (foi o caso de um «pa») */
   const decl=Array.isArray(r.cg)? r.cg.filter(k=>temChave(CATEG,k)) : [];
   if(decl.length) return decl;
-  if(CATEG_EXTRA[r.id]) return CATEG_EXTRA[r.id];
+  if(CATEG_EXTRA[r.id]) return CATEG_EXTRA[r.id].slice();
   /* derivação: o acompanhamento não é categoria nenhuma; o pequeno-almoço é
      brunch, o lanche é snack, e o que serve almoço ou jantar é prato principal */
   const out=[];
@@ -3950,7 +3970,7 @@ function categoriasDe(r){
 }
 function temCategoria(r,k){ return categoriasDe(r).indexOf(k)>=0; }
 function selosCategoria(r){
-  return categoriasDe(r).map(k=>`<span class="tag cat-${k}">${CATEG[k].i} ${CATEG[k].n}</span>`).join('');
+  return categoriasDe(r).map(k=>`<span class="tag cat-${k}">${CATEG[k].i} ${CATEG[k].t||CATEG[k].n}</span>`).join('');
 }
 /* Hidrato líquido: na convenção portuguesa (e europeia) os hidratos já vêm
    sem a fibra, que se declara à parte — é o mesmo número que está num rótulo
@@ -17775,6 +17795,95 @@ function conservacaoDe(r){
   return Object.assign({}, base, {genero:g,
     reaq: g==='frio'? 'Prato frio: serve-se direto do frigorífico, sem reaquecer.' : base.reaq});
 }
+/* ================= BONS PARA FAZER EM QUANTIDADE E CONGELAR =================
+   Congelar sem estragar é uma pergunta de textura antes de ser de prazo. A
+   conservação já diz o que NÃO congela (ovo, cru, queijo fresco); aqui
+   escolhe-se, do que congela, o que compensa fazer a dobrar e guardar:
+   · estufados, guisados, caris, feijoadas, sopas e gratinados de forno — o
+     molho protege a carne do frio seco, e muitos ficam melhores no dia seguinte;
+   · molhos de lume longo e pestos — congela-se o molho, a massa faz-se no dia;
+   · o que se congela por cozinhar — croquetes, rissóis, empadas, almôndegas,
+     kafta, coxinhas, pão de queijo, gnocchi caseiro e as massas de base;
+   · burritos, montados frios e embrulhados um a um;
+   · bolos e pães de massa levedada.
+   Fica de fora o que perde ao congelar mesmo que congele: batata crua ou em
+   pedaços (fica farinhenta — num estufado, entra com o conselho de a cozer no
+   dia), natas, iogurte e maionese num molho (separam), fritos para comer
+   estaladiços, grelhados rápidos, marisco que endurece ao reaquecer, saladas e
+   pratos frios, massa cozida e arroz — o arroz é o alimento com menos folga,
+   e a app já o trata assim. Num prato composto conta o prato principal. */
+function aptoLote(r){
+  if(!r) return {ok:false};
+  if(r.base && /^c:/.test(r.id)){
+    const b=RECIPES.find(x=>x.id===r.base);
+    const x=b? aptoLote(b) : {ok:false};
+    return x.ok? Object.assign({}, x, {lado:true}) : x;
+  }
+  const c=conservacaoDe(r); if(!c||!c.cong) return {ok:false};
+  const n=r.n||'', ings=(r.i||[]).map(l=>l[0]).join(' | ');
+  const quota=re=>{ let t=0, x=0; (r.i||[]).forEach(l=>{ const g=gramasDe(l[0],l[1],l[2])||0; t+=g; if(re.test(l[0])) x+=g; }); return t? x/t : 0; };
+  const at=r.at||[];
+  if(/burrito/i.test(n) && at.indexOf('crustaceos')<0 && at.indexOf('ovo')<0) return {ok:true, k:'embrulhado'};
+  if(c.k==='arroz') return {ok:false};
+  const NAO=/salada|carpaccio|ceviche|tártaro|gaspacho|salmorejo|tzatziki|guacamole|bruschetta|\btosta|torrada|sandes|sanduíche|sandwich|\bno pão|com pão|\btacos?\b|fattoush|fatteh|grelhad|na brasa|na grelha|no espeto|churrasqueira|tempura|frit[oa]s?\b|panad|milanesa|\bbifes?\b|costeleta|posta|omelete|sushi|poke|risot|crepe|panqueca|waffle|smoothie|batido|sumo|granizado|gelado|sorvete|mousse|pudim|cheesecake|semifrio|iogurte|papas de aveia|\bovos?\b|wellington|fumad|noodles|udon|ramen|\bpho\b|miso|tonnato|cozida em fatias|crudités|blanquette|stroganoff|fricass|sriracha|creme de limão|curd|pizza|camembert|açorda|cozido à portuguesa|quesadilla|escalope|salteado/i;
+  const CRU=/croquete|rissó|empada|pastéis de (massa|carne|bacalhau|chaves|feijão)|pastel de|chamuça|samosa|folhado|spanakopita|bola de carne|almôndegas|polpette|keftedes|kafta|kibbeh|hambúrguer|sfiha|coxinha|empanada|massa quebrada|massa folhada|massa tenra|massa de pão|massa sovada|pão de queijo/i;
+  const COZ=/estufad|guisad|caldeirada|feijoada|chili|chilindr|caril|curry|korma|vindaloo|masala|makhani|tagine|ragù|ragu\b|bolonhesa|ossobuco|goulash|bourguignon|carbonade|chanfana|rancho|jardineira|dobrada|tripas|lasanha|canelon|empadão|moussaka|pastitsio|parmigiana|shepherd|cottage pie|parmentier|enchilada|pulled|carnitas|ropa vieja|cassoulet|fabada|dahl|\bdal\b|chana|gigantes|balila|coq au vin|mafé|moamba|muamba|cachupa|sarapatel|sarrabulho|stifado|ensopado|rojões|caçadora|cacciatora|provençal|bochechas|pezinhos|pica no chão|nikujaga|rolo de carne|bacalhau com natas|sopa|caldo verde|minestrone|vichyssoise|fasolada|\bsugo|marinara|molho de tomate|pesto|currywurst/i;
+  const FORNO=/\bbolo|lêvedo|\bpão\b|pão de deus|broa de|muffin|scone|biscoit|bolachas|brioche|focaccia|medovik/i;
+  if(NAO.test(n)) return {ok:false};
+  if(RE_FRIO.test(n) && !FORNO.test(n)) return {ok:false};
+  const sopa=categoriasBase(r).indexOf('sop')>=0 || /sopa|caldo verde|minestrone|vichyssoise|fasolada/i.test(n);
+  const gratinado=/lasanha|moussaka|pastitsio|canelon|empadão|parmigiana|shepherd|cottage|parmentier|bacalhau com natas|enchilada/i.test(n);
+  const batata=quota(/^Batata/i);
+  const lact=quota(/^(Natas|Nata\b|Iogurte|Maionese|Queijo fresco|Requeijão|Ricotta|Mascarpone|Queijo creme|Leite condensado|Chantilly)/i);
+  if(at.some(a=>a==='crustaceos'||a==='moluscos') && !sopa && !CRU.test(n)) return {ok:false};
+  if(lact>=0.12 && !gratinado && !FORNO.test(n)) return {ok:false};
+  if(/gnocchi/i.test(n) && /Batata/.test(ings) && /Farinha/.test(ings)) return {ok:true, k:'cru'};
+  if(CRU.test(n)) return batata>=0.15 && !/croquete|rissó|pastéis de bacalhau|bola de carne|coxinha/i.test(n)? {ok:false} : {ok:true, k: ehMassa(r)? 'massa' : 'cru'};
+  if(ehMassa(r)) return {ok:false};
+  const leg=c.k==='leguminosa';
+  if(ehAcompanhamento(r)) return (leg||/estufad/i.test(n))? {ok:true, k:'cozinhado'} : {ok:false};
+  if(/esparguete|tagliatelle|penne|konjac|courgette|courgetti/i.test(n) && /bolonhesa|ragù|pesto/i.test(n)) return {ok:true, k:'molho', massa:true, pesto:/pesto/i.test(n)};
+  if(/esparguete|tagliatelle|penne|fusilli|konjac|courgetti|gnocchi/i.test(n)) return {ok:false};
+  const semBatata = batata>=0.15 && !sopa && !gratinado;
+  if(sopa) return {ok:true, k:'cozinhado', sopa:true, cobertura:/gratinad|grilled|com pão|croutons/i.test(n)};
+  if(ehMolho(r)) return COZ.test(n)? {ok:true, k:'molho', pesto:/pesto/i.test(n)} : {ok:false};
+  if(COZ.test(n)) return {ok:true, k:'cozinhado', semBatata};
+  if(leg && categoriasBase(r).indexOf('pp')>=0) return {ok:true, k:'cozinhado', semBatata};
+  if(FORNO.test(n) && /Farinha/i.test(ings)) return {ok:true, k:'forno'};
+  if(batata>=0.2) return {ok:false};
+  /* sem nome que o diga, o lume brando longo diz: um prato que apura três
+     quartos de hora tapado é um prato de panela — a marinada e a demolha não
+     contam, que não são lume */
+  const lento=(PASSOS[r.id]||[]).filter(p=>{ const t=p[0]+' '+p[1];
+    return /estuf|guis|apura|lume brando|lume mínimo|tapad|cozer|coze /i.test(t) && !/marin|demolh|frigor|salmoura|repous|descans/i.test(t); })
+    .reduce((t,p)=>t+(p[2]||0),0);
+  if(lento>=45 && categoriasBase(r).indexOf('pp')>=0 && !/assad|forno|grelh/i.test(n)) return {ok:true, k:'cozinhado', semBatata};
+  return {ok:false};
+}
+/* Como se faz, para cada maneira de congelar. As regras de segurança são as
+   da Food Standards Agency: arrefecer em menos de duas horas, descongelar no
+   frigorífico, reaquecer até fumegar por igual, uma vez só, e o que foi
+   descongelado e reaquecido não volta ao congelador. */
+function blocoLote(r){
+  const x=aptoLote(r); if(!x.ok) return '';
+  const c=conservacaoDe(r), dias=c&&c.cong? c.cong : 0;
+  const quanto= dias? 'Até '+(dias>=60? Math.round(dias/30)+' meses' : dias+' dias')+' no congelador. ' : '';
+  const txt={
+    cozinhado:'Arrefece-o depressa, em caixas baixas e destapadas, e mete-o no frigorífico em menos de duas horas; congela-o em doses de uma refeição, com o nome e a data escritos. Descongela no frigorífico de véspera e reaquece até fumegar por igual, uma vez só — o que já foi descongelado e reaquecido não volta ao congelador.',
+    molho:'Congela-se o molho, já frio, em caixas de uma refeição'+(x.pesto? ' ou em cuvetes de gelo, para tirar só o que se precisa — e sem o queijo, que se junta depois de descongelar e fica com melhor textura' : '')+'. Descongela no frigorífico de véspera e aquece até ferver.',
+    cru:'Congela-se por cozinhar: formados e separados num tabuleiro forrado, uma hora no congelador, e só depois juntos num saco — assim não colam. Vão do congelador direto para o forno, a frigideira ou o óleo, com mais uns minutos do que a receita diz; não se descongelam antes.',
+    massa:'A massa congela-se em bola achatada ou já estendida, bem embrulhada em película. Descongela no frigorífico de véspera e trabalha-se ainda fresca.',
+    embrulhado:'Monta-os com o recheio já frio e embrulha cada um em película ou papel de alumínio antes de congelar. Aquecem ainda congelados, no forno ou no micro-ondas, até o centro estar bem quente.',
+    forno:'Congela-se já frio, inteiro ou às fatias, bem embrulhado. As fatias descongelam em meia hora à temperatura da cozinha; o pão vai direto à torradeira ou ao forno.'
+  }[x.k]||'';
+  const extra=[];
+  if(x.semBatata) extra.push('As batatas ficam farinhentas depois de congeladas: congela o resto sem elas e coze-as no dia, ou deixa-as um pouco mais firmes.');
+  if(x.massa) extra.push('A massa faz-se no dia — cozida e congelada, fica mole.');
+  if(x.cobertura) extra.push('O gratinado, o pão ou os croutons por cima põem-se no dia, ao servir.');
+  if(x.k==='embrulhado') extra.push('Sem o que é fresco — abacate, alface, natas azedas —, que se junta ao servir.');
+  if(x.lado) extra.push('O que vai ao lado faz-se no dia.');
+  return `<div class="nota-lote"><b>🧊 Bom para fazer em quantidade e congelar.</b> <span class="sub">${esc(quanto+txt+(extra.length? ' '+extra.join(' ') : ''))}</span></div>`;
+}
 function textoConservacao(r){
   const c=conservacaoDe(r); if(!c) return '';
   return '🧊 '+plural(c.frigo,'dia no frigorífico','dias no frigorífico')
@@ -19726,6 +19835,7 @@ function fichaHtml(f){
           </details>
           <ol class="passos" style="margin-top:8px">${doPrato.map(li).join('')}</ol>`;
       })()}
+      ${blocoLote(r)}
       <p class="sub">${esc(textoConservacao(r))}</p>
       <p class="sub" style="margin-top:4px"><i>Prazos genéricos e conservadores para sobras refrigeradas a 4 °C ou menos. Não substituem o cheiro, o aspeto e o bom senso.</i></p>
       <div class="row" style="margin-top:16px;justify-content:space-between">
@@ -21071,7 +21181,7 @@ function eixoDoPrato(r){
   const a=r.at||[];
   if(a.indexOf('peixe')>=0||a.indexOf('crustaceos')>=0||a.indexOf('moluscos')>=0) return {k:'peixe', n:'peixe'};
   if(a.indexOf('carne')>=0) return {k:'carne', n:'carne'};
-  if(categoriasDe(r).indexOf('sop')>=0) return {k:'sopa', n:'sopa'};
+  if(categoriasBase(r).indexOf('sop')>=0) return {k:'sopa', n:'sopa'};
   if((r.dc||[]).indexOf('vegetariana')>=0) return {k:'vegetariana', n:'prato vegetariano'};
   return null;
 }
@@ -21226,7 +21336,10 @@ function taxaReaquecimento(rid){
   const n=bom+mau;
   return n>=3? {taxa:bom/n, n} : null;
 }
-function valeADobra(rid){ const t=taxaReaquecimento(rid); return t? t.taxa>=0.7 : null; }
+/* Sem histórico de sobras, quem decide é o tipo de prato: um estufado que
+   congela bem vale a dobra; o resto fica por decidir, como antes. */
+function valeADobra(rid){ const t=taxaReaquecimento(rid); if(t) return t.taxa>=0.7;
+  const r=RECIPES.find(x=>x.id===rid); return r && aptoLote(r).ok? true : null; }
 
 /* ---- O álbum das semanas boas ----
    «Usar como base» já existe, mas obriga a lembrar qual foi a semana boa. As
@@ -27645,7 +27758,8 @@ function textoBusca(r){
   const base=r.base||r.id;
   const al=(temChave(ALIAS_BUSCA,r.id)? ALIAS_BUSCA[r.id]+' ':'')
           +(base!==r.id && temChave(ALIAS_BUSCA,base)? ALIAS_BUSCA[base]+' ':'');
-  return (_txBusca[r.id]=semAcentos(r.n+' '+fam+' '+al+r.i.map(x=>x[0]).join(' ')));
+  let lote=''; try{ if(aptoLote(r).ok) lote='congelar congelado congela fazer em quantidade '; }catch(e){}
+  return (_txBusca[r.id]=semAcentos(r.n+' '+fam+' '+al+lote+r.i.map(x=>x[0]).join(' ')));
 }
 /* ---- O plural português que a comparação por substring não sabe fazer ----
    «croquete» encontra «croquetes» porque o singular é prefixo do plural. Mas o
@@ -35819,8 +35933,10 @@ function autoFill(){
       : (fresh.length? fresh : pool);
     /* o género do prato pesa com a estação e a refeição: no verão, ao almoço,
        um gaspacho vale mais do que uma feijoada */
+    /* quem cozinha a dobrar prefere o que congela bem: a segunda dose não tem
+       de ser comida amanhã */
     const notas=alvo.map(r=>({r, p:(pesoGenero(r,mk)+(querPrep()? Math.min(2,encaixaNoPrep(r,prepAtual)*0.5):0)
-      +bonusRitual(r,di,mk))*fatorCompasso(r.id)}));
+      +bonusRitual(r,di,mk)+(querDobro() && temCategoria(r,'lote')? 0.5 : 0))*fatorCompasso(r.id)}));
     const maxP=Math.max(...notas.map(x=>x.p));
     const melhores=notas.filter(x=>x.p>=maxP-0.5).map(x=>x.r);
     const escolhida=melhores[Math.floor(Math.random()*melhores.length)];
