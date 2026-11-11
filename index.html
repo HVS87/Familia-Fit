@@ -4248,16 +4248,16 @@ R('pouletmoutarde','Frango com mostarda e cogumelos','francesa',['keto','lowcarb
 R('oeufscocotte','Ovos cocotte com espinafres','francesa',['keto','lowcarb','vegetariana'],320,6,20,24,[['Ovo',2,'un'],['Espinafres',80,'g'],['Nata',50,'ml'],['Queijo gruyère',20,'g'],['Noz-moscada',0.5,'g']],['p','l'],2),
 
 /* ---------- Mexicana ---------- */
-R('tacospollo','Tacos de frango grelhado','mexicana',[],0,0,0,0,[['Tortilhas de milho',2,'un'],['Peito de frango',150,'g'],['Tomate',0.71,'un'],['Cebola roxa',0.14,'un'],['Abacate',0.25,'un'],['Coentros',1,'g'],['Lima',0.23,'un'],['Azeite',6,'ml']],null,8),
+R('tacospollo','Tacos de frango grelhado','mexicana',[],0,0,0,0,[['Tortilhas de milho',2,'un'],['Peito de frango',150,'g'],['Tomate',0.75,'un'],['Cebola roxa',0.125,'un'],['Abacate',0.25,'un'],['Coentros',1,'g'],['Lima',0.25,'un'],['Azeite',6,'ml']],null,8),
 R('chilicarne','Chili con carne','mexicana',[],520,44,36,22,[['Carne picada de vaca',140,'g'],['Feijão preto',120,'g'],['Tomate pelado',150,'g'],['Pimento',0.5,'un'],['Cebola',0.5,'un'],['Cominhos',2,'g'],['Chili em pó',3,'g'],['Azeite',8,'ml']],null,13),
 R('fajitas','Fajitas de vaca com pimentos','mexicana',[],540,48,40,20,[['Bife de vaca',160,'g'],['Tortilhas de trigo',2,'un'],['Pimento',1,'un'],['Cebola',0.5,'un'],['Lima',0.5,'un'],['Cominhos',2,'g'],['Azeite',8,'ml']],null,6),
 R('enchiladas','Enchiladas de frango gratinadas','mexicana',[],580,52,38,24,[['Tortilhas de milho',2,'un'],['Peito de frango',150,'g'],['Tomate pelado',150,'g'],['Queijo cheddar',50,'g'],['Cebola',0.5,'un'],['Chili em pó',3,'g']],null,7),
 R('sopaasteca','Sopa asteca de tomate e frango','mexicana',['lowfat'],380,34,32,12,[['Tomate pelado',200,'g'],['Peito de frango',120,'g'],['Caldo de galinha',300,'ml'],['Tortilhas de milho',1,'un'],['Malagueta',1,'un'],['Coentros',6,'g'],['Lima',0.5,'un'],['Azeite',6,'ml']],['a','j','l'],5,['sop']),
 R('ceviche','Ceviche de peixe branco com lima','mexicana',['keto','lowcarb','paleo'],300,14,34,12,[['Robalo',180,'g'],['Lima',1,'un'],['Cebola roxa',0.25,'un'],['Abacate',0.25,'un'],['Malagueta',0.5,'un'],['Coentros',8,'g'],['Azeite',6,'ml']],['a','j','l'],4),
 R('rancheros','Ovos estrelados com tortilha, feijão preto e abacate','mexicana',['vegetariana'],0,0,0,0,[['Ovo',2,'un'],['Tortilhas de milho',1,'un'],['Feijão preto',80,'g'],['Tomate pelado',60,'g'],['Abacate',0.25,'un'],['Malagueta',0.1,'un'],['Azeite',4,'ml']],['p','a'],10),
-R('carnitas','Carnitas de porco','mexicana',['keto','lowcarb','paleo'],480,12,42,30,[['Carne de porco',180,'g'],['Laranja',0.5,'un'],['Lima',0.23,'un'],['Cominhos',2,'g'],['Coentros',6,'g'],['Azeite',8,'ml']],null,4),
+R('carnitas','Carnitas de porco','mexicana',['keto','lowcarb','paleo'],480,12,42,30,[['Carne de porco',180,'g'],['Laranja',0.5,'un'],['Lima',0.25,'un'],['Cominhos',2,'g'],['Coentros',6,'g'],['Azeite',8,'ml']],null,4),
 R('saladafeijaopreto','Salada de feijão preto, milho e abacate','mexicana',['vegetariana'],420,48,16,18,[['Feijão preto',130,'g'],['Milho',80,'g'],['Abacate',0.5,'un'],['Tomate',1,'un'],['Cebola roxa',0.25,'un'],['Lima',0.5,'un'],['Coentros',6,'g'],['Azeite',8,'ml']],['a','j','l'],15),
-R('tacospeixe','Tacos de pescada grelhada com repolho','mexicana',[],0,0,0,0,[['Pescada',160,'g'],['Tortilhas de milho',2,'un'],['Repolho',80,'g'],['Lima',0.23,'un'],['Coentros',6,'g'],['Azeite',6,'ml']],null,7),
+R('tacospeixe','Tacos de pescada grelhada com repolho','mexicana',[],0,0,0,0,[['Pescada',160,'g'],['Tortilhas de milho',2,'un'],['Repolho',80,'g'],['Lima',0.25,'un'],['Coentros',6,'g'],['Azeite',6,'ml']],null,7),
 R('quesadilla','Quesadilla de legumes e queijo','mexicana',['vegetariana'],480,46,22,24,[['Tortilhas de trigo',2,'un'],['Queijo cheddar',50,'g'],['Pimento',0.5,'un'],['Courgette',80,'g'],['Cebola',0.5,'un'],['Azeite',8,'ml']],['a','j','l'],5,['pp']),
 /* O pico de gallo era um lanche com uma tortilha ao lado. Na mesa mexicana é
    a entrada que se põe no centro com totopos — os triângulos de tortilha de
@@ -17884,6 +17884,104 @@ function blocoLote(r){
   if(x.lado) extra.push('O que vai ao lado faz-se no dia.');
   return `<div class="nota-lote"><b>🧊 Bom para fazer em quantidade e congelar.</b> <span class="sub">${esc(quanto+txt+(extra.length? ' '+extra.join(' ') : ''))}</span></div>`;
 }
+/* ================= PARA QUANTAS PESSOAS ERA A RECEITA =================
+   A biblioteca guarda tudo por dose, que é o que deixa escalar para qualquer
+   mesa — mas uma receita nasce para um número de pessoas, e é para esse que
+   as quantidades batem certas: quatro ovos e não 3,6, uma cebola e não 0,8.
+   Só uma receita da biblioteca traz fonte com rendimento declarado, e essa
+   manda (ORIGEM_RECEITA). As da casa sabem as doses com que foram escritas.
+   As restantes foram escritas para esta app, e a mesa original lê-se nas
+   próprias quantidades: o menor número de pessoas em que o que se conta —
+   ovos, dentes de alho, tortilhas, cebolas, limões — sai inteiro (meia cebola
+   só a partir de duas), e o que se pesa sai redondo, com a folga do
+   arredondamento ao grama de cada dose. Temperos, pitadas e o que pesa menos
+   de 20 g não decidem. */
+const ORIGEM_RECEITA={
+  ragubolognese:{p:20, fonte:"Vincenzo's Plate, na versão a dobrar"}
+};
+function pontuaMesa(r,N){
+  let ok=0, tot=0;
+  (r.i||[]).forEach(l=>{
+    const nome=l[0], u=l[2], q=l[1]*N;
+    if(u==='un'||u==='dente'){
+      const g=(gramasDe(nome,l[1],u)||0)*N;
+      if(g && g<20){ tot+=0.25; ok+=0.25; return; }
+      tot+=3;
+      const inteiro=Math.round(q), meio=Math.round(q*2)/2, folga=0.1*Math.max(1,q/3);
+      const certo=(inteiro>=1 && Math.abs(q-inteiro)<=folga)
+        || (u==='un' && !/^(Ovo|Gema|Clara)/i.test(nome) && meio>=2 && Math.abs(q-meio)<=folga);
+      if(certo) ok+=3;
+      return;
+    }
+    if(q<20){ tot+=0.25; ok+=0.25; return; }
+    tot+=1;
+    const folga=Math.max(0.5*N, q*0.01), passo= q>=1000? 50 : q>=100? 10 : 5;
+    if(Math.abs(q/passo-Math.round(q/passo))*passo<=folga+1e-9) ok+=1;
+  });
+  return tot? ok/tot : 1;
+}
+const _mesaOrig=new WeakMap();
+function pessoasOriginais(r){
+  if(!r) return null;
+  if(temChave(ORIGEM_RECEITA,r.id)) return Object.assign({tipo:'fonte', exato:true}, ORIGEM_RECEITA[r.id]);
+  if(r.u) return {tipo:'casa', p:clampNum(Math.round(r.doses||1),1,MAX_DOSES), exato:true};
+  /* num prato composto manda o prato principal: o acompanhamento entra à
+     fatia e não tem mesa sua */
+  if(r.base && /^c:/.test(r.id)){
+    const b=RECIPES.find(x=>x.id===r.base), o=b? pessoasOriginais(b) : null;
+    return o? Object.assign({}, o, {composto:true}) : null;
+  }
+  let o=_mesaOrig.get(r); if(o) return o;
+  let melhor={p:1, sc:-1};
+  for(let N=1;N<=MAX_DOSES;N++){
+    const sc=pontuaMesa(r,N);
+    if(sc>=0.95){ melhor={p:N, sc}; break; }
+    if(sc>melhor.sc+0.02) melhor={p:N, sc};
+  }
+  o={tipo:'contas', p:melhor.p, exato:melhor.sc>=0.95};
+  _mesaOrig.set(r,o);
+  return o;
+}
+/* «4 ovos, 1 cebola, 2 dentes de alho» — a contagem dita como se diz. Só o
+   nome antes do «de» vai ao plural: «tortilhas de milho» já vem no plural, e
+   «cebola roxa» passa a «cebolas roxas». */
+const PLURAL_FIXO={bagel:'bagels', muffin:'muffins', wrap:'wraps', pita:'pita', naan:'naans', croissant:'croissants'};
+function plPalavra(w){
+  if(temChave(PLURAL_FIXO,w.toLowerCase())) return PLURAL_FIXO[w.toLowerCase()];
+  if(/s$/i.test(w)) return w;
+  if(/ão$/i.test(w)) return /^(pão|alemão|capitão)$/i.test(w)? w.replace(/ão$/i,'ães') : w.replace(/ão$/i,'ões');
+  if(/[rz]$/i.test(w)) return w+'es';
+  if(/l$/i.test(w)) return w.replace(/l$/i,'is');
+  if(/m$/i.test(w)) return w.replace(/m$/i,'ns');
+  return w+'s';
+}
+function contagemDita(nome,q,u){
+  const n=Math.round(q*2)/2, num=nPT(n,1).replace(',0','');
+  if(u==='dente') return num+' '+(n===1?'dente':'dentes')+' de '+nome.toLowerCase().split(',')[0];
+  let t=nome.toLowerCase().split(',')[0];
+  if(n>1){ const p=t.split(' de '); p[0]=p[0].split(' ').map(plPalavra).join(' '); t=p.join(' de '); }
+  return num+' '+t;
+}
+function blocoMesaOriginal(r,f){
+  const o=pessoasOriginais(r); if(!o) return '';
+  const base= o.composto? RECIPES.find(x=>x.id===r.base) : r;
+  /* o que se conta, já na mesa original: é a prova de que as contas batem */
+  const contados=(base.i||[]).filter(l=>(l[2]==='un'||l[2]==='dente') && (gramasDe(l[0],l[1]*o.p,l[2])||99)>=20)
+    .slice(0,4).map(l=>contagemDita(l[0],l[1]*o.p,l[2]));
+  const quem= o.tipo==='fonte'? 'Receita original ('+esc(o.fonte)+')'
+    : o.tipo==='casa'? 'Receita da casa' : 'Receita original';
+  const para= plural(o.p,'pessoa','pessoas')+(o.composto? ' (o prato principal)' : '');
+  const porque= o.tipo==='casa'? 'É para quantas doses foi escrita.'
+    : o.tipo==='fonte'? 'É com esta mesa que as quantidades batem com as da fonte.'
+    : o.p===1? 'Foi escrita dose a dose, e as quantidades já batem certas para uma.'
+    : 'É com esta mesa que as quantidades batem certas'+(o.exato? '' : ', ou quase')
+      +(contados.length? ': '+esc(contados.join(', '))+'.' : '.');
+  return `<div class="row" style="margin-top:8px;align-items:center;gap:8px;flex-wrap:wrap">
+    <span class="sub">📐 <b>${quem}: ${para}.</b> ${porque}</span>
+    ${f.n===o.p? '<span class="pill ok">a ver as quantidades originais</span>'
+      : `<button class="chip" onclick="setFichaDoses(${o.p})">Ver para ${plural(o.p,'pessoa','pessoas')}</button>`}
+  </div>`;
+}
 function textoConservacao(r){
   const c=conservacaoDe(r); if(!c) return '';
   return '🧊 '+plural(c.frigo,'dia no frigorífico','dias no frigorífico')
@@ -19759,6 +19857,7 @@ function fichaHtml(f){
         <span class="pill ${disp.pronta?'ok':disp.tem?'warn':''}" style="margin-left:auto">${
           disp.pronta?'Pronta a cozinhar':disp.tem+'/'+disp.total+' na despensa'}</span>
       </div>
+      ${blocoMesaOriginal(r,f)}
       ${salDaFicha(r)}
       ${''/* Com massa de base, a lista parte-se em duas: o prato e a massa.
            Quem compra a massa feita não quer ver a farinha nem a manteiga dela
