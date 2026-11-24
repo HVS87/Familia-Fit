@@ -1,6 +1,6 @@
 {
   "name": "familia-fit",
-  "productName": "Família Fit",
+  "productName": "Familia Fit",
   "version": "2026.11.25-1",
   "description": "Alimentação e movimento de toda a família — versão para computador",
   "main": "main.js",
@@ -21,7 +21,7 @@
   },
   "build": {
     "appId": "pt.familiafit.app",
-    "productName": "Família Fit",
+    "productName": "Familia Fit",
     "copyright": "Família Fit",
     "directories": {
       "output": "dist",
@@ -83,7 +83,11 @@
       "icon": "build/icon.png",
       "artifactName": "familia-fit-${version}-mac-${arch}.${ext}",
       "identity": null,
-      "hardenedRuntime": false
+      "hardenedRuntime": false,
+      "extendInfo": {
+        "CFBundleDisplayName": "Família Fit",
+        "CFBundleName": "Família Fit"
+      }
     },
     "dmg": {
       "title": "Família Fit"

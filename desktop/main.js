@@ -29,6 +29,11 @@ const PAGINA_PROJETO='https://github.com/HVS87/Familia-Fit';
 const ehMac=process.platform==='darwin';
 let principal=null, segundo=null;
 
+/* O nome interno do programa é ASCII («Familia Fit»): no macOS, um acento no
+   nome dos executáveis auxiliares fazia o Electron não os encontrar e abortar
+   ao arrancar. Os dados continuam na pasta «Família Fit» de sempre. */
+app.setName('Família Fit');
+if(!process.env.FFIT_AUTOTESTE) app.setPath('userData', path.join(app.getPath('appData'), 'Família Fit'));
 /* o autoteste corre num perfil descartável: nunca toca nos dados de quem usa o programa */
 if(process.env.FFIT_AUTOTESTE) app.setPath("userData", path.join(require("os").tmpdir(), "ffit-autoteste-"+process.pid));
 if(!app.requestSingleInstanceLock()) app.quit();
