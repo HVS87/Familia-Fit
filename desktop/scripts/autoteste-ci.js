@@ -9,7 +9,10 @@ const dist=path.join(__dirname,'..','dist');
 let exe, args=[];
 if(process.platform==='win32') exe=path.join(dist,'win-unpacked','Família Fit.exe');
 else if(process.platform==='darwin'){
-  const d=fs.readdirSync(dist).find(x=>/^mac/.test(x) && fs.statSync(path.join(dist,x)).isDirectory());
+  /* corre a versão da arquitetura desta máquina: mac-arm64 no Apple Silicon, mac na Intel */
+  const quer= process.arch==='arm64'? 'mac-arm64' : 'mac';
+  const dirs=fs.readdirSync(dist).filter(x=>/^mac/.test(x) && fs.statSync(path.join(dist,x)).isDirectory());
+  const d=dirs.includes(quer)? quer : dirs[0];
   const app=fs.readdirSync(path.join(dist,d)).find(x=>x.endsWith('.app'));
   const bin=path.join(dist,d,app,'Contents','MacOS');
   exe=path.join(bin, fs.readdirSync(bin)[0]);

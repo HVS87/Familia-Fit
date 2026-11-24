@@ -545,7 +545,7 @@ A mesma app, como programa para **Windows, macOS e Linux**. Cada versão publica
 |---|---|---|
 | Windows | `familia-fit-…-instalador-windows.exe` | Instalador: escolhe-se a pasta, cria atalhos no ambiente de trabalho e no menu Iniciar, e desinstala-se pelas Definições do Windows. |
 | Windows | `familia-fit-…-portatil-windows.exe` | Um ficheiro só, sem instalar: abre-se e usa-se (numa pen, por exemplo). |
-| macOS | `familia-fit-…-mac.dmg` | Para Intel e Apple Silicon. Não é assinado pela Apple: na primeira vez, clique direito no programa → Abrir. |
+| macOS | `familia-fit-…-mac-arm64.dmg` / `familia-fit-…-mac-x64.dmg` | Um para Apple Silicon (M1 e seguintes), outro para Intel. Assinatura ad hoc, não da Apple. Não é assinado pela Apple: na primeira vez, clique direito no programa → Abrir. |
 | Linux | `familia-fit-…-linux-x86_64.AppImage` | Um ficheiro só: dá-se permissão de execução e abre-se. |
 | Linux | `familia-fit-…-linux-amd64.deb` | Para Debian, Ubuntu e derivadas. |
 

@@ -47,7 +47,7 @@ jobs:
         if: runner.os == 'macOS'
         continue-on-error: true
         run: |
-          APP="$(ls -d dist/mac*/*.app | head -1)"
+          APP="$(ls -d dist/mac-arm64/*.app dist/mac*/*.app 2>/dev/null | head -1)"
           if codesign --verify --deep --strict --verbose=2 "$APP"; then echo "::notice title=Assinatura macOS::válida (ad hoc)"; else echo "::error title=Assinatura macOS::codesign recusa a assinatura"; fi
           codesign -dv "$APP" 2>&1 | grep -E "Signature|flags" | sed 's/^/::notice title=Assinatura macOS::/'
       - name: Autoteste do programa empacotado

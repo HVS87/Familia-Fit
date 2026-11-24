@@ -32,7 +32,8 @@
       "preload.js",
       "autoteste.js",
       "app/**/*",
-      "package.json"
+      "package.json",
+      "!scripts/**"
     ],
     "artifactName": "familia-fit-${version}-${os}-${arch}.${ext}",
     "win": {
@@ -73,16 +74,16 @@
         {
           "target": "dmg",
           "arch": [
-            "universal"
+            "arm64",
+            "x64"
           ]
         }
       ],
       "category": "public.app-category.healthcare-fitness",
       "icon": "build/icon.png",
-      "artifactName": "familia-fit-${version}-mac.${ext}",
-      "identity": "-",
-      "hardenedRuntime": false,
-      "gatekeeperAssess": false
+      "artifactName": "familia-fit-${version}-mac-${arch}.${ext}",
+      "identity": null,
+      "hardenedRuntime": false
     },
     "dmg": {
       "title": "Família Fit"
@@ -97,7 +98,8 @@
       "maintainer": "Família Fit <familia-fit@users.noreply.github.com>",
       "synopsis": "Alimentação e movimento de toda a família",
       "artifactName": "familia-fit-${version}-linux-${arch}.${ext}"
-    }
+    },
+    "afterPack": "scripts/assinar-mac.js"
   },
   "devDependencies": {
     "electron": "33.2.1",
