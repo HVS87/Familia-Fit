@@ -16,7 +16,7 @@ else if(process.platform==='darwin'){
 } else { exe='xvfb-run'; args=['-a', path.join(dist,'linux-unpacked','familia-fit'), '--no-sandbox', '--disable-gpu']; }
 console.log('a correr', exe, args.join(' '));
 const p=spawn(exe,args,{env:Object.assign({},process.env,{FFIT_AUTOTESTE:out}), stdio:'inherit'});
-p.on('error',e=>{ console.error('não arrancou:',e.message); process.exit(1); });
+p.on('error',e=>{ console.error('não arrancou:',e.message); if(process.env.GITHUB_ACTIONS) console.log('::error title=Autoteste ('+process.platform+')::não arrancou: '+e.message); process.exit(1); });
 const t0=Date.now();
 const vigia=setInterval(()=>{
   if(fs.existsSync(out)){
@@ -24,8 +24,12 @@ const vigia=setInterval(()=>{
     setTimeout(()=>{
       const j=JSON.parse(fs.readFileSync(out,'utf8'));
       console.log(JSON.stringify(j,null,1));
+      /* no GitHub, cada falha vira uma anotação, que se lê sem abrir o registo */
+      if(process.env.GITHUB_ACTIONS) j.falhas.forEach(f=>console.log('::error title=Autoteste ('+process.platform+')::'+String(f).replace(/?
+/g,' ')));
+      if(process.env.GITHUB_ACTIONS) console.log('::notice title=Autoteste ('+process.platform+')::'+j.ok.length+' verificações certas, '+j.falhas.length+' falhas, '+j.ecras+' ecrã(s)');
       try{ p.kill(); }catch(e){}
       process.exit(j.falhas.length? 1 : 0);
     },1000);
-  } else if(Date.now()-t0>180000){ console.error('o autoteste não respondeu em 3 minutos'); try{ p.kill(); }catch(e){} process.exit(1); }
+  } else if(Date.now()-t0>180000){ console.error('o autoteste não respondeu em 3 minutos'); if(process.env.GITHUB_ACTIONS) console.log('::error title=Autoteste ('+process.platform+')::o programa não respondeu em 3 minutos'); try{ p.kill(); }catch(e){} process.exit(1); }
 },1000);
