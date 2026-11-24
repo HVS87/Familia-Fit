@@ -85,8 +85,7 @@
       "identity": null,
       "hardenedRuntime": false,
       "extendInfo": {
-        "CFBundleDisplayName": "Família Fit",
-        "CFBundleName": "Família Fit"
+        "CFBundleDisplayName": "Família Fit"
       }
     },
     "dmg": {
