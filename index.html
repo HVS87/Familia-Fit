@@ -3909,6 +3909,8 @@ const COZ_EXTRA={
   /* a picanha e a fraldinha entraram pela churrasqueira portuguesa, mas vêm do
      churrasco brasileiro e são de lá tanto como de cá */
   cgpicanha:['brasileira'],
+  /* o bolo de cenoura com cobertura de chocolate é tanto de cá como de lá */
+  bolocenourachoc:['portuguesa'],
   cgfraldinha:['brasileira'],
   /* A frittata é italiana antes de ser mediterrânica: a mediterrânica é o
      padrão alimentar, e a frittata tem morada. */
@@ -5062,7 +5064,22 @@ R('bolochoc','Bolo de chocolate','portuguesa',[],0,0,0,0,[['Farinha',35,'g'],['A
    de farinha para ajudar». */
 R('boloamendoa','Bolo de amêndoa','portuguesa',['vegetariana'],0,0,0,0,[['Amêndoa',30,'g'],['Açúcar branco',26,'g'],['Ovo',0.7,'un'],['Manteiga',8,'g'],['Raspa de limão',1,'g'],['Fermento em pó',1,'g']],['l'],0,['sob']),
 R('bolonoz','Bolo de noz','portuguesa',['vegetariana'],0,0,0,0,[['Nozes',20,'g'],['Farinha',22,'g'],['Açúcar branco',24,'g'],['Ovo',0.6,'un'],['Manteiga',10,'g'],['Canela',0.5,'g'],['Fermento em pó',1.5,'g']],['l'],0,['sob']),
-R('bolocenoura','Bolo de cenoura','portuguesa',['vegetariana'],0,0,0,0,[['Cenoura',65,'g'],['Farinha',28,'g'],['Açúcar branco',24,'g'],['Ovo',0.6,'un'],['Óleo alimentar',11,'ml'],['Nozes',7,'g'],['Canela',1,'g'],['Fermento em pó',2,'g']],['l'],0,['sob']),
+/* O bolo de cenoura são dois bolos com o mesmo nome. O tradicional leva a
+   cenoura ralada, canela e nozes, e coze numa forma redonda. O que se faz em
+   Portugal e no Brasil com cobertura de chocolate tritura a cenoura crua com
+   os ovos e o óleo, e é daí que lhe vem a cor laranja por igual e o miolo
+   fofo; a cobertura entra quente pelos furos do bolo. */
+R('bolocenoura','Bolo de cenoura tradicional','portuguesa',['vegetariana'],0,0,0,0,[['Cenoura',30,'g'],['Farinha',25,'g'],['Açúcar branco',20,'g'],['Ovo',0.4,'un'],['Óleo alimentar',15,'ml'],['Nozes',8,'g'],['Canela',0.5,'g'],['Fermento em pó',1,'g']],['l','p'],0,['sob','sn']),
+R('bolocenourachoc','Bolo de cenoura com cobertura de chocolate','brasileira',['vegetariana'],0,0,0,0,[['Cenoura',25,'g'],['Ovo',0.25,'un'],['Óleo alimentar',160/12,'ml'],['Açúcar branco',37.5,'g'],['Farinha',280/12,'g'],['Fermento em pó',1,'g'],['Manteiga',2.5,'g'],['Cacau em pó',25/12,'g'],['Leite',12.5,'ml']],['l','p'],0,['sob','sn']),
+/* O bolo de iogurte mede-se com o copo do próprio iogurte, e é por isso que
+   toda a gente o sabe de cor. As gramas estão aqui para a conta bater; em
+   casa, o copo chega. */
+R('boloiogurte','Bolo de iogurte','portuguesa',['vegetariana'],0,0,0,0,[['Iogurte natural',12.5,'g'],['Ovo',0.3,'un'],['Açúcar branco',22,'g'],['Farinha',22,'g'],['Óleo alimentar',11,'ml'],['Fermento em pó',1,'g'],['Raspa de limão',0.3,'g']],['l','p'],0,['sob','sn']),
+R('boloiogurtemirtilo','Bolo de iogurte com mirtilos','portuguesa',['vegetariana'],0,0,0,0,[['Iogurte natural',12.5,'g'],['Ovo',0.3,'un'],['Açúcar branco',22,'g'],['Farinha',23,'g'],['Óleo alimentar',11,'ml'],['Mirtilo',15,'g'],['Fermento em pó',1,'g'],['Raspa de limão',0.3,'g']],['l','p'],0,['sob','sn']),
+/* A tarte de abóbora e batata-doce não traz a base escrita: escolhe-a, como
+   as quiches e as empadas. A de sempre é em massa quebrada; a outra é a base
+   de bolacha dos cheesecakes. */
+R('tarteabobora','Tarte de abóbora e batata-doce','portuguesa',['vegetariana'],0,0,0,0,[['Abóbora',50,'g'],['Batata-doce crua',50,'g'],['Açúcar branco',15,'g'],['Ovo',0.25,'un'],['Nata',50,'ml'],['Canela',0.16,'g'],['Gengibre em pó',0.11,'g'],['Noz-moscada',0.07,'g'],['Cravinho',0.06,'g'],['Flor de sal',0.1,'g'],['Pimenta preta',0.03,'g'],['Amêndoa',3.75,'g']],['l'],0,['sob']),
 /* O bolo-rei é de época e leva-a no nome: a fruta cristalizada e os frutos de
    casca rija são o que o define, e são também os dois avisos que ele traz — a
    fruta pelo açúcar, os frutos secos pelo alergénio. */
@@ -9137,10 +9154,46 @@ P('bolonoz',[['Nozes','Pica as nozes grosseiramente, guardando algumas metades p
  ['Massa','Bate a manteiga com o açúcar, junta os ovos um a um, e envolve a farinha peneirada com o fermento e a canela.',8],
  ['Juntar','Envolve as nozes picadas com a espátula, sem bater.',2],
  ['Forno','180 °C até o palito sair limpo. As metades guardadas põem-se por cima a meio da cozedura, senão afundam.',40]]);
-P('bolocenoura',[['Cenoura','Rala a cenoura fina. Vai crua para a massa: coze dentro do bolo e é dela que vem a humidade.',6],
- ['Massa','Bate os ovos com o açúcar e o óleo até ficar homogéneo, junta a cenoura, e por fim a farinha com o fermento e a canela.',8],
- ['Nozes','Envolve as nozes picadas.',2],
- ['Forno','180 °C até o palito sair limpo.',40]]);
+P('bolocenoura',[
+ ['Forno e forma primeiro','Forno a 180 °C. Unta e polvilha com farinha uma forma redonda de 22 cm. A massa leva fermento, que começa a trabalhar mal toca na humidade: tem de ir para o forno logo depois de pronta.',5],
+ ['Cenoura ralada fina, nozes picadas grossas','Rala a cenoura no lado fino do ralador. Vai crua para a massa: coze dentro do bolo e é dela que vem a humidade. As nozes picam-se grossas, à faca, para se sentirem na fatia.',8],
+ ['Ovos e açúcar até esbranquiçar','Bate os ovos com o açúcar uns cinco minutos, até a mistura ficar clara e fazer fita. Junta o óleo em fio, sempre a bater.',6],
+ ['Farinha envolvida, e não batida','Peneira a farinha com o fermento e a canela por cima e envolve com a espátula, em movimentos largos. Por fim a cenoura e as nozes. Bater agora desenvolve o glúten e o bolo sai rijo.',4],
+ ['Palito com migalhas húmidas','Cerca de 45 minutos. A cenoura deixa o miolo húmido, por isso o palito pode sair com migalhas agarradas; com massa crua, ainda não está.',45],
+ ['Dez minutos na forma','Deixa repousar dez minutos antes de desenformar. Quente, o miolo ainda está frágil e parte-se.',10]]);
+P('bolocenourachoc',[
+ ['Forno e forma','Forno a 180 °C. Unta e enfarinha uma forma retangular de 20 × 30 cm.',5],
+ ['Cenoura triturada com os ovos e o óleo','Cenoura crua às rodelas, os ovos e o óleo na liquidificadora, até ficar um creme liso e cor de laranja, uns três minutos. É a cenoura triturada, e não ralada, que distingue este bolo: a cor fica por igual e o miolo sai fofo.',5],
+ ['O resto à mão, numa taça','Passa o creme para uma taça, junta o açúcar e depois a farinha peneirada com o fermento, e envolve com a vara só até não haver farinha seca. Na liquidificadora a farinha bate de mais e o bolo fica pesado.',4],
+ ['Forno','35 a 40 minutos, até o palito sair limpo.',40],
+ ['A cobertura ao lume','Manteiga, cacau, açúcar e leite num tacho, a mexer sempre. Deixa ferver cinco a oito minutos, até engrossar e cobrir as costas da colher. Engrossa mais ao arrefecer, por isso não a deixes ficar espessa no tacho.',8],
+ ['Furar e cobrir a quente','Pica o bolo ainda quente com um garfo e verte por cima a cobertura também quente. Entra pelos furos e o resto fica uma camada brilhante por cima.',3],
+ ['Arrefecer e cortar em quadrados','Deixa arrefecer na forma até a cobertura prender, pelo menos meia hora, e corta em doze quadrados.',30]]);
+P('boloiogurte',[
+ ['Forno e forma','Forno a 180 °C. Unta e polvilha com farinha uma forma de chaminé de 22 cm.',5],
+ ['O copo do iogurte é a medida','Despeja o iogurte numa taça e guarda o copo vazio: é ele que mede o resto. Uma medida de óleo, duas de açúcar e três de farinha.'],
+ ['Ovos e açúcar','Bate os ovos com o açúcar até esbranquiçarem, uns cinco minutos. É o ar que entra aqui que faz o bolo crescer por igual.',5],
+ ['Iogurte, óleo e raspa','Junta o iogurte, o óleo em fio e a raspa do limão, sem parar de bater.',2],
+ ['Farinha envolvida','Peneira a farinha com o fermento e envolve com a espátula, só até não haver farinha seca. Bater agora deixa o bolo rijo.',3],
+ ['Forno','40 minutos, até o palito sair limpo. Não abras a porta na primeira meia hora: o bolo abate.',40],
+ ['Desenformar morno','Dez minutos na forma e desenforma ainda morno. Frio, agarra à chaminé.',10]]);
+P('boloiogurtemirtilo',[
+ ['Forno e forma','Forno a 180 °C. Unta e polvilha com farinha uma forma de chaminé de 22 cm.',5],
+ ['Mirtilos passados por farinha','Passa os mirtilos por uma colher da farinha. A farinha agarra-os à massa e não os deixa ir todos para o fundo. Congelados servem, mas sem descongelar, senão largam sumo e tingem a massa de roxo.',2],
+ ['O copo do iogurte é a medida','Despeja o iogurte numa taça e guarda o copo vazio: é ele que mede o resto. Uma medida de óleo, duas de açúcar e três de farinha.'],
+ ['Ovos e açúcar','Bate os ovos com o açúcar até esbranquiçarem, uns cinco minutos.',5],
+ ['Iogurte, óleo e raspa','Junta o iogurte, o óleo em fio e a raspa do limão, sem parar de bater.',2],
+ ['Farinha, e os mirtilos no fim','Peneira a restante farinha com o fermento e envolve com a espátula. Os mirtilos entram no fim, com duas ou três voltas, para não rebentarem.',3],
+ ['Forno','45 minutos, mais cinco do que o bolo simples, porque a fruta traz água. O palito sai limpo quando estiver.',45],
+ ['Desenformar morno','Dez minutos na forma e desenforma ainda morno.',10]]);
+P('tarteabobora',[
+ ['A base à parte','Prepara a base escolhida: massa quebrada cozida em branco, ou base de bolacha com dez minutos de forno. O recheio é líquido, e numa base crua o fundo fica empapado.'],
+ ['Abóbora e batata-doce até ficarem macias','Descasca e corta as duas em cubos e coze-as a vapor, uns 20 minutos, até a faca entrar sem esforço. A vapor e não em água: na água ensopam-se, e a água a mais fica no recheio e a tarte não prende.',20],
+ ['Puré liso e morno','Escorre muito bem e tritura até ficar liso. Deixa arrefecer até morno: quente, cozia os ovos antes do forno.',10],
+ ['O recheio','Bate os ovos com o açúcar e junta as natas, a canela, o gengibre, a noz-moscada, o cravinho e uma pitada de sal e de pimenta. Envolve no puré até ficar uniforme.',5],
+ ['Forno a 180 °C','Deita o recheio na base, alisa e leva ao forno 40 a 45 minutos. Está pronta quando as bordas estão firmes e o centro ainda treme um pouco ao abanar a forma: acaba de prender a arrefecer.',45],
+ ['Amêndoas a meio','Ao fim de vinte minutos espalha as amêndoas laminadas por cima. Postas no início, queimavam antes de o recheio prender.'],
+ ['Fria antes de cortar','Deixa arrefecer e leva ao frigorífico pelo menos duas horas. Morna, a fatia escorre; fria, corta-se direita.',120]]);
 P('bolorei',[['Demolhar','Põe a fruta cristalizada e as passas de molho no vinho do Porto, pelo menos meia hora. É o que as amacia e dá o perfume da casa no Natal.',30],
  ['Massa','Dissolve o fermento no leite morno, junta à farinha com o açúcar, a manteiga amolecida, a raspa e quase todo o ovo — guarda uma colher para pincelar no fim. Amassa até a massa descolar das mãos.',20],
  ['Levedar','Tapa e deixa levedar em sítio abrigado até dobrar de tamanho.',90],
@@ -10340,7 +10393,7 @@ const FONTE_ING={
   'Molho barbecue':'fda', 'Molho picante':'fda', 'Molho teriyaki':'fda',
   'Molho de peixe':'fda', 'Pesto':'fda', 'Tomate pelado':'fda', 'Tomate seco':'fda',
   'Vinho branco':'fda', 'Vinho tinto':'fda', 'Baunilha':'fda', 'Caril em pó':'fda',
-  'Chili em pó':'fda', 'Cominhos':'fda', 'Noz-moscada':'fda', 'Ervas de Provença':'fda',
+  'Chili em pó':'fda', 'Cominhos':'fda', 'Noz-moscada':'fda', 'Gengibre em pó':'fda', 'Ervas de Provença':'fda',
   'Pimenta preta':'fda', 'Pimentão-doce':'fda', 'Páprica fumada':'fda', 'Flor de sal':'fda',
 };
 const _semFonte=[];
@@ -10861,6 +10914,7 @@ NI('Chili em pó',280,15,12,14,35,0,-1);  // USDA, hidratos convertidos para dis
 NI('Cominhos',375,33,18,22,11,0,-1);  // USDA, hidratos convertidos para disponiveis
 NI('Cúrcuma',312,44.1,6.7,7,22.7,0,4);
 NI('Noz-moscada',525,28,6,36,21,0,-1);  // USDA, hidratos convertidos para disponiveis
+NI('Gengibre em pó',335,57.5,9,4.2,14.1,0,-1);  // USDA 170926 (ginger, ground), hidratos convertidos para disponiveis
 NI('Orégãos',265,26.4,9,4.3,42.5,0,4);
 NI('Ervas de Provença',265,24,9,7,40,0,-1);  // USDA, hidratos convertidos para disponiveis
 NI('Pimenta preta',250,39,10,3.3,25,0,-1);  // USDA, hidratos convertidos para disponiveis
@@ -17825,7 +17879,7 @@ function aptoLote(r){
   const at=r.at||[];
   if(/burrito/i.test(n) && at.indexOf('crustaceos')<0 && at.indexOf('ovo')<0) return {ok:true, k:'embrulhado'};
   if(c.k==='arroz') return {ok:false};
-  const NAO=/salada|carpaccio|ceviche|tártaro|gaspacho|salmorejo|tzatziki|guacamole|bruschetta|\btosta|torrada|sandes|sanduíche|sandwich|\bno pão|com pão|\btacos?\b|fattoush|fatteh|grelhad|na brasa|na grelha|no espeto|churrasqueira|tempura|frit[oa]s?\b|panad|milanesa|\bbifes?\b|costeleta|posta|omelete|sushi|poke|risot|crepe|panqueca|waffle|smoothie|batido|sumo|granizado|gelado|sorvete|mousse|pudim|cheesecake|semifrio|iogurte|papas de aveia|\bovos?\b|wellington|fumad|noodles|udon|ramen|\bpho\b|miso|tonnato|cozida em fatias|crudités|blanquette|stroganoff|fricass|sriracha|creme de limão|curd|pizza|camembert|açorda|cozido à portuguesa|quesadilla|escalope|salteado/i;
+  const NAO=/salada|carpaccio|ceviche|tártaro|gaspacho|salmorejo|tzatziki|guacamole|bruschetta|\btosta|torrada|sandes|sanduíche|sandwich|\bno pão|com pão|\btacos?\b|fattoush|fatteh|grelhad|na brasa|na grelha|no espeto|churrasqueira|tempura|frit[oa]s?\b|panad|milanesa|\bbifes?\b|costeleta|posta|omelete|sushi|poke|risot|crepe|panqueca|waffle|smoothie|batido|sumo|granizado|gelado|sorvete|mousse|pudim|cheesecake|semifrio|(?<!bolo de )iogurte|papas de aveia|\bovos?\b|wellington|fumad|noodles|udon|ramen|\bpho\b|miso|tonnato|cozida em fatias|crudités|blanquette|stroganoff|fricass|sriracha|creme de limão|curd|pizza|camembert|açorda|cozido à portuguesa|quesadilla|escalope|salteado/i;
   const CRU=/croquete|rissó|empada|pastéis de (massa|carne|bacalhau|chaves|feijão)|pastel de|chamuça|samosa|folhado|spanakopita|bola de carne|almôndegas|polpette|keftedes|kafta|kibbeh|hambúrguer|sfiha|coxinha|empanada|massa quebrada|massa folhada|massa tenra|massa de pão|massa sovada|pão de queijo/i;
   const COZ=/estufad|guisad|caldeirada|feijoada|chili|chilindr|caril|curry|korma|vindaloo|masala|makhani|tagine|ragù|ragu\b|bolonhesa|ossobuco|goulash|bourguignon|carbonade|chanfana|rancho|jardineira|dobrada|tripas|lasanha|canelon|empadão|moussaka|pastitsio|parmigiana|shepherd|cottage pie|parmentier|enchilada|pulled|carnitas|ropa vieja|cassoulet|fabada|dahl|\bdal\b|chana|gigantes|balila|coq au vin|mafé|moamba|muamba|cachupa|sarapatel|sarrabulho|stifado|ensopado|rojões|caçadora|cacciatora|provençal|bochechas|pezinhos|pica no chão|nikujaga|rolo de carne|bacalhau com natas|sopa|caldo verde|minestrone|vichyssoise|fasolada|\bsugo|marinara|molho de tomate|pesto|currywurst/i;
   const FORNO=/\bbolo|lêvedo|\bpão\b|pão de deus|broa de|muffin|scone|biscoit|bolachas|brioche|focaccia|medovik/i;
@@ -17888,8 +17942,8 @@ function blocoLote(r){
    A biblioteca guarda tudo por dose, que é o que deixa escalar para qualquer
    mesa — mas uma receita nasce para um número de pessoas, e é para esse que
    as quantidades batem certas: quatro ovos e não 3,6, uma cebola e não 0,8.
-   Só uma receita da biblioteca traz fonte com rendimento declarado, e essa
-   manda (ORIGEM_RECEITA). As da casa sabem as doses com que foram escritas.
+   Quando a receita traz rendimento declarado, ele manda (ORIGEM_RECEITA): a
+   fonte do ragù, e a forma dos bolos e da tarte que o dizem por ela. As da casa sabem as doses com que foram escritas.
    As restantes foram escritas para esta app, e a mesa original lê-se nas
    próprias quantidades: o menor número de pessoas em que o que se conta —
    ovos, dentes de alho, tortilhas, cebolas, limões — sai inteiro (meia cebola
@@ -17897,7 +17951,15 @@ function blocoLote(r){
    arredondamento ao grama de cada dose. Temperos, pitadas e o que pesa menos
    de 20 g não decidem. */
 const ORIGEM_RECEITA={
-  ragubolognese:{p:20, fonte:"Vincenzo's Plate, na versão a dobrar"}
+  ragubolognese:{p:20, fonte:"Vincenzo's Plate, na versão a dobrar"},
+  /* Os bolos e a tarte têm a mesa na forma, e não nas contas: três ovos
+     batem certo a partir de quatro pessoas, mas um bolo de forma de
+     chaminé corta-se em dez fatias. */
+  boloiogurte:{p:10, fonte:'forma de chaminé de 22 cm', porque:'É um bolo de três ovos, e corta-se em dez fatias.'},
+  boloiogurtemirtilo:{p:10, fonte:'forma de chaminé de 22 cm', porque:'É um bolo de três ovos, e corta-se em dez fatias.'},
+  bolocenoura:{p:10, fonte:'forma redonda de 22 cm', porque:'É um bolo de quatro ovos, e corta-se em dez fatias.'},
+  bolocenourachoc:{p:12, fonte:'forma de 20 × 30 cm', porque:'É um bolo de três ovos, e corta-se em doze quadrados.'},
+  tarteabobora:{p:8, fonte:'tarte de 24 cm', porque:'Leva 400 g de abóbora, 400 g de batata-doce e dois ovos, e corta-se em oito fatias.'}
 };
 function pontuaMesa(r,N){
   let ok=0, tot=0;
@@ -17970,9 +18032,11 @@ function blocoMesaOriginal(r,f){
     .slice(0,4).map(l=>contagemDita(l[0],l[1]*o.p,l[2]));
   const quem= o.tipo==='fonte'? 'Receita original ('+esc(o.fonte)+')'
     : o.tipo==='casa'? 'Receita da casa' : 'Receita original';
-  const para= plural(o.p,'pessoa','pessoas')+(o.composto? ' (o prato principal)' : '');
+  /* só há «prato principal» a apontar quando há alguma coisa ao lado; uma tarte
+     com a base é uma tarte, e a base escala com ela */
+  const para= plural(o.p,'pessoa','pessoas')+(o.composto && (r.acIds||[]).length? ' (o prato principal)' : '');
   const porque= o.tipo==='casa'? 'É para quantas doses foi escrita.'
-    : o.tipo==='fonte'? 'É com esta mesa que as quantidades batem com as da fonte.'
+    : o.tipo==='fonte'? (o.porque? esc(o.porque) : 'É com esta mesa que as quantidades batem com as da fonte.')
     : o.p===1? 'Foi escrita dose a dose, e as quantidades já batem certas para uma.'
     : 'É com esta mesa que as quantidades batem certas'+(o.exato? '' : ', ou quase')
       +(contados.length? ': '+esc(contados.join(', '))+'.' : '.');
@@ -19811,7 +19875,7 @@ function fichaHtml(f){
             ${r.u? '<p class="rotulo-assina">Receita da casa</p>':''}
             ${ehCombo(r)? `<p class="rotulo-assina">${(r.acIds||[]).length
               ? (r.moId? 'Prato com acompanhamento e '+palavraMolho(pratoBaseDe(r)) : 'Prato com acompanhamento')
-              : 'Prato com '+palavraMolho(pratoBaseDe(r))}</p>`:''}
+              : r.moId? 'Prato com '+palavraMolho(pratoBaseDe(r)) : 'Prato com massa de base'}</p>`:''}
             <span class="rotulo-filete" aria-hidden="true"></span>
           </div>
           <div style="margin-top:6px"><span class="tag">${ICO_COZ[r.coz]||''} ${cozinhasDe(r).map(k=>CUIS[k]).join(' · ')}</span>${
@@ -19829,6 +19893,10 @@ function fichaHtml(f){
         const mo=r.moId? RECIPES.find(x=>x.id===r.moId) : null;
         const partes=acs.map(a=>elo(a.id,a.n));
         if(mo) partes.push(elo(mo.id,mo.n)+' <span class="sub">('+palavraMolho(pratoBaseDe(r))+')</span>');
+        /* E a massa, que é uma parte como as outras: uma quiche só com a massa
+           saía «Feito de Quiche com .», e chamava-se «prato com molho». */
+        const ma=r.maId? RECIPES.find(x=>x.id===r.maId) : null;
+        if(ma) partes.push(elo(ma.id,ma.n)+' <span class="sub">(a base)</span>');
         const lista=partes.length>1? partes.slice(0,-1).join(', ')+' e '+partes[partes.length-1] : partes[0]||'';
         return `<p class="sub" style="margin-top:8px">Feito de
           ${elo(r.base,(RECIPES.find(x=>x.id===r.base)||{}).n||'')} com ${lista}.
@@ -22684,7 +22752,7 @@ const VARIANTES=[
   /* Bolos de fatia. O pão de ló e o bolo-rei entram na família com todo o
      direito — quem pergunta «que bolo se faz hoje?» está a escolher entre
      eles —, e mantêm o nome próprio no cartão que abre. */
-  {k:'bolo',     n:'Bolo',         ids:['bolochoc','bololaranja','boloamendoa','bolonoz','bolocenoura','bolobolacha','paodelo','bolorei','ketobolochoc']},
+  {k:'bolo',     n:'Bolo',         ids:['bolochoc','bololaranja','boloamendoa','bolonoz','bolocenoura','bolocenourachoc','boloiogurte','boloiogurtemirtilo','bolobolacha','paodelo','bolorei','ketobolochoc']},
   /* Os dois cheesecakes são famílias separadas, como o gelado e o sorvete: o
      de Nova Iorque é denso e cozido sobre bolacha, o japonês é soufflé em
      banho-maria. Dentro de cada uma, o que muda é o coulis. */
@@ -22700,6 +22768,8 @@ const VARIANTES=[
      gema, menos ar e servido a −11 °C. Nove sabores num cartão, ao lado dos
      gelados de creme inglês. */
   {k:'gelato',   n:'Gelato',       ids:['gelatonata','gelatoazeite','gelatobalsamico','gelatomorango','gelatomanga','gelatopistacio','gelatoavela','gelatocaramelo','gelatococo']},
+  /* A mesma tarte, em massa quebrada ou na base de bolacha dos cheesecakes. */
+  {k:'tarteabobora', n:'Tarte de abóbora e batata-doce', ids:['c:tarteabobora+^maquebrada','c:tarteabobora+^mabolacha','tarteabobora']},
   {k:'financier',n:'Financier',    ids:['financier','ketofinancier']},
   /* O basco não é uma variante do de Nova Iorque: não tem base, coze a
      220 °C e quer o topo queimado. Cartão próprio, com a versão keto. */
@@ -28640,6 +28710,8 @@ const COMBOS_BASE=[
   {base:'cheesecakeny', ac:[], mo:'', ma:'mabolacha'},
   {base:'ketoquiche', ac:[], mo:'', ma:'ketomassapastel'},
   {base:'tartelimaomerengada', ac:[], mo:'', ma:'matarte'},
+  {base:'tarteabobora', ac:[], mo:'', ma:'maquebrada'},
+  {base:'tarteabobora', ac:[], mo:'', ma:'mabolacha'},
   /* Os rojões à moda do Minho e o arroz de sarrabulho: em Ponte de Lima
      são um almoço só, e os passos das duas receitas já o diziam sem que
      a app tivesse como o representar. Agora tem. */
