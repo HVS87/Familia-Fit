@@ -573,6 +573,7 @@ Em **Definições → Sincronizar com outro aparelho**, um aparelho cria um cód
 - **O que é de cada aparelho não se sincroniza:** o separador aberto, o tema, a paleta, o estilo e a densidade.
 - **Uma ligação de emparelhamento nunca emparelha sozinha:** a app pergunta antes, e diz que isso partilha todos os dados com o aparelho que criou o código.
 - Funciona melhor com os dois na mesma rede Wi-Fi; entre redes diferentes depende do tipo de ligação de cada uma.
+- **No Android**, a app lê o código QR com a câmara sem sair dela («Ler o código com a câmara»); a câmara do sistema também serve, porque o Chrome partilha os dados com a app instalada. **No iPhone e no iPad**, a app do ecrã principal guarda os dados à parte do Safari: a câmara do sistema abre o código no Safari, por isso na app escreve-se o código — e a app di-lo, nos dois sítios. Ao voltar à app depois de estar em segundo plano, ou quando a rede volta, a ligação refaz-se logo.
 - **Limites que convém saber:** sincroniza **dois** aparelhos (um telemóvel e um computador, por exemplo), e só quando os dois têm a app aberta ao mesmo tempo — não há nenhum servidor a guardar as alterações entretanto. Se os dois mudaram coisas enquanto estavam desligados, a junção não perde nada mas também não sabe o que foi apagado: uma coisa apagada num aparelho nesse intervalo pode voltar. Com os dois ligados, apagar propaga-se normalmente.
 
 ## Publicar no GitHub Pages

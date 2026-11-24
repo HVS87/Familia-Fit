@@ -3,7 +3,7 @@
   "name": "Família Fit — Alimentação & Movimento",
   "short_name": "Família Fit",
   "description": "Gestão de alimentação e atividade física para toda a família: perfis, calorias, macros, receitas, plano semanal e lista de compras.",
-  "lang": "pt",
+  "lang": "pt-PT",
   "dir": "ltr",
   "start_url": "./",
   "scope": "./",
@@ -11,26 +11,105 @@
   "orientation": "any",
   "background_color": "#F6F5F1",
   "theme_color": "#2456A6",
-  "categories": ["health", "food", "lifestyle"],
+  "categories": [
+    "health",
+    "food",
+    "lifestyle"
+  ],
   "shortcuts": [
-    { "name": "Registar refeição", "short_name": "Refeição", "url": "./?ir=refeicao",
+    {
+      "name": "Registar refeição",
+      "short_name": "Refeição",
+      "url": "./?ir=refeicao",
       "description": "Registar o que se comeu, sem passar pela capa",
-      "icons": [{ "src": "icon-180.png", "sizes": "180x180", "type": "image/png" }] },
-    { "name": "Registar treino", "short_name": "Treino", "url": "./?ir=treino",
+      "icons": [
+        {
+          "src": "icon-180.png",
+          "sizes": "180x180",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Registar treino",
+      "short_name": "Treino",
+      "url": "./?ir=treino",
       "description": "Registar a atividade física que se fez",
-      "icons": [{ "src": "icon-180.png", "sizes": "180x180", "type": "image/png" }] },
-    { "name": "Lista de compras", "short_name": "Compras", "url": "./?ir=compras",
+      "icons": [
+        {
+          "src": "icon-180.png",
+          "sizes": "180x180",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Lista de compras",
+      "short_name": "Compras",
+      "url": "./?ir=compras",
       "description": "Abrir a lista da semana no modo supermercado",
-      "icons": [{ "src": "icon-180.png", "sizes": "180x180", "type": "image/png" }] },
-    { "name": "Registar pesagem", "short_name": "Pesagem", "url": "./?ir=pesagem",
+      "icons": [
+        {
+          "src": "icon-180.png",
+          "sizes": "180x180",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Registar pesagem",
+      "short_name": "Pesagem",
+      "url": "./?ir=pesagem",
       "description": "Anotar o peso de hoje",
-      "icons": [{ "src": "icon-180.png", "sizes": "180x180", "type": "image/png" }] }
+      "icons": [
+        {
+          "src": "icon-180.png",
+          "sizes": "180x180",
+          "type": "image/png"
+        }
+      ]
+    }
   ],
   "icons": [
-    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
-    { "src": "icon-180.png", "sizes": "180x180", "type": "image/png", "purpose": "any" },
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
-  ]
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
+  "launch_handler": {
+    "client_mode": [
+      "navigate-existing",
+      "auto"
+    ]
+  }
 }
