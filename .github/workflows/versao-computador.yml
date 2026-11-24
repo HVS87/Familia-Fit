@@ -40,6 +40,16 @@ jobs:
       # Arranca o programa empacotado e corre o autoteste lá dentro: a app
       # carrega, a cifra funciona, o segundo ecrã abre e acompanha, e fecha
       # pelo X. Se falhar num sistema, esse sistema não chega à release.
+      # No macOS, um programa com a assinatura estragada é morto à nascença e
+      # quem o descarrega vê «está danificado». Verifica-se aqui, e o resultado
+      # fica nas anotações da execução.
+      - name: Verificar a assinatura (macOS)
+        if: runner.os == 'macOS'
+        continue-on-error: true
+        run: |
+          APP="$(ls -d dist/mac*/*.app | head -1)"
+          if codesign --verify --deep --strict --verbose=2 "$APP"; then echo "::notice title=Assinatura macOS::válida (ad hoc)"; else echo "::error title=Assinatura macOS::codesign recusa a assinatura"; fi
+          codesign -dv "$APP" 2>&1 | grep -E "Signature|flags" | sed 's/^/::notice title=Assinatura macOS::/'
       - name: Autoteste do programa empacotado
         run: node scripts/autoteste-ci.js
       - uses: actions/upload-artifact@v4

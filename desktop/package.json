@@ -80,7 +80,9 @@
       "category": "public.app-category.healthcare-fitness",
       "icon": "build/icon.png",
       "artifactName": "familia-fit-${version}-mac.${ext}",
-      "identity": "-"
+      "identity": "-",
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false
     },
     "dmg": {
       "title": "Família Fit"

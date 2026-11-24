@@ -16,6 +16,8 @@ else if(process.platform==='darwin'){
 } else { exe='xvfb-run'; args=['-a', path.join(dist,'linux-unpacked','familia-fit'), '--no-sandbox', '--disable-gpu']; }
 console.log('a correr', exe, args.join(' '));
 const p=spawn(exe,args,{env:Object.assign({},process.env,{FFIT_AUTOTESTE:out}), stdio:'inherit'});
+/* se o programa morrer à nascença (no macOS, por exemplo, quando a assinatura não serve), diz-se logo como morreu */
+p.on('exit',(code,sig)=>{ if(fs.existsSync(out)) return; const m='o programa terminou sem resultado (código '+code+', sinal '+sig+')'; console.error(m); if(process.env.GITHUB_ACTIONS) console.log('::error title=Autoteste ('+process.platform+')::'+m); process.exit(1); });
 p.on('error',e=>{ console.error('não arrancou:',e.message); if(process.env.GITHUB_ACTIONS) console.log('::error title=Autoteste ('+process.platform+')::não arrancou: '+e.message); process.exit(1); });
 const t0=Date.now();
 const vigia=setInterval(()=>{
