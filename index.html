@@ -548,16 +548,6 @@ html[data-dispositivo="telefone"][data-orient="retrato"] .fab{bottom:calc(84px +
 .fio-linha.alerta .fio-ico{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 16%,var(--card))}
 .memoria{border-top:1px dashed var(--line);padding-top:10px;font-style:italic}
 
-/* ===== O BALCÃO RÁPIDO =====
-   Uma linha só, à altura do polegar, que aceita «Ana 62,4» ou «jantar feito».
-   O eco por baixo mostra o que entendeu antes de gravar seja o que for — a
-   linha reserva a altura à partida para o cartão não saltar a cada tecla. */
-.balcao{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
-  padding:12px 14px;display:flex;flex-direction:column;gap:6px}
-.balcao input{width:100%}
-.balcao .sub{margin:0}
-#balcao-eco.ok{color:var(--ok);font-weight:600}
-#balcao-eco.nada{color:var(--mut)}
 
 /* ===== O AVISO DE RESPONSABILIDADE =====
    Visível sem ser um alarme. Um aviso vermelho e gritado num sítio onde
@@ -1503,6 +1493,16 @@ input[type=range].com-detentes::-moz-range-track{
 .traj-tab tr.traj-eu td{background:var(--accent-soft);font-weight:600}
 .dt-ok{background:var(--ok)} .dt-warn{background:var(--warn)}
 .dt-line{background:var(--line)} .dt-party{background:var(--party)} .dt-livre{background:var(--livre)}
+/* ---- A forma diz o mesmo que a cor ----
+   Verde, amarelo e vermelho são as três cores que uma pessoa com daltonismo
+   vermelho-verde mais confunde. Cada estado ganha também uma forma: certo é
+   um círculo cheio, perto é um losango, longe é um triângulo, por planear é
+   um anel vazio. O dia com o estado «longe do alvo» não tinha cor nenhuma
+   — a classe não existia — e o ponto aparecia em branco. */
+.dot.dt-bad{background:var(--bad);border-radius:0;clip-path:polygon(50% 0,100% 100%,0 100%);width:11px;height:10px}
+.dot.dt-warn{border-radius:2px;transform:rotate(45deg) scale(.88)}
+.dot.dt-line{background:transparent;box-shadow:inset 0 0 0 1.6px var(--mut)}
+.dot.dt-livre{box-shadow:0 0 0 1.5px var(--card),0 0 0 3px var(--livre)}
 .day{scroll-margin-top:calc(var(--hh,58px) + 68px)}
 /* A linha inteira é o alvo do toque, e não apenas a caixinha de 13 px: com
    min-height fica nos 24 px que a WCAG 2.5.8 pede, e mais folgada ainda num
@@ -1620,13 +1620,15 @@ input[type=range].com-detentes::-moz-range-track{
    DOM, continua a ser encontrado pela procura da página e pelos leitores,
    e passa a custar zero enquanto ninguém rolar até ele. Medido: 371 → 102 ms.
    `contain-intrinsic-size` é a altura que o browser assume ANTES de desenhar
-   o cartão pela primeira vez; a mediana medida é 1455 px, e com o `auto` cada
+   o cartão pela primeira vez; a mediana medida é 440 px (era 1455 quando o
+   cartão trazia a lista de ingredientes inteira, e a barra de deslocação
+   chegava a prometer o triplo da página), e com o `auto` cada
    cartão passa a lembrar-se da sua altura real depois da primeira vez. Sem
    uma estimativa próxima, a barra de deslocamento saltaria à medida que se
    rola — foi a mesma preocupação que pôs esta propriedade na lista de
    compras. */
 .rc{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--card);display:flex;flex-direction:column;gap:6px;
-  content-visibility:auto;contain-intrinsic-size:auto 1455px}
+  content-visibility:auto;contain-intrinsic-size:auto 440px}
 .rc h3{font-size:15.5px}
 .tag{display:inline-block;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:1px 7px;font-size:11.5px;color:var(--mut);margin:1px 2px 1px 0}
 /* ---- Um selo que se explica ----
@@ -2191,6 +2193,134 @@ html[data-orient="retrato"][data-dispositivo="telefone"] .g2,
 html[data-orient="retrato"][data-dispositivo="telefone"] .g3,
 html[data-orient="retrato"][data-dispositivo="telefone"] .gdias{grid-template-columns:minmax(0,1fr)}
 
+/* ===== Topo das Refeições, menu «⋯» e resumo da semana ===== */
+.pl-topo{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.pl-nav,.pl-acoes{display:flex;align-items:center;gap:6px}
+.pl-titulo{margin:0 0 0 6px;font-size:19px}
+.btn.icone{min-width:36px;font-size:18px;line-height:1}
+.menu-pop{position:relative}
+.menu-pop>summary{list-style:none;cursor:pointer;min-width:40px;min-height:36px;display:inline-flex;align-items:center;
+  justify-content:center;border:1px solid var(--line);border-radius:999px;color:var(--ink);font-weight:700}
+.menu-pop>summary::-webkit-details-marker{display:none}
+.menu-pop>summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.menu-pop-corpo{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:min(240px,calc(100vw - 24px));max-width:calc(100vw - 16px);display:grid;gap:4px;
+  background:var(--elev);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:10px}
+.menu-item{background:none;border:none;text-align:left;cursor:pointer;color:var(--ink);font-weight:600;
+  min-height:44px;padding:8px 10px;border-radius:var(--r-sm)}
+.menu-item:hover,.menu-item:focus-visible{background:var(--bg)}
+.menu-item.perigo{color:var(--bad)}
+.resumo-semana{margin-top:20px}
+/* ===== Estilo suave =====
+   Superfícies tingidas em vez de contornos, cantos mais redondos, e a letra
+   do sistema em todo o lado — títulos incluídos. É o estilo por omissão; o
+   caderno de família (serifa e contornos) fica nas Definições. A distinção
+   entre ligado e desligado nunca depende só da cor: um botão ligado leva
+   sempre contorno de acento, e os desligados não levam nenhum. */
+html[data-estilo="suave"]{--fonte-display:var(--fonte-ui)}
+html[data-estilo="suave"] h1,html[data-estilo="suave"] h2,html[data-estilo="suave"] h3{letter-spacing:0}
+html[data-estilo="suave"] .brand h1{font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif}
+html[data-estilo="suave"] header{border-bottom-color:transparent}
+html[data-estilo="suave"] .aura{display:none}
+html[data-estilo="suave"] .card,html[data-estilo="suave"] .rc{border-color:transparent;border-radius:18px;box-shadow:none;
+  background:color-mix(in srgb,var(--accent) 4%,var(--card))}
+html[data-estilo="suave"] .card--capa{background:color-mix(in srgb,var(--accent) 9%,var(--card));border-color:transparent;box-shadow:none}
+html[data-estilo="suave"] .card--capa::before{display:none}
+html[data-estilo="suave"] .chip:not(.on){border-color:transparent;background:color-mix(in srgb,var(--ink) 7%,var(--bg))}
+html[data-estilo="suave"] .chip.on{border-color:var(--accent);border-width:1.5px}
+html[data-estilo="suave"] .meal{border-radius:14px}
+html[data-estilo="suave"] .day{border-color:transparent;border-radius:18px}
+html[data-estilo="suave"] .filtros-mais,html[data-estilo="suave"] .subnav{border-color:transparent;background:color-mix(in srgb,var(--ink) 6%,var(--card))}
+.obj-form[data-passo="0"] .obj-passo:not([data-p="0"]),
+.obj-form[data-passo="1"] .obj-passo:not([data-p="1"]),
+.obj-form[data-passo="2"] .obj-passo:not([data-p="2"]){display:none}
+.obj-passos{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 6px}
+.obj-passos button{background:none;border:1px solid var(--line);border-radius:999px;cursor:pointer;color:var(--mut);
+  font-weight:600;font-size:13px;min-height:36px;padding:4px 12px}
+.obj-passos li.feito button{color:var(--ink)}
+.obj-passos li.on button{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.arr-pessoa{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1.3fr) minmax(0,1fr) minmax(0,1fr) auto;gap:6px;margin:8px 0;align-items:center}
+@media (max-width:620px){ .arr-pessoa{grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  .arr-pessoa input[type=text]{grid-column:1 / -1} }
+.arr-bloco{padding:10px 0;border-top:1px solid var(--line)}
+.arr-passos{display:flex;gap:6px;margin:6px 0 10px}
+.arr-passos i{flex:1;height:4px;border-radius:2px;background:var(--line)}
+.arr-passos i.on{background:var(--accent)}
+.cal-filtro{background:none;border:1px solid var(--line);border-radius:999px;color:var(--ink);cursor:pointer;
+  font-size:13px;padding:4px 10px;min-height:32px;display:inline-flex;align-items:center;gap:6px}
+.cal-filtro:not(.on){color:var(--mut);border-style:dashed}
+.cal-filtro:not(.on) .dot{background:transparent !important;box-shadow:inset 0 0 0 1.5px var(--mut)}
+.ajuda-item{border-top:1px solid var(--line);padding:8px 2px}
+.ajuda-item>summary{cursor:pointer;font-weight:600;color:var(--ink)}
+.ajuda-item .sub{margin-top:6px}
+/* ===== Vistas de um destino: uma fila de botões segmentada ===== */
+.subnav{display:inline-flex;flex-wrap:wrap;gap:2px;padding:3px;border:1px solid var(--line);border-radius:999px;
+  background:var(--card);margin:0 0 16px}
+.subnav button{background:none;border:none;cursor:pointer;color:var(--mut);font-weight:600;font-size:14px;
+  min-height:38px;padding:6px 16px;border-radius:999px}
+.subnav button:hover{color:var(--ink)}
+.subnav button.on{background:var(--accent);color:var(--on-accent)}
+.hoje-topo{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+.hoje-topo h2{margin:0}
+/* ===== Cabeçalho: procurar, ajuda, definições ===== */
+.hbtn{background:none;border:1px solid var(--line);border-radius:999px;color:var(--ink);cursor:pointer;
+  min-width:40px;min-height:40px;display:inline-flex;align-items:center;justify-content:center;font-weight:700}
+.hbtn:hover{border-color:var(--accent);color:var(--accent)}
+.hbtn .ico{width:20px;height:20px}
+.pesq-rot{display:none}
+@media (min-width:1000px){
+  html:not([data-dispositivo="telefone"]) #btn-pesq{min-width:240px;justify-content:flex-start;gap:10px;
+    border-radius:999px;padding:6px 16px;display:inline-flex;align-items:center}
+  html:not([data-dispositivo="telefone"]) .pesq-rot{display:inline;font-size:14px}
+}
+html[data-dispositivo="telefone"][data-orient="retrato"] #btn-ajuda,
+html[data-dispositivo="telefone"][data-orient="retrato"] #dica-desfazer{display:none}
+/* ===== Barra lateral nos ecrãs largos =====
+   Com cinco destinos, a barra deixa de caber mal no topo e passa a coluna à
+   esquerda nos ecrãs de computador: o ícone com o nome por baixo, e o
+   destino atual com o ícone numa pílula de acento. */
+@media (min-width:1000px){
+  html:not([data-dispositivo="telefone"]) #nav{position:fixed;left:0;top:var(--hh,64px);bottom:0;width:92px;margin:0;
+    flex-direction:column;flex-wrap:nowrap;align-items:center;gap:8px;padding:14px 0;background:var(--card);
+    border-right:1px solid var(--line);z-index:9;overflow-y:auto}
+  html:not([data-dispositivo="telefone"]) #nav button{flex-direction:column;gap:4px;width:84px;padding:4px 2px;
+    font-size:12px;background:none;color:var(--mut);border-radius:14px}
+  html:not([data-dispositivo="telefone"]) #nav button .ico{box-sizing:content-box;width:22px;height:22px;padding:5px 18px;border-radius:999px}
+  html:not([data-dispositivo="telefone"]) #nav button:hover .ico{background:var(--bg)}
+  html:not([data-dispositivo="telefone"]) #nav button.on{background:none;color:var(--ink)}
+  html:not([data-dispositivo="telefone"]) #nav button.on .ico{background:var(--accent);color:var(--on-accent)}
+  html:not([data-dispositivo="telefone"]) #nav .cracha{top:0;right:12px}
+  html:not([data-dispositivo="telefone"]) body{padding-left:92px}
+  html:not([data-dispositivo="telefone"]) .hist{margin-left:auto}
+}
+.para-tratar{margin-bottom:16px;border-color:var(--warn)}
+.para-tratar h2{display:flex;align-items:center;gap:8px}
+.pt-linha{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.pt-linha:first-of-type{border-top:none}
+.pt-ico{width:24px;text-align:center;flex:none}
+.pt-txt{flex:1;min-width:0}
+#despensa-lista.so-casa:not(.procura) li:not(.done){display:none}
+#despensa-lista.so-casa:not(.procura) details.cat-sec.vazia-casa{display:none}
+.criar-obj>summary{list-style:none;display:inline-flex;margin:16px 0 12px}
+.criar-obj>summary::-webkit-details-marker{display:none}
+.intencoes{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.filtros-mais{margin-bottom:14px;border:1px solid var(--line);border-radius:var(--r);padding:0 12px;background:var(--card)}
+.filtros-mais>summary{cursor:pointer;font-weight:700;padding:10px 0;color:var(--ink)}
+.filtros-mais[open]>summary{margin-bottom:6px}
+.ficha-mais{margin-top:18px;border-top:1px solid var(--line);padding-top:6px}
+.ficha-mais>summary{cursor:pointer;font-weight:700;padding:10px 0;color:var(--ink)}
+.meal-acoes{margin-top:8px;gap:6px}
+.meal-resumo{margin-top:6px}
+.meal-resumo .convite{border-bottom:1px dashed currentColor}
+.meal-opcoes{margin-top:8px;padding:10px;border-radius:var(--r-sm);background:var(--bg);border:1px solid var(--line)}
+.sug-rapidas{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.sug-rapidas .chip{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-style:dashed}
+.dia-marcas-btn{margin-left:4px;background:none;border:1px solid var(--line);border-radius:999px;color:var(--ink);
+  min-width:34px;min-height:30px;cursor:pointer;font-weight:700;line-height:1}
+.dia-marcas-btn[aria-expanded="true"]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.dia-marcas-resumo{display:block;width:100%;text-align:left;background:var(--bg);border:1px solid var(--line);border-radius:var(--r-sm);
+  color:var(--ink);font-size:13px;padding:6px 10px;margin:4px 0 6px;cursor:pointer}
+.resumo-semana>summary{cursor:pointer;font-weight:700;padding:12px 4px;font-size:16px;color:var(--ink)}
+.resumo-semana[open]>summary{margin-bottom:10px}
 /* Tablet de pé: duas colunas largas e mais respiro nas margens. */
 html[data-orient="retrato"][data-dispositivo="tablet"] main{padding-left:24px;padding-right:24px}
 html[data-orient="retrato"][data-dispositivo="tablet"] .g3,
@@ -2211,12 +2341,14 @@ html[data-orient="paisagem"][data-dispositivo="tablet"] .gdias{grid-template-col
     </div>
     <nav id="nav" aria-label="Separadores"></nav>
     <div class="hist">
-      <button id="btn-pesq" onclick="abrirPesquisa()" aria-label="Procurar em toda a app (tecla /)" title="Procurar — tecla /">⌕</button>
+      <button id="btn-pesq" onclick="abrirPesquisa()" aria-label="Procurar ou registar (tecla /)" title="Procurar ou registar — tecla /"><span aria-hidden="true">⌕</span><span class="pesq-rot">Procurar ou registar</span></button>
       <button id="btn-undo" onclick="desfazer()" aria-label="Desfazer" disabled>↶</button>
       <button id="btn-redo" onclick="refazer()" aria-label="Refazer" disabled>↷</button>
       <button type="button" class="dica" id="dica-desfazer" aria-label="Explicação">i</button>
     </div>
     <button class="savest" id="savest" onclick="go('dados')" title="Ver dados e cópias de segurança"></button>
+    <button class="hbtn" id="btn-ajuda" onclick="abrirAjuda()" aria-label="Ajuda: todas as explicações" title="Ajuda">?</button>
+    <button class="hbtn" id="btn-defs" onclick="go('dados')" aria-label="Definições" title="Definições"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7"/></svg></button>
   </div>
 </header>
 <main id="main"></main>
@@ -3425,7 +3557,7 @@ function limparPausas(a,ids){
   }).filter(Boolean).slice(0,200);
 }
 function limparCozPref(c){
-  const d={repetir:false, dobro:false, sazonal:false, prep:true, cartaoEpoca:true};
+  const d={repetir:false, dobro:false, sazonal:false, prep:true, cartaoEpoca:true, assumir:false};
   if(!c||typeof c!=='object') return d;
   Object.keys(d).forEach(k=>{ if(typeof c[k]==='boolean') d[k]=c[k]; });
   return d;
@@ -3682,7 +3814,10 @@ let _regRefIdx=null;
    mais seguro esquecer de mais do que servir uma conta velha — e ter as duas
    memórias na mesma função é o que evita que a próxima nasça sem quem a
    invalide. */
-function esquecePendencias(){ _pendCache=null; _regRefIdx=null; }
+/* As sugestões rápidas das refeições vazias também se esquecem aqui: uma
+   alergia marcada no perfil tem de as mudar já, e não no próximo desenho das
+   Refeições — a memória delas guardava a lista de antes da alergia. */
+function esquecePendencias(){ _pendCache=null; _regRefIdx=null; _sugRap={}; }
 /* Contador dos ids das bolhas de explicação. Zera a cada desenho — os ids só
    precisam de ser únicos dentro da página que existe naquele momento. */
 let _nDica=0;
@@ -13527,14 +13662,14 @@ function blank(){ return {members:[],cheats:{},recuperacao:{},plans:{},bought:{}
   jejum:{im:{}, pontuais:[], renutricao:{}, renutRecusada:{}},
   /* preferências de cozinha da casa: repetir pratos na semana, cozinhar em
      dobro, seguir a época e preparar de véspera — o que muda como se sugere */
-  cozPref:{repetir:false, dobro:false, sazonal:false, prep:true, cartaoEpoca:true},
+  cozPref:{repetir:false, dobro:false, sazonal:false, prep:true, cartaoEpoca:true, assumir:false},
   /* Qual das equacoes de metabolismo basal a casa usa. Vive aqui e nao em
      S.ui porque muda NUMEROS, nao aparencia: entra no desfazer e na copia. */
   metodoBMR:'henry',
-  ui:{tab:'familia',mid:null,cuis:'todas',soComp:false,mealF:'todas',dietaF:[],busca:'',editor:null,
+  ui:{tab:'hoje',mid:null,cuis:'todas',soComp:false,mealF:'todas',dietaF:[],busca:'',editor:null,
       objForm:{membros:[],tipo:'perder',delta:5,semanas:12,split:50,desportos:[],dieta:'',sessoes:3,agendar:true,nivel:'moderado',jejum:false,jejumH:16,jejumIni:12,jejumDias:0,banda:2,blocos:[]},
       objExpandido:null, objAdj:null, celebrando:null, tourPasso:null, tourVisto:false,
-      tema:'auto', paleta:'azulejo', colapsados:{}, alergF:[], alergDesp:'', tourFundo:false,
+      tema:'claro', paleta:'azulejo', colapsados:{}, alergF:[], alergDesp:'', tourFundo:false,
       recLimite:48, recQ:'',
       sug:{membros:null,ref:'a',teto:true,cuis:'todas',verFora:false}, porcoes:null,
       histAtiv:null, histRef:null, janelaPeso:'mes', linhasPeso:{ativ:false,kcal:false},
@@ -16799,15 +16934,43 @@ function dica(k,extra){ let t=DICAS[k]; if(typeof t==='function') t=t();
 /* A ordem da barra é a ordem do dia: quem é a casa, o que está marcado, para
    onde vai, o que fez, o que come, o que cozinha, onde procura a receita, o
    que tem em casa — e as definições no fim, onde se vai uma vez. */
-const TABS=[['familia','Família'],['calendario','Calendário'],['objetivos','Objetivos'],
-  ['atividade','Atividade Física'],['nutricao','Nutrição'],['plano','Refeições'],
-  ['receitas','Receitas'],['mercearia','Despensa'],['dados','Definições']];
+/* A ordem é a dos cinco destinos da barra, e dentro de cada um a das vistas:
+   é ela que dá a direção ao virar de folha. */
+const TABS=[['hoje','Hoje'],['plano','Refeições'],['calendario','Calendário'],
+  ['receitas','Receitas'],['mercearia','Despensa'],
+  ['familia','Perfis'],['objetivos','Objetivos'],['nutricao','Nutrição'],['atividade','Atividade Física'],
+  ['dados','Definições']];
+/* ---- Cinco destinos ----
+   Nove separadores arrumados por tipo de dado obrigavam a saber onde cada
+   coisa vivia, e no telemóvel cinco ficavam atrás de «Mais». Passam a cinco
+   destinos, arrumados pelo que se vem fazer: o dia, a semana, as receitas, o
+   que há em casa e as pessoas. Os separadores antigos continuam todos — são
+   as vistas de cada destino, numa fila de botões no topo. As Definições vão
+   para o canto do cabeçalho. */
+const DESTINOS=[['hoje','Hoje',['hoje']],['semana','Semana',['plano','calendario']],
+  ['receitas','Receitas',['receitas']],['despensa','Despensa',['mercearia']],
+  ['familia','Família',['familia','objetivos','nutricao','atividade']]];
+const SUBROT={plano:'Refeições',calendario:'Calendário',familia:'Perfis',objetivos:'Objetivos',nutricao:'Nutrição',atividade:'Atividade'};
+function destinoDe(t){ const d=DESTINOS.find(x=>x[2].indexOf(t)>=0); return d? d[0] : null; }
+/* Voltar a um destino volta à vista onde se estava nele: quem trabalha no
+   Calendário e salta às Receitas não quer regressar às Refeições. */
+function irDestino(k){
+  const d=DESTINOS.find(x=>x[0]===k); if(!d) return;
+  const ult=(S.ui.ultSub||{})[k];
+  go(ult && d[2].indexOf(ult)>=0? ult : d[2][0]);
+}
+function subNav(){
+  const d=DESTINOS.find(x=>x[2].indexOf(S.ui.tab)>=0);
+  if(!d || d[2].length<2 || !S.members.length) return '';
+  return `<div class="subnav" role="tablist" aria-label="${d[1]}">${d[2].map(t=>
+    `<button role="tab" aria-selected="${S.ui.tab===t}" class="${S.ui.tab===t?'on':''}" onclick="go('${t}')">${SUBROT[t]}</button>`).join('')}</div>`;
+}
 /* «Em casa» primeiro: a pergunta que se faz mais vezes é o que há, não o que
    falta — e é de lá que a lista de compras nasce. */
 const VISTAS_MERCEARIA=[['despensa','Em casa'],['compras','Para comprar']];
 function vistaMercearia(){ return S.ui.mercVista==='compras'? 'compras':'despensa'; }
 function setVistaMercearia(v){ S.ui.mercVista= v==='compras'?'compras':'despensa'; saveMeta(); render();
-  if(v==='despensa') talvezPerguntarCompras(); }
+}
 /* ===== NAVEGAÇÃO =====
    Ícones de linha desenhados no mesmo traço dos gráficos e dos estados vazios
    da app — 24×24, contorno 1.8, sem preenchimento. Herdam currentColor, por
@@ -16824,48 +16987,30 @@ const ICONES_NAV={
   calendario:'<rect x="4" y="5.2" width="16" height="14.6" rx="2.2"/><path d="M4 9.8h16"/><path d="M9 3.2v3.6"/><path d="M15 3.2v3.6"/><path d="M8 13.4h2.4v2.4H8z"/><path d="M13.6 13.4H16v2.4h-2.4z"/>',
   dados:'<path d="M4 7.2h16"/><path d="M4 12h16"/><path d="M4 16.8h16"/><circle cx="9.2" cy="7.2" r="1.9" fill="var(--card)"/><circle cx="15" cy="12" r="1.9" fill="var(--card)"/><circle cx="8" cy="16.8" r="1.9" fill="var(--card)"/>',
   mercearia:'<path d="M4.4 9.4h15.2l-1.5 8.6a2.1 2.1 0 0 1-2.1 1.8H8a2.1 2.1 0 0 1-2.1-1.8z"/><path d="M8.6 9.4 12 4.4l3.4 5"/><path d="M9.8 13h4.4"/>',
-  mais:'<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>'
+  mais:'<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>',
+  hoje:'<circle cx="12" cy="12" r="3.6"/><path d="M12 3.5v2.2M12 18.3v2.2M3.5 12h2.2M18.3 12h2.2M6 6l1.5 1.5M16.5 16.5 18 18M6 18l1.5-1.5M16.5 7.5 18 6"/>',
+  semana:'<rect x="4" y="5.2" width="16" height="14.6" rx="2.2"/><path d="M4 9.8h16"/><path d="M9 3.2v3.6"/><path d="M15 3.2v3.6"/><path d="M8 13.6h8"/><path d="M8 16.6h5"/>'
 };
 function icoNav(k){ return `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONES_NAV[k]||''}</svg>`; }
 /* No telemóvel ao alto, a navegação desce para junto do polegar: os quatro
    separadores do dia a dia numa barra fixa em baixo, e o resto numa folha
    «Mais». Em paisagem, tablet e desktop fica tudo como está — pills no topo. */
-/* Os quatro do polegar: quem cá vive, o que está marcado, o que se come e o
-   que há em casa. É o que se abre todos os dias; o resto fica em «Mais». */
-const NAV_PRINCIPAL=['familia','calendario','plano','mercearia'];
 function modoBarraInferior(){
   const r=document.documentElement;
   return r.getAttribute('data-dispositivo')==='telefone' && r.getAttribute('data-orient')==='retrato';
 }
-/* Na barra do polegar não cabem nomes compridos: «Atividade Física» encurta-se
-   e o nome inteiro fica no separador de cima. */
-function rotuloCurto(k){ const t=TABS.find(x=>x[0]===k);
-  return t? t[1].replace(' Física','') : k; }
 function pintaNav(){
   const nav=document.getElementById('nav'); if(!nav) return;
-  /* o crachá conta o que está por despachar naquele separador; o acento, que
-     nesta app significa sempre «agora», diz onde é preciso ir sem abrir nada */
-  const pend=pendentesPorSeparador();
-  /* aria-current="page" diz qual dos oito separadores está aberto. A classe
-     «on» mostra-o a quem vê; quem ouve percorria os oito sem saber onde
-     estava, porque estes botões não são chips e o varrimento que marca os
-     chips premidos nunca lhes tocava. */
-  const btn=k=>`<button class="${S.ui.tab===k?'on':''}"${S.ui.tab===k?' aria-current="page"':''} onclick="go('${k}')">${icoNav(k)}<span>${rotuloCurto(k)}</span>${
-    pend[k]? `<span class="cracha" aria-label="${pend[k]} por despachar">${pend[k]>99?'99+':pend[k]}</span>`:''}</button>`;
-  let folha=document.getElementById('nav-mais');
-  if(modoBarraInferior()){
-    const resto=TABS.map(t=>t[0]).filter(k=>NAV_PRINCIPAL.indexOf(k)<0);
-    nav.innerHTML=NAV_PRINCIPAL.map(btn).join('')
-      +`<button id="nav-btn-mais" class="${resto.indexOf(S.ui.tab)>=0?'on':''}" aria-expanded="false"
-         aria-controls="nav-mais" onclick="alternarNavMais(event)">${icoNav('mais')}<span>Mais</span></button>`;
-    if(!folha){ folha=document.createElement('div'); folha.id='nav-mais'; document.body.appendChild(folha); }
-    folha.innerHTML=resto.map(btn).join('');
-    folha.classList.remove('aberta');
-  } else {
-    nav.innerHTML=TABS.map(t=>btn(t[0])).join('');
-    if(folha) folha.remove();
-  }
+  /* o crachá conta o que está por despachar em cada destino; as pesagens em
+     atraso são do Hoje, que é onde se tratam */
+  const pend=pendentesPorSeparador(), atual=destinoDe(S.ui.tab);
+  nav.innerHTML=DESTINOS.map(([k,rot,subs])=>{
+    const n= k==='hoje'? (pend.familia||0) : subs.filter(x=>x!=='familia').reduce((t,x)=>t+(pend[x]||0),0);
+    const on=atual===k;
+    return `<button class="${on?'on':''}"${on?' aria-current="page"':''} onclick="irDestino('${k}')">${icoNav(k)}<span>${rot}</span>${
+      n? `<span class="cracha" aria-label="${n} por despachar">${n>99?'99+':n}</span>`:''}</button>`; }).join('');
+  const folha=document.getElementById('nav-mais'); if(folha) folha.remove();
   trazerSeparadorAtivo(nav);
 }
 /* Oito separadores não cabem lado a lado num tablet nem num telemóvel deitado:
@@ -16891,20 +17036,6 @@ function trazerSeparadorAtivo(nav){
   try{ nav.scrollTo({left:destino, behavior: suave?'smooth':'auto'}); }
   catch(e){ nav.scrollLeft=destino; }                 /* Safari antigo */
 }
-function alternarNavMais(e){
-  if(e) e.stopPropagation();
-  const f=document.getElementById('nav-mais'), b=document.getElementById('nav-btn-mais');
-  if(!f) return;
-  const aberta=f.classList.toggle('aberta');
-  if(b) b.setAttribute('aria-expanded',String(aberta));
-}
-document.addEventListener('click',e=>{
-  const f=document.getElementById('nav-mais');
-  if(!f || !f.classList.contains('aberta')) return;
-  if(f.contains(e.target) || (e.target.closest && e.target.closest('#nav-btn-mais'))) return;
-  f.classList.remove('aberta');
-  const b=document.getElementById('nav-btn-mais'); if(b) b.setAttribute('aria-expanded','false');
-});
 /* «/» abre a pesquisa global em teclado, como em qualquer sítio onde se
    procura — desde que não se esteja a escrever num campo. */
 document.addEventListener('keydown',e=>{
@@ -17074,6 +17205,7 @@ function aplicarTema(){
   r.setAttribute('data-modo',modo);
   r.setAttribute('data-paleta',pal);
   r.setAttribute('data-densidade', S.ui.densidade==='cerrado'? 'cerrado':'folgado');
+  r.setAttribute('data-estilo', S.ui.estilo==='caderno'? 'caderno':'suave');
   r.setAttribute('data-anim', S.ui.anim===false? 'off':'on');
   /* a cor da estação só veste apontamentos e ilustrações — nunca um texto,
      porque a legibilidade não muda com o calendário */
@@ -17094,6 +17226,7 @@ function aplicarTema(){
 }
 function setTema(t){ S.ui.tema=temChave(MODOS,t)? t:'auto'; saveMeta(); aplicarTema(); vigiaSol(); render(); }
 function setPaleta(p){ S.ui.paleta=temChave(PALETAS,p)? p:'azulejo'; saveMeta(); aplicarTema(); render(); }
+function setEstilo(e){ S.ui.estilo= e==='caderno'? 'caderno':'suave'; saveMeta(); aplicarTema(); render(); }
 function setDensidade(d){ S.ui.densidade= d==='cerrado'? 'cerrado':'folgado'; saveMeta(); aplicarTema(); render(); }
 function setSazonal(v){ S.ui.sazonal=!!v; saveMeta(); aplicarTema(); render(); }
 function setTaberna(v){ S.ui.taberna=!!v; saveMeta(); aplicarTema(); render(); }
@@ -17401,6 +17534,7 @@ function go(t){
   viraFolha = (de<0||para<0||de===para)? null : (para>de? 'vira-frente':'vira-tras');
   if(viraFolha) som('folha');
   S.ui.tab=t; msg=null;
+  const dst=destinoDe(t); if(dst){ if(!S.ui.ultSub||typeof S.ui.ultSub!=='object') S.ui.ultSub={}; S.ui.ultSub[dst]=t; }
   /* histórico é uma vista dentro do separador, não um sítio onde se fica ao
      mudar de separador */
   /* entrar no Calendário volta a apontar a grelha ao que a semana tem */
@@ -17409,7 +17543,6 @@ function go(t){
   if(t!=='nutricao') S.ui.histRef=null;
   saveMeta(); render();
   marcarSeparadorNoHistorico(t);
-  if(t==='mercearia') talvezPerguntarCompras();
 }
 function pickM(id){ S.ui.mid=id; macroLive=null; saveMeta(); render(); }
 function curM(){ return S.members.find(m=>m.id===S.ui.mid) || S.members[0]; }
@@ -19912,11 +20045,7 @@ function fichaHtml(f){
         ${custo.com? `<div class="stat"><b>${nPT(custo.total,2)} €</b><span>Custo${custo.sem?'*':''}</span></div>`:''}
       </div>
       ${avisoAlergia(r,S.members)}${avisoIdade(r,S.members)}
-      ${blocoLadosFicha(r,f)}
       ${notaHistoria(r)}
-      ${blocoVariantes(r)}
-      ${blocoGostos(r)}
-      ${blocoVeredictosDaCasa(r)}
       <div class="row" style="margin-top:12px;align-items:center">
         <span class="lbl" style="margin:0">Doses</span>
         ${[1,2,4,6,8,12,MAX_DOSES].map(x=>`<button class="chip ${f.n===x?'on':''}" onclick="setFichaDoses(${x})">${x}</button>`).join('')}
@@ -19926,7 +20055,6 @@ function fichaHtml(f){
           disp.pronta?'Pronta a cozinhar':disp.tem+'/'+disp.total+' na despensa'}</span>
       </div>
       ${blocoMesaOriginal(r,f)}
-      ${salDaFicha(r)}
       ${''/* Com massa de base, a lista parte-se em duas: o prato e a massa.
            Quem compra a massa feita não quer ver a farinha nem a manteiga dela
            no meio do recheio — e quem a faz quer as duas listas à vista. A
@@ -19946,9 +20074,6 @@ function fichaHtml(f){
             <div class="row" style="margin-top:8px">${botaoMassaFeita(P.ma.id,true)}</div>
           </details>`;
       })()}
-      ${blocoSubstituicoes(r)}
-      ${blocoTrocasDieta(r)}
-      ${reguasDaReceita(r)}
       ${(function(){
         /* ---- Antes dos passos: o que há a cortar ----
            Uma receita não começa no primeiro passo, começa na tábua. Esta
@@ -20002,9 +20127,26 @@ function fichaHtml(f){
           </details>
           <ol class="passos" style="margin-top:8px">${doPrato.map(li).join('')}</ol>`;
       })()}
-      ${blocoLote(r)}
-      <p class="sub">${esc(textoConservacao(r))}</p>
-      <p class="sub" style="margin-top:4px"><i>Prazos genéricos e conservadores para sobras refrigeradas a 4 °C ou menos. Não substituem o cheiro, o aspeto e o bom senso.</i></p>
+      ${''/* ---- O que se vem buscar vem primeiro ----
+           A ficha abria com as variantes, os gostos de cada pessoa e as
+           trocas de acompanhamento, e os ingredientes só apareciam a meio;
+           os passos, perto do fim. Agora: doses, ingredientes, passos. O
+           resto continua todo cá, um toque abaixo. */}
+      <details class="ficha-mais" ${S.ui.fichaMais?'open':''} ontoggle="S.ui.fichaMais=this.open;saveMeta()">
+        <summary>Mais sobre esta receita</summary>
+        ${blocoLadosFicha(r,f)}
+        ${blocoVariantes(r)}
+        ${blocoGostos(r)}
+        ${blocoVeredictosDaCasa(r)}
+        ${salDaFicha(r)}
+        ${blocoSubstituicoes(r)}
+        ${blocoTrocasDieta(r)}
+        ${reguasDaReceita(r)}
+        ${blocoLote(r)}
+        <h3 style="margin-top:14px">Guardar e reaquecer</h3>
+        <p class="sub">${esc(textoConservacao(r))}</p>
+        <p class="sub" style="margin-top:4px"><i>Prazos genéricos e conservadores para sobras refrigeradas a 4 °C ou menos. Não substituem o cheiro, o aspeto e o bom senso.</i></p>
+      </details>
       <div class="row" style="margin-top:16px;justify-content:space-between">
         <button class="btn ghost small" onclick="fecharFicha()">Fechar</button>
         <div class="row">
@@ -21204,6 +21346,144 @@ function pesquisaGlobal(q){
   }
   return out.sort((a,b)=>a.p-b.p || a.x.t.length-b.x.t.length).slice(0,12).map(o=>o.x);
 }
+/* ================= AJUDA =================
+   As explicações da app viviam só nas bolhas «i», espalhadas por todos os
+   cartões — mais de duzentas à vista. Continuam lá, e passam também a estar
+   juntas num sítio onde se procuram: o «?» do cabeçalho. Cada entrada mostra
+   a primeira frase como título e o resto por baixo. */
+/* ================= COMEÇAR EM TRÊS PERGUNTAS =================
+   Quem abre a app pela primeira vez não quer preencher um perfil campo a
+   campo: quer saber quem vive cá, o que ninguém pode comer e se há algum
+   objetivo — e ver a semana a aparecer. Três passos, e no fim os perfis
+   existem, as alergias estão marcadas e a primeira semana está preenchida.
+   Tudo o resto (a fase da vida, o desporto, a dieta) muda-se depois em
+   Família, como sempre. Os bebés ficam para o perfil completo, porque
+   precisam da data de nascimento e não de uma idade em anos. */
+function abrirArranque(){
+  abrirModal('arranque',{passo:0, pessoas:[{nome:'',idade:'',sexo:'f',altura:'',peso:''}], al:{}, obj:{}, semana:true, erro:''});
+}
+function arrMo(){ const mo=modalAberto(); return mo&&mo.tipo==='arranque'? mo : null; }
+function arrCampo(i,c,v){ const mo=arrMo(); if(!mo||!mo.pessoas[i]) return; mo.pessoas[i][c]=v; saveMeta(); }
+function arrMais(){ const mo=arrMo(); if(!mo||mo.pessoas.length>=12) return;
+  mo.pessoas.push({nome:'',idade:'',sexo:'f',altura:'',peso:''}); saveMeta(); render(); }
+function arrMenos(i){ const mo=arrMo(); if(!mo||mo.pessoas.length<2) return;
+  mo.pessoas.splice(i,1); mo.al={}; mo.obj={}; saveMeta(); render(); }
+function arrAlerg(i,k){ const mo=arrMo(); if(!mo) return; const l=mo.al[i]||(mo.al[i]=[]);
+  const j=l.indexOf(k); j>=0? l.splice(j,1) : l.push(k); saveMeta(); render(); }
+function arrObj(i,v){ const mo=arrMo(); if(!mo) return; mo.obj[i]=v; saveMeta(); render(); }
+function arrValida(mo){
+  for(const [i,p] of mo.pessoas.entries()){
+    if(!String(p.nome||'').trim()) return 'Falta o nome da pessoa '+(i+1)+'.';
+    const id=parseFloat(p.idade); if(!(id>=2&&id<=110)) return 'A idade de '+(p.nome||'pessoa '+(i+1))+' tem de estar entre 2 e 110 anos. Os bebés juntam-se depois, no perfil completo.';
+  }
+  return '';
+}
+function arrPasso(d){
+  const mo=arrMo(); if(!mo) return;
+  if(d>0 && mo.passo===0){ const e=arrValida(mo); mo.erro=e; if(e){ saveMeta(); return render(); } }
+  mo.erro=''; mo.passo=clampNum(mo.passo+d,0,2); saveMeta(); render();
+}
+function arrConcluir(){
+  const mo=arrMo(); if(!mo) return;
+  const e=arrValida(mo); if(e){ mo.passo=0; mo.erro=e; saveMeta(); return render(); }
+  if(!S.meta) S.meta={}; S.meta.avisoAceite=new Date().toISOString();
+  const PCT={perder:-15, manter:0, ganhar:10};
+  const novos=mo.pessoas.map((p,i)=>{
+    const idade=Math.round(parseFloat(p.idade));
+    const adulto=idade>=18;
+    const alt=parseFloat(String(p.altura).replace(',','.')), peso=parseFloat(String(p.peso).replace(',','.'));
+    const o=adulto? (mo.obj[i]||'manter') : 'manter';
+    const m={id:uid(), nome:String(p.nome).trim().slice(0,60), sexo:p.sexo==='m'?'m':'f', idade,
+      altura: alt>=50&&alt<=230? Math.round(alt) : (adulto? (p.sexo==='m'?175:163) : Math.round(80+idade*6)),
+      peso: peso>=8&&peso<=300? Math.round(peso*10)/10 : (adulto? (p.sexo==='m'?78:64) : Math.round(10+idade*2.6)),
+      atividade:'sedentario', desloc:'nenhum', desportos:[], dieta:'equilibrada', objetivo:o, objetivoPct:PCT[o]||0,
+      restricoes:(mo.al[i]||[]).filter(k=>temChave(RESTR,k))};
+    normalizaMembro(m);
+    return m;
+  });
+  novos.forEach(m=>S.members.push(m));
+  S.ui.mid=novos[0].id; S.ui.modal=null;
+  if(mo.semana){ S.week=mondayISO(new Date()); try{ autoFill(); }catch(err){ console.warn('Família Fit — preenchimento do arranque falhou:',err); } }
+  S.ui.tab='hoje';
+  save('primeiros perfis'); render();
+  flash('ok', plural(novos.length,'perfil criado','perfis criados')+(mo.semana? ' e a semana preenchida.' : '.')+' O resto muda-se em Família.');
+}
+function modalArranqueHtml(mo){
+  const P=['Quem vive cá?','Alguém tem alergias?','Há algum objetivo?'];
+  const nome=(p,i)=>esc(String(p.nome||'').trim()||'Pessoa '+(i+1));
+  const corpo= mo.passo===0? `
+      <p class="sub">Uma linha por pessoa. A altura e o peso podem ficar para depois — sem eles, a app usa valores médios até os escreveres no perfil.</p>
+      ${mo.pessoas.map((p,i)=>`<div class="arr-pessoa">
+        <input type="text" maxlength="60" placeholder="Nome" aria-label="Nome da pessoa ${i+1}" value="${esc(p.nome)}" oninput="arrCampo(${i},'nome',this.value)">
+        <input type="number" min="2" max="110" inputmode="numeric" placeholder="Idade" aria-label="Idade da pessoa ${i+1}, em anos" value="${esc(p.idade)}" oninput="arrCampo(${i},'idade',this.value)">
+        <select aria-label="Sexo da pessoa ${i+1}" onchange="arrCampo(${i},'sexo',this.value)">
+          <option value="f" ${p.sexo!=='m'?'selected':''}>Feminino</option><option value="m" ${p.sexo==='m'?'selected':''}>Masculino</option></select>
+        <input type="number" min="50" max="230" inputmode="numeric" placeholder="Altura cm" aria-label="Altura da pessoa ${i+1}, em centímetros" value="${esc(p.altura)}" oninput="arrCampo(${i},'altura',this.value)">
+        <input type="number" min="8" max="300" step="0.1" inputmode="decimal" placeholder="Peso kg" aria-label="Peso da pessoa ${i+1}, em quilos" value="${esc(p.peso)}" oninput="arrCampo(${i},'peso',this.value)">
+        ${mo.pessoas.length>1? `<button class="btn ghost small" onclick="arrMenos(${i})" aria-label="Tirar a pessoa ${i+1}">✕</button>`:''}
+      </div>`).join('')}
+      <button class="btn ghost small" onclick="arrMais()">+ Mais uma pessoa</button>`
+    : mo.passo===1? `
+      <p class="sub">As receitas com alguma destas nunca são sugeridas a quem a tem. Se ninguém tem, avança.</p>
+      ${mo.pessoas.map((p,i)=>`<div class="arr-bloco"><b>${nome(p,i)}</b><div class="row" style="margin-top:6px">${ALERGENIOS.map(([k,n,ico])=>{
+        const on=(mo.al[i]||[]).indexOf(k)>=0;
+        return `<button class="chip ${on?'on':''}" aria-pressed="${on}" onclick="arrAlerg(${i},'${k}')">${on?'✓ ':''}${ico} ${esc(n)}</button>`; }).join('')}</div></div>`).join('')}`
+    : `
+      <p class="sub">Só para adultos: nas crianças e nos adolescentes a app segue o crescimento, não o peso. Muda-se a qualquer momento.</p>
+      ${mo.pessoas.map((p,i)=>parseFloat(p.idade)>=18? `<div class="arr-bloco"><b>${nome(p,i)}</b><div class="row" style="margin-top:6px">${
+        [['manter','Manter o peso'],['perder','Perder peso'],['ganhar','Ganhar peso']].map(([k,t])=>{ const on=(mo.obj[i]||'manter')===k;
+          return `<button class="chip ${on?'on':''}" aria-pressed="${on}" onclick="arrObj(${i},'${k}')">${t}</button>`; }).join('')}</div></div>`
+        : `<div class="arr-bloco"><b>${nome(p,i)}</b> <span class="sub">· em crescimento, sem objetivo de peso</span></div>`).join('')}
+      <label class="row" style="margin-top:12px;gap:8px;align-items:center"><input type="checkbox" ${mo.semana?'checked':''}
+        onchange="arrMo().semana=this.checked;saveMeta()"> Preencher já as refeições desta semana</label>
+      ${avisoResponsabilidade(true)}`;
+  return `<div class="mfundo" onclick="fundoModal(event)" style="align-items:flex-start;padding-top:5vh">
+    <div class="mcaixa" role="dialog" aria-modal="true" aria-labelledby="arr-t" style="max-width:680px">
+      <p class="lbl" style="margin:0">Passo ${mo.passo+1} de 3</p>
+      <div class="arr-passos" aria-hidden="true">${P.map((_,i)=>`<i class="${i<=mo.passo?'on':''}"></i>`).join('')}</div>
+      <h2 id="arr-t">${P[mo.passo]}</h2>
+      ${mo.erro? `<div class="alerta" role="alert" style="margin:8px 0"><span aria-hidden="true">⚠️</span><span>${esc(mo.erro)}</span></div>`:''}
+      ${corpo}
+      <div class="row" style="margin-top:16px;justify-content:space-between">
+        ${mo.passo? `<button class="btn ghost" onclick="arrPasso(-1)">Voltar</button>` : `<button class="btn ghost" onclick="fecharModal()">Cancelar</button>`}
+        ${mo.passo<2? `<button class="btn" onclick="arrPasso(1)">Seguinte</button>`
+          : `<button class="btn" onclick="arrConcluir()">Compreendo e começo</button>`}
+      </div>
+    </div></div>`;
+}
+function abrirAjuda(){ abrirModal('ajuda',{q:''});
+  setTimeout(()=>{ const el=document.getElementById('ajuda-campo'); if(el) el.focus(); },0); }
+function entradasAjuda(){
+  return Object.keys(DICAS).map(k=>{
+    let t=DICAS[k]; try{ if(typeof t==='function') t=t(); }catch(e){ t=''; }
+    t=String(t||''); const limpo=t.replace(/<[^>]+>/g,'');
+    const corte=limpo.search(/[.:!?](\s|$)/);
+    const tit= corte>0 && corte<110? limpo.slice(0,corte) : limpo.slice(0,80)+(limpo.length>80?'…':'');
+    return {k, tit, html:t, txt:semAcentos(limpo).toLowerCase()};
+  }).filter(x=>x.txt);
+}
+function pintaAjuda(){
+  const cx=document.getElementById('ajuda-res'), mo=modalAberto(); if(!cx||!mo) return;
+  const q=semAcentos(mo.q||'').toLowerCase().trim();
+  const l=entradasAjuda().filter(x=>!q || q.split(/\s+/).every(p=>x.txt.indexOf(p)>=0));
+  cx.innerHTML= l.length? l.slice(0,q?60:400).map(x=>`<details class="ajuda-item"><summary>${esc(x.tit)}</summary><div class="sub">${x.html}</div></details>`).join('')
+    : '<p class="sub">Nenhuma explicação com essas palavras.</p>';
+  const c=document.getElementById('ajuda-conta'); if(c) c.textContent=plural(l.length,'explicação','explicações');
+}
+function modalAjudaHtml(mo){
+  return `<div class="mfundo" onclick="fundoModal(event)" style="align-items:flex-start;padding-top:6vh">
+    <div class="mcaixa" role="dialog" aria-modal="true" aria-labelledby="ajuda-t" style="max-width:640px">
+      <h2 id="ajuda-t">Ajuda</h2>
+      <p class="sub" style="margin-bottom:8px">Todas as explicações da app num sítio só. As mesmas estão nos «i» de cada cartão.</p>
+      <input type="search" id="ajuda-campo" placeholder="Procurar: jejum, alergias, cozinhar a dobrar…" aria-label="Procurar na ajuda"
+        value="${esc(mo.q||'')}" oninput="modalAberto().q=this.value;pintaAjuda()">
+      <p class="sub" id="ajuda-conta" style="margin:6px 0" aria-live="polite"></p>
+      <div id="ajuda-res" style="max-height:60vh;overflow-y:auto"></div>
+      <div class="row" style="margin-top:12px;justify-content:space-between">
+        <button class="btn ghost small" onclick="fecharModal();iniciarTour(false)">✨ Rever a visita guiada</button>
+        <button class="btn ghost small" onclick="fecharModal()">Fechar</button></div>
+    </div></div>`;
+}
 function abrirPesquisa(){ S.ui.pesqAberta=true; S.ui.pesqQ='';
   /* o índice refaz-se ao abrir: um perfil criado há um minuto tem de aparecer,
      e um apagado tem de desaparecer — reconstruir é barato, ficar velho não */
@@ -21218,20 +21498,38 @@ function irReceita(id){ fecharPesquisa(); const r=RECIPES.find(x=>x.id===id); if
 function irIngrediente(n){ fecharPesquisa(); S.ui.mercVista='despensa'; go('mercearia');
   setTimeout(()=>{ const el=document.querySelector('#despensa-lista'); if(el) scrollSuave(el); },0);
   flash('ok','Procura «'+n+'» na despensa — a caixa de pesquisa está no topo.'); }
+/* ---- Procurar e registar na mesma caixa ----
+   Havia duas caixas de escrever: a pesquisa no cabeçalho, que encontra, e o
+   «Escrever e despachar» na Família, que faz. Quem escreve «Ana 62,4» não
+   devia ter de saber em qual das duas. Agora é uma: se o texto se lê como um
+   registo, a primeira linha é «Registar», e o Enter faz isso; senão, procura. */
+let _pesqAccao=null;
+function pesqRegistar(){ const f=_pesqAccao; if(!f) return; _pesqAccao=null; fecharPesquisa(); f(); }
+function pesqEnter(e){
+  if(e.key!=='Enter') return; e.preventDefault();
+  if(_pesqAccao) return pesqRegistar();
+  const b=document.querySelector('#pesq-res button'); if(b) b.click();
+}
 function pintaPesquisa(){
   const cx=document.getElementById('pesq-res'); if(!cx) return;
-  const res=pesquisaGlobal(S.ui.pesqQ);
-  cx.innerHTML = !S.ui.pesqQ||S.ui.pesqQ.length<2
-    ? '<p class="sub" style="padding:8px 2px">Escreve pelo menos duas letras. Procura em receitas, ingredientes, modalidades, perfis — e nos próprios cartões da app.</p>'
-    : !res.length? '<p class="sub" style="padding:8px 2px">Nada com esse nome.</p>'
-    : res.map(x=>`<button class="btn ghost" style="width:100%;text-align:left;margin-top:6px;min-height:48px"
+  const q=S.ui.pesqQ||'';
+  const ac= q.trim().length>=2? interpretarBalcao(q) : null;
+  _pesqAccao= ac? ac.fn : null;
+  const res=pesquisaGlobal(q);
+  const topo= ac? `<button class="btn" style="width:100%;text-align:left;margin-top:6px;min-height:48px" onclick="pesqRegistar()">✎ <b>Registar:</b> ${esc(ac.t)} <span class="sub" style="color:inherit">· Enter</span></button>` : '';
+  cx.innerHTML = q.length<2
+    ? '<p class="sub" style="padding:8px 2px">Escreve pelo menos duas letras. Procura em receitas, ingredientes, modalidades, perfis e nos cartões da app — e regista o que se escreve como um registo: «Ana 62,4», «corri 8 km», «jejuei 24h», «jantar feito», «comprei azeite».</p>'
+    : !res.length? topo+(ac? '' : '<p class="sub" style="padding:8px 2px">Nada com esse nome.</p>')
+    : topo+res.map(x=>`<button class="btn ghost" style="width:100%;text-align:left;margin-top:6px;min-height:48px"
         onclick="${x.fn}"><b>${esc(x.t)}</b> <span class="sub">· ${esc(x.o)}</span></button>`).join('');
 }
 function pesquisaHtml(){
   return `<div class="mfundo" onclick="fundoPesquisa(event)" style="align-items:flex-start;padding-top:8vh">
     <div class="mcaixa" role="dialog" aria-modal="true" aria-label="Pesquisar na app">
-      <input type="search" id="pesq-campo" placeholder="Procurar receita, ingrediente, modalidade…"
-        aria-label="Procurar em toda a app" value="${esc(S.ui.pesqQ||'')}" oninput="setPesqQ(this.value)">
+      <div class="row" style="gap:6px;flex-wrap:nowrap;align-items:center">
+      <input type="search" id="pesq-campo" placeholder="Procurar ou registar: «Ana 62,4», «corri 8 km»…"
+        aria-label="Procurar em toda a app, ou registar" value="${esc(S.ui.pesqQ||'')}" oninput="setPesqQ(this.value)" onkeydown="pesqEnter(event)">
+      ${dica('balcao')}</div>
       <div id="pesq-res" style="margin-top:8px"></div>
       <div class="row" style="margin-top:12px;justify-content:flex-end">
         <button class="btn ghost small" onclick="fecharPesquisa()">Fechar</button></div>
@@ -22986,7 +23284,31 @@ function querDobro(){ return !!(S.cozPref||{}).dobro; }
 function querPrep(){ return (S.cozPref||{}).prep!==false; }
 function setCozPref(k,v){
   if(!S.cozPref||typeof S.cozPref!=='object') S.cozPref={};
-  S.cozPref[k]=!!v; save('preferências de cozinha'); render();
+  S.cozPref[k]=!!v;
+  if(k==='assumir' && v){ const n=aplicarPlanoAssumido(); if(n) flash('ok',plural(n,'registo','registos')+' de dias passados dados como feitos.'); }
+  save('preferências de cozinha'); render();
+}
+/* ---- Confirmar sem dívida ----
+   Para quem planeia e cumpre, confirmar refeição a refeição é uma dívida que
+   cresce todos os dias. Com «assumir que o plano se cumpriu», o que estava no
+   plano de um dia que já acabou passa a feito — refeições e treinos — e só se
+   corrige o que não aconteceu. O dia de hoje nunca: ainda está a decorrer. */
+function aplicarPlanoAssumido(){
+  if(!(S.cozPref||{}).assumir) return 0;
+  const h=hojeISO(); let n=0;
+  S.members.forEach(m=>{
+    pendentesRef(m).filter(p=>p.d<h).forEach(p=>{
+      if((S.regRef||[]).some(r=>r.mid===m.id&&r.d===p.d&&r.mk===p.mk)) return;
+      const rec=RECIPES.find(x=>x.id===p.meal.r);
+      registarRefeicao({d:p.d, mk:p.mk, r:p.meal.r, ac:acIds(p.meal), mo:moId(p.meal), ma:maId(p.meal),
+        dose: rec? doseSugerida(m,rec,p.mk) : 1}, [m.id], 'feita'); n++;
+    });
+    pendentesAtiv(m).filter(p=>p.d<h).forEach(p=>{
+      if((S.regAtiv||[]).some(r=>r.mid===m.id&&r.d===p.d&&r.plano===p.sid&&r.estado!=='agendada')) return;
+      validarAtivSilenciosa(m.id,p); n++;
+    });
+  });
+  return n;
 }
 /* Uma refeição é «aquecer» quando o mesmo prato já foi cozinhado num dia
    anterior da semana e essa refeição foi marcada para dobrar. */
@@ -23451,40 +23773,6 @@ function interpretarBalcao(txt){
 /* O eco é texto e nada mais: põe() escreve por textContent, que é o que
    protege um campo livre de virar injeção de HTML. O botão de confirmar já
    está no molde e aqui só se acende ou apaga. */
-function balcaoAoVivo(v){
-  const r=interpretarBalcao(v);
-  _balcaoAccao = r? r.fn : null;
-  const tem=!!String(v||'').trim();
-  põe('balcao-eco', r? r.t
-    : (tem? 'Não percebi. Tenta «Ana 62,4», «corri 8 km», «jejuei 24h», «jantar feito» ou «comprei azeite».' : ''));
-  const eco=document.getElementById('balcao-eco');
-  if(eco) eco.className='sub'+(r? ' ok' : (tem? ' nada':''));
-  const b=document.getElementById('balcao-ok');
-  if(b){ b.disabled=!r; b.setAttribute('aria-disabled', r? 'false':'true'); }
-}
-let _balcaoAccao=null;
-function balcaoConfirmar(){
-  if(!_balcaoAccao) return;
-  const f=_balcaoAccao; _balcaoAccao=null;
-  const el=document.getElementById('balcao'); if(el) el.value='';
-  balcaoAoVivo('');
-  f();
-}
-function blocoBalcao(){
-  if(!S.members.length) return '';
-  return `<div class="balcao">
-    <label for="balcao" class="lbl" style="margin:0">Escrever e despachar ${dica('balcao')}</label>
-    <div class="row" style="gap:8px;flex-wrap:nowrap">
-      <input id="balcao" type="text" placeholder="Ana 62,4 · corri 8 km · jejuei 24h · jantar feito"
-        aria-label="Balcão rápido: escreve o que aconteceu" aria-describedby="balcao-eco"
-        oninput="balcaoAoVivo(this.value)"
-        onkeydown="if(event.key==='Enter'){event.preventDefault();balcaoConfirmar();}">
-      <button class="btn" id="balcao-ok" style="flex:none" disabled aria-disabled="true"
-        onclick="balcaoConfirmar()">Registar</button>
-    </div>
-    <p class="sub" id="balcao-eco" aria-live="polite" style="min-height:1.2em"></p>
-  </div>`;
-}
 
 /* ================= MODO PESSOA =================
    A app organiza-se por função, mas metade das perguntas de uma casa fazem-se
@@ -24112,14 +24400,13 @@ function folhaRegistoHtml(){
 
 /* ================= CAIXAS DE DIÁLOGO =================
    A app pergunta pouco, e quando pergunta é porque a resposta muda os dados:
-   pesagens novas e compras por confirmar. Uma de cada vez, e nunca duas vezes
-   na mesma sessão — perguntar outra vez o que já foi respondido é ruído. */
-let jaPerguntouPeso=false, jaPerguntouCompras=false;
+   pesagens novas e compras por confirmar. Nunca abre sozinha: o que está por
+   responder espera no cartão «Para tratar», do Hoje. */
 /* Os três tipos que a app sabe desenhar. Um tipo que não esteja aqui deixava
    S.ui.modal preenchido sem nada no ecrã: uma camada invisível que engolia o
    Escape, travava o go() e não tinha botão de fechar — só se saía recarregando.
    Recusar em voz alta é melhor do que abrir o nada. */
-const MODAIS=['peso','aviso','compras','ingrediente','acabou','favoritos','cal','recuperacao','exportarCal','cheat','bebida','batido'];
+const MODAIS=['arranque','ajuda','peso','aviso','compras','ingrediente','acabou','favoritos','cal','recuperacao','exportarCal','cheat','bebida','batido'];
 function abrirModal(tipo,dados){
   if(MODAIS.indexOf(tipo)<0){ console.warn('Família Fit — modal desconhecido: '+tipo); return; }
   S.ui.modal=Object.assign({tipo},dados||{}); saveMeta(); render();
@@ -24141,23 +24428,7 @@ function precisaPesagem(m){
   const u=ultimaMedicao(m.id);
   return !u || diasEntre(u.d,hojeISO())>=DIAS_ENTRE_PESAGENS;
 }
-function talvezPerguntarPeso(){
-  if(jaPerguntouPeso || modalAberto() || tourAtivo()) return;
-  jaPerguntouPeso=true;
-  /* uma pesagem marcada no calendário cuja hora já passou é uma pergunta por
-     fazer: pergunta-se por ela primeiro, com o dia certo já preenchido */
-  const marcadas=pesagensPorResponder();
-  if(marcadas.length){
-    const dia=marcadas[marcadas.length-1].d;
-    const mids=[...new Set(marcadas.filter(p=>p.d===dia).map(p=>p.mid))];
-    return abrirModal('peso',{mids, d:dia, marcada:true, vals:{}});
-  }
-  const quem=S.members.filter(precisaPesagem);
-  if(!quem.length) return;
-  abrirModal('peso',{mids:quem.map(m=>m.id), d:hojeISO(), vals:{}});
-}
 function abrirPesagens(mid){
-  jaPerguntouPeso=true;
   const quem=mid? S.members.filter(m=>m.id===mid) : S.members.filter(m=>faseDe(m)!=='bebe');
   if(!quem.length) return flash('warn','Não há perfis para pesar.');
   abrirModal('peso',{mids:quem.map(m=>m.id), d:hojeISO(), vals:{}});
@@ -25782,9 +26053,20 @@ function cartaoHoje(){
     </div>
   </section>`;
 }
+/* ---- Hoje ----
+   O dia, e só o dia: o que está por tratar, o que vai para a mesa, o fio das
+   horas e, enquanto a casa se arruma, os primeiros passos. Estava tudo no
+   topo da Família, por cima dos perfis; o Hoje é o primeiro destino da barra
+   e é onde a app abre. */
+function renderHoje(){
+  if(!S.members.length) return cartaoBoasVindas();
+  const h=new Date();
+  return `<div class="hoje-topo"><h2>Hoje</h2><span class="sub">${esc(DAYN[(h.getDay()+6)%7])}, ${fmtShort(hojeISO())}</span></div>`
+    +cartaoParaTratar()+cartaoHoje()+cartaoFioDoDia()+cartaoFecho()+cartaoPrimeirosPassos();
+}
 function renderFamilia(){
   if(!S.members.length) return cartaoBoasVindas();
-  return cartaoCapa()+cartaoPrimeirosPassos()+blocoBalcao()+cartaoFioDoDia()+cartaoFecho()+cartaoHoje()
+  return cartaoCapa()
     +`<div class="row" style="justify-content:space-between;margin-bottom:10px">
       <div><h2>Perfis da família</h2><span class="sub">${S.members.length} membro${S.members.length>1?'s':''} · os dados guardam-se automaticamente neste dispositivo</span></div>
       <button class="btn" onclick="addMember()">+ Adicionar membro</button></div>
@@ -25908,7 +26190,7 @@ function renderFamilia(){
           : 'Em idade de crescimento o IMC lê-se em percentil para a idade e o sexo, não por estes limites de adulto.'}</span></div>
         ${permiteDefice(m)? `<div class="row" style="margin-top:8px;align-items:center;gap:10px">
           <div class="stat"><b id="f-${mid}-ideal">${nPT(pesoIdeal(m),1)} kg</b><span>Peso ideal ${dica('pesoIdeal')}</span></div>
-          <span class="sub" id="f-${mid}-idealtxt" style="flex:1;min-width:0">${textoPesoIdeal(m)}</span>
+          <span class="sub" id="f-${mid}-idealtxt" style="flex:1 1 220px;min-width:0">${textoPesoIdeal(m)}</span>
           ${S.objetivos.some(o=>!o.concluido&&o.membroId===mid)
             ? `<button class="btn small ghost" style="flex:none" onclick="go('objetivos')" title="Já há um objetivo a decorrer: ajusta-o ou remove-o antes de criar outro">🎯 Ver objetivo</button>`
             : `<button class="btn small" style="flex:none" onclick="criarPlanoIdeal('${mid}')">📋 Criar plano</button>`}
@@ -27856,12 +28138,41 @@ function toggleAlergF(v){
   i>=0? l.splice(i,1) : l.push(v);
   S.ui.alergF=l; S.ui.recLimite=LOTE_RECEITAS; saveMeta(); render();
 }
+/* ---- Receitas por intenção ----
+   Quatro perguntas que se fazem antes de qualquer filtro: o que serve a mesa
+   toda, o que dá para fazer com o que há, o que está na época, e o que a
+   casa gosta. Cada uma liga um filtro que já existia; tocar outra vez desliga. */
+const INTENCOES_REC=[['mesa','Para esta mesa'],['casa','Com o que há em casa'],['epoca','Da época'],['fav','Favoritas']];
+function intencaoAtiva(k){
+  return k==='mesa'? !!S.ui.mesaF : k==='casa'? ordemReceitas()==='despensa'
+    : k==='epoca'? !!S.ui.soEpoca : k==='fav'? favFiltro()==='todas' : false;
+}
+function setIntencao(k){
+  const on=intencaoAtiva(k);
+  if(k==='mesa') S.ui.mesaF=!on;
+  else if(k==='casa') S.ui.ordemRec= on? 'nome' : 'despensa';
+  else if(k==='epoca') S.ui.soEpoca=!on;
+  else if(k==='fav') S.ui.favF= on? '' : 'todas';
+  S.ui.recLimite=LOTE_RECEITAS; saveMeta(); render();
+}
+function intencoesReceitas(){
+  return '<div class="intencoes" role="group" aria-label="O que procuras">'+INTENCOES_REC
+    .filter(([k])=>k!=='mesa'||S.members.length)
+    .map(([k,t])=>{ const on=intencaoAtiva(k);
+      return '<button class="chip '+(on?'on':'')+'" aria-pressed="'+on+'" onclick="setIntencao(\''+k+'\')">'+(on?'✓ ':'')+t+'</button>'; }).join('')+'</div>';
+}
+/* Quantos filtros do painel recolhido estão ligados: o número vai no título,
+   para um filtro esquecido lá dentro nunca deixar a lista estranha sem razão. */
+function nFiltrosAvancados(){
+  return (S.ui.cuis!=='todas'?1:0)+dietasFiltro().length+alergsFiltro().length+(S.ui.catF?1:0)
+    +(favFiltro()&&favFiltro()!=='todas'?1:0)+(S.ui.soComp?1:0);
+}
 function haFiltros(){
   return S.ui.cuis!=='todas' || S.ui.mealF!=='todas' || !!(S.ui.busca||'')
-    || dietasFiltro().length || alergsFiltro().length || !!S.ui.catF || S.ui.soEpoca || S.ui.soComp;
+    || dietasFiltro().length || alergsFiltro().length || !!S.ui.catF || S.ui.soEpoca || S.ui.soComp || !!S.ui.mesaF;
 }
 function limparFiltros(){ S.ui.cuis='todas'; S.ui.dietaF=[]; S.ui.mealF='todas'; S.ui.busca='';
-  S.ui.alergF=[]; S.ui.catF=''; S.ui.soEpoca=false; S.ui.soComp=false; S.ui.favF='';
+  S.ui.alergF=[]; S.ui.catF=''; S.ui.soEpoca=false; S.ui.soComp=false; S.ui.favF=''; S.ui.mesaF=false;
   S.ui.recLimite=LOTE_RECEITAS; saveMeta(); render(); }
 /* ---- O filtro das favoritas ----
    Três estados, e não dois: sem filtro, as favoritas de qualquer pessoa da
@@ -28036,7 +28347,6 @@ function setMealF(v){ S.ui.mealF=(v==='todas'||v==='ac'||v==='mo'||MEALK.indexOf
    crescido a pedido sobrevivia a mudar de filtro, de separador e a recarregar,
    porque recLimite é persistido em S.ui */
 function toggleComp(){ S.ui.soComp=!S.ui.soComp; S.ui.recLimite=LOTE_RECEITAS; saveMeta(); render(); }
-function toggleEpoca(){ S.ui.soEpoca=!S.ui.soEpoca; S.ui.recLimite=LOTE_RECEITAS; saveMeta(); render(); }
 function setCatF(k){ S.ui.catF=temChave(CATEG,k)? k:''; S.ui.recLimite=LOTE_RECEITAS; saveMeta(); render(); }
 
 function macroBar(pct){ return `<div class="macro-par">${pratoGrafico(pct)}<div style="flex:1;min-width:0">
@@ -29470,10 +29780,6 @@ function recipeCard(r,n){
       (function(){ const c=custoReceita(r,n||1); return c.com? ' · ~'+nPT(c.total,2)+' €'+(c.sem?'*':'') : ''; })()}</div>
     ${seloVariantes(r)}
     <span class="pill ${disp.pronta?'ok':disp.tem?'warn':''}" style="align-self:flex-start">${disp.pronta?'Pronta a cozinhar':disp.tem+'/'+disp.total+' na despensa'}</span>
-    <div class="ingr-lista">${listaIngredientesComEstado(r,n)}</div>
-    <div class="row" style="margin-top:2px">${seloGenero(r)? '<span class="sub">Género do prato '+dica('genero')+'</span>':''}</div>
-    <details class="quant"><summary>Guardar e reaquecer ${dica('conserva')}</summary>
-      <div class="sub">${esc(textoConservacao(r))}<br><i>Prazos genéricos e conservadores para sobras refrigeradas, no frigorífico a 4 °C ou menos. Não substituem o cheiro, o aspeto e o bom senso.</i></div></details>
     ${S.members.length? `<div class="row" style="margin-top:2px"><span class="sub">Compatível:</span>
       ${comp.length? comp.map(m=>avatar(m,22)).join('') : '<span class="sub">— só como refeição livre</span>'}</div>`:''}
     ${avisoAlergia(r,S.members)}${avisoIdade(r,S.members)}
@@ -31251,6 +31557,9 @@ function cartaoFibra(m){
 }
 /* ---- O saleiro invisível e os açúcares livres ----
    Duas contas que os ingredientes sempre tiveram e que ninguém somava. */
+/* A visita guiada pergunta isto antes de apontar para o cartão: a condição é
+   uma só, para o passo nunca procurar um cartão que não foi desenhado. */
+function temSalAcucar(m){ return !!m && !!(sodioMedia(m.id,7) || acucarLivreMedia(m.id,7)); }
 function cartaoSalAcucar(m){
   const sm=sodioMedia(m.id,7), am=acucarLivreMedia(m.id,7);
   if(!sm && !am) return '';
@@ -32901,6 +33210,7 @@ function renderReceitas(){
   }
   if(S.ui.soComp && m) list=list.filter(r=>compat(r,chaveDieta(m))&&!ingredientesVetados(r,m).length);
   if(S.ui.soEpoca) list=list.filter(receitaDaEpoca);
+  if(S.ui.mesaF && S.members.length) list=list.filter(r=>compatAll(r,S.members));
   if(S.ui.catF && temChave(CATEG,S.ui.catF)) list=list.filter(r=>temCategoria(r,S.ui.catF));
   if(favFiltro()) list=list.filter(passaFavoritos);
   const q=semAcentos(S.ui.busca||'').trim();
@@ -32941,14 +33251,32 @@ function renderReceitas(){
       colapsadas? ' · '+plural(colapsadas,'variante agrupada','variantes agrupadas') : ''}</span></div>
     <div class="row">
       ${S.ui.editor? '' : `<button class="btn small" id="btn-nova-receita" onclick="abrirEditor(null)">+ Nova receita</button>`}
-      ${minhas? `<button class="chip" onclick="imprimirLivro()">📖 Livro da casa ${dica('livro')}</button>`:''}
-      ${colapsadas||S.ui.verVariantes? `<button class="chip ${S.ui.verVariantes?'on':''}" onclick="toggleVerVariantes()"
-        aria-pressed="${!!S.ui.verVariantes}">🍽️ Ver todas as variantes ${dica('variantes')}</button>`:''}
-      ${m? `<button class="chip ${S.ui.soComp?'on':''}" data-alterna onclick="toggleComp()">Só compatíveis com ${esc(m.nome)}</button>`:''}
-      <button class="btn small" onclick="sugerirComDespensa()">🥫 Sugere-me algo para hoje ${dica('sugDespensa')}</button>
-      <button class="chip" onclick="go('despensa')">Ver despensa</button>
+      ${menuPop('Mais ações das receitas',`
+        <button class="menu-item" onclick="sugerirComDespensa()">🥫 Sugere-me algo para hoje</button>
+        ${colapsadas||S.ui.verVariantes? `<button class="menu-item" onclick="toggleVerVariantes()">🍽️ ${S.ui.verVariantes?'Agrupar as variantes':'Ver todas as variantes'}</button>`:''}
+        ${m? `<button class="menu-item" onclick="toggleComp()">${S.ui.soComp?'✓ ':''}Só compatíveis com ${esc(m.nome)}</button>`:''}
+        ${minhas? `<button class="menu-item" onclick="imprimirLivro()">📖 Livro da casa</button>`:''}
+        <button class="menu-item" onclick="go('despensa')">🥫 Ver a despensa</button>`)}
     </div>
   </div>
+  <div class="row" style="margin-bottom:10px">
+    <input type="search" id="rec-busca" class="busca" value="${esc(S.ui.busca||'')}" placeholder="🔎 Procurar por nome ou ingrediente…"
+      oninput="setBusca(this.value,this)" aria-label="Procurar receitas">
+    ${haFiltros()? `<button class="chip" onclick="limparFiltros()">✕ Limpar filtros</button>`:''}
+  </div>
+  ${intencoesReceitas()}
+  <div class="row" style="margin-bottom:12px">
+    <button class="chip ${S.ui.mealF==='todas'?'on':''}" aria-pressed="${S.ui.mealF==='todas'}" onclick="setMealF('todas')">Todas as refeições</button>
+    ${MEALS.map(([kk,rot])=>`<button class="chip ${S.ui.mealF===kk?'on':''}" aria-pressed="${S.ui.mealF===kk}" onclick="setMealF('${kk}')">${ICO_REF[kk]||''} ${rot}</button>`).join('')}
+    <button class="chip ${S.ui.mealF==='ac'?'on':''}" aria-pressed="${S.ui.mealF==='ac'}" onclick="setMealF('ac')">${ICO_REF.ac} Acompanhamentos</button>
+    <button class="chip ${S.ui.mealF==='mo'?'on':''}" aria-pressed="${S.ui.mealF==='mo'}" onclick="setMealF('mo')"
+      title="Molhos, marinadas e manteigas compostas — o que se junta a um prato já feito">${ICO_REF.mo} Molhos</button>
+    <button class="chip ${S.ui.mealF==='ma'?'on':''}" aria-pressed="${S.ui.mealF==='ma'}" onclick="setMealF('ma')"
+      title="Massas de base: a quebrada, a folhada, a filo, a de tarte e a base de bolacha — o que fica por baixo de uma empada, de uma quiche ou de uma tarte">${ICO_REF.ma} Massas de base</button>
+  </div>
+  <details class="filtros-mais" ${S.ui.filtrosAbertos||nFiltrosAvancados()? 'open':''} ontoggle="S.ui.filtrosAbertos=this.open;saveMeta()">
+    <summary>Filtros${nFiltrosAvancados()? ' <span class="pill">'+nFiltrosAvancados()+'</span>':''}</summary>
+    <div class="filtros-corpo">
   <div class="row" style="margin-bottom:10px;align-items:center">
     <span class="sub">Ordenar por</span>
     <select style="width:auto" aria-label="Ordenar as receitas" onchange="setOrdemRec(this.value)">
@@ -32957,16 +33285,9 @@ function renderReceitas(){
       ? plural(prontas,'receita pronta a cozinhar','receitas prontas a cozinhar') : 'nenhuma completa — mas as mais perto vêm primeiro'}</span>`:''}
   </div>
   <div class="row" style="margin-bottom:12px">
-    <input type="search" id="rec-busca" class="busca" value="${esc(S.ui.busca||'')}" placeholder="🔎 Procurar por nome ou ingrediente…"
-      oninput="setBusca(this.value,this)" aria-label="Procurar receitas">
     <select style="width:auto" aria-label="Filtrar por cozinha" onchange="setCuis(this.value)"><option value="todas">Todas as cozinhas</option>
       ${Object.entries(CUIS).map(([kk,v])=>`<option value="${kk}" ${S.ui.cuis===kk?'selected':''}>${(ICO_COZ[kk]||'')+' '+v}</option>`).join('')}</select>
-    ${haFiltros()? `<button class="chip" onclick="limparFiltros()">✕ Limpar filtros</button>`:''}
   </div>
-  <!-- As dietas ficam à vista e não dentro de um painel fechado: escondidas
-       atrás de um resumo, liam-se como uma escolha que ainda não tinha sido
-       feita, quando na verdade são interruptores que se acumulam. Vê-las
-       todas de uma vez é o que mostra que se podem marcar várias. -->
   <div class="row" style="margin-bottom:10px;align-items:center">
     <span class="lbl" style="margin:0">Dietas — marca as que quiseres ao mesmo tempo ${dica('filtrosCumulativos')}</span>
   </div>
@@ -33000,17 +33321,6 @@ function renderReceitas(){
     </select>
     ${S.members.length&&n!==S.members.length? `<button class="chip" onclick="setPorcoes(${S.members.length})">Repor: a família (${S.members.length})</button>`:''}
   </div>
-  <div class="row" style="margin-bottom:12px">
-    <button class="chip ${S.ui.mealF==='todas'?'on':''}" aria-pressed="${S.ui.mealF==='todas'}" onclick="setMealF('todas')">Todas as refeições</button>
-    ${MEALS.map(([kk,rot])=>`<button class="chip ${S.ui.mealF===kk?'on':''}" aria-pressed="${S.ui.mealF===kk}" onclick="setMealF('${kk}')">${ICO_REF[kk]||''} ${rot}</button>`).join('')}
-    <button class="chip ${S.ui.mealF==='ac'?'on':''}" aria-pressed="${S.ui.mealF==='ac'}" onclick="setMealF('ac')">${ICO_REF.ac} Acompanhamentos</button>
-    <button class="chip ${S.ui.mealF==='mo'?'on':''}" aria-pressed="${S.ui.mealF==='mo'}" onclick="setMealF('mo')"
-      title="Molhos, marinadas e manteigas compostas — o que se junta a um prato já feito">${ICO_REF.mo} Molhos</button>
-    <button class="chip ${S.ui.mealF==='ma'?'on':''}" aria-pressed="${S.ui.mealF==='ma'}" onclick="setMealF('ma')"
-      title="Massas de base: a quebrada, a folhada, a filo, a de tarte e a base de bolacha — o que fica por baixo de uma empada, de uma quiche ou de uma tarte">${ICO_REF.ma} Massas de base</button>
-    <button class="chip ${S.ui.soEpoca?'on':''}" onclick="toggleEpoca()" aria-pressed="${!!S.ui.soEpoca}"
-      title="Receitas com pelo menos um ingrediente na época em Portugal, este mês">🌱 Da época agora</button>
-  </div>
   ${S.members.filter(m=>faseDe(m)!=='bebe').length? (function(){
     const f=favFiltro(), quem=S.members.filter(m=>faseDe(m)!=='bebe');
     const nTodas=RECIPES.filter(r=>nFavoritos(r.id)>0).length;
@@ -33029,6 +33339,7 @@ function renderReceitas(){
     ${CATEG_K.map(k=>`<button class="chip ${S.ui.catF===k?'on':''}" onclick="setCatF('${k}')"
       aria-pressed="${S.ui.catF===k}">${CATEG[k].i} ${CATEG[k].n}</button>`).join('')}
   </div>
+    </div></details>
   ${list.length? `<div class="grid g3" id="rec-grelha">${mostradas.map(r=>recipeCard(r,n)).join('')}</div>
       ${list.length>mostradas.length? `<div class="row" style="justify-content:center;margin-top:16px">
         <button class="btn ghost" onclick="maisReceitas()">Mostrar mais ${Math.min(LOTE_RECEITAS,list.length-mostradas.length)}
@@ -34654,6 +34965,7 @@ function criarObjetivo(){
      cria um objetivo para o Bruno costuma criar logo outro para a Ana com a
      mesma estratégia. Faltavam aqui os campos novos, e o formulário reaparecia
      com «undefined treinos» — um objeto reposto tem de o ser por inteiro. */
+  S.ui.objPasso=0;   /* o próximo objetivo começa no primeiro passo */
   S.ui.objForm={membros:[], tipo:'perder', delta:5, semanas:12, split:50,
     desportos:f.desportos.slice(), dieta:f.dieta, sessoes:f.sessoes, agendar:f.agendar, nivel:f.nivel,
     blocos:limparBlocos(f.blocos),
@@ -35269,8 +35581,19 @@ function formCriacaoHtml(){
   if(!elegiveis.length) return `<div class="card"><p class="sub">Ainda não há membros elegíveis para objetivos de peso —
     bebés acompanham-se pelo percentil, no separador Nutrição, e gestações de trigémeos não têm alvo calórico estimado.</p></div>`;
   const podePerder = f.membros.some(mid=>{ const m=S.members.find(x=>x.id===mid); return m&&permiteDefice(m); });
-  return `<div class="card">
+  /* ---- Criar um objetivo, em três passos ----
+     O formulário tinha perto de dois ecrãs e meio de uma vez: quem, quanto,
+     dieta, jejum, manutenção, estratégia, desporto, semana de treinos e o
+     resumo. Passa a três passos — quem e quanto, como se come, como se
+     mexe — com o resumo e o botão de criar no último. Os campos são os
+     mesmos e guardam-se ao passar de um para outro. */
+  const passo=clampNum(parseInt(S.ui.objPasso,10)||0,0,2);
+  const NOMES=['Quem e quanto','Alimentação e jejum',f.tipo==='perder'? 'Exercício e resumo' : 'Resumo'];
+  return `<div class="card obj-form" data-passo="${passo}">
     <h2>Criar objetivo ${dica('objCriar')}</h2>
+    <ol class="obj-passos">${NOMES.map((t,i)=>`<li class="${i===passo?'on':i<passo?'feito':''}">
+      <button onclick="setObjPasso(${i})" ${i===passo?'aria-current="step"':''}>${i+1}. ${t}</button></li>`).join('')}</ol>
+    <div class="obj-passo" data-p="0">
     <div class="splabel" style="margin-top:8px"><span>Para quem</span></div>
     <div class="row">${elegiveis.map(m=>`<button class="chip ${f.membros.includes(m.id)?'on':''}" onclick="toggleObjMembro('${m.id}')">${avatar(m,20)} ${esc(m.nome.split(' ')[0])}</button>`).join('')}</div>
 
@@ -35299,9 +35622,11 @@ function formCriacaoHtml(){
           aria-label="Margem de tolerância em percentagem" oninput="slideObjForm('banda',this)" onchange="saveMeta()"></div>
     </div>`}
 
+    </div><div class="obj-passo" data-p="1">
     ${blocoDietaObjetivo(f)}
     ${blocoJejumObjetivo(f)}
     ${blocoManutencaoForm()}
+    </div><div class="obj-passo" data-p="2">
     ${f.tipo==='perder'? `
 
     <div class="splabel" style="margin-top:14px"><span>Estratégia mista ${dica('objEstrategia')}</span>
@@ -35332,7 +35657,17 @@ function formCriacaoHtml(){
 
     <div id="obj-preview" style="margin-top:14px">${gerarPreviewHtml()}</div>
     <button class="btn" style="margin-top:12px" onclick="criarObjetivo()">Criar objetivo${f.membros.length>1?'s':''}</button>
+    </div>
+    <div class="row obj-nav" style="margin-top:14px;justify-content:space-between">
+      ${passo>0? `<button class="btn ghost" onclick="setObjPasso(${passo-1})">Voltar</button>` : '<span></span>'}
+      ${passo<2? `<button class="btn" onclick="setObjPasso(${passo+1})">Seguinte</button>` : ''}
+    </div>
   </div>`;
+}
+function setObjPasso(p){
+  const f=S.ui.objForm||{};
+  if(p>0 && !(f.membros||[]).length){ S.ui.objPasso=0; saveMeta(); render(); return flash('warn','Escolhe primeiro para quem é o objetivo.'); }
+  S.ui.objPasso=clampNum(p,0,2); saveMeta(); render();
 }
 function renderObjetivos(){
   if(!S.members.length) return noMembers();
@@ -35362,12 +35697,13 @@ function renderObjetivos(){
             <span class="sub" style="display:block">O progresso do anel sai da balança: sem pesagem nova, o que se vê é o de sempre.</span></div>
           <button class="btn small" style="flex:none" onclick="abrirPesagens()">⚖ Registar pesagem</button>
         </div></div>`:'')
-    + formCriacaoHtml()
-    + `<div class="secgap"><h2>Objetivos ativos</h2>`
-    + (ativos.length? `<div class="grid g2" style="margin-top:10px">${ativos.map(cartaoObjetivo).join('')}</div>`
-       : estadoVazio('alvo','Nenhum objetivo a decorrer',
-           'Um objetivo transforma «queria perder uns quilos» num plano com prazo: a app calcula o défice diário, reparte-o entre dieta e exercício, e mostra o progresso num anel.',''))
-    + `</div>`
+    /* Os objetivos a decorrer vêm primeiro: é para os acompanhar que se abre
+       este separador quase sempre. O formulário de criar fica por baixo e,
+       havendo já objetivos, recolhido — abre-se quando se quer outro. */
+    + (ativos.length? `<h2>Objetivos ativos</h2><div class="grid g2" style="margin-top:10px">${ativos.map(cartaoObjetivo).join('')}</div>
+        <details class="criar-obj secgap" ${S.ui.criarObjAberto?'open':''} ontoggle="S.ui.criarObjAberto=this.open;saveMeta()">
+          <summary class="btn">＋ Criar outro objetivo</summary>${formCriacaoHtml()}</details>`
+       : formCriacaoHtml())
     + (concluidos.length? `<div class="secgap"><h2>Conquistas</h2>
         <div class="grid g2" style="margin-top:10px">${concluidos.map(cartaoConquista).join('')}</div></div>` : '');
 }
@@ -36637,23 +36973,105 @@ function mealBlock(di,mk,label,date){
       <option value="">— escolher receita —</option>
       ${r? `<option value="${r.id}" selected>${esc(r.n)} · ${r.k} kcal</option>`:''}
     </select>
-    ${r&&(mk==='a'||mk==='j')? blocoAcomp(di,mk,acs,label) : ''}
-    ${r&&(mk==='a'||mk==='j'||ehSobremesa(r))? blocoMolho(di,mk,molhoDe(meal),label,r) : ''}
-    ${r&&levaMassa(r)? blocoMassa(di,mk,massaDe(meal),label) : ''}
-    ${r? blocoReceitaPlaneada(r,comem,mk,acs,nExtraMesa(meal),molhoDe(meal),di,massaDe(meal)) : ''}
-    <div class="row" style="margin-top:7px">${members.map(m=>{
-      const on=meal? meal.m.includes(m.id) : true, cheat=isCheat(m.id,date);
-      return `<button class="chip ${on&&!cheat?'on':''}" ${cheat?'style="opacity:.45" title="Cheat day"':''}
-        onclick="toggleEater(${di},'${mk}','${m.id}')">${avatar(m,20)} ${esc(m.nome.split(' ')[0])}${cheat?' 🎉':''}</button>`;}).join('')}
-    </div>
-    ${r? blocoConvidados(di,mk,meal) : ''}
-    ${r? blocoPorcoes(di,mk,meal,r) : ''}
-    ${r&&(mk==='a'||mk==='j')? blocoMarmita(di,mk,meal,comem) : ''}
-    ${r? `<div class="row" style="margin-top:8px">
-      <button class="btn ghost small" onclick="cozinharRefeicao(${di},'${mk}','${date}')">👨‍🍳 Cozinhar</button>
-      ${date<=hojeISO()? `<button class="btn ghost small" onclick="abrirFolhaMesa('${date}','${mk}')">✓ Quem comeu</button>`:''}
-    </div>`:''}
+    ${r? blocoReceitaPlaneada(r,comem,mk,acs,nExtraMesa(meal),molhoDe(meal),di,massaDe(meal)) : sugestoesRapidas(di,mk,date)}
+    ${r? (function(){
+      /* ---- A refeição compacta ----
+         Cada refeição mostrava quinze controlos de uma vez: acompanhamento,
+         molho, quem come, convidados, porções, marmita. Só se mexe neles
+         quando já há um prato escolhido, e raramente; ficam atrás de
+         «Opções», e o que não está no valor por omissão diz-se numa linha. */
+      const aberta=S.ui.mealMais===di+'|'+mk;
+      const res=resumoOpcoesRefeicao(meal,comem,date,di,mk);
+      return `<div class="row meal-acoes">
+        <button class="btn ghost small" onclick="cozinharRefeicao(${di},'${mk}','${date}')">👨‍🍳 Cozinhar</button>
+        ${date<=hojeISO()? `<button class="btn ghost small" onclick="abrirFolhaMesa('${date}','${mk}')">✓ Quem comeu</button>`:''}
+        <button class="btn ghost small" aria-expanded="${aberta}" aria-controls="opc-${di}-${mk}"
+          onclick="alternaOpcoesRefeicao(${di},'${mk}')">${aberta? 'Fechar opções' : 'Opções'}</button>
+      </div>
+      ${!aberta&&res? `<p class="sub meal-resumo">${res}</p>`:''}
+      ${aberta? `<div class="meal-opcoes" id="opc-${di}-${mk}">
+        ${mk==='a'||mk==='j'? blocoAcomp(di,mk,acs,label) : ''}
+        ${mk==='a'||mk==='j'||ehSobremesa(r)? blocoMolho(di,mk,molhoDe(meal),label,r) : ''}
+        ${levaMassa(r)? blocoMassa(di,mk,massaDe(meal),label) : ''}
+        <div class="lbl" style="margin-top:8px">Quem come</div>
+        <div class="row" style="margin-top:4px">${members.map(m=>{
+          const on=meal.m.includes(m.id), cheat=isCheat(m.id,date);
+          return `<button class="chip ${on&&!cheat?'on':''}" ${cheat?'style="opacity:.45" title="Cheat day"':''}
+            onclick="toggleEater(${di},'${mk}','${m.id}')">${avatar(m,20)} ${esc(m.nome.split(' ')[0])}${cheat?' 🎉':''}</button>`;}).join('')}
+        </div>
+        ${blocoConvidados(di,mk,meal)}
+        ${blocoPorcoes(di,mk,meal,r)}
+        ${mk==='a'||mk==='j'? blocoMarmita(di,mk,meal,comem) : ''}
+      </div>`:''}`;
+    })() : ''}
   </div>`;
+}
+/* As mesmas regras do preenchimento automático — dieta e vetos nunca cedem,
+   o teto, a cozinha e a época cedem por esta ordem —, mas sem sorteio: três
+   sugestões estáveis, para não mudarem a cada toque noutra parte do ecrã.
+   Fica em memória durante um desenho, porque a semana vazia pede 28 vezes. */
+var _sugRap={};   /* var: esquecePendencias() corre no arranque, antes desta linha */
+function sugestoesParaRefeicao(di,mk,date,n){
+  const meal=(planWeek()[di]||{})[mk];
+  const eaters=S.members.filter(m=>(meal&&Array.isArray(meal.m)? meal.m.includes(m.id) : true) && !isCheat(m.id,date));
+  if(!eaters.length) return [];
+  const usadas=new Set(); Object.values(planWeek()).forEach(d=>MEALK.forEach(k=>d&&d[k]&&d[k].r&&usadas.add(d[k].r)));
+  const chave=mk+'|'+eaters.map(m=>m.id).join(',')+'|'+S.prefCuisine+'|'+usadas.size;
+  if(!_sugRap[chave]){
+    const doTipo=receitasDe(mk);
+    const seguras=doTipo.filter(r=>avaliaReceita(r,eaters,mk,false).ok);
+    const cabem=seguras.filter(r=>avaliaReceita(r,eaters,mk,true).ok);
+    const daCoz=a=>a.filter(r=>S.prefCuisine==='todas'||r.coz===S.prefCuisine);
+    let pool=daCoz(cabem); if(!pool.length) pool=cabem; if(!pool.length) pool=daCoz(seguras); if(!pool.length) pool=seguras;
+    if(querSazonal()){ const ep=pool.filter(receitaDaEpoca); if(ep.length) pool=ep; }
+    if(eaters.some(m=>faseDe(m)!=='adulto'||gravida(m))){ const sp=pool.filter(r=>!eaters.some(m=>perigosIdade(r,m).length)); if(sp.length) pool=sp; }
+    const frescas=pool.filter(r=>!usadas.has(r.id)); if(frescas.length) pool=frescas;
+    _sugRap[chave]=pool.map(r=>({r, p:pesoGenero(r,mk)*fatorCompasso(r.id)+saldoGostos(r.id,eaters)*0.3+pctDespensa(r)*0.5}))
+      .sort((a,b)=>b.p-a.p || a.r.n.localeCompare(b.r.n,'pt')).slice(0,12).map(x=>x.r);
+  }
+  /* roda pelo dia, para segunda e terça não sugerirem os mesmos três */
+  const l=_sugRap[chave]; if(l.length<=n) return l;
+  const o=(di*n)%l.length; return l.slice(o).concat(l.slice(0,o)).slice(0,n);
+}
+/* ---- As marcas do dia ----
+   Três filas de pessoas em cada dia — dia livre, recuperação, jejum — para
+   coisas que se marcam umas poucas vezes por mês. Ficam atrás do «⋯» do dia;
+   o que está marcado continua à vista, numa linha, e abre-as com um toque. */
+function alternaMarcasDia(date){ S.ui.diaMarcas = S.ui.diaMarcas===date? null : date; saveMeta(); render(); }
+function resumoMarcasDia(date){
+  const p=[], nome=m=>esc(m.nome.split(' ')[0]);
+  const liv=S.members.filter(m=>isCheat(m.id,date)); if(liv.length) p.push('🎉 dia livre: '+listaPT(liv.map(nome)));
+  const rec=S.members.filter(m=>isRecuperacao(m.id,date)); if(rec.length) p.push('🛌 recuperação: '+listaPT(rec.map(nome)));
+  const jej=S.members.filter(m=>emJejumPontual(m.id,date)); if(jej.length) p.push('⏳ jejum: '+listaPT(jej.map(nome)));
+  if(!p.length) return '';
+  return `<button class="dia-marcas-resumo" onclick="alternaMarcasDia('${date}')">${p.join(' · ')}</button>`;
+}
+function alternaOpcoesRefeicao(di,mk){ const k=di+'|'+mk;
+  S.ui.mealMais = S.ui.mealMais===k? null : k; saveMeta(); render(); }
+/* O que está fora do valor por omissão, dito numa linha: quem não come,
+   convidados, porções, marmita e acompanhamento. O resto não se anuncia. */
+function resumoOpcoesRefeicao(meal,comem,date,di,mk){
+  const p=[];
+  const fora=S.members.filter(m=>!meal.m.includes(m.id) && !isCheat(m.id,date));
+  if(fora.length) p.push('sem '+listaPT(fora.map(m=>esc(m.nome.split(' ')[0]))));
+  const n=nConvidados(meal); if(n) p.push('+'+plural(n,'convidado','convidados'));
+  const vis=visitasDe(meal).length; if(vis) p.push('+'+plural(vis,'visita','visitas'));
+  const f=fatorDobro(meal); if(f>1) p.push('cozinha-se '+f+'×');
+  if(ehAquecer(di,mk)) p.push('♻ aquece');
+  const mar=acIdsMarmita(meal); if(mar.length) p.push('marmita: '+listaPT(S.members.filter(m=>mar.indexOf(m.id)>=0).map(m=>esc(m.nome.split(' ')[0]))));
+  if((mk==='a'||mk==='j') && !acIds(meal).length && !moId(meal)) p.push('<span class="convite">sem acompanhamento</span>');
+  return p.join(' · ');
+}
+/* ---- Criação rápida numa refeição vazia ----
+   Três sugestões para esta mesa, a esta refeição, à distância de um toque —
+   as mesmas que o preenchimento automático escolheria. O seletor de cima
+   continua a dar acesso a todas. */
+function sugestoesRapidas(di,mk,date){
+  if(!S.members.length) return '';
+  const lista=sugestoesParaRefeicao(di,mk,date,3);
+  if(!lista.length) return '';
+  return `<div class="sug-rapidas" aria-label="Sugestões para esta refeição">${lista.map(r=>
+    `<button class="chip" onclick="setMeal(${di},'${mk}','${r.id}')" title="${esc(r.n)} · ${r.k} kcal">${esc(r.n)}</button>`).join('')}</div>`;
 }
 /* Convidados: mais dois à mesa sem criar perfis. As doses, os acompanhamentos
    e a lista de compras escalam já; as alergias entram no filtro só desta
@@ -37157,12 +37575,15 @@ function cartaoPrefsCozinha(){
         🔪 Preparar de véspera</button>
       <button class="chip ${p.cartaoEpoca!==false?'on':''}" onclick="setCozPref('cartaoEpoca',${p.cartaoEpoca===false})" aria-pressed="${p.cartaoEpoca!==false}">
         📅 Cartão de receita da época</button>
+      <button class="chip ${p.assumir?'on':''}" onclick="setCozPref('assumir',${!p.assumir})" aria-pressed="${!!p.assumir}">
+        ✓ Assumir que o plano se cumpriu</button>
     </div>
     <p class="sub" style="margin-top:8px">${[
       p.repetir? 'O preenchimento automático repete pratos em vez de os evitar.' : 'Cada refeição da semana leva um prato diferente.',
       p.dobro? 'Quando um prato se repete, a primeira vez cozinha a dobrar e a segunda só aquece — e a lista de compras conta uma vez só.' : '',
       p.sazonal? 'As sugestões preferem receitas com ingredientes na época; se nenhuma servir, cede em vez de deixar o dia vazio.' : '',
       p.prep!==false? 'Receitas que aproveitam uma preparação já planeada ganham vantagem nas sugestões.' : '',
+      p.assumir? 'O que estava no plano de um dia que já acabou conta como feito; só se corrige o que não aconteceu.' : '',
       estacaoQuente()? 'Estamos no verão: os pratos frios ganham peso ao almoço.' : 'Fora do verão, os pratos quentes ganham peso.'
     ].filter(Boolean).join(' ')}</p>
     ${dobros||aquece? `<div class="row" style="margin-top:8px">
@@ -37329,34 +37750,31 @@ function usarComoBase(){
 function renderPlano(){
   if(!S.members.length) return noMembers();
   const dates=weekDates(S.week);
-  return `<div class="row" style="justify-content:space-between;margin-bottom:14px">
-    <div><h2>Plano de refeições</h2><span class="sub">${fmtShort(dates[0])} — ${fmtShort(dates[6])}</span></div>
-    <div class="row">
-      <button class="btn ghost small" onclick="shiftWeek(-1)">← Semana anterior</button>
-      <button class="btn ghost small" onclick="shiftWeek(1)">Semana seguinte →</button>
-      <select style="width:auto" aria-label="Cozinha preferida no preenchimento automático" onchange="S.prefCuisine=this.value;save()">
-        <option value="todas">Auto: todas as cozinhas</option>
-        ${Object.entries(CUIS).map(([k,v])=>`<option value="${k}" ${S.prefCuisine===k?'selected':''}>Auto: ${v}</option>`).join('')}</select>
-      <button class="btn small" onclick="autoFill()">✨ Preencher automaticamente</button>${dica('auto')}
-      <button class="btn ghost small" onclick="imprimirFrigorifico()">🧲 Pôr no frigorífico ${dica('frigorifico')}</button>
-      <button class="btn danger small" onclick="clearWeek()">Limpar</button>
+  _sugRap={};
+  /* ---- A semana primeiro ----
+     A grelha dos sete dias começava dezanove ecrãs abaixo do topo, no
+     telemóvel, por baixo de onze cartões de ferramentas. É ela o que se vem
+     cá fazer; as ferramentas da semana passam para o resumo recolhido no
+     fim, e as ações raras para o menu «⋯». Nada saiu: mudou de andar. */
+  return `<div class="pl-topo">
+    <div class="pl-nav">
+      <button class="btn ghost small icone" onclick="shiftWeek(-1)" aria-label="Semana anterior" title="Semana anterior">‹</button>
+      <button class="btn ghost small" onclick="voltarASemanaAtual()">Hoje</button>
+      <button class="btn ghost small icone" onclick="shiftWeek(1)" aria-label="Semana seguinte" title="Semana seguinte">›</button>
+      <h2 class="pl-titulo">${fmtShort(dates[0])} – ${fmtShort(dates[6])}</h2>
+    </div>
+    <div class="pl-acoes">
+      <button class="btn small" onclick="autoFill()">✨ Preencher</button>${dica('auto')}
+      ${menuPop('Mais ações da semana',`
+        <label class="lbl" for="pl-coz">Cozinha no preenchimento</label>
+        <select id="pl-coz" aria-label="Cozinha preferida no preenchimento automático" onchange="S.prefCuisine=this.value;save()">
+          <option value="todas">Todas as cozinhas</option>
+          ${Object.entries(CUIS).map(([k,v])=>`<option value="${k}" ${S.prefCuisine===k?'selected':''}>${v}</option>`).join('')}</select>
+        <button class="menu-item" onclick="imprimirFrigorifico()" title="Uma folha A4 com a semana toda, para a porta do frigorífico">🧲 Pôr no frigorífico</button>
+        <button class="menu-item" onclick="irResumoSemana()">📋 Resumo e ferramentas da semana</button>
+        <button class="menu-item perigo" onclick="clearWeek()">Limpar a semana</button>`)}
     </div></div>
   ${faixaSemanaFora(dates)}
-  <p class="sub" style="margin-bottom:14px">🎉 <b>Cheat days</b> ${dica('cheat')} clica no nome de um membro na linha «Cheat day» para marcar um dia livre (aniversários, festas…) — esse membro sai das contas e da lista de compras nesse dia.
-    🍚 <b>Acompanhamentos</b> ${dica('acompanhamento')} ao almoço e ao jantar, por baixo do prato, há uma linha tracejada para escolher o que vai ao lado — o 🔀 troca-o por outro, e podes juntar até ${MAX_AC} a repartir a mesma dose.</p>
-  ${cartaoPrefsCozinha()}
-  ${cartaoEpocaSugestao()}
-  ${cartaoFoodPrep()}
-  ${cartaoLote()}
-  ${cartaoPartilhaRef()}
-  ${cartaoSugestoes()}
-  ${cartaoFestaGastronomica()}
-  ${cartaoAniversario()}
-  ${cartaoRituais()}
-  ${cartaoDiscordia()}
-  ${cartaoAlbum()}
-  ${cartaoEquilibrio(dates)}
-  ${cartaoSemana(dates)}
   ${reguaDias(dates)}
   <div class="grid gdias">
   ${dates.map((date,di)=>{
@@ -37372,9 +37790,11 @@ function renderPlano(){
       <div class="dhead"><b>${DAYN[di]}</b><span class="sub">${fmtShort(date)}</span>
         <span style="margin-left:auto;display:inline-flex;align-items:center">${pontos}</span>
         ${alertas.length? `<button class="pill bad dia-alerta" onclick="scrollSuave(document.getElementById('meal-${di}-${alertas[0]}'),'center')">🚨 ${alertas.length===1?'1 alerta':alertas.length+' alertas'}</button>`:''}
-        ${anyCheat?'<span class="pill" style="background:var(--livre-soft);color:var(--livre)">🎉</span>':''}</div>
-      <div class="meal" style="background:var(--bg)">
-        <div class="mtitle" style="color:var(--livre)">Cheat day</div>
+        ${anyCheat?'<span class="pill" style="background:var(--livre-soft);color:var(--livre)">🎉</span>':''}
+        <button class="dia-marcas-btn" aria-expanded="${S.ui.diaMarcas===date}" onclick="alternaMarcasDia('${date}')"
+          aria-label="Marcas de ${DAYN[di].toLowerCase()}: dia livre, recuperação, jejum" title="Dia livre, recuperação, jejum">⋯</button></div>
+      ${S.ui.diaMarcas!==date? resumoMarcasDia(date) : `<div class="meal" style="background:var(--bg)">
+        <div class="mtitle" style="color:var(--livre)">Cheat day ${dica('cheat')}</div>
         <div class="row">${S.members.map(m=>`<button class="chip livre ${isCheat(m.id,date)?'on':''}"
           onclick="toggleCheat('${m.id}','${date}')">${avatar(m,20)} ${esc(m.nome.split(' ')[0])}</button>`).join('')}</div>
         <div class="mtitle" style="color:var(--mut);margin-top:8px">Dia de recuperação</div>
@@ -37384,11 +37804,49 @@ function renderPlano(){
         <div class="row">${S.members.filter(m=>faseDe(m)!=='bebe').map(m=>{ const nao=jejumDesaconselhado(m), on=emJejumPontual(m.id,date);
           return `<button class="chip ${on?'on':''}" ${nao&&!on?'disabled':''} aria-pressed="${on}" onclick="toggleJejumDia('${m.id}','${date}')"
             title="${nao&&!on? esc(nao.split('.')[0]) : on? 'Dia de jejum — toca para o desmarcar' : 'Um dia de 24 horas sem comer, das 0h às 24h. Não precisa do jejum intermitente.'}">${avatar(m,20)} ${esc(m.nome.split(' ')[0])}</button>`; }).join('')}</div>
-      </div>
+      </div>`}
       ${MEALS.map(([k,rot])=>mealBlock(di,k,rot,date)).join('')}
     </div>`;}).join('')}
-  </div>`;
+  </div>
+  <details class="resumo-semana" id="resumo-semana" ${S.ui.resumoAberto?'open':''}
+    ontoggle="S.ui.resumoAberto=this.open;saveMeta()">
+    <summary>Resumo e ferramentas da semana</summary>
+    ${cartaoSemana(dates)}
+    ${cartaoEquilibrio(dates)}
+    ${cartaoSugestoes()}
+    ${cartaoFoodPrep()}
+    ${cartaoLote()}
+    ${cartaoPrefsCozinha()}
+    ${cartaoEpocaSugestao()}
+    ${cartaoPartilhaRef()}
+    ${cartaoFestaGastronomica()}
+    ${cartaoAniversario()}
+    ${cartaoRituais()}
+    ${cartaoDiscordia()}
+    ${cartaoAlbum()}
+  </details>`;
 }
+/* Um menu de ações raras atrás de um «⋯»: abre por cima, fecha ao escolher
+   ou ao tocar fora. É um <details> para funcionar sem JavaScript de estado. */
+function menuPop(rotulo,html){
+  return `<details class="menu-pop" ontoggle="ajustaMenuPop(this)"><summary aria-label="${esc(rotulo)}" title="${esc(rotulo)}">⋯</summary>
+    <div class="menu-pop-corpo" onclick="if(event.target.closest('button'))this.parentElement.open=false">${html}</div></details>`;
+}
+document.addEventListener('click',e=>{
+  document.querySelectorAll('details.menu-pop[open]').forEach(d=>{ if(!d.contains(e.target)) d.open=false; });
+});
+/* O menu abre alinhado à direita do «⋯»; quando o «⋯» está do lado esquerdo
+   de um ecrã estreito, isso punha metade do menu fora do ecrã. Mede-se ao abrir
+   e encosta-se para dentro. */
+function ajustaMenuPop(d){
+  const c=d.querySelector(".menu-pop-corpo"); if(!c) return;
+  c.style.right=""; if(!d.open) return;
+  const r=c.getBoundingClientRect(), cw=document.documentElement.clientWidth, m=8;
+  if(r.left<m) c.style.right=(r.left-m)+"px";
+  else if(r.right>cw-m) c.style.right=(r.right-(cw-m))+"px";
+}
+function irResumoSemana(){ S.ui.resumoAberto=true; saveMeta(); render();
+  setTimeout(()=>{ const el=document.getElementById('resumo-semana'); if(el) scrollSuave(el); },0); }
 
 /* ================= COMPRAS ================= */
 /* Os grupos da lista: as secções de supermercado mais um grupo próprio para
@@ -37849,8 +38307,14 @@ function abrirTodasDespensa(abrir){
     d.open=!!abrir; c[d.dataset.cat]=!!abrir; });
   saveMeta();
 }
+/* ---- Só o que há em casa ----
+   A despensa listava os 778 ingredientes do catálogo para dizer que oito
+   estão em casa. Por omissão mostra esses oito; o catálogo inteiro abre a
+   pedido, e procurar procura sempre nele todo — é assim que se junta. */
+function toggleCatalogoDespensa(){ S.ui.despCatalogo=!S.ui.despCatalogo; saveMeta(); render(); }
 function filtrarDespensa(el){
   const q=(el.value||'').toLowerCase().trim();
+  const lst=document.getElementById('despensa-lista'); if(lst) lst.classList.toggle('procura',!!q);
   document.querySelectorAll('#despensa-lista li').forEach(li=>{
     li.style.display = !q || li.textContent.toLowerCase().indexOf(q)>=0 ? '' : 'none';
   });
@@ -37935,16 +38399,33 @@ function listasPendentes(){
   } finally{ S.week=guarda; }
   return out;
 }
-function talvezPerguntarCompras(){
-  /* No modo supermercado não se pergunta nada: essa pessoa está de pé num
-     corredor, com o carrinho numa mão e o telemóvel na outra. A pergunta
-     sobre a lista da semana passada espera pela cozinha. */
-  if(jaPerguntouCompras || modalAberto() || tourAtivo() || S.ui.mercado) return;
-  jaPerguntouCompras=true;
-  const listas=listasPendentes();
-  if(!listas.length) return;
-  const l=listas[0];
+function abrirComprasPorConfirmar(){
+  const l=listasPendentes()[0]; if(!l) return;
   abrirModal('compras',{wk:l.wk, marcados:l.itens.reduce((o,it)=>{ o[it.n+'|'+it.u]=true; return o; },{})});
+}
+function abrirPesagensMarcadas(){
+  const marcadas=pesagensPorResponder(); if(!marcadas.length) return abrirPesagens();
+  const dia=marcadas[marcadas.length-1].d;
+  abrirModal('peso',{mids:[...new Set(marcadas.filter(p=>p.d===dia).map(p=>p.mid))], d:dia, marcada:true, vals:{}});
+}
+/* O cartão «Para tratar»: o que antes saltava em janelas, agora em linhas.
+   Só aparece quando há alguma coisa, e cada linha diz quanto e abre o sítio
+   certo. */
+function cartaoParaTratar(){
+  if(!S.members.length) return '';
+  const l=[];
+  const marc=pesagensPorResponder();
+  if(marc.length) l.push(['⚖', marc.length===1? 'Uma pesagem marcada por registar' : marc.length+' pesagens marcadas por registar','Registar','abrirPesagensMarcadas()']);
+  const fila=filaDaBandeja();
+  if(fila.length) l.push(['☑', plural(fila.length,'coisa por confirmar','coisas por confirmar')+' (refeições, treinos, pesagens)','Rever','abrirBandeja()']);
+  const listas=listasPendentes();
+  if(listas.length) l.push(['🛒', 'Compras da semana de '+fmtShort(listas[0].wk)+' por confirmar','Confirmar','abrirComprasPorConfirmar()']);
+  if(!l.length) return '';
+  return `<section class="card para-tratar" aria-labelledby="pt-t">
+    <h2 id="pt-t">Para tratar <span class="pill">${l.length}</span></h2>
+    ${l.map(([i,t,b,fn])=>`<div class="pt-linha"><span class="pt-ico" aria-hidden="true">${i}</span><span class="pt-txt">${esc(t)}</span>
+      <button class="btn small" onclick="${fn}">${b}</button></div>`).join('')}
+  </section>`;
 }
 function toggleCompraConf(chave){
   const mo=modalAberto(); if(!mo) return;
@@ -38133,12 +38614,14 @@ function renderDespensa(){
     <div><h2>A minha despensa ${dica('despensa')}</h2>
       <span class="sub">${tem} de ${catalogo.length} itens marcados como disponíveis</span></div>
     <div class="row">
-      <button class="chip ${S.ui.precos?'on':''}" onclick="togglePrecos()" aria-pressed="${!!S.ui.precos}">💶 Preços</button>
-      <button class="chip ${S.ui.validades?'on':''}" onclick="toggleValidades()" aria-pressed="${!!S.ui.validades}">📅 Validades</button>
-      <button class="chip ${S.ui.verBase?'on':''}" onclick="toggleVerBase()" aria-pressed="${!!S.ui.verBase}">🧂 Base da casa</button>
-      <button class="btn ghost small" onclick="marcarTodaDespensa()">Marcar tudo</button>
-      <button class="btn small" onclick="agendarSupermercado()" title="Marca a ida às compras no Calendário, já com o que falta na nota">🛒 Agendar ida ao Supermercado</button>
-      <button class="btn danger small" onclick="limparDespensa()">Esvaziar</button>
+      <button class="chip ${S.ui.despCatalogo?'on':''}" onclick="toggleCatalogoDespensa()" aria-pressed="${!!S.ui.despCatalogo}">📚 Catálogo completo</button>
+      ${menuPop('Mais ações da despensa',`
+        <button class="menu-item" onclick="agendarSupermercado()">🛒 Agendar ida ao supermercado</button>
+        <button class="menu-item" onclick="togglePrecos()">${S.ui.precos?'✓ ':''}💶 Preços</button>
+        <button class="menu-item" onclick="toggleValidades()">${S.ui.validades?'✓ ':''}📅 Validades</button>
+        <button class="menu-item" onclick="toggleVerBase()">${S.ui.verBase?'✓ ':''}🧂 Base da casa</button>
+        <button class="menu-item" onclick="marcarTodaDespensa()">Marcar tudo como em casa</button>
+        <button class="menu-item perigo" onclick="limparDespensa()">Esvaziar a despensa</button>`)}
     </div></div>
   ${S.ui.precos? `<div class="card" style="max-width:640px;margin-bottom:12px">
     <h3>Preços do teu talão ${dica('custo')}</h3>
@@ -38165,7 +38648,7 @@ function renderDespensa(){
         return n? '<br>Já marcaste '+plural(n,'básico','básicos')+'.' : ''; })()}</p>
   </div>`:''}
   <div class="row" style="margin:10px 0 14px">
-    <input type="text" placeholder="Procurar ingrediente ou suplemento…" class="busca" aria-label="Procurar na despensa" oninput="filtrarDespensa(this)">
+    <input type="search" placeholder="${S.ui.despCatalogo?'Procurar ingrediente ou suplemento…':'Procurar para juntar à despensa…'}" class="busca" aria-label="Procurar na despensa" oninput="filtrarDespensa(this)">
     <select style="width:auto" aria-label="Ver ingredientes com um alergénio" onchange="setAlergDesp(this.value)"><option value="">🚨 Ver por alergénio…</option>
       ${ALERGENIOS.map(([kk,nome])=>`<option value="${kk}" ${filtro===kk?'selected':''}>só com ${nome.toLowerCase()}</option>`).join('')}</select>
     ${filtro? `<button class="chip" onclick="setAlergDesp('')">✕ ${esc(RESTR[filtro].n)}</button>`:''}
@@ -38179,12 +38662,13 @@ function renderDespensa(){
       <span class="sub" style="margin-left:auto">${plural(grouped.filter(([,idx])=>idx.length).length,'secção','secções')}</span>
     </div>
     <div id="desp-add" class="alerta" style="display:none;max-width:640px;margin-bottom:10px"></div>
-    <div id="despensa-lista">
+    ${!S.ui.despCatalogo&&!tem&&!filtro? `<p class="sub" style="margin:6px 0 10px">A despensa está vazia. Procura acima o que tens em casa para o juntar, ou abre o catálogo completo.</p>`:''}
+    <div id="despensa-lista" class="${S.ui.despCatalogo||filtro? '' : 'so-casa'}">
     ${grouped.filter(([,idx])=>idx.length).map(([cat,idx])=>{
       const naDespensa=idx.filter(i=>S.despensa[catalogo[i]]).length;
       const aberta=despensaAberta(cat,naDespensa);
       return `
-      <details class="cat-sec" ${aberta?'open':''} data-cat="${esc(cat)}" ontoggle="guardaSecaoDespensa(this)">
+      <details class="cat-sec ${naDespensa? '' : 'vazia-casa'}" ${aberta||(!S.ui.despCatalogo&&naDespensa)?'open':''} data-cat="${esc(cat)}" ontoggle="guardaSecaoDespensa(this)">
         <summary class="cat-h ${naDespensa===idx.length?'feita':''}">${icoCat(cat)} ${cat}
           <span class="cat-conta">${naDespensa} de ${idx.length}</span></summary>
       <ul class="shop">${idx.map(i=>{
@@ -39252,6 +39736,14 @@ function cartaoAspeto(){
       estiverem a usar, e muda sozinho ao anoitecer se o aparelho o fizer.
       <b>Contraste</b> leva todos os textos a 7:1, engrossa o traço dos ícones e faz as linhas dos gráficos
       distinguirem-se por padrão, não só por cor.</p>
+    <div class="splabel" style="margin-top:14px"><span>Estilo</span></div>
+    <div class="row">
+      <button class="chip ${S.ui.estilo!=='caderno'?'on':''}" aria-pressed="${S.ui.estilo!=='caderno'}" onclick="setEstilo('suave')">Suave</button>
+      <button class="chip ${S.ui.estilo==='caderno'?'on':''}" aria-pressed="${S.ui.estilo==='caderno'}" onclick="setEstilo('caderno')">Caderno</button>
+    </div>
+    <p class="sub" style="margin-top:6px">${S.ui.estilo==='caderno'
+      ? 'O caderno de família: títulos em serifa, cartões com contorno e a aura das cores da casa no cabeçalho.'
+      : 'Superfícies de cor suave em vez de contornos e a mesma letra em todo o lado. O caderno de família, com serifa e contornos, continua a um toque.'}</p>
     <div class="splabel" style="margin-top:14px"><span>Densidade ${dica('densidade')}</span></div>
     <div class="row">
       <button class="chip ${S.ui.densidade!=='cerrado'?'on':''}" onclick="setDensidade('folgado')">Folgado</button>
@@ -39636,8 +40128,36 @@ function calPistas(lista){
     e.nPistas=Math.max(e.nPistas,e.pista+1); });
   return fim.length;
 }
+/* ---- A legenda é um filtro ----
+   As oito cores da legenda passam a ser botões: tocar numa esconde ou mostra
+   esse tipo de coisa na grelha. Numa semana cheia, ver só os treinos ou só as
+   refeições é o que torna a grelha legível. Cada tipo tem o nome escrito ao
+   lado da cor, e cada evento o seu título: a cor nunca é a única pista. */
+const CAL_GRUPOS=[['refeicao','refeições','warn'],['cozinhar','cozinhar','energy'],['treino','treinos','ok'],
+  ['pesagem','pesagens','ink'],['jejum','jejuns','bad'],['cheat','cheat days','livre'],
+  ['recuperacao','dias de recuperação','mut'],['casa','compras e blocos da casa','accent']];
+function grupoCal(x){
+  const t=x&&x.tipo;
+  if(!t) return 'cozinhar';
+  if(t==='refeicao') return 'refeicao';
+  if(t==='cozinhar'||t==='prep') return 'cozinhar';
+  if(t==='treino') return 'treino';
+  if(t==='pesagem') return 'pesagem';
+  if(t==='jejum'||t==='pausa') return 'jejum';
+  if(t==='cheat') return 'cheat';
+  if(t==='recuperacao') return 'recuperacao';
+  return 'casa';
+}
+function calOcultos(){ return Array.isArray(S.ui.calOcultar)? S.ui.calOcultar : []; }
+function alternaGrupoCal(g){
+  const o=calOcultos().slice(), i=o.indexOf(g);
+  if(i>=0) o.splice(i,1); else o.push(g);
+  S.ui.calOcultar=o; saveMeta(); render();
+}
 function renderCalendario(){
-  const wk=calSemana(), {ev,fundo,confecao,dias}=eventosDaSemana(wk), hoje=hojeISO();
+  const wk=calSemana(), bruto=eventosDaSemana(wk), hoje=hojeISO();
+  const oc=calOcultos(), ve=x=>oc.indexOf(grupoCal(x))<0;
+  const ev=bruto.ev.filter(ve), fundo=bruto.fundo.filter(ve), confecao=oc.indexOf('cozinhar')>=0? [] : bruto.confecao, dias=bruto.dias;
   const alt=(CAL_H1-CAL_H0)*CAL_PX;
   const pref=calPrefNome();
   const horas=[]; for(let h=CAL_H0;h<CAL_H1;h++) horas.push(h);
@@ -39733,16 +40253,13 @@ function renderCalendario(){
       </div>
     </div>
     <details class="cal-leg" ${modoBarraInferior()? '' : 'open'}>
-      <summary class="sub">O que é cada cor · ${plural(nEv,'coisa marcada','coisas marcadas')}${nFeitos? ', '+nFeitos+' com visto':''}</summary>
+      <summary class="sub">${oc.length? plural(oc.length,'tipo escondido','tipos escondidos')+' · ' : ''}O que é cada cor · ${plural(nEv,'coisa marcada','coisas marcadas')}${nFeitos? ', '+nFeitos+' com visto':''}</summary>
       <div class="row" style="gap:8px;margin-top:6px;flex-wrap:wrap">
-      <span class="sub"><i class="dot" style="background:${calCorDe('warn')}"></i> refeições</span>
-      <span class="sub"><i class="dot" style="background:${calCorDe('energy')}"></i> cozinhar · sombreado até à hora da mesa</span>
-      <span class="sub"><i class="dot" style="background:${calCorDe('ok')}"></i> treinos</span>
-      <span class="sub"><i class="dot" style="background:${calCorDe('ink')}"></i> pesagens</span>
-      <span class="sub"><i class="dot" style="background:${calCorDe('bad')}"></i> jejuns · sombreado mais claro, jejum intermitente</span>
-      <span class="sub"><i class="dot" style="background:${calCorDe('livre')}"></i> cheat days</span>
-      <span class="sub"><i class="dot" style="background:${calCorDe('mut')}"></i> dias de recuperação</span>
-      <span class="sub"><i class="dot" style="background:${calCorDe('accent')}"></i> compras e blocos da casa</span>
+      ${CAL_GRUPOS.map(([g,rot,tok])=>{ const on=oc.indexOf(g)<0;
+        return `<button class="cal-filtro ${on?'on':''}" aria-pressed="${on}" onclick="alternaGrupoCal('${g}')"
+          title="${on?'Esconder':'Mostrar'} ${rot}"><i class="dot" style="background:${calCorDe(tok)}"></i> ${rot}${on?'':' <span class="sub">(escondido)</span>'}</button>`; }).join('')}
+      ${oc.length? `<button class="chip small" onclick="S.ui.calOcultar=[];saveMeta();render()">Mostrar tudo</button>`:''}
+      <span class="sub" style="width:100%">Toca numa cor para a esconder ou mostrar. O cozinhar sombreia até à hora da mesa; o jejum intermitente é o sombreado mais claro.</span>
       </div>
     </details>
     <div class="cal-wrap" id="cal-wrap">
@@ -40376,7 +40893,6 @@ function pesagensPorResponder(){
     .filter(p=>{ const m=S.members.find(x=>x.id===p.mid); return m && faseDe(m)!=='bebe'; });
 }
 function abrirPesagemMarcada(mid,d){
-  jaPerguntouPeso=true;
   const lista=Array.isArray(mid)? mid : [mid];
   const quem=S.members.filter(m=>lista.indexOf(m.id)>=0 && faseDe(m)!=='bebe');
   if(!quem.length) return flash('warn','Esse perfil já não existe.');
@@ -40860,16 +41376,16 @@ const TOUR=[
   {base:1, tab:'familia', sel:'#capa',
    t:'O caderno desta família',
    d:'A app abre pela capa: o nome da casa, um lema se quiseres, o monograma desenhado das iniciais e a data em que o caderno começou. Personaliza-se em «✎ Personalizar» e tudo fica neste dispositivo, como o resto.'},
-  {tab:'familia', sel:'#primeiros', quando:()=>!S.ui.passosFeitos && marcosIniciais().some(x=>!x.ok),
+  {tab:'hoje', sel:'#primeiros', quando:()=>!S.ui.passosFeitos && marcosIniciais().some(x=>!x.ok),
    t:'Primeiros passos',
    d:'Cinco marcos para montar a casa — perfis, alergias, objetivo, plano e despensa. Os vistos aparecem sozinhos quando os dados existem: não é uma lista para riscar à mão. A visita completa fica sempre nas Definições.'},
-  {tab:'familia', sel:'#hoje',
+  {tab:'hoje', sel:'#hoje',
    t:'O dia de hoje, primeiro',
    d:'A app abre a responder à pergunta do dia: o que está planeado para hoje, para quem, e o que falta comprar. Um toque leva ao plano de hoje ou às compras — sem procurar nada.'},
-  {tab:'familia', sel:'#hoje',
+  {tab:'hoje', sel:'#hoje',
    t:'O frigorífico e o congelador',
    d:'O que sobrou fica aqui com o prazo do seu prato — o arroz tem menos folga, a sopa mais. O botão 🧊 manda a sobra para o congelador, onde passa a contar os dias que a tabela de conservação sempre soube; os pratos de ovo não têm esse botão, porque não congelam bem. «Descongelar» devolve-a ao frigorífico com dois dias, que é o que comida descongelada aguenta. Quando um prazo passa, a app pergunta uma vez o que aconteceu ao prato: comeu-se, congelou-se ou foi para o lixo. Só a terceira resposta conta como desperdício, e é ela que alimenta o espelho nas Descobertas.'},
-  {tab:'familia', sel:'#hoje',
+  {tab:'hoje', sel:'#hoje',
    t:'Comer primeiro, e voltar sem culpa',
    d:'Se escreveres validades na despensa, os itens mais perto de acabar sobem para aqui e ganham vantagem nas sugestões de receitas — a app nunca inventa um prazo, limita-se a ordenar o que tu escreveste da embalagem. E quem volta depois de uma semana fora encontra aqui o convite para marcar esse tempo como pausa: a sequência da casa congela em vez de partir, porque uma gripe não apaga dois meses de esforço.'},
   {base:1, tab:'familia', sel:'main .grid.g2 .card',
@@ -40978,7 +41494,7 @@ const TOUR=[
   {base:1, tab:'receitas', sel:'.rc',
    t:'Toca na receita: os passos de preparação',
    d:'Cada receita abre uma ficha com os ingredientes já na quantidade certa para quem vai comer, o que está e o que falta na despensa, e os passos de preparação escritos um a um, com os tempos. Lá dentro há dois botões — acompanhamento e molho — que compõem o prato: o mesmo bife com chimichurri ou com manteiga de alho é outro prato, e as calorias, os ingredientes e os passos refazem-se sozinhos. Daí segue-se para o modo Cozinha, um passo de cada vez em letra grande e com o ecrã impedido de adormecer — para se seguir a receita com as mãos na massa.'},
-  {tab:'receitas', sel:'.filtros', antes:()=>{S.ui.dietaF=S.ui.dietaF||[];},
+  {tab:'receitas', sel:'.filtros-mais', antes:()=>{S.ui.dietaF=S.ui.dietaF||[]; S.ui.filtrosAbertos=true;},
    t:'Dietas e alergénios, ao mesmo tempo',
    d:'Os dois filtros são listas de checks e somam-se em vez de se substituírem: marcar «vegetariana» e «sem glúten» mostra as receitas que são as duas coisas. É quase sempre assim que a pergunta se faz numa casa real — a dieta de um e a alergia de outro à mesma mesa. Além das dietas com macros próprios, há <b>kosher</b> e <b>halal</b>: a app afasta o que é claramente incompatível — porco, marisco, peixe sem barbatanas e escamas, álcool, carne e leite no mesmo prato — e diz com todas as letras que não consegue verificar abate nem certificação, que é o que verdadeiramente determina se um alimento o é. Nenhuma etiqueta de dieta é declarada: todas se verificam pelos ingredientes, pelos números (com um teto por receita de metade da dose diária) e pelo modo de preparação — um peito de frango é low fat, o mesmo frito por imersão não é.'},
   {tab:'receitas', sel:'.rc',
@@ -40993,9 +41509,9 @@ const TOUR=[
   {tab:'receitas', sel:'#btn-nova-receita',
    t:'As tuas receitas, com história',
    d:'Escreve a receita da casa com ingredientes do catálogo: os macros por dose e as etiquetas de dieta aparecem enquanto escreves, e a receita entra na biblioteca como qualquer outra. Também podes copiar uma existente para a pôr a teu gosto. Duas linhas opcionais fazem a diferença toda — «de quem veio» e «a história» — e passam a aparecer coladas na ficha e a abrir o modo Cozinha: repetir um prato deixa de ser repetir um prato e passa a ser manter viva uma pessoa. Com receitas da casa, o botão «📖 Livro da casa» compõe tudo para impressão, com capa, monograma, histórias e índice.'},
-  {tab:'receitas', sel:'.rc .quant', quando:()=>true,
+  {tab:'receitas', sel:'.rc', quando:()=>true,
    t:'Guardar, reaquecer, quente ou frio',
-   d:'Cada receita diz quanto tempo aguenta no frigorífico e como se reaquece — o arroz é o que tem menos folga, as sopas e os cozidos os que têm mais. São prazos genéricos e conservadores para sobras refrigeradas, que não substituem o cheiro nem o bom senso. E cada prato traz o seu género: no verão os frios ganham peso nas sugestões, sobretudo ao almoço.'},
+   d:'A ficha de cada receita, em «Mais sobre esta receita», diz quanto tempo aguenta no frigorífico e como se reaquece — o arroz é o que tem menos folga, as sopas e os cozidos os que têm mais. São prazos genéricos e conservadores para sobras refrigeradas, que não substituem o cheiro nem o bom senso. E cada prato traz o seu género: no verão os frios ganham peso nas sugestões, sobretudo ao almoço.'},
   {base:1, tab:'mercearia', sel:'#despensa-lista', antes:()=>{S.ui.mercVista='despensa';},
    t:'A minha despensa',
    d:'Marca aqui o que tens em casa. A lista vem dos ingredientes das próprias receitas, para os nomes baterem sempre certo — e cada ingrediente mostra os alergénios marcados na família. Comprar um item na lista de compras marca-o aqui automaticamente, e ao entrar a app pergunta se as compras que ficaram por marcar já foram feitas, para validar item a item de uma vez.'},
@@ -41060,7 +41576,7 @@ const TOUR=[
   {tab:'mercearia', sel:'#falta-corpo', antes:()=>{S.ui.mercVista='compras';}, quando:()=>shoppingItems().items.length,
    t:'O que é mesmo para hoje, e onde pesa o talão',
    d:'A lista sabe em que dia cada ingrediente é usado pela primeira vez, e põe à cabeça o que é preciso hoje ou amanhã — é a única parte da lista onde falhar tem consequência física: uma mesa sem jantar. O açafrão de domingo pode esperar pela próxima ida. E quando há preços, as barras mostram onde o dinheiro está mesmo a ir: ver que o salmão e o queijo são metade do talão transforma um número opaco numa decisão.'},
-  {tab:'familia', sel:'#fecho', quando:()=>ehDomingo()&&!(S.diario||[]).some(x=>x.wk===mondayISO(hojeISO())),
+  {tab:'hoje', sel:'#fecho', quando:()=>ehDomingo()&&!(S.diario||[]).some(x=>x.wk===mondayISO(hojeISO())),
    t:'Fechar a semana ao domingo',
    d:'Cinco passos curtos: resolver o que ficou por confirmar, olhar a semana, escolher o jantar especial da próxima, preencher o plano e escrever uma frase no caderno. Fica assinado com o avatar de quem fechou, e as frases ficam no caderno da família.'},
   {tab:'plano', sel:'[data-col="dados-festas"]',
@@ -41075,7 +41591,7 @@ const TOUR=[
   {base:1, tab:'dados', sel:'main .card',
    t:'Cópias de segurança',
    d:'Tudo fica gravado só neste browser, por isso o ficheiro de cópia é a única coisa que sobrevive a limpar o histórico ou trocar de telemóvel. Podes substituir tudo por uma cópia ou juntar duas, para combinar o que duas pessoas preencheram.'},
-  {tab:'familia', sel:'#hoje', quando:()=>mosaicoDoAno(),
+  {tab:'hoje', sel:'#hoje', quando:()=>mosaicoDoAno(),
    t:'O mosaico do ano',
    d:'A sequência da casa é um número; o mosaico é a textura por trás dele. Cada quadrado é um dia dos últimos seis meses: verde se se cumpriu tudo o que estava planeado, amarelo se em parte, vermelho se nada, vazio se não havia nada marcado. As semanas declaradas como pausa aparecem a tracejado e não só noutra cor — vê-se o mês mau, a gripe que congelou a contagem e o padrão que as Descobertas anunciam por palavras.'},
   {tab:'familia', sel:'#btn-pesq',
@@ -41089,13 +41605,13 @@ const TOUR=[
      mais dez notas afugentavam quem a começa. Cada um destes cobre um tema
      inteiro em vez de uma funcionalidade, e todos têm «quando» — quem não
      tem bebé em casa não ouve falar da calculadora de bebés. */
-  {base:1, ord:-1, tab:'familia', sel:'#fio',
+  {base:1, ord:-1, tab:'hoje', sel:'#fio',
    t:'O fio do dia',
    d:'O primeiro cartão da app passou a ser o dia por ordem de relógio: pesagens, refeições, treinos, compras e sobras, tudo numa linha só com a hora à esquerda. Cada item traz o botão que o resolve ali mesmo — e no telemóvel deslizar a linha para a direita faz o mesmo que carregar no botão. Por baixo, o <b>balcão rápido</b> aceita uma frase escrita: «Ana 62,4», «corri 8 km», «jantar feito», «comprei azeite». Mostra sempre o que entendeu antes de gravar seja o que for.'},
-  {tab:'familia', sel:'#fio',
+  {tab:'hoje', sel:'#fio',
    t:'A bandeja da manhã e o Modo pessoa',
    d:'Uma vez por dia, ao abrir, a app junta tudo o que ficou por confirmar numa fila única — um cartão de cada vez, com «logo vejo» a adiar até amanhã. Ao teclado, <b>1</b> resolve e <b>2</b> adia. E uma pressão longa em qualquer avatar (ou o botão direito no computador) abre a folha dessa pessoa: o dia dela, os números dela, o que lhe falta confirmar. O botão voltar do Android fecha camadas em vez de sair da app.'},
-  {tab:'nutricao', sel:'[data-col="nu-salacucar"]', quando:()=>S.members.length&&temPlanoNut(curM()),
+  {tab:'nutricao', sel:'[data-col="nu-salacucar"]', quando:()=>S.members.length&&temPlanoNut(curM())&&temSalAcucar(curM()),
    t:'Sal, açúcares livres e álcool',
    d:'Três coisas que uma app de alimentação costuma calar. O <b>sal</b> conta-se a partir do sódio de cada ingrediente, com a crosta de sal do peixe assado descontada porque não se come; o teto é o da Organização Mundial da Saúde. Os <b>açúcares livres</b> são os que a OMS define como tal — os adicionados e os do mel e dos sumos, não os da fruta inteira. O <b>álcool</b>, se o registares, conta as calorias que ninguém conta (7 kcal por grama de etanol) e as unidades do SICAD, e a app escreve por extenso a posição da OMS de 2023: não há nível de consumo isento de risco. Em gravidez, amamentação e menores a ferramenta não aparece.'},
   {tab:'nutricao', sel:'#calc-bebe', quando:()=>haPequenos()||!!S.ui.calcBebe,
@@ -41217,6 +41733,13 @@ function irParaPassoTour(){
   /* alguns passos precisam de pôr o separador no estado certo antes de
      apontar — a vista da Mercearia, por exemplo */
   if(p.antes) try{ p.antes(); }catch(e){}
+  /* as ferramentas da semana vivem num resumo recolhido por baixo da grelha:
+     um passo que aponte para uma delas tem de o encontrar aberto */
+  if(S.ui.tab==='plano'){ S.ui.resumoAberto=true;
+    /* e o passo dos convidados precisa das opções de uma refeição abertas */
+    if(/conv-linha/.test(p.sel||'')){ const w=planWeek(); let k=null;
+      for(let di=0;di<7&&!k;di++) for(const mk of MEALK){ if(w[di]&&w[di][mk]&&w[di][mk].r){ k=di+'|'+mk; break; } }
+      S.ui.mealMais=k; } }
   saveMeta(); render();   /* render repõe o cartão e o destaque */
 }
 function limpaDestaqueTour(){
@@ -41358,10 +41881,11 @@ function cartaoBoasVindas(){
          tourVisto era escrito em dois sítios e nunca lido em nenhum: ficava a
          guardar uma resposta que ninguém chegava a perguntar. */''}
     <div class="row" style="justify-content:center;margin-top:18px">
+      <button class="btn" onclick="abrirArranque()">Começar em três perguntas</button>
       ${S.ui.tourVisto
-        ? `<button class="btn" onclick="addMember()">+ Criar primeiro perfil</button>
+        ? `<button class="btn ghost" onclick="addMember()">+ Criar primeiro perfil</button>
            <button class="btn ghost" onclick="iniciarTour(true)">✨ Rever a visita guiada</button>`
-        : `<button class="btn" onclick="iniciarTour(true)">✨ Fazer a visita guiada</button>
+        : `<button class="btn ghost" onclick="iniciarTour(true)">✨ Fazer a visita guiada</button>
            <button class="btn ghost" onclick="addMember()">+ Criar primeiro perfil</button>`}
       <button class="btn ghost" onclick="go('dados')">Restaurar uma cópia</button>
     </div>
@@ -41389,7 +41913,8 @@ function render(){
   _nDica=0;
   pintaNav();
   const el=document.getElementById('main');
-  el.innerHTML = S.ui.tab==='atividade'? renderAtividade()
+  el.innerHTML = subNav() + (S.ui.tab==='hoje'? renderHoje()
+    : S.ui.tab==='atividade'? renderAtividade()
     : S.ui.tab==='nutricao'? renderNutricao()
     : S.ui.tab==='receitas'? renderReceitas()
     : S.ui.tab==='objetivos'? renderObjetivos()
@@ -41397,7 +41922,7 @@ function render(){
     : S.ui.tab==='mercearia'? renderMercearia()
     : S.ui.tab==='calendario'? renderCalendario()
     : S.ui.tab==='dados'? renderDados()
-    : renderFamilia();
+    : renderFamilia());
   /* semeia os valores que só o atualizador escreve (pill de ritmo, etc.) */
   if(S.ui.tab==='nutricao' && S.members.length && !S.ui.histRef) atualizarNutricao();
   pintaModal();
@@ -41540,6 +42065,8 @@ function pintaModal(){
     : fi? fichaHtml(fi)
     : S.ui.mercado? mercadoHtml()
     : mo? (mo.tipo==='peso'? modalPesoHtml(mo) : mo.tipo==='compras'? modalComprasHtml(mo)
+         : mo.tipo==='ajuda'? modalAjudaHtml(mo)
+         : mo.tipo==='arranque'? modalArranqueHtml(mo)
          : mo.tipo==='fimVisita'? modalFimVisitaHtml()
          : mo.tipo==='jejum'? modalJejumHtml(mo)
          : mo.tipo==='recuperacao'? modalRecuperacaoHtml(mo)
@@ -41567,6 +42094,7 @@ function pintaModal(){
     try{ saveMeta(); }catch(e){}
   }
   if(S.ui.pesqAberta) pintaPesquisa();
+  if(mo && mo.tipo==='ajuda') pintaAjuda();
   /* Qualquer camada que se abra leva o foco consigo — não só os modais e as
      folhas. A ficha da receita, o modo cozinha e o supermercado são também
      role="dialog" e ficavam de fora: como trancarFundo() põe inert no #main,
@@ -41595,7 +42123,7 @@ function pintaModal(){
   const passoFab=tourAtivo() && ((passosTour()[S.ui.tourPasso]||{}).sel==='#fab-registo');
   const querFab=S.members.length && !mo && !fo && !fi && !S.ui.mercado && !S.ui.cozinha && !S.ui.pesqAberta
     && (!tourAtivo() || passoFab)
-    && ['familia','atividade','nutricao','plano'].indexOf(S.ui.tab)>=0;
+    && S.ui.tab!=='dados';
   if(querFab){
     if(!fab){ fab=document.createElement('button'); fab.id='fab-registo'; fab.className='fab';
       fab.setAttribute('aria-label','Registar refeição, treino ou pesagem');
@@ -42051,11 +42579,15 @@ function correrAtalho(){
 /* A pergunta das pesagens fica para depois do primeiro desenho: quem abre a
    app e vê uma caixa antes de ver a app não sabe o que está a responder. E
    nunca por cima da visita guiada nem de um ecrã ainda sem ninguém. */
-if(S.members.length && !tourAtivo()) setTimeout(()=>{ correrAtalho(); talvezPerguntarPeso(); }, 700);
+/* ---- Nada abre sozinho ----
+   A pergunta da pesagem, a bandeja da manhã e as compras por confirmar
+   abriam-se por cima da app ao chegar. Passam a ser linhas do cartão «Para
+   tratar», no Hoje: estão lá à espera, e abrem quando a pessoa quiser. */
+if(S.members.length && !tourAtivo()) setTimeout(()=>{ correrAtalho(); }, 700);
+/* quem escolheu assumir o plano vê os dias que acabaram dados como feitos ao abrir */
+if(S.members.length && (S.cozPref||{}).assumir) setTimeout(()=>{ if(aplicarPlanoAssumido()){ save('plano assumido'); render(); } }, 300);
 /* A bandeja da manhã: uma vez por dia, e nunca por cima da visita guiada nem
    de um ecrã ainda sem ninguém. */
-if(S.members.length && !tourAtivo() && S.ui.ultimaTriagem!==hojeISO())
-  setTimeout(()=>{ if(!modalAberto() && !folhaMesa() && !fichaAberta() && filaDaBandeja().length) abrirBandeja(); }, 1400);
 
 /* ================= MODO PESSOA: A PORTA ================= */
 function ligarLongPress(){

@@ -6,7 +6,9 @@
    que houver razão para desconfiar do que lá está — foi o caso agora, com uma
    cópia de index.html sem as receitas das últimas semanas a ser servida
    sempre que o servidor não respondia. */
-const CACHE = 'familia-fit-v3';
+/* v4: a app foi reorganizada em cinco destinos — quem a tem instalada tem de
+   receber o index.html novo de uma vez, e não uma mistura do velho com o novo. */
+const CACHE = 'familia-fit-v4';
 const BASE = new URL('./', self.location).pathname;
 const ESSENCIAIS = ['./', './index.html', './icon.svg', './icon-180.png', './icon-192.png', './icon-512.png', './manifest.webmanifest'];
 
