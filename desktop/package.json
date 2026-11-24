@@ -90,7 +90,7 @@
       }
     },
     "dmg": {
-      "title": "Família Fit"
+      "title": "Familia Fit${arch}"
     },
     "linux": {
       "target": [
