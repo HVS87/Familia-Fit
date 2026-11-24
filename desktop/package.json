@@ -1,0 +1,107 @@
+{
+  "name": "familia-fit",
+  "productName": "Família Fit",
+  "version": "2026.11.25",
+  "description": "Alimentação e movimento de toda a família — versão para computador",
+  "main": "main.js",
+  "author": {
+    "name": "Família Fit",
+    "email": "familia-fit@users.noreply.github.com"
+  },
+  "homepage": "https://github.com/HVS87/Familia-Fit",
+  "license": "SEE LICENSE IN ../LICENSE",
+  "private": true,
+  "scripts": {
+    "preparar": "node scripts/preparar.js",
+    "start": "npm run preparar && electron .",
+    "dist": "npm run preparar && electron-builder --publish never",
+    "dist:win": "npm run preparar && electron-builder --win --publish never",
+    "dist:mac": "npm run preparar && electron-builder --mac --publish never",
+    "dist:linux": "npm run preparar && electron-builder --linux --publish never"
+  },
+  "build": {
+    "appId": "pt.familiafit.app",
+    "productName": "Família Fit",
+    "copyright": "Família Fit",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "autoteste.js",
+      "app/**/*",
+      "package.json"
+    ],
+    "artifactName": "familia-fit-${version}-${os}-${arch}.${ext}",
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Família Fit",
+      "installerLanguages": [
+        "pt_PT"
+      ],
+      "language": "2070",
+      "artifactName": "familia-fit-${version}-instalador-windows.${ext}"
+    },
+    "portable": {
+      "artifactName": "familia-fit-${version}-portatil-windows.${ext}"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "universal"
+          ]
+        }
+      ],
+      "category": "public.app-category.healthcare-fitness",
+      "icon": "build/icon.png",
+      "artifactName": "familia-fit-${version}-mac.${ext}",
+      "identity": "-"
+    },
+    "dmg": {
+      "title": "Família Fit"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Utility",
+      "icon": "build/icon.png",
+      "maintainer": "Família Fit <familia-fit@users.noreply.github.com>",
+      "synopsis": "Alimentação e movimento de toda a família",
+      "artifactName": "familia-fit-${version}-linux-${arch}.${ext}"
+    }
+  },
+  "devDependencies": {
+    "electron": "33.2.1",
+    "electron-builder": "25.1.8"
+  },
+  "allowScripts": {
+    "electron@33.2.1": true
+  }
+}

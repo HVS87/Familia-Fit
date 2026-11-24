@@ -2213,6 +2213,22 @@ html[data-orient="retrato"][data-dispositivo="telefone"] .gdias{grid-template-co
 .menu-item:hover,.menu-item:focus-visible{background:var(--bg)}
 .menu-item.perigo{color:var(--bad)}
 .resumo-semana{margin-top:20px}
+/* ===== Sincronizar ===== */
+.sync-par{display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;align-items:center;margin-top:10px}
+@media (max-width:620px){ .sync-par{grid-template-columns:minmax(0,1fr)} .sync-par .qr{width:180px;height:180px} }
+.sync-codigo{font:700 22px/1.3 ui-monospace,Consolas,monospace;letter-spacing:.08em;margin:8px 0}
+.qr{border-radius:8px;display:block;max-width:100%;height:auto}
+/* ===== Segundo ecrã ===== */
+#btn-ecra2.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+html[data-ecra2] header,html[data-ecra2] #nav,html[data-ecra2] #fab-registo,html[data-ecra2] .fab{display:none !important}
+html[data-ecra2] body{padding-left:0 !important;padding-bottom:0 !important;font-size:16.5px}
+html[data-ecra2] main{max-width:none;padding-top:12px}
+.e2-barra{position:sticky;top:0;z-index:11;display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:10px 0 12px;margin-bottom:8px;
+  background:var(--bg);border-bottom:1px solid var(--line)}
+.e2-barra .subnav{margin:0}
+.e2-nome{font-size:15px}
+.e2-dica{flex:1;min-width:180px}
+html[data-ecra2] .cozinha, html[data-ecra2] .coz{font-size:1.15em}
 /* ===== Estilo suave =====
    Superfícies tingidas em vez de contornos, cantos mais redondos, e a letra
    do sistema em todo o lado — títulos incluídos. É o estilo por omissão; o
@@ -2350,6 +2366,7 @@ html[data-orient="paisagem"][data-dispositivo="tablet"] .gdias{grid-template-col
       <button type="button" class="dica" id="dica-desfazer" aria-label="Explicação">i</button>
     </div>
     <button class="savest" id="savest" onclick="go('dados')" title="Ver dados e cópias de segurança"></button>
+    <button class="hbtn" id="btn-ecra2" hidden onclick="abrirSegundoEcra()" aria-pressed="false" aria-label="Segundo ecrã" title="Segundo ecrã"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="11" height="8" rx="1.5"/><rect x="11" y="9" width="11" height="8" rx="1.5"/><path d="M6 17h3M15 21h3M16.5 17v4M7.5 13v4"/></svg></button>
     <button class="hbtn" id="btn-ajuda" onclick="abrirAjuda()" aria-label="Ajuda: todas as explicações" title="Ajuda">?</button>
     <button class="hbtn" id="btn-defs" onclick="go('dados')" aria-label="Definições" title="Definições"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7"/></svg></button>
   </div>
@@ -13574,6 +13591,9 @@ function ehPassoDeMassa(p){ return /^Massa: /.test(p&&p.t||''); }
 
 /* ================= ESTADO ================= */
 const KEY='familiaFitV1', APPID='familia-fit', FORMATO=1;
+/* A segunda janela (o segundo ecrã) é a mesma app com «?ecra=2». Sabe-se aqui,
+   no topo, porque a gravação e o arranque precisam de o saber antes de tudo. */
+var ECRA2=/[?&]ecra=2(&|$)/.test(location.search), _e2Gravar=false;
 let saveErr='', msg=null;
 /* ---- Um desenho por gesto ----
    Quase todas as ações acabavam em `save(); render(); flash(...)` — e o
@@ -13826,7 +13846,11 @@ function writeLS(){
   /* gravar significa que algo mudou: a conta do que falta despachar deixa de
      valer, mesmo que ainda não venha aí um desenho */
   esquecePendencias();
-  try{ localStorage.setItem(KEY,JSON.stringify(S)); saveErr='';
+  if(ECRA2 && !_e2Gravar) return;
+  let obj=S;
+  if(ECRA2){ try{ const cur=JSON.parse(localStorage.getItem(KEY)||'null');
+    if(cur) obj=Object.assign({},S,{ui:cur.ui, meta:Object.assign({},cur.meta,{gravadoEm:S.meta.gravadoEm, semCopia:S.meta.semCopia})}); }catch(e){} }
+  try{ localStorage.setItem(KEY,JSON.stringify(obj)); saveErr='';
     /* fica a saber-se o que ESTE separador gravou por último: é a única
        forma de distinguir uma gravação nossa de uma de outro separador */
     _ultimaGravacaoNossa=S.meta.gravadoEm||'';
@@ -13855,6 +13879,11 @@ window.addEventListener('storage', e=>{
   try{ quando=(JSON.parse(e.newValue).meta||{}).gravadoEm||''; }catch(err){ return; }
   /* se foi este separador a gravar, o eco não conta */
   if(quando && quando===_ultimaGravacaoNossa) return;
+  /* a outra janela é o segundo ecrã desta mesma sessão: não é um conflito,
+     é a mesma casa vista de dois sítios — recarregam-se os dados e pronto */
+  /* e o separador que sincroniza também: avisar e esperar deixava a próxima
+     alteração do outro aparelho gravar por cima do que o outro separador escreveu */
+  if(ECRA2 || _ecra2Aberto || (typeof syncCfg==='function' && syncCfg())) return adotarDeOutraJanela();
   if(_outroSeparador) return;              /* já está avisado, não insiste */
   _outroSeparador=true;
   paintSave();
@@ -13927,14 +13956,20 @@ function desfazer(){
   if(!pilhaUndo.length) return;
   const e=pilhaUndo.pop();
   pilhaRedo.push({js:instantaneo(), desc:e.desc});
-  const d=e.desc; aplicaInstantaneo(e.js);
+  /* a hora nova é o que faz a outra janela e o outro aparelho repararem */
+  S.meta.gravadoEm=new Date().toISOString();
+  const d=e.desc; _e2Gravar=true; try{ aplicaInstantaneo(e.js); } finally{ _e2Gravar=false; }
+  syncAgendar();
   toast('Desfeito'+(d? ': '+d : ''));
 }
 function refazer(){
   if(!pilhaRedo.length) return;
   const e=pilhaRedo.pop();
   pilhaUndo.push({js:instantaneo(), desc:e.desc});
-  const d=e.desc; aplicaInstantaneo(e.js);
+  /* a hora nova é o que faz a outra janela e o outro aparelho repararem */
+  S.meta.gravadoEm=new Date().toISOString();
+  const d=e.desc; _e2Gravar=true; try{ aplicaInstantaneo(e.js); } finally{ _e2Gravar=false; }
+  syncAgendar();
   toast('Refeito'+(d? ': '+d : ''));
 }
 let _toastT=null;
@@ -14007,9 +14042,11 @@ function save(desc){
   }
   ultimaDesc=null;
   estadoAnterior=agora;
-  S.meta.gravadoEm=new Date().toISOString(); S.meta.semCopia=true; writeLS(); pintaHist();
+  S.meta.gravadoEm=new Date().toISOString(); S.meta.semCopia=true;
+  _e2Gravar=true; writeLS(); _e2Gravar=false; pintaHist();
+  syncAgendar();
 }
-function saveMeta(){ S.meta.gravadoEm=new Date().toISOString(); writeLS(); }
+function saveMeta(){ if(ECRA2) return; S.meta.gravadoEm=new Date().toISOString(); writeLS(); }
 function hhmm(isoS){ if(!isoS) return '—'; const d=new Date(isoS);
   return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
 function dataHora(isoS){ if(!isoS) return 'nunca'; const d=new Date(isoS);
@@ -14027,8 +14064,9 @@ function paintSave(){
      um toast desaparece, e esta é uma informação que não deve desaparecer */
   if(_outroSeparador) return põeTexto('savest pend','aberta noutro separador');
   if(!S.members.length) return põeTexto('savest none','sem dados');
-  if(S.meta.semCopia) return põeTexto('savest pend','guardado '+hhmm(S.meta.gravadoEm)+' · sem cópia');
-  põeTexto('savest','guardado '+hhmm(S.meta.gravadoEm)+' · cópia feita');
+  const sy= (typeof syncCfg==='function' && syncCfg() && _sync.estado==='ligado')? ' · sincronizado' : '';
+  if(S.meta.semCopia) return põeTexto('savest pend','guardado '+hhmm(S.meta.gravadoEm)+(sy||' · sem cópia'));
+  põeTexto('savest','guardado '+hhmm(S.meta.gravadoEm)+(sy||' · cópia feita'));
 }
 /* Rede de segurança: o estado é gravado a cada alteração, mas também
    periodicamente e sempre que o separador é escondido ou fechado. */
@@ -16696,6 +16734,8 @@ function confirmaPartilha(irmaos,verbo){
 /* Explicadores. Ficam todos aqui para o texto ser escrito uma vez e revisto
    de uma assentada, em vez de andar espalhado pelos templates. */
 const DICAS={
+  sync:'Emparelha-se uma vez: um aparelho cria o código, o outro lê-o com a câmara ou escreve-o. Daí em diante, sempre que os dois tiverem a app aberta, os dados passam de um para o outro sozinhos — diretamente, por uma ligação ponto a ponto cifrada com o código. Se os dois mudaram coisas enquanto estavam desligados, juntam-se: nada se perde. O tema, o estilo e o separador aberto são de cada aparelho e não se sincronizam.',
+  ecra2:'Com dois monitores, a app abre uma segunda janela no outro ecrã que acompanha o que estás a fazer: a planear a semana, mostra a lista de compras; numa receita, os passos em letra grande; e «Cozinhar» abre lá. Também se pode fixar numa vista.',
   desfazer:'Os três botões que estão aqui ao lado. O ⌕ procura em toda a aplicação — receitas, ingredientes, modalidades, perfis e os próprios cartões, para «onde é que se marcam as alergias?» não obrigar a saber a arrumação da casa; ao teclado abre-se com a tecla «/». O ↶ desfaz a última alteração e o ↷ volta a fazê-la: guardam-se as últimas 30, e o ↶ também responde a Ctrl+Z (ou ⌘Z). Desfazer alcança tudo o que se muda por aqui — uma refeição planeada, um treino registado, uma pesagem, um dia livre —, com uma exceção escrita a claro no sítio onde acontece: apagar todos os dados não se desfaz, porque leva a própria pilha do desfazer atrás. E os pequenos «i» como este, espalhados pela aplicação, explicam cada funcionalidade: passa o rato por cima, ou toca-lhes.',
   responsabilidade:'Esta é uma ferramenta simples e gratuita, e destina-se a um uso responsável. Tudo o que calcula sai de tabelas oficiais — INSA, EFSA, Organização Mundial da Saúde — construídas para populações «saudáveis»: são médias de gente, não medições de ninguém, e não conhecem a história clínica, a medicação nem a composição corporal de quem as lê. Todas as indicações e todos os números são «sugestões», e devem ser alvo de verificação independente. Qualquer alteração drástica na alimentação, ou o início de uma nova atividade física, deve ter «acompanhamento médico» — muito em especial em crianças, na gravidez e na amamentação, e em quem tenha qualquer doença diagnosticada ou esteja sob medicação. O autor «não se responsabiliza» pelo impacto do uso desta aplicação.',
   metodoBmr:'O metabolismo basal — as calorias que o corpo gasta só para se manter vivo — não tem uma fórmula certa. Tem equações de regressão feitas sobre populações diferentes, em décadas diferentes, que dão valores diferentes para a mesma pessoa. A aplicação mostra as três mais usadas com o resultado de cada uma ao lado, para a escolha ser informada em vez de invisível: «Henry (2005)», a mais recente e a que a EFSA e o serviço nacional de saúde britânico adotaram, é a recomendada; «Schofield (1985)» é o padrão histórico da FAO e da OMS; «Mifflin-St Jeor (1990)» é a única que usa a altura, e só existe para adultos. A escolha vale para a casa toda e muda os alvos de calorias — passa o rato por cada uma para saber de onde vem e o que lhe falta.',
@@ -20311,7 +20351,7 @@ function fichaHtml(f){
            trocas de acompanhamento, e os ingredientes só apareciam a meio;
            os passos, perto do fim. Agora: doses, ingredientes, passos. O
            resto continua todo cá, um toque abaixo. */}
-      <details class="ficha-mais" ${S.ui.fichaMais?'open':''} ontoggle="S.ui.fichaMais=this.open;saveMeta()">
+      <details class="ficha-mais" ${S.ui.fichaMais?'open':''} ontoggle="if(!!S.ui.fichaMais!==this.open){S.ui.fichaMais=this.open;saveMeta()}">
         <summary>Mais sobre esta receita</summary>
         ${blocoLadosFicha(r,f)}
         ${blocoVariantes(r)}
@@ -20373,7 +20413,16 @@ function passosDerivados(r,n){
   passos.push({t:'Temperar e servir', d:'Prova, acerta o sal, e serve '+plural(n,'dose','doses')+'.'});
   return passos;
 }
+/* Com o segundo ecrã aberto, a bancada vai para lá: os passos em letra grande
+   no monitor ao lado do fogão, e o ecrã principal fica livre para o resto. */
 function abrirCozinha(rid,n,ctx,acs){
+  if(!ECRA2 && _ecra2Aberto && RECIPES.some(x=>x.id===rid)){
+    enviaEcras({tipo:'cozinhar', r:rid, n:n||1, ctx:ctx||null, ac:Array.isArray(acs)? acs : []});
+    return flash('ok','O modo cozinha abriu no segundo ecrã.',{rot:'Abrir aqui', fn:"abrirCozinhaLocal('"+rid+"',"+(parseInt(n,10)||1)+")"});
+  }
+  abrirCozinhaLocal(rid,n,ctx,acs);
+}
+function abrirCozinhaLocal(rid,n,ctx,acs){
   const r=RECIPES.find(x=>x.id===rid); if(!r) return;
   S.ui.cozinha={r:rid, n:clampNum(n||1,1,MAX_DOSES), passo:0, feitos:[], ctx:ctx||null,
     /* MAX_AC+1 porque o que entra aqui é `ladoIds`: os acompanhamentos MAIS o
@@ -24605,7 +24654,7 @@ function folhaRegistoHtml(){
    S.ui.modal preenchido sem nada no ecrã: uma camada invisível que engolia o
    Escape, travava o go() e não tinha botão de fechar — só se saía recarregando.
    Recusar em voz alta é melhor do que abrir o nada. */
-const MODAIS=['arranque','ajuda','peso','aviso','compras','ingrediente','acabou','favoritos','cal','recuperacao','exportarCal','cheat','bebida','batido'];
+const MODAIS=['emparelhar','arranque','ajuda','peso','aviso','compras','ingrediente','acabou','favoritos','cal','recuperacao','exportarCal','cheat','bebida','batido'];
 function abrirModal(tipo,dados){
   if(MODAIS.indexOf(tipo)<0){ console.warn('Família Fit — modal desconhecido: '+tipo); return; }
   S.ui.modal=Object.assign({tipo},dados||{}); saveMeta(); render();
@@ -32638,7 +32687,7 @@ function setGuiaDieta(k){ if(!temChave(GUIA_DIETA,k)) return; S.ui.guiaDieta=k; 
    exatamente para isso que a lista serve. Guarda-se aberta ou fechada, como já
    se faz com as secções da despensa: é preferência de vista, não altera dados
    nem entra no desfazer. */
-function guardaListaGuia(el){ if(!el) return; S.ui.guiaLista=!!el.open; saveMeta(); }
+function guardaListaGuia(el){ if(!el || !!S.ui.guiaLista===!!el.open) return; S.ui.guiaLista=!!el.open; saveMeta(); }
 function verReceitasDieta(k){ if(!temChave(DIETAS_FILTRAVEIS,k)) return; S.ui.dietaF=[k]; S.ui.recLimite=LOTE_RECEITAS; saveMeta(); go('receitas'); }
 function cartaoGuiaDieta(m){
   const minha=chaveDieta(m);
@@ -33473,7 +33522,7 @@ function renderReceitas(){
     <button class="chip ${S.ui.mealF==='ma'?'on':''}" aria-pressed="${S.ui.mealF==='ma'}" onclick="setMealF('ma')"
       title="Massas de base: a quebrada, a folhada, a filo, a de tarte e a base de bolacha — o que fica por baixo de uma empada, de uma quiche ou de uma tarte">${ICO_REF.ma} Massas de base</button>
   </div>
-  <details class="filtros-mais" ${S.ui.filtrosAbertos||nFiltrosAvancados()? 'open':''} ontoggle="S.ui.filtrosAbertos=this.open;saveMeta()">
+  <details class="filtros-mais" ${S.ui.filtrosAbertos||nFiltrosAvancados()? 'open':''} ontoggle="if(!!S.ui.filtrosAbertos!==this.open){S.ui.filtrosAbertos=this.open;saveMeta()}">
     <summary>Filtros${nFiltrosAvancados()? ' <span class="pill">'+nFiltrosAvancados()+'</span>':''}</summary>
     <div class="filtros-corpo">
   <div class="row" style="margin-bottom:10px;align-items:center">
@@ -35900,7 +35949,7 @@ function renderObjetivos(){
        este separador quase sempre. O formulário de criar fica por baixo e,
        havendo já objetivos, recolhido — abre-se quando se quer outro. */
     + (ativos.length? `<h2>Objetivos ativos</h2><div class="grid g2" style="margin-top:10px">${ativos.map(cartaoObjetivo).join('')}</div>
-        <details class="criar-obj secgap" ${S.ui.criarObjAberto?'open':''} ontoggle="S.ui.criarObjAberto=this.open;saveMeta()">
+        <details class="criar-obj secgap" ${S.ui.criarObjAberto?'open':''} ontoggle="if(!!S.ui.criarObjAberto!==this.open){S.ui.criarObjAberto=this.open;saveMeta()}">
           <summary class="btn">＋ Criar outro objetivo</summary>${formCriacaoHtml()}</details>`
        : formCriacaoHtml())
     + (concluidos.length? `<div class="secgap"><h2>Conquistas</h2>
@@ -38008,7 +38057,7 @@ function renderPlano(){
     </div>`;}).join('')}
   </div>
   <details class="resumo-semana" id="resumo-semana" ${S.ui.resumoAberto?'open':''}
-    ontoggle="S.ui.resumoAberto=this.open;saveMeta()">
+    ontoggle="if(!!S.ui.resumoAberto!==this.open){S.ui.resumoAberto=this.open;saveMeta()}">
     <summary>Resumo e ferramentas da semana</summary>
     ${cartaoSemana(dates)}
     ${cartaoEquilibrio(dates)}
@@ -38497,6 +38546,8 @@ function despensaAberta(cat,quantosTem){
 }
 function guardaSecaoDespensa(el){
   if(!el || !el.dataset) return;
+  /* o evento também dispara quando a secção é desenhada já aberta: aí não há nada a guardar */
+  if(despensaCfg()[el.dataset.cat]===el.open) return;
   despensaCfg()[el.dataset.cat]=el.open;
   saveMeta();   /* é preferência de vista, não altera dados nem o desfazer */
 }
@@ -40053,6 +40104,13 @@ async function instalarApp(){
   }catch(err){ /* o prompt só pode ser usado uma vez; se falhar, o cartão volta ao estado de instruções */ render(); }
 }
 function cartaoInstalarApp(){
+  /* na versão para computador já está instalada, e o que interessa dizer é outra coisa */
+  if(window.fitDesktop) return `<div class="card card--quieto" data-col="da-instalar">
+    <h3>Versão para computador</h3>
+    <p class="sub" style="margin-top:8px">Família Fit ${esc(window.fitDesktop.versao||"")} para ${esc(window.fitDesktop.plataformaNome||"computador")}.
+      ${ecrasLigados()>1? "Há "+ecrasLigados()+" ecrãs ligados: o botão do segundo ecrã, no cabeçalho, abre a janela companheira no outro monitor." : "Com um segundo monitor ligado, o botão do segundo ecrã, no cabeçalho, abre lá uma janela companheira."}
+      Para ter os mesmos dados no telemóvel, emparelha os dois em «Sincronizar com outro aparelho».</p>
+  </div>`;
   if(estaInstalada()) return `<div class="card card--quieto" data-col="da-instalar">
     <h3>Guardar como aplicação ${dica('instalar')}</h3>
     <p class="sub" style="margin-top:8px">✓ Já está instalada — estás a usá-la em ecrã inteiro, pelo ícone.
@@ -41437,6 +41495,7 @@ function renderDados(){
   ${avisoResponsabilidade()}
   <div class="grid g2">
     ${cartaoInstalarApp()}
+    ${cartaoSync()}
     <div class="card card--quieto">
       <h3>Gravação automática</h3>
       <div style="margin-top:10px">
@@ -41499,10 +41558,11 @@ function renderDados(){
 
     <div class="card">
       <h3>Onde ficam os dados</h3>
-      <p class="sub" style="margin-top:6px">Ficam no armazenamento local deste browser. Nada é enviado para
-        servidores nem sincronizado entre dispositivos: o mesmo endereço aberto no telemóvel e no computador
-        tem conteúdos independentes. Limpar os dados de navegação, usar uma janela privada ou reinstalar o
-        browser apaga tudo — só o ficheiro de cópia sobrevive a isso.</p>
+      <p class="sub" style="margin-top:6px">Ficam no armazenamento local deste ${window.fitDesktop? 'programa' : 'browser'}. Não há servidor:
+        cada aparelho tem os seus dados, a não ser que emparelhes dois aparelhos teus em «Sincronizar com outro
+        aparelho» — e aí passam diretamente de um para o outro, cifrados, sem ficar em lado nenhum pelo caminho.
+        Limpar os dados de navegação, usar uma janela privada ou reinstalar ${window.fitDesktop? 'o programa' : 'o browser'} apaga
+        o que está neste aparelho — só o ficheiro de cópia, ou o outro aparelho emparelhado, sobrevive a isso.</p>
       <p class="sub" style="margin-top:8px"><b>No iPhone e no iPad:</b> o Safari apaga os dados de sites que
         não abres há algumas semanas. Instalar a app no ecrã principal (partilha → «Adicionar ao ecrã principal»)
         dá-lhe armazenamento próprio e mais duradouro, mas a cópia exportada continua a ser a única garantia.</p>
@@ -42065,9 +42125,10 @@ function cartaoBoasVindas(){
     <p class="sub" style="max-width:62ch;margin:8px auto 0">Alimentação e atividade física de toda a família num só sítio:
       perfis por fase da vida, ${RECIPES.length} receitas ligadas à despensa, plano semanal, objetivos com estratégia e lista de compras.</p>
     <div class="aviso-local">
-      <p><b>Tudo o que escreveres fica só neste dispositivo.</b> Não há conta, não há servidor,
-      nada é enviado para lado nenhum — os dados vivem na memória deste navegador e mais nada.
-      É por isso que a app funciona sem rede e não sabe quem tu és.</p>
+      <p><b>Tudo o que escreveres fica neste dispositivo.</b> Não há conta e não há servidor —
+      os dados vivem na memória deste ${window.fitDesktop? 'programa' : 'navegador'}. É por isso que a app funciona sem rede e não sabe quem tu és.
+      Se quiseres os mesmos dados no telemóvel e no computador, podes emparelhar os dois nas Definições:
+      os dados passam diretamente de um para o outro, cifrados.</p>
       <p>O reverso é que <b>ninguém tem uma cópia por ti</b>. Limpar os dados do navegador,
       trocar de telemóvel ou de computador, ou reinstalar o sistema, apaga tudo — perfis,
       pesagens, receitas da casa, o histórico inteiro — e não há como recuperar.
@@ -42112,7 +42173,7 @@ function render(){
   _nDica=0;
   pintaNav();
   const el=document.getElementById('main');
-  el.innerHTML = subNav() + (S.ui.tab==='hoje'? renderHoje()
+  el.innerHTML = (ECRA2? barraEcra2() : subNav()) + (S.ui.tab==='hoje'? renderHoje()
     : S.ui.tab==='atividade'? renderAtividade()
     : S.ui.tab==='nutricao'? renderNutricao()
     : S.ui.tab==='receitas'? renderReceitas()
@@ -42138,6 +42199,7 @@ function render(){
   carimboAlvo=null;
   ligaDeslize();
   paintSave(); pintaHist(); pintaTour(); medirTopo();
+  pintaBotaoEcra2(); enviaContexto();
 }
 /* ================= O QUE ESTÁ POR BAIXO NÃO SE TOCA =================
    Com uma folha ou um diálogo aberto, tudo o resto fica inerte: deixa de
@@ -42266,6 +42328,7 @@ function pintaModal(){
     : mo? (mo.tipo==='peso'? modalPesoHtml(mo) : mo.tipo==='compras'? modalComprasHtml(mo)
          : mo.tipo==='ajuda'? modalAjudaHtml(mo)
          : mo.tipo==='arranque'? modalArranqueHtml(mo)
+         : mo.tipo==='emparelhar'? modalEmparelharHtml(mo)
          : mo.tipo==='fimVisita'? modalFimVisitaHtml()
          : mo.tipo==='jejum'? modalJejumHtml(mo)
          : mo.tipo==='recuperacao'? modalRecuperacaoHtml(mo)
@@ -42322,7 +42385,7 @@ function pintaModal(){
   const passoFab=tourAtivo() && ((passosTour()[S.ui.tourPasso]||{}).sel==='#fab-registo');
   const querFab=S.members.length && !mo && !fo && !fi && !S.ui.mercado && !S.ui.cozinha && !S.ui.pesqAberta
     && (!tourAtivo() || passoFab)
-    && S.ui.tab!=='dados';
+    && S.ui.tab!=='dados' && !ECRA2;
   if(querFab){
     if(!fab){ fab=document.createElement('button'); fab.id='fab-registo'; fab.className='fab';
       fab.setAttribute('aria-label','Registar refeição, treino ou pesagem');
@@ -42760,6 +42823,544 @@ const _ausencia=diasDesdeUltimaAbertura();
 /* Agora sim: os combos já estão montados, e a guarda das famílias pode
    perguntar-lhes se existem. */
 verificaVariantes();
+/* ================= CÓDIGO QR =================
+   Um gerador pequeno e sem dependências, só o que a app precisa: modo byte,
+   correção de erros média, versões 1 a 10 (até 213 bytes) e a máscara
+   escolhida pelas quatro regras de penalização da norma (ISO/IEC 18004).
+   Serve para levar o código de emparelhamento do ecrã de um aparelho para a
+   câmara do outro. */
+const QR_M=[null,[26,10,[[1,16]]],[44,16,[[1,28]]],[70,26,[[1,44]]],[100,18,[[2,32]]],[134,24,[[2,43]]],
+  [172,16,[[4,27]]],[196,18,[[4,31]]],[242,22,[[2,38],[2,39]]],[292,22,[[3,36],[2,37]]],[346,26,[[4,43],[1,44]]]];
+const QR_ALINH=[null,[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50]];
+const QR_EXP=new Array(512), QR_LOG=new Array(256);
+(function(){ let x=1; for(let i=0;i<255;i++){ QR_EXP[i]=x; QR_LOG[x]=i; x<<=1; if(x&256) x^=0x11D; }
+  for(let i=255;i<512;i++) QR_EXP[i]=QR_EXP[i-255]; })();
+function qrMul(a,b){ return a&&b? QR_EXP[QR_LOG[a]+QR_LOG[b]] : 0; }
+function qrRS(dados,n){
+  let g=[1];
+  for(let i=0;i<n;i++){ const ng=new Array(g.length+1).fill(0);
+    for(let j=0;j<g.length;j++){ ng[j]^=g[j]; ng[j+1]^=qrMul(g[j],QR_EXP[i]); } g=ng; }
+  const r=new Array(n).fill(0);
+  dados.forEach(d=>{ const f=d^r.shift(); r.push(0); for(let j=0;j<n;j++) r[j]^=qrMul(g[j+1],f); });
+  return r;
+}
+function qrMatriz(texto){
+  const bytes=Array.from(new TextEncoder().encode(texto));
+  let v=1; while(v<=10 && (QR_M[v][2].reduce((t,[q,k])=>t+q*k,0)*8 < 4+(v<10?8:16)+bytes.length*8)) v++;
+  if(v>10) return null;
+  const [total,ec,grupos]=QR_M[v], nDados=grupos.reduce((t,[q,k])=>t+q*k,0);
+  const bits=[]; const poe=(val,n)=>{ for(let i=n-1;i>=0;i--) bits.push((val>>>i)&1); };
+  poe(4,4); poe(bytes.length, v<10?8:16); bytes.forEach(b=>poe(b,8));
+  poe(0, Math.min(4, nDados*8-bits.length)); while(bits.length%8) bits.push(0);
+  const cw=[]; for(let i=0;i<bits.length;i+=8){ let b=0; for(let j=0;j<8;j++) b=(b<<1)|bits[i+j]; cw.push(b); }
+  for(let p=0; cw.length<nDados; p++) cw.push(p%2? 0x11 : 0xEC);
+  const blocos=[]; let o=0;
+  grupos.forEach(([q,k])=>{ for(let i=0;i<q;i++){ const d=cw.slice(o,o+k); o+=k; blocos.push({d, e:qrRS(d,ec)}); } });
+  const fim=[]; const maxD=Math.max(...blocos.map(b=>b.d.length));
+  for(let i=0;i<maxD;i++) blocos.forEach(b=>{ if(i<b.d.length) fim.push(b.d[i]); });
+  for(let i=0;i<ec;i++) blocos.forEach(b=>fim.push(b.e[i]));
+  if(fim.length!==total) return null;
+  const N=17+4*v, m=[], res=[];
+  for(let i=0;i<N;i++){ m.push(new Array(N).fill(0)); res.push(new Array(N).fill(false)); }
+  const fixa=(x,y,c)=>{ if(x<0||y<0||x>=N||y>=N) return; m[y][x]=c?1:0; res[y][x]=true; };
+  const localizador=(cx,cy)=>{ for(let dy=-4;dy<=4;dy++) for(let dx=-4;dx<=4;dx++){
+    const d=Math.max(Math.abs(dx),Math.abs(dy)); fixa(cx+dx,cy+dy, d!==2&&d!==4); } };
+  localizador(3,3); localizador(N-4,3); localizador(3,N-4);
+  for(let i=0;i<N;i++){ if(!res[6][i]) fixa(i,6,i%2===0); if(!res[i][6]) fixa(6,i,i%2===0); }
+  const al=QR_ALINH[v];
+  const ult=al.length-1;   /* só se saltam os três cantos dos localizadores; os que caem na linha de temporização desenham-se */
+  al.forEach((ay,iy)=>al.forEach((ax,ix)=>{ if((ix===0&&iy===0)||(ix===0&&iy===ult)||(ix===ult&&iy===0)) return;
+    for(let dy=-2;dy<=2;dy++) for(let dx=-2;dx<=2;dx++) fixa(ax+dx,ay+dy, Math.max(Math.abs(dx),Math.abs(dy))!==1); }));
+  const formato=(mascara)=>{
+    let d=(0<<3)|mascara, r=d<<10; for(let i=14;i>=10;i--) if((r>>>i)&1) r^=0x537<<(i-10);
+    const b=((d<<10)|r)^0x5412;
+    for(let i=0;i<=5;i++) fixa(8,i,(b>>>i)&1);
+    fixa(8,7,(b>>>6)&1); fixa(8,8,(b>>>7)&1); fixa(7,8,(b>>>8)&1);
+    for(let i=9;i<15;i++) fixa(14-i,8,(b>>>i)&1);
+    for(let i=0;i<8;i++) fixa(N-1-i,8,(b>>>i)&1);
+    for(let i=8;i<15;i++) fixa(8,N-15+i,(b>>>i)&1);
+    fixa(8,N-8,1);
+  };
+  formato(0);
+  if(v>=7){ let r=v<<12; for(let i=17;i>=12;i--) if((r>>>i)&1) r^=0x1F25<<(i-12);
+    const b=(v<<12)|r; for(let i=0;i<18;i++){ const bit=(b>>>i)&1, a=N-11+(i%3), c=Math.floor(i/3); fixa(a,c,bit); fixa(c,a,bit); } }
+  const fluxo=[]; fim.forEach(b=>{ for(let i=7;i>=0;i--) fluxo.push((b>>>i)&1); });
+  let k=0;
+  for(let dir=N-1; dir>=1; dir-=2){ if(dir===6) dir=5;
+    for(let vert=0; vert<N; vert++) for(let j=0;j<2;j++){
+      const x=dir-j, subir=((dir+1)&2)===0, y=subir? N-1-vert : vert;
+      if(!res[y][x]){ m[y][x]= k<fluxo.length? fluxo[k] : 0; k++; } } }
+  const MASC=[(x,y)=>(x+y)%2===0,(x,y)=>y%2===0,(x,y)=>x%3===0,(x,y)=>(x+y)%3===0,
+    (x,y)=>(Math.floor(y/2)+Math.floor(x/3))%2===0,(x,y)=>(x*y)%2+(x*y)%3===0,
+    (x,y)=>((x*y)%2+(x*y)%3)%2===0,(x,y)=>((x+y)%2+(x*y)%3)%2===0];
+  const aplica=(mk)=>{ for(let y=0;y<N;y++) for(let x=0;x<N;x++) if(!res[y][x] && MASC[mk](x,y)) m[y][x]^=1; };
+  const pena=()=>{ let p=0;
+    for(let eixo=0;eixo<2;eixo++) for(let a=0;a<N;a++){ let cor=-1, n=0, hist=[];
+      for(let b=0;b<N;b++){ const c= eixo? m[b][a] : m[a][b];
+        if(c===cor){ n++; if(n===5) p+=3; else if(n>5) p++; } else { cor=c; n=1; } hist.push(c); }
+      const s=hist.join('');
+      p+=40*((s.match(/(?=10111010000)/g)||[]).length+(s.match(/(?=00001011101)/g)||[]).length); }
+    for(let y=0;y<N-1;y++) for(let x=0;x<N-1;x++){ const c=m[y][x]; if(c===m[y][x+1]&&c===m[y+1][x]&&c===m[y+1][x+1]) p+=3; }
+    let esc=0; m.forEach(l=>l.forEach(c=>esc+=c)); p+=Math.floor(Math.abs(esc*20/(N*N)-10))*10;
+    return p; };
+  let melhor=0, menor=Infinity;
+  for(let mk=0;mk<8;mk++){ aplica(mk); formato(mk); const p=pena(); if(p<menor){ menor=p; melhor=mk; } aplica(mk); }
+  aplica(melhor); formato(melhor);
+  return m;
+}
+function qrSvg(texto,tam){
+  const m=qrMatriz(texto); if(!m) return '';
+  const N=m.length, Q=4, T=N+2*Q; let d='';
+  m.forEach((l,y)=>l.forEach((c,x)=>{ if(c) d+='M'+(x+Q)+' '+(y+Q)+'h1v1h-1z'; }));
+  return `<svg class="qr" viewBox="0 0 ${T} ${T}" width="${tam||220}" height="${tam||220}" role="img" aria-label="Código QR para emparelhar"
+    shape-rendering="crispEdges"><rect width="${T}" height="${T}" fill="#fff"/><path d="${d}" fill="#000"/></svg>`;
+}
+
+/* ================= SINCRONIZAR ENTRE APARELHOS =================
+   A app não tem servidor, e continua a não ter: os dados vão diretamente de
+   um aparelho para o outro, por uma ligação ponto a ponto do próprio browser
+   (WebRTC), cifrados com uma chave que só os dois aparelhos conhecem — a do
+   código de emparelhamento, que nunca sai deles.
+
+   Para dois aparelhos se encontrarem na internet é preciso um ponto de
+   encontro. Usa-se o serviço público e gratuito do PeerJS, que só serve para
+   apresentar um ao outro: vê dois identificadores aleatórios e os endereços
+   de rede para a ligação, e mais nada. Os dados nunca lá passam.
+
+   Como se decide quem fica com quê, sem relógio comum nem servidor:
+   cada aparelho guarda a impressão digital dos dados no momento da última
+   sincronização. Ao ligar, cada um diz se mudou desde então.
+   · só um mudou — o outro fica com os dados dele;
+   · nenhum mudou — já estão iguais;
+   · os dois mudaram — o que gravou por último junta os dados do outro aos
+     seus (a mesma junção do «Juntar» das cópias, em que o que é seu ganha) e
+     manda o resultado, que o outro adota.
+   O que é de cada aparelho — o separador aberto, o tema, o estilo — não se
+   sincroniza: o telemóvel pode estar em modo escuro e o computador não. */
+const SYNC_SINAL='wss://0.peerjs.com:443/peerjs?key=peerjs';
+const SYNC_ICE=[{urls:'stun:stun.cloudflare.com:3478'},{urls:'stun:global.stun.twilio.com:3478'}];
+const URL_PUBLICO='https://hvs87.github.io/Familia-Fit/';
+const SYNC_PEDACO=15000;
+var _sync={ws:null, pc:null, dc:null, estado:'desligado', chave:null, chaveDe:'', rx:{}, hb:null, re:null, envio:null,
+  ultima:'', erro:'', espera:0};
+function syncCfg(){ const c=S.meta&&S.meta.sync; return (c&&typeof c==='object'&&/^[A-Z0-9]{16}$/.test(c.codigo||''))? c : null; }
+function fnv(str){ let h1=0x811c9dc5, h2=0x01000193^0x5bd1e995;
+  for(let i=0;i<str.length;i++){ const c=str.charCodeAt(i); h1=Math.imul(h1^c,0x01000193); h2=Math.imul(h2^c,0x5bd1e995); }
+  return (h1>>>0).toString(36)+(h2>>>0).toString(36); }
+function impressaoDados(){ return fnv(instantaneo()); }
+const SYNC_ALFA='ABCDEFGHJKMNPQRSTUVWXYZ23456789';   /* sem 0/O e 1/I/L, que se confundem a escrever */
+function novoCodigoSync(){ const a=new Uint8Array(16); crypto.getRandomValues(a);
+  return Array.from(a).map(b=>SYNC_ALFA[b%SYNC_ALFA.length]).join(''); }
+function codigoLimpo(c){ return String(c||'').toUpperCase().replace(/[^A-Z0-9]/g,'').replace(/O/g,'0').replace(/[IL]/g,'1'); }
+function codigoBonito(c){ return c.replace(/(.{4})(?=.)/g,'$1-'); }
+function ligacaoSync(c){
+  const base= /^https?:$/.test(location.protocol)&&!/^(localhost|127\.)/.test(location.hostname)? location.origin+location.pathname : URL_PUBLICO;
+  return base+'#par='+c;
+}
+async function idsSync(codigo){
+  const h=await crypto.subtle.digest('SHA-256', new TextEncoder().encode('ffit-id:'+codigo));
+  const hex=Array.from(new Uint8Array(h)).slice(0,14).map(b=>b.toString(16).padStart(2,'0')).join('');
+  return {a:'ffit-'+hex+'-a', b:'ffit-'+hex+'-b'};
+}
+async function chaveSync(){
+  const c=syncCfg(); if(!c) return null;
+  if(_sync.chave && _sync.chaveDe===c.codigo) return _sync.chave;
+  const raw=await crypto.subtle.digest('SHA-256', new TextEncoder().encode('ffit-cifra:'+c.codigo));
+  _sync.chave=await crypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['encrypt','decrypt']); _sync.chaveDe=c.codigo;
+  return _sync.chave;
+}
+function b64(u8){ let s=''; for(let i=0;i<u8.length;i+=0x8000) s+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000)); return btoa(s); }
+function deB64(s){ const b=atob(s), u=new Uint8Array(b.length); for(let i=0;i<b.length;i++) u[i]=b.charCodeAt(i); return u; }
+async function comprime(u8,sentido){
+  if(typeof CompressionStream==='undefined') return u8;
+  const st=new Blob([u8]).stream().pipeThrough(sentido==='c'? new CompressionStream('gzip') : new DecompressionStream('gzip'));
+  return new Uint8Array(await new Response(st).arrayBuffer());
+}
+async function cifra(obj){
+  const k=await chaveSync(), iv=crypto.getRandomValues(new Uint8Array(12));
+  const z=typeof CompressionStream!=='undefined';
+  const claro= await comprime(new TextEncoder().encode(JSON.stringify(obj)),'c');
+  const ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv}, k, claro));
+  return (z?'z':'p')+b64(iv)+'.'+b64(ct);
+}
+async function decifra(txt){
+  const k=await chaveSync(); const z=txt[0]==='z'; const [ivs,cts]=txt.slice(1).split('.');
+  const claro=new Uint8Array(await crypto.subtle.decrypt({name:'AES-GCM',iv:deB64(ivs)}, k, deB64(cts)));
+  return JSON.parse(new TextDecoder().decode(z? await comprime(claro,'d') : claro));
+}
+function syncEstado(e,erro){ _sync.estado=e; if(erro!==undefined) _sync.erro=erro; paintSave(); pintaCartaoSync(); }
+function pintaCartaoSync(){ const el=document.getElementById('sync-estado'); if(el) el.innerHTML=textoEstadoSync(); }
+function textoEstadoSync(){
+  const c=syncCfg(); if(!c) return '';
+  const quando=c.ultima? ' · última sincronização '+(c.ultima.slice(0,10)===hojeISO()? 'hoje às '+hhmm(c.ultima) : rotuloData(c.ultima.slice(0,10))) : '';
+  const aviso= _sync.erro && _sync.estado==='ligado'? '<br><span class="f-warn-txt">⚠ '+esc(_sync.erro)+'</span>' : '';
+  const E={'ligado':'<b class="f-ok-txt">● Ligado ao outro aparelho</b>', 'à espera':'○ À espera do outro aparelho — abre a app nele',
+    'a ligar':'○ A ligar…', 'desligado':'○ Desligado', 'erro':'⚠ '+esc(_sync.erro||'Não foi possível ligar'), 'em uso':'⚠ A sincronização está aberta noutra janela desta app'};
+  return (E[_sync.estado]||esc(_sync.estado))+quando+aviso;
+}
+function sinal(msg){ try{ if(_sync.ws && _sync.ws.readyState===1) _sync.ws.send(JSON.stringify(msg)); }catch(e){} }
+async function syncLigar(){
+  const c=syncCfg(); if(!c || ECRA2 || typeof WebSocket==='undefined' || typeof RTCPeerConnection==='undefined') return;
+  if(_sync.ws && _sync.ws.readyState<2) return;
+  if(!c.ids) { c.ids=await idsSync(c.codigo); saveMeta(); }
+  syncEstado('a ligar');
+  let ws; try{ ws=new WebSocket(SYNC_SINAL+'&id='+c.ids[c.papel]+'&token='+Math.random().toString(36).slice(2)+'&version=1.5.4'); }
+  catch(e){ return syncEstado('erro','Sem ligação à internet'); }
+  _sync.ws=ws;
+  ws.onmessage=ev=>{ let m; try{ m=JSON.parse(ev.data); }catch(e){ return; } trataSinal(m); };
+  ws.onclose=()=>{ clearInterval(_sync.hb); if(_sync.ws===ws) _sync.ws=null;
+    if(syncCfg() && _sync.estado!=='ligado') syncEstado(_sync.estado==='em uso'? 'em uso' : 'à espera');
+    clearTimeout(_sync.re); _sync.re=setTimeout(syncLigar, Math.min(60000, 8000+(_sync.espera++)*4000)); };
+  ws.onerror=()=>{};
+}
+function outroId(){ const c=syncCfg(); return c&&c.ids? c.ids[c.papel==='a'?'b':'a'] : ''; }
+function trataSinal(m){
+  const c=syncCfg(); if(!c) return;
+  if(m.type==='OPEN'){ _sync.espera=0; clearInterval(_sync.hb); _sync.hb=setInterval(()=>sinal({type:'HEARTBEAT'}),5000);
+    if(_sync.estado!=='ligado') syncEstado('à espera'); chamarOutro(); return; }
+  if(m.type==='ID-TAKEN'){ syncEstado('em uso'); try{ _sync.ws.close(); }catch(e){} return; }
+  /* o outro não estava: a oferta feita fica pendurada para sempre, e a
+     seguinte via-a «a decorrer» e não fazia nada. Deita-se fora. */
+  if(m.type==='EXPIRE'){ if(_sync.estado!=='ligado'){ fechaPc(); syncEstado('à espera'); } return; }
+  if(m.src!==outroId()) return;   /* só se fala com o par emparelhado */
+  const p=m.payload||{};
+  if(m.type==='OFFER' && c.papel==='b') responderOferta(p);
+  else if(m.type==='ANSWER' && c.papel==='a' && _sync.pc) _sync.pc.setRemoteDescription(p.sdp).catch(()=>{});
+  else if(m.type==='CANDIDATE' && p.connectionId==='ffit-chama' && c.papel==='a') fazerOferta(true);
+}
+/* O serviço de encontro verifica a forma das mensagens e fecha a ligação a
+   quem mandar uma que não reconheça: a oferta e a resposta levam os campos
+   que o cliente oficial manda, e o «chama» vai disfarçado de candidato ICE
+   vazio, que é a única mensagem livre que ele deixa passar. */
+const SYNC_CANAL={type:'data', connectionId:'ffit', label:'ffit', reliable:true, serialization:'json', browser:'chrome'};
+/* Quem cria a ligação é sempre o aparelho que criou o código («a»); o outro
+   só chama. Assim os dois nunca fazem oferta ao mesmo tempo. */
+function chamarOutro(){ const c=syncCfg(); if(!c||_sync.estado==='ligado') return;
+  if(c.papel==='a') fazerOferta(); else sinal({type:'CANDIDATE', dst:outroId(), payload:{candidate:{candidate:'', sdpMid:'0', sdpMLineIndex:0}, type:'data', connectionId:'ffit-chama'}}); }
+function fechaPc(){ try{ _sync.dc&&_sync.dc.close(); }catch(e){} try{ _sync.pc&&_sync.pc.close(); }catch(e){} _sync.pc=null; _sync.dc=null; }
+function novoPc(){
+  const pc=new RTCPeerConnection({iceServers:SYNC_ICE});
+  pc.onconnectionstatechange=()=>{ if(['failed','closed','disconnected'].includes(pc.connectionState) && _sync.pc===pc){
+    if(_sync.estado==='ligado') syncEstado('à espera'); } };
+  _sync.pc=pc; return pc;
+}
+function esperaIce(pc){ return new Promise(r=>{ if(pc.iceGatheringState==='complete') return r();
+  const t=setTimeout(r,3500); pc.addEventListener('icegatheringstatechange',()=>{ if(pc.iceGatheringState==='complete'){ clearTimeout(t); r(); } }); }); }
+async function fazerOferta(forcar){
+  /* um «chama» do outro quer dizer que ele está agora à escuta: refaz-se a
+     oferta, a não ser que o canal já esteja mesmo aberto */
+  if(_sync.dc && _sync.dc.readyState==='open') return;
+  if(!forcar && _sync.pc && ['connecting','connected'].includes(_sync.pc.connectionState)) return;
+  fechaPc(); const pc=novoPc(); ligaCanal(pc.createDataChannel('ffit',{ordered:true}));
+  try{ await pc.setLocalDescription(await pc.createOffer()); await esperaIce(pc);
+    sinal({type:'OFFER', dst:outroId(), payload:Object.assign({sdp:pc.localDescription.toJSON()}, SYNC_CANAL)}); }catch(e){}
+}
+async function responderOferta(p){
+  fechaPc(); const pc=novoPc(); pc.ondatachannel=e=>ligaCanal(e.channel);
+  try{ await pc.setRemoteDescription(p.sdp); await pc.setLocalDescription(await pc.createAnswer()); await esperaIce(pc);
+    sinal({type:'ANSWER', dst:outroId(), payload:Object.assign({sdp:pc.localDescription.toJSON()}, SYNC_CANAL)}); }catch(e){}
+}
+function ligaCanal(dc){
+  _sync.dc=dc;
+  dc.onopen=()=>{ _sync.erro=''; syncEstado('ligado'); enviarEstadoSync(); };
+  dc.onclose=()=>{ if(_sync.dc===dc){ _sync.dc=null; syncEstado('à espera'); } };
+  dc.onmessage=ev=>recebePedaco(ev.data);
+}
+async function enviaSync(obj){
+  const dc=_sync.dc; if(!dc || dc.readyState!=='open') return false;
+  const txt=await cifra(obj), id=Math.random().toString(36).slice(2), n=Math.ceil(txt.length/SYNC_PEDACO);
+  for(let i=0;i<n;i++) dc.send(JSON.stringify({id,i,n,d:txt.slice(i*SYNC_PEDACO,(i+1)*SYNC_PEDACO)}));
+  return true;
+}
+async function recebePedaco(raw){
+  let p; try{ p=JSON.parse(raw); }catch(e){ return; }
+  const b=_sync.rx[p.id]||(_sync.rx[p.id]={n:p.n, l:[]}); b.l[p.i]=p.d;
+  if(b.l.filter(x=>x!==undefined).length<b.n) return;
+  delete _sync.rx[p.id];
+  let msg; try{ msg=await decifra(b.l.join('')); }catch(e){ _sync.erro='Chegou uma mensagem que não se conseguiu ler, e foi ignorada.'; return pintaCartaoSync(); }
+  trataMensagemSync(msg);
+}
+function eu(){ return (S.meta.dispositivo||(S.meta.dispositivo=Math.random().toString(36).slice(2,10))); }
+async function enviarEstadoSync(resolvido){
+  const c=syncCfg(); if(!c) return;
+  const imp=impressaoDados();
+  await enviaSync({tipo: resolvido? 'resolvido':'estado', dispositivo:eu(), mudou: imp!==c.base, vazio:!S.members.length,
+    gravadoEm:S.meta.gravadoEm||'', imp, pacote:pacote()});
+  if(!resolvido){ c.enviado=imp; }
+}
+function marcarSincronizado(){ const c=syncCfg(); if(!c) return;
+  c.base=impressaoDados(); c.ultima=new Date().toISOString(); writeLS(); pintaCartaoSync(); }
+/* Quem adota responde «recebido» com a impressão digital do que recebeu; quem
+   enviou só dá a sincronização por fechada se os seus dados ainda forem
+   esses. Sem isto, o aparelho que mandava uma alteração ficava para sempre a
+   achar que tinha mudado, e a alteração seguinte do outro lado parecia um
+   conflito que ninguém resolvia. */
+function trataMensagemSync(r){
+  const c=syncCfg(); if(!c||!r) return;
+  if(r.tipo==='ack'){ if(r.imp && impressaoDados()===r.imp) marcarSincronizado(); return; }
+  if(!r.pacote) return;
+  if(r.tipo==='resolvido') return adotarRemoto(r.pacote,'os dados juntos dos dois aparelhos',r.imp);
+  const souVazio=!S.members.length, mudei=impressaoDados()!==c.base;
+  if(souVazio && !r.vazio) return adotarRemoto(r.pacote,'os dados do outro aparelho',r.imp);
+  if(r.vazio) return;   /* o outro fica com os meus, e diz «recebido» */
+  if(!mudei && !r.mudou) return marcarSincronizado();
+  if(!mudei && r.mudou) return adotarRemoto(r.pacote,'as alterações do outro aparelho',r.imp);
+  if(mudei && !r.mudou) return;   /* o outro fica com os meus, e diz «recebido» */
+  /* os dois mudaram: resolve quem gravou por último */
+  const euResolvo = (S.meta.gravadoEm||'') > (r.gravadoEm||'') || ((S.meta.gravadoEm||'')===(r.gravadoEm||'') && eu()>r.dispositivo);
+  if(!euResolvo) return;   /* espera pelo «resolvido» do outro */
+  const flashAntes=flash; flash=function(){};
+  try{ juntar(JSON.stringify({app:APPID, formato:FORMATO, dados:r.pacote.dados})); } finally{ flash=flashAntes; }
+  marcarSincronizado();
+  enviarEstadoSync(true);
+  toast('Os dois aparelhos tinham alterações: ficaram juntas nos dois.',null,'ok');
+}
+function adotarRemoto(pac,oQue,imp){
+  const {d,erro}=lerPacote(JSON.stringify(pac));
+  if(erro){ aplicaIngredientesDaCasa(ingredientesDaCasa());
+    _sync.erro='Os dados do outro aparelho não passaram na verificação ('+erro+'). Atualiza a app nos dois aparelhos.';
+    toast(_sync.erro,null,'warn'); return pintaCartaoSync(); }
+  const ui=S.ui, meta=S.meta;
+  pilhaUndo.push({js:estadoAnterior, desc:'sincronização'}); if(pilhaUndo.length>UNDO_MAX) pilhaUndo.shift(); pilhaRedo=[];
+  S=Object.assign(blank(), d); S.ui=ui; S.meta=meta;
+  aplicaIngredientesDaCasa(S.ingredientes); sincronizaReceitas(); sincronizaCombos(); migraRegistos(S);
+  estadoAnterior=instantaneo();
+  marcarSincronizado();
+  if(imp) enviaSync({tipo:'ack', imp});
+  renderQuandoLivre();
+  toast('Sincronizado: '+oQue+'.',{rot:'Anular',fn:'desfazer()'},'ok');
+}
+/* Depois de cada alteração, com um segundo e meio de folga para um arrasto de
+   cursor não mandar vinte estados. */
+function syncAgendar(){ if(!syncCfg()||ECRA2) return; clearTimeout(_sync.envio);
+  _sync.envio=setTimeout(()=>{ if(canalSyncAberto()) enviarEstadoSync(); }, 1500); }
+function canalSyncAberto(){ return !!(_sync.dc && _sync.dc.readyState==='open'); }
+function syncAgora(){ if(canalSyncAberto()) enviarEstadoSync(); else { chamarOutro(); syncLigar(); flash('ok','À procura do outro aparelho — tem de ter a app aberta.'); } }
+async function criarEmparelhamento(){
+  if(!window.crypto||!crypto.subtle) return flash('bad','Este browser não permite cifrar os dados — a sincronização precisa de uma ligação segura (https).');
+  const codigo=novoCodigoSync();
+  S.meta.sync={codigo, papel:'a', base:'', ultima:'', ids:await idsSync(codigo), criado:new Date().toISOString()};
+  saveMeta(); render(); syncLigar();
+}
+async function emparelharCom(cod){
+  const codigo=codigoLimpo(cod);
+  if(!/^[A-Z0-9]{16}$/.test(codigo)) return flash('bad','O código tem 16 letras e números — por exemplo ABCD-EFGH-JKMN-PQRS.');
+  if(!window.crypto||!crypto.subtle) return flash('bad','Este browser não permite cifrar os dados — a sincronização precisa de uma ligação segura (https).');
+  fecharSync(true);
+  S.meta.sync={codigo, papel:'b', base:'', ultima:'', ids:await idsSync(codigo), criado:new Date().toISOString()};
+  S.ui.modal=null; saveMeta(); render(); syncLigar();
+  flash('ok','Emparelhado. Assim que o outro aparelho tiver a app aberta, os dados passam de um para o outro.');
+}
+function fecharSync(silencioso){
+  clearTimeout(_sync.re); clearInterval(_sync.hb); fechaPc();
+  try{ _sync.ws&&_sync.ws.close(); }catch(e){} _sync.ws=null; _sync.estado='desligado';
+  if(!silencioso) paintSave();
+}
+function desemparelhar(){
+  if(!confirm('Deixar de sincronizar com o outro aparelho? Os dados ficam nos dois, cada um com os seus.')) return;
+  fecharSync(); delete S.meta.sync; saveMeta(); render(); flash('ok','Deixou de sincronizar. Os dados ficaram nos dois aparelhos.');
+}
+function partilharLigacaoSync(){ const c=syncCfg(); if(!c) return; const url=ligacaoSync(c.codigo);
+  if(navigator.share) navigator.share({title:'Família Fit', text:'Emparelhar com a Família Fit', url}).catch(()=>{});
+  else if(navigator.clipboard) navigator.clipboard.writeText(url).then(()=>flash('ok','Ligação copiada.'),()=>{});
+}
+function cartaoSync(){
+  const c=syncCfg();
+  const corpo= !c? `
+      <p class="sub" style="margin-top:6px">Os dados passam a estar iguais no telemóvel e no computador, sozinhos, sempre que os dois tiverem a app aberta.
+        Vão diretamente de um aparelho para o outro, cifrados com o código de emparelhamento — não ficam guardados em servidor nenhum.</p>
+      <div class="row" style="margin-top:10px"><button class="btn" onclick="criarEmparelhamento()">Criar código de emparelhamento</button></div>
+      <div class="row" style="margin-top:10px;gap:6px;flex-wrap:nowrap">
+        <input type="text" id="sync-cod" placeholder="Tenho um código: ABCD-EFGH-JKMN-PQRS" aria-label="Código de emparelhamento" autocomplete="off" autocapitalize="characters" maxlength="24">
+        <button class="btn ghost" style="flex:none" onclick="emparelharCom(document.getElementById('sync-cod').value)">Emparelhar</button></div>`
+    : `
+      <p class="sub" id="sync-estado" style="margin-top:6px" aria-live="polite">${textoEstadoSync()}</p>
+      ${c.papel==='a'&&!c.ultima? `<div class="sync-par">
+        <div>${qrSvg(ligacaoSync(c.codigo),200)}</div>
+        <div style="min-width:0"><p class="sub">No outro aparelho, aponta a câmara a este código, ou abre a app em Definições → Sincronizar e escreve:</p>
+          <p class="sync-codigo">${codigoBonito(c.codigo)}</p>
+          <button class="btn ghost small" onclick="partilharLigacaoSync()">Partilhar a ligação</button></div></div>`
+      : `<p class="sub">Código: <b>${codigoBonito(c.codigo)}</b></p>`}
+      <div class="row" style="margin-top:10px">
+        <button class="btn small" onclick="syncAgora()">Sincronizar agora</button>
+        <button class="btn ghost small" onclick="desemparelhar()">Deixar de sincronizar</button></div>`;
+  return `<div class="card" data-col="dados-sync">
+    <h3>Sincronizar com outro aparelho ${dica('sync')}</h3>${corpo}
+    <p class="sub" style="margin-top:10px;font-size:12.5px">Para os dois aparelhos se encontrarem é usado um serviço público de encontro (PeerJS), que vê apenas dois identificadores aleatórios — nunca os dados. Funciona melhor com os dois na mesma rede Wi-Fi.</p>
+  </div>`;
+}
+function modalEmparelharHtml(mo){
+  return `<div class="mfundo" onclick="fundoModal(event)">
+    <div class="mcaixa" role="dialog" aria-modal="true" aria-labelledby="emp-t" style="max-width:520px">
+      <h2 id="emp-t">Emparelhar com outro aparelho?</h2>
+      <p class="sub" style="margin-top:6px">Abriste uma ligação de emparelhamento com o código <b>${esc(codigoBonito(mo.codigo))}</b>.${syncCfg()? ' <b>Este aparelho já sincroniza com outro</b> — emparelhar com este código desliga esse.' : ''}</p>
+      <div class="alerta" style="margin-top:10px"><span aria-hidden="true">⚠️</span><span>Isto passa <b>todos os dados desta app</b> — perfis, pesagens, alergias, planos —
+        para o aparelho que criou o código, e mantém-nos iguais daí em diante. Só aceites se o código veio de um aparelho teu.</span></div>
+      <div class="row" style="margin-top:14px;justify-content:flex-end">
+        <button class="btn ghost" onclick="fecharModal()">Agora não</button>
+        <button class="btn" onclick="emparelharCom('${esc(mo.codigo)}')">Emparelhar</button></div>
+    </div></div>`;
+}
+/* Quem abre uma ligação «#par=…» vem de um código QR ou de uma mensagem: a
+   app pergunta antes de emparelhar, e nunca emparelha sozinha. */
+function lerParDoEndereco(){
+  const m=/[#&]par=([A-Za-z0-9-]{16,24})/.exec(location.hash||''); if(!m) return;
+  try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){}
+  const codigo=codigoLimpo(m[1]); if(!/^[A-Z0-9]{16}$/.test(codigo)) return;
+  const c=syncCfg(); if(c && c.codigo===codigo) return;
+  setTimeout(()=>abrirModal('emparelhar',{codigo}), 400);
+}
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible' && syncCfg()){
+  if(_sync.estado==='ligado') enviarEstadoSync(); else { syncLigar(); chamarOutro(); } } });
+setInterval(()=>{ if(syncCfg() && _sync.estado!=='ligado' && _sync.ws && _sync.ws.readyState===1) chamarOutro(); }, 20000);
+
+/* ================= DOIS ECRÃS =================
+   Num computador com dois monitores, a app abre uma segunda janela no outro
+   ecrã — e essa janela não é uma cópia: é a companheira do que se está a
+   fazer na primeira.
+   · A planear a semana, o outro ecrã mostra a lista de compras a crescer.
+   · A ver uma receita, mostra-a em modo cozinha, passo a passo e em letra
+     grande — e «Cozinhar» abre lá, deixando o ecrã principal livre.
+   · Nas receitas, a semana; no Calendário, o dia de hoje; no Hoje, a agenda.
+   Ou fica fixo numa vista, à escolha. As duas janelas partilham os dados:
+   o que se marca numa aparece na outra, sem avisos de «outro separador».
+   Funciona na versão para computador (que sabe onde está o segundo monitor)
+   e em qualquer browser de computador (que pede licença para o saber). */
+var _canalEcras=null, _ecra2Aberto=false, _ultimoCtx='', _e2Visto=0, _e2Adeus=0, _e2Janela=null;
+function canalEcras(){
+  if(_canalEcras || typeof BroadcastChannel==='undefined') return _canalEcras;
+  try{ _canalEcras=new BroadcastChannel('familia-fit-ecras'); _canalEcras.onmessage=e=>recebeEcras(e.data||{}); }catch(e){}
+  return _canalEcras;
+}
+function enviaEcras(m){ const c=canalEcras(); if(c) try{ c.postMessage(m); }catch(e){} }
+function ecrasLigados(){ const fd=window.fitDesktop; if(fd){ try{ return fd.ecras()||1; }catch(e){ return 1; } } return screen.isExtended? 2 : 1; }
+function podeSegundoEcra(){ const r=document.documentElement;
+  return !ECRA2 && r.getAttribute('data-dispositivo')!=='telefone' && r.getAttribute('data-dispositivo')!=='tablet'; }
+async function abrirSegundoEcra(){
+  if(_ecra2Aberto){ enviaEcras({tipo:'fechar'}); return; }
+  const url=location.pathname+'?ecra=2';
+  let feat='popup,width=1200,height=820';
+  if(!window.fitDesktop && 'getScreenDetails' in window){
+    try{ const d=await window.getScreenDetails(); const o=d.screens.find(x=>x!==d.currentScreen);
+      if(o) feat=`popup,left=${o.availLeft},top=${o.availTop},width=${o.availWidth},height=${o.availHeight}`; }catch(e){}
+  }
+  const w=window.open(url,'familia-fit-ecra2',feat);
+  vigiaEcra2(w);
+  if(!w) return flash('warn','O browser bloqueou a janela nova. Permite janelas para esta página e tenta outra vez.');
+  if(ecrasLigados()<2) flash('ok','Só há um ecrã ligado: a janela abriu ao lado. Num segundo monitor, abre lá sozinha.');
+}
+/* O aviso de saída da segunda janela nem sempre chega — num fecho brusco a
+   página desaparece antes de o mandar. Quem a abriu vigia-a também. */
+var _vigiaE2=null;
+function vigiaEcra2(w){ clearInterval(_vigiaE2); _e2Janela=w||null; if(!w) return;
+  _vigiaE2=setInterval(()=>{ let fechada=true; try{ fechada=w.closed; }catch(e){}
+    if(fechada){ clearInterval(_vigiaE2); if(_ecra2Aberto){ _ecra2Aberto=false; pintaBotaoEcra2(); } } }, 1000); }
+function contextoAtual(){
+  const f=fichaAberta(), k=S.ui.cozinha;
+  return {tipo:'contexto', tab:S.ui.tab, vista:vistaMercearia(), semana:S.week,
+    ficha: f? {r:f.r, n:f.n} : null, cozinha: k? {r:k.r, n:k.n} : null};
+}
+function enviaContexto(forcar){
+  if(ECRA2 || !_ecra2Aberto) return;
+  const c=contextoAtual(), j=JSON.stringify(c); if(!forcar && j===_ultimoCtx) return;
+  _ultimoCtx=j; enviaEcras(c);
+}
+function recebeEcras(m){
+  if(!ECRA2){
+    /* um «estou cá» que chegue depois do adeus, ou de uma janela que se sabe
+       fechada, é eco de quem já partiu */
+    if(m.tipo==='ola' && (Date.now()-_e2Adeus<3000 || (_e2Janela && _e2Janela.closed))) return;
+    if(m.tipo==='ola'){ const novo=!_ecra2Aberto; _e2Visto=Date.now(); _ecra2Aberto=true; if(novo){ _ultimoCtx=''; enviaContexto(true); pintaBotaoEcra2(); } }
+    else if(m.tipo==='adeus'){ _e2Adeus=Date.now(); _ecra2Aberto=false; pintaBotaoEcra2(); }
+    return;
+  }
+  if(m.tipo==='quem') return enviaEcras({tipo:'ola'});
+  if(m.tipo==='fechar') return window.close();
+  if(m.tipo==='cozinhar'){ S.ui.e2modo='acompanhar'; abrirCozinhaLocal(m.r,m.n,m.ctx,m.ac);
+    if(S.ui.cozinha) S.ui.cozinha.doPrincipal=true; return; }
+  if(m.tipo==='contexto'){ _ultimoCtx=m; if((S.ui.e2modo||'acompanhar')==='acompanhar') acompanha(m); }
+}
+const E2_SEGUE={hoje:'calendario', plano:'mercearia', calendario:'hoje', receitas:'plano', mercearia:'plano',
+  familia:'hoje', objetivos:'hoje', nutricao:'hoje', atividade:'calendario', dados:'hoje'};
+function acompanha(m){
+  if(m.semana) S.week=m.semana;
+  /* a bancada que o principal mandou para aqui não se fecha porque o principal
+     mudou de separador: foi para isso que veio — fica até se fechar aqui */
+  if(S.ui.cozinha && S.ui.cozinha.doPrincipal) return;
+  if(m.cozinha){ if(!S.ui.cozinha || S.ui.cozinha.r!==m.cozinha.r) abrirCozinhaLocal(m.cozinha.r,m.cozinha.n); return; }
+  if(m.ficha){ if(!S.ui.cozinha || S.ui.cozinha.r!==m.ficha.r) abrirCozinhaLocal(m.ficha.r,m.ficha.n); return; }
+  S.ui.cozinha=null;
+  const t=E2_SEGUE[m.tab]||'hoje';
+  S.ui.tab=t; if(t==='mercearia') S.ui.mercVista='compras';
+  render();
+}
+const E2_VISTAS=[['acompanhar','Acompanhar'],['hoje','Hoje'],['plano','Semana'],['calendario','Calendário'],['compras','Compras'],['receitas','Receitas']];
+function setE2(v){
+  S.ui.e2modo=v; S.ui.cozinha=null;
+  if(v==='acompanhar'){ if(_ultimoCtx && typeof _ultimoCtx==='object') return acompanha(_ultimoCtx); S.ui.tab='hoje'; }
+  else if(v==='compras'){ S.ui.tab='mercearia'; S.ui.mercVista='compras'; }
+  else S.ui.tab=v;
+  render();
+}
+function barraEcra2(){
+  const modo=S.ui.e2modo||'acompanhar';
+  return `<div class="e2-barra" role="navigation" aria-label="Segundo ecrã">
+    <b class="e2-nome">Segundo ecrã</b>
+    <div class="subnav" role="tablist">${E2_VISTAS.map(([k,t])=>`<button role="tab" aria-selected="${modo===k}" class="${modo===k?'on':''}" onclick="setE2('${k}')">${t}</button>`).join('')}</div>
+    <span class="sub e2-dica">${modo==='acompanhar'? 'Mostra o que acompanha o que estás a fazer no ecrã principal.' : 'Fica nesta vista até escolheres outra.'}</span>
+    <button class="btn ghost small" onclick="document.fullscreenElement? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(()=>{})">Ecrã inteiro</button>
+    <button class="btn ghost small" onclick="window.close()">Fechar</button>
+  </div>`;
+}
+function pintaBotaoEcra2(){
+  const b=document.getElementById('btn-ecra2'); if(!b) return;
+  b.hidden=!podeSegundoEcra();
+  b.setAttribute('aria-pressed', String(_ecra2Aberto));
+  b.classList.toggle('on', _ecra2Aberto);
+  b.title= _ecra2Aberto? 'Fechar o segundo ecrã' : (ecrasLigados()>1? 'Abrir o segundo ecrã no outro monitor' : 'Abrir uma segunda janela que acompanha esta');
+}
+/* As duas janelas partilham o localStorage. Quando a outra grava, esta
+   recarrega os dados — e só os dados: o separador, a ficha aberta e o modo
+   de cada janela são dela. */
+/* Redesenhar substitui os campos: quem estava a escrever uma altura perdia o
+   número e o foco porque a outra janela gravou. Com um campo em edição, o
+   desenho espera que se saia dele. */
+function renderQuandoLivre(){
+  const a=document.activeElement, main=document.getElementById('main');
+  if(a && main && main.contains(a) && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && a.type!=='checkbox' && a.type!=='range'){
+    a.addEventListener('blur',()=>setTimeout(render,0),{once:true}); return; }
+  render();
+}
+function adotarDeOutraJanela(){
+  const ui=S.ui, meta=S.meta;
+  const novo=load();
+  S=novo; S.ui=ui;
+  if(!ECRA2) S.meta=Object.assign({}, novo.meta, {sync:meta.sync, dispositivo:meta.dispositivo});
+  aplicaIngredientesDaCasa(S.ingredientes); sincronizaReceitas(); sincronizaCombos(); migraRegistos(S);
+  estadoAnterior=instantaneo(); _ultimaGravacaoNossa=S.meta.gravadoEm||'';
+  renderQuandoLivre();
+  if(!ECRA2) syncAgendar();
+}
+if(ECRA2){
+  document.documentElement.setAttribute('data-ecra2','');
+  S.ui.e2modo='acompanhar'; S.ui.modal=null; S.ui.folha=null; S.ui.ficha=null; S.ui.cozinha=null; S.ui.pesqAberta=false; S.ui.tourPasso=null;
+  S.ui.tab='hoje';
+  canalEcras(); enviaEcras({tipo:'ola'});
+  window.addEventListener('pagehide',()=>enviaEcras({tipo:'adeus'}));
+  window.addEventListener('beforeunload',()=>enviaEcras({tipo:'adeus'}));
+  setInterval(()=>enviaEcras({tipo:'ola'}), 8000);
+} else {
+  canalEcras();
+  enviaEcras({tipo:'quem'});
+  if(window.fitDesktop && window.fitDesktop.aoMudarEcras) window.fitDesktop.aoMudarEcras(()=>pintaBotaoEcra2());
+  lerParDoEndereco();
+  /* o segundo ecrã diz «estou cá» de 8 em 8 segundos; sem notícias dele há
+     20, deu-se por fechado — fechou-se a janela sem aviso, ou a principal
+     recarregou e perdeu-lhe o rasto */
+  setInterval(()=>{ if(_ecra2Aberto && Date.now()-_e2Visto>20000){ _ecra2Aberto=false; pintaBotaoEcra2(); } }, 4000);
+  setTimeout(()=>{ if(syncCfg()) syncLigar(); }, 600);
+}
+
 render();
 /* Quem esteve fora vê o convite hoje; a data só avança quando o dispensar ou
    quando a ausência já não conta. */
@@ -42782,9 +43383,9 @@ function correrAtalho(){
    A pergunta da pesagem, a bandeja da manhã e as compras por confirmar
    abriam-se por cima da app ao chegar. Passam a ser linhas do cartão «Para
    tratar», no Hoje: estão lá à espera, e abrem quando a pessoa quiser. */
-if(S.members.length && !tourAtivo()) setTimeout(()=>{ correrAtalho(); }, 700);
+if(S.members.length && !tourAtivo() && !ECRA2) setTimeout(()=>{ correrAtalho(); }, 700);
 /* quem escolheu assumir o plano vê os dias que acabaram dados como feitos ao abrir */
-if(S.members.length && (S.cozPref||{}).assumir) setTimeout(()=>{ if(aplicarPlanoAssumido()){ save('plano assumido'); render(); } }, 300);
+if(S.members.length && (S.cozPref||{}).assumir && !ECRA2) setTimeout(()=>{ if(aplicarPlanoAssumido()){ save('plano assumido'); render(); } }, 300);
 /* A bandeja da manhã: uma vez por dia, e nunca por cima da visita guiada nem
    de um ecrã ainda sem ninguém. */
 

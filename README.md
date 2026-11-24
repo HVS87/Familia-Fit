@@ -88,6 +88,8 @@ Pelo caminho apareceu um defeito que fazia o dia de jejum **cair no dia seguinte
 
 **🍯 Vinte receitas novas: bolos, sanduíches, um pesto e a família do gelato.** O **Medovik**, o bolo de mel russo de oito camadas finas, com a smetana do original trocada por natas com iogurte grego — que é a adaptação corrente cá, e os passos dizem porquê. Os **financiers** de amêndoa com manteiga noisette e o **cheesecake basco**, cada um com a sua **versão keto** no mesmo cartão (com eritritol, e o basco sem farinha nenhuma). O **pesto de pistácio**, na família dos pestos. A **sanduíche de focaccia com pesto de pistácio, mortadela e stracciatella**, no mesmo cartão que a versão com **burrata** no lugar da stracciatella e que a **original, em massa de pizza** — a pizza bianca romana aberta ao meio; e, quando falta stracciatella, a app propõe a burrata, cujo miolo é precisamente isso. A **sanduíche de almôndegas** (meatball sub). As **batatas boulangère**. E nove **gelatos** — nata (fior di latte), azeite, vinagre balsâmico, morango, manga, pistácio, avelã, caramelo salgado e coco. O gelato não é o gelado com outro nome: leva mais leite e menos nata, não leva gema — o leite em pó dá o corpo —, bate-se com menos ar e serve-se a −11 °C, não a −18. Ficou numa família própria, ao lado dos gelados de creme inglês que a app já tinha, em vez de os duplicar. A **stracciatella** entrou no catálogo a partir de um rótulo (Mò Bufala), porque não existe em nenhuma tabela oficial de composição, com o sódio lido do mesmo rótulo. E pelo caminho: o cheesecake basco e o japonês deixam de receber a oferta de uma base de bolacha — o nome dizia «cheesecake», e nenhum dos dois tem base.
 
+**🖥️ Versão para computador, dois ecrãs e sincronização entre aparelhos.** A app passa a ter um **programa para Windows, macOS e Linux** — instalador e `.exe` portátil no Windows, imagem de disco para Intel e Apple Silicon no Mac, AppImage e `.deb` no Linux —, construído e publicado sozinho pela automação do repositório a cada versão (ver «Versão para computador»). Com **dois monitores**, abre uma janela companheira no outro ecrã que acompanha o que se está a fazer: a lista de compras enquanto se planeia, a receita em modo cozinha enquanto se lê, e o «Cozinhar» passa a abrir lá. E o telemóvel e o computador passam a ter **os mesmos dados**, sozinhos, sempre que os dois tiverem a app aberta: emparelham-se uma vez com um código QR, e os dados vão diretamente de um para o outro, cifrados, sem servidor (ver «Sincronizar telemóvel e computador»). O código QR é desenhado pela própria app, sem bibliotecas — verificado com um descodificador independente em 300 textos aleatórios das versões 1 a 10.
+
 **✏️ Um só conjunto de ícones.** A app tinha dois: os ícones de linha da navegação e dos estados vazios, e perto de duzentos emoji a fazer de ícone em botões, etiquetas e títulos — cada sistema operativo a desenhá-los à sua maneira, com cores que não são as da paleta. Passa a haver um. Cada emoji que faz de ícone é agora um glifo de linha, do mesmo punho dos que já existiam (viewBox de 24, um só peso de traço) e com a cor do texto onde está: sessenta glifos novos — os catorze alergénios cada um com o seu desenho (a espiga, o camarão, o ovo, o peixe, o amendoim, o feijão da soja, o leite, a noz, as sementes de sésamo, a garrafa dos sulfitos, a vagem do tremoço, a concha dos moluscos), as bebidas, as pessoas, o calendário, a ampulheta do jejum, o chapéu de cozinheiro — a somar aos trinta e cinco de antes. A troca faz-se numa passagem pelo que foi desenhado, e não nos milhares de moldes, para nenhum ficar esquecido; medidos, são 676 glifos nos dez ecrãs e dois emoji por trocar. Ficam como estavam os emoji que são escolha de alguém (a cara do avatar, a de uma visita), as bandeiras das cozinhas, e o texto dos sítios onde um desenho não cabe: as opções de uma lista, o que se imprime e o que se exporta. Como o glifo herda a cor do texto, nenhum depende da cor para se perceber — o alerta é um octógono e o aviso um triângulo — e o contraste é o do texto à volta. Um botão que era só um emoji leva nome para o leitor de ecrã, e um emoji que alguém escreveu num nome — de uma pessoa, de uma receita da casa, de uma visita — continua a ser o emoji que essa pessoa escreveu. **E o que a QA desta versão apanhou na caixa «Procurar ou registar»:** procurar «corrida» ou «jejum» e carregar no Enter gravava um treino de 30 minutos ou um jejum de 24 horas — o Enter só regista agora o que se lê como registo (um número, ou um verbo de coisa feita: «corri 8 km», «jantar feito»), e o botão de registar fica por baixo dos resultados para quem o quiser; «caminhada 1h30» e «corri 2 horas» liam-se como 30 minutos, porque só se liam minutos; e «comprei 25 kg de batata» ou «ana 120 g de pescada» viravam pesagens, porque bastava a frase ter «kg» ou «pes». Também: as iniciais do avatar partiam-se ao meio com um emoji no nome, e um botão dentro de texto secundário herdava o cinzento e ficava a 4,2:1.
 
 **🧭 A app arrumada pelo que se vem fazer.** Estava pesada por uma razão de estrutura e não de acabamento: tudo vivia à superfície e ao mesmo nível, e o essencial de cada separador ficava misturado com ferramentas raras — ou por baixo delas. A regra passou a ser «só uso A se já estiver a usar B, logo A vive dentro de B», e **nenhuma funcionalidade saiu**.
@@ -535,6 +537,44 @@ Depois de instalada funciona **sem rede** — útil para a lista de compras no s
 
 ---
 
+## Versão para computador
+
+A mesma app, como programa para **Windows, macOS e Linux**. Cada versão publicada traz, na página das releases do repositório:
+
+| Sistema | Ficheiro | Notas |
+|---|---|---|
+| Windows | `familia-fit-…-instalador-windows.exe` | Instalador: escolhe-se a pasta, cria atalhos no ambiente de trabalho e no menu Iniciar, e desinstala-se pelas Definições do Windows. |
+| Windows | `familia-fit-…-portatil-windows.exe` | Um ficheiro só, sem instalar: abre-se e usa-se (numa pen, por exemplo). |
+| macOS | `familia-fit-…-mac.dmg` | Para Intel e Apple Silicon. Não é assinado pela Apple: na primeira vez, clique direito no programa → Abrir. |
+| Linux | `familia-fit-…-linux-x86_64.AppImage` | Um ficheiro só: dá-se permissão de execução e abre-se. |
+| Linux | `familia-fit-…-linux-amd64.deb` | Para Debian, Ubuntu e derivadas. |
+
+Os instaladores não são assinados digitalmente, por isso o Windows pode mostrar o aviso do SmartScreen («Mais informações» → «Executar mesmo assim»).
+
+O programa abre a app a partir de dentro de si, sem rede, e acrescenta o que um computador tem e um browser não sabe usar bem:
+
+**🖥️🖥️ Dois ecrãs.** Com um segundo monitor ligado, o botão do segundo ecrã no cabeçalho (ou Ctrl/Cmd + Shift + 2) abre uma janela companheira **maximizada no outro monitor**. Não é uma cópia: acompanha o que se está a fazer na janela principal —
+- a planear a semana, mostra a **lista de compras** a crescer;
+- numa receita, mostra-a em **modo cozinha**, passo a passo e em letra grande — e «Cozinhar» passa a abrir lá, deixando o ecrã principal livre para continuar a planear;
+- nas receitas, a semana; no Calendário, o dia de hoje; no Hoje, a agenda.
+
+Também se pode fixar numa vista (Hoje, Semana, Calendário, Compras, Receitas). As duas janelas partilham os dados: o que se marca numa aparece na outra. Se o segundo monitor for desligado, a janela vem para o principal. Funciona também num browser de computador, que pede licença para saber onde está o outro ecrã.
+
+O programa lembra-se do tamanho e do sítio da janela, abre uma só vez (abrir outra vez traz a janela à frente), tem os menus em português e abre as ligações externas no browser do sistema.
+
+Para construir a partir do código: `cd desktop`, `npm install` e `npm run dist` (ou `dist:win`, `dist:mac`, `dist:linux`). Ao enviar uma etiqueta `v…` para o GitHub, a automação em `.github/workflows/versao-computador.yml` constrói os três sistemas e publica a release sozinha.
+
+## Sincronizar telemóvel e computador
+
+Em **Definições → Sincronizar com outro aparelho**, um aparelho cria um código de emparelhamento e mostra-o em QR; o outro aponta a câmara (ou escreve o código, ou abre a ligação partilhada). Daí em diante, **sempre que os dois tiverem a app aberta**, os dados ficam iguais nos dois, sozinhos: uma pesagem no telemóvel aparece no computador segundos depois.
+
+- **Sem servidor.** Os dados vão diretamente de um aparelho para o outro por uma ligação ponto a ponto do browser (WebRTC), **cifrados** com uma chave que sai do código e nunca sai dos aparelhos. Para os dois se encontrarem na internet é usado o serviço público e gratuito de encontro do PeerJS, que vê apenas dois identificadores aleatórios e os endereços de rede para a ligação — nunca os dados.
+- **Quem fica com quê.** Cada aparelho guarda a impressão digital dos dados no momento da última sincronização. Se só um mudou, o outro fica com os dados dele; se os dois mudaram enquanto estavam desligados, o que gravou por último junta os dados do outro aos seus — a mesma junção do «Juntar» das cópias, sem perder pesagens nem registos de nenhum dos lados — e os dois ficam com o resultado. Cada adoção pode ser anulada com o desfazer.
+- **O que é de cada aparelho não se sincroniza:** o separador aberto, o tema, a paleta, o estilo e a densidade.
+- **Uma ligação de emparelhamento nunca emparelha sozinha:** a app pergunta antes, e diz que isso partilha todos os dados com o aparelho que criou o código.
+- Funciona melhor com os dois na mesma rede Wi-Fi; entre redes diferentes depende do tipo de ligação de cada uma.
+- **Limites que convém saber:** sincroniza **dois** aparelhos (um telemóvel e um computador, por exemplo), e só quando os dois têm a app aberta ao mesmo tempo — não há nenhum servidor a guardar as alterações entretanto. Se os dois mudaram coisas enquanto estavam desligados, a junção não perde nada mas também não sabe o que foi apagado: uma coisa apagada num aparelho nesse intervalo pode voltar. Com os dois ligados, apagar propaga-se normalmente.
+
 ## Publicar no GitHub Pages
 
 O repositório já está pronto: o `index.html` está na raiz e não precisa de build.
@@ -556,7 +596,7 @@ Para usar sem GitHub, basta abrir o `index.html` diretamente no browser — func
 
 ## Onde ficam os dados
 
-Tudo o que é introduzido fica guardado apenas no `localStorage` do browser de cada pessoa. Nada é enviado para nenhum servidor, não há contas nem sincronização: cada dispositivo mantém os seus próprios perfis e planos. Limpar os dados do site apaga tudo — e o mesmo endereço aberto no telemóvel e no computador terá conteúdos independentes.
+Tudo o que é introduzido fica guardado no `localStorage` do browser (ou, na versão para computador, no armazenamento do próprio programa). Não há contas nem servidor. Cada aparelho tem os seus dados — a não ser que se **emparelhem dois aparelhos** (ver «Sincronizar telemóvel e computador»): aí os dados passam diretamente de um para o outro, cifrados, e não ficam guardados em lado nenhum pelo caminho. Limpar os dados do site apaga tudo o que está nesse aparelho.
 
 No iPhone e no iPad, o Safari apaga o armazenamento de sites que não são abertos há algumas semanas. Instalar no ecrã principal atenua o problema, mas a única garantia real é exportar uma cópia de vez em quando, no separador **Dados**.
 

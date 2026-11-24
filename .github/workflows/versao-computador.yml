@@ -1,0 +1,66 @@
+# Constrói a versão para computador nos três sistemas e publica a release.
+# Corre quando se envia uma etiqueta «v…» (ou à mão, em Actions). Cada sistema
+# constrói no seu: o instalador e o portátil do Windows, a imagem de disco do
+# macOS (Intel e Apple Silicon) e o AppImage e o .deb do Linux. No fim, um
+# passo junta tudo — mais a versão web num .zip — numa release com as notas
+# da versão.
+name: Versão para computador
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  construir:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: desktop
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+      - run: npm ci
+      - run: npm run preparar
+      - name: Empacotar
+        run: npx electron-builder --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: familia-fit-${{ matrix.os }}
+          if-no-files-found: error
+          path: |
+            desktop/dist/*.exe
+            desktop/dist/*.dmg
+            desktop/dist/*.AppImage
+            desktop/dist/*.deb
+
+  publicar:
+    needs: construir
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: artefactos
+          merge-multiple: true
+      - name: Versão web num .zip
+        run: zip -j "artefactos/familia-fit-${GITHUB_REF_NAME#v}-web.zip" index.html manifest.webmanifest sw.js icon.svg icon-180.png icon-192.png icon-512.png
+      - uses: softprops/action-gh-release@v2
+        with:
+          name: Família Fit ${{ github.ref_name }}
+          body_path: notas/${{ github.ref_name }}.md
+          files: artefactos/*
