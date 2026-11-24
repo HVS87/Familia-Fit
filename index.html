@@ -283,6 +283,9 @@ html[data-densidade="cerrado"] .spline{padding:10px 12px}
    Herdam a cor de onde estão postos e alinham-se com a linha de texto: é o
    que os distingue de um emoji, que traz cor própria e assenta de través. */
 .glifo{display:inline-block;vertical-align:-.18em;flex:none}
+.glifo-t{width:1.15em;height:1.15em}
+.glifo-baixo{transform:rotate(180deg)}
+.sub .chip:not(.on){color:var(--ink)}
 .cat-h .glifo,.mercado-sec .glifo{vertical-align:-.2em;margin-right:2px}
 
 /* ===== O PADRÃO DA CASA =====
@@ -3817,7 +3820,7 @@ let _regRefIdx=null;
 /* As sugestões rápidas das refeições vazias também se esquecem aqui: uma
    alergia marcada no perfil tem de as mudar já, e não no próximo desenho das
    Refeições — a memória delas guardava a lista de antes da alergia. */
-function esquecePendencias(){ _pendCache=null; _regRefIdx=null; _sugRap={}; }
+function esquecePendencias(){ _pendCache=null; _regRefIdx=null; _sugRap={}; _txtEmoji=null; }
 /* Contador dos ids das bolhas de explicação. Zera a cada desenho — os ids só
    precisam de ser únicos dentro da página que existe naquele momento. */
 let _nDica=0;
@@ -17466,6 +17469,77 @@ function ilustracao(nome){
    modo escuro sem uma linha de código a mais. Onde não houver glifo, o
    emoji continua a aparecer — nenhum ecrã fica sem símbolo por isto. */
 const GLIFOS={
+  alerta:'M8.5 3h7L21 8.5v7L15.5 21h-7L3 15.5v-7Z M12 8v5 M12 16.5h.01',
+  picante:'M14 6c4 1 6 5 4 9-2 4-7 6-13 5 5-1 7-3 8-7 .4-2-.6-4-1.5-5 M14 6c0-2 1-3 3-3',
+  porco:'M12 20a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z M9 15a3 2.2 0 0 0 6 0 3 2.2 0 0 0-6 0Z M11 15h.01M13 15h.01 M6.5 8 5 4l4 2M17.5 8 19 4l-4 2',
+  coroa:'M4 18 3 8l5 4 4-7 4 7 5-4-1 10Z M4 21h16',
+  mascara:'M4 5c5 2 11 2 16 0v6c0 5-4 9-8 9s-8-4-8-9Z M8 10h2M14 10h2 M9 15c2 1.5 4 1.5 6 0',
+  rebucado:'M9 9h6v6H9Z M9 12 4 8v8ZM15 12l5-4v8Z',
+  aquecer:'M5 12a7 7 0 0 1 12-5l2-2v6h-6l2-2 M8 16c0-1.5 1-1.5 1-3M12 17c0-1.5 1-1.5 1-3M16 16c0-1.5 1-1.5 1-3',
+  estadio:'M3 9c0-2 4-4 9-4s9 2 9 4v6c0 2-4 4-9 4s-9-2-9-4Z M3 9c0 2 4 4 9 4s9-2 9-4',
+  lula:'M12 3c3 2 5 5 5 9H7c0-4 2-7 5-9Z M8 12v6M10.7 12v8M13.3 12v8M16 12v6',
+  aviso:'M12 4 21 19H3Z M12 10v4 M12 16.5h.01',
+  copo:'M7 8h10l-1.2 12H8.2Z M6 8h12 M12 8l2-5h3',
+  copobaixo:'M6 6h12l-1 13H7Z M6.6 12h10.8',
+  cerveja:'M6 6h10v14H6Z M16 9h2a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2 M9 10v6M13 10v6',
+  cocktail:'M4 4h16l-8 9Z M12 13v7 M8 20h8',
+  garrafa:'M10 3h4v4l2 3v10a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V10l2-3Z M10 7h4',
+  ampulheta:'M6 3h12M6 21h12 M8 3v4l4 5-4 5v4 M16 3v4l-4 5 4 5v4',
+  festa:'M4 20 9 7l8 8Z M14 4v2M19 5l-1.5 1.5M20 10h-2 M12 3.5h.01M17.5 12.5h.01',
+  brilho:'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8Z M19 16v4M17 18h4',
+  frasco:'M8 3h8v3H8Z M7 6h10v13a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2Z M7 11h10M7 15h10',
+  saleiro:'M9 3h6l1 4v12a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2V7Z M8 7h8 M11 4.5h.01M13 4.5h.01',
+  pessoa:'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z M4.5 20.5c1-4 4-6 7.5-6s6.5 2 7.5 6',
+  crianca:'M12 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z M6.5 20c.8-3.6 2.8-5.5 5.5-5.5s4.7 1.9 5.5 5.5',
+  biberao:'M9 8h6v11a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2Z M10 8V6a2 2 0 0 1 4 0v2 M9 12h3M9 15h3',
+  chapeu:'M7 14a4 4 0 0 1 0-8 5 5 0 0 1 10 0 4 4 0 0 1 0 8Z M7 14v6h10v-6 M7 17h10',
+  calendario:'M4 6h16v14H4Z M4 10h16 M8 3v4M16 3v4',
+  correr:'M14.5 5.5a1.5 1.5 0 1 0 0-.01 M6 20l4-5-1-4 4-2 3 3h3 M10 11l-4 1 M13 15l3 5',
+  halteres:'M3 9v6M6 7v10M18 7v10M21 9v6 M6 12h12',
+  pulso:'M3 13h4l2.5-6 4 11 2.5-5H21',
+  trocar:'M4 8h13l-3-3 M20 16H7l3 3',
+  sol:'M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4',
+  lua:'M19 14.5A8 8 0 0 1 9.5 5a8 8 0 1 0 9.5 9.5Z',
+  lapis:'M4 20l1-4L16 5l3 3L8 19Z M14 7l3 3',
+  alvo:'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z M12 12h.01',
+  lista:'M7 4h10v17H7Z M10 3h4v3h-4Z M10 10h4M10 14h4M10 17h2',
+  saude:'M10 4h4v6h6v4h-6v6h-4v-6H4v-4h6Z',
+  raio:'M13 3 5 13h6l-1 8 8-10h-6Z',
+  proibido:'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z M6 6l12 12',
+  pino:'M12 21s-6-6-6-11a6 6 0 0 1 12 0c0 5-6 11-6 11Z M12 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4',
+  colher:'M12 11a4 4 0 0 0 4-4c0-2.5-1.8-4-4-4S8 4.5 8 7a4 4 0 0 0 4 4Z M12 11v10',
+  euro:'M17 6a7 7 0 1 0 0 12 M4 10h9M4 14h9',
+  enviar:'M12 15V4 M8 8l4-4 4 4 M5 14v5h14v-5',
+  baixar:'M12 4v11 M8 11l4 4 4-4 M5 15v4h14v-4',
+  espiga:'M12 21V8 M12 8c-2-1-3-3-3-5 2 1 3 2 3 5Zm0 0c2-1 3-3 3-5-2 1-3 2-3 5Z M12 13c-2-1-4-1-5-3M12 13c2-1 4-1 5-3 M12 17c-2-1-4-1-5-3M12 17c2-1 4-1 5-3',
+  noz:'M12 4c4 0 7 3 7 7 0 5-3 9-7 9s-7-4-7-9c0-4 3-7 7-7Z M12 4v16',
+  amendoim:'M9 4a4 4 0 0 1 6 0c1.5 1.8 1 4-.5 5.5-.8.8-.8 1.8 0 2.6 1.6 1.6 2 4 .4 5.9a4.2 4.2 0 0 1-6.8-.3c-1.3-2-.8-4 .7-5.5.8-.8.8-1.8 0-2.6C7.6 8 7.5 5.6 9 4Z',
+  feijao:'M7 6c3-3 9-1 10 4 .8 4-2 8-6 8-3 0-5-2-4-5 .5-1.6 2-2 2-3.5S6 8 7 6Z',
+  sementes:'M8 7c1.5 0 2.5 1.5 2.5 3S9.5 13 8 13 5.5 11.5 5.5 10 6.5 7 8 7Z M16 6c1.5 0 2.5 1.5 2.5 3S17.5 12 16 12s-2.5-1.5-2.5-3S14.5 6 16 6Z M12 14c1.5 0 2.5 1.5 2.5 3s-1 3-2.5 3-2.5-1.5-2.5-3 1-3 2.5-3Z',
+  vagem:'M4 18C6 9 12 5 20 4c-1 8-5 14-14 16Z M9 15h.01M12 12h.01M15 9h.01',
+  concha:'M12 20C6 20 3 15 4 9l8 11 8-11c1 6-2 11-8 11Z M12 20 8 6M12 20l4-14M12 20V5',
+  camarao:'M18 6c-6-1-11 2-11 7 0 3 2 5 5 5 M18 6c1 3 0 6-3 7 M12 18l-2 3M9 16l-4 2 M15 13c0 3-1 4-3 5 M19 4l-1 2',
+  polegar:'M7 11v9H4v-9Z M7 11l4-7a2 2 0 0 1 3 2l-1 4h5a2 2 0 0 1 2 2.4l-1 5a2 2 0 0 1-2 1.6H7',
+  marmita:'M4 9h16v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z M3 9l2-4h14l2 4 M12 9v11',
+  trofeu:'M8 4h8v5a4 4 0 0 1-8 0Z M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4 M12 13v4 M8 20h8',
+  lupa:'M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z M16 16l5 5',
+  cama:'M3 18V7 M3 14h18v4 M21 14v-2a3 3 0 0 0-3-3h-7v5 M7 11.5a1.5 1.5 0 1 0 0-.01',
+  regua:'M4 20V4l16 16Z M8 16v-3l3 3Z',
+  grafico:'M4 20V4 M4 20h16 M7 15l4-5 3 3 5-7',
+  som:'M4 10v4h3l5 4V6l-5 4Z M16 9a4 4 0 0 1 0 6',
+  cadeado:'M6 11h12v9H6Z M9 11V8a3 3 0 0 1 6 0v3',
+  imprimir:'M7 8V4h10v4 M5 8h14a2 2 0 0 1 2 2v6h-4 M7 16H3v-6a2 2 0 0 1 2-2 M7 13h10v7H7Z',
+  imagem:'M4 5h16v14H4Z M4 16l5-5 4 4 3-3 4 4 M9 9h.01',
+  iman:'M6 4v8a6 6 0 0 0 12 0V4h-4v8a2 2 0 0 1-4 0V4Z M6 8h4M14 8h4',
+  maos:'M3 12l4-4 5 3 5-3 4 4-9 8Z M12 11v9',
+  dente:'M7 4c2-1 3 1 5 1s3-2 5-1c3 1 3 5 2 8-1 3-1 8-3 8s-2-5-4-5-2 5-4 5-2-5-3-8C4 9 4 5 7 4Z',
+  ecra:'M3 5h18v11H3Z M8 20h8 M12 16v4',
+  telemovel:'M7 3h10v18H7Z M11 18h2',
+  pausa:'M8 5v14M16 5v14',
+  vassoura:'M14 4l6 6 M17 7 9 15 M9 15l-5 5 5-1 4-4Z',
+  paleta:'M12 3a9 9 0 0 0 0 18c2 0 2-2 1-3s0-3 2-3h3a3 3 0 0 0 3-3c0-5-4-9-9-9Z M7.5 11h.01M10 7.5h.01M14.5 7.5h.01',
+  voz:'M5 5h14v10H10l-5 4Z M9 9h6M9 12h3',
+  urna:'M5 11h14v9H5Z M8 11l1-6h6l1 6 M10 15h4',
   sopa:'M3 11h18a9 9 0 0 1-9 9 9 9 0 0 1-9-9Z M8 7c0-1.5 1.5-1.5 1.5-3 M12 6c0-1.5 1.5-1.5 1.5-3 M16 7c0-1.5 1.5-1.5 1.5-3',
   peixe:'M3 12c3-4 7-6 11-6 3 0 5 2 6 6-1 4-3 6-6 6-4 0-8-2-11-6Z M17 11h.01 M3 12l-2-3M3 12l-2 3',
   carne:'M6 17c-3-3-3-8 1-11s9-2 11 2c1.6 3 .4 6-2 8-3 2.4-7 3-10 1Z M9 14a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5',
@@ -17502,6 +17576,111 @@ const GLIFOS={
   livro:'M4 4h6a3 3 0 0 1 2 1 3 3 0 0 1 2-1h6v14h-6a3 3 0 0 0-2 1 3 3 0 0 0-2-1H4Z M12 5v14',
   taca:'M6 3h12l-1 5a5 5 0 0 1-10 0Z M12 13v6 M8 21h8'
 };
+/* ================= UM SÓ CONJUNTO DE ÍCONES =================
+   A app tinha dois: os ícones de linha da navegação e dos estados vazios, e
+   perto de duzentos emoji a fazer de ícone em botões, etiquetas e títulos —
+   cada sistema operativo a desenhá-los à sua maneira, com cores que não são
+   as da paleta. Passa a haver um: cada emoji que faz de ícone é desenhado
+   como glifo de linha, no mesmo traço e com a cor do texto onde está.
+
+   A troca faz-se numa passagem pelo que foi desenhado, e não nos milhares de
+   moldes: assim nenhum fica esquecido, e o que é texto continua a ser texto
+   nos sítios onde um desenho não cabe (opções de uma lista, o que se
+   imprime, o que se exporta). Ficam como estavam os emoji que são ESCOLHA de
+   alguém — a cara do avatar, a de uma visita —, as bandeiras das cozinhas e
+   os poucos que não têm glifo. Como o glifo herda a cor do texto, nenhum
+   depende da cor para se perceber: o alerta é um octógono, o aviso um
+   triângulo. */
+const ICONE_DE=(function(){
+  const g={
+    alerta:'🚨', aviso:'⚠', copo:'🥤 🧋', copobaixo:'🥃', cerveja:'🍺', cocktail:'🍸 🍹', taca:'🍷 🥂 🍾',
+    garrafa:'🍶', ampulheta:'⏳', festa:'🎉 🎊 🎈 🎁 🎄', estrela:'⭐', brilho:'✨', folha:'🌱 🌿 🍀 🌻 🌵',
+    cesto:'🛒', frasco:'🥫 🫙 🍯', frigideira:'🍳', gelo:'🧊 ❄', saleiro:'🧂',
+    pessoa:'🧑 👨 👩 👵 👴 🧓 🤰', crianca:'🧒 👧 👦', biberao:'👶 🍼 🐣', chapeu:'👨‍🍳',
+    calendario:'📅 🗓', correr:'🏃', halteres:'🏋', pulso:'🏊 🚴 ⚽ 🎾 🥊 💃 ⛰ 🧘 🤸', estadio:'🏟',
+    trocar:'🔀 🔁 🔄 ↔', aquecer:'♻', sol:'☀ 🌅', lua:'🌙', peixe:'🐟 🍣', arroz:'🍚', fruta:'🍊 🍋 🍏 🍎 🍍 🍓 🍒 🍑 🥭',
+    gota:'💧', relogio:'⏲ ⏱ 🕰', lapis:'✏', alvo:'🎯', lista:'📋 🧾 ☑', saude:'⚕ 🩺 💊', leite:'🥛',
+    raio:'⚡', proibido:'🚫', livro:'📖 📚', pino:'📍 📌', colher:'🥄', euro:'💶', enviar:'📤 📲', baixar:'📥 ⬇',
+    carne:'🥩 🐑', porco:'🐖', pao:'🥐 🌮 🍔 🌭', legumes:'🫒 🥦 🥬', picante:'🌶', panela:'🍲 🥘 🍛 🍜 🫖', massa:'🍝', faca:'🔪',
+    espiga:'🌾', noz:'🌰', amendoim:'🥜', sementes:'⚪', vagem:'🫛', concha:'🐙', lula:'🦑', camarao:'🦐', ovo:'🥚',
+    bolo:'🎂 🍮 🥧', rebucado:'🍬', chama:'🔥', polegar:'👍', marmita:'🥡 🍱', trofeu:'🏆', coroa:'👑', lupa:'🔎 🔬', cama:'🛌',
+    sopa:'🥣', talher:'🍽', balanca:'⚖', regua:'📐', grafico:'📊 📈 📉', som:'🔊 🔈 🎼 🎸', cadeado:'🔒',
+    imprimir:'🖨', imagem:'🖼', iman:'🧲', maos:'🤝 👐', dente:'🦷', ecra:'🖥', pausa:'⏸', vassoura:'🧹',
+    paleta:'🎨', mascara:'🎭', voz:'🗣', urna:'🗳', coracao:'💙', casa:'🏛 🏫 🕌', feijao:'🫘 🧆'
+  };
+  const m={}; Object.keys(g).forEach(k=>g[k].split(' ').forEach(e=>{ m[e]=k; }));
+  m['👎']='polegar:baixo';
+  return m;
+})();
+/* O nome que um botão só de ícone leva para quem ouve em vez de ver. */
+const ICONE_NOME={'polegar:baixo':'Não gosto', alerta:'Alerta', aviso:'Aviso', saude:'Alergias', lapis:'Editar', trocar:'Trocar', balanca:'Pesagem',
+  lupa:'Procurar', cesto:'Compras', calendario:'Calendário', estrela:'Favorita', proibido:'Não', polegar:'Gosto',
+  enviar:'Exportar', baixar:'Transferir', imprimir:'Imprimir', festa:'Dia livre', ampulheta:'Jejum', chapeu:'Cozinhar'};
+const RE_ICONE=/\p{Extended_Pictographic}[\uFE0F\u{1F3FB}-\u{1F3FF}]*(?:\u200D\p{Extended_Pictographic}\uFE0F?)*/gu;
+const RE_TALVEZ_ICONE=/[\u203C-\u3299\uD83C-\uD83E]/;
+const NS_SVG='http://www.w3.org/2000/svg';
+function noIcone(chave){
+  const [k,var_]=chave.split(':');
+  const v=document.createElementNS(NS_SVG,'svg');
+  v.setAttribute('class','glifo glifo-t'+(var_? ' glifo-'+var_ : '')); v.setAttribute('viewBox','0 0 24 24');
+  v.setAttribute('aria-hidden','true'); v.setAttribute('fill','none'); v.setAttribute('stroke','currentColor');
+  v.setAttribute('stroke-width','1.7'); v.setAttribute('stroke-linecap','round'); v.setAttribute('stroke-linejoin','round');
+  const p=document.createElementNS(NS_SVG,'path'); p.setAttribute('d',GLIFOS[k]); v.appendChild(p);
+  return v;
+}
+function iconizaTexto(t){
+  const s=t.nodeValue; if(!s || !RE_TALVEZ_ICONE.test(s)) return;
+  const pai=t.parentNode; if(!pai || pai.nodeType!==1) return;
+  if(pai.closest('.av-emoji,.emoji-op,.emoji-livre,.so-leitor,[aria-live],option,select,textarea,script,style,title,svg,[contenteditable]')) return;
+  /* um emoji que alguém escreveu num nome — de uma receita da casa, de uma
+     pessoa, de uma visita — é texto dessa pessoa, e não ícone da app */
+  const livres=textosComEmoji();
+  if(livres.length && livres.some(n=>s.indexOf(n)>=0)) return;
+  RE_ICONE.lastIndex=0;
+  let m, i=0, frag=null, primeiro=null;
+  while((m=RE_ICONE.exec(s))){
+    const cru=m[0], base=cru.replace(/[\uFE0F\u{1F3FB}-\u{1F3FF}]/gu,'');
+    const chave=ICONE_DE[base] || ICONE_DE[base.split('\u200D')[0]];
+    if(!chave || !GLIFOS[chave.split(':')[0]]) continue;
+    if(!frag) frag=document.createDocumentFragment();
+    if(m.index>i) frag.appendChild(document.createTextNode(s.slice(i,m.index)));
+    frag.appendChild(noIcone(chave)); if(!primeiro) primeiro=chave;
+    i=m.index+cru.length;
+  }
+  if(!frag) return;
+  if(i<s.length) frag.appendChild(document.createTextNode(s.slice(i)));
+  pai.replaceChild(frag,t);
+  /* um botão que era só o emoji ficava sem nome nenhum para o leitor de ecrã */
+  const b=pai.closest('button,summary,a');
+  if(b && !b.getAttribute('aria-label') && !b.textContent.trim()) { const n=b.title||ICONE_NOME[primeiro]||ICONE_NOME[primeiro.split(':')[0]]; if(n) b.setAttribute('aria-label',n); }
+}
+var _txtEmoji=null;
+function textosComEmoji(){
+  if(_txtEmoji) return _txtEmoji;
+  const l=[], junta=n=>{ n=String(n||''); if(n && RE_TALVEZ_ICONE.test(n)) l.push(n); };
+  try{ (S.members||[]).forEach(m=>junta(m.nome)); (S.receitas||[]).forEach(r=>junta(r.n));
+       (typeof visitasCfg==='function'? visitasCfg() : []).forEach(v=>junta(v.nome)); }catch(e){}
+  return (_txtEmoji=l);
+}
+function iconizaArvore(raiz){
+  if(!raiz) return;
+  if(raiz.nodeType===3) return iconizaTexto(raiz);
+  if(raiz.nodeType!==1 || raiz.namespaceURI===NS_SVG) return;
+  const w=document.createTreeWalker(raiz,NodeFilter.SHOW_TEXT), l=[];
+  while(w.nextNode()) l.push(w.currentNode);
+  l.forEach(iconizaTexto);
+}
+/* Tudo o que entra na página passa por aqui — o desenho de um separador, uma
+   janela, uma atualização ao vivo de um só número —, antes de ser pintado. */
+function ligaIcones(){
+  if(!('MutationObserver' in window) || !document.body) return;
+  new MutationObserver(l=>{ l.forEach(x=>{
+    if(x.type==='characterData') iconizaTexto(x.target);
+    else x.addedNodes.forEach(iconizaArvore);
+  }); }).observe(document.body,{childList:true,subtree:true,characterData:true});
+  iconizaArvore(document.body);
+}
+ligaIcones();
 function glifo(k,tam){
   const d=GLIFOS[k]; if(!d) return '';
   const t=tam||18;
@@ -17569,7 +17748,7 @@ function avatar(m,sz){
   const tam=sz||26;
   const dm=(m&&m.id&&!m.convidado)? ` data-membro="${m.id}"` : '';
   if(m && m.emoji) return `<span class="av av-emoji"${dm} style="background:${avColor(m)}22;border:1.5px solid ${avColor(m)};width:${tam}px;height:${tam}px;font-size:${Math.round(tam*0.58)}px">${esc(m.emoji)}</span>`;
-  const ini=(m.nome||'?').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
+  const ini=(m.nome||'?').trim().split(/\s+/).map(w=>Array.from(w)[0]).filter(c=>/[\p{L}\p{N}]/u.test(c||'')).slice(0,2).join('').toUpperCase()||'?';
   return `<span class="av"${dm} style="background:${avColor(m)};color:${tintaSobre(avColor(m))};width:${tam}px;height:${tam}px">${esc(ini)}</span>`;
 }
 /* O seletor de membro acompanha o scroll: em páginas compridas (Nutrição,
@@ -21503,8 +21682,9 @@ function irIngrediente(n){ fecharPesquisa(); S.ui.mercVista='despensa'; go('merc
    «Escrever e despachar» na Família, que faz. Quem escreve «Ana 62,4» não
    devia ter de saber em qual das duas. Agora é uma: se o texto se lê como um
    registo, a primeira linha é «Registar», e o Enter faz isso; senão, procura. */
-let _pesqAccao=null;
-function pesqRegistar(){ const f=_pesqAccao; if(!f) return; _pesqAccao=null; fecharPesquisa(); f(); }
+let _pesqAccao=null, _pesqAccaoManual=null;
+function pesqRegistar(manual){ const f=manual? _pesqAccaoManual : _pesqAccao; if(!f) return;
+  _pesqAccao=_pesqAccaoManual=null; fecharPesquisa(); f(); }
 function pesqEnter(e){
   if(e.key!=='Enter') return; e.preventDefault();
   if(_pesqAccao) return pesqRegistar();
@@ -21514,14 +21694,22 @@ function pintaPesquisa(){
   const cx=document.getElementById('pesq-res'); if(!cx) return;
   const q=S.ui.pesqQ||'';
   const ac= q.trim().length>=2? interpretarBalcao(q) : null;
-  _pesqAccao= ac? ac.fn : null;
   const res=pesquisaGlobal(q);
-  const topo= ac? `<button class="btn" style="width:100%;text-align:left;margin-top:6px;min-height:48px" onclick="pesqRegistar()">✎ <b>Registar:</b> ${esc(ac.t)} <span class="sub" style="color:inherit">· Enter</span></button>` : '';
+  /* O Enter só regista quando o texto se lê como um registo — tem um número
+     ou um verbo de coisa feita. «corrida» ou «jejum» sozinhos são uma
+     procura: sem isto, procurar uma modalidade e carregar no Enter gravava
+     um treino de 30 minutos. O botão de registar continua lá, por baixo dos
+     resultados, para quem o quiser carregar. */
+  const explicito= !!ac && (/\d/.test(q) || /(^|\s)(feit[oa]|comi|comid[oa]|comprei|corri|nadei|andei|caminhei|pedalei|jejuei|treinei|joguei|fiz)(\s|$)/.test(semAcentos(q).toLowerCase()));
+  _pesqAccao= explicito? ac.fn : null;
+  _pesqAccaoManual= ac? ac.fn : null;
+  const botaoReg= ac? `<button class="btn" style="width:100%;text-align:left;margin-top:6px;min-height:48px" onclick="pesqRegistar(true)">✎ <b>Registar:</b> ${esc(ac.t)}${explicito? ' <span class="sub" style="color:inherit">· Enter</span>':''}</button>` : '';
+  const topo= explicito? botaoReg : '', fundo= explicito? '' : botaoReg;
   cx.innerHTML = q.length<2
     ? '<p class="sub" style="padding:8px 2px">Escreve pelo menos duas letras. Procura em receitas, ingredientes, modalidades, perfis e nos cartões da app — e regista o que se escreve como um registo: «Ana 62,4», «corri 8 km», «jejuei 24h», «jantar feito», «comprei azeite».</p>'
-    : !res.length? topo+(ac? '' : '<p class="sub" style="padding:8px 2px">Nada com esse nome.</p>')
+    : !res.length? topo+fundo+(ac? '' : '<p class="sub" style="padding:8px 2px">Nada com esse nome.</p>')
     : topo+res.map(x=>`<button class="btn ghost" style="width:100%;text-align:left;margin-top:6px;min-height:48px"
-        onclick="${x.fn}"><b>${esc(x.t)}</b> <span class="sub">· ${esc(x.o)}</span></button>`).join('');
+        onclick="${x.fn}"><b>${esc(x.t)}</b> <span class="sub">· ${esc(x.o)}</span></button>`).join('')+fundo;
 }
 function pesquisaHtml(){
   return `<div class="mfundo" onclick="fundoPesquisa(event)" style="align-items:flex-start;padding-top:8vh">
@@ -23734,7 +23922,14 @@ function interpretarBalcao(txt){
   }
   /* pesagem: «ana 62,4» ou «62,4 kg» */
   const kg=/(\d{2,3}[.,]?\d?)\s*(kg)?\b/.exec(t);
-  if(kg && (/(kg|pes)/.test(t) || (quem && t.replace(nome(quem),'').trim()===kg[0].trim()))){
+  /* «pes» sozinho apanhava «pescada» e «pêssegos», e «comprei 25 kg de batata»
+     virava uma pesagem de 25 quilos: a palavra tem de ser peso/pesa/pesei/
+     pesou inteira, o «kg» tem de vir colado ao número e sem «de» a seguir, e
+     uma frase de compras nunca é uma pesagem. */
+  const ehCompra=/(^|\s)compr/.test(t);
+  const comKg=kg && !!kg[2] && !/kg\s+de\s/.test(t);
+  const comPalavra=/(^|\s)(peso|pesa|pesei|pesou|pesagem)(\s|$)/.test(t);
+  if(kg && !ehCompra && (comKg || comPalavra || (quem && t.replace(nome(quem),'').trim()===kg[0].trim()))){
     const v=parseFloat(kg[1].replace(',','.'));
     if(quem && v>=20 && v<=300)
       return {t:'Pesagem de '+nPT(v,1)+' kg para '+nomeCurto(quem), fn:()=>{
@@ -23751,7 +23946,11 @@ function interpretarBalcao(txt){
   if(sp && quem){
     const min=/(\d{1,3})\s*(min|minutos)/.exec(t);
     const km=/(\d{1,3}([.,]\d)?)\s*km/.exec(t);
-    const dur=min? parseInt(min[1],10) : (km? Math.round(parseFloat(km[1].replace(',','.'))*6) : 30);
+    /* «caminhada 1h30», «corri 2 horas», «nadei 1,5 h»: as horas liam-se como
+       nada e ficavam os 30 minutos por omissão */
+    const hm=/(\d{1,2})(?:[.,](\d))?\s*(?:h|hs|horas?)\s*(\d{1,2})?(?!\d)/.exec(t);
+    const durH=hm? Math.round((parseInt(hm[1],10)+(hm[2]? parseInt(hm[2],10)/10 : 0))*60+(hm[3]? parseInt(hm[3],10) : 0)) : 0;
+    const dur=min&&!hm? parseInt(min[1],10) : durH? Math.min(durH,600) : (km? Math.round(parseFloat(km[1].replace(',','.'))*6) : 30);
     return {t:sp.nome+' de '+dur+' min para '+nomeCurto(quem)+(km? ' ('+km[1]+' km)':''), fn:()=>{
       confirmarTreinoFio(quem.id, sp.id, dur); }};
   }
@@ -26227,7 +26426,7 @@ function cartaoVisitas(){
     : `<div class="grid g2" style="margin-top:12px">${l.map(v=>`
       <div class="card" style="border-color:${v.cor}">
         <div class="row" style="justify-content:space-between;align-items:center;gap:8px">
-          <span style="font-size:22px;flex:none">${esc(v.emoji)}</span>
+          <span class="emoji-livre" style="font-size:22px;flex:none">${esc(v.emoji)}</span>
           <input value="${esc(v.nome)}" aria-label="Nome da visita" style="flex:1;min-width:0"
             oninput="setVisitaAoVivo('${v.id}','nome',this.value)" onchange="setVisita('${v.id}','nome',this.value)">
           <button class="btn danger small" style="flex:none" onclick="delVisita('${v.id}')" aria-label="Apagar a visita ${esc(v.nome)}">✕</button>
@@ -37089,7 +37288,7 @@ function blocoConvidados(di,mk,meal){
     <span class="lbl" style="margin:0">Visitas ${dica('visitas')}</span>
     ${livro.map(v=>{ const on=naMesa.some(x=>x.id===v.id), costuma=espera.indexOf(v.id)>=0;
       return `<button class="chip ${on?'on':''} ${costuma&&!on?'costuma':''}" onclick="toggleVisitaNaMesa(${di},'${mk}','${v.id}')"
-        aria-pressed="${on}"${costuma? ' title="Costuma vir neste dia da semana"':''}>${esc(v.emoji)} ${esc(v.nome)}${
+        aria-pressed="${on}"${costuma? ' title="Costuma vir neste dia da semana"':''}><span class="emoji-livre">${esc(v.emoji)}</span> ${esc(v.nome)}${
         costuma&&!on? ' <span aria-hidden="true">·</span>':''}${v.al.length? ' <span class="tag alerg" title="'+esc(v.al.map(k=>RESTR[k].n).join(', '))+'">🚨</span>':''}</button>`;
     }).join('')}
   </div>`:''}

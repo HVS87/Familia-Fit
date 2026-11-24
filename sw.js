@@ -8,7 +8,7 @@
    sempre que o servidor não respondia. */
 /* v4: a app foi reorganizada em cinco destinos — quem a tem instalada tem de
    receber o index.html novo de uma vez, e não uma mistura do velho com o novo. */
-const CACHE = 'familia-fit-v4';
+const CACHE = 'familia-fit-v5';
 const BASE = new URL('./', self.location).pathname;
 const ESSENCIAIS = ['./', './index.html', './icon.svg', './icon-180.png', './icon-192.png', './icon-512.png', './manifest.webmanifest'];
 
