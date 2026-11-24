@@ -33,8 +33,13 @@ jobs:
           cache-dependency-path: desktop/package-lock.json
       - run: npm ci
       - run: npm run preparar
+      # Se falhar, as últimas linhas do registo vão para as anotações, que se
+      # leem sem sessão iniciada.
       - name: Empacotar
-        run: npx electron-builder --publish never
+        shell: bash
+        run: |
+          set -o pipefail
+          npx electron-builder --publish never 2>&1 | tee empacotar.log || { tail -n 25 empacotar.log | sed 's/^/::warning title=Empacotar ('"$RUNNER_OS"')::/'; exit 1; }
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
       # Arranca o programa empacotado e corre o autoteste lá dentro: a app
