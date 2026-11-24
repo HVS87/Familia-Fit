@@ -25,8 +25,7 @@ const vigia=setInterval(()=>{
       const j=JSON.parse(fs.readFileSync(out,'utf8'));
       console.log(JSON.stringify(j,null,1));
       /* no GitHub, cada falha vira uma anotação, que se lê sem abrir o registo */
-      if(process.env.GITHUB_ACTIONS) j.falhas.forEach(f=>console.log('::error title=Autoteste ('+process.platform+')::'+String(f).replace(/?
-/g,' ')));
+      if(process.env.GITHUB_ACTIONS) j.falhas.forEach(f=>console.log('::error title=Autoteste ('+process.platform+')::'+String(f).replace(/\s+/g,' ')));
       if(process.env.GITHUB_ACTIONS) console.log('::notice title=Autoteste ('+process.platform+')::'+j.ok.length+' verificações certas, '+j.falhas.length+' falhas, '+j.ecras+' ecrã(s)');
       try{ p.kill(); }catch(e){}
       process.exit(j.falhas.length? 1 : 0);
