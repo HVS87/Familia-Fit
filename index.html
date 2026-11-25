@@ -174,6 +174,56 @@ html[data-paleta="contraste"] .svgfx{ stroke-width:2.4 }
 html[data-paleta="contraste"] :focus-visible{outline-width:3px}
 html[data-paleta="contraste"] .btn,
 html[data-paleta="contraste"] .chip{min-height:44px}
+/* ---- Visão das cores (Definições → Acessibilidade) ----
+   Por cima de qualquer paleta, troca as cores que dizem um ESTADO — certo,
+   perto, longe, dia livre, festa — e as dos macronutrientes por conjuntos que
+   se distinguem com daltonismo. Escolhidas por simulação (matrizes de Machado,
+   Oliveira e Fernandes, 2009, severidade total) e medidas em CIEDE2000: o par
+   mais parecido fica acima de 8 no tipo de daltonismo a que o modo se destina
+   (com as cores de origem, «perto» e «longe» davam 3,3 na deuteranopia). Todos
+   os tons passam 4,5:1 contra o cartão e o fundo, e 7:1 na paleta Contraste.
+   As regras vêm depois das paletas e têm o modo no seletor, para ganharem a
+   todas as paletas sem !important. As formas (círculo, losango, triângulo)
+   continuam a dizer o mesmo — a cor é ajuda, nunca a única pista. */
+html[data-visao="rg"][data-modo="claro"]{
+  --ok:#0A63BD; --warn:#7A6A1E; --bad:#5A1E10; --livre:#4A1A66; --party:#B4106A;
+  --mp:#096BC4; --mc:#7B4D0A; --mf:#3A1430; }
+html[data-visao="rg"][data-modo="escuro"]{
+  --ok:#8FC8F0; --warn:#F5DC50; --bad:#F0A890; --livre:#C080F5; --party:#E08DB5;
+  --mp:#4BA6F7; --mc:#CD9D67; --mf:#D8F4F2; }
+html[data-visao="tri"][data-modo="claro"]{
+  --ok:#08736A; --warn:#5A321E; --bad:#C8103F; --livre:#1A2A80; --party:#8A10C0; }
+html[data-visao="tri"][data-modo="escuro"]{
+  --ok:#4EE0CC; --warn:#E5CBB0; --bad:#F27592; --livre:#A8AAF0; --party:#D97AF5; }
+html[data-visao="rg"][data-paleta="contraste"][data-modo="claro"]{
+  --ok:#12286A; --warn:#6E4C10; --bad:#3A0E06; --livre:#7E1898; --party:#7C1A3E;
+  --mp:#014BC4; --mc:#604612; --mf:#350D28; }
+html[data-visao="rg"][data-paleta="contraste"][data-modo="escuro"]{
+  --ok:#BFE4F7; --warn:#FCEB4C; --bad:#E88A68; --livre:#BD90ED; --party:#E89AAA;
+  --mp:#849CFE; --mc:#F7C241; --mf:#DBF5F0; }
+html[data-visao="tri"][data-paleta="contraste"][data-modo="claro"]{
+  --ok:#065F56; --warn:#3A2412; --bad:#AA0C30; --livre:#0A0E50; --party:#7619AD; }
+html[data-visao="tri"][data-paleta="contraste"][data-modo="escuro"]{
+  --ok:#45F5B5; --warn:#F8DCCF; --bad:#E8829C; --livre:#8A9EFC; --party:#C79CE2; }
+@supports (background:color-mix(in srgb,red 50%,blue)){
+  html[data-visao="rg"], html[data-visao="tri"]{
+    --livre-soft:color-mix(in srgb,var(--livre) 14%,var(--card));
+    --party-soft:color-mix(in srgb,var(--party) 12%,var(--card)); }
+  /* na Contraste o texto tem de chegar a 7:1 também sobre estes fundos */
+  html[data-visao="rg"][data-paleta="contraste"], html[data-visao="tri"][data-paleta="contraste"]{
+    --livre-soft:color-mix(in srgb,var(--livre) 5%,var(--card));
+    --party-soft:color-mix(in srgb,var(--party) 6%,var(--card)); }
+}
+/* Tamanho da letra: a app mede quase tudo em px, por isso amplia-se o
+   conteúdo inteiro — letra, ícones e alvos de toque crescem juntos e nada se
+   desalinha. O cabeçalho e a barra de navegação ficam de fora: já têm alvos
+   de 44 px e, num telemóvel, ampliados deixavam de caber na largura. */
+html[data-letra="grande"] #main, html[data-letra="grande"] #modal-raiz{zoom:1.12}
+html[data-letra="maior"] #main, html[data-letra="maior"] #modal-raiz{zoom:1.25}
+/* Sublinhar as ligações: quem não distingue a cor do texto à volta deixa de
+   depender dela para ver onde se pode tocar. */
+html[data-sublinhar="1"] a{text-decoration:underline;text-underline-offset:2px}
+html[data-sublinhar="1"] :focus-visible{outline-width:3px;outline-offset:3px}
 
 /* ===== DENSIDADE =====
    No primeiro mês os espaços ensinam; ao sexto atrapalham. «Cerrado» aperta
@@ -2292,6 +2342,11 @@ html[data-estilo="suave"] .filtros-mais,html[data-estilo="suave"] .subnav{border
     border-radius:999px;padding:6px 16px;display:inline-flex;align-items:center}
   html:not([data-dispositivo="telefone"]) .pesq-rot{display:inline;font-size:14px}
 }
+/* Entre 1000 e 1100 px a pesquisa larga empurrava a roda dentada das
+   definições para uma segunda linha do cabeçalho, sozinha. */
+@media (min-width:1000px) and (max-width:1100px){
+  html:not([data-dispositivo="telefone"]) #btn-pesq{min-width:150px}
+}
 html[data-dispositivo="telefone"][data-orient="retrato"] #btn-ajuda,
 html[data-dispositivo="telefone"][data-orient="retrato"] #dica-desfazer{display:none}
 /* ===== Barra lateral nos ecrãs largos =====
@@ -2369,7 +2424,7 @@ html[data-orient="paisagem"][data-dispositivo="tablet"] .gdias{grid-template-col
     <button class="savest" id="savest" onclick="go('dados')" title="Ver dados e cópias de segurança"></button>
     <button class="hbtn" id="btn-ecra2" hidden onclick="abrirSegundoEcra()" aria-pressed="false" aria-label="Segundo ecrã" title="Segundo ecrã"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="11" height="8" rx="1.5"/><rect x="11" y="9" width="11" height="8" rx="1.5"/><path d="M6 17h3M15 21h3M16.5 17v4M7.5 13v4"/></svg></button>
     <button class="hbtn" id="btn-ajuda" onclick="abrirAjuda()" aria-label="Ajuda: todas as explicações" title="Ajuda">?</button>
-    <button class="hbtn" id="btn-defs" onclick="go('dados')" aria-label="Definições" title="Definições"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7"/></svg></button>
+    <button class="hbtn" id="btn-defs" onclick="go('dados')" aria-label="Definições" title="Definições"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.22 4.82L10.42 2.53A9.6 9.6 0 0 1 13.58 2.53L13.78 4.82A7.4 7.4 0 0 1 15.82 5.66L17.58 4.19A9.6 9.6 0 0 1 19.81 6.42L18.34 8.18A7.4 7.4 0 0 1 19.18 10.22L21.47 10.42A9.6 9.6 0 0 1 21.47 13.58L19.18 13.78A7.4 7.4 0 0 1 18.34 15.82L19.81 17.58A9.6 9.6 0 0 1 17.58 19.81L15.82 18.34A7.4 7.4 0 0 1 13.78 19.18L13.58 21.47A9.6 9.6 0 0 1 10.42 21.47L10.22 19.18A7.4 7.4 0 0 1 8.18 18.34L6.42 19.81A9.6 9.6 0 0 1 4.19 17.58L5.66 15.82A7.4 7.4 0 0 1 4.82 13.78L2.53 13.58A9.6 9.6 0 0 1 2.53 10.42L4.82 10.22A7.4 7.4 0 0 1 5.66 8.18L4.19 6.42A9.6 9.6 0 0 1 6.42 4.19L8.18 5.66A7.4 7.4 0 0 1 10.22 4.82Z"/><circle cx="12" cy="12" r="3.2"/></svg></button>
   </div>
 </header>
 <main id="main"></main>
@@ -16777,7 +16832,7 @@ const DICAS={
   distancia:'A distância e a velocidade dão as horas de treino, que é como um corredor ou um ciclista pensa. Para a mesma distância, ir mais depressa demora menos tempo e gasta calorias parecidas.',
   barraGasto:'De onde vem o gasto do dia, parcela a parcela. A linha tracejada marca o alvo alimentar: a distância entre o fim da barra e a linha é o défice ou o excedente do plano.',
   objetivo:'Quanto queres comer acima ou abaixo do que gastas. Um défice de 15 % é um ritmo comum de perda; abaixo de −20 % a app avisa, e se o alvo cair abaixo do metabolismo basal avisa com mais força.',
-  ritmo:'A perda ou ganho de peso que o objetivo implica, a 7 700 kcal por quilo. Acima de 0,75 kg por semana passa a amarelo, acima de 1 kg a vermelho — o NHS aponta 0,5 a 1 kg por semana como o ritmo seguro. A app deixa ir mais longe e diz porquê não; o alvo é que nunca desce das 800 kcal por dia.',
+  ritmo:'A perda ou ganho de peso que o objetivo implica, a 7 700 kcal por quilo. Acima de 0,75 kg por semana a app avisa, acima de 1 kg avisa com mais força — o NHS aponta 0,5 a 1 kg por semana como o ritmo seguro. A app deixa ir mais longe e diz porquê não; o alvo é que nunca desce das 800 kcal por dia.',
   macros:'Quanto do total calórico vem de cada macronutriente, e a tradução em gramas. Um grama de hidratos ou de proteína dá 4 kcal, um de gordura dá 9.',
   amdr:'A faixa de distribuição de macronutrientes considerada aceitável nesta fase da vida. Em crianças e na gravidez, uma dieta que saia da faixa é encostada aos limites; num adulto é apenas referência.',
   proteinaKg:'A proteína recomendada por quilo de peso muda com a idade e com a fase: um bebé precisa de quase o dobro de um adulto, na gravidez sobe para 1,1 g por quilo e a amamentar para 1,3 g.',
@@ -16786,7 +16841,7 @@ const DICAS={
   objSemana:'A semana de treino escrita como se pensa nela: cada bloco é um conjunto de dias que partilham a mesma modalidade, a mesma intensidade e o mesmo tamanho de sessão. A mesma modalidade pode ter mais do que um bloco — corrida leve à terça e à quinta, corrida longa ao sábado são dois blocos de corrida, e é por isso que cada dia pode ter a sua intensidade. Os dias que ficarem vazios são dias de descanso, e a app conta-os: é entre treinos que o músculo se reconstrói, não durante. O que se compõe aqui passa tal e qual para o plano de treinos da Atividade.',
   cheat:'Um dia livre para aniversários e festas. Quem estiver marcado sai das contas desse dia e dos ingredientes da lista de compras.',
   auto:'Preenche as refeições em falta escolhendo receitas do tipo certo, compatíveis com a dieta de todos os que comem cada refeição, e evitando repetir dentro da semana.',
-  semana:'As calorias planeadas por dia contra o alvo de cada membro. Cinzento é dia incompleto, rosa é cheat day — só os dias completos recebem verde, amarelo ou vermelho. Toca numa coluna para saltar para esse dia.',
+  semana:'As calorias planeadas por dia contra o alvo de cada membro. Cinzento é dia incompleto, rosa é cheat day — só os dias completos recebem a cor de perto, a meio ou longe do alvo. Toca numa coluna para saltar para esse dia.',
   compras:'A quantidade de cada receita multiplicada pelo número de pessoas que a comem, somada em toda a semana. Quem estiver em cheat day não conta nesse dia.',
   esforco:'O que é recomendado para esta idade ou estado, e o que convém evitar. Os valores vêm da Organização Mundial da Saúde e, na gravidez, das orientações de obstetrícia.',
   copias:'Os dados vivem só neste browser. O ficheiro de cópia é a única coisa que sobrevive a limpar o histórico, trocar de telemóvel ou reinstalar.',
@@ -16802,7 +16857,7 @@ const DICAS={
   objDieta:'A dieta escolhida aqui passa a ser a de quem entra neste objetivo, e com ela mudam os alvos de hidratos, proteína e gordura do dia, o que o plano da semana sugere e aceita, e a lista de compras que sai desse plano. Em crianças, adolescentes e grávidas a app encosta os macros à faixa recomendada para a idade e diz que o fez — uma dieta cetogénica não se aplica tal e qual a quem está a crescer. «Não mudar» deixa cada um com a dieta que já tinha.',
   objDesportos:'Escolhe os que quiseres: o tempo extra que o objetivo pede reparte-se por igual entre eles, e o gasto por hora é a média dos gastos de cada um — correr e fazer ioga meia hora de cada dá o mesmo que uma hora a meio caminho dos dois. Os que já praticas aparecem primeiro, marcados com uma estrela; os outros entram no teu plano quando os escolheres aqui.',
   objEstrategia:'Quanto do ajuste diário vem de comer menos (ou mais) e quanto vem de gastar mais a fazer desporto. Mais dieta pede menos esforço físico extra; mais exercício permite comer com menos restrição para o mesmo ritmo.',
-  receitasDisp:'Cada receita mostra os ingredientes com o estado da tua despensa: um visto verde para o que já tens, uma cruz vermelha para o que falta. A etiqueta no topo resume tudo — «Pronta a cozinhar» quando não falta nada.',
+  receitasDisp:'Cada receita mostra os ingredientes com o estado da tua despensa: um visto para o que já tens, uma cruz para o que falta. A etiqueta no topo resume tudo — «Pronta a cozinhar» quando não falta nada.',
   terreno:'A curva que converte velocidade em calorias é de terreno plano. Subir muda a conta: as entradas do Compendium para caminhada em subida ficam 30 a 50 por cento acima da caminhada plana ao mesmo passo, e a corrida de trilho acima da de estrada. «Ondulado» soma 15 por cento e «Subida a sério» 35 — aproximações honestas, como toda a estimativa por METs.',
   basicos:'A base da casa é o que nunca pode faltar: azeite, vinagre, cebola, alho, louro — cada casa sabe os seus. São os únicos com reposição automática: quando um sai da despensa, entra sozinho na lista de compras da semana. Para tudo o resto, usar não é esgotar — nada entra na lista sem uma receita planeada o pedir ou sem seres tu a juntá-lo.',
   despensa:'Os ingredientes que marcares aqui como disponíveis passam a contar em todas as receitas e na lista de compras. A lista vem do catálogo, para nunca haver um nome que não bate certo — e quando procuras algo que lá não está, a própria pesquisa oferece o caminho: promover do catálogo alargado ou escrever do rótulo.',
@@ -16810,11 +16865,12 @@ const DICAS={
   suplementos:'Regista o que tomas e quantas doses por dia. Um batido de proteína é comida: as calorias e os macros entram no plano do dia. Os suplementos vão também para a despensa e para a lista de compras, com as doses de sete dias.',
   suplMacros:'Quanto dos macros do dia já vem dos suplementos, e quanto sobra para a comida. É este segundo número que interessa a quem vai cozinhar — se um batido dá 48 g de proteína, faltam menos 48 g no prato.',
   suplMicros:'O que os suplementos dão de cada micronutriente, comparado com a dose diária de referência e com o limite superior tolerável do Institute of Medicine. Passar o limite deixa de ser inócuo — sobretudo em crianças e na gravidez.',
+  acessibilidade:'A visão das cores muda só as cores que dizem um estado — certo, perto, longe, dia livre — e as dos macronutrientes, com conjuntos escolhidos por simulação para cada tipo de daltonismo, e funciona por cima de qualquer paleta. O alto contraste é a paleta «Contraste»: desligá-lo aqui devolve a paleta que estava antes. O tamanho da letra amplia a app inteira, e sublinhar as ligações tira-lhes a dependência da cor.',
   aspeto:'Sete paletas, cada uma com modo claro e escuro. A paleta muda os acentos e o tom dos neutros; o modo é independente e pode seguir o sistema. As secções que fechares ficam fechadas — a app lembra-se de cada uma.',
   resumoMes:'Um retrato dos últimos 30 dias escrito a partir do que registaste: refeições planeadas, dias completos, atividade, objetivos e evolução do peso de quem tem um objetivo a decorrer.',
   sugestoes:'Liga e desliga quem se senta à mesa. A lista mostra só as receitas que servem toda a gente ligada ao mesmo tempo: fora ficam as que chocam com a dieta de alguém, as que levam um ingrediente que alguém não come e as que passam a fatia de calorias daquela refeição. As quantidades já vêm multiplicadas pelo número de pessoas.',
   restricoes:'Exclusões que não são alergias: escolhas religiosas, éticas ou de gosto. Filtram as mesmas receitas, mas sem o peso de uma alergia. As alergias marcam-se no perfil, no separador Família.',
-  alergias:'As catorze categorias de declaração obrigatória do anexo II do Regulamento (UE) n.º 1169/2011 — a lista que se aplica em Portugal, fiscalizada pela ASAE e com a DGAV como autoridade competente. Uma receita com um ingrediente destes deixa de ser sugerida a quem o tem marcado, e fica assinalada a vermelho onde apareça. Nota: os frutos de casca rija são uma lista fechada de oito, onde a castanha portuguesa e o pinhão não entram; o amendoim é categoria à parte, por ser leguminosa. Isto ajuda a planear e não substitui ler o rótulo nem perguntar num restaurante.',
+  alergias:'As catorze categorias de declaração obrigatória do anexo II do Regulamento (UE) n.º 1169/2011 — a lista que se aplica em Portugal, fiscalizada pela ASAE e com a DGAV como autoridade competente. Uma receita com um ingrediente destes deixa de ser sugerida a quem o tem marcado, e fica assinalada com um aviso onde apareça. Nota: os frutos de casca rija são uma lista fechada de oito, onde a castanha portuguesa e o pinhão não entram; o amendoim é categoria à parte, por ser leguminosa. Isto ajuda a planear e não substitui ler o rótulo nem perguntar num restaurante.',
   porcoes:'As receitas estão escritas para uma pessoa. Este número multiplica as quantidades de todos os ingredientes — é o que se leva para a cozinha.',
   editorReceitas:'Escreve os ingredientes e o número de doses que a receita rende: os macros por dose são calculados a partir da composição de cada ingrediente, e as etiquetas de dieta saem dos números e do que a receita leva dentro. Só entram ingredientes do catálogo — é isso que faz a receita falar com a despensa e com a lista de compras.',
   fecho:'Um ritual curto de domingo, em cinco passos: resolver o que ficou por confirmar, olhar a semana em números, escolher o jantar especial da próxima, preencher o plano com sugestões que servem a casa, e escrever uma frase no caderno. Fica assinado com o avatar de quem fechou — o hábito passa a ser da casa, não só de quem trata da app.',
@@ -17251,6 +17307,9 @@ function aplicarTema(){
   r.setAttribute('data-densidade', S.ui.densidade==='cerrado'? 'cerrado':'folgado');
   r.setAttribute('data-estilo', S.ui.estilo==='caderno'? 'caderno':'suave');
   r.setAttribute('data-anim', S.ui.anim===false? 'off':'on');
+  r.setAttribute('data-visao', temChave(VISOES,S.ui.visao)? S.ui.visao : 'normal');
+  r.setAttribute('data-letra', temChave(LETRAS,S.ui.letra)? S.ui.letra : 'normal');
+  if(S.ui.sublinhar) r.setAttribute('data-sublinhar','1'); else r.removeAttribute('data-sublinhar');
   /* a cor da estação só veste apontamentos e ilustrações — nunca um texto,
      porque a legibilidade não muda com o calendário */
   if(S.ui.sazonal){ const e=estacaoAgora();
@@ -17275,6 +17334,86 @@ function setDensidade(d){ S.ui.densidade= d==='cerrado'? 'cerrado':'folgado'; sa
 function setSazonal(v){ S.ui.sazonal=!!v; saveMeta(); aplicarTema(); render(); }
 function setTaberna(v){ S.ui.taberna=!!v; saveMeta(); aplicarTema(); render(); }
 function setAnim(v){ S.ui.anim=!!v; saveMeta(); aplicarTema(); render(); }
+/* ===== ACESSIBILIDADE =====
+   A visão das cores troca só as cores que dizem um estado (ver o CSS
+   «Visão das cores»); a paleta escolhida continua a mandar no resto. */
+const VISOES={
+  normal:{n:'Habitual', d:'As cores de cada paleta, sem alterações.'},
+  rg:{n:'Vermelho-verde', d:'Protanopia e deuteranopia — o daltonismo mais comum. Certo passa a azul e o alerta escurece, para não depender do verde contra o vermelho.'},
+  tri:{n:'Azul-amarelo', d:'Tritanopia. Afasta os azuis dos verdes e os amarelos dos rosas, que é onde esta forma se engana.'}
+};
+const LETRAS={normal:'Normal', grande:'Grande', maior:'Maior'};
+/* As amostras mostram certo, perto, longe e dia livre de cada modo, em claro
+   e em escuro — os mesmos valores do CSS «Visão das cores». */
+const AMOSTRA_VISAO={
+  normal:[['#297047','#7F5C0E','#AD392E','#6B3FA0'],['#5FBF8A','#D9B04A','#E88C7D','#B79BE8']],
+  rg:[['#0A63BD','#7A6A1E','#5A1E10','#4A1A66'],['#8FC8F0','#F5DC50','#F0A890','#C080F5']],
+  tri:[['#08736A','#5A321E','#C8103F','#1A2A80'],['#4EE0CC','#E5CBB0','#F27592','#A8AAF0']]
+};
+const AMOSTRA_VISAO_C={
+  normal:[['#00552B','#5F4200','#960000','#40007A'],['#71E8A4','#FFD75E','#FF9E8E','#D6B0FF']],
+  rg:[['#12286A','#6E4C10','#3A0E06','#7E1898'],['#BFE4F7','#FCEB4C','#E88A68','#BD90ED']],
+  tri:[['#065F56','#3A2412','#AA0C30','#0A0E50'],['#45F5B5','#F8DCCF','#E8829C','#8A9EFC']]
+};
+function setVisao(v){ S.ui.visao=temChave(VISOES,v)? v:'normal'; saveMeta(); aplicarTema(); render(); }
+function setLetra(v){ S.ui.letra=temChave(LETRAS,v)? v:'normal'; saveMeta(); aplicarTema(); render(); }
+function setSublinhar(v){ S.ui.sublinhar=!!v; saveMeta(); aplicarTema(); render(); }
+/* O alto contraste é uma paleta; daqui liga-se e desliga-se sem perder a
+   paleta que estava antes. */
+function setAltoContraste(v){
+  if(v){ if(S.ui.paleta!=='contraste') S.ui.paletaAntes=S.ui.paleta||'azulejo'; S.ui.paleta='contraste'; }
+  else { S.ui.paleta=temChave(PALETAS,S.ui.paletaAntes)&&S.ui.paletaAntes!=='contraste'? S.ui.paletaAntes : 'azulejo'; }
+  saveMeta(); aplicarTema(); render();
+}
+/* O nome da cor que um estado tem AGORA, com o modo e a visão escolhidos —
+   para as legendas que dizem «verde» não mentirem a quem ligou um modo para
+   daltonismo. */
+function nomeCor(k){
+  const e=modoEfetivo()==='escuro', v=S.ui.visao||'normal';
+  const N={
+    normal:{ok:'verde', warn:'amarelo', bad:'vermelho', party:'rosa', livre:'roxo'},
+    rg:{ok:'azul', warn:e?'amarelo':'dourado', bad:e?'salmão':'castanho-escuro', party:'rosa', livre:e?'lilás':'ameixa'},
+    tri:{ok:e?'verde-água':'verde-azulado', warn:e?'bege':'castanho', bad:e?'rosa-forte':'carmim', party:e?'lilás':'violeta', livre:e?'lavanda':'azul-escuro'}
+  };
+  /* a Tinta pinta o dia livre e as festas a cinzento */
+  if(v==='normal' && S.ui.paleta==='tinta' && (k==='livre'||k==='party')) return 'cinzento';
+  return (N[v]||N.normal)[k]||'';
+}
+function cartaoAcessibilidade(){
+  const vis=temChave(VISOES,S.ui.visao)? S.ui.visao:'normal', letra=temChave(LETRAS,S.ui.letra)? S.ui.letra:'normal';
+  const m=modoEfetivo()==='escuro'? 1:0, pc=S.ui.paleta==='contraste';
+  const amostra=k=>(pc? AMOSTRA_VISAO_C : AMOSTRA_VISAO)[k][m].map(c=>`<i style="background:${c}"></i>`).join('');
+  return `<div class="card" data-col="dados-acess">
+    <h3>Acessibilidade ${dica('acessibilidade')}</h3>
+    <div class="splabel" style="margin-top:10px"><span>Visão das cores</span></div>
+    <div class="tema-grelha">${Object.entries(VISOES).map(([k,p])=>
+      `<button class="tema-op ${vis===k?'on':''}" onclick="setVisao('${k}')" aria-pressed="${vis===k}">
+        <span class="tema-amostra">${amostra(k)}</span>
+        <span class="tema-nome">${p.n}${vis===k?' ✓':''}</span>
+        <span class="sub" style="font-size:12px">${p.d}</span>
+      </button>`).join('')}</div>
+    <p class="sub" style="margin-top:8px">Funciona com qualquer paleta e nos dois modos. Muda as cores que dizem
+      um estado — certo, perto, longe, dia livre — e as dos macronutrientes; o resto fica como está.
+      Os estados têm sempre também uma forma: <b>círculo</b> certo, <b>losango</b> perto, <b>triângulo</b> longe.
+      Quem não distingue cor nenhuma tem a paleta <b>Tinta</b>, só em cinzentos.</p>
+    <div class="splabel" style="margin-top:14px"><span>Alto contraste</span></div>
+    <label class="toggle"><input type="checkbox" ${S.ui.paleta==='contraste'?'checked':''} onchange="setAltoContraste(this.checked)">
+      <span>Todos os textos a 7:1, traço mais grosso e botões maiores</span></label>
+    <div class="splabel" style="margin-top:14px"><span>Tamanho da letra</span></div>
+    <div class="row">${Object.entries(LETRAS).map(([k,v])=>
+      `<button class="chip ${letra===k?'on':''}" aria-pressed="${letra===k}" onclick="setLetra('${k}')"
+        style="font-size:${k==='normal'?13:k==='grande'?14.5:16}px">${v}</button>`).join('')}</div>
+    <p class="sub" style="margin-top:6px">Amplia as páginas e as janelas — letra, ícones e alvos de toque —, e
+      soma-se ao zoom do browser ou do sistema. O cabeçalho e a barra de navegação mantêm o tamanho, para caberem no ecrã.</p>
+    <div class="splabel" style="margin-top:14px"><span>Ligações e foco</span></div>
+    <label class="toggle"><input type="checkbox" ${S.ui.sublinhar?'checked':''} onchange="setSublinhar(this.checked)">
+      <span>Sublinhar as ligações e engrossar o contorno do foco do teclado</span></label>
+    <div class="splabel" style="margin-top:14px"><span>Movimento</span></div>
+    <label class="toggle"><input type="checkbox" ${S.ui.anim!==false?'checked':''} onchange="setAnim(this.checked)">
+      <span>Virar de folha ao mudar de separador</span></label>
+    <p class="sub" style="margin-top:6px">Quem tem «reduzir movimento» ligado no sistema nunca vê animações, independentemente desta escolha.</p>
+  </div>`;
+}
 /* ===== O ESTALIDO DO DETENTE =====
    Chamado do oninput dos sliders que têm passos com significado. Não muta
    estado nem redesenha nada: escreve uma classe e uma variável no próprio
@@ -37615,7 +37754,7 @@ function cartaoSemana(dates){
       </div>`;
     }).join('')}
     ${mesasDaSemana(dates)}
-    <p class="sub" style="margin-top:10px">Toca numa coluna para saltar para o dia. Cinzento = dia incompleto (n/4 refeições planeadas), rosa = cheat day. Verde, amarelo e vermelho só em dias completos: até ±10%, até ±25% e além disso do alvo.</p>
+    <p class="sub" style="margin-top:10px">Toca numa coluna para saltar para o dia. Cinzento = dia incompleto (n/4 refeições planeadas), ${nomeCor('livre')} = cheat day. ${nomeCor('ok').replace(/^./,c=>c.toUpperCase())}, ${nomeCor('warn')} e ${nomeCor('bad')} só em dias completos: até ±10%, até ±25% e além disso do alvo.</p>
   </div>`;
 }
 /* As mesas da semana: uma por dia, com um lugar por pessoa prevista e os
@@ -37941,7 +38080,7 @@ function faixaSemanaFora(dates){
     <span>📅 Estás a ver uma semana ${passada?'passada':'futura'} —
       <b>${fmtShort(dates[0])} a ${fmtShort(dates[6])}</b>
       <span class="sub">(${plural(semanas, passada?'semana atrás':'semana à frente', passada?'semanas atrás':'semanas à frente')})</span></span>
-    <span class="row" style="flex:none">
+    <span class="row" style="flex:0 1 auto;min-width:0">
       <button class="btn small" onclick="voltarASemanaAtual()">Voltar a hoje</button>
       ${passada? `<button class="btn ghost small" onclick="usarComoBase()">Usar como base da próxima</button>`:''}
     </span>
@@ -40009,10 +40148,6 @@ function cartaoAspeto(){
       <span>Depois das 21h, baixar a voz — superfícies mais quentes até às 6h</span></label>
     <p class="sub" style="margin-top:6px">Não muda nenhuma cor de texto nem o modo claro/escuro: mexe só nas
       superfícies. Em «Contraste» não se aplica, porque aí quem manda é a legibilidade.</p>
-    <div class="splabel" style="margin-top:14px"><span>Movimento</span></div>
-    <label class="toggle"><input type="checkbox" ${S.ui.anim!==false?'checked':''} onchange="setAnim(this.checked)">
-      <span>Virar de folha ao mudar de separador</span></label>
-    <p class="sub" style="margin-top:6px">Quem tem «reduzir movimento» ligado no sistema nunca vê animações, independentemente desta escolha.</p>
     <div class="splabel" style="margin-top:14px"><span>Sons da casa ${dica('sons')}</span></div>
     <label class="toggle"><input type="checkbox" ${S.ui.sons?'checked':''} onchange="setSons(this.checked)">
       <span>Um toc quando uma mesa passa a tinta, um tlim ao registar, papel ao virar a folha</span></label>
@@ -41553,6 +41688,7 @@ function renderDados(){
     </div>
 
     ${cartaoTabelas()}
+    ${cartaoAcessibilidade()}
     ${cartaoAspeto()}
     ${cartaoCoresGrafico()}
     ${cartaoCalendarioPref()}
@@ -41664,13 +41800,13 @@ const TOUR=[
    d:'O botão flutuante abre uma folha com as duas ou três ações mais prováveis para a hora que é: às 13h o almoço de hoje, em dia de treino o treino, de manhã a pesagem se a última já tem uma semana. Tocar numa refeição do cartão «Hoje» abre a mesa: um toque por pessoa que comeu e está registado — o prato, a dose e os acompanhamentos vêm do plano.'},
   {base:1, tab:'familia', sel:'.card-alergia',
    t:'Alergias e intolerâncias',
-   d:'As catorze categorias de declaração obrigatória na União Europeia, marcadas pessoa a pessoa. Uma receita que traga um alergénio marcado deixa de ser sugerida e fica assinalada a vermelho, com o ingrediente concreto que o traz. Ajuda a planear — não substitui ler o rótulo.'},
+   d:'As catorze categorias de declaração obrigatória na União Europeia, marcadas pessoa a pessoa. Uma receita que traga um alergénio marcado deixa de ser sugerida e fica assinalada com um aviso, com o ingrediente concreto que o traz. Ajuda a planear — não substitui ler o rótulo.'},
   {tab:'familia', sel:'main .av',
    t:'Avatares e aura',
    d:'Cada membro escolhe um emoji e uma cor, que aparecem no avatar, nos pontos do plano semanal e na aura esbatida do cabeçalho — a app fica com a cara da família.'},
   {tab:'familia', sel:'svg[aria-label*="massa corporal"]',
    t:'Índice de massa corporal',
-   d:'A banda mostra onde o peso cai na escala da Organização Mundial da Saúde, com a zona saudável em verde. Em crianças não se aplicam estes limites de adulto — a app diz-o e usa o percentil em vez disso.'},
+   d:'A banda mostra onde o peso cai na escala da Organização Mundial da Saúde, com a zona saudável destacada. Em crianças não se aplicam estes limites de adulto — a app diz-o e usa o percentil em vez disso.'},
   {tab:'nutricao', sel:'[data-col="nu-descobertas"]', quando:()=>S.members.length&&temPlanoNut(curM()),
    t:'Descobertas',
    d:'Detetores que correm sobre os teus registos: o jantar de terça que nunca se cumpre, o dia com mais treinos ignorados, o prato que domina. Cada sinal só aparece se passar um mínimo de amostra, vem com os números à vista e traz o gesto para agir. Sem sinais fiáveis, a app di-lo — um horóscopo estatístico seria pior do que o silêncio.'},
@@ -41724,7 +41860,7 @@ const TOUR=[
    d:'A barra reparte o gasto entre metabolismo basal, dia a dia, deslocações e desporto — e ganha um quinto segmento a quem está a crescer, grávida ou a amamentar, porque essa energia existe e não é treino. A linha tracejada marca o alvo alimentar: a distância entre o fim da barra e a linha é o défice ou o excedente do plano.'},
   {base:1, tab:'nutricao', sel:'#nu-r-obj',
    t:'Nutrição — objetivo e macros',
-   d:'O objetivo é um slider contínuo de −75 % a +20 % do gasto, com o ritmo em quilos por semana, um aviso a vermelho quando o alvo desce abaixo do metabolismo basal e o aviso do NHS quando o ritmo passa de 1 kg por semana — a app avisa com mais força, não trava: quem decide é quem come. O único chão são as 800 kcal por dia, abaixo das quais o NHS só admite dieta com acompanhamento médico. A dieta escolhida — incluindo vegetariana e vegan, que a app distingue — vira gramas de hidratos, proteína e gordura.'},
+   d:'O objetivo é um slider contínuo de −75 % a +20 % do gasto, com o ritmo em quilos por semana, um aviso forte quando o alvo desce abaixo do metabolismo basal e o aviso do NHS quando o ritmo passa de 1 kg por semana — a app avisa com mais força, não trava: quem decide é quem come. O único chão são as 800 kcal por dia, abaixo das quais o NHS só admite dieta com acompanhamento médico. A dieta escolhida — incluindo vegetariana e vegan, que a app distingue — vira gramas de hidratos, proteína e gordura.'},
   {tab:'nutricao', sel:'#fr-cartao', quando:()=>S.members.length&&temPlanoNut(curM()),
    t:'Registar o que se comeu',
    d:'Tal como na Atividade Física: definido o plano, o destaque passa para o registo. As refeições planeadas que ficaram por confirmar aparecem em cima ao entrar no perfil — «comi», «comi outra coisa» (e regista-se o que foi) ou «rever o plano», quando um prato nunca se cumpre. Uma refeição partilhada confirma-se de uma vez para todos os que estavam à mesa.'},
@@ -41741,7 +41877,7 @@ const TOUR=[
    antes:()=>{ const a=S.members.find(x=>permiteProjecao(x)); if(a) S.ui.mid=a.id; },
    quando:()=>S.members.some(permiteProjecao),
    t:'Projeção de peso',
-   d:'Mostra para onde o peso caminha se o alvo se mantiver, recalculando o gasto a cada semana — por isso a curva achata. A faixa verde é a zona de índice de massa corporal saudável para a altura.'},
+   d:'Mostra para onde o peso caminha se o alvo se mantiver, recalculando o gasto a cada semana — por isso a curva achata. A faixa colorida é a zona de índice de massa corporal saudável para a altura.'},
   /* Os números vêm das próprias tabelas: um texto com a contagem escrita à mão
      desatualiza-se na receita seguinte, e já desatualizou. Numa função e não
      numa cadeia, porque os pratos compostos entram em RECIPES depois de esta
@@ -41763,7 +41899,7 @@ const TOUR=[
    d:'As variantes do mesmo prato partilham um cartão: aparece a que melhor serve os gostos desta mesa e as outras ficam a um toque, dentro da ficha. O agrupamento é uma tabela explícita e não uma regra sobre os nomes — uma sopa de legumes e uma vichyssoise começam ambas por «Sopa» e não são variantes uma da outra. Na ficha, o <b>⭐ Adoro</b> e o <b>🚫 Não gosto</b> marcam-se pessoa a pessoa: é a preferência estável sobre o prato, diferente do veredicto de uma refeição que aconteceu. Um prato que toda a gente que o pode comer marcou como favorito ganha estrela. E o botão <b>Criar variante</b> parte de uma receita para fazer outra sem tocar na original — ao editar uma receita que já existe, a app pergunta se é para substituir ou para guardar como variante.'},
   {tab:'receitas', sel:'#btn-nova-receita',
    t:'O que dá para fazer com o que há',
-   d:'A ordenação «o que tenho em casa» põe à frente as receitas mais perto de se poderem cozinhar já, e as que estão completas ganham uma barra verde. E o botão <b>«Sugere-me algo para hoje»</b> responde a uma pergunta muito mais curta do que a do plano semanal: das receitas que servem toda a gente à mesa, quais é que dá mesmo para fazer agora — com o que falta escrito por extenso nas que não estão completas. A percentagem é sobre o número de ingredientes e não sobre o peso, porque quem está à frente do frigorífico às sete da tarde quer saber quantas coisas faltam ir buscar.'},
+   d:'A ordenação «o que tenho em casa» põe à frente as receitas mais perto de se poderem cozinhar já, e as que estão completas ganham uma barra cheia. E o botão <b>«Sugere-me algo para hoje»</b> responde a uma pergunta muito mais curta do que a do plano semanal: das receitas que servem toda a gente à mesa, quais é que dá mesmo para fazer agora — com o que falta escrito por extenso nas que não estão completas. A percentagem é sobre o número de ingredientes e não sobre o peso, porque quem está à frente do frigorífico às sete da tarde quer saber quantas coisas faltam ir buscar.'},
   {tab:'receitas', sel:'.rc',
    t:'Quanto disto é espera?',
    d:'Na ficha, uma barra parte o tempo da receita em trabalho e espera, passo a passo: vê-se que a moussaka é um quarto de hora de mãos na massa e quarenta minutos de forno, e isso muda a decisão de a fazer num dia de semana. Ao lado, uma régua de doze meses por cada ingrediente de época mostra não só que está na época, mas em que ponto dela — se a sardinha está no último mês ou se os grelos vêm aí. E quando falta um ingrediente, a app propõe o que se costuma pôr no lugar dele numa cozinha portuguesa, dizendo o que muda no prato: uma troca nunca é sugerida se trouxer um alergénio marcado nesta casa.'},
@@ -41784,7 +41920,7 @@ const TOUR=[
    d:'Define quantos quilos e em quanto tempo: a app calcula o défice diário e reparte-o entre dieta e exercício num slider. Ao criar, aplica logo o objetivo à Nutrição e acrescenta as horas de treino ao desporto escolhido.'},
   {tab:'objetivos', sel:'.anel', quando:()=>(S.objetivos||[]).some(o=>!o.concluido&&S.members.some(m=>m.id===o.membroId)),
    t:'Anéis de progresso e conquistas',
-   d:'Cada objetivo tem um anel que compara o progresso real com o tempo já passado — fica amarelo ou vermelho se ficares para trás. Ao atingir a meta, a app celebra e guarda o objetivo nas Conquistas.'},
+   d:'Cada objetivo tem um anel que compara o progresso real com o tempo já passado — muda de cor e de forma se ficares para trás. Ao atingir a meta, a app celebra e guarda o objetivo nas Conquistas.'},
   {tab:'plano', sel:'[data-col="pla-prefs"]',
    t:'Como esta casa cozinha',
    d:'Cinco escolhas que mudam o que a app sugere e o que a lista de compras conta: repetir receitas na semana, cozinhar em dobro, só ingredientes de época, preparar de véspera, e o cartão de receita da época. Não são preferências decorativas — cada uma muda a conta.'},
@@ -41846,6 +41982,9 @@ const TOUR=[
   {tab:'dados', sel:'[data-col="dados-aspeto"]',
    t:`${Object.keys(PALETAS).length} paletas, dois modos`,
    d:'Azulejo, Alecrim, Figo, Maré, Brasa, Tinta — e Contraste, que leva todos os textos a 7:1, engrossa o traço e faz as linhas dos gráficos distinguirem-se por padrão, não só por cor. Cada uma em claro e escuro. Ao lado ficam a densidade («Cerrado» para quem já conhece a app), o virar de folha e «Seguir as estações», que muda apontamentos e ilustrações com o calendário português — nunca a cor de um texto, porque a legibilidade não é sazonal.'},
+  {tab:'dados', sel:'[data-col="dados-acess"]',
+   t:'Acessibilidade: daltonismo, contraste e tamanho da letra',
+   d:'Na roda dentada, ao cimo, fica tudo o que ajuda a ler a app: a <b>visão das cores</b> para quem tem daltonismo vermelho-verde (protanopia e deuteranopia) ou azul-amarelo (tritanopia), que troca as cores de certo, perto e longe por outras que se distinguem — com qualquer paleta, em claro e em escuro; o <b>alto contraste</b>; a <b>letra maior</b>; e ligações sublinhadas. Os estados têm sempre também uma forma, por isso nunca dependem só da cor.'},
   {tab:'dados', sel:'[data-col="dados-aspeto"]',
    t:'Seguir o sol, e os sons da casa',
    d:'Além de claro, escuro e «segue o sistema», há «🌅 Segue o sol»: a app escurece quando o sol se põe em Portugal e clareia quando ele nasce — em dezembro anoitece por volta das 17h30, em junho aguenta clara até perto das 21h. As horas saem das equações solares clássicas, contas feitas aqui dentro, sem rede e sem saber onde estás; e só alterna entre os dois modos que já conheces, por isso as cores e os contrastes ficam intactos. Mais abaixo, «Sons da casa» acrescenta três apontamentos sonoros gerados na hora — um toc quando uma mesa passa a tinta, um tlim ao registar, papel ao virar a folha. Desligados por defeito, calados com o separador escondido, e nunca num erro.'},
@@ -41854,7 +41993,7 @@ const TOUR=[
    d:'Tudo fica gravado só neste browser, por isso o ficheiro de cópia é a única coisa que sobrevive a limpar o histórico ou trocar de telemóvel. Podes substituir tudo por uma cópia ou juntar duas, para combinar o que duas pessoas preencheram.'},
   {tab:'hoje', sel:'#hoje', quando:()=>mosaicoDoAno(),
    t:'O mosaico do ano',
-   d:'A sequência da casa é um número; o mosaico é a textura por trás dele. Cada quadrado é um dia dos últimos seis meses: verde se se cumpriu tudo o que estava planeado, amarelo se em parte, vermelho se nada, vazio se não havia nada marcado. As semanas declaradas como pausa aparecem a tracejado e não só noutra cor — vê-se o mês mau, a gripe que congelou a contagem e o padrão que as Descobertas anunciam por palavras.'},
+   d:'A sequência da casa é um número; o mosaico é a textura por trás dele. Cada quadrado é um dia dos últimos seis meses: na cor de «cumprido» se se cumpriu tudo o que estava planeado, na de «em parte» ou na de «nada» se não, vazio se não havia nada marcado — as cores seguem a paleta e a visão das cores escolhida em Acessibilidade. As semanas declaradas como pausa aparecem a tracejado e não só noutra cor — vê-se o mês mau, a gripe que congelou a contagem e o padrão que as Descobertas anunciam por palavras.'},
   {tab:'familia', sel:'#btn-pesq',
    t:'Procurar em toda a app',
    d:`Um campo que atravessa os ${TABS.length} separadores: receitas, os ${Object.keys(NUTRI).length} ingredientes, as ${SPORTS.length} modalidades, os perfis — e os próprios cartões, para «onde é que se marcam as alergias?» deixar de exigir conhecer a arquitetura. Em teclado abre-se com a tecla «/».`},
@@ -41968,6 +42107,7 @@ function apagarExemplo(){
      a paleta e a densidade durante a visita não tem de as voltar a escolher */
   S.ui.tema=ui.tema; S.ui.paleta=ui.paleta; S.ui.densidade=ui.densidade;
   S.ui.anim=ui.anim; S.ui.sazonal=ui.sazonal; S.ui.sons=ui.sons; S.ui.taberna=ui.taberna;
+  S.ui.visao=ui.visao; S.ui.letra=ui.letra; S.ui.sublinhar=ui.sublinhar; S.ui.paletaAntes=ui.paletaAntes;
   S.ui.tourVisto=true; S.ui.tab='familia';
   S.meta.avisarAoSair=avisar;
   saveMeta();
