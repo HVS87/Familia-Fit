@@ -196,21 +196,22 @@ html[data-visao="tri"][data-modo="claro"]{
 html[data-visao="tri"][data-modo="escuro"]{
   --ok:#4EE0CC; --warn:#E5CBB0; --bad:#F27592; --livre:#A8AAF0; --party:#D97AF5; }
 html[data-visao="rg"][data-paleta="contraste"][data-modo="claro"]{
-  --ok:#12286A; --warn:#6E4C10; --bad:#3A0E06; --livre:#7E1898; --party:#7C1A3E;
+  --ok:#12286A; --warn:#5C3E0A; --bad:#3A0E06; --livre:#7E1898; --party:#7C1A3E;
   --mp:#014BC4; --mc:#604612; --mf:#350D28; }
 html[data-visao="rg"][data-paleta="contraste"][data-modo="escuro"]{
-  --ok:#BFE4F7; --warn:#FCEB4C; --bad:#E88A68; --livre:#BD90ED; --party:#E89AAA;
+  --ok:#BFE4F7; --warn:#FCEB4C; --bad:#F2A688; --livre:#BD90ED; --party:#E89AAA;
   --mp:#849CFE; --mc:#F7C241; --mf:#DBF5F0; }
 html[data-visao="tri"][data-paleta="contraste"][data-modo="claro"]{
-  --ok:#065F56; --warn:#3A2412; --bad:#AA0C30; --livre:#0A0E50; --party:#7619AD; }
+  --ok:#044C45; --warn:#3A2412; --bad:#8A0A27; --livre:#0A0E50; --party:#7619AD; }
 html[data-visao="tri"][data-paleta="contraste"][data-modo="escuro"]{
-  --ok:#45F5B5; --warn:#F8DCCF; --bad:#E8829C; --livre:#8A9EFC; --party:#C79CE2; }
+  --ok:#45F5B5; --warn:#F8DCCF; --bad:#F29DB2; --livre:#8A9EFC; --party:#C79CE2; }
 @supports (background:color-mix(in srgb,red 50%,blue)){
-  html[data-visao="rg"], html[data-visao="tri"]{
+  /* com o modo no seletor, para ganhar às paletas escuras, que também os definem */
+  html[data-visao="rg"][data-modo], html[data-visao="tri"][data-modo]{
     --livre-soft:color-mix(in srgb,var(--livre) 14%,var(--card));
     --party-soft:color-mix(in srgb,var(--party) 12%,var(--card)); }
   /* na Contraste o texto tem de chegar a 7:1 também sobre estes fundos */
-  html[data-visao="rg"][data-paleta="contraste"], html[data-visao="tri"][data-paleta="contraste"]{
+  html[data-visao="rg"][data-paleta="contraste"][data-modo], html[data-visao="tri"][data-paleta="contraste"][data-modo]{
     --livre-soft:color-mix(in srgb,var(--livre) 5%,var(--card));
     --party-soft:color-mix(in srgb,var(--party) 6%,var(--card)); }
 }
@@ -1165,6 +1166,16 @@ html[data-dispositivo="telefone"][data-orient="retrato"] .hist{margin-left:auto}
 html[data-dispositivo="telefone"][data-orient="retrato"] .savest-txt{display:none}
 html[data-dispositivo="telefone"][data-orient="retrato"] .savest{padding:8px}
 html[data-dispositivo="telefone"][data-orient="retrato"] .aura{opacity:.6}
+/* Nos telemóveis mais estreitos (320 a 374 px) a roda dentada das definições
+   ficava fora do ecrã, sem maneira de lá chegar. O cabeçalho aperta: menos
+   folga e botões de 34 px — acima dos 24 px que a WCAG pede para um alvo. */
+@media (max-width:374px){
+  html[data-dispositivo="telefone"][data-orient="retrato"] .hwrap{gap:4px;
+    padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right))}
+  html[data-dispositivo="telefone"][data-orient="retrato"] .hist button,
+  html[data-dispositivo="telefone"][data-orient="retrato"] .hbtn{min-width:34px;width:34px;min-height:34px;padding-left:0;padding-right:0}
+  html[data-dispositivo="telefone"][data-orient="retrato"] .savest{padding:4px}
+}
 html[data-dispositivo="telefone"][data-orient="retrato"][data-modo="escuro"] .aura{opacity:.34}
 main{max-width:1100px;margin:0 auto;padding:24px 20px}
 /* ---- Medida de leitura ----
@@ -1270,6 +1281,11 @@ input[type=text],input[type=number],input[type=date],input[type=search],select{
 /* min-height em vez de só padding: com um texto de uma linha curta o chip
    ficava nos 23 px, um abaixo do mínimo da WCAG 2.5.8. */
 .chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--linha-forte);border-radius:999px;padding:4px 12px;background:var(--bg);cursor:pointer;font-size:13.5px;font-weight:600;min-height:24px}
+/* Uma ligação com forma de chip (os mapas da Atividade) herdava a cor de
+   acento das ligações sobre o fundo do chip: 4,2:1 em Alecrim e Brasa. Fica
+   com a tinta dos outros chips; a seta ↗ já diz que abre fora. */
+a.chip{color:var(--ink);text-decoration:none}
+a.chip:hover{border-color:var(--accent)}
 /* Os atalhos das doses saltam de 12 para 20; quem cozinha para 14 escreve o
    número, em vez de ficar preso ao salto mais próximo. */
 .doses-num{width:58px;padding:3px 6px;border:1px solid var(--line);border-radius:8px;
@@ -17328,7 +17344,13 @@ function aplicarTema(){
   document.querySelectorAll('meta[name="theme-color"]').forEach(m=>m.setAttribute('content',bg));
 }
 function setTema(t){ S.ui.tema=temChave(MODOS,t)? t:'auto'; saveMeta(); aplicarTema(); vigiaSol(); render(); }
-function setPaleta(p){ S.ui.paleta=temChave(PALETAS,p)? p:'azulejo'; saveMeta(); aplicarTema(); render(); }
+function setPaleta(p){
+  const nova=temChave(PALETAS,p)? p:'azulejo';
+  /* entrar na Contraste por aqui também guarda a paleta de onde se veio, para
+     o «Alto contraste» da Acessibilidade a devolver ao desligar */
+  if(nova==='contraste' && S.ui.paleta!=='contraste') S.ui.paletaAntes=S.ui.paleta||'azulejo';
+  S.ui.paleta=nova; saveMeta(); aplicarTema(); render();
+}
 function setEstilo(e){ S.ui.estilo= e==='caderno'? 'caderno':'suave'; saveMeta(); aplicarTema(); render(); }
 function setDensidade(d){ S.ui.densidade= d==='cerrado'? 'cerrado':'folgado'; saveMeta(); aplicarTema(); render(); }
 function setSazonal(v){ S.ui.sazonal=!!v; saveMeta(); aplicarTema(); render(); }
@@ -17352,8 +17374,8 @@ const AMOSTRA_VISAO={
 };
 const AMOSTRA_VISAO_C={
   normal:[['#00552B','#5F4200','#960000','#40007A'],['#71E8A4','#FFD75E','#FF9E8E','#D6B0FF']],
-  rg:[['#12286A','#6E4C10','#3A0E06','#7E1898'],['#BFE4F7','#FCEB4C','#E88A68','#BD90ED']],
-  tri:[['#065F56','#3A2412','#AA0C30','#0A0E50'],['#45F5B5','#F8DCCF','#E8829C','#8A9EFC']]
+  rg:[['#12286A','#5C3E0A','#3A0E06','#7E1898'],['#BFE4F7','#FCEB4C','#F2A688','#BD90ED']],
+  tri:[['#044C45','#3A2412','#8A0A27','#0A0E50'],['#45F5B5','#F8DCCF','#F29DB2','#8A9EFC']]
 };
 function setVisao(v){ S.ui.visao=temChave(VISOES,v)? v:'normal'; saveMeta(); aplicarTema(); render(); }
 function setLetra(v){ S.ui.letra=temChave(LETRAS,v)? v:'normal'; saveMeta(); aplicarTema(); render(); }
@@ -21686,7 +21708,9 @@ function indiceGlobal(){
    ['Registar refeição','nutricao'],['Descobertas','nutricao'],['Passaporte de sabores','nutricao'],
    ['Objetivos','objetivos'],['Refeições da semana','plano'],['Cheat days','plano'],['Dias de recuperação','plano'],
    ['Calendário','calendario'],['Lista de compras','mercearia'],['Despensa','mercearia'],['Preços','mercearia'],
-   ['Cópias de segurança','dados'],['Paletas e temas','dados'],['Visita guiada','dados']]
+   ['Cópias de segurança','dados'],['Paletas e temas','dados'],['Visita guiada','dados'],
+   ['Definições','dados'],['Acessibilidade','dados'],['Daltonismo e visão das cores','dados'],['Tamanho da letra','dados'],
+   ['Alto contraste','dados'],['Sincronizar telemóvel e computador','dados']]
    .forEach(([t,tab])=>ix.push({t, o:'Onde fica', fn:"go('"+tab+"')"}));
   /* O título sem acentos e em minúsculas é o que a procura compara, e não muda
      entre teclas — calculava-se as mil e cem vezes a cada letra escrita.
@@ -25930,11 +25954,12 @@ function aceitarAviso(){
 function avisoResponsabilidade(compacto){
   return `<div class="aviso-resp ${compacto?'compacto':''}" role="note">
     <span class="ar-ico" aria-hidden="true">⚠️</span>
-    <span><b>Ferramenta gratuita, para uso responsável.</b> As contas assentam em tabelas oficiais para
+    <span><b>Esta é uma ferramenta gratuita, sem fins lucrativos, para uso responsável.</b> As contas assentam em tabelas oficiais para
       <b>pessoas saudáveis</b> e são apenas <b>sugestões</b>, a verificar de forma independente. Qualquer mudança
       drástica na alimentação ou o início de nova atividade física deve ter <b>acompanhamento médico</b> —
       sobretudo em crianças e em quem tem doença diagnosticada. O autor não se responsabiliza pelo impacto do
-      seu uso. ${dica('responsabilidade')}</span>
+      seu uso. Todos os dados são unicamente gravados no seu aparelho/computador (conforme a versão PC ou
+      Mobile); esta aplicação não recolhe nenhuns dados nem analytics. ${dica('responsabilidade')}</span>
   </div>`;
 }
 function modalAvisoHtml(){
@@ -42555,6 +42580,13 @@ document.addEventListener('keydown', e=>{
    antepassado tem transform, filter, perspective, contain ou will-change: aí é
    ele. Sem este desconto, uma bolha dentro de uma fila a deslizar abria-se no
    sítio errado. */
+/* O zoom que se aplica a um elemento: com a letra «grande» ou «maior», o
+   #main e o #modal-raiz estão ampliados (ver «Tamanho da letra» no CSS). */
+function zoomDe(el){
+  if(el && typeof el.currentCSSZoom==='number' && el.currentCSSZoom>0) return el.currentCSSZoom;
+  const m=el && el.closest && el.closest('#main,#modal-raiz');
+  return m? (parseFloat(getComputedStyle(m).zoom)||1) : 1;
+}
 function origemFixa(el){
   let n=el.parentElement;
   while(n && n!==document.documentElement){
@@ -42563,8 +42595,10 @@ function origemFixa(el){
       ||(cs.backdropFilter&&cs.backdropFilter!=='none')||/paint|layout|strict|content/.test(cs.contain||'')
       ||cs.contentVisibility==='auto'||cs.contentVisibility==='hidden'
       ||/transform|filter|perspective/.test(cs.willChange||'')){
-      const r=n.getBoundingClientRect();
-      return {x:r.left+n.clientLeft, y:r.top+n.clientTop, h:n.clientHeight};
+      /* em píxeis do ecrã: com a letra ampliada, clientHeight e as bordas vêm
+         nas medidas de dentro do zoom, e misturavam-se com as do ecrã */
+      const r=n.getBoundingClientRect(), zn=zoomDe(n);
+      return {x:r.left+n.clientLeft*zn, y:r.top+n.clientTop*zn, h:n.clientHeight*zn};
     }
     n=n.parentElement;
   }
@@ -42587,19 +42621,24 @@ function posicionaDica(d){
      media-a a 270, e cento e três bolhas saíam pela direita. Perguntando ao
      mesmo sítio que a folha de estilos, não há faixa em que discordem. */
   const largo=matchMedia('(min-width:760px)').matches;
-  const larg=Math.min(largo? 360 : 270, W-24);
+  /* Com a letra ampliada, getBoundingClientRect dá píxeis do ecrã, mas o que
+     se escreve na bolha volta a ser multiplicado pelo zoom — com «Maior» ela
+     abria 25 % mais à direita e mais abaixo do que o «i». As contas fazem-se
+     em píxeis do ecrã e o que se escreve divide-se pelo zoom. */
+  const z=zoomDe(d);
+  const larg=Math.min(largo? 360 : 270, (W-24)/z), largEcra=larg*z;
   const esq=r.left-4;
   let dx=0;
-  if(esq+larg > W-12) dx=(W-12)-(esq+larg);
+  if(esq+largEcra > W-12) dx=(W-12)-(esq+largEcra);
   if(esq+dx < 12) dx=12-esq;
-  d.style.setProperty('--dx', Math.round(dx)+'px');
+  d.style.setProperty('--dx', Math.round(dx/z)+'px');
   /* E o lado, pela mesma razão estimado: a 12,5 px cabem cerca de 42 letras
      por linha nos 270, e 58 nos 360, a 18,1 px de altura de linha. Basta para
      escolher para que lado abrir; o max-height do CSS trata do resto. */
   /* os selos da despensa não têm bolha: o texto está no data-dica */
   const texto=bolhaEl? (bolhaEl.textContent||'') : (d.getAttribute('data-dica')||'');
   const porLinha=larg>=340? 58 : 42;
-  const alt=Math.min(340, 34+Math.ceil(texto.length/porLinha)*18.1);
+  const alt=Math.min(340, 34+Math.ceil(texto.length/porLinha)*18.1)*z;
   const espacoAbaixo=innerHeight-r.bottom-16, espacoAcima=r.top-16;
   const cabeAbaixo=alt<=espacoAbaixo, cabeAcima=alt<=espacoAcima;
   const paraCima = !cabeAbaixo && (cabeAcima || espacoAcima>espacoAbaixo);
@@ -42611,17 +42650,17 @@ function posicionaDica(d){
      janela, e agora que ela se percorre isso seria percorrer até um sítio
      invisível. Passa a receber o espaço que existe daquele lado, e o resto
      lê-se a rolar dentro dela. */
-  d.style.setProperty('--maxh', Math.max(120, Math.round(paraCima? espacoAcima : espacoAbaixo))+'px');
+  d.style.setProperty('--maxh', Math.max(120, Math.round((paraCima? espacoAcima : espacoAbaixo)/z))+'px');
   /* e onde fica, em coordenadas do ecrã: a bolha aberta é position:fixed */
   const o=origemFixa(d);
-  d.style.setProperty('--bx', Math.round(r.left-4+dx-o.x)+'px');
-  d.style.setProperty('--ax', Math.round(r.left+5-o.x)+'px');
+  d.style.setProperty('--bx', Math.round((r.left-4+dx-o.x)/z)+'px');
+  d.style.setProperty('--ax', Math.round((r.left+5-o.x)/z)+'px');
   if(paraCima){
-    d.style.setProperty('--bb', Math.round(o.h-(r.top-o.y)+8)+'px');
-    d.style.setProperty('--ab', Math.round(o.h-(r.top-o.y)+2)+'px');
+    d.style.setProperty('--bb', Math.round((o.h-(r.top-o.y)+8)/z)+'px');
+    d.style.setProperty('--ab', Math.round((o.h-(r.top-o.y)+2)/z)+'px');
   } else {
-    d.style.setProperty('--by', Math.round(r.bottom-o.y+8)+'px');
-    d.style.setProperty('--ay', Math.round(r.bottom-o.y+2)+'px');
+    d.style.setProperty('--by', Math.round((r.bottom-o.y+8)/z)+'px');
+    d.style.setProperty('--ay', Math.round((r.bottom-o.y+2)/z)+'px');
   }
 }
 /* mouseenter e não mouseover: o segundo borbulha e volta a disparar sempre que
@@ -42686,13 +42725,14 @@ function mostraBalaoPeso(alvo){
   const g=wrap.querySelector('.traj-cursor'); if(g) g.style.display='none';
   tip.textContent=alvo.getAttribute('data-p')+' kg — '+alvo.getAttribute('data-d');
   tip.hidden=false;
-  const a=alvo.getBoundingClientRect(), c=wrap.getBoundingClientRect();
-  const meio=a.left-c.left+a.width/2;
-  tip.style.left='0px'; tip.style.top=(a.top-c.top)+'px';
+  /* medidas do ecrã a dividir pelo zoom da letra ampliada (ver zoomDe) */
+  const a=alvo.getBoundingClientRect(), c=wrap.getBoundingClientRect(), z=zoomDe(wrap);
+  const meio=(a.left-c.left+a.width/2)/z;
+  tip.style.left='0px'; tip.style.top=((a.top-c.top)/z)+'px';
   /* medir depois de ter texto, e encostar às bordas do cartão em vez de sair
      por elas: num ponto perto do fim do gráfico o balão saía do cartão */
   const meia=tip.offsetWidth/2;
-  tip.style.left=Math.round(Math.min(Math.max(meio,meia+2), c.width-meia-2))+'px';
+  tip.style.left=Math.round(Math.min(Math.max(meio,meia+2), c.width/z-meia-2))+'px';
 }
 /* ---- O balão da faixa de jejum ----
    A mesma caixa das pesagens, com o resumo do jejum em vez do peso. Fica
@@ -42705,11 +42745,11 @@ function mostraBalaoNota(rect){
   tip.classList.add('tip-traj');   /* multilinha, como o balão da projeção */
   tip.textContent=rect.getAttribute("data-nota")||rect.getAttribute("data-jj")||"";
   tip.hidden=false;
-  const a=rect.getBoundingClientRect(), c=wrap.getBoundingClientRect();
-  const meio=a.left-c.left+a.width/2;
-  tip.style.left='0px'; tip.style.top=(a.top-c.top)+'px';
+  const a=rect.getBoundingClientRect(), c=wrap.getBoundingClientRect(), z=zoomDe(wrap);
+  const meio=(a.left-c.left+a.width/2)/z;
+  tip.style.left='0px'; tip.style.top=((a.top-c.top)/z)+'px';
   const meia=tip.offsetWidth/2;
-  tip.style.left=Math.round(clampNum(meio, meia+2, c.width-meia-2))+'px';
+  tip.style.left=Math.round(clampNum(meio, meia+2, c.width/z-meia-2))+'px';
 }
 function escondeBalaoPeso(){
   document.querySelectorAll('.peso-tip').forEach(t=>{ t.hidden=true; });
@@ -42760,10 +42800,11 @@ function mostraBalaoTraj(rect, clientX){
   const alto=temPlan? Math.min(Y(obs),Y(plan)) : Y(obs);
   const svg=rect.ownerSVGElement, sr=svg.getBoundingClientRect(), c=wrap.getBoundingClientRect();
   const vb=svg.viewBox.baseVal, escala=sr.width/(vb.width||1);
-  const meio=sr.left-c.left+px*escala, topo=sr.top-c.top+alto*escala;
+  const z=zoomDe(wrap);
+  const meio=(sr.left-c.left+px*escala)/z, topo=(sr.top-c.top+alto*escala)/z;
   tip.style.left='0px'; tip.style.top=Math.round(topo)+'px';
   const meia=tip.offsetWidth/2;
-  tip.style.left=Math.round(clampNum(meio, meia+2, c.width-meia-2))+'px';
+  tip.style.left=Math.round(clampNum(meio, meia+2, c.width/z-meia-2))+'px';
 }
 /* A ordem destes testes É a regra de prioridade: a pesagem primeiro, a faixa
    do jejum depois. Quem passa por cima de um ponto que caia dentro de um
@@ -43519,10 +43560,18 @@ function renderQuandoLivre(){
     a.addEventListener('blur',()=>setTimeout(render,0),{once:true}); return; }
   render();
 }
+/* O aspeto e a acessibilidade são do aparelho, não da janela: mudar a paleta,
+   a visão das cores ou o tamanho da letra numa janela muda-os nas outras —
+   sem isto, o segundo ecrã ficava nas cores de quando abriu. O resto da ui
+   (separador, janelas abertas) continua a ser de cada uma. */
+const ASPETO_UI=['tema','paleta','paletaAntes','densidade','estilo','anim','sazonal','taberna','sons','visao','letra','sublinhar'];
 function adotarDeOutraJanela(){
   const ui=S.ui, meta=S.meta;
   const novo=load();
+  const mudouAspeto=ASPETO_UI.some(k=>novo.ui && novo.ui[k]!==ui[k]);
+  if(novo.ui) ASPETO_UI.forEach(k=>{ if(k in novo.ui) ui[k]=novo.ui[k]; else delete ui[k]; });
   S=novo; S.ui=ui;
+  if(mudouAspeto){ aplicarTema(); vigiaSol(); }
   if(!ECRA2) S.meta=Object.assign({}, novo.meta, {sync:meta.sync, dispositivo:meta.dispositivo});
   aplicaIngredientesDaCasa(S.ingredientes); sincronizaReceitas(); sincronizaCombos(); migraRegistos(S);
   estadoAnterior=instantaneo(); _ultimaGravacaoNossa=S.meta.gravadoEm||'';

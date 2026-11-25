@@ -25,6 +25,18 @@ module.exports=async function({app, BrowserWindow, screen, fs, principal, segund
     regista('cartão da versão para computador', await js('(go("dados"), /Versão para computador/.test(document.querySelector("main").innerText))'));
     regista('cartão da sincronização', await js('!!document.querySelector("[data-col=dados-sync]")'));
     regista('QR gerado', await js('qrSvg("https://exemplo.pt/#par=ABCDEFGHJKMNPQRS").indexOf("<svg")===0'));
+    /* definições e acessibilidade */
+    regista('roda dentada no botão das definições', await js('!!document.querySelector("#btn-defs svg path") && /^M10\.22/.test(document.querySelector("#btn-defs svg path").getAttribute("d"))'));
+    regista('cartão de acessibilidade', await js('(go("dados"), !!document.querySelector("[data-col=dados-acess]"))'));
+    const corOk=await js('(setVisao("rg"), getComputedStyle(document.documentElement).getPropertyValue("--ok").trim())');
+    regista('modo vermelho-verde troca as cores de estado', ['#0A63BD','#8FC8F0'].indexOf(corOk.toUpperCase())>=0, corOk);
+    await js('setVisao("normal")');
+    const zoom=await js('(setLetra("maior"), [getComputedStyle(document.getElementById("main")).zoom, getComputedStyle(document.querySelector("header")).zoom].join("/"))');
+    regista('letra maior amplia o conteúdo e não o cabeçalho', zoom==='1.25/1', zoom);
+    const bolha=await js('(()=>{ go("dados"); const d=[...document.querySelectorAll("main .dica")].find(x=>x.getBoundingClientRect().width>0&&x.querySelector(".dica-bolha")); if(!d) return -1; d.scrollIntoView({block:"center"}); posicionaDica(d); d.classList.add("on"); const i=d.getBoundingClientRect(), b=d.querySelector(".dica-bolha").getBoundingClientRect(); d.classList.remove("on"); return Math.round(Math.min(Math.abs(b.top-i.bottom),Math.abs(i.top-b.bottom))); })()');
+    regista('com letra maior, a bolha «i» abre junto do ícone', bolha>=0 && bolha<=20, bolha);
+    await js('setLetra("normal")');
+    regista('aviso: sem fins lucrativos e sem recolha de dados', await js('/sem fins lucrativos/.test(avisoResponsabilidade()) && /não recolhe nenhuns dados/.test(avisoResponsabilidade())'));
     await js('go("hoje")');
     await js('abrirSegundoEcra()'); await espera(3500);
     const seg=segundoAtual();
@@ -41,6 +53,10 @@ module.exports=async function({app, BrowserWindow, screen, fs, principal, segund
       await js('go("receitas"); abrirFicha(RECIPES[0].id,2)'); await espera(1200);
       regista('acompanha: ficha → modo cozinha', !!(await js2('S.ui.cozinha && S.ui.cozinha.r')));
       await js('fecharFicha()');
+      await js('setVisao("tri"); setLetra("grande")'); await espera(1500);
+      const e2=await js2('document.documentElement.dataset.visao+"/"+document.documentElement.dataset.letra');
+      regista('acompanha: visão das cores e letra', e2==='tri/grande', e2);
+      await js('setVisao("normal"); setLetra("normal")');
       if(out.ecras>1){ const d=screen.getDisplayMatching(seg.getBounds()), p=screen.getDisplayMatching(principal.getBounds());
         regista('nasce no outro monitor', d.id!==p.id, {segundo:d.id, principal:p.id}); }
       else regista('com um só ecrã, abre ao lado no mesmo', true);
