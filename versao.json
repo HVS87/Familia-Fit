@@ -1,0 +1,17 @@
+{
+ "app": "familia-fit",
+ "versao": "2026.11.28",
+ "programa": "2026.11.28",
+ "etiqueta": "v2026.11.28",
+ "programaMinimo": "2026.11.28",
+ "notas": "Atualizações automáticas, sem reinstalar.",
+ "ficheiros": {
+  "index.html": "4b23b221698ce5f52d515b9c8458eab03e4ff443f76ae6e4de3d5347af890da6",
+  "manifest.webmanifest": "aa1ea9ccf150e3b58aaafcd65061d32aa2fde48097562f28f3d6f23967ed1964",
+  "sw.js": "94db5da06eb2f685583bcb62a1a4571b138ccdcdc49b834073b00bc6531c1663",
+  "icon.svg": "a819034a6c247544bc430ba3884972b40486300ab04a1e1edd73d2dca9e5192e",
+  "icon-180.png": "24eeba6f0e462a5128ee4b3e62d2a8f22e788abdb50da28666d4d79224ee2221",
+  "icon-192.png": "eb9e1bb789af26f393678ead695b89c94223b13f3f570760f411a04018c9ecb5",
+  "icon-512.png": "f3ac998e2dfa44dfa9c9cec8dabb85f0452f17c8d0a54c210aef715ff8e1e384"
+ }
+}

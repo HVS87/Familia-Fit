@@ -11,11 +11,13 @@
      esse monitor for desligado;
    · lembra-se do tamanho e do sítio da janela;
    · uma só instância: abrir o programa outra vez traz a janela à frente;
-   · ligações externas abrem no browser do sistema, nunca dentro do programa. */
+   · ligações externas abrem no browser do sistema, nunca dentro do programa;
+   · atualiza-se sem reinstalar (ver «Atualizações», mais abaixo). */
 const {app, BrowserWindow, protocol, net, screen, ipcMain, shell, Menu, dialog} = require('electron');
 const path=require('path');
 const fs=require('fs');
 const {pathToFileURL}=require('url');
+const crypto=require('crypto');
 
 /* O AppImage corre sem instalar, e no Ubuntu 24.04 e seguintes o sistema
    recusa a caixa de areia do Chromium a programas que não vêm de um pacote.
@@ -23,7 +25,10 @@ const {pathToFileURL}=require('url');
 if(process.platform==='linux' && process.env.APPIMAGE) app.commandLine.appendSwitch('no-sandbox');
 protocol.registerSchemesAsPrivileged([{scheme:'app', privileges:{standard:true, secure:true, supportFetchAPI:true, corsEnabled:true, stream:true}}]);
 
-const RAIZ=path.join(__dirname,'app');
+/* A app que o programa serve: a que veio com ele, ou uma mais recente que ele
+   próprio descarregou (ver «Atualizações»). */
+const RAIZ_EMBUTIDA=path.join(__dirname,'app');
+let RAIZ=RAIZ_EMBUTIDA;
 const ENDERECO='app://fit/index.html';
 const PAGINA_PROJETO='https://github.com/HVS87/Familia-Fit';
 const ehMac=process.platform==='darwin';
@@ -102,6 +107,7 @@ function criarPrincipal(){
     w.webContents.setWindowOpenHandler(({url})=>{ if(/^(https?|mailto):/i.test(url)) shell.openExternal(url); return {action:'deny'}; });
     w.webContents.on('will-navigate', soDentro);
     w.webContents.on('will-prevent-unload', e=>e.preventDefault());
+    w.webContents.on('render-process-gone', ()=>{});
     w.on('closed',()=>{ segundo=null; });
   });
   wc.on('will-navigate', soDentro);
@@ -110,14 +116,195 @@ function criarPrincipal(){
      anulado em silêncio e a janela não fechava pelo X. Pergunta-se em
      português, e os dados ficam gravados neste computador de qualquer forma. */
   wc.on('will-prevent-unload', e=>{
+    if(_aReiniciar) return e.preventDefault();
     if(process.env.FFIT_AUTOTESTE){ global.__perguntouSair=true; return e.preventDefault(); }
     const r=dialog.showMessageBoxSync(principal,{type:'question', buttons:['Sair','Ficar'], defaultId:0, cancelId:1,
       title:'Família Fit', message:'Sair da Família Fit?',
       detail:'Os dados estão gravados neste computador. Ainda não exportaste uma cópia de segurança desde a última alteração — podes fazê-lo em Definições.'});
     if(r===0) e.preventDefault();
   });
+  /* uma versão descarregada que rebenta antes de dizer «arranquei» volta atrás */
+  wc.on('render-process-gone', ()=>{ if(aExperimentar()) reverter('a página da versão nova terminou'); });
+  wc.on('did-fail-load', (e,code,desc,url,principalFrame)=>{ if(principalFrame && code!==-3 && aExperimentar()) reverter('a versão nova não carregou ('+desc+')'); });
+  wc.on('did-finish-load', ()=>{ _aReiniciar=false; });
   principal.on('close', guardarJanela);
   principal.on('closed',()=>{ principal=null; if(segundo && !segundo.isDestroyed()) segundo.close(); });
+}
+
+/* ================= ATUALIZAÇÕES =================
+   A app (o index.html e os ícones) atualiza-se sozinha: o programa lê o
+   versao.json do site, descarrega os ficheiros novos para a pasta do
+   programa (userData/atualizacoes/<versão>), confere cada um pela impressão
+   digital SHA-256 anunciada e passa a servi-los no MESMO endereço app://fit.
+   O armazenamento local é o desse endereço — os dados e as preferências
+   ficam exatamente onde estavam.
+
+   Segurança contra uma versão estragada: até a página nova dizer
+   «arranquei» (fitDesktop.atualizacoes.arrancou), está a ser experimentada.
+   Se não o disser em 30 s, se a página rebentar ou não carregar, a versão é
+   marcada como má e o programa volta à anterior.
+
+   O programa em si (esta casca) muda raramente. Quando muda: o instalador do
+   Windows corre por cima em silêncio e reabre o programa; o AppImage do Linux
+   troca-se pelo novo; nos outros formatos (portátil, .deb, macOS) abre-se a
+   página da versão. Tudo confere pela impressão digital publicada na
+   release (programa.json). */
+const urlVersao=()=>process.env.FFIT_URL_VERSAO||'https://hvs87.github.io/Familia-Fit/versao.json';
+const urlReleases=()=>process.env.FFIT_URL_RELEASES||(PAGINA_PROJETO+'/releases/download/');
+const ESPERA_ARRANQUE=()=>+process.env.FFIT_UPD_ESPERA||30000;
+const PASTA_UPD=()=>path.join(app.getPath('userData'),'atualizacoes');
+const FICH_UPD=()=>path.join(PASTA_UPD(),'estado.json');
+const NOME_OK=/^[A-Za-z0-9._-]+$/, VERSAO_OK=/^[0-9]+([.-][0-9]+)*$/;
+let _remoto=null, _aReiniciar=false, _vigiaArranque=null;
+function versaoDe(raiz){ try{ const m=/const VERSAO_APP='([^']+)'/.exec(fs.readFileSync(path.join(raiz,'index.html'),'utf8')); return m? m[1] : '0'; }catch(e){ return '0'; } }
+function cmpVersao(a,b){
+  const pa=String(a||'0').split(/[.-]/).map(n=>parseInt(n,10)||0), pb=String(b||'0').split(/[.-]/).map(n=>parseInt(n,10)||0);
+  for(let i=0;i<Math.max(pa.length,pb.length);i++){ const d=(pa[i]||0)-(pb[i]||0); if(d) return d>0? 1 : -1; }
+  return 0;
+}
+function lerUpd(){ try{ return JSON.parse(fs.readFileSync(FICH_UPD(),'utf8'))||{}; }catch(e){ return {}; } }
+function gravarUpd(o){ fs.mkdirSync(PASTA_UPD(),{recursive:true}); fs.writeFileSync(FICH_UPD(), JSON.stringify(o,null,1)); }
+function versaoEmbutida(){ return versaoDe(RAIZ_EMBUTIDA); }
+function versaoConteudo(){ return versaoDe(RAIZ); }
+/* Uma versão descarregada serve se: não foi marcada como má, é mais recente
+   do que a que veio com o programa, este programa é novo que chegue para
+   ela, e os ficheiros estão lá e são dessa versão. */
+function serve(v, e){
+  if(!v || !VERSAO_OK.test(v) || (e.mas||[]).indexOf(v)>=0) return null;
+  if(cmpVersao(v, versaoEmbutida())<=0) return null;
+  const min=(e.minimos||{})[v]; if(min && cmpVersao(app.getVersion(), min)<0) return null;
+  const p=path.join(PASTA_UPD(), v);
+  return fs.existsSync(path.join(p,'index.html')) && versaoDe(p)===v? p : null;
+}
+function escolherRaiz(){ const e=lerUpd(); RAIZ=serve(e.versao,e) || serve(e.anterior,e) || RAIZ_EMBUTIDA; }
+function aExperimentar(){ const e=lerUpd(); return RAIZ!==RAIZ_EMBUTIDA && e.confirmada!==versaoConteudo(); }
+function vigiarArranque(){
+  clearTimeout(_vigiaArranque);
+  if(aExperimentar()) _vigiaArranque=setTimeout(()=>reverter('não arrancou em '+Math.round(ESPERA_ARRANQUE()/1000)+' segundos'), ESPERA_ARRANQUE());
+}
+function reverter(motivo){
+  clearTimeout(_vigiaArranque);
+  const e=lerUpd(), v=versaoConteudo();
+  if(RAIZ===RAIZ_EMBUTIDA) return;
+  e.mas=(e.mas||[]).concat(v).slice(-10); e.motivo=v+': '+motivo; gravarUpd(e);
+  console.error('Família Fit — atualização '+v+' revertida: '+motivo);
+  escolherRaiz(); vigiarArranque(); recarregarJanelas();
+}
+function recarregarJanelas(){
+  _aReiniciar=true;
+  if(segundo && !segundo.isDestroyed()) segundo.webContents.reload();
+  if(principal && !principal.isDestroyed()) principal.loadURL(ENDERECO);
+}
+function limparAntigas(){
+  const e=lerUpd(), fica=[e.versao, e.anterior].filter(Boolean);
+  try{ fs.readdirSync(PASTA_UPD()).forEach(n=>{ if(n!=='estado.json' && fica.indexOf(n)<0) fs.rmSync(path.join(PASTA_UPD(),n),{recursive:true, force:true}); }); }catch(err){}
+}
+function modoPrograma(){
+  if(process.platform==='win32' && !process.env.PORTABLE_EXECUTABLE_FILE
+     && fs.existsSync(path.join(path.dirname(process.execPath),'Uninstall Familia Fit.exe'))) return 'instalador';
+  if(process.platform==='linux' && process.env.APPIMAGE) return 'appimage';
+  return 'pagina';
+}
+async function lerJson(url){
+  const r=await net.fetch(url+(url.indexOf('?')<0?'?':'&')+'t='+Date.now(), {cache:'no-store'});
+  if(!r.ok) throw new Error('o site respondeu '+r.status);
+  return r.json();
+}
+const sha256=buf=>crypto.createHash('sha256').update(buf).digest('hex');
+function ligarAtualizacoes(){
+  ipcMain.on('upd-modo', e=>{ e.returnValue=modoPrograma(); });
+  ipcMain.on('upd-arrancou', (ev,v)=>{
+    if(ev.sender!==(principal&&principal.webContents)) return;
+    clearTimeout(_vigiaArranque);
+    const e=lerUpd();
+    if(RAIZ!==RAIZ_EMBUTIDA && v===versaoConteudo() && e.confirmada!==v){ e.confirmada=v; gravarUpd(e); limparAntigas(); }
+  });
+  ipcMain.handle('upd-procurar', async()=>{
+    try{
+      const j=await lerJson(urlVersao());
+      if(!j || !VERSAO_OK.test(j.versao||'')) return {erro:'resposta inválida do site'};
+      _remoto=j;
+      const atual=versaoConteudo(), e=lerUpd();
+      const nova= cmpVersao(j.versao, atual)>0 && (e.mas||[]).indexOf(j.versao)<0;
+      const precisa= !!(j.programaMinimo && cmpVersao(app.getVersion(), j.programaMinimo)<0);
+      const pend= e.versao && e.versao!==atual && serve(e.versao,e)? e.versao : '';
+      return {atual, disponivel: nova && !precisa? j.versao : '', pronta:pend, precisaPrograma: nova && precisa, notas: String(j.notas||'').slice(0,400),
+        programa:{atual:app.getVersion(), disponivel: j.programa && VERSAO_OK.test(j.programa) && cmpVersao(j.programa, app.getVersion())>0? j.programa : '', modo:modoPrograma()}};
+    }catch(err){ return {erro:String(err&&err.message||err)}; }
+  });
+  ipcMain.handle('upd-descarregar', async()=>{
+    const j=_remoto; if(!j) return {erro:'procura primeiro'};
+    const nomes=Object.keys(j.ficheiros||{});
+    if(nomes.indexOf('index.html')<0) return {erro:'a versão anunciada não traz o index.html'};
+    if(nomes.some(n=>!NOME_OK.test(n) || !/^[0-9a-f]{64}$/.test(String(j.ficheiros[n])))) return {erro:'a lista de ficheiros é inválida'};
+    const base=new URL('./', urlVersao()).href;
+    const tmp=path.join(PASTA_UPD(), j.versao+'.parcial');
+    try{
+      fs.rmSync(tmp,{recursive:true, force:true}); fs.mkdirSync(tmp,{recursive:true});
+      for(const n of nomes){
+        const r=await net.fetch(base+n+'?v='+encodeURIComponent(j.versao), {cache:'no-store'});
+        if(!r.ok) throw new Error(n+': o site respondeu '+r.status);
+        const buf=Buffer.from(await r.arrayBuffer());
+        if(sha256(buf)!==j.ficheiros[n]) throw new Error(n+' não confere com a impressão digital anunciada — o site pode estar a meio de uma publicação');
+        fs.writeFileSync(path.join(tmp,n), buf);
+      }
+      if(versaoDe(tmp)!==j.versao) throw new Error('o index.html descarregado não é da versão anunciada');
+      const dest=path.join(PASTA_UPD(), j.versao);
+      fs.rmSync(dest,{recursive:true, force:true}); fs.renameSync(tmp, dest);
+      const e=lerUpd(), atual=versaoConteudo();
+      const minimos=Object.assign({}, e.minimos||{}); if(j.programaMinimo) minimos[j.versao]=j.programaMinimo;
+      gravarUpd({versao:j.versao, anterior: RAIZ!==RAIZ_EMBUTIDA? atual : '', confirmada:e.confirmada||'', mas:(e.mas||[]).filter(v=>v!==j.versao),
+        minimos, descarregadaEm:new Date().toISOString()});
+      return {ok:true, versao:j.versao};
+    }catch(err){ fs.rmSync(tmp,{recursive:true, force:true}); return {erro:String(err&&err.message||err)}; }
+  });
+  ipcMain.on('upd-reiniciar', ev=>{
+    if(ev.sender!==(principal&&principal.webContents)) return;
+    escolherRaiz(); vigiarArranque(); recarregarJanelas();
+  });
+  /* a cópia de segurança antes de cada atualização: fica na pasta do
+     programa, as cinco mais recentes */
+  ipcMain.handle('upd-copia', (ev,txt)=>{
+    try{
+      if(typeof txt!=='string' || !txt.length || txt.length>80e6) return {erro:'cópia inválida'};
+      const d=path.join(app.getPath('userData'),'copias'); fs.mkdirSync(d,{recursive:true});
+      const f=path.join(d,'antes-de-atualizar-'+new Date().toISOString().replace(/[:.]/g,'-')+'.json');
+      fs.writeFileSync(f, txt);
+      fs.readdirSync(d).filter(x=>x.startsWith('antes-de-atualizar-')).sort().slice(0,-5).forEach(x=>fs.rmSync(path.join(d,x),{force:true}));
+      return {ok:true, ficheiro:f};
+    }catch(err){ return {erro:String(err&&err.message||err)}; }
+  });
+  ipcMain.handle('upd-programa', async()=>{
+    const j=_remoto; if(!j || !j.programa) return {erro:'procura primeiro'};
+    const etiqueta=j.etiqueta && NOME_OK.test(j.etiqueta)? j.etiqueta : 'v'+j.programa;
+    const pagina=PAGINA_PROJETO+'/releases/tag/'+encodeURIComponent(etiqueta);
+    const modo=modoPrograma();
+    if(modo==='pagina'){ shell.openExternal(pagina); return {pagina:true}; }
+    try{
+      const base=urlReleases()+encodeURIComponent(etiqueta)+'/';
+      const info=await lerJson(base+'programa.json');
+      const f=info && info.ficheiros && info.ficheiros[modo];
+      if(!f || !NOME_OK.test(f.nome||'') || !/^[0-9a-f]{64}$/.test(f.sha256||'')) throw new Error('a versão nova não traz este formato');
+      const r=await net.fetch(base+f.nome); if(!r.ok) throw new Error('a descarga respondeu '+r.status);
+      const buf=Buffer.from(await r.arrayBuffer());
+      if(sha256(buf)!==f.sha256) throw new Error('o ficheiro descarregado não confere com a impressão digital publicada');
+      if(modo==='instalador'){
+        const dest=path.join(app.getPath('temp'), f.nome); fs.writeFileSync(dest, buf);
+        /* o instalador fecha o programa, instala por cima na mesma pasta (os
+           dados estão noutra, que não toca) e volta a abri-lo */
+        require('child_process').spawn(dest, ['/S','--updated','--force-run'], {detached:true, stdio:'ignore'}).unref();
+        _aReiniciar=true; setTimeout(()=>app.quit(), 400);
+        return {ok:true};
+      }
+      if(modo==='appimage'){
+        const alvo=process.env.APPIMAGE, novo=alvo+'.novo';
+        fs.writeFileSync(novo, buf, {mode:0o755}); fs.renameSync(novo, alvo);
+        _aReiniciar=true; app.relaunch({execPath:alvo, args:process.argv.slice(1)}); setTimeout(()=>app.exit(0), 200);
+        return {ok:true};
+      }
+      return {erro:'formato desconhecido'};
+    }catch(err){ shell.openExternal(pagina); return {erro:String(err&&err.message||err), pagina:true}; }
+  });
 }
 
 /* ---- menu, em português, com os atalhos do sistema ---- */
@@ -139,12 +326,15 @@ function menu(){
     {role:'togglefullscreen', label:'Ecrã inteiro'}]});
   t.push({label:'Janela', submenu:[{role:'minimize', label:'Minimizar'},{role:'zoom', label:'Ampliar'},{role:'close', label:'Fechar'}]});
   t.push({label:'Ajuda', submenu:[{label:'Ajuda da app', click:()=>correr('abrirAjuda()')},
+    {label:'Procurar atualizações', click:()=>correr('go("dados"); procurarAtualizacoes(true)')},
     {label:'Página do projeto', click:()=>shell.openExternal(PAGINA_PROJETO)},
     {type:'separator'}, {label:'Versão '+app.getVersion(), enabled:false}]});
   return Menu.buildFromTemplate(t);
 }
 
 app.whenReady().then(()=>{
+  escolherRaiz();
+  ligarAtualizacoes();
   protocol.handle('app', req=>{
     const u=new URL(req.url);
     let p=decodeURIComponent(u.pathname); if(!p || p==='/') p='/index.html';
@@ -157,7 +347,8 @@ app.whenReady().then(()=>{
   ['display-added','display-removed','display-metrics-changed'].forEach(ev=>screen.on(ev,()=>{ avisarEcras(); trazerSegundoParaAqui(); }));
   Menu.setApplicationMenu(menu());
   criarPrincipal();
-  if(process.env.FFIT_AUTOTESTE) require('./autoteste.js')({app, BrowserWindow, screen, fs, principal, segundoAtual:()=>segundo});
+  vigiarArranque();
+  if(process.env.FFIT_AUTOTESTE) require('./autoteste.js')({app, BrowserWindow, screen, fs, principal, segundoAtual:()=>segundo, principalAtual:()=>principal});
 });
 app.on('window-all-closed',()=>{ if(!ehMac && !process.env.FFIT_AUTOTESTE) app.quit(); });
 app.on('activate',()=>{ if(!principal) criarPrincipal(); });

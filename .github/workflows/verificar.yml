@@ -1,0 +1,15 @@
+# Em cada envio para o main (que o GitHub Pages publica logo), confere que o
+# versao.json corresponde aos ficheiros. Se não corresponder, a app no
+# computador recusa a atualização em vez de instalar uma mistura — mas fica
+# a falha à vista aqui, para se gerar outra vez.
+name: Verificar a publicação
+on:
+  push:
+    branches: [main]
+jobs:
+  versao:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: versao.json corresponde aos ficheiros
+        run: node scripts/versao.js --verificar

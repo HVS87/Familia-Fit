@@ -1285,6 +1285,11 @@ input[type=text],input[type=number],input[type=date],input[type=search],select{
    acento das ligações sobre o fundo do chip: 4,2:1 em Alecrim e Brasa. Fica
    com a tinta dos outros chips; a seta ↗ já diz que abre fora. */
 a.chip{color:var(--ink);text-decoration:none}
+/* Há uma atualização: um ponto no canto da roda dentada. A cor sozinha não
+   diz nada a quem não a vê — o nome do botão passa a dizê-lo também. */
+#btn-defs{position:relative}
+#btn-defs.tem-upd::after{content:'';position:absolute;top:3px;right:3px;width:9px;height:9px;border-radius:50%;
+  background:var(--accent);box-shadow:0 0 0 2px var(--card)}
 a.chip:hover{border-color:var(--accent)}
 /* Os atalhos das doses saltam de 12 para 20; quem cozinha para 14 escreve o
    número, em vez de ficar preso ao salto mais próximo. */
@@ -13663,6 +13668,13 @@ function ehPassoDeMassa(p){ return /^Massa: /.test(p&&p.t||''); }
 
 /* ================= ESTADO ================= */
 const KEY='familiaFitV1', APPID='familia-fit', FORMATO=1;
+/* A versão desta app. Sobe a cada publicação, junto com o versao.json — é
+   por ela que o telemóvel e o computador sabem se há uma mais recente, e que
+   os dois aparelhos emparelhados sabem em que versão está o outro. */
+const VERSAO_APP='2026.11.28';
+/* o estado das atualizações vive cá em cima: o primeiro desenho da app
+   (que já pinta a roda dentada) corre antes do módulo das atualizações */
+var _upd={estado:'', disponivel:'', notas:'', erro:'', pronta:'', programa:null, precisaPrograma:false};
 /* A segunda janela (o segundo ecrã) é a mesma app com «?ecra=2». Sabe-se aqui,
    no topo, porque a gravação e o arranque precisam de o saber antes de tudo. */
 var ECRA2=/[?&]ecra=2(&|$)/.test(location.search), _e2Gravar=false;
@@ -16881,6 +16893,7 @@ const DICAS={
   suplementos:'Regista o que tomas e quantas doses por dia. Um batido de proteína é comida: as calorias e os macros entram no plano do dia. Os suplementos vão também para a despensa e para a lista de compras, com as doses de sete dias.',
   suplMacros:'Quanto dos macros do dia já vem dos suplementos, e quanto sobra para a comida. É este segundo número que interessa a quem vai cozinhar — se um batido dá 48 g de proteína, faltam menos 48 g no prato.',
   suplMicros:'O que os suplementos dão de cada micronutriente, comparado com a dose diária de referência e com o limite superior tolerável do Institute of Medicine. Passar o limite deixa de ser inócuo — sobretudo em crianças e na gravidez.',
+  atualizacoes:'A app procura a versão mais recente no site da Família Fit e atualiza-se sem reinstalar nada. Os dados e as preferências ficam exatamente como estavam: a atualização muda a app, não o que lá guardaste. No computador, antes de cada atualização fica ainda uma cópia de segurança automática na pasta do programa, e se a versão nova não arrancar volta sozinho à anterior. Com dois aparelhos emparelhados, cada um diz ao outro em que versão está: se o outro tiver uma mais recente, este procura-a logo.',
   acessibilidade:'A visão das cores muda só as cores que dizem um estado — certo, perto, longe, dia livre — e as dos macronutrientes, com conjuntos escolhidos por simulação para cada tipo de daltonismo, e funciona por cima de qualquer paleta. O alto contraste é a paleta «Contraste»: desligá-lo aqui devolve a paleta que estava antes. O tamanho da letra amplia a app inteira, e sublinhar as ligações tira-lhes a dependência da cor.',
   aspeto:'Sete paletas, cada uma com modo claro e escuro. A paleta muda os acentos e o tom dos neutros; o modo é independente e pode seguir o sistema. As secções que fechares ficam fechadas — a app lembra-se de cada uma.',
   resumoMes:'Um retrato dos últimos 30 dias escrito a partir do que registaste: refeições planeadas, dias completos, atividade, objetivos e evolução do peso de quem tem um objetivo a decorrer.',
@@ -21710,7 +21723,7 @@ function indiceGlobal(){
    ['Calendário','calendario'],['Lista de compras','mercearia'],['Despensa','mercearia'],['Preços','mercearia'],
    ['Cópias de segurança','dados'],['Paletas e temas','dados'],['Visita guiada','dados'],
    ['Definições','dados'],['Acessibilidade','dados'],['Daltonismo e visão das cores','dados'],['Tamanho da letra','dados'],
-   ['Alto contraste','dados'],['Sincronizar telemóvel e computador','dados']]
+   ['Alto contraste','dados'],['Sincronizar telemóvel e computador','dados'],['Atualizações','dados'],['Procurar atualizações','dados']]
    .forEach(([t,tab])=>ix.push({t, o:'Onde fica', fn:"go('"+tab+"')"}));
   /* O título sem acentos e em minúsculas é o que a procura compara, e não muda
      entre teclas — calculava-se as mil e cem vezes a cada letra escrita.
@@ -39387,6 +39400,7 @@ function limparMembro(m){
 function lerPacote(txt){
   let p; try{ p=JSON.parse(txt); }catch(e){ return {erro:'O texto não é uma cópia válida (não foi possível interpretar o JSON).'}; }
   if(p && p.app && p.app!==APPID) return {erro:'Este ficheiro é de outra aplicação, não do Família Fit.'};
+  if(p && +p.formato>FORMATO) return {erro:'Estes dados vêm de uma versão mais recente da app. Atualiza-a primeiro (Definições → Atualizações).'};
   const d = p && p.dados ? p.dados : p;
   if(!d || !Array.isArray(d.members)) return {erro:'Este ficheiro não contém perfis do Família Fit.'};
   /* Os perfis eram validados à lupa mas os planos entravam em bruto: uma
@@ -41658,6 +41672,7 @@ function renderDados(){
   <div class="grid g2">
     ${cartaoInstalarApp()}
     ${cartaoSync()}
+    ${cartaoAtualizacoes()}
     <div class="card card--quieto">
       <h3>Gravação automática</h3>
       <div style="margin-top:10px">
@@ -42132,7 +42147,7 @@ function apagarExemplo(){
      a paleta e a densidade durante a visita não tem de as voltar a escolher */
   S.ui.tema=ui.tema; S.ui.paleta=ui.paleta; S.ui.densidade=ui.densidade;
   S.ui.anim=ui.anim; S.ui.sazonal=ui.sazonal; S.ui.sons=ui.sons; S.ui.taberna=ui.taberna;
-  S.ui.visao=ui.visao; S.ui.letra=ui.letra; S.ui.sublinhar=ui.sublinhar; S.ui.paletaAntes=ui.paletaAntes;
+  S.ui.visao=ui.visao; S.ui.letra=ui.letra; S.ui.sublinhar=ui.sublinhar; S.ui.paletaAntes=ui.paletaAntes; S.ui.updArranque=ui.updArranque;
   S.ui.tourVisto=true; S.ui.tab='familia';
   S.meta.avisarAoSair=avisar;
   saveMeta();
@@ -42366,7 +42381,7 @@ function render(){
   carimboAlvo=null;
   ligaDeslize();
   paintSave(); pintaHist(); pintaTour(); medirTopo();
-  pintaBotaoEcra2(); enviaContexto();
+  pintaBotaoEcra2(); enviaContexto(); pintaBotaoDefs();
 }
 /* ================= O QUE ESTÁ POR BAIXO NÃO SE TOCA =================
    Com uma folha ou um diálogo aberto, tudo o resto fica inerte: deixa de
@@ -43269,7 +43284,7 @@ async function enviarEstadoSync(resolvido){
   const c=syncCfg(); if(!c) return;
   const imp=impressaoDados();
   await enviaSync({tipo: resolvido? 'resolvido':'estado', dispositivo:eu(), mudou: imp!==c.base, vazio:!S.members.length,
-    gravadoEm:S.meta.gravadoEm||'', imp, pacote:pacote()});
+    gravadoEm:S.meta.gravadoEm||'', imp, pacote:pacote(), versao:VERSAO_APP, formato:FORMATO});
   if(!resolvido){ c.enviado=imp; }
 }
 function marcarSincronizado(){ const c=syncCfg(); if(!c) return;
@@ -43283,6 +43298,16 @@ function trataMensagemSync(r){
   const c=syncCfg(); if(!c||!r) return;
   if(r.tipo==='ack'){ if(r.imp && impressaoDados()===r.imp) marcarSincronizado(); return; }
   if(!r.pacote) return;
+  if(r.versao) notaVersaoOutro(r.versao);
+  /* Dados num formato mais recente do que o desta app: não se adotam nem se
+     juntam — perdia-se o que esta versão não conhece. Fica tudo como está
+     deste lado, e procura-se a atualização. As versões antigas não mandam
+     «formato»; o pacote traz sempre o seu. */
+  const fOutro=Math.max(+r.formato||0, +(r.pacote&&r.pacote.formato)||0);
+  if(fOutro>FORMATO){
+    _sync.erro='O outro aparelho tem uma versão mais recente da app, com os dados num formato que esta ainda não conhece. Atualiza esta app para voltarem a sincronizar — até lá, os dados de cá ficam como estão.';
+    pintaCartaoSync(); procurarAtualizacoes(false); return;
+  }
   if(r.tipo==='resolvido') return adotarRemoto(r.pacote,'os dados juntos dos dois aparelhos',r.imp);
   const souVazio=!S.members.length, mudei=impressaoDados()!==c.base;
   if(souVazio && !r.vazio) return adotarRemoto(r.pacote,'os dados do outro aparelho',r.imp);
@@ -43673,6 +43698,180 @@ const ATALHOS={
 /* O leitor duplicado que aqui vivia saiu: lia o mesmo «?ir=» ao «load», mas o
    IIFE do arranque já tinha limpo o endereço e ele nunca encontrava nada.
    Quem corre a tabela é correrAtalho(), aos 700 ms, com o estado já lido. */
+
+/* ================= ATUALIZAÇÕES =================
+   A app atualiza-se sem reinstalar. O site publica um versao.json com a
+   versão, a versão mínima do programa de computador que a aguenta e a
+   impressão digital (SHA-256) de cada ficheiro.
+
+   · No telemóvel e no browser, a app já é o site: «atualizar» é ir buscar o
+     index.html novo por cima da cache e recarregar. Os dados vivem no
+     armazenamento do próprio site, que a recarga não toca.
+   · No computador, o programa descarrega os ficheiros novos para a sua pasta,
+     confere cada um pela impressão digital e passa a servi-los no mesmo
+     endereço interno (app://fit) — o armazenamento é o desse endereço, por
+     isso os dados e as preferências ficam onde estavam. Antes de mudar guarda
+     uma cópia de segurança, e se a versão nova não arrancar volta à anterior.
+     O programa em si (a casca) muda raramente; quando muda, o instalador do
+     Windows e o AppImage do Linux atualizam-se sozinhos, e nos outros
+     formatos abre-se a página para descarregar.
+
+   Nunca se recarrega a meio de nada: a versão nova espera por um toque em
+   «Atualizar agora», ou pelo próximo arranque. */
+const URL_VERSAO='https://hvs87.github.io/Familia-Fit/versao.json';
+function cmpVersao(a,b){
+  const pa=String(a||'0').split(/[.\-]/).map(n=>parseInt(n,10)||0), pb=String(b||'0').split(/[.\-]/).map(n=>parseInt(n,10)||0);
+  for(let i=0;i<Math.max(pa.length,pb.length);i++){ const d=(pa[i]||0)-(pb[i]||0); if(d) return d>0? 1 : -1; }
+  return 0;
+}
+function updAoIniciar(){ return S.ui.updArranque!==false; }   /* ligado por omissão */
+function setUpdArranque(v){ S.ui.updArranque=!!v; saveMeta(); render(); }
+function updDesktop(){ return !!(window.fitDesktop && window.fitDesktop.atualizacoes); }
+function haAtualizacao(){ return !!(_upd.disponivel || _upd.pronta || (_upd.programa && _upd.programa.disponivel)); }
+function pintaBotaoDefs(){
+  const b=document.getElementById('btn-defs'); if(!b) return;
+  const tem=haAtualizacao();
+  b.classList.toggle('tem-upd', tem);
+  b.setAttribute('aria-label', tem? 'Definições — há uma atualização' : 'Definições');
+  b.title= tem? 'Definições — há uma atualização' : 'Definições';
+}
+/* No browser, o versao.json lê-se do próprio site (é o mesmo que serve a
+   app); fora dele — um ficheiro aberto do disco — do endereço publicado. */
+async function lerVersaoWeb(){
+  const base= location.protocol.indexOf('http')===0? new URL('versao.json', location.href).href : URL_VERSAO;
+  const r=await fetch(base+'?t='+Date.now(), {cache:'no-store'});
+  if(!r.ok) throw new Error('o site respondeu '+r.status);
+  const j=await r.json();
+  if(!j || typeof j.versao!=='string') throw new Error('resposta sem versão');
+  return j;
+}
+async function procurarAtualizacoes(manual){
+  if(ECRA2 || _upd.estado==='a procurar' || _upd.estado==='a descarregar') return;
+  if(!navigator.onLine){ if(manual) flash('warn','Sem ligação à internet. Procura outra vez quando houver rede.'); return; }
+  _upd.estado='a procurar'; _upd.erro=''; renderQuandoLivre();
+  try{
+    if(updDesktop()){
+      const r=await window.fitDesktop.atualizacoes.procurar();
+      if(r.erro) throw new Error(r.erro);
+      _upd.programa=r.programa||null; _upd.precisaPrograma=!!r.precisaPrograma; _upd.notas=r.notas||'';
+      _upd.pronta= r.pronta||'';
+      if(r.disponivel && r.disponivel!==r.pronta){
+        _upd.estado='a descarregar'; renderQuandoLivre();
+        const d=await window.fitDesktop.atualizacoes.descarregar();
+        if(!d.ok) throw new Error(d.erro||'a descarga falhou');
+        _upd.pronta=d.versao;
+      }
+    } else {
+      const j=await lerVersaoWeb();
+      _upd.notas=j.notas||'';
+      _upd.disponivel= cmpVersao(j.versao, VERSAO_APP)>0? j.versao : '';
+    }
+    S.ui.updVisto=new Date().toISOString(); saveMeta();
+    _upd.estado='';
+    const nova=_upd.disponivel||_upd.pronta;
+    if(nova) toast('Há uma versão nova da Família Fit ('+nova+').',{rot:_upd.pronta? 'Reiniciar agora':'Atualizar agora', fn:'aplicarAtualizacao()'},'ok');
+    else if(_upd.programa && _upd.programa.disponivel && manual) flash('ok','A app está atualizada. Há uma versão nova do programa: '+_upd.programa.disponivel+'.');
+    else if(manual) flash('ok','Tens a versão mais recente ('+VERSAO_APP+').');
+  }catch(e){
+    _upd.estado=''; _upd.erro=String(e&&e.message||e);
+    if(manual) flash('warn','Não foi possível procurar atualizações agora ('+_upd.erro+'). Tenta mais tarde.');
+  }
+  renderQuandoLivre();
+}
+/* Antes de trocar de versão: o que está por gravar grava-se, e o que está
+   por mandar ao outro aparelho manda-se — para a sincronização retomar onde
+   estava quando a app voltar. */
+async function antesDeAtualizar(){
+  try{ writeLS(); }catch(e){}
+  try{ if(syncCfg() && canalSyncAberto()){ clearTimeout(_sync.envio);
+    await Promise.race([enviarEstadoSync(), new Promise(r=>setTimeout(r,2500))]); } }catch(e){}
+}
+async function aplicarAtualizacao(){
+  if(ECRA2) return;
+  await antesDeAtualizar();
+  if(updDesktop()){
+    if(!_upd.pronta) return procurarAtualizacoes(true);
+    try{ await window.fitDesktop.atualizacoes.copia(JSON.stringify(pacote())); }catch(e){}
+    try{ sessionStorage.setItem('ffit-upd-esperada', _upd.pronta); }catch(e){}
+    window.fitDesktop.atualizacoes.reiniciar();
+    return;
+  }
+  const v=_upd.disponivel; if(!v) return procurarAtualizacoes(true);
+  _upd.estado='a atualizar'; renderQuandoLivre();
+  /* o index.html novo, por cima da cache do browser (o site guarda-o 10 min)
+     e da cache da app — o service worker guarda o que passa por ele */
+  try{ await fetch('index.html?t='+Date.now(), {cache:'reload'}); await fetch('index.html', {cache:'reload'}); }catch(e){}
+  try{ const reg=navigator.serviceWorker && await navigator.serviceWorker.getRegistration(); if(reg) await reg.update(); }catch(e){}
+  try{ sessionStorage.setItem('ffit-upd-esperada', v); }catch(e){}
+  location.reload();
+}
+async function atualizarPrograma(){
+  if(!updDesktop() || !_upd.programa) return;
+  await antesDeAtualizar();
+  try{ await window.fitDesktop.atualizacoes.copia(JSON.stringify(pacote())); }catch(e){}
+  _upd.estado='a descarregar'; renderQuandoLivre();
+  const r=await window.fitDesktop.atualizacoes.programa();
+  _upd.estado='';
+  if(r && r.erro) flash('warn','Não foi possível atualizar o programa ('+r.erro+'). Podes descarregá-lo da página da versão.');
+  else if(r && r.pagina) flash('ok','Abriu-se a página da versão nova no browser. Os dados ficam onde estão: instalar por cima não apaga nada.');
+  renderQuandoLivre();
+}
+/* Depois de recarregar com a versão nova: confirmar que é mesmo ela. */
+function confirmaAtualizacao(){
+  let esperada=''; try{ esperada=sessionStorage.getItem('ffit-upd-esperada')||''; sessionStorage.removeItem('ffit-upd-esperada'); }catch(e){}
+  if(!esperada) return;
+  if(cmpVersao(VERSAO_APP, esperada)>=0) toast('Atualizada para a versão '+VERSAO_APP+'. Os dados e as preferências ficaram como estavam.',null,'ok');
+  else toast('A versão nova ainda não chegou a este aparelho (está na '+VERSAO_APP+'). Tenta outra vez daqui a uns minutos.',null,'warn');
+}
+/* O outro aparelho emparelhado diz em que versão está. Se for mais recente,
+   procura-se já — uma vez por sessão, sem barulho se não houver nada. */
+function notaVersaoOutro(v){
+  if(typeof v!=='string' || v.length>20) return;
+  _sync.versaoOutro=v;
+  if(cmpVersao(v, VERSAO_APP)>0 && !_sync.procurouPorOutro){ _sync.procurouPorOutro=true; procurarAtualizacoes(false); }
+}
+function cartaoAtualizacoes(){
+  const pc=updDesktop(), p=_upd.programa;
+  const estado=_upd.estado==='a procurar'? '<p class="sub" role="status" style="margin-top:8px">A procurar…</p>'
+    : _upd.estado==='a descarregar'? '<p class="sub" role="status" style="margin-top:8px">A descarregar a versão nova…</p>'
+    : _upd.estado==='a atualizar'? '<p class="sub" role="status" style="margin-top:8px">A atualizar…</p>' : '';
+  const nova=_upd.pronta||_upd.disponivel;
+  return `<div class="card" data-col="dados-upd">
+    <h3>Atualizações ${dica('atualizacoes')}</h3>
+    <div style="margin-top:10px">
+      <div class="kv"><span>Versão da app</span><b>${esc(VERSAO_APP)}</b></div>
+      ${pc? `<div class="kv"><span>Programa</span><b>${esc(window.fitDesktop.versao||'')}</b></div>`:''}
+      <div class="kv"><span>Última verificação</span><b>${S.ui.updVisto? dataHora(S.ui.updVisto) : 'ainda não'}</b></div>
+      ${_sync && _sync.versaoOutro? `<div class="kv"><span>O outro aparelho</span><b>${esc(_sync.versaoOutro)}</b></div>`:''}
+    </div>
+    ${estado}
+    ${nova? `<div class="msg ok" style="margin-top:10px">Há uma versão nova: <b>${esc(nova)}</b>${_upd.pronta? ' — já descarregada' : ''}.
+        ${_upd.notas? '<br>'+esc(_upd.notas) : ''}</div>
+      <div class="row" style="margin-top:8px"><button class="btn" onclick="aplicarAtualizacao()">${_upd.pronta? 'Reiniciar agora' : 'Atualizar agora'}</button></div>`:''}
+    ${pc && p && p.disponivel? `<div class="msg ${_upd.precisaPrograma?'warn':'ok'}" style="margin-top:10px">Há uma versão nova do programa: <b>${esc(p.disponivel)}</b>.
+        ${_upd.precisaPrograma? 'A próxima versão da app precisa dela.' : 'A app continua a atualizar-se sozinha sem ela.'}</div>
+      <div class="row" style="margin-top:8px"><button class="btn ${_upd.precisaPrograma?'':'ghost'}" onclick="atualizarPrograma()">${p.modo==='pagina'? 'Descarregar o programa novo' : 'Atualizar o programa'}</button></div>`:''}
+    ${_upd.erro? `<p class="sub" style="margin-top:8px">Da última vez não deu: ${esc(_upd.erro)}.</p>`:''}
+    <div class="row" style="margin-top:12px">
+      <button class="btn ghost" onclick="procurarAtualizacoes(true)" ${_upd.estado?'disabled':''}>Procurar atualizações</button>
+    </div>
+    <label class="toggle" style="margin-top:10px"><input type="checkbox" ${updAoIniciar()?'checked':''} onchange="setUpdArranque(this.checked)">
+      <span>Procurar sempre atualizações ao iniciar</span></label>
+    <p class="sub" style="margin-top:8px">Os dados e as preferências ficam como estão: a atualização muda a app, não o que lá guardaste.
+      ${pc? 'Antes de cada atualização fica uma cópia de segurança automática na pasta do programa, e se a versão nova não arrancar o programa volta sozinho à anterior.' : 'A versão nova entra ao tocar em «Atualizar agora», ou da próxima vez que abrires a app.'}</p>
+  </div>`;
+}
+/* Ao arrancar: diz ao programa que esta versão abriu bem (é o que o impede de
+   voltar à anterior), confirma uma atualização acabada de aplicar e, se a
+   opção estiver ligada, procura — com uns segundos de folga para não
+   atrasar o arranque. Com a app aberta dias seguidos, volta a procurar de
+   seis em seis horas. */
+if(!ECRA2){
+  try{ if(updDesktop()) window.fitDesktop.atualizacoes.arrancou(VERSAO_APP); }catch(e){}
+  setTimeout(confirmaAtualizacao, 800);
+  setTimeout(()=>{ if(updAoIniciar()) procurarAtualizacoes(false); }, 4000);
+  setInterval(()=>{ if(updAoIniciar() && !document.hidden) procurarAtualizacoes(false); }, 6*3600*1000);
+}
 
 /* Instalável no ecrã principal e utilizável sem rede (útil para a lista de
    compras no supermercado). Só corre em http/https — via file:// é ignorado. */

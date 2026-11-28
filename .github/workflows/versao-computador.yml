@@ -32,6 +32,10 @@ jobs:
           cache: npm
           cache-dependency-path: desktop/package-lock.json
       - run: npm ci
+      # O versao.json do site tem de corresponder aos ficheiros: é com ele que
+      # o programa confere o que descarrega ao atualizar-se.
+      - name: Verificar o versao.json
+        run: node ../scripts/versao.js --verificar
       - run: npm run preparar
       # Se falhar, as últimas linhas do registo vão para as anotações, que se
       # leem sem sessão iniciada.
@@ -80,7 +84,21 @@ jobs:
           path: artefactos
           merge-multiple: true
       - name: Versão web num .zip
-        run: zip -j "artefactos/familia-fit-${GITHUB_REF_NAME#v}-web.zip" index.html manifest.webmanifest sw.js icon.svg icon-180.png icon-192.png icon-512.png
+        run: zip -j "artefactos/familia-fit-${GITHUB_REF_NAME#v}-web.zip" index.html manifest.webmanifest sw.js versao.json icon.svg icon-180.png icon-192.png icon-512.png
+      # O que o programa lê para se atualizar a si próprio: o nome e a
+      # impressão digital do instalador do Windows e do AppImage desta versão.
+      - name: Lista do programa para a atualização automática
+        run: |
+          cd artefactos
+          INST=$(ls *-instalador-windows.exe | head -1); APPI=$(ls *.AppImage | head -1)
+          VERSAO=$(node -p "require('../desktop/package.json').version")
+          node -e '
+            const fs=require("fs"),c=require("crypto"),[v,i,a]=process.argv.slice(1);
+            const h=f=>c.createHash("sha256").update(fs.readFileSync(f)).digest("hex");
+            fs.writeFileSync("programa.json",JSON.stringify({versao:v,etiqueta:process.env.GITHUB_REF_NAME,
+              ficheiros:{instalador:{nome:i,sha256:h(i)},appimage:{nome:a,sha256:h(a)}}},null,1));
+          ' "$VERSAO" "$INST" "$APPI"
+          cat programa.json
       - uses: softprops/action-gh-release@v2
         with:
           name: Família Fit ${{ github.ref_name }}

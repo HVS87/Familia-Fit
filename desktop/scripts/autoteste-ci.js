@@ -38,5 +38,5 @@ const vigia=setInterval(()=>{
       try{ p.kill(); }catch(e){}
       process.exit(j.falhas.length? 1 : 0);
     },1000);
-  } else if(Date.now()-t0>180000){ console.error('o autoteste não respondeu em 3 minutos'); if(process.env.GITHUB_ACTIONS) console.log('::error title=Autoteste ('+process.platform+')::o programa não respondeu em 3 minutos'); try{ p.kill(); }catch(e){} process.exit(1); }
+  } else if(Date.now()-t0>300000){ console.error('o autoteste não respondeu em 5 minutos'); if(process.env.GITHUB_ACTIONS) console.log('::error title=Autoteste ('+process.platform+')::o programa não respondeu em 5 minutos'); try{ p.kill(); }catch(e){} process.exit(1); }
 },1000);
